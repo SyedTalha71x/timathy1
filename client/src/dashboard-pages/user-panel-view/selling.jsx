@@ -3,7 +3,7 @@
 /* eslint-disable react/no-unknown-property */
 /* eslint-disable no-unused-vars */
 import { useState, useRef, useEffect } from "react"
-import { X, Plus, ShoppingBasket, Edit, Check, Move, ExternalLink, History, Search, Trash2 } from "lucide-react"
+import { X, Plus, ShoppingBasket, Edit, Check, Move, ExternalLink, History, Search, Trash2, ShoppingCart } from "lucide-react"
 import ProductImage from "../../../public/default-avatar.avif"
 import { RiServiceFill } from "react-icons/ri"
 import SidebarAreaSelling from "../../components/user-panel-components/selling-components/custom-sidebar-selling"
@@ -214,6 +214,34 @@ function App() {
       window.removeEventListener("resize", handleResize)
     }
   }, [products, services])
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) { // Desktop
+        setIsRightSidebarOpen(true)
+      } else { // Mobile
+        setIsRightSidebarOpen(false)
+      }
+    }
+  
+    // Initial check
+    handleResize()
+  
+    // Add resize listener
+    window.addEventListener('resize', handleResize)
+    
+    return () => {
+      window.removeEventListener('resize', handleResize)
+    }
+  }, [])
+  
+  // Update the toggle function to handle mobile specifically
+  const toggleRightSidebar = () => {
+    if (window.innerWidth < 768) { // Mobile only
+      setIsRightSidebarOpen(!isRightSidebarOpen)
+    }
+    // On desktop, sidebar stays always open when selling menu is active
+  }
 
   const openAddModal = () => {
     setModalMode("add")
@@ -723,7 +751,7 @@ Payment Method: ${invoiceData.paymentMethod}
     setRightSidebarWidgets,
 
     // Functions
-    toggleRightSidebar,
+    // toggleRightSidebar,
     closeSidebar,
     toggleSidebarEditing,
     toggleDropdown,
@@ -1022,7 +1050,7 @@ Payment Method: ${invoiceData.paymentMethod}
       min-h-screen rounded-3xl text-white bg-[#1C1C1C]
       transition-all duration-500 ease-in-out flex-1
       ${isRightSidebarOpen
-            ? "lg:mr-[31%] mr-0" // Adjust right margin when sidebar is open on larger screens
+            ? "lg:mr-86 mr-0" // Adjust right margin when sidebar is open on larger screens
             : "mr-0" // No margin when closed
           }
     `}
@@ -1309,7 +1337,7 @@ Payment Method: ${invoiceData.paymentMethod}
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <div onClick={toggleRightSidebar} className="cursor-pointer relative ">
+                {/* <div onClick={toggleRightSidebar} className="cursor-pointer relative ">
                   {isRightSidebarOpen ? (<div onClick={toggleRightSidebar} className=" ">
                     <img src='/expand-sidebar mirrored.svg' className="h-5 w-5 cursor-pointer" alt="" />
                   </div>
@@ -1323,7 +1351,17 @@ Payment Method: ${invoiceData.paymentMethod}
                       {cart.reduce((sum, item) => sum + item.quantity, 0)}
                     </span>
                   )}
-                </div>
+                </div> */}
+                <div onClick={toggleRightSidebar} className="cursor-pointer relative">
+  {/* Basket icon instead of sidebar icon */}
+  <ShoppingCart size={20} className="text-white" />
+  
+  {cart.length > 0 && (
+    <span className="bg-orange-500 text-white text-[10px] rounded-full px-[5px] py-[2px] min-w-[18px] h-[18px] flex items-center justify-center absolute -top-2 -right-2">
+      {cart.reduce((sum, item) => sum + item.quantity, 0)}
+    </span>
+  )}
+</div>
               </div>
             </div>
             <div className="flex items-center mb-3 justify-end gap-2">
@@ -1368,10 +1406,10 @@ Payment Method: ${invoiceData.paymentMethod}
                 <span className="hidden sm:inline">Add {activeTab === "services" ? "Service" : "Product"}</span>
                 <span className="sm:hidden">Add</span>
               </button>
-            
+
             </div>
-            
-            {isEditModeActive && (
+
+            {/* {isEditModeActive && (
               <div className="bg-[#101010] p-3 rounded-xl mb-4 text-sm text-gray-300">
                 <div className="flex items-center gap-2 mb-2">
                   <Move size={16} className="text-[#3F74FF]" />
@@ -1380,7 +1418,7 @@ Payment Method: ${invoiceData.paymentMethod}
                   </span>
                 </div>
               </div>
-            )}
+            )} */}
 
             <div
               className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 
@@ -1409,19 +1447,36 @@ Payment Method: ${invoiceData.paymentMethod}
                       />
                     ) : (
                       <div className="w-full h-full bg-blue-600 flex items-center justify-center text-white text-center p-4">
-                        <p className="text-sm font-medium line-clamp-3">{item.name}</p>
+                        <p
+                          className={`font-medium line-clamp-3 ${item.name.length <= 20 ? "text-lg" :
+                              item.name.length <= 40 ? "text-base" :
+                                item.name.length <= 60 ? "text-sm" :
+                                  item.name.length <= 80 ? "text-xs" :
+                                    "text-[10px]"
+                            }`}
+                        >
+                          {item.name}
+                        </p>
                       </div>
                     )}
 
-                    {!isEditModeActive && (
-                      <button
-                        onClick={() => addToCart(item)}
-                        className="absolute bottom-3 right-3 bg-blue-800 cursor-pointer hover:bg-[#3F74FF]/90 text-white p-2 rounded-full transition-colors"
-                        aria-label="Add to cart"
-                      >
-                        <ShoppingBasket size={16} />
-                      </button>
-                    )}
+{!isEditModeActive && (
+  <div className="absolute bottom-3 right-3">
+    <button
+      onClick={() => addToCart(item)}
+      className="bg-blue-800 cursor-pointer hover:bg-[#3F74FF]/90 text-white p-2 rounded-full transition-colors relative"
+      aria-label="Add to cart"
+    >
+      <ShoppingBasket size={16} />
+      {/* Add number indicator for this specific item if it's in cart */}
+      {cart.some(cartItem => cartItem.id === item.id) && (
+        <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-[10px] rounded-full px-[4px] py-[1px] min-w-[16px] h-[16px] flex items-center justify-center border border-white">
+          {cart.find(cartItem => cartItem.id === item.id)?.quantity || 0}
+        </span>
+      )}
+    </button>
+  </div>
+)}
                     {isEditModeActive && (
                       <button
                         onClick={(e) => handleThreeDotsClick(e, item)}

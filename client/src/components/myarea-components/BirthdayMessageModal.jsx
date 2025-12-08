@@ -32,7 +32,7 @@ const BirthdayMessageModal = ({
           <div className="flex items-center gap-3 p-3 bg-black rounded-xl">
             <img
               src={selectedBirthdayPerson.avatar || "/placeholder.svg"}
-              className="h-10 w-10 rounded-full"
+              className="h-10 w-10 rounded-xl"
               alt={selectedBirthdayPerson.name}
             />
             <div>

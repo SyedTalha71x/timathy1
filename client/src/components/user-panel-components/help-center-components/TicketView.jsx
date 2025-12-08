@@ -3,8 +3,9 @@
 /* eslint-disable react/prop-types */
 import { ImageIcon } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
-import { List, X } from "react-feather"
+import { X } from "react-feather"
 import ReactQuill from "react-quill"
+import OrgaGymLogo from '../../../../public/Orgagym white without text.svg'
 
 const WysiwygEditor = ({ value, onChange, placeholder }) => {
   const modules = {
@@ -13,8 +14,7 @@ const WysiwygEditor = ({ value, onChange, placeholder }) => {
       ['bold', 'italic', 'underline', 'strike'],
       [{ 'list': 'ordered' }, { 'list': 'bullet' }],
       [{ 'align': [] }],
-      [{ 'color': [] }, { 'background': [] }],
-      ['link', 'image'],
+      ['link'],
       ['clean']
     ],
   }
@@ -24,25 +24,28 @@ const WysiwygEditor = ({ value, onChange, placeholder }) => {
     'bold', 'italic', 'underline', 'strike',
     'list', 'bullet',
     'align',
-    'color', 'background',
-    'link', 'image'
+    'link'
   ]
 
-  // Add custom CSS for placeholder
+  // Add custom CSS for placeholder and fix toolbar visibility
   useEffect(() => {
     const style = document.createElement('style')
     style.textContent = `
       .ql-editor.ql-blank::before {
         color: #ffffff !important;
         opacity: 0.7 !important;
-        font-style: normal !important;
       }
       .ql-editor {
         color: #ffffff !important;
+        min-height: 120px;
+        max-height: 200px;
+        overflow-y: auto;
       }
       .ql-toolbar {
         border-color: #303030 !important;
         background-color: #151515 !important;
+        position: relative;
+        z-index: 10;
       }
       .ql-container {
         border-color: #303030 !important;
@@ -56,6 +59,22 @@ const WysiwygEditor = ({ value, onChange, placeholder }) => {
       }
       .ql-snow .ql-picker-label {
         color: #ffffff !important;
+      }
+      .ql-snow .ql-picker-options {
+        background-color: #151515 !important;
+        border-color: #303030 !important;
+      }
+      .ql-snow .ql-picker-item {
+        color: #ffffff !important;
+      }
+      .ql-snow .ql-tooltip {
+        background-color: #151515 !important;
+        border-color: #303030 !important;
+        color: #ffffff !important;
+        z-index: 20;
+      }
+      .ql-snow .ql-tooltip input[type="text"] {
+        color: #000000 !important;
       }
     `
     document.head.appendChild(style)
@@ -77,13 +96,11 @@ const WysiwygEditor = ({ value, onChange, placeholder }) => {
   )
 }
 
+
 const TicketView = ({ ticket, onClose, onUpdateTicket }) => {
     const [replyText, setReplyText] = useState("")
     const [uploadedImages, setUploadedImages] = useState([])
-    const [isBold, setIsBold] = useState(false)
-    const [isItalic, setIsItalic] = useState(false)
     const [showCloseConfirm, setShowCloseConfirm] = useState(false)
-    const textareaRef = useRef(null)
     const fileInputRef = useRef(null)
   
     const isTicketClosed = ticket.status === "Closed"
@@ -96,8 +113,6 @@ const TicketView = ({ ticket, onClose, onUpdateTicket }) => {
           content: replyText,
           timestamp: new Date().toLocaleDateString("en-GB"),
           images: uploadedImages,
-          isBold: isBold,
-          isItalic: isItalic,
         }
   
         const updatedTicket = {
@@ -108,8 +123,6 @@ const TicketView = ({ ticket, onClose, onUpdateTicket }) => {
         onUpdateTicket(updatedTicket)
         setReplyText("")
         setUploadedImages([])
-        setIsBold(false)
-        setIsItalic(false)
       }
     }
   
@@ -130,29 +143,6 @@ const TicketView = ({ ticket, onClose, onUpdateTicket }) => {
       setShowCloseConfirm(false)
     }
   
-    const toggleBold = () => {
-      setIsBold(!isBold)
-    }
-  
-    const toggleItalic = () => {
-      setIsItalic(!isItalic)
-    }
-  
-    const addBulletPoint = () => {
-      const textarea = textareaRef.current
-      if (!textarea) return
-  
-      const start = textarea.selectionStart
-      const text = textarea.value
-      const lines = text.split("\n")
-      const currentLineIndex = text.substring(0, start).split("\n").length - 1
-  
-      if (!lines[currentLineIndex].startsWith("• ")) {
-        lines[currentLineIndex] = "• " + lines[currentLineIndex]
-        setReplyText(lines.join("\n"))
-      }
-    }
-  
     const handleImageUpload = (e) => {
       const files = Array.from(e.target.files)
       files.forEach((file) => {
@@ -169,18 +159,13 @@ const TicketView = ({ ticket, onClose, onUpdateTicket }) => {
     }
   
     const renderMessageContent = (message) => {
-      const style = {}
-      if (message.isBold) style.fontWeight = "bold"
-      if (message.isItalic) style.fontStyle = "italic"
-  
+      // Always render as HTML to preserve formatting
       return (
         <div>
           <div
-            style={style}
-            className="text-gray-100 text-sm sm:text-base leading-relaxed break-words whitespace-pre-wrap"
-          >
-            {message.content}
-          </div>
+            className="text-gray-100 text-sm sm:text-base leading-relaxed break-words rich-text-content"
+            dangerouslySetInnerHTML={{ __html: message.content }}
+          />
           {message.images && message.images.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-2">
               {message.images.map((img, idx) => (
@@ -260,15 +245,19 @@ const TicketView = ({ ticket, onClose, onUpdateTicket }) => {
               <div className="space-y-4 sm:space-y-6">
                 {ticket.messages.map((message) => (
                   <div key={message.id} className="flex items-start gap-2 sm:gap-3">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                    {message.sender === "user" ? (<div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-500 rounded-xl flex items-center justify-center flex-shrink-0">
                       <span className="text-white font-bold text-xs sm:text-sm">
-                        {message.sender === "user" ? "U" : "G"}
+                        U
                       </span>
+                    </div>):(
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 bg-orange-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                     <img src={OrgaGymLogo} className="h-8 w-8 rounded-xl" alt="" />
                     </div>
+                    )}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1 sm:mb-2">
                         <span className="font-medium text-white text-sm sm:text-base">
-                          {message.sender === "user" ? "You" : "GamsGo"}
+                          {message.sender === "user" ? "You" : "OrgaGym"}
                         </span>
                         <span className="text-gray-400 text-xs sm:text-sm">{message.timestamp}</span>
                       </div>
@@ -280,77 +269,77 @@ const TicketView = ({ ticket, onClose, onUpdateTicket }) => {
             </div>
     
             <div className="border-t border-gray-600 p-3 sm:p-4 flex-shrink-0 bg-[#2A2A2A]">
-  {isTicketClosed ? (
-    <div className="text-center text-gray-400 py-4 bg-[#1C1C1C] rounded-lg">
-      <div className="text-sm font-medium mb-1">This ticket is closed</div>
-      <div className="text-xs">You cannot send replies anymore.</div>
-    </div>
-  ) : (
-    <>
-      <div className="mb-3 sm:mb-4">
-        {/* Image upload section */}
-        <div className="mb-3">
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleImageUpload}
-            accept="image/*"
-            multiple
-            className="hidden"
-          />
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
-          >
-            <ImageIcon size={16} />
-            Attach Images
-          </button>
-          
-          {uploadedImages.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-2">
-              {uploadedImages.map((img, idx) => (
-                <div key={idx} className="relative">
-                  <img src={img || "/placeholder.svg"} alt="Preview" className="w-20 h-20 object-cover rounded border border-gray-600" />
-                  <button
-                    onClick={() => removeImage(idx)}
-                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
-                  >
-                    ×
-                  </button>
+              {isTicketClosed ? (
+                <div className="text-center text-gray-400 py-4 bg-[#1C1C1C] rounded-lg">
+                  <div className="text-sm font-medium mb-1">This ticket is closed</div>
+                  <div className="text-xs">You cannot send replies anymore.</div>
                 </div>
-              ))}
+              ) : (
+                <>
+                  <div className="mb-3 sm:mb-4">
+                    {/* Image upload section */}
+                    <div className="mb-3">
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleImageUpload}
+                        accept="image/*"
+                        multiple
+                        className="hidden"
+                      />
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
+                      >
+                        <ImageIcon size={16} />
+                        Attach Images
+                      </button>
+                      
+                      {uploadedImages.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {uploadedImages.map((img, idx) => (
+                            <div key={idx} className="relative">
+                              <img src={img || "/placeholder.svg"} alt="Preview" className="w-20 h-20 object-cover rounded border border-gray-600" />
+                              <button
+                                onClick={() => removeImage(idx)}
+                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* WYSIWYG Editor with fixed height and scrollable content */}
+                    <div className="border border-gray-600 rounded-lg overflow-hidden bg-[#101010] h-64 flex flex-col">
+                      <WysiwygEditor
+                        value={replyText}
+                        onChange={setReplyText}
+                        placeholder="Type your reply here..."
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-0">
+                    <button
+                      onClick={handleCloseTicket}
+                      className="w-full sm:w-auto px-4 sm:px-6 py-2 text-white text-sm rounded-lg bg-gray-600 hover:bg-gray-700 font-medium transition-colors order-2 sm:order-1"
+                    >
+                      Close ticket
+                    </button>
+                    <button
+                      onClick={handleAddReply}
+                      disabled={!replyText.trim()}
+                      className="w-full sm:w-auto px-4 sm:px-6 py-2 bg-blue-600 text-white rounded-md sm:rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm transition-colors order-1 sm:order-2"
+                    >
+                      Add Reply
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
-          )}
-        </div>
-
-        {/* WYSIWYG Editor */}
-        <div className="border border-gray-600 rounded-lg overflow-hidden bg-[#101010]">
-          <WysiwygEditor
-            value={replyText}
-            onChange={setReplyText}
-            placeholder="Type your reply here..."
-          />
-        </div>
-      </div>
-
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-0">
-        <button
-          onClick={handleCloseTicket}
-          className="w-full sm:w-auto px-4 sm:px-6 py-2 text-white text-sm rounded-lg bg-gray-600 hover:bg-gray-700 font-medium transition-colors order-2 sm:order-1"
-        >
-          Close ticket
-        </button>
-        <button
-          onClick={handleAddReply}
-          disabled={!replyText.trim()}
-          className="w-full sm:w-auto px-4 sm:px-6 py-2 bg-blue-600 text-white rounded-md sm:rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm transition-colors order-1 sm:order-2"
-        >
-          Add Reply
-        </button>
-      </div>
-    </>
-  )}
-</div>
           </div>
         </div>
 

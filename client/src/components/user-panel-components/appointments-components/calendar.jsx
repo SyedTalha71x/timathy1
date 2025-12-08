@@ -1,7 +1,7 @@
-/* eslint-disable react/no-unknown-property */ /* eslint-disable no-unused-vars */ /* eslint-disable react/prop-types */ /* eslint-disable react/no-unescaped-entities */
+ /* eslint-disable no-unused-vars */ /* eslint-disable react/prop-types */
 import FullCalendar from "@fullcalendar/react"
 import toast, { Toaster } from "react-hot-toast"
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import dayGridPlugin from "@fullcalendar/daygrid"
 import timeGridPlugin from "@fullcalendar/timegrid"
 import interactionPlugin from "@fullcalendar/interaction"
@@ -23,6 +23,8 @@ import TypeSelectionModalMain from "./calendar-components/TypeSelectionModalMain
 import ContingentModalMain from "./calendar-components/ContingentModalMain"
 import AppointmentModalMain from "./calendar-components/AppointmentModalMain"
 import EditBlockedSlotModalMain from "./calendar-components/EditBlockedSlotModalMain"
+
+import "../../../custom-css/calendar-fixes.css"
 
 export default function Calendar({
   appointmentsMain,
@@ -51,6 +53,10 @@ export default function Calendar({
   const [showHistoryModal, setShowHistoryModal] = useState(false)
   const [showListView, setShowListView] = useState(false)
   const [historyTab, setHistoryTab] = useState("general")
+
+  const [showAllAppointmentsModal, setShowAllAppointmentsModal] = useState(false)
+  const [allAppointmentsForDay, setAllAppointmentsForDay] = useState([])
+  const [selectedDayDate, setSelectedDayDate] = useState("")
 
   // New state for expanded days in month view
   const [expandedDays, setExpandedDays] = useState({})
@@ -474,10 +480,82 @@ export default function Calendar({
     }
   }, [])
 
+  // Inside your Calendar component, add:
+  const calendarContainerRef = useRef(null);
+
+  // Add this function to prevent wheel event propagation
+  const preventParentScroll = useCallback((e) => {
+    if (calendarContainerRef.current) {
+      const calendarElement = calendarContainerRef.current;
+      const isScrollable = calendarElement.scrollHeight > calendarElement.clientHeight;
+
+      if (isScrollable) {
+        // Check if we're at the top or bottom of the calendar
+        const atTop = calendarElement.scrollTop === 0;
+        const atBottom = calendarElement.scrollTop + calendarElement.clientHeight >= calendarElement.scrollHeight;
+
+        // If at top scrolling up, or at bottom scrolling down, allow parent scroll
+        if ((atTop && e.deltaY < 0) || (atBottom && e.deltaY > 0)) {
+          return; // Allow event to bubble
+        }
+
+        // Otherwise, scroll the calendar and prevent parent scroll
+        e.stopPropagation();
+        e.preventDefault();
+      }
+    }
+  }, []);
+
+  // Add event listeners
+  useEffect(() => {
+    const calendarElement = calendarContainerRef.current;
+    if (!calendarElement) return;
+
+    // Add wheel event listener with passive: false for preventDefault to work
+    calendarElement.addEventListener('wheel', preventParentScroll, { passive: false });
+
+    return () => {
+      calendarElement.removeEventListener('wheel', preventParentScroll);
+    };
+  }, [preventParentScroll]);
+
+  // Add touch event handlers for mobile
+  useEffect(() => {
+    const calendarElement = calendarContainerRef.current;
+    if (!calendarElement) return;
+
+    const preventTouch = (e) => {
+      if (calendarElement.scrollHeight > calendarElement.clientHeight) {
+        const atTop = calendarElement.scrollTop === 0;
+        const atBottom = calendarElement.scrollTop + calendarElement.clientHeight >= calendarElement.scrollHeight;
+
+        if ((atTop && e.touches[0].clientY > 0) || (atBottom && e.touches[0].clientY < 0)) {
+          return;
+        }
+
+        e.stopPropagation();
+      }
+    };
+
+    calendarElement.addEventListener('touchstart', preventTouch, { passive: false });
+    calendarElement.addEventListener('touchmove', preventTouch, { passive: false });
+
+    return () => {
+      calendarElement.removeEventListener('touchstart', preventTouch);
+      calendarElement.removeEventListener('touchmove', preventTouch);
+    };
+  }, []);
+
   // Function to hide tooltip
   const hideTooltip = () => {
-    setTooltip({ show: false, x: 0, y: 0, content: null })
-  }
+    setTooltip({ show: false, x: 0, y: 0, content: null });
+    // Also force hide any lingering tooltip
+    const tooltips = document.querySelectorAll('.tooltip-container');
+    tooltips.forEach(tooltip => {
+      tooltip.style.display = 'none';
+      tooltip.style.visibility = 'hidden';
+    });
+  };
 
   const calculateAge = (dateOfBirth) => {
     if (!dateOfBirth) return ""
@@ -541,6 +619,20 @@ export default function Calendar({
     }
     setAppointmentsMain([...appointmentsMain, newTrial])
     toast.success("Trial training booked successfully")
+  }
+
+  const handleShowAllAppointments = (dateString, appointments, e) => {
+    e.stopPropagation()
+    e.preventDefault()
+    setSelectedDayDate(dateString)
+    setAllAppointmentsForDay(appointments)
+    setShowAllAppointmentsModal(true)
+  }
+
+  const handleCloseAllAppointmentsModal = () => {
+    setShowAllAppointmentsModal(false)
+    setAllAppointmentsForDay([])
+    setSelectedDayDate("")
   }
 
   const generateFreeDates = () => {
@@ -609,7 +701,17 @@ export default function Calendar({
     setNotifyAction("change")
     setIsNotifyMemberOpen(true)
   }
+
   const handleDateSelect = (selectInfo) => {
+    const clickedElement = selectInfo.jsEvent?.target;
+
+
+    if (clickedElement && clickedElement.classList &&
+      (clickedElement.classList.contains('fc-daygrid-more-link') ||
+        clickedElement.closest('.fc-daygrid-more-link'))) {
+      return;
+    }
+
     setSelectedSlotInfo(selectInfo)
     setIsTypeSelectionOpen(true)
   }
@@ -1040,12 +1142,12 @@ export default function Calendar({
       const startDateTimeStr = `${dateStr}T${freeSlot.time}`
       return {
         id: freeSlot.id,
-        title: "Available Slot",
+        title: "Available", // Changed from "Available Slot"
         start: startDateTimeStr,
         end: new Date(new Date(startDateTimeStr).getTime() + 60 * 60 * 1000).toISOString(),
-        backgroundColor: viewMode === "free" ? "#e5e7eb" : "#4a4a4a", // gray-200
-        borderColor: viewMode === "free" ? "#d1d5db" : "#555555", // gray-300
-        textColor: viewMode === "free" ? "#1f2937" : "#888888", // dark gray text
+        backgroundColor: viewMode === "free" ? "#e5e7eb" : "#4a4a4a",
+        borderColor: viewMode === "free" ? "#d1d5db" : "#555555",
+        textColor: "#FFFFFF", // Always white text
         opacity: viewMode === "free" ? 1 : 0.4,
         extendedProps: {
           isFree: true,
@@ -1101,115 +1203,108 @@ export default function Calendar({
 
       <div className="h-full w-full">
         <div className="w-full bg-black">
-          <div
-            className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-2 px-2"
-            style={{ minHeight: "40px", flexShrink: 0 }}
-          >
-            <div
-              className="flex items-center justify-between md:flex-row flex-col w-full mb-2 gap-2 px-2"
-              style={{ minHeight: "40px", flexShrink: 0 }}
-            >
-              <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-                <button
-                  onClick={() => {
-                    const calendarApi = calendarRef.current?.getApi()
-                    if (calendarApi) {
-                      calendarApi.prev()
-                      setCurrentDate(calendarApi.getDate().toISOString().split("T")[0])
-                      setTimeout(() => {
-                        setCurrentDateDisplay(formatDateRange(calendarApi.getDate()))
-                      }, 100)
-                    }
-                  }}
-                  className="p-1.5 sm:p-2 rounded-md bg-gray-600 hover:bg-gray-700 cursor-pointer text-white transition-colors"
-                  aria-label="Previous"
-                >
-                  <GoArrowLeft className="w-3 h-3 sm:w-4 sm:h-4" />
-                </button>
-                <button
-                  onClick={() => {
-                    const calendarApi = calendarRef.current?.getApi()
-                    if (calendarApi) {
-                      calendarApi.next()
-                      setCurrentDate(calendarApi.getDate().toISOString().split("T")[0])
-                      setTimeout(() => {
-                        setCurrentDateDisplay(formatDateRange(calendarApi.getDate()))
-                      }, 100)
-                    }
-                  }}
-                  className="p-1.5 sm:p-2 rounded-md bg-gray-600 hover:bg-gray-700 cursor-pointer text-white transition-colors"
-                  aria-label="Next"
-                >
-                  <GoArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
-                </button>
+          <div className="flex items-center justify-between w-full mb-2 px-2" style={{ minHeight: "40px", flexShrink: 0 }}>
+            {/* Always show left/right arrows */}
+            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+              <button
+                onClick={() => {
+                  const calendarApi = calendarRef.current?.getApi();
+                  if (calendarApi) {
+                    calendarApi.prev();
+                    setCurrentDate(calendarApi.getDate().toISOString().split("T")[0]);
+                    setTimeout(() => {
+                      setCurrentDateDisplay(formatDateRange(calendarApi.getDate()));
+                    }, 100);
+                  }
+                }}
+                className="p-1.5 sm:p-2 rounded-md bg-gray-600 hover:bg-gray-700 cursor-pointer text-white transition-colors"
+                aria-label="Previous"
+              >
+                <GoArrowLeft className="w-3 h-3 sm:w-4 sm:h-4" />
+              </button>
+              <button
+                onClick={() => {
+                  const calendarApi = calendarRef.current?.getApi();
+                  if (calendarApi) {
+                    calendarApi.next();
+                    setCurrentDate(calendarApi.getDate().toISOString().split("T")[0]);
+                    setTimeout(() => {
+                      setCurrentDateDisplay(formatDateRange(calendarApi.getDate()));
+                    }, 100);
+                  }
+                }}
+                className="p-1.5 sm:p-2 rounded-md bg-gray-600 hover:bg-gray-700 cursor-pointer text-white transition-colors"
+                aria-label="Next"
+              >
+                <GoArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
+              </button>
+
+              {/* Show month/week/day controls only on desktop */}
+              {!isMobile && (
                 <div className="flex bg-gray-700 rounded-md overflow-hidden">
                   <button
                     onClick={() => {
-                      const calendarApi = calendarRef.current?.getApi()
+                      const calendarApi = calendarRef.current?.getApi();
                       if (calendarApi) {
-                        calendarApi.changeView("dayGridMonth")
+                        calendarApi.changeView("dayGridMonth");
                         setTimeout(() => {
-                          setCurrentDateDisplay(formatDateRange(calendarApi.getDate()))
-                        }, 100)
+                          setCurrentDateDisplay(formatDateRange(calendarApi.getDate()));
+                        }, 100);
                       }
                     }}
-                    className={`px-2 py-1.5 sm:px-3 sm:py-2 text-white border-r border-slate-200/20 cursor-pointer hover:bg-gray-600 transition-colors text-xs sm:text-sm ${calendarRef.current?.getApi()?.view?.type === "dayGridMonth" ? "bg-gray-500" : "bg-gray-600"
-                      }`}
+                    className={`px-2 py-1.5 sm:px-3 sm:py-2 text-white border-r border-slate-200/20 cursor-pointer hover:bg-gray-600 transition-colors text-xs sm:text-sm ${calendarRef.current?.getApi()?.view?.type === "dayGridMonth" ? "bg-gray-500" : "bg-gray-600"}`}
                   >
                     Month
                   </button>
                   <button
                     onClick={() => {
-                      const calendarApi = calendarRef.current?.getApi()
+                      const calendarApi = calendarRef.current?.getApi();
                       if (calendarApi) {
-                        calendarApi.changeView("timeGridWeek")
+                        calendarApi.changeView("timeGridWeek");
                         setTimeout(() => {
-                          setCurrentDateDisplay(formatDateRange(calendarApi.getDate()))
-                        }, 100)
+                          setCurrentDateDisplay(formatDateRange(calendarApi.getDate()));
+                        }, 100);
                       }
                     }}
-                    className={`px-2 py-1.5 sm:px-3 sm:py-2 text-white border-r border-slate-200/20 cursor-pointer hover:bg-gray-600 transition-colors text-xs sm:text-sm ${calendarRef.current?.getApi()?.view?.type === "timeGridWeek" ? "bg-gray-500" : "bg-gray-600"
-                      }`}
+                    className={`px-2 py-1.5 sm:px-3 sm:py-2 text-white border-r border-slate-200/20 cursor-pointer hover:bg-gray-600 transition-colors text-xs sm:text-sm ${calendarRef.current?.getApi()?.view?.type === "timeGridWeek" ? "bg-gray-500" : "bg-gray-600"}`}
                   >
                     Week
                   </button>
                   <button
                     onClick={() => {
-                      const calendarApi = calendarRef.current?.getApi()
+                      const calendarApi = calendarRef.current?.getApi();
                       if (calendarApi) {
-                        calendarApi.changeView("timeGridDay")
+                        calendarApi.changeView("timeGridDay");
                         setTimeout(() => {
-                          setCurrentDateDisplay(formatDateRange(calendarApi.getDate()))
-                        }, 100)
+                          setCurrentDateDisplay(formatDateRange(calendarApi.getDate()));
+                        }, 100);
                       }
                     }}
-                    className={`px-2 py-1.5 sm:px-3 sm:py-2 text-white cursor-pointer hover:bg-gray-600 transition-colors text-xs sm:text-sm ${calendarRef.current?.getApi()?.view?.type === "timeGridDay" ? "bg-gray-500" : "bg-gray-600"
-                      }`}
+                    className={`px-2 py-1.5 sm:px-3 sm:py-2 text-white cursor-pointer hover:bg-gray-600 transition-colors text-xs sm:text-sm ${calendarRef.current?.getApi()?.view?.type === "timeGridDay" ? "bg-gray-500" : "bg-gray-600"}`}
                   >
                     Day
                   </button>
                 </div>
-              </div>
+              )}
+            </div>
 
-              {/* CENTER: Custom Date Display */}
-              <div className="flex-1 text-center px-2">
-                <h2 className="text-sm sm:text-lg md:text-xl font-semibold text-white whitespace-nowrap overflow-hidden text-ellipsis">
-                  {currentDateDisplay}
-                </h2>
-              </div>
+            {/* CENTER: Date Display */}
+            <div className="flex-1 text-center px-2">
+              <h2 className="text-sm sm:text-lg md:text-xl font-semibold text-white whitespace-nowrap overflow-hidden text-ellipsis">
+                {currentDateDisplay}
+              </h2>
+            </div>
 
-              {/* RIGHT: View toggle and Free Slots */}
-              <div className=" items-center gap-1 md:inline  sm:gap-2 flex-shrink-0">
-                <button
-                  onClick={generateFreeDates}
-                  className={`p-1.5 sm:p-1.5 rounded-md text-white px-2 py-1.5 sm:px-3 sm:py-2 font-medium text-xs sm:text-sm transition-colors flex-shrink-0 ${viewMode === "all" ? "bg-gray-600 hover:bg-gray-500" : "bg-gray-500 hover:bg-gray-600"
-                    }`}
-                  aria-label={viewMode === "all" ? "Show Free Slots" : "Show All Slots"}
-                >
-                  <span className="hidden sm:inline">{viewMode === "all" ? "Free Slots" : "All Slots"}</span>
-                  <span className="sm:hidden">{viewMode === "all" ? "Free Slots" : "All Slots"}</span>
-                </button>
-              </div>
+            {/* RIGHT: Free Slots Button */}
+            <div className="flex items-center gap-1 md:inline sm:gap-2 flex-shrink-0">
+              <button
+                onClick={generateFreeDates}
+                className={`p-1.5 sm:p-1.5 rounded-md text-white px-2 py-1.5 sm:px-3 sm:py-2 font-medium text-xs sm:text-sm transition-colors flex-shrink-0 ${viewMode === "all" ? "bg-gray-600 hover:bg-gray-500" : "bg-gray-500 hover:bg-gray-600"}`}
+                aria-label={viewMode === "all" ? "Show Free Slots" : "Show All Slots"}
+              >
+                <span className="hidden sm:inline">{viewMode === "all" ? "Free Slots" : "All Slots"}</span>
+                <span className="sm:hidden">{viewMode === "all" ? "Free" : "All"}</span>
+              </button>
             </div>
           </div>
 
@@ -1272,7 +1367,7 @@ export default function Calendar({
               initialView="timeGridWeek"
               initialDate={selectedDate || "2025-02-03"}
               events={calendarEvents}
-              height={isMobile ? "calc(100vh - 200px)" : "930px"} // Dynamic height for mobile
+              height={isMobile ? "calc(100vh - 150px)" : "700px"} // Dynamic height for mobile
               selectable={true}
               headerToolbar={false}
               editable={true}
@@ -1281,25 +1376,49 @@ export default function Calendar({
               slotMaxTime="19:00:00"
               allDaySlot={false}
               nowIndicator={true}
-              slotDuration="00:30:00"
+              slotDuration="00:15:00"
+              slotLabelInterval="00:30:00"
+              slotLabelFormat={{
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true,
+                meridiem: 'short'
+              }}
+              // Add this for more compact slots
+              slotHeight={35}
+              slotEventOverlap={false}
               firstDay={1}
               eventClick={handleEventClick}
               eventResize={handleEventResize}
               select={handleDateSelect}
-              slotEventOverlap={false}
               eventOverlap={false}
 
               eventDragStart={(info) => {
-                // Hide tooltip when drag starts
-                hideTooltip()
+                // Hide tooltip and add dragging class
+                hideTooltip();
+                document.body.classList.add('dragging-active');
+                info.el.classList.add('fc-event-dragging');
               }}
+
               eventDragStop={(info) => {
-                hideTooltip()
-                // Tooltip will be shown again on mouse enter if needed
+                // Clean up dragging state
+                document.body.classList.remove('dragging-active');
+                info.el.classList.remove('fc-event-dragging');
+                hideTooltip();
               }}
+
               eventResizeStart={(info) => {
-                // Hide tooltip when resize starts
-                hideTooltip()
+                // Hide tooltip during resize
+                hideTooltip();
+                document.body.classList.add('dragging-active');
+                info.el.classList.add('fc-event-resizing');
+              }}
+
+              eventResizeStop={(info) => {
+                // Clean up resize state
+                document.body.classList.remove('dragging-active');
+                info.el.classList.remove('fc-event-resizing');
+                hideTooltip();
               }}
 
               dayMaxEvents={false} // Remove the limit to show all appointments
@@ -1327,10 +1446,13 @@ export default function Calendar({
               }}
               datesSet={(info) => {
                 setTimeout(() => {
-                  setCurrentDateDisplay(formatDateRange(info.view.currentStart))
-                }, 100)
+                  setCurrentDateDisplay(formatDateRange(info.view.currentStart));
+                  // Clean up drag states
+                  document.body.classList.remove('dragging-active');
+                  hideTooltip();
+                }, 100);
               }}
-              // Custom day cell content for month view
+              // Update the dayCellContent function in your FullCalendar props:
               dayCellContent={(args) => {
                 if (calendarRef.current?.getApi()?.view?.type === "dayGridMonth") {
                   const date = new Date(args.date)
@@ -1345,17 +1467,20 @@ export default function Calendar({
                     return appointmentDate === formattedDate
                   })
 
-                  const isExpanded = expandedDays[dateString]
-                  const displayAppointments = isExpanded ? dayAppointments : dayAppointments.slice(0, 3)
+                  // Show 3 appointments then "+ more"
+                  const displayAppointments = dayAppointments.slice(0, 3)
                   const moreCount = dayAppointments.length - 3
 
                   return (
-                    <div className="fc-daygrid-day-frame">
+                    <div className="fc-daygrid-day-frame" style={{ height: '100%', minHeight: '120px' }}>
                       <div className="fc-daygrid-day-top">
                         <span className="fc-daygrid-day-number">{args.dayNumberText}</span>
                       </div>
-                      <div className="fc-daygrid-day-events">
-
+                      <div className="fc-daygrid-day-events" style={{
+                        minHeight: '85px',
+                        maxHeight: '85px',
+                        overflow: 'hidden'
+                      }}>
                         {displayAppointments.map((appointment, index) => {
                           // Use the same styling logic as in other views
                           const isPastEvent = appointment.isPast || false
@@ -1368,20 +1493,17 @@ export default function Calendar({
                           let opacity = 1
 
                           if (isCancelledEvent) {
-                            // Cancelled appointments - diagonal stripes
                             backgroundColor = "#4a4a4a"
                             borderColor = "#777777"
                             textColor = "#bbbbbb"
                             opacity = 0.6
                           } else if (isPastEvent) {
-                            // Past appointments - darker and more opaque
                             backgroundColor = "#1a1a1a"
                             borderColor = "#2a2a2a"
                             textColor = "#555555"
                             opacity = 0.4
                           } else if (isBlockedEvent) {
-                            // Blocked appointments - red with pattern
-                            backgroundColor = "#dc2626" // red-600
+                            backgroundColor = "#dc2626"
                             borderColor = "#dc2626"
                             textColor = "#ffffff"
                             opacity = 0.8
@@ -1399,7 +1521,12 @@ export default function Calendar({
                                 marginBottom: "2px",
                                 padding: "2px 4px",
                                 borderRadius: "3px",
-                                fontSize: "11px",
+                                fontSize: "10px",
+                                lineHeight: "1.1",
+                                height: "20px",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
                                 opacity: opacity,
                               }}
                               onClick={(e) => {
@@ -1433,9 +1560,16 @@ export default function Calendar({
                                 hideTooltip()
                               }}
                             >
-                              <div className="fc-event-main">
+                              <div className="fc-event-main" style={{ overflow: 'hidden' }}>
                                 <div className="fc-event-title-container">
-                                  <div className="fc-event-title fc-sticky">
+                                  <div className="fc-event-title fc-sticky" style={{
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
+                                    fontSize: '9px',
+                                    fontWeight: '500',
+                                    lineHeight: '1.1'
+                                  }}>
                                     {appointment.name}
                                   </div>
                                 </div>
@@ -1443,42 +1577,36 @@ export default function Calendar({
                             </div>
                           )
                         })}
-                        {!isExpanded && moreCount > 0 && (
+                        {moreCount > 0 && (
                           <div
                             className="fc-daygrid-more-link"
                             style={{
-                              fontSize: "11px",
-                              color: "#666",
+                              fontSize: "10px",
+                              color: "#3b82f6",
                               marginTop: "2px",
                               cursor: "pointer",
+                              padding: "2px 4px",
+                              height: "18px",
+                              lineHeight: "1.1",
+                              // backgroundColor: "#f0f9ff",
+                              // border: "1px solid #bfdbfe",
+                              // borderRadius: "3px",
+                              textAlign: "center",
+                              fontWeight: "500",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center"
                             }}
                             onClick={(e) => {
-                              e.stopPropagation(); // Stop event bubbling
-                              e.preventDefault(); // Prevent default
-                              handleToggleDayExpand(dateString, e);
+                              e.stopPropagation();
+                              e.preventDefault();
+                              handleShowAllAppointments(dateString, dayAppointments, e);
                             }}
                           >
                             +{moreCount} more
                           </div>
                         )}
-                        {isExpanded && moreCount > 0 && (
-                          <div
-                            className="fc-daygrid-more-link"
-                            style={{
-                              fontSize: "11px",
-                              color: "#666",
-                              marginTop: "2px",
-                              cursor: "pointer",
-                            }}
-                            onClick={(e) => {
-                              e.stopPropagation(); // Stop event bubbling
-                              e.preventDefault(); // Prevent default
-                              handleToggleDayExpand(dateString, e);
-                            }}
-                          >
-                            Show less
-                          </div>
-                        )}
+
                       </div>
                     </div>
                   )
@@ -1521,11 +1649,22 @@ export default function Calendar({
               }}
               // EVENT MOUSE ENTER/LEAVE for tooltip
               eventMouseEnter={(info) => {
-                showTooltip(info.event, info.jsEvent)
+                // Don't show tooltip if dragging/resizing
+                if (document.body.classList.contains('dragging-active') ||
+                  info.el.classList.contains('fc-event-dragging') ||
+                  info.el.classList.contains('fc-event-resizing')) {
+                  return;
+                }
+                showTooltip(info.event, info.jsEvent);
               }}
+
               eventMouseLeave={() => {
-                hideTooltip()
+                // Only hide if not dragging
+                if (!document.body.classList.contains('dragging-active')) {
+                  hideTooltip();
+                }
               }}
+
               eventContent={(eventInfo) => (
                 <div
                   className={`p-0.5 sm:p-1 h-full overflow-hidden transition-all duration-200 ${eventInfo.event.extendedProps.isPast ? "opacity-25" : ""
@@ -1578,7 +1717,7 @@ export default function Calendar({
                             : ""
                       }`}
                   >
-                    {eventInfo.event.extendedProps.type || "Available"}
+                    {eventInfo.event.extendedProps.type || ""}
                   </div>
                   <div className="text-[8px] sm:text-xs mt-0.5 sm:mt-1">{eventInfo.timeText}</div>
                 </div>
@@ -1797,690 +1936,95 @@ export default function Calendar({
         />
       )}
 
+      {/* Add this modal after your other modals */}
+      {showAllAppointmentsModal && (
+        <div className="fixed inset-0 bg-black/50 bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-[#181818] rounded-lg shadow-xl w-full max-w-md max-h-[80vh] overflow-hidden">
+            <div className="flex items-center justify-between p-4 border-b border-gray-700">
+              <h3 className="text-lg font-semibold text-white">
+                {new Date(selectedDayDate).toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })}
+              </h3>
+              <button
+                onClick={handleCloseAllAppointmentsModal}
+                className="text-gray-400 hover:text-white"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-4 overflow-y-auto max-h-[60vh]">
+              {allAppointmentsForDay.length === 0 ? (
+                <div className="text-center text-gray-400 py-4">
+                  No appointments for this day
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {allAppointmentsForDay.map((appointment) => {
+                    const isPastEvent = appointment.isPast || false
+                    const isCancelledEvent = appointment.isCancelled || false
+                    const isBlockedEvent = appointment.isBlocked || appointment.type === "Blocked Time"
+
+                    return (
+                      <div
+                        key={appointment.id}
+                        className={`p-3 rounded-lg border cursor-pointer transition-colors hover:bg-gray-700 ${isCancelledEvent ? 'border-gray-600' : 'border-gray-700'
+                          }`}
+                        style={{
+                          borderLeft: `4px solid ${appointment.color?.split("bg-[")[1]?.slice(0, -1) || "#4169E1"}`,
+                          opacity: isPastEvent ? 0.7 : 1
+                        }}
+                        onClick={() => {
+                          setSelectedAppointment(appointment)
+                          setIsAppointmentActionModalOpen(true)
+                          handleCloseAllAppointmentsModal()
+                        }}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <div className="font-semibold text-white text-sm">
+                              {appointment.name}
+                            </div>
+                            <div className="text-xs text-gray-300">
+                              {appointment.type}
+                              {isCancelledEvent && " (Cancelled)"}
+                              {isBlockedEvent && " (Blocked)"}
+                            </div>
+                          </div>
+                          <div className="text-xs text-gray-400">
+                            {appointment.startTime} - {appointment.endTime}
+                          </div>
+                        </div>
+                        {appointment.specialNote?.text && (
+                          <div className="mt-2 text-xs text-gray-400 italic">
+                            {appointment.specialNote.text}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+            <div className="p-4 border-t border-gray-700">
+              <button
+                onClick={handleCloseAllAppointmentsModal}
+                className="w-full py-2 px-4 bg-gray-600 hover:bg-gray-700 text-white rounded-md transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
 
       <Toaster position="top-right" />
 
-      <style jsx>{`
 
-      /* RESET AND BASE STYLES */
-:global(.fc) {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-}
-
-/* Desktop styles - keep all columns visible */
-@media (min-width: 1024px) {
-  :global(.fc) {
-    font-size: 14px;
-    width: 100%;
-    overflow: visible;
-  }
-  
-  :global(.fc-view-harness) {
-    overflow: visible;
-    width: 100%;
-  }
-  
-  :global(.fc-scroller-harness) {
-    overflow: visible;
-  }
-  
-  :global(.fc-scroller) {
-    overflow: visible;
-  }
-  
-  /* Dynamic column widths based on day name length */
-  :global(.fc-col-header-cell) {
-    font-size: 14px !important;
-    padding: 4px 2px !important;
-    text-align: center;
-    border-right: 1px solid #e5e7eb;
-    background: #f9fafb;
-    font-weight: 600;
-    color: #374151;
-    white-space: nowrap !important;
-    overflow: visible !important;
-    text-overflow: clip !important;
-  }
-  
-  /* Specific width adjustments for different days */
-  :global(.fc-col-header-cell:nth-child(1)) { /* Monday */
-    width: 13% !important;
-    min-width: 90px !important;
-  }
-  
-  :global(.fc-col-header-cell:nth-child(2)) { /* Tuesday */
-    width: 14% !important;
-    min-width: 95px !important;
-  }
-  
-  :global(.fc-col-header-cell:nth-child(3)) { /* Wednesday */
-    width: 16% !important;
-    min-width: 110px !important;
-  }
-  
-  :global(.fc-col-header-cell:nth-child(4)) { /* Thursday */
-    width: 15% !important;
-    min-width: 100px !important;
-  }
-  
-  :global(.fc-col-header-cell:nth-child(5)) { /* Friday */
-    width: 13% !important;
-    min-width: 90px !important;
-  }
-  
-  :global(.fc-col-header-cell:nth-child(6)) { /* Saturday */
-    width: 15% !important;
-    min-width: 100px !important;
-  }
-  
-  :global(.fc-col-header-cell:nth-child(7)) { /* Sunday */
-    width: 14% !important;
-    min-width: 95px !important;
-  }
-  
-  /* Match body columns to header columns */
-  :global(.fc-timegrid-col:nth-child(1)) {
-    width: 13% !important;
-    min-width: 90px !important;
-  }
-  
-  :global(.fc-timegrid-col:nth-child(2)) {
-    width: 14% !important;
-    min-width: 95px !important;
-  }
-  
-  :global(.fc-timegrid-col:nth-child(3)) {
-    width: 16% !important;
-    min-width: 110px !important;
-  }
-  
-  :global(.fc-timegrid-col:nth-child(4)) {
-    width: 15% !important;
-    min-width: 100px !important;
-  }
-  
-  :global(.fc-timegrid-col:nth-child(5)) {
-    width: 13% !important;
-    min-width: 90px !important;
-  }
-  
-  :global(.fc-timegrid-col:nth-child(6)) {
-    width: 15% !important;
-    min-width: 100px !important;
-  }
-  
-  :global(.fc-timegrid-col:nth-child(7)) {
-    width: 14% !important;
-    min-width: 95px !important;
-  }
-  
-  :global(.fc-timegrid-axis) {
-    width: 60px !important;
-    min-width: 60px !important;
-    max-width: 60px !important;
-  }
-  
-  :global(.fc-timegrid-axis-cushion) {
-    font-size: 12px !important;
-    padding: 4px !important;
-  }
-  
-  :global(.fc-event-title) {
-    font-size: 13px !important;
-  }
-  
-  :global(.fc-event-time) {
-    font-size: 11px !important;
-  }
-}
-
-/* Tablet and mobile styles - horizontally scrollable with stretched columns */
-@media (max-width: 1023px) {
-  :global(.fc) {
-    font-size: 12px;
-    width: 150% !important;
-    min-width: 900px !important;
-    overflow-x: auto !important;
-  }
-  
-  :global(.fc-view-harness) {
-    overflow-x: auto !important;
-    width: 100% !important;
-  }
-  
-  :global(.fc-scroller-harness) {
-    overflow-x: auto !important;
-  }
-  
-  :global(.fc-scroller) {
-    overflow-x: auto !important;
-  }
-  
-  :global(.fc-view) {
-    overflow-x: auto !important;
-    width: 100% !important;
-  }
-  
-  :global(.fc-timegrid) {
-    overflow-x: auto !important;
-    min-width: 900px !important;
-  }
-  
-  /* Wider columns for better text visibility on mobile */
-  :global(.fc-col-header-cell) {
-    font-size: 12px !important;
-    padding: 4px 2px !important;
-    text-align: center;
-    border-right: 1px solid #e5e7eb;
-    background: #f9fafb;
-    font-weight: 600;
-    color: #374151;
-    white-space: nowrap !important;
-    overflow: visible !important;
-    text-overflow: clip !important;
-  }
-  
-  /* Specific width adjustments for mobile days */
-  :global(.fc-col-header-cell:nth-child(1)) { /* Monday */
-    width: 120px !important;
-    min-width: 120px !important;
-  }
-  
-  :global(.fc-col-header-cell:nth-child(2)) { /* Tuesday */
-    width: 125px !important;
-    min-width: 125px !important;
-  }
-  
-  :global(.fc-col-header-cell:nth-child(3)) { /* Wednesday */
-    width: 140px !important;
-    min-width: 140px !important;
-  }
-  
-  :global(.fc-col-header-cell:nth-child(4)) { /* Thursday */
-    width: 130px !important;
-    min-width: 130px !important;
-  }
-  
-  :global(.fc-col-header-cell:nth-child(5)) { /* Friday */
-    width: 120px !important;
-    min-width: 120px !important;
-  }
-  
-  :global(.fc-col-header-cell:nth-child(6)) { /* Saturday */
-    width: 130px !important;
-    min-width: 130px !important;
-  }
-  
-  :global(.fc-col-header-cell:nth-child(7)) { /* Sunday */
-    width: 125px !important;
-    min-width: 125px !important;
-  }
-  
-  /* Match body columns to header columns */
-  :global(.fc-timegrid-col:nth-child(1)) {
-    width: 120px !important;
-    min-width: 120px !important;
-  }
-  
-  :global(.fc-timegrid-col:nth-child(2)) {
-    width: 125px !important;
-    min-width: 125px !important;
-  }
-  
-  :global(.fc-timegrid-col:nth-child(3)) {
-    width: 140px !important;
-    min-width: 140px !important;
-  }
-  
-  :global(.fc-timegrid-col:nth-child(4)) {
-    width: 130px !important;
-    min-width: 130px !important;
-  }
-  
-  :global(.fc-timegrid-col:nth-child(5)) {
-    width: 120px !important;
-    min-width: 120px !important;
-  }
-  
-  :global(.fc-timegrid-col:nth-child(6)) {
-    width: 130px !important;
-    min-width: 130px !important;
-  }
-  
-  :global(.fc-timegrid-col:nth-child(7)) {
-    width: 125px !important;
-    min-width: 125px !important;
-  }
-  
-  :global(.fc-timegrid-axis) {
-    width: 70px !important;
-    min-width: 70px !important;
-    max-width: 70px !important;
-  }
-  
-  :global(.fc-timegrid-axis-cushion) {
-    font-size: 11px !important;
-    padding: 4px !important;
-  }
-  
-  :global(.fc-event-title) {
-    font-size: 11px !important;
-  }
-  
-  :global(.fc-event-time) {
-    font-size: 10px !important;
-  }
-}
-
-/* Mobile specific adjustments */
-@media (max-width: 640px) {
-  :global(.fc) {
-    font-size: 11px;
-    width: 220% !important;
-    min-width: 1000px !important;
-  }
-  
-  :global(.fc-col-header-cell) {
-    font-size: 11px !important;
-    padding: 4px 2px !important;
-    white-space: nowrap !important;
-    overflow: visible !important;
-  }
-  
-  /* Mobile day widths - extra width for Wednesday */
-  :global(.fc-col-header-cell:nth-child(1)) { /* Monday */
-    width: 130px !important;
-    min-width: 130px !important;
-  }
-  
-  :global(.fc-col-header-cell:nth-child(2)) { /* Tuesday */
-    width: 135px !important;
-    min-width: 135px !important;
-  }
-  
-  :global(.fc-col-header-cell:nth-child(3)) { /* Wednesday */
-    width: 155px !important;
-    min-width: 155px !important;
-  }
-  
-  :global(.fc-col-header-cell:nth-child(4)) { /* Thursday */
-    width: 145px !important;
-    min-width: 145px !important;
-  }
-  
-  :global(.fc-col-header-cell:nth-child(5)) { /* Friday */
-    width: 130px !important;
-    min-width: 130px !important;
-  }
-  
-  :global(.fc-col-header-cell:nth-child(6)) { /* Saturday */
-    width: 140px !important;
-    min-width: 140px !important;
-  }
-  
-  :global(.fc-col-header-cell:nth-child(7)) { /* Sunday */
-    width: 135px !important;
-    min-width: 135px !important;
-  }
-  
-  /* Match body columns */
-  :global(.fc-timegrid-col:nth-child(1)) {
-    width: 130px !important;
-    min-width: 130px !important;
-  }
-  
-  :global(.fc-timegrid-col:nth-child(2)) {
-    width: 135px !important;
-    min-width: 135px !important;
-  }
-  
-  :global(.fc-timegrid-col:nth-child(3)) {
-    width: 155px !important;
-    min-width: 155px !important;
-  }
-  
-  :global(.fc-timegrid-col:nth-child(4)) {
-    width: 145px !important;
-    min-width: 145px !important;
-  }
-  
-  :global(.fc-timegrid-col:nth-child(5)) {
-    width: 130px !important;
-    min-width: 130px !important;
-  }
-  
-  :global(.fc-timegrid-col:nth-child(6)) {
-    width: 140px !important;
-    min-width: 140px !important;
-  }
-  
-  :global(.fc-timegrid-col:nth-child(7)) {
-    width: 135px !important;
-    min-width: 135px !important;
-  }
-  
-  :global(.fc-timegrid-axis) {
-    width: 60px !important;
-    min-width: 60px !important;
-    max-width: 60px !important;
-  }
-  
-  :global(.fc-timegrid-axis-cushion) {
-    font-size: 10px !important;
-    padding: 3px !important;
-  }
-  
-  :global(.fc-event-title) {
-    font-size: 10px !important;
-  }
-  
-  :global(.fc-event-time) {
-    font-size: 9px !important;
-  }
-}
-
-/* Very small mobile screens */
-@media (max-width: 480px) {
-  :global(.fc) {
-    font-size: 10px;
-    width: 280% !important;
-    min-width: 1100px !important;
-  }
-  
-  :global(.fc-col-header-cell) {
-    font-size: 10px !important;
-    padding: 4px 2px !important;
-    white-space: nowrap !important;
-    overflow: visible !important;
-  }
-  
-  /* Very small mobile day widths */
-  :global(.fc-col-header-cell:nth-child(1)) { /* Monday */
-    width: 140px !important;
-    min-width: 140px !important;
-  }
-  
-  :global(.fc-col-header-cell:nth-child(2)) { /* Tuesday */
-    width: 145px !important;
-    min-width: 145px !important;
-  }
-  
-  :global(.fc-col-header-cell:nth-child(3)) { /* Wednesday */
-    width: 165px !important;
-    min-width: 165px !important;
-  }
-  
-  :global(.fc-col-header-cell:nth-child(4)) { /* Thursday */
-    width: 155px !important;
-    min-width: 155px !important;
-  }
-  
-  :global(.fc-col-header-cell:nth-child(5)) { /* Friday */
-    width: 140px !important;
-    min-width: 140px !important;
-  }
-  
-  :global(.fc-col-header-cell:nth-child(6)) { /* Saturday */
-    width: 150px !important;
-    min-width: 150px !important;
-  }
-  
-  :global(.fc-col-header-cell:nth-child(7)) { /* Sunday */
-    width: 145px !important;
-    min-width: 145px !important;
-  }
-  
-  /* Match body columns */
-  :global(.fc-timegrid-col:nth-child(1)) {
-    width: 140px !important;
-    min-width: 140px !important;
-  }
-  
-  :global(.fc-timegrid-col:nth-child(2)) {
-    width: 145px !important;
-    min-width: 145px !important;
-  }
-  
-  :global(.fc-timegrid-col:nth-child(3)) {
-    width: 165px !important;
-    min-width: 165px !important;
-  }
-  
-  :global(.fc-timegrid-col:nth-child(4)) {
-    width: 155px !important;
-    min-width: 155px !important;
-  }
-  
-  :global(.fc-timegrid-col:nth-child(5)) {
-    width: 140px !important;
-    min-width: 140px !important;
-  }
-  
-  :global(.fc-timegrid-col:nth-child(6)) {
-    width: 150px !important;
-    min-width: 150px !important;
-  }
-  
-  :global(.fc-timegrid-col:nth-child(7)) {
-    width: 145px !important;
-    min-width: 145px !important;
-  }
-  
-  :global(.fc-timegrid-axis) {
-    width: 55px !important;
-    min-width: 55px !important;
-    max-width: 55px !important;
-  }
-  
-  :global(.fc-timegrid-axis-cushion) {
-    font-size: 9px !important;
-    padding: 2px !important;
-  }
-  
-  :global(.fc-event-title) {
-    font-size: 9px !important;
-  }
-  
-  :global(.fc-event-time) {
-    font-size: 8px !important;
-  }
-}
-
-/* Common styles for all screen sizes */
-:global(.fc-col-header-cell-cushion) {
-  overflow: visible !important;
-  text-overflow: clip !important;
-  white-space: nowrap !important;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-/* Force proper table layout */
-:global(.fc-timegrid-header-table),
-:global(.fc-timegrid-body-table) {
-  width: 100% !important;
-  table-layout: fixed !important;
-}
-
-/* Ensure table cells respect the width settings */
-:global(.fc-timegrid-header-table td),
-:global(.fc-timegrid-body-table td) {
-  box-sizing: border-box !important;
-  padding: 0 !important;
-}
-
-/* Event styling remains consistent */
-:global(.fc-event) {
-  border: none !important;
-  border-radius: 6px !important;
-  font-weight: 500 !important;
-  margin: 1px !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
-}
-
-:global(.fc-event-title) {
-  font-weight: 600 !important;
-  line-height: 1.3 !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-}
-
-:global(.fc-event.past-event) {
-  opacity: 0.4 !important;
-  filter: brightness(0.6) !important;
-}
-
-:global(.fc-event.past-event .fc-event-title),
-:global(.fc-event.past-event .fc-event-time) {
-  color: #555555 !important;
-}
-
-:global(.fc-event-time) {
-  font-weight: 400 !important;
-  opacity: 0.9 !important;
-  line-height: 1.2 !important;
-}
-
-/* Time axis styling */
-:global(.fc-timegrid-axis) {
-  border-right: 2px solid #e5e7eb !important;
-  background: #f9fafb !important;
-}
-
-:global(.fc-timegrid-axis-cushion) {
-  color: #6b7280 !important;
-  font-weight: 500 !important;
-  text-align: center !important;
-}
-
-/* Grid lines */
-:global(.fc-timegrid-slot) {
-  border-top: 1px solid #f3f4f6 !important;
-}
-
-:global(.fc-timegrid-slot-minor) {
-  border-top: 1px solid #f9fafb !important;
-}
-
-/* Column separators */
-:global(.fc-timegrid-col) {
-  border-right: 1px solid #e5e7eb !important;
-}
-
-/* Header styling */
-:global(.fc-col-header) {
-  background: #f9fafb !important;
-  border-bottom: 2px solid #e5e7eb !important;
-}
-
-/* Today highlight */
-:global(.fc-day-today) {
-  background-color: rgba(59, 130, 246, 0.05) !important;
-}
-
-:global(.fc-col-header-cell.fc-day-today) {
-  background-color: rgba(59, 130, 246, 0.1) !important;
-  color: #1d4ed8 !important;
-  font-weight: 700 !important;
-}
-
-/* Free slot styling */
-:global(.free-slot-event) {
-  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%) !important;
-  color: #15803d !important;
-  border-left: 3px solid #15803d !important;
-  font-weight: 600 !important;
-}
-
-:global(.prominent-free-slot) {
-  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
-  color: white !important;
-  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4) !important;
-  border: none !important;
-  transform: scale(1.02) !important;
-  animation: pulse-green 2s infinite !important;
-}
-
-@keyframes pulse-green {
-  0%, 100% {
-    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
-  }
-  50% {
-    box-shadow: 0 6px 16px rgba(34, 197, 94, 0.6);
-  }
-}
-
-/* Tooltip styling */
-:global(.tooltip-container) {
-  background: rgba(0, 0, 0, 0.9) !important;
-  color: white !important;
-  padding: 8px 12px !important;
-  border-radius: 6px !important;
-  font-size: 12px !important;
-  line-height: 1.4 !important;
-  max-width: 250px !important;
-  word-wrap: break-word !important;
-  z-index: 1000 !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
-}
-
-/* Scrollbar styling for horizontal scroll */
-@media (max-width: 1023px) {
-  :global(.fc-view-harness)::-webkit-scrollbar {
-    height: 8px;
-  }
-  
-  :global(.fc-view-harness)::-webkit-scrollbar-track {
-    background: #f1f5f9;
-    border-radius: 4px;
-  }
-  
-  :global(.fc-view-harness)::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 4px;
-  }
-  
-  :global(.fc-view-harness)::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
-  }
-}
-
-        .cancelled-appointment-bg {
-          background-image: linear-gradient(
-            -45deg,
-            rgba(255, 255, 255, 0.1) 25%,
-            transparent 25%,
-            transparent 50%,
-            rgba(255, 255, 255, 0.1) 50%,
-            rgba(255, 255, 255, 0.1) 75%,
-            transparent 75%,
-            transparent
-          );
-          background-size: 10px 10px;
-        }
-
-        .blocked-appointment-bg {
-  background-image: linear-gradient(
-    -45deg,
-    rgba(255, 255, 255, 0.3) 25%,
-    transparent 25%,
-    transparent 50%,
-    rgba(255, 255, 255, 0.3) 50%,
-    rgba(255, 255, 255, 0.3) 75%,
-    transparent 75%,
-    transparent
-  );
-  background-size: 10px 10px;
-  background-color: #dc2626; // red-600
-}
-      `}</style>
     </>
   )
 }

@@ -22,6 +22,8 @@ const Column = ({
   setSelectedLead,
   onManageTrialAppointments,
   onEditNote,
+  onOpenDocuments,
+  onCreateAssessment // Add this new prop
 }) => {
   const isTrialColumn = id === "trial"
   const [draggingLeadId, setDraggingLeadId] = useState(null)
@@ -99,6 +101,9 @@ const Column = ({
             setSelectedLead={setSelectedLead}
             onManageTrialAppointments={onManageTrialAppointments}
             onEditNote={onEditNote}
+            onOpenDocuments={onOpenDocuments}
+            onCreateAssessment={onCreateAssessment} // Pass the new prop to LeadCard
+            isTrialColumn={isTrialColumn} // Pass this to determine button state
           />
         ))}
       </div>

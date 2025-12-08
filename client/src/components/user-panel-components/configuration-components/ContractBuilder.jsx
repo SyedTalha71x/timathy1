@@ -1,21 +1,31 @@
 /* eslint-disable no-unused-vars */
+/* eslint-disable react/prop-types */
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { Modal, notification } from 'antd';
 
-const ContractBuilder = () => {
-  const [contractPages, setContractPages] = useState([
-    {
-      id: 1,
-      title: 'Contract Page 1',
-      elements: []
-    }
-  ]);
+const ContractBuilder = ({ contractForm, onUpdate }) => {
+  const [contractPages, setContractPages] = useState(
+    contractForm?.pages || [
+      {
+        id: 1,
+        title: 'Contract Page 1',
+        elements: []
+      }
+    ]
+  );
   const [currentPage, setCurrentPage] = useState(0);
   const [selectedElement, setSelectedElement] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const [templates, setTemplates] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [propertiesOpen, setPropertiesOpen] = useState(false);
+  const [viewportWidth, setViewportWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
+
+  const containerRef = useRef();
+  const nextElementId = useRef(2);
+  const nextPageId = useRef(2);
+
+  // variables unchanged
   const [variables] = useState([
     'Studio Name',
     'Studio Owner Name',
@@ -37,10 +47,6 @@ const ContractBuilder = () => {
     'Contribution Adjustment',
     'Creditor ID'
   ]);
-
-  const containerRef = useRef();
-  const nextElementId = useRef(1);
-  const nextPageId = useRef(2);
 
   // Field types with icons and categories
   const fieldTypes = [
@@ -73,6 +79,55 @@ const ContractBuilder = () => {
     }
   ];
 
+  // small helper for deep-equality of pages (simple, works for our data)
+  const pagesEqual = (a, b) => {
+    try {
+      return JSON.stringify(a) === JSON.stringify(b);
+    } catch (e) {
+      return false;
+    }
+  };
+
+  // Sync viewport width for responsive rendering
+  useEffect(() => {
+    const onResize = () => setViewportWidth(window.innerWidth);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  // Update local state when contractForm prop changes (only when it really changes)
+  useEffect(() => {
+    if (contractForm?.pages && !pagesEqual(contractForm.pages, contractPages)) {
+      setContractPages(contractForm.pages);
+      // Find the maximum element ID
+      const maxId = contractForm.pages.reduce((max, page) => {
+        const pageMax = (page.elements || []).reduce((pageMax, el) => Math.max(pageMax, el.id || 0), 0);
+        return Math.max(max, pageMax);
+      }, 0);
+      nextElementId.current = Math.max(nextElementId.current, maxId + 1);
+      // Also set nextPageId
+      const maxPageId = contractForm.pages.reduce((m, p) => Math.max(m, p.id || 0), 0);
+      nextPageId.current = Math.max(nextPageId.current, maxPageId + 1);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contractForm?.pages]);
+
+  // Notify parent component of changes only when pages actually differ from prop
+  useEffect(() => {
+    if (!onUpdate) return;
+    const propPages = contractForm?.pages;
+    if (propPages && pagesEqual(propPages, contractPages)) {
+      return; // no change -> don't call onUpdate (prevents update loop)
+    }
+    // Build updated form and call onUpdate
+    const updatedForm = {
+      ...(contractForm || {}),
+      pages: contractPages
+    };
+    onUpdate(updatedForm);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contractPages, onUpdate]);
+
   // Add new page
   const addPage = () => {
     const newPage = {
@@ -80,27 +135,72 @@ const ContractBuilder = () => {
       title: `Contract Page ${contractPages.length + 1}`,
       elements: []
     };
-    setContractPages([...contractPages, newPage]);
+    setContractPages(prev => [...prev, newPage]);
     setCurrentPage(contractPages.length);
   };
 
   // Remove page
   const removePage = (pageIndex) => {
-    if (contractPages.length === 1) return;
-    const updatedPages = contractPages.filter((_, i) => i !== pageIndex);
-    setContractPages(updatedPages);
-    if (currentPage >= updatedPages.length) {
-      setCurrentPage(updatedPages.length - 1);
+    if (contractPages.length === 1) {
+      notification.warning({
+        message: "Cannot Remove Page",
+        description: "Contract must have at least one page"
+      });
+      return;
     }
+    
+    Modal.confirm({
+      title: "Remove Page",
+      content: "Are you sure you want to remove this page?",
+      okText: "Yes, Remove",
+      cancelText: "Cancel",
+      okType: "danger",
+      onOk: () => {
+        setContractPages(prev => {
+          const updatedPages = prev.filter((_, i) => i !== pageIndex);
+          // adjust currentPage if needed
+          setCurrentPage(cp => (cp >= updatedPages.length ? updatedPages.length - 1 : cp));
+          return updatedPages;
+        });
+      }
+    });
   };
 
-  // Add element to current page
+  // Create a stable updateElement function using functional updates
+  const updateElement = useCallback((elementId, property, value) => {
+    setContractPages(prev => {
+      return prev.map((page, pIdx) => {
+        if (pIdx !== currentPage) return page;
+        const newElements = page.elements.map(el => {
+          if (el.id !== elementId) return el;
+          if (!property.includes('.')) {
+            // simple property
+            return { ...el, [property]: value };
+          }
+          // nested property like parent.child
+          const [parent, child] = property.split('.');
+          return {
+            ...el,
+            [parent]: {
+              ...(el[parent] || {}),
+              [child]: value
+            }
+          };
+        });
+        return { ...page, elements: newElements };
+      });
+    });
+  }, [currentPage]);
+
+  // Add element to current page (deterministic placement)
   const addElement = (type) => {
+    // compute deterministic starting position in percent
+    const yPercent = Math.min(85, (contractPages[currentPage]?.elements.length || 0) * 8 + 5);
     const baseElement = {
       id: nextElementId.current++,
       type,
-      x: 50,
-      y: contractPages[currentPage].elements.length * 60 + 50,
+      x: 5, // start near left edge
+      y: yPercent,
       width: type === 'heading' ? 80 : type === 'paragraph' ? 90 : 45,
       height: type === 'textarea' ? 80 : type === 'paragraph' ? 60 : 40,
       required: false,
@@ -187,81 +287,80 @@ const ContractBuilder = () => {
         element = baseElement;
     }
 
-    const updatedPages = [...contractPages];
-    updatedPages[currentPage].elements.push(element);
-    setContractPages(updatedPages);
+    setContractPages(prev => {
+      return prev.map((page, idx) => idx === currentPage
+        ? { ...page, elements: [...(page.elements || []), element] }
+        : page
+      );
+    });
     setSelectedElement(element.id);
-    
+
     // Close sidebar on mobile after adding element
     if (window.innerWidth < 1024) {
       setSidebarOpen(false);
     }
   };
 
-  // Update element property
-  const updateElement = (elementId, property, value) => {
-    const updatedPages = [...contractPages];
-    const elementIndex = updatedPages[currentPage].elements.findIndex(el => el.id === elementId);
-    
-    if (elementIndex !== -1) {
-      if (property.includes('.')) {
-        const [parent, child] = property.split('.');
-        updatedPages[currentPage].elements[elementIndex][parent][child] = value;
-      } else {
-        updatedPages[currentPage].elements[elementIndex][property] = value;
-      }
-      setContractPages(updatedPages);
-    }
-  };
-
   // Remove element
   const removeElement = (elementId) => {
-    const updatedPages = [...contractPages];
-    updatedPages[currentPage].elements = updatedPages[currentPage].elements.filter(
-      el => el.id !== elementId
-    );
-    setContractPages(updatedPages);
-    setSelectedElement(null);
+    Modal.confirm({
+      title: "Remove Element",
+      content: "Are you sure you want to remove this element?",
+      okText: "Yes, Remove",
+      cancelText: "Cancel",
+      okType: "danger",
+      onOk: () => {
+        setContractPages(prev => prev.map((page, idx) => {
+          if (idx !== currentPage) return page;
+          return { ...page, elements: (page.elements || []).filter(el => el.id !== elementId) };
+        }));
+        setSelectedElement(null);
+      },
+    });
   };
 
   // Handle drag start
   const handleDragStart = (elementId, e) => {
-    const element = contractPages[currentPage].elements.find(el => el.id === elementId);
-    if (element) {
-      setIsDragging(true);
-      setSelectedElement(elementId);
-      const rect = e.currentTarget.getBoundingClientRect();
-      const containerRect = containerRef.current.getBoundingClientRect();
-      setDragOffset({
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top
-      });
-    }
+    const elNode = e.currentTarget;
+    if (!elNode || !containerRef.current) return;
+    setIsDragging(true);
+    setSelectedElement(elementId);
+    const rect = elNode.getBoundingClientRect();
+    // compute offset relative to element top-left
+    setDragOffset({
+      x: (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left,
+      y: (e.clientY || (e.touches && e.touches[0].clientY)) - rect.top
+    });
+    e.preventDefault?.();
   };
 
-  // Handle drag
+  // Handle drag (stable callback)
   const handleDrag = useCallback((e) => {
-    if (!isDragging || !selectedElement) return;
+    if (!isDragging || !selectedElement || !containerRef.current) return;
+    const clientX = e.clientX || (e.touches && e.touches[0]?.clientX);
+    const clientY = e.clientY || (e.touches && e.touches[0]?.clientY);
+    if (clientX == null || clientY == null) return;
 
     const containerRect = containerRef.current.getBoundingClientRect();
-    const x = ((e.clientX - containerRect.left - dragOffset.x) / containerRect.width) * 100;
-    const y = ((e.clientY - containerRect.top - dragOffset.y) / containerRect.height) * 100;
+    const x = ((clientX - containerRect.left - dragOffset.x) / containerRect.width) * 100;
+    const y = ((clientY - containerRect.top - dragOffset.y) / containerRect.height) * 100;
 
     updateElement(selectedElement, 'x', Math.max(0, Math.min(95, x)));
     updateElement(selectedElement, 'y', Math.max(0, Math.min(95, y)));
-  }, [isDragging, selectedElement, dragOffset]);
+    e.preventDefault?.();
+  }, [isDragging, selectedElement, dragOffset, updateElement]);
 
   // Handle drag end
-  const handleDragEnd = () => {
+  const handleDragEnd = useCallback(() => {
     setIsDragging(false);
-  };
+  }, []);
 
-  // Add event listeners for dragging
+  // Add event listeners for dragging (attach only while dragging)
   useEffect(() => {
     if (isDragging) {
       document.addEventListener('mousemove', handleDrag);
       document.addEventListener('mouseup', handleDragEnd);
-      document.addEventListener('touchmove', handleDrag);
+      document.addEventListener('touchmove', handleDrag, { passive: false });
       document.addEventListener('touchend', handleDragEnd);
       return () => {
         document.removeEventListener('mousemove', handleDrag);
@@ -270,13 +369,128 @@ const ContractBuilder = () => {
         document.removeEventListener('touchend', handleDragEnd);
       };
     }
-  }, [isDragging, handleDrag]);
+    return undefined;
+  }, [isDragging, handleDrag, handleDragEnd]);
 
   // Close sidebars when clicking on canvas on mobile
   const handleCanvasClick = () => {
     if (window.innerWidth < 1024) {
       setSidebarOpen(false);
       setPropertiesOpen(false);
+    }
+    // Deselect element on blank click
+    setSelectedElement(null);
+  };
+
+  // Render element content based on type
+  const renderElementContent = (element) => {
+    switch (element.type) {
+      case 'heading':
+        return (
+          <h3 style={{
+            fontSize: `${Math.min(element.fontSize || 24, viewportWidth < 768 ? 18 : (element.fontSize || 24))}px`,
+            fontWeight: element.bold ? 'bold' : 'normal',
+            textAlign: element.alignment,
+            margin: 0,
+            color: '#000'
+          }}>
+            {element.content}
+          </h3>
+        );
+      case 'paragraph':
+        return (
+          <p style={{
+            fontSize: `${Math.min(element.fontSize || 14, viewportWidth < 768 ? 12 : (element.fontSize || 14))}px`,
+            fontWeight: element.bold ? 'bold' : 'normal',
+            textAlign: element.alignment,
+            margin: 0,
+            color: '#000'
+          }}>
+            {element.content}
+          </p>
+        );
+      case 'text':
+      case 'email':
+      case 'phone':
+      case 'number':
+        return (
+          <div>
+            <label className="block text-sm font-medium mb-1" style={{ color: '#000' }}>
+              {element.label} {element.required && '*'}
+            </label>
+            <input
+              type={element.type}
+              placeholder={element.placeholder}
+              className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+              disabled
+              style={{ color: '#000' }}
+            />
+          </div>
+        );
+      case 'textarea':
+        return (
+          <div>
+            <label className="block text-sm font-medium mb-1" style={{ color: '#000' }}>
+              {element.label} {element.required && '*'}
+            </label>
+            <textarea
+              placeholder={element.placeholder}
+              className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
+              rows={3}
+              disabled
+              style={{ color: '#000' }}
+            />
+          </div>
+        );
+      case 'checkbox':
+        return (
+          <div className="flex items-center gap-2">
+            <input type="checkbox" disabled />
+            <span className="text-sm" style={{ color: '#000' }}>
+              {element.label} {element.required && '*'}
+            </span>
+          </div>
+        );
+      case 'date':
+        return (
+          <div>
+            <label className="block text-sm font-medium mb-1" style={{ color: '#000' }}>
+              {element.label} {element.required && '*'}
+            </label>
+            <input 
+              type="date" 
+              className="border border-gray-300 rounded px-2 py-1 text-sm" 
+              disabled 
+              style={{ color: '#000' }}
+            />
+          </div>
+        );
+      case 'signature':
+        return (
+          <div>
+            <label className="block text-sm font-medium mb-1" style={{ color: '#000' }}>
+              {element.label} {element.required && '*'}
+            </label>
+            <div className="border-2 border-dashed border-gray-300 rounded h-16 flex items-center justify-center text-gray-400">
+              Signature
+            </div>
+          </div>
+        );
+      case 'initial':
+        return (
+          <div>
+            <label className="block text-sm font-medium mb-1" style={{ color: '#000' }}>
+              {element.label} {element.required && '*'}
+            </label>
+            <div className="border-2 border-dashed border-gray-300 rounded w-12 h-8 flex items-center justify-center text-gray-400">
+              Initial
+            </div>
+          </div>
+        );
+      case 'divider':
+        return <hr className="border-t border-gray-300 my-2" />;
+      default:
+        return <div style={{ color: '#000' }}>Unknown element type</div>;
     }
   };
 
@@ -290,12 +504,13 @@ const ContractBuilder = () => {
       height: `${element.height}px`,
       position: 'absolute',
       border: isSelected ? '2px solid #3b82f6' : '1px dashed #6b7280',
-      backgroundColor: isSelected ? 'rgba(59, 130, 246, 0.1)' : 'white',
+      backgroundColor: isSelected ? 'rgba(59, 130, 246, 0.06)' : 'white',
       borderRadius: '4px',
       padding: '8px',
       cursor: 'move',
       boxSizing: 'border-box',
-      touchAction: 'none'
+      touchAction: 'none',
+      zIndex: isSelected ? 10 : 1
     };
 
     return (
@@ -305,7 +520,8 @@ const ContractBuilder = () => {
         className="element"
         onMouseDown={(e) => handleDragStart(element.id, e)}
         onTouchStart={(e) => handleDragStart(element.id, e)}
-        onClick={() => {
+        onClick={(e) => {
+          e.stopPropagation();
           setSelectedElement(element.id);
           if (window.innerWidth < 1024) {
             setPropertiesOpen(true);
@@ -315,13 +531,13 @@ const ContractBuilder = () => {
       >
         {renderElementContent(element)}
         {isSelected && (
-          <div className="absolute -top-8 left-0 flex gap-1 bg-blue-500 text-white px-2 py-1 rounded text-xs z-10">
+          <div style={{ position: 'absolute', top: -36, left: 0, display: 'flex', gap: 6, background: '#3b82f6', color: '#fff', padding: '4px 6px', borderRadius: 6, zIndex: 20 }}>
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 removeElement(element.id);
               }}
-              className="hover:bg-blue-600 px-1 rounded"
+              style={{ background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer' }}
             >
               🗑️
             </button>
@@ -329,12 +545,16 @@ const ContractBuilder = () => {
               onClick={(e) => {
                 e.stopPropagation();
                 // Clone element
-                const newElement = { ...element, id: nextElementId.current++ };
-                const updatedPages = [...contractPages];
-                updatedPages[currentPage].elements.push(newElement);
-                setContractPages(updatedPages);
+                const newElement = { 
+                  ...element, 
+                  id: nextElementId.current++,
+                  x: Math.min(90, (element.x || 5) + 5),
+                  y: Math.min(90, (element.y || 5) + 5)
+                };
+                setContractPages(prev => prev.map((page, idx) => idx === currentPage ? { ...page, elements: [...(page.elements || []), newElement] } : page));
+                setSelectedElement(newElement.id);
               }}
-              className="hover:bg-blue-600 px-1 rounded"
+              style={{ background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer' }}
             >
               📋
             </button>
@@ -342,109 +562,6 @@ const ContractBuilder = () => {
         )}
       </div>
     );
-  };
-
-  // Render element content based on type
-  const renderElementContent = (element) => {
-    switch (element.type) {
-      case 'heading':
-        return (
-          <h3 style={{
-            fontSize: `${Math.min(element.fontSize, window.innerWidth < 768 ? 18 : element.fontSize)}px`,
-            fontWeight: element.bold ? 'bold' : 'normal',
-            textAlign: element.alignment,
-            margin: 0
-          }}>
-            {element.content}
-          </h3>
-        );
-      case 'paragraph':
-        return (
-          <p style={{
-            fontSize: `${Math.min(element.fontSize, window.innerWidth < 768 ? 12 : element.fontSize)}px`,
-            fontWeight: element.bold ? 'bold' : 'normal',
-            textAlign: element.alignment,
-            margin: 0
-          }}>
-            {element.content}
-          </p>
-        );
-      case 'text':
-      case 'email':
-      case 'phone':
-      case 'number':
-        return (
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              {element.label} {element.required && '*'}
-            </label>
-            <input
-              type={element.type}
-              placeholder={element.placeholder}
-              className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
-              disabled
-            />
-          </div>
-        );
-      case 'textarea':
-        return (
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              {element.label} {element.required && '*'}
-            </label>
-            <textarea
-              placeholder={element.placeholder}
-              className="w-full border border-gray-300 rounded px-2 py-1 text-sm"
-              rows={3}
-              disabled
-            />
-          </div>
-        );
-      case 'checkbox':
-        return (
-          <div className="flex items-center gap-2">
-            <input type="checkbox" disabled />
-            <span className="text-sm">
-              {element.label} {element.required && '*'}
-            </span>
-          </div>
-        );
-      case 'date':
-        return (
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              {element.label} {element.required && '*'}
-            </label>
-            <input type="date" className="border border-gray-300 rounded px-2 py-1 text-sm" disabled />
-          </div>
-        );
-      case 'signature':
-        return (
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              {element.label} {element.required && '*'}
-            </label>
-            <div className="border-2 border-dashed border-gray-300 rounded h-16 flex items-center justify-center text-gray-400">
-              Signature
-            </div>
-          </div>
-        );
-      case 'initial':
-        return (
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              {element.label} {element.required && '*'}
-            </label>
-            <div className="border-2 border-dashed border-gray-300 rounded w-12 h-8 flex items-center justify-center text-gray-400">
-              Initial
-            </div>
-          </div>
-        );
-      case 'divider':
-        return <hr className="border-t border-gray-300 my-2" />;
-      default:
-        return <div>Unknown element type</div>;
-    }
   };
 
   // Property panel for selected element
@@ -483,7 +600,7 @@ const ContractBuilder = () => {
                 min="0"
                 max="95"
                 value={element.x}
-                onChange={(e) => updateElement(element.id, 'x', parseInt(e.target.value))}
+                onChange={(e) => updateElement(element.id, 'x', parseFloat(e.target.value))}
                 className="w-full"
               />
             </div>
@@ -494,7 +611,7 @@ const ContractBuilder = () => {
                 min="0"
                 max="95"
                 value={element.y}
-                onChange={(e) => updateElement(element.id, 'y', parseInt(e.target.value))}
+                onChange={(e) => updateElement(element.id, 'y', parseFloat(e.target.value))}
                 className="w-full"
               />
             </div>
@@ -505,7 +622,7 @@ const ContractBuilder = () => {
                 min="10"
                 max="100"
                 value={element.width}
-                onChange={(e) => updateElement(element.id, 'width', parseInt(e.target.value))}
+                onChange={(e) => updateElement(element.id, 'width', parseFloat(e.target.value))}
                 className="w-full"
               />
             </div>
@@ -517,7 +634,7 @@ const ContractBuilder = () => {
                   min="20"
                   max="200"
                   value={element.height}
-                  onChange={(e) => updateElement(element.id, 'height', parseInt(e.target.value))}
+                  onChange={(e) => updateElement(element.id, 'height', parseInt(e.target.value, 10))}
                   className="w-full"
                 />
               </div>
@@ -594,7 +711,7 @@ const ContractBuilder = () => {
                 min="8"
                 max="48"
                 value={element.fontSize || 14}
-                onChange={(e) => updateElement(element.id, 'fontSize', parseInt(e.target.value))}
+                onChange={(e) => updateElement(element.id, 'fontSize', parseInt(e.target.value, 10))}
                 className="w-full"
               />
               <span className="text-xs">{element.fontSize}px</span>
@@ -628,7 +745,7 @@ const ContractBuilder = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-full bg-gray-100" style={{ height: 'calc(100vh - 108px)' }}>
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-200 p-4 flex justify-between items-center z-40">
         <h2 className="font-semibold text-lg">Contract Builder</h2>
@@ -705,6 +822,7 @@ const ContractBuilder = () => {
       <div className="hidden lg:flex lg:w-64 bg-white border-r border-gray-200 flex-col">
         <div className="p-4 border-b border-gray-200">
           <h2 className="font-semibold text-lg">Contract Builder</h2>
+          <p className="text-sm text-gray-500 mt-1">{contractForm?.name || 'Untitled Form'}</p>
         </div>
         
         <div className="flex-1 overflow-y-auto">
@@ -727,7 +845,7 @@ const ContractBuilder = () => {
           ))}
         </div>
 
-        <div className="p-4 border-t border-gray-200">
+        <div className="p-4 border-t border-gray-200 space-y-2">
           <button
             onClick={addPage}
             className="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
@@ -738,9 +856,9 @@ const ContractBuilder = () => {
       </div>
 
       {/* Main Canvas */}
-      <div className="flex-1 flex flex-col min-w-0 mt-16 lg:mt-0">
+      <div className="flex-1 flex flex-col min-w-0 mt-16 lg:mt-0" style={{ overflow: 'hidden' }}>
         {/* Page Tabs */}
-        <div className="bg-white border-b border-gray-200">
+        <div className="bg-white border-b border-gray-200 flex-shrink-0">
           <div className="flex items-center px-4 overflow-x-auto">
             {contractPages.map((page, index) => (
               <div
@@ -769,36 +887,59 @@ const ContractBuilder = () => {
         </div>
 
         {/* Canvas Area */}
-        <div className="flex-1 p-2 lg:p-4">
+        <div className="flex-1 p-2 lg:p-4" style={{ overflow: 'auto' }}>
           <div
             ref={containerRef}
-            className="bg-white border border-gray-300 rounded-lg relative h-full overflow-auto"
-            style={{ minHeight: '400px' }}
+            className="bg-white border border-gray-300 rounded-lg relative h-full overflow-auto flex items-start justify-center"
+            style={{ 
+              minHeight: '400px',
+              backgroundImage: `
+                linear-gradient(45deg, #f0f0f0 25%, transparent 25%),
+                linear-gradient(-45deg, #f0f0f0 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #f0f0f0 75%),
+                linear-gradient(-45deg, transparent 75%, #f0f0f0 75%)
+              `,
+              backgroundSize: '20px 20px',
+              backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px'
+            }}
             onClick={handleCanvasClick}
           >
-            {contractPages[currentPage]?.elements.map(renderBuilderElement)}
-            
-            {contractPages[currentPage]?.elements.length === 0 && (
-              <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-                <div className="text-center p-4">
-                  <div className="text-4xl mb-4">📄</div>
-                  <p className="text-sm lg:text-base">
-                    {window.innerWidth < 1024 
-                      ? 'Tap "Tools" to add elements' 
-                      : 'Add elements from the sidebar to build your contract'
-                    }
-                  </p>
-                  {window.innerWidth < 1024 && (
-                    <button
-                      onClick={() => setSidebarOpen(true)}
-                      className="mt-4 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
-                    >
-                      Open Tools
-                    </button>
-                  )}
+            {/* A4 Page Simulation */}
+            <div 
+              className="bg-white shadow-lg mx-auto my-4 relative"
+              style={{
+                width: viewportWidth < 768 ? '95%' : '210mm',
+                minHeight: viewportWidth < 768 ? 'auto' : '297mm',
+                maxWidth: '95%',
+                maxHeight: '95%',
+                boxSizing: 'border-box',
+                position: 'relative'
+              }}
+            >
+              {contractPages[currentPage]?.elements.map(renderBuilderElement)}
+              
+              {contractPages[currentPage]?.elements.length === 0 && (
+                <div className="absolute inset-0 flex items-center justify-center text-gray-400">
+                  <div className="text-center p-4">
+                    <div className="text-4xl mb-4">📄</div>
+                    <p className="text-sm lg:text-base">
+                      {viewportWidth < 1024 
+                        ? 'Tap "Tools" to add elements' 
+                        : 'Add elements from the sidebar to build your contract'
+                      }
+                    </p>
+                    {viewportWidth < 1024 && (
+                      <button
+                        onClick={() => setSidebarOpen(true)}
+                        className="mt-4 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+                      >
+                        Open Tools
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>

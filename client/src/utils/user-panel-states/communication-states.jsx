@@ -1,5 +1,5 @@
-const img1 = "/Rectangle 1.png"
-const img2 = "/avatar3.png"
+const img1 = "/gray-avatar-fotor-20250912192528.png"
+const img2 = "/gray-avatar-fotor-20250912192528.png"
 
 export const emailListNew = {
     inbox: [

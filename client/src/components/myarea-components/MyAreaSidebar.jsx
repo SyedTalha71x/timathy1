@@ -27,6 +27,10 @@ import {
   Users,
   User,
   Building2,
+  ChevronRight,
+  Minimize2,
+  Maximize2,
+  Activity,
 } from "lucide-react"
 import { toast } from "react-hot-toast"
 import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
@@ -168,6 +172,7 @@ const ChartWithLocalState = () => {
   )
 }
 
+
 const Sidebar = ({
   isRightSidebarOpen,
   toggleRightSidebar,
@@ -198,141 +203,145 @@ const Sidebar = ({
   onClose,
   hasUnreadNotifications,
   notifications,
-  onSaveSpecialNote, // Added prop for saving special notes
+  onSaveSpecialNote,
 }) => {
-  const todoFilterDropdownRef = useRef(null)
-  const notePopoverRef = useRef(null)
+  const todoFilterDropdownRef = useRef(null);
+  const notePopoverRef = useRef(null);
 
-  const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false)
-  const [configuredTags, setConfiguredTags] = useState(configuredTagsData)
+  const [showActionConfirm, setShowActionConfirm] = useState(false);
+  const [pendingActivityAction, setPendingActivityAction] = useState(null);
 
-  const [sidebarCustomLinks, setSidebarCustomLinks] = useState(customLinks || [])
-  const [sidebarOpenDropdownIndex, setSidebarOpenDropdownIndex] = useState(null)
-  const [editingLink, setEditingLink] = useState(null)
-  const [isWebsiteLinkModalOpen, setIsWebsiteLinkModalOpen] = useState(false)
-
-  const [savedViews, setSavedViews] = useState([])
-  const [currentView, setCurrentView] = useState(null)
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false)
-  const [activeTab, setActiveTab] = useState("widgets")
-
-  const [sidebarActiveNoteId, setSidebarActiveNoteId] = useState(null)
-  const [isSidebarSpecialNoteModalOpen, setIsSidebarSpecialNoteModalOpen] = useState(false)
-  const [selectedSidebarAppointmentForNote, setSelectedSidebarAppointmentForNote] = useState(null)
-
-  const [notePosition, setNotePosition] = useState({ top: 0, left: 0 })
-  const [hoveredNoteId, setHoveredNoteId] = useState(null)
-  const [hoverTimeout, setHoverTimeout] = useState(null)
-
-  const [notificationData, setNotificationData] = useState(demoNotifications)
-  const [isReplyModalOpen, setIsReplyModalOpen] = useState(false)
-  const [selectedMessage, setSelectedMessage] = useState(null)
+  const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
+  const [configuredTags, setConfiguredTags] = useState(configuredTagsData);
+  const [sidebarCustomLinks, setSidebarCustomLinks] = useState(customLinks || []);
+  const [sidebarOpenDropdownIndex, setSidebarOpenDropdownIndex] = useState(null);
+  const [editingLink, setEditingLink] = useState(null);
+  const [isWebsiteLinkModalOpen, setIsWebsiteLinkModalOpen] = useState(false);
+  const [savedViews, setSavedViews] = useState([]);
+  const [currentView, setCurrentView] = useState(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("widgets");
+  const [sidebarActiveNoteId, setSidebarActiveNoteId] = useState(null);
+  const [isSidebarSpecialNoteModalOpen, setIsSidebarSpecialNoteModalOpen] = useState(false);
+  const [selectedSidebarAppointmentForNote, setSelectedSidebarAppointmentForNote] = useState(null);
+  const [notePosition, setNotePosition] = useState({ top: 0, left: 0 });
+  const [hoveredNoteId, setHoveredNoteId] = useState(null);
+  const [hoverTimeout, setHoverTimeout] = useState(null);
+  const [notificationData, setNotificationData] = useState(demoNotifications);
+  const [isReplyModalOpen, setIsReplyModalOpen] = useState(false);
+  const [selectedMessage, setSelectedMessage] = useState(null);
   const [collapsedSections, setCollapsedSections] = useState({
     memberChat: false,
     studioChat: false,
     activityMonitor: false,
-  })
+  });
 
   // Local state for todo filtering
-  const [todoFilter, setTodoFilter] = useState("all")
-  const [isTodoFilterDropdownOpen, setIsTodoFilterDropdownOpen] = useState(false)
+  const [todoFilter, setTodoFilter] = useState("all");
+  const [isTodoFilterDropdownOpen, setIsTodoFilterDropdownOpen] = useState(false);
+
+  // New states for widget collapse and expand
+  const [collapsedWidgets, setCollapsedWidgets] = useState({});
+  const [expandedWidgetSizes, setExpandedWidgetSizes] = useState({});
 
   const todoFilterOptions = [
     { value: "all", label: "All Tasks" },
     { value: "ongoing", label: "Ongoing", color: "#f59e0b" },
     { value: "completed", label: "Completed", color: "#10b981" },
     { value: "canceled", label: "Canceled", color: "#ef4444" },
-  ]
-
-  const handleAddTask = (newTask) => {
-    setTodos((prevTodos) => [...prevTodos, newTask]) // Also add to todos if needed
-    toast.success("Task added successfully!")
-  }
+  ];
 
   const activityTypes = {
-    vacation: {
-      icon: Users,
-      color: "bg-blue-600",
-    },
-    contract: {
-      icon: Building2,
-      color: "bg-orange-600",
-    },
-    appointment: {
-      icon: CalendarIcon,
-      color: "bg-green-600",
-    },
-    email: {
-      icon: MessageCircle,
-      color: "bg-purple-600",
-    },
-  }
+    vacation: { icon: Users, color: "bg-blue-600" },
+    contract: { icon: Building2, color: "bg-orange-600" },
+    appointment: { icon: CalendarIcon, color: "bg-green-600" },
+    email: { icon: MessageCircle, color: "bg-purple-600" },
+  };
 
-  /**
-   * Handles opening the reply modal for a specific message
-   * This function sets the selected message and opens the reply modal
-   * @param {Object} message - The message object to reply to
-   */
+  // New functions for widget controls
+  const toggleWidgetCollapse = (widgetId) => {
+    setCollapsedWidgets(prev => ({
+      ...prev,
+      [widgetId]: !prev[widgetId]
+    }));
+  };
+
+  const toggleWidgetSize = (widgetId) => {
+    setExpandedWidgetSizes(prev => ({
+      ...prev,
+      [widgetId]: !prev[widgetId]
+    }));
+  };
+
+  const getWidgetHeightClass = (widgetId, defaultHeight = "h-auto") => {
+    if (expandedWidgetSizes[widgetId]) {
+      return "min-h-[500px] max-h-[600px] h-auto";
+    }
+    return defaultHeight;
+  };
+
+  const getWidgetDisplayName = (widgetType) => {
+    const names = {
+      todo: "To-Do",
+      birthday: "Birthdays",
+      websiteLinks: "Website Links",
+      appointments: "Upcoming Appointments",
+      chart: "Analytics Chart",
+      expiringContracts: "Expiring Contracts",
+      bulletinBoard: "Bulletin Board",
+      notes: "Notes",
+      staffCheckIn: "Staff Login",
+      shiftSchedule: "Shift Schedule"
+    };
+    return names[widgetType] || widgetType;
+  };
+
+  const handleAddTask = (newTask) => {
+    setTodos((prevTodos) => [...prevTodos, newTask]);
+    toast.success("Task added successfully!");
+  };
+
   const handleMessageClick = (message) => {
-    setSelectedMessage(message)
-    setIsReplyModalOpen(true)
-  }
+    setSelectedMessage(message);
+    setIsReplyModalOpen(true);
+  };
 
   const handleSendReply = (chatId, replyText) => {
-    // Here you would typically send the reply to your backend
-    console.log(`Sending reply to chat ${chatId}: ${replyText}`)
-
-    // Mark the original message as read
+    console.log(`Sending reply to chat ${chatId}: ${replyText}`);
     setNotificationData((prev) => ({
       ...prev,
       memberChat: prev.memberChat.map((msg) => (msg.chatId === chatId ? { ...msg, isRead: true } : msg)),
       studioChat: prev.studioChat.map((msg) => (msg.chatId === chatId ? { ...msg, isRead: true } : msg)),
-    }))
-  }
+    }));
+  };
+
   const handleOpenFullMessenger = (message) => {
-    setIsReplyModalOpen(false)
-
-    window.location.href = `/dashboard/communication`
-
-    toast.success(`Redirecting to ${message.type === "member_chat" ? "Member" : "Studio"} Messenger`)
-  }
+    setIsReplyModalOpen(false);
+    window.location.href = `/dashboard/communication`;
+    toast.success(`Redirecting to ${message.type === "member_chat" ? "Member" : "Studio"} Messenger`);
+  };
 
   const toggleNotificationSection = (section) => {
     setCollapsedSections((prev) => ({
       ...prev,
       [section]: !prev[section],
-    }))
-  }
+    }));
+  };
 
-  /**
-   * Marks a message as read when clicked
-   * @param {string} messageId - The ID of the message to mark as read
-   * @param {string} messageType - The type of message ('member_chat' or 'studio_chat')
-   */
   const markMessageAsRead = (messageId, messageType) => {
-    const sectionKey = messageType === "member_chat" ? "memberChat" : "studioChat"
+    const sectionKey = messageType === "member_chat" ? "memberChat" : "studioChat";
     setNotificationData((prev) => ({
       ...prev,
       [sectionKey]: prev[sectionKey].map((msg) => (msg.id === messageId ? { ...msg, isRead: true } : msg)),
-    }))
-  }
+    }));
+  };
 
-  /**
-   * Gets the count of unread messages for a specific section
-   * @param {string} section - The section to count ('memberChat' or 'studioChat')
-   * @returns {number} The number of unread messages
-   */
   const getUnreadCount = (section) => {
-    return notificationData[section].filter((msg) => !msg.isRead).length
-  }
+    return notificationData[section].filter((msg) => !msg.isRead).length;
+  };
 
-  /**
-   * Handles activity actions (approve, reject, resolve, etc.)
-   */
   const handleActivityAction = (activity, action) => {
-    console.log(`Performing ${action} on activity:`, activity.id)
-
-    // Update the activity status based on the action
+    console.log(`Performing ${action} on activity:`, activity.id);
     setNotificationData((prev) => ({
       ...prev,
       activityMonitor: prev.activityMonitor.map((item) =>
@@ -350,135 +359,114 @@ const Sidebar = ({
           }
           : item,
       ),
-    }))
+    }));
 
-    // Show appropriate toast message
     const actionMessages = {
       approve: "Vacation request approved",
       reject: "Vacation request rejected",
       resolve: "Activity marked as resolved",
       archive: "Activity archived",
-    }
+    };
 
-    toast.success(actionMessages[action] || "Action completed")
-  }
+    toast.success(actionMessages[action] || "Action completed");
+  };
 
-  /**
-   * Handles clicking on an activity notification
-   */
   const handleActivityClick = (activity) => {
-    // Mark as read
-    markMessageAsRead(activity.id, activity.type)
+    markMessageAsRead(activity.id, activity.type);
+    console.log("Activity clicked:", activity);
+  };
 
-    // Here you can implement what happens when an activity is clicked
-    // For example, open a detailed view or perform a specific action
-    console.log("Activity clicked:", activity)
-
-    // You could also open a modal with more details here
-    // setSelectedActivity(activity)
-    // setIsActivityDetailModalOpen(true)
-  }
-
-  /**
-   * Handles jumping to the full activity monitor
-   */
   const handleJumpToActivityMonitor = (activity) => {
-    window.location.href = "/dashboard/activity-monitor"
-  }
+    window.location.href = "/dashboard/activity-monitor";
+  };
 
   const getFilteredTodos = () => {
     switch (todoFilter) {
       case "ongoing":
-        return todos.filter((todo) => todo.status === "ongoing")
+        return todos.filter((todo) => todo.status === "ongoing");
       case "canceled":
-        return todos.filter((todo) => todo.status === "canceled")
+        return todos.filter((todo) => todo.status === "canceled");
       case "completed":
-        return todos.filter((todo) => todo.status === "completed")
+        return todos.filter((todo) => todo.status === "completed");
       default:
-        return todos
+        return todos;
     }
-  }
+  };
 
   const handleSidebarEditNote = (appointmentId, currentNote) => {
-    const appointment = appointments.find((app) => app.id === appointmentId)
+    const appointment = appointments.find((app) => app.id === appointmentId);
     if (appointment) {
-      setIsSidebarSpecialNoteModalOpen(false)
-      setSelectedSidebarAppointmentForNote(null)
+      setIsSidebarSpecialNoteModalOpen(false);
+      setSelectedSidebarAppointmentForNote(null);
 
       setTimeout(() => {
-        setSelectedSidebarAppointmentForNote(appointment)
-        setIsSidebarSpecialNoteModalOpen(true)
-      }, 10)
+        setSelectedSidebarAppointmentForNote(appointment);
+        setIsSidebarSpecialNoteModalOpen(true);
+      }, 10);
     }
-  }
+  };
 
-  // Add separate handler for saving sidebar special note
   const handleSaveSidebarSpecialNote = (appointmentId, updatedNote) => {
-    // Call the parent's save function if passed as prop
     if (typeof onSaveSpecialNote === "function") {
-      onSaveSpecialNote(appointmentId, updatedNote)
+      onSaveSpecialNote(appointmentId, updatedNote);
     }
-    toast.success("Special note updated successfully")
-  }
+    toast.success("Special note updated successfully");
+  };
 
   const renderSidebarSpecialNoteIcon = useCallback(
     (specialNote, memberId) => {
-      if (!specialNote?.text) return null
+      if (!specialNote?.text) return null;
       const isActive =
         specialNote.startDate === null ||
-        (new Date() >= new Date(specialNote.startDate) && new Date() <= new Date(specialNote.endDate))
-      if (!isActive) return null
+        (new Date() >= new Date(specialNote.startDate) && new Date() <= new Date(specialNote.endDate));
+      if (!isActive) return null;
 
       const handleNoteClick = (e) => {
-        e.stopPropagation()
-        const rect = e.currentTarget.getBoundingClientRect()
+        e.stopPropagation();
+        const rect = e.currentTarget.getBoundingClientRect();
         setNotePosition({
           top: rect.bottom + window.scrollY + 8,
           left: rect.left + window.scrollX,
-        })
-        setSidebarActiveNoteId(sidebarActiveNoteId === memberId ? null : memberId)
-      }
+        });
+        setSidebarActiveNoteId(sidebarActiveNoteId === memberId ? null : memberId);
+      };
 
       const handleMouseEnter = (e) => {
-        e.stopPropagation()
-        // Clear any existing timeout
+        e.stopPropagation();
         if (hoverTimeout) {
-          clearTimeout(hoverTimeout)
-          setHoverTimeout(null)
+          clearTimeout(hoverTimeout);
+          setHoverTimeout(null);
         }
 
-        const rect = e.currentTarget.getBoundingClientRect()
+        const rect = e.currentTarget.getBoundingClientRect();
         setNotePosition({
           top: rect.bottom + window.scrollY + 8,
           left: rect.left + window.scrollX,
-        })
+        });
 
-        // Set a small delay before showing to prevent flickering
         const timeout = setTimeout(() => {
-          setHoveredNoteId(memberId)
-        }, 300)
-        setHoverTimeout(timeout)
-      }
+          setHoveredNoteId(memberId);
+        }, 300);
+        setHoverTimeout(timeout);
+      };
 
       const handleMouseLeave = (e) => {
-        e.stopPropagation()
-        // Clear the timeout if mouse leaves before delay
+        e.stopPropagation();
         if (hoverTimeout) {
-          clearTimeout(hoverTimeout)
-          setHoverTimeout(null)
+          clearTimeout(hoverTimeout);
+          setHoverTimeout(null);
         }
-        setHoveredNoteId(null)
-      }
+        setHoveredNoteId(null);
+      };
 
       const handleEditClick = (e) => {
-        e.stopPropagation()
-        setSidebarActiveNoteId(null) // Close the note popover
-        setHoveredNoteId(null) // Close hover popover
-        handleSidebarEditNote(memberId, specialNote) // Open the edit modal
-      }
+        e.stopPropagation();
+        setSidebarActiveNoteId(null);
+        setHoveredNoteId(null);
+        handleSidebarEditNote(memberId, specialNote);
+      };
 
-      // Determine if we should show the popover (either clicked or hovered)
-      const shouldShowPopover = sidebarActiveNoteId === memberId || hoveredNoteId === memberId
+      const shouldShowPopover = sidebarActiveNoteId === memberId || hoveredNoteId === memberId;
 
       return (
         <div className="relative">
@@ -506,15 +494,13 @@ const Sidebar = ({
                   left: notePosition.left,
                 }}
                 onMouseEnter={() => {
-                  // Keep open when hovering over popover
                   if (hoveredNoteId === memberId) {
-                    setHoveredNoteId(memberId)
+                    setHoveredNoteId(memberId);
                   }
                 }}
                 onMouseLeave={() => {
-                  // Only close if it was opened via hover (not click)
                   if (hoveredNoteId === memberId) {
-                    setHoveredNoteId(null)
+                    setHoveredNoteId(null);
                   }
                 }}
               >
@@ -537,9 +523,9 @@ const Sidebar = ({
                   </button>
                   <button
                     onClick={(e) => {
-                      e.stopPropagation()
-                      setSidebarActiveNoteId(null)
-                      setHoveredNoteId(null)
+                      e.stopPropagation();
+                      setSidebarActiveNoteId(null);
+                      setHoveredNoteId(null);
                     }}
                     className="text-gray-400 hover:text-white transition-colors"
                     title="Close"
@@ -570,46 +556,46 @@ const Sidebar = ({
               document.body,
             )}
         </div>
-      )
+      );
     },
     [sidebarActiveNoteId, notePosition, hoveredNoteId, hoverTimeout],
-  )
+  );
 
   const addCustomLink = () => {
-    setEditingLink({})
-    setIsWebsiteLinkModalOpen(true)
-  }
+    setEditingLink({});
+    setIsWebsiteLinkModalOpen(true);
+  };
 
   const updateCustomLink = (id, field, value) => {
     setSidebarCustomLinks((currentLinks) =>
       currentLinks.map((link) => (link.id === id ? { ...link, [field]: value } : link)),
-    )
-  }
+    );
+  };
 
   const removeCustomLink = (id) => {
-    setSidebarCustomLinks((currentLinks) => currentLinks.filter((link) => link.id !== id))
-    setSidebarOpenDropdownIndex(null)
-  }
+    setSidebarCustomLinks((currentLinks) => currentLinks.filter((link) => link.id !== id));
+    setSidebarOpenDropdownIndex(null);
+  };
 
   const WebsiteLinkModal = ({ link, onClose }) => {
-    const [title, setTitle] = useState(link?.title?.trim() || "")
-    const [url, setUrl] = useState(link?.url?.trim() || "")
+    const [title, setTitle] = useState(link?.title?.trim() || "");
+    const [url, setUrl] = useState(link?.url?.trim() || "");
 
     const handleSave = () => {
-      if (!title.trim() || !url.trim()) return
+      if (!title.trim() || !url.trim()) return;
       if (link?.id) {
-        updateCustomLink(link.id, "title", title)
-        updateCustomLink(link.id, "url", url)
+        updateCustomLink(link.id, "title", title);
+        updateCustomLink(link.id, "url", url);
       } else {
         const newLink = {
           id: `link${Date.now()}`,
           url: url.trim(),
           title: title.trim(),
-        }
-        setSidebarCustomLinks((prev) => [...prev, newLink])
+        };
+        setSidebarCustomLinks((prev) => [...prev, newLink]);
       }
-      onClose()
-    }
+      onClose();
+    };
 
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -660,8 +646,22 @@ const Sidebar = ({
           </div>
         </div>
       </div>
-    )
-  }
+    );
+  };
+
+  const handleActionClick = (e, activity, action) => {
+    e.stopPropagation();
+    setPendingActivityAction({ activity, action });
+    setShowActionConfirm(true);
+  };
+
+  const handleConfirmAction = () => {
+    if (pendingActivityAction) {
+      handleActivityAction(pendingActivityAction.activity, pendingActivityAction.action);
+      setShowActionConfirm(false);
+      setPendingActivityAction(null);
+    }
+  };
 
   return (
     <>
@@ -713,7 +713,6 @@ const Sidebar = ({
                     {isSidebarEditing ? <Check size={18} /> : <Edit size={18} />}
                   </button>
                 )}
-                {/* Show close button only on medium and small screens */}
                 <button
                   onClick={onClose}
                   className="p-1.5 sm:p-2 text-zinc-400 hover:bg-zinc-700 rounded-xl lg:hidden"
@@ -786,21 +785,21 @@ const Sidebar = ({
                           className={`p-3 border-b border-gray-800 last:border-b-0 cursor-pointer hover:bg-gray-800 transition-colors ${!message.isRead ? "bg-blue-900/20" : ""
                             }`}
                           onClick={() => {
-                            handleMessageClick(message)
-                            markMessageAsRead(message.id, message.type)
+                            handleMessageClick(message);
+                            markMessageAsRead(message.id, message.type);
                           }}
                         >
                           <div className="flex items-start gap-3">
                             <img
                               src={message.senderAvatar || "/placeholder.svg"}
                               alt={message.senderName}
-                              className="w-8 h-8 rounded-full flex-shrink-0"
+                              className="w-8 h-8 rounded-xl flex-shrink-0"
                             />
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-1">
                                 <h4 className="text-white font-medium text-sm truncate">{message.senderName}</h4>
                                 {!message.isRead && (
-                                  <div className="w-2 h-2 bg-orange-500 rounded-full flex-shrink-0"></div>
+                                  <div className="w-2 h-2 bg-orange-500 rounded-xl flex-shrink-0"></div>
                                 )}
                               </div>
                               <p className="text-gray-300 text-sm line-clamp-2 mb-1">{message.message}</p>
@@ -856,21 +855,21 @@ const Sidebar = ({
                           className={`p-3 border-b border-gray-800 last:border-b-0 cursor-pointer hover:bg-gray-800 transition-colors ${!message.isRead ? "bg-green-900/20" : ""
                             }`}
                           onClick={() => {
-                            handleMessageClick(message)
-                            markMessageAsRead(message.id, message.type)
+                            handleMessageClick(message);
+                            markMessageAsRead(message.id, message.type);
                           }}
                         >
                           <div className="flex items-start gap-3">
                             <img
                               src={message.senderAvatar || "/placeholder.svg"}
                               alt={message.senderName}
-                              className="w-8 h-8 rounded-full flex-shrink-0"
+                              className="w-8 h-8 rounded-xl flex-shrink-0"
                             />
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-1">
                                 <h4 className="text-white font-medium text-sm truncate">{message.senderName}</h4>
                                 {!message.isRead && (
-                                  <div className="w-2 h-2 bg-orange-500 rounded-full flex-shrink-0"></div>
+                                  <div className="w-2 h-2 bg-orange-500 rounded-xl flex-shrink-0"></div>
                                 )}
                               </div>
                               <p className="text-gray-300 text-sm line-clamp-2 mb-1">{message.message}</p>
@@ -896,6 +895,7 @@ const Sidebar = ({
               </div>
 
               {/* activity monitor  */}
+              {/* Activity Monitor Section */}
               <div className="bg-black rounded-xl overflow-hidden">
                 <button
                   onClick={() => toggleNotificationSection("activityMonitor")}
@@ -925,8 +925,8 @@ const Sidebar = ({
                     {notificationData.activityMonitor.length > 0 ? (
                       <div className="divide-y divide-gray-800">
                         {notificationData.activityMonitor.map((activity) => {
-                          const config = activityTypes[activity.activityType]
-                          const Icon = config ? config.icon : Bell
+                          const config = activityTypes[activity.activityType];
+                          const Icon = config ? config.icon : Bell;
 
                           return (
                             <div
@@ -934,13 +934,14 @@ const Sidebar = ({
                               className={`p-4 sm:p-5 hover:bg-gray-900 transition-colors cursor-pointer ${!activity.isRead ? "bg-purple-900/20" : ""
                                 }`}
                               onClick={() => {
-                                handleActivityClick(activity)
-                                markMessageAsRead(activity.id, activity.type)
+                                handleActivityClick(activity);
+                                markMessageAsRead(activity.id, activity.type);
                               }}
                             >
                               <div className="flex items-start gap-3">
                                 <div
-                                  className={`${config ? config.color : "bg-gray-700"} p-2.5 rounded-xl flex-shrink-0`}
+                                  className={`${config ? config.color : "bg-gray-700"
+                                    } p-2.5 rounded-xl flex-shrink-0`}
                                 >
                                   <Icon size={18} className="text-white" />
                                 </div>
@@ -977,18 +978,20 @@ const Sidebar = ({
                                             <>
                                               <button
                                                 onClick={(e) => {
-                                                  e.stopPropagation()
-                                                  handleActivityAction(activity, "approve")
+                                                  e.stopPropagation();
+                                                  setPendingActivityAction({ activity, action: "approve" });
+                                                  setShowActionConfirm(true);
                                                 }}
-                                                className="p-1.5 sm:p-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
+                                                className="p-1.5 sm:p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
                                                 title="Approve"
                                               >
                                                 <Check size={12} className="text-white" />
                                               </button>
                                               <button
                                                 onClick={(e) => {
-                                                  e.stopPropagation()
-                                                  handleActivityAction(activity, "reject")
+                                                  e.stopPropagation();
+                                                  setPendingActivityAction({ activity, action: "reject" });
+                                                  setShowActionConfirm(true);
                                                 }}
                                                 className="p-1.5 sm:p-2 bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
                                                 title="Reject"
@@ -1003,8 +1006,9 @@ const Sidebar = ({
                                             activity.activityType === "appointment") && (
                                               <button
                                                 onClick={(e) => {
-                                                  e.stopPropagation()
-                                                  handleActivityAction(activity, "resolve")
+                                                  e.stopPropagation();
+                                                  setPendingActivityAction({ activity, action: "resolve" });
+                                                  setShowActionConfirm(true);
                                                 }}
                                                 className="p-1.5 sm:p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
                                                 title="Mark as Resolved"
@@ -1017,8 +1021,8 @@ const Sidebar = ({
 
                                       <button
                                         onClick={(e) => {
-                                          e.stopPropagation()
-                                          handleJumpToActivityMonitor(activity)
+                                          e.stopPropagation();
+                                          handleJumpToActivityMonitor(activity);
                                         }}
                                         className="p-1.5 sm:p-2 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-lg transition-colors"
                                         title="Open in Activity Monitor"
@@ -1026,7 +1030,8 @@ const Sidebar = ({
                                         <ExternalLink size={12} className="text-gray-400" />
                                       </button>
                                       <div className="text-xs flex items-center gap-2">
-                                        <Clock size={12} />
+                                        {/* Replaced Clock with Activity (Monitor) icon */}
+                                        <Activity size={12} className="text-gray-400" />
                                         <span>{activity.time}</span>
                                       </div>
                                     </div>
@@ -1034,7 +1039,7 @@ const Sidebar = ({
                                 </div>
                               </div>
                             </div>
-                          )
+                          );
                         })}
                       </div>
                     ) : (
@@ -1063,436 +1068,520 @@ const Sidebar = ({
                     moveRightSidebarWidget={moveRightSidebarWidget}
                     removeRightSidebarWidget={removeRightSidebarWidget}
                   >
-                   {widget.type === "todo" && (
-  <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
-    <div className="flex justify-between items-center">
-      <h2 className="text-lg font-semibold open_sans_font cursor-pointer">To-Do</h2>
-      <button
-        onClick={() => setIsAddTaskModalOpen(true)}
-        className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
-      >
-        <Plus size={18} />
-      </button>
-    </div>
-
-    <div className="relative mb-3 w-full" ref={todoFilterDropdownRef}>
-      <button
-        onClick={() => setIsTodoFilterDropdownOpen(!isTodoFilterDropdownOpen)}
-        className="flex items-center gap-2 px-3 py-1.5 bg-black rounded-xl text-white text-sm w-full justify-between"
-      >
-        {todoFilterOptions.find((option) => option.value === todoFilter)?.label}
-        <ChevronDown className="w-4 h-4" />
-      </button>
-      {isTodoFilterDropdownOpen && (
-        <div className="absolute z-10 mt-2 w-full bg-[#2F2F2F] rounded-xl shadow-lg">
-          {todoFilterOptions.map((option) => (
-            <button
-              key={option.value}
-              className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-white hover:bg-black first:rounded-t-xl last:rounded-b-xl"
-              onClick={() => {
-                setTodoFilter(option.value)
-                setIsTodoFilterDropdownOpen(false)
-              }}
-            >
-              {option.color && (
-                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: option.color }} />
-              )}
-              {option.label}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-
-    {/* Todo Items with Scroll */}
-    <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
-      <div className="space-y-2">
-        {getFilteredTodos().length > 0 ? (
-          <>
-            {getFilteredTodos()
-              .slice(0, 3)
-              .map((todo) => (
-                <div
-                  key={todo.id}
-                  className="p-3 bg-black rounded-xl flex items-center justify-between"
-                >
-                  <div className="flex items-center gap-2 flex-1">
-                    <input
-                      type="checkbox"
-                      checked={todo.completed}
-                      onChange={() => handleTaskComplete(todo.id)}
-                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                    />
-                    <div className="flex-1">
-                      <h3
-                        className={`font-semibold open_sans_font text-sm ${todo.completed ? "line-through text-gray-500" : ""}`}
+                    {/* Collapsed State */}
+                    {collapsedWidgets[widget.id] ? (
+                      <div
+                        className="p-4 rounded-xl bg-[#2F2F2F] flex items-center justify-between cursor-pointer hover:bg-[#3A3A3A] transition-colors"
+                        onClick={() => toggleWidgetCollapse(widget.id)}
                       >
-                        {todo.title}
-                      </h3>
-                      <p className="text-xs open_sans_font text-zinc-400">
-                        Due: {todo.dueDate} {todo.dueTime && `at ${todo.dueTime}`}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="relative">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        toggleDropdown(`todo-${todo.id}`)
-                      }}
-                      className="p-1 hover:bg-zinc-700 rounded"
-                    >
-                      <MoreVertical size={16} />
-                    </button>
-                    {openDropdownIndex === `todo-${todo.id}` && (
-                      <div className="absolute right-0 top-8 bg-[#2F2F2F] rounded-lg shadow-lg z-10 min-w-[120px]">
-                        <button
-                          onClick={() => {
-                            handleEditTask(todo)
-                          }}
-                          className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-t-lg"
-                        >
-                          Edit Task
-                        </button>
-                        <button
-                          onClick={() => {
-                            setTaskToCancel(todo.id)
-                          }}
-                          className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600"
-                        >
-                          Cancel Task
-                        </button>
-                        <button
-                          onClick={() => {
-                            setTaskToDelete(todo.id)
-                          }}
-                          className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-b-lg text-red-400"
-                        >
-                          Delete Task
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-          </>
-        ) : (
-          <div className="text-center py-4 text-gray-400">
-            <p className="text-sm">No tasks in this category</p>
-          </div>
-        )}
-      </div>
-    </div>
-
-    <div className="flex justify-center">
-      <Link
-        to={"/dashboard/to-do"}
-        className="text-sm open_sans_font text-white hover:underline"
-      >
-        See all
-      </Link>
-    </div>
-  </div>
-)}
-
-                    {widget.type === "birthday" && (
-                      <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
-                        <div className="flex justify-between items-center">
-                          <h2 className="text-lg font-semibold">Upcoming Birthday</h2>
+                        <div className="flex items-center gap-2">
+                          <ChevronRight size={16} />
+                          <span className="font-medium">{getWidgetDisplayName(widget.type)}</span>
                         </div>
+                        {/* <span className="text-xs text-gray-400">Click to expand</span> */}
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {/* Widget Header with Controls */}
+                        {!isSidebarEditing && (
+                          <div className="flex items-center justify-between px-1">
+                            <button
+                              onClick={() => toggleWidgetCollapse(widget.id)}
+                              className="p-1.5 hover:bg-zinc-700 rounded-lg transition-colors"
+                              title="Collapse widget"
+                            >
+                              <ChevronDown size={16} />
+                            </button>
+                            <button
+                              onClick={() => toggleWidgetSize(widget.id)}
+                              className="p-1.5 hover:bg-zinc-700 rounded-lg transition-colors"
+                              title={expandedWidgetSizes[widget.id] ? "Reduce size" : "Expand size"}
+                            >
+                              {expandedWidgetSizes[widget.id] ? (
+                                <Minimize2 size={16} />
+                              ) : (
+                                <Maximize2 size={16} />
+                              )}
+                            </button>
+                          </div>
+                        )}
 
-                        {/* Scrollable area */}
-                        <div className="flex-1 overflow-y-auto max-h-[300px] custom-scrollbar pr-1">
-                          <div className="space-y-2">
-                            {birthdays.map((birthday) => (
-                              <div
-                                key={birthday.id}
-                                className={`p-3 cursor-pointer rounded-xl flex items-center gap-3 justify-between ${isBirthdayToday(birthday.date)
-                                  ? "bg-yellow-900/30 border border-yellow-600"
-                                  : "bg-black"
-                                  }`}
+                        {/* Widget Content */}
+                        {widget.type === "todo" && (
+                          <div className={`space-y-3 p-4 rounded-xl bg-[#2F2F2F] ${getWidgetHeightClass(widget.id)} h-auto flex flex-col`}>
+                            <div className="flex justify-between items-center">
+                              <h2 className="text-lg font-semibold open_sans_font cursor-pointer">To-Do</h2>
+                              {!isSidebarEditing && (
+                                <button
+                                  onClick={() => setIsAddTaskModalOpen(true)}
+                                  className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                                >
+                                  <Plus size={18} />
+                                </button>
+                              )}
+                            </div>
+
+                            <div className="relative mb-3 w-full" ref={todoFilterDropdownRef}>
+                              <button
+                                onClick={() => setIsTodoFilterDropdownOpen(!isTodoFilterDropdownOpen)}
+                                className="flex items-center gap-2 px-3 py-1.5 bg-black rounded-xl text-white text-sm w-full justify-between"
                               >
-                                <div className="flex items-center gap-3">
-                                  <div className="h-10 w-10 rounded-xl overflow-hidden">
-                                    <img
-                                      src={birthday.avatar || "/placeholder.svg"}
-                                      className="h-full w-full object-cover"
-                                      alt=""
-                                    />
-                                  </div>
-
-                                  <div>
-                                    <h3 className="font-semibold text-sm flex items-center gap-1">
-                                      {birthday.name}
-                                      {isBirthdayToday(birthday.date) && (
-                                        <span className="text-yellow-500">🎂</span>
+                                {todoFilterOptions.find((option) => option.value === todoFilter)?.label}
+                                <ChevronDown className="w-4 h-4" />
+                              </button>
+                              {isTodoFilterDropdownOpen && (
+                                <div className="absolute z-10 mt-2 w-full bg-[#2F2F2F] rounded-xl shadow-lg">
+                                  {todoFilterOptions.map((option) => (
+                                    <button
+                                      key={option.value}
+                                      className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-white hover:bg-black first:rounded-t-xl last:rounded-b-xl"
+                                      onClick={() => {
+                                        setTodoFilter(option.value);
+                                        setIsTodoFilterDropdownOpen(false);
+                                      }}
+                                    >
+                                      {option.color && (
+                                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: option.color }} />
                                       )}
-                                    </h3>
-                                    <p className="text-xs text-zinc-400">{birthday.date}</p>
-                                  </div>
+                                      {option.label}
+                                    </button>
+                                  ))}
                                 </div>
+                              )}
+                            </div>
 
-                                {isBirthdayToday(birthday.date) && (
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleSendBirthdayMessage(birthday);
-                                    }}
-                                    className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg"
-                                    title="Send Birthday Message"
-                                  >
-                                    <MessageCircle size={16} />
-                                  </button>
+                            {/* Todo Items with Scroll */}
+                            <div className={`flex-1 overflow-y-auto custom-scrollbar pr-1 ${expandedWidgetSizes[widget.id] ? 'max-h-[400px]' : ''}`}>
+                              <div className="space-y-2">
+                                {getFilteredTodos().length > 0 ? (
+                                  <>
+                                    {getFilteredTodos()
+                                      .slice(0, expandedWidgetSizes[widget.id] ? 10 : 3)
+                                      .map((todo) => (
+                                        <div
+                                          key={todo.id}
+                                          className="p-3 bg-black rounded-xl flex items-center justify-between"
+                                        >
+                                          <div className="flex items-center gap-2 flex-1">
+                                            <input
+                                              type="checkbox"
+                                              checked={todo.completed}
+                                              onChange={() => handleTaskComplete(todo.id)}
+                                              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                                            />
+                                            <div className="flex-1">
+                                              <h3
+                                                className={`font-semibold open_sans_font text-sm ${todo.completed ? "line-through text-gray-500" : ""}`}
+                                              >
+                                                {todo.title}
+                                              </h3>
+                                              <p className="text-xs open_sans_font text-zinc-400">
+                                                Due: {todo.dueDate} {todo.dueTime && `at ${todo.dueTime}`}
+                                              </p>
+                                            </div>
+                                          </div>
+                                          <div className="relative">
+                                            <button
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                toggleDropdown(`todo-${todo.id}`);
+                                              }}
+                                              className="p-1 hover:bg-zinc-700 rounded"
+                                            >
+                                              <MoreVertical size={16} />
+                                            </button>
+                                            {openDropdownIndex === `todo-${todo.id}` && (
+                                              <div className="absolute right-0 top-8 bg-[#2F2F2F] rounded-lg shadow-lg z-10 min-w-[120px]">
+                                                <button
+                                                  onClick={() => {
+                                                    handleEditTask(todo);
+                                                  }}
+                                                  className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-t-lg"
+                                                >
+                                                  Edit Task
+                                                </button>
+                                                <button
+                                                  onClick={() => {
+                                                    setTaskToCancel(todo.id);
+                                                  }}
+                                                  className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600"
+                                                >
+                                                  Cancel Task
+                                                </button>
+                                                <button
+                                                  onClick={() => {
+                                                    setTaskToDelete(todo.id);
+                                                  }}
+                                                  className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-b-lg text-red-400"
+                                                >
+                                                  Delete Task
+                                                </button>
+                                              </div>
+                                            )}
+                                          </div>
+                                        </div>
+                                      ))}
+                                  </>
+                                ) : (
+                                  <div className="text-center py-4 text-gray-400">
+                                    <p className="text-sm">No tasks in this category</p>
+                                  </div>
                                 )}
                               </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    )}
+                            </div>
 
-                    {widget.type === "websiteLinks" && (
-                      <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
-
-                        {/* Header */}
-                        <div className="flex justify-between items-center">
-                          <h2 className="text-lg font-semibold">Website Links</h2>
-                          <button
-                            onClick={addCustomLink}
-                            className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg cursor-pointer transition-colors"
-                          >
-                            <Plus size={18} />
-                          </button>
-                        </div>
-
-                        {/* Scrollable List */}
-                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
-                          <div className="grid grid-cols-1 gap-3">
-                            {sidebarCustomLinks.map((link) => (
-                              <div
-                                key={link.id}
-                                className="p-5 bg-black rounded-xl flex items-center justify-between"
-                              >
-                                {/* Title + URL */}
-                                <div className="flex-1 min-w-0">
-                                  <h3 className="text-sm font-medium truncate">{link.title}</h3>
-                                  <p className="text-xs mt-1 text-zinc-400 truncate max-w-[200px]">
-                                    {truncateUrl(link.url)}
-                                  </p>
-                                </div>
-
-                                {/* Actions */}
-                                <div className="flex items-center gap-2">
-                                  {/* Open link */}
-                                  <button
-                                    onClick={() => window.open(link.url, "_blank")}
-                                    className="p-2 hover:bg-zinc-700 rounded-lg"
-                                  >
-                                    <ExternalLink size={16} />
-                                  </button>
-
-                                  {/* Dropdown */}
-                                  <div className="relative">
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation()
-                                        setSidebarOpenDropdownIndex(
-                                          sidebarOpenDropdownIndex === `link-${link.id}` ? null : `link-${link.id}`
-                                        )
-                                      }}
-                                      className="p-2 hover:bg-zinc-700 rounded-lg"
-                                    >
-                                      <MoreVertical size={16} />
-                                    </button>
-
-                                    {sidebarOpenDropdownIndex === `link-${link.id}` && (
-                                      <div className="absolute right-0 top-full mt-1 w-32 bg-zinc-800 rounded-lg shadow-lg z-50 py-1">
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation()
-                                            setEditingLink(link)
-                                            setIsWebsiteLinkModalOpen(true)
-                                            setSidebarOpenDropdownIndex(null)
-                                          }}
-                                          className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700"
-                                        >
-                                          Edit
-                                        </button>
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation()
-                                            removeCustomLink(link.id)
-                                            setSidebarOpenDropdownIndex(null)
-                                          }}
-                                          className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700 text-red-400"
-                                        >
-                                          Remove
-                                        </button>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-
-                    {widget.type === "appointments" && (
-                      <div className="space-y-3 p-4 rounded-xl md:h-[340px] h-auto bg-[#2F2F2F]">
-                        <div className="flex justify-between items-center">
-                          <h2 className="text-lg font-semibold">Upcoming Appointments</h2>
-                        </div>
-                        <div className="space-y-2 max-h-[25vh] overflow-y-auto custom-scrollbar pr-1">
-                          {appointments.length > 0 ? (
-                            appointments.map((appointment, index) => (
-                              <div
-                                key={appointment.id}
-                                className={`${appointment.color} rounded-xl cursor-pointer p-3 relative`}
-                              >
-                                {/* Icons container with fixed positioning and proper spacing */}
-                                <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
-                                  {renderSidebarSpecialNoteIcon(appointment.specialNote, appointment.id)}
-                                  <div
-                                    className="cursor-pointer rounded mt-3 ml-1 transition-colors"
-                                    onClick={(e) => handleDumbbellClick(appointment, e)}
-                                  >
-                                    <Dumbbell size={16} />
-                                  </div>
-                                </div>
-
-                                <div
-                                  className="flex flex-col items-center justify-between gap-2 cursor-pointer pl-8"
-                                  onClick={() => {
-                                    handleAppointmentOptionsModal(appointment)
-                                  }}
+                            {!expandedWidgetSizes[widget.id] && getFilteredTodos().length > 3 && (
+                              <div className="flex justify-center">
+                                <Link
+                                  to={"/dashboard/to-do"}
+                                  className="text-sm open_sans_font text-white hover:underline"
                                 >
-                                  <div className="flex items-center gap-2 relative w-full justify-center">
-                                    <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center relative">
-                                      <img
-                                        src={Avatar || "/placeholder.svg"}
-                                        alt=""
-                                        className="w-full h-full rounded-xl"
-                                      />
-                                    </div>
-                                    <div className="text-white text-left flex-1">
-                                      <p className="font-semibold text-sm">
-                                        {appointment.name} {appointment.lastName || ""}
-                                      </p>
-                                      <p className="text-xs flex gap-1 items-center opacity-80">
-                                        <Clock size={14} />
-                                        {appointment.time} | {appointment.date.split("|")[0]}
-                                      </p>
-                                      <p className="text-xs opacity-80 mt-1">
-                                        {appointment.isTrial ? "Trial Session" : appointment.type}
-                                      </p>
-                                    </div>
-                                  </div>
-                                  <div className="flex items-center gap-2 w-full justify-center">
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation()
-                                        handleCheckIn(appointment.id)
-                                      }}
-                                      className={`px-3 py-1 text-xs font-medium rounded-lg ${appointment.isCheckedIn
-                                        ? "border border-white/50 text-white bg-transparent"
-                                        : "bg-black text-white"
+                                  See all ({getFilteredTodos().length})
+                                </Link>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {widget.type === "birthday" && (
+                          <div className={`space-y-3 p-4 rounded-xl bg-[#2F2F2F] ${getWidgetHeightClass(widget.id)} h-auto flex flex-col`}>
+                            <div className="flex justify-between items-center">
+                              <h2 className="text-lg font-semibold">Upcoming Birthday</h2>
+                            </div>
+
+                            {/* Scrollable area */}
+                            <div className={`flex-1 overflow-y-auto custom-scrollbar pr-1 ${expandedWidgetSizes[widget.id] ? 'max-h-[450px]' : ''}`}>
+                              <div className="space-y-2">
+                                {birthdays
+                                  .slice(0, expandedWidgetSizes[widget.id] ? 10 : 5)
+                                  .map((birthday) => (
+                                    <div
+                                      key={birthday.id}
+                                      className={`p-3 cursor-pointer rounded-xl flex items-center gap-3 justify-between ${isBirthdayToday(birthday.date)
+                                        ? "bg-yellow-900/30 border border-yellow-600"
+                                        : "bg-black"
                                         }`}
                                     >
-                                      {appointment.isCheckedIn ? "Checked In" : "Check In"}
-                                    </button>
-                                  </div>
-                                </div>
+                                      <div className="flex items-center gap-3">
+                                        <div className="h-10 w-10 rounded-xl overflow-hidden">
+                                          <img
+                                            src={birthday.avatar || "/placeholder.svg"}
+                                            className="h-full w-full object-cover"
+                                            alt=""
+                                          />
+                                        </div>
+
+                                        <div>
+                                          <h3 className="font-semibold text-sm flex items-center gap-1">
+                                            {birthday.name}
+                                            {isBirthdayToday(birthday.date) && (
+                                              <span className="text-yellow-500">🎂</span>
+                                            )}
+                                          </h3>
+                                          <p className="text-xs text-zinc-400">{birthday.date}</p>
+                                        </div>
+                                      </div>
+
+                                      {isBirthdayToday(birthday.date) && (
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleSendBirthdayMessage(birthday);
+                                          }}
+                                          className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg"
+                                          title="Send Birthday Message"
+                                        >
+                                          <MessageCircle size={16} />
+                                        </button>
+                                      )}
+                                    </div>
+                                  ))}
                               </div>
-                            ))
-                          ) : (
-                            <p className="text-white text-center">No appointments scheduled for this date.</p>
-                          )}
-                        </div>
-                        <div className="flex justify-center">
-                          <Link to="/dashboard/appointments" className="text-sm text-white hover:underline">
-                            See all
-                          </Link>
-                        </div>
-                      </div>
-                    )}
+                            </div>
 
-                    {isSidebarSpecialNoteModalOpen && selectedSidebarAppointmentForNote && (
-                      <SpecialNoteEditModal
-                        isOpen={isSidebarSpecialNoteModalOpen}
-                        onClose={() => {
-                          setIsSidebarSpecialNoteModalOpen(false)
-                          setSelectedSidebarAppointmentForNote(null)
-                        }}
-                        appointment={selectedSidebarAppointmentForNote}
-                        onSave={handleSaveSidebarSpecialNote}
-                      />
-                    )}
-
-                    {widget.type === "chart" && (
-                      <div className="mb-6">
-                        <div className="flex items-center justify-between mb-2">
-                          <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">Analytics Chart</h2>
-                        </div>
-                        <div className="p-4 bg-black rounded-xl">
-                          <ChartWithLocalState />
-                        </div>
-                      </div>
-                    )}
-                    {widget.type === "expiringContracts" && (
-                      <div className="mb-6">
-                        <div className="flex items-center justify-between mb-3">
-                          <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">Expiring Contracts</h2>
-                        </div>
-                        <div className="space-y-2 max-h-[300px] overflow-y-auto custom-scrollbar">
-                          {expiringContracts.slice(0, 3).map((contract) => (
-                            <Link to="/dashboard/contract" key={contract.id}>
-                              <div className="p-3 bg-black rounded-lg hover:bg-zinc-900 mt-2 transition-colors">
-                                <div className="flex justify-between items-start gap-2">
-                                  <div className="min-w-0">
-                                    <h3 className="text-sm font-medium truncate">{contract.title}</h3>
-                                    <p className="text-xs mt-1 text-zinc-400">Expires: {contract.expiryDate}</p>
-                                  </div>
-                                  <span className="px-2 py-1 text-xs rounded-full bg-yellow-500/20 text-yellow-400 whitespace-nowrap">
-                                    {contract.status}
-                                  </span>
-                                </div>
+                            {!expandedWidgetSizes[widget.id] && birthdays.length > 5 && (
+                              <div className="flex justify-center">
+                                <Link to="/dashboard/birthdays" className="text-sm text-white hover:underline">
+                                  See all ({birthdays.length})
+                                </Link>
                               </div>
-                            </Link>
-                          ))}
-                        </div>
-                        <div className="flex justify-center mt-3">
-                          <Link to="/dashboard/contract" className="text-sm text-white hover:underline">
-                            See all
-                          </Link>
-                        </div>
+                            )}
+                          </div>
+                        )}
+
+                        {widget.type === "websiteLinks" && (
+                          <div className={`space-y-3 p-4 rounded-xl bg-[#2F2F2F] ${getWidgetHeightClass(widget.id)} h-auto flex flex-col`}>
+                            <div className="flex justify-between items-center">
+                              <h2 className="text-lg font-semibold">Website Links</h2>
+                              {!isSidebarEditing && (
+                                <button
+                                  onClick={addCustomLink}
+                                  className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg cursor-pointer transition-colors"
+                                >
+                                  <Plus size={18} />
+                                </button>
+                              )}
+                            </div>
+
+                            {/* Scrollable List */}
+                            <div className={`flex-1 overflow-y-auto custom-scrollbar pr-1 ${expandedWidgetSizes[widget.id] ? 'max-h-[450px]' : ''}`}>
+                              <div className="grid grid-cols-1 gap-3">
+                                {sidebarCustomLinks
+                                  .slice(0, expandedWidgetSizes[widget.id] ? 15 : 5)
+                                  .map((link) => (
+                                    <div
+                                      key={link.id}
+                                      className="p-5 bg-black rounded-xl flex items-center justify-between"
+                                    >
+                                      <div className="flex-1 min-w-0">
+                                        <h3 className="text-sm font-medium truncate">{link.title}</h3>
+                                        <p className="text-xs mt-1 text-zinc-400 truncate max-w-[200px]">
+                                          {truncateUrl(link.url)}
+                                        </p>
+                                      </div>
+
+                                      <div className="flex items-center gap-2">
+                                        <button
+                                          onClick={() => window.open(link.url, "_blank")}
+                                          className="p-2 hover:bg-zinc-700 rounded-lg"
+                                        >
+                                          <ExternalLink size={16} />
+                                        </button>
+
+                                        <div className="relative">
+                                          <button
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              setSidebarOpenDropdownIndex(
+                                                sidebarOpenDropdownIndex === `link-${link.id}` ? null : `link-${link.id}`
+                                              );
+                                            }}
+                                            className="p-2 hover:bg-zinc-700 rounded-lg"
+                                          >
+                                            <MoreVertical size={16} />
+                                          </button>
+
+                                          {sidebarOpenDropdownIndex === `link-${link.id}` && (
+                                            <div className="absolute right-0 top-full mt-1 w-32 bg-zinc-800 rounded-lg shadow-lg z-50 py-1">
+                                              <button
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  setEditingLink(link);
+                                                  setIsWebsiteLinkModalOpen(true);
+                                                  setSidebarOpenDropdownIndex(null);
+                                                }}
+                                                className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700"
+                                              >
+                                                Edit
+                                              </button>
+                                              <button
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  removeCustomLink(link.id);
+                                                  setSidebarOpenDropdownIndex(null);
+                                                }}
+                                                className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700 text-red-400"
+                                              >
+                                                Remove
+                                              </button>
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ))}
+                              </div>
+                            </div>
+
+                            {!expandedWidgetSizes[widget.id] && sidebarCustomLinks.length > 5 && (
+                              <div className="flex justify-center">
+                                <Link to="/dashboard/links" className="text-sm text-white hover:underline">
+                                  See all ({sidebarCustomLinks.length})
+                                </Link>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {widget.type === "appointments" && (
+                          <div className={`space-y-3 p-4 rounded-xl ${getWidgetHeightClass(widget.id, "md:h-[340px]")} bg-[#2F2F2F]`}>
+                            <div className="flex justify-between items-center">
+                              <h2 className="text-lg font-semibold">Upcoming Appointments</h2>
+                            </div>
+                            <div className={`space-y-2 overflow-y-auto custom-scrollbar pr-1 ${expandedWidgetSizes[widget.id] ? 'max-h-[450px]' : 'max-h-[25vh]'}`}>
+                              {appointments.length > 0 ? (
+                                appointments
+                                  .slice(0, expandedWidgetSizes[widget.id] ? 8 : 3)
+                                  .map((appointment, index) => (
+                                    <div
+                                      key={appointment.id}
+                                      className={`${appointment.color} rounded-xl cursor-pointer p-3 relative`}
+                                    >
+                                      <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
+                                        {renderSidebarSpecialNoteIcon(appointment.specialNote, appointment.id)}
+                                        <div
+                                          className="cursor-pointer rounded mt-3 ml-1 transition-colors"
+                                          onClick={(e) => handleDumbbellClick(appointment, e)}
+                                        >
+                                          <Dumbbell size={16} />
+                                        </div>
+                                      </div>
+
+                                      <div
+                                        className="flex flex-col items-center justify-between gap-2 cursor-pointer pl-8"
+                                        onClick={() => {
+                                          handleAppointmentOptionsModal(appointment);
+                                        }}
+                                      >
+                                        <div className="flex items-center gap-2 relative w-full justify-center">
+                                          <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center relative">
+                                            <img
+                                              src={"/gray-avatar-fotor-20250912192528.png"}
+                                              alt=""
+                                              className="w-full h-full rounded-xl"
+                                            />
+                                          </div>
+                                          <div className="text-white text-left flex-1">
+                                            <p className="font-semibold text-sm">
+                                              {appointment.name} {appointment.lastName || ""}
+                                            </p>
+                                            <p className="text-xs flex gap-1 items-center opacity-80">
+                                              <Clock size={14} />
+                                              {appointment.time} | {appointment.date.split("|")[0]}
+                                            </p>
+                                            <p className="text-xs opacity-80 mt-1">
+                                              {appointment.isTrial ? "Trial Session" : appointment.type}
+                                            </p>
+                                          </div>
+                                        </div>
+                                        <div className="flex items-center gap-2 w-full justify-center">
+                                          <button
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleCheckIn(appointment.id);
+                                            }}
+                                            className={`px-3 py-1 text-xs font-medium rounded-lg ${appointment.isCheckedIn
+                                              ? "border border-white/50 text-white bg-transparent"
+                                              : "bg-black text-white"
+                                              }`}
+                                          >
+                                            {appointment.isCheckedIn ? "Checked In" : "Check In"}
+                                          </button>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ))
+                              ) : (
+                                <p className="text-white text-center">No appointments scheduled for this date.</p>
+                              )}
+                            </div>
+                            {!expandedWidgetSizes[widget.id] && appointments.length > 3 && (
+                              <div className="flex justify-center">
+                                <Link to="/dashboard/appointments" className="text-sm text-white hover:underline">
+                                  See all ({appointments.length})
+                                </Link>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {isSidebarSpecialNoteModalOpen && selectedSidebarAppointmentForNote && (
+                          <SpecialNoteEditModal
+                            isOpen={isSidebarSpecialNoteModalOpen}
+                            onClose={() => {
+                              setIsSidebarSpecialNoteModalOpen(false);
+                              setSelectedSidebarAppointmentForNote(null);
+                            }}
+                            appointment={selectedSidebarAppointmentForNote}
+                            onSave={handleSaveSidebarSpecialNote}
+                          />
+                        )}
+
+                        {widget.type === "chart" && (
+                          <div className={`space-y-3 p-4 rounded-xl bg-[#2F2F2F] ${getWidgetHeightClass(widget.id, "md:h-[340px]")} h-auto flex flex-col`}>
+                            <div className="flex items-center justify-between">
+                              <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">Analytics Chart</h2>
+                            </div>
+                            <div className="flex-1 p-4 bg-black rounded-xl">
+                              <ChartWithLocalState expanded={expandedWidgetSizes[widget.id]} />
+                            </div>
+                          </div>
+                        )}
+
+                        {widget.type === "expiringContracts" && (
+                          <div className={`space-y-3 p-4 rounded-xl bg-[#2F2F2F] ${getWidgetHeightClass(widget.id)} h-auto flex flex-col`}>
+                            <div className="flex justify-between items-center">
+                              <h2 className="text-lg font-semibold">Expiring Contracts</h2>
+                            </div>
+                            <div className={`flex-1 overflow-y-auto custom-scrollbar pr-1 ${expandedWidgetSizes[widget.id] ? 'max-h-[450px]' : ''}`}>
+                              <div className="grid grid-cols-1 gap-3">
+                                {expiringContracts
+                                  .slice(0, expandedWidgetSizes[widget.id] ? 10 : 5)
+                                  .map((contract) => (
+                                    <Link to={"/dashboard/contract"} key={contract.id}>
+                                      <div className="p-4 bg-black rounded-xl hover:bg-zinc-900 transition-colors">
+                                        <div className="flex justify-between items-start gap-3">
+                                          <div className="flex-1 min-w-0">
+                                            <h3 className="text-sm font-medium break-words line-clamp-2">
+                                              {contract.title}
+                                            </h3>
+                                            <p className="text-xs mt-1 text-zinc-400 whitespace-nowrap overflow-hidden text-ellipsis">
+                                              Expires: {contract.expiryDate}
+                                            </p>
+                                          </div>
+                                          <span className="px-2 py-1 text-xs rounded-full bg-yellow-500/20 text-yellow-400 whitespace-nowrap flex-shrink-0">
+                                            {contract.status}
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </Link>
+                                  ))}
+                              </div>
+                            </div>
+                            {!expandedWidgetSizes[widget.id] && expiringContracts.length > 5 && (
+                              <div className="flex justify-center">
+                                <Link to="/dashboard/contracts" className="text-sm text-white hover:underline">
+                                  See all ({expiringContracts.length})
+                                </Link>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {widget.type === "bulletinBoard" && (
+                          <div className={`${getWidgetHeightClass(widget.id)} h-auto flex flex-col`}>
+                            <BulletinBoardWidget isSidebarEditing={isSidebarEditing} expanded={expandedWidgetSizes[widget.id]} />
+                          </div>
+                        )}
+
+                        {widget.type === "notes" && (
+                          <div className={`space-y-3  rounded-xl bg-[#2F2F2F] ${getWidgetHeightClass(widget.id)} h-auto flex flex-col`}>
+                            <NotesWidget isSidebarEditing={isSidebarEditing} expanded={expandedWidgetSizes[widget.id]} />
+                          </div>
+                        )}
+
+                        {widget.type === "staffCheckIn" && (
+                          <div className={`space-y-3 p-4 rounded-xl bg-[#2F2F2F] ${getWidgetHeightClass(widget.id)} h-auto flex flex-col`}>
+                            <div className="flex items-center justify-between">
+                              <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">Staff login</h2>
+                            </div>
+                            <div className="flex-1 bg-black rounded-xl p-4">
+                              <StaffCheckInWidget expanded={expandedWidgetSizes[widget.id]} />
+                            </div>
+                          </div>
+                        )}
+
+                        {widget.type === "shiftSchedule" && (
+                          <div className={`space-y-3  rounded-xl bg-[#2F2F2F] ${getWidgetHeightClass(widget.id)} h-auto flex flex-col`}>
+                            <ShiftScheduleWidget
+                              isEditing={isSidebarEditing}
+                              onRemove={() => removeRightSidebarWidget(widget.id)}
+                              className="h-full"
+                              expanded={expandedWidgetSizes[widget.id]}
+                            />
+                          </div>
+                        )}
                       </div>
-                    )}
-
-                    {widget.type === "bulletinBoard" && <BulletinBoardWidget />}
-
-                    {widget.type === "notes" && <NotesWidget />}
-
-                    {widget.type === "staffCheckIn" && (
-                      <div className="mb-6">
-                        <div className="flex items-center justify-between mb-2">
-                          <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">Staff login</h2>
-                        </div>
-                        <div className="bg-black rounded-xl p-4">
-                          <StaffCheckInWidget />
-                        </div>
-                      </div>
-                    )}
-
-                    {widget.type === "shiftSchedule" && (
-                      <ShiftScheduleWidget
-                        isEditing={isSidebarEditing}
-                        onRemove={() => removeRightSidebarWidget(widget.id)}
-                        className="h-full"
-                      />
                     )}
                   </RightSidebarWidget>
                 ))}
@@ -1509,7 +1598,7 @@ const Sidebar = ({
         currentView={currentView}
         setCurrentView={setCurrentView}
         sidebarWidgets={rightSidebarWidgets}
-        setSidebarWidgets={() => { }} // This might need to be adjusted based on your implementation
+        setSidebarWidgets={() => { }}
       />
 
       {isAddTaskModalOpen && (
@@ -1523,8 +1612,8 @@ const Sidebar = ({
       <ReplyModal
         isOpen={isReplyModalOpen}
         onClose={() => {
-          setIsReplyModalOpen(false)
-          setSelectedMessage(null)
+          setIsReplyModalOpen(false);
+          setSelectedMessage(null);
         }}
         message={selectedMessage}
         onSendReply={handleSendReply}
@@ -1535,13 +1624,60 @@ const Sidebar = ({
         <WebsiteLinkModal
           link={editingLink}
           onClose={() => {
-            setIsWebsiteLinkModalOpen(false)
-            setEditingLink(null)
+            setIsWebsiteLinkModalOpen(false);
+            setEditingLink(null);
           }}
         />
       )}
-    </>
-  )
-}
 
-export default Sidebar
+      {/* Action Confirmation Modal */}
+      {showActionConfirm && pendingActivityAction && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[99999]">
+          <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
+            <div className="p-6 space-y-4">
+              <div className="flex justify-between items-center">
+                <h2 className="text-lg font-semibold text-white">Confirm Action</h2>
+                <button
+                  onClick={() => {
+                    setShowActionConfirm(false);
+                    setPendingActivityAction(null);
+                  }}
+                  className="p-2 hover:bg-zinc-700 rounded-lg text-gray-400"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+              <div className="space-y-4">
+                <p className="text-gray-300">
+                  Are you sure you want to <span className="font-semibold text-white">{pendingActivityAction.action}</span> this activity?
+                </p>
+                <div className="flex gap-2 pt-4">
+                  <button
+                    onClick={() => {
+                      setShowActionConfirm(false);
+                      setPendingActivityAction(null);
+                    }}
+                    className="flex-1 px-4 py-2 bg-zinc-700 hover:bg-zinc-600 rounded-lg font-medium text-white"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleConfirmAction}
+                    className={`flex-1 px-4 py-2 ${pendingActivityAction.action === "reject"
+                        ? "bg-red-600 hover:bg-red-700"
+                        : "bg-blue-600 hover:bg-blue-700"
+                      } rounded-lg font-medium text-white`}
+                  >
+                    Confirm {pendingActivityAction.action}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
+
+export default Sidebar;

@@ -53,7 +53,6 @@ import ArchiveModal from "../../components/user-panel-components/communication-c
 import { MemberHistoryModal } from "../../components/user-panel-components/communication-components/HistoryModal"
 import MemberDetailsModal from "../../components/myarea-components/MemberDetailsModal"
 import DraftModal from "../../components/user-panel-components/communication-components/DraftModal"
-import FolderModal from "../../components/user-panel-components/communication-components/FolderModal"
 import EmailModal from "../../components/user-panel-components/communication-components/EmailModal"
 
 import { memberContingentDataNew } from "../../utils/user-panel-states/myarea-states"
@@ -61,6 +60,7 @@ import { appointmentNotificationTypesNew, appointmentsNew, companyChatListNew, e
 import SidebarMenu from "../../components/user-panel-components/communication-components/Sidebar"
 import BroadcastModal from "../../components/user-panel-components/communication-components/BroadcastModal"
 import ShowAppointmentModal from "../../components/user-panel-components/communication-components/ShowAppointmentsModal"
+import FolderModal from "../../components/user-panel-components/communication-components/broadcast-modal-components/FolderModal"
 
 export default function Communications() {
   const [isMessagesOpen, setIsMessagesOpen] = useState(true)
@@ -504,30 +504,44 @@ export default function Communications() {
     setShowEmailFrontend(true)
     setIsMessagesOpen(false) // Close sidebar on mobile
   }
-  const handleSendEmail = () => {
-    if (!emailData.to || !emailData.subject || !emailData.body) {
-      alert("Please fill in all email fields")
-      return
+  const handleSendEmail = (emailDataWithAttachments) => {
+    if (!emailDataWithAttachments.to || !emailDataWithAttachments.subject || !emailDataWithAttachments.body) {
+      alert("Please fill in all required email fields");
+      return;
     }
-    // Add signature if enabled
+
+    // Add signature if enabled (you might want to check a settings option)
     const bodyWithSignature = settings.emailSignature
-      ? `${emailData.body}\n\n${settings.emailSignature}`
-      : emailData.body
-    console.log("Sending email:", { ...emailData, body: bodyWithSignature })
-    alert("Email sent successfully!")
-    setEmailData({ to: "", subject: "", body: "" })
-    setShowEmailModal(false)
-    // Simulate adding to sent emails
-    emailList.sent.unshift({
+      ? `${emailDataWithAttachments.body}<br><br>${settings.emailSignature}`
+      : emailDataWithAttachments.body;
+
+    // Create email object with attachments
+    const newEmail = {
       id: Date.now(),
-      recipient: emailData.to,
-      subject: emailData.subject,
+      recipient: emailDataWithAttachments.to,
+      subject: emailDataWithAttachments.subject,
       body: bodyWithSignature,
       status: "Sent",
-      time: new Date().toLocaleString(),
+      time: new Date().toISOString(),
       isRead: true,
-    })
-  }
+      isPinned: false,
+      isArchived: false,
+      attachments: emailDataWithAttachments.attachments || []
+    };
+
+    // Update email list
+    setEmailList(prev => ({
+      ...prev,
+      sent: [newEmail, ...prev.sent]
+    }));
+
+    console.log("Sending email:", newEmail);
+    alert("Email sent successfully!");
+
+    // Reset form
+    setEmailData({ to: "", subject: "", body: "" });
+    setShowEmailModal(false);
+  };
   const handleAppointmentChange = (changes) => {
     if (selectedAppointmentData) {
       setSelectedAppointmentData({
@@ -886,7 +900,7 @@ export default function Communications() {
               </div>
               <h1 className="text-2xl font-bold">Messenger</h1>
             </div>
-            <div className="flex items-center gap-2">
+            {/* <div className="flex items-center gap-2">
               <button
                 onClick={() => setShowSettings(true)}
                 className="p-2 hover:bg-gray-800 rounded-full"
@@ -894,7 +908,7 @@ export default function Communications() {
               >
                 <Settings className="w-5 h-5" />
               </button>
-            </div>
+            </div> */}
           </div>
 
           <div className="flex gap-2 items-center justify-between mb-4">
@@ -940,28 +954,28 @@ export default function Communications() {
             </div>
             {/* Removed MoreVertical dropdown (New Chat, New Group) */}
           </div>
-          {chatType !== "company" && (
-            <>
-              <div className="relative mb-4">
-                <input
-                  type="text"
-                  placeholder="Search"
-                  value={searchMember}
-                  onChange={(e) => setSearchMember(e.target.value)}
-                  className="w-full px-4 py-2 pl-10 border border-slate-200 bg-black rounded-xl text-sm outline-none"
-                />
-                <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-              </div>
-              {/* Archive Button */}
-              <button
-                onClick={() => setShowArchive(true)}
-                className="flex items-center gap-2 px-4 py-2 mb-4 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-xl text-sm transition-colors"
-              >
-                <Archive className="w-4 h-4" />
-                Archived ({archivedChats.length})
-              </button>
-            </>
-          )}
+
+          <>
+            <div className="relative mb-4">
+              <input
+                type="text"
+                placeholder="Search"
+                value={searchMember}
+                onChange={(e) => setSearchMember(e.target.value)}
+                className="w-full px-4 py-2 pl-10 border border-slate-200 bg-black rounded-xl text-sm outline-none"
+              />
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+            </div>
+            {/* Archive Button */}
+            <button
+              onClick={() => setShowArchive(true)}
+              className="flex items-center gap-2 px-4 py-2 mb-4 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-xl text-sm transition-colors"
+            >
+              <Archive className="w-4 h-4" />
+              Archived ({archivedChats.length})
+            </button>
+          </>
+
 
           <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2">
             {/* Show search results if searching */}
@@ -979,7 +993,7 @@ export default function Communications() {
                       alt={`${chat.name}'s avatar`}
                       width={40}
                       height={40}
-                      className="rounded-full cursor-pointer"
+                      className="rounded-xl cursor-pointer"
                       onClick={(e) => {
                         e.stopPropagation()
                         if (chatType !== "company") {
@@ -988,8 +1002,8 @@ export default function Communications() {
                       }}
                     />
                     {chat.isBirthday && (
-                      <div className="absolute -top-1 -right-1 bg-pink-500 rounded-full p-1">
-                        <Gift className="w-4 h-4 text-white" />
+                      <div className="absolute -top-4 -right-4  rounded-md p-1">
+                        <span className="text-yellow-500">🎂</span>
                       </div>
                     )}
                   </div>
@@ -1053,15 +1067,15 @@ export default function Communications() {
                         alt={`${chat.name}'s avatar`}
                         width={40}
                         height={40}
-                        className="rounded-full cursor-pointer"
+                        className="rounded-xl cursor-pointer"
                         onClick={(e) => {
                           e.stopPropagation()
                           chatType !== "company" && handleViewMember(chat.id, e)
                         }}
                       />
                       {chat.isBirthday && (
-                        <div className="absolute -top-1 -right-1 bg-pink-500 rounded-full p-1">
-                          <Gift className="w-3 h-3 text-white" />
+                        <div className="absolute -top-4 -right-4  rounded-md p-1">
+                          <span className="text-yellow-500">🎂</span>
                         </div>
                       )}
                     </div>
@@ -1174,8 +1188,9 @@ export default function Communications() {
           </div>
         )}
         {selectedChat && activeScreen === "chat" && (
-          <>
-            <div className="flex items-center justify-between p-4 border-b border-gray-800">
+          <div className="flex flex-col h-full">
+            {/* Header - Fixed at top */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-800 flex-shrink-0">
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setIsMessagesOpen(true)}
@@ -1190,7 +1205,7 @@ export default function Communications() {
                     alt="Current chat avatar"
                     width={48}
                     height={48}
-                    className="rounded-full cursor-pointer"
+                    className="rounded-xl cursor-pointer"
                     onClick={(e) => {
                       if (chatType !== "company") {
                         handleViewMember(selectedChat.id, e)
@@ -1198,8 +1213,8 @@ export default function Communications() {
                     }}
                   />
                   {selectedChat.isBirthday && (
-                    <div className="absolute -top-1 -right-1 bg-pink-500 rounded-full p-1">
-                      <Gift className="w-5 h-5 text-white" />
+                    <div className="absolute -top-4 -right-4 rounded-md p-1">
+                      <span className="text-yellow-500">🎂</span>
                     </div>
                   )}
                 </div>
@@ -1226,13 +1241,22 @@ export default function Communications() {
                 )}
               </div>
             </div>
-            <div className="flex-1 overflow-y-auto max-h-[70vh] custom-scrollbar p-4 space-y-4">
-              <div ref={messagesContainerRef} className="flex-1 overflow-y-auto max-h-[70vh] custom-scrollbar p-4 space-y-4">
+
+            {/* Messages Container - FIXED HEIGHT, SCROLLABLE CONTENT */}
+            <div className="flex-1 overflow-hidden md:overflow-y-auto md:max-h-[70vh]">
+              {/* This wrapper ensures proper scrolling on mobile */}
+              <div
+                ref={messagesContainerRef}
+                className="h-full overflow-y-auto custom-scrollbar p-4 space-y-4"
+                style={{
+                  // Mobile-specific: fixed height container with scroll
+                  maxHeight: 'calc(100vh - 12rem)' // Adjust based on header + input height
+                }}
+              >
                 {messages.map((message) => (
                   <div key={message.id} className={`flex gap-3 ${message.sender === "You" ? "justify-end" : ""} group`}>
                     <div className={`flex flex-col gap-1 ${message.sender === "You" ? "items-end" : ""}`}>
-
-                      {/* Add sender name for company chats */}
+                      {/* Add sender name ONLY for company chats (studio group chats) */}
                       {chatType === "company" && message.sender !== "You" && (
                         <div className="text-xs text-gray-500 font-medium mb-1">
                           {message.sender}
@@ -1241,7 +1265,7 @@ export default function Communications() {
 
                       <div
                         className={`rounded-xl p-4 text-sm max-w-md relative ${message.sender === "You" ? "bg-[#3F74FF]" : "bg-black"
-                          } `}
+                          }`}
                       >
                         <p style={{ whiteSpace: 'pre-wrap' }}>{message.content}</p>
 
@@ -1308,35 +1332,61 @@ export default function Communications() {
                 ))}
                 <div ref={messagesEndRef} />
               </div>
-              <div ref={messagesEndRef} />
             </div>
+
+            {/* Input Area - Fixed at bottom */}
             <div className="p-4 border-t border-gray-800 flex-shrink-0">
               <div className="flex items-end gap-2 bg-black rounded-xl p-2 relative">
-
                 <div className="relative">
                   <button
                     className="p-2 hover:bg-gray-700 rounded-full flex items-center justify-center"
                     aria-label="Add emoji"
                     onClick={() => setShowEmojiPicker(prev => !prev)}
+                    type="button"
                   >
                     <Smile className="w-6 h-6 text-gray-200" />
                   </button>
 
                   {showEmojiPicker && (
-                    <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-50">
-                      <Picker
-                        data={data}
-                        onEmojiSelect={(emoji) => {
-                          setMessageText(prev => prev + emoji.native);
-                          setShowEmojiPicker(false);
-                        }}
-                        theme="dark"
-                        previewPosition="none"
-                        skinTonePosition="none"
-                        perLine={8}
-                        maxFrequentRows={1}
+                    <>
+                      <div
+                        className="fixed inset-0 z-40"
+                        onClick={() => setShowEmojiPicker(false)}
                       />
-                    </div>
+
+                      <div className="absolute bottom-12 left-0 md:left-1/2 md:-translate-x-1/2 z-50">
+                        <div className="w-screen max-w-[90vw] md:w-auto">
+                          <Picker
+                            data={data}
+                            onEmojiSelect={(emoji) => {
+                              setMessageText(prev => prev + emoji.native);
+                              setShowEmojiPicker(false);
+                            }}
+                            theme="dark"
+                            previewPosition="none"
+                            skinTonePosition="none"
+                            perLine={8}
+                            maxFrequentRows={1}
+                            emojiSize={28}
+                            emojiButtonSize={40}
+                            searchPosition="top"
+                            width="100%"
+                            maxWidth="100%"
+                            categories={[
+                              'frequent',
+                              'people',
+                              'nature',
+                              'foods',
+                              'activity',
+                              'places',
+                              'objects',
+                              'symbols',
+                              'flags'
+                            ]}
+                          />
+                        </div>
+                      </div>
+                    </>
                   )}
                 </div>
 
@@ -1362,14 +1412,13 @@ export default function Communications() {
                   className="p-2 hover:bg-gray-700 rounded-full flex items-center justify-center"
                   aria-label="Send message"
                   onClick={handleSendMessage}
+                  type="button"
                 >
                   <Send className="w-6 h-6 text-gray-200" />
                 </button>
               </div>
             </div>
-
-
-          </>
+          </div>
         )}
         {activeScreen === "send-message" && (
           <BroadcastModal
@@ -1379,10 +1428,60 @@ export default function Communications() {
             chatList={chatList}
             archivedChats={archivedChats}
             settings={settings}
-            setSettings={setSettings}
-            setShowFolderModal={setShowFolderModal}
             onBroadcast={handleBroadcast}
-            onCreateMessage={handleCreateMessage}
+            onCreateMessage={(messageData) => {
+              // Handle creating new message
+              const newId = Math.max(0, ...preConfiguredMessages.map((m) => m.id)) + 1
+              const newMessage = {
+                id: newId,
+                ...messageData
+              }
+              setPreConfiguredMessages([...preConfiguredMessages, newMessage])
+            }}
+            onUpdateMessage={(messageData) => {
+              // Handle updating message
+              setPreConfiguredMessages(prev =>
+                prev.map(msg =>
+                  msg.id === messageData.id ? messageData : msg
+                )
+              )
+            }}
+            onDeleteMessage={(messageId) => {
+              // Handle deleting message
+              setPreConfiguredMessages(prev =>
+                prev.filter(msg => msg.id !== messageId)
+              )
+            }}
+            onCreateFolder={(folderName) => {
+              // Handle creating folder
+              const newId = Math.max(0, ...broadcastFolders.map((f) => f.id)) + 1
+              setBroadcastFolders([...broadcastFolders, {
+                id: newId,
+                name: folderName,
+                messages: []
+              }])
+            }}
+            onUpdateFolder={(folderId, folderName) => {
+              // Handle updating folder
+              setBroadcastFolders(prev =>
+                prev.map(folder =>
+                  folder.id === folderId
+                    ? { ...folder, name: folderName }
+                    : folder
+                )
+              )
+            }}
+            onDeleteFolder={(folderId) => {
+              // Handle deleting folder
+              setBroadcastFolders(prev =>
+                prev.filter(folder => folder.id !== folderId)
+              )
+
+              // Also remove messages in this folder
+              setPreConfiguredMessages(prev =>
+                prev.filter(msg => msg.folderId !== folderId)
+              )
+            }}
           />
         )}
       </div>

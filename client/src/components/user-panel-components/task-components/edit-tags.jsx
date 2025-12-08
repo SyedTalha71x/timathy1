@@ -1,7 +1,6 @@
 
 
 /* eslint-disable react/no-unescaped-entities */
-/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useState } from "react"
 import { X, Check } from "lucide-react"

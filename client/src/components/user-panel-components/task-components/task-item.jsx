@@ -20,13 +20,16 @@ export default function TaskItem({
   availableRoles = [],
   onOpenAssignModal,
   onOpenTagsModal,
+  onTitleEditRequest,
   onOpenCalendarModal,
-  repeatConfigs = {} // Add this line
+  repeatConfigs = {}
 }) {
   const [isAnimatingCompletion, setIsAnimatingCompletion] = useState(false)
   const [isCheckboxAnimating, setIsCheckboxAnimating] = useState(false)
   const [showTagMenu, setShowTagMenu] = useState(false)
   const [showAssigneeMenu, setShowAssigneeMenu] = useState(false)
+  const [isTitleEditModalOpen, setIsTitleEditModalOpen] = useState(false);
+
   const [showCalendar, setShowCalendar] = useState(false)
   const [isEditMode, setIsEditMode] = useState(false)
   const [assignmentMode, setAssignmentMode] = useState("staff")
@@ -53,13 +56,34 @@ export default function TaskItem({
   }
 
   const handleEditTask = (e) => {
-    e.stopPropagation()
-    onEditRequest(task)
-    // Don't close edit mode - let user manually close it
-    setShowTagMenu(false)
-    setShowAssigneeMenu(false)
-    setShowCalendar(false)
-  }
+    e.stopPropagation();
+
+    // Call a new prop function to handle title edit
+    if (onTitleEditRequest) {
+      onTitleEditRequest(task);
+    }
+
+    setShowTagMenu(false);
+    setShowAssigneeMenu(false);
+    setShowCalendar(false);
+    setIsEditMode(false);
+  };
+
+
+
+  // const handleEditTask = (e) => {
+  //   e.stopPropagation();
+  //   setIsTitleEditModalOpen(true);
+  //   setShowTagMenu(false);
+  //   setShowAssigneeMenu(false);
+  //   setShowCalendar(false);
+  //   setIsEditMode(false);
+  // };
+
+  const handleTitleSave = (updatedTask) => {
+    onUpdate(updatedTask);
+    setIsTitleEditModalOpen(false);
+  };
 
   const openDeleteConfirmation = (e) => {
     e.stopPropagation()
@@ -100,6 +124,74 @@ export default function TaskItem({
       display += task.dueDate ? ` @ ${task.dueTime}` : task.dueTime
     }
     return display || "No due date"
+  }
+
+  // Add this new function to format the tooltip content
+  const getDateTimeTooltip = () => {
+    if (!task.dueDate && !task.dueTime) {
+      return "No due date set"
+    }
+
+    let tooltip = ""
+
+    // Format date nicely
+    if (task.dueDate) {
+      const date = new Date(task.dueDate)
+      tooltip += date.toLocaleDateString('en-US', {
+        weekday: 'short',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      })
+    }
+
+    // Format time nicely
+    if (task.dueTime) {
+      const [hours, minutes] = task.dueTime.split(':')
+      const hour = parseInt(hours)
+      const ampm = hour >= 12 ? 'PM' : 'AM'
+      const formattedHour = hour % 12 || 12
+      tooltip += task.dueDate ? ` at ${formattedHour}:${minutes} ${ampm}` : `${formattedHour}:${minutes} ${ampm}`
+    }
+
+    // Add reminder info if available
+    if (task.reminder && task.reminder !== "None" && task.reminder !== "") {
+      if (task.reminder === "Custom" && task.customReminder) {
+        tooltip += `\nReminder: ${task.customReminder.value} ${task.customReminder.unit} before`
+      } else {
+        tooltip += `\nReminder: ${task.reminder}`
+      }
+    }
+
+    // Add enhanced repeat info if available
+    if (task.repeat && task.repeat !== "" && task.repeat !== "Never") {
+      const repeatConfig = repeatConfigs[task.id]
+      if (repeatConfig) {
+        const { repeatOptions } = repeatConfig
+        let repeatText = `\nRepeats: ${task.repeat}`
+
+        if (repeatOptions) {
+          if (repeatOptions.frequency === "weekly" && repeatOptions.repeatDays && repeatOptions.repeatDays.length > 0) {
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+            const dayNames = repeatOptions.repeatDays.map(day => days[day]).join(', ')
+            repeatText += ` (${dayNames})`
+          }
+
+          if (repeatOptions.endDate) {
+            const endDate = new Date(repeatOptions.endDate).toLocaleDateString()
+            repeatText += `\nEnds on: ${endDate}`
+          } else if (repeatOptions.occurrences) {
+            repeatText += `\nEnds after: ${repeatOptions.occurrences} occurrences`
+          }
+        }
+
+        tooltip += repeatText
+      } else {
+        tooltip += `\nRepeats: ${task.repeat}`
+      }
+    }
+
+    return tooltip
   }
 
   const getTagColor = (tagName) => {
@@ -164,7 +256,7 @@ export default function TaskItem({
       style={{
         position: isDragging ? "relative" : "static",
         zIndex: isDragging ? 9999 : "auto",
-        pointerEvents: isDragging ? "none" : "auto",  
+        pointerEvents: isDragging ? "none" : "auto",
       }}
     >
       <div className="flex flex-col gap-3">
@@ -185,7 +277,10 @@ export default function TaskItem({
                   type="checkbox"
                   checked={isCompleted}
                   onChange={() => handleStatusChange(isCompleted ? "ongoing" : "completed")}
-                  className={`form-checkbox h-4 w-4 cursor-pointer text-[#FF843E] rounded-full border-gray-300 focus:ring-[#FF843E] no-drag transition-all duration-200 ${isCheckboxAnimating ? "opacity-0 scale-90" : "opacity-100 scale-100"
+                  className={`form-checkbox h-4 w-4 cursor-pointer rounded-full border-gray-300 focus:ring-[#FF843E] no-drag transition-all duration-200 ${isCheckboxAnimating ? "opacity-0 scale-90" : "opacity-100 scale-100"
+                    } ${isCompleted
+                      ? "text-gray-500 bg-gray-500 border-gray-500"
+                      : "text-[#FF843E]"
                     }`}
                 />
                 {isCheckboxAnimating && (
@@ -250,8 +345,8 @@ export default function TaskItem({
                     <span
                       key={index}
                       className={`px-2 py-1 rounded-md text-xs flex items-center gap-1 cursor-pointer no-drag ${isCompleted || isCanceled
-                          ? "bg-[#2b2b2b] text-gray-500"
-                          : "text-white"
+                        ? "bg-[#2b2b2b] text-gray-500"
+                        : "text-white"
                         }`}
                       style={{
                         backgroundColor: isCompleted || isCanceled ? "#2b2b2b" : getTagColor(tag),
@@ -282,27 +377,49 @@ export default function TaskItem({
             </div>
           )}
 
-<div className="relative">
-  <div
-    className={`px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 no-drag cursor-pointer ${isCompleted || isCanceled ? "bg-[#2d2d2d] text-gray-500" : "bg-[#2F2F2F] text-gray-300 hover:bg-gray-700"
-      }`}
-    onClick={(e) => {
-      e.stopPropagation();
-      if (!isCompleted && !isCanceled) {
-        // This will open the modal for editing task date/time
-        onOpenCalendarModal?.(task.id, task.dueDate, task.dueTime, task.reminder, task.repeat);
-      }
-    }}
-    title={!isCompleted && !isCanceled ? "Click to edit date/time" : ""}
-  >
-    <Calendar size={12} />
-    <span className="whitespace-nowrap">{formatDateTime()}</span>
-    {(hasRepeat || (task.repeatConfig && task.repeatConfig.repeatOptions)) && (
-      <Repeat size={20} className="text-blue-400 ml-1" title="Repeating task" />
-    )}
-  </div>
- 
-</div>
+          <div className="relative">
+            <div
+              className={`px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 no-drag cursor-pointer group relative ${isCompleted || isCanceled ? "bg-[#2d2d2d] text-gray-500" : "bg-[#2F2F2F] text-gray-300 hover:bg-gray-700"
+                }`}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (!isCompleted && !isCanceled) {
+                  onOpenCalendarModal?.(
+                    task.id,
+                    task.dueDate,
+                    task.dueTime,
+                    task.reminder,
+                    task.repeat,
+                    task.customReminder, // Add this
+                    task.repeatEnd // Add this
+                  );
+                }
+              }}
+
+
+              title={getDateTimeTooltip()} // Basic tooltip as fallback
+            >
+              <Calendar size={12} />
+              <span className="whitespace-nowrap">{formatDateTime()}</span>
+              {(hasRepeat || (task.repeatConfig && task.repeatConfig.repeatOptions)) && (
+                <Repeat
+                  size={14}
+                  className="text-white ml-1 opacity-80"
+                  title="Repeating task"
+                />
+              )}
+
+              {/* Enhanced hover tooltip */}
+              {(task.dueDate || task.dueTime || task.reminder) && (
+                <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 hidden group-hover:block z-50 min-w-[200px]">
+                  <div className="bg-black text-white text-xs rounded-lg py-2 px-3 whitespace-pre-line shadow-xl border border-gray-600">
+                    {getDateTimeTooltip()}
+                  </div>
+                  <div className="w-3 h-3 bg-black transform rotate-45 absolute -bottom-1 left-1/2 -translate-x-1/2 border-r border-b border-gray-600"></div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Edit buttons panel - shown when in edit mode */}
@@ -311,11 +428,21 @@ export default function TaskItem({
             ref={editButtonsRef}
             className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 pt-3 mt-2 border-t border-gray-700 no-drag"
           >
-            <button
+            {/* <button
               onClick={handleEditTask}
               className="px-3 py-2 text-xs bg-[#2F2F2F] text-gray-300 hover:bg-gray-700 rounded-lg flex items-center justify-center gap-1 no-drag"
             >
               <Edit size={12} /> Edit
+            </button> */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpenCalendarModal?.(task.id, task.dueDate, task.dueTime, task.reminder, task.repeat);
+                setIsEditMode(false);
+              }}
+              className="px-3 py-2 text-xs bg-[#2F2F2F] text-gray-300 hover:bg-gray-700 rounded-lg flex items-center justify-center gap-1 no-drag"
+            >
+              <Calendar size={12} /> Date/Time
             </button>
 
             <button
@@ -388,29 +515,30 @@ export default function TaskItem({
         )}
       </div>
 
+
       <style jsx global>{`
-        @keyframes tick {
-          from {
-            stroke-dashoffset: 18;
-            transform: scale(0.8);
+          @keyframes tick {
+            from {
+              stroke-dashoffset: 18;
+              transform: scale(0.8);
+            }
+            to {
+              stroke-dashoffset: 0;
+              transform: scale(1);
+            }
           }
-          to {
-            stroke-dashoffset: 0;
-            transform: scale(1);
+          .animate-tick {
+            animation: tick 0.5s ease-out forwards;
           }
-        }
-        .animate-tick {
-          animation: tick 0.5s ease-out forwards;
-        }
-        @keyframes pulse {
-          0% { transform: scale(1); }
-          50% { transform: scale(0.98); }
-          100% { transform: scale(1); }
-        }
-        .animate-pulse {
-          animation: pulse 0.5s ease-out;
-        }
-      `}</style>
+          @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.98); }
+            100% { transform: scale(1); }
+          }
+          .animate-pulse {
+            animation: pulse 0.5s ease-out;
+          }
+        `}</style>
     </div>
   )
 }

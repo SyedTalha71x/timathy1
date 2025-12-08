@@ -56,7 +56,7 @@ function MiniCalendar({ onDateSelect, selectedDate }) {
   };
   
   return (
-    <div className="bg-[#000000] rounded-xl p-4 w-full md:w-78 max-w-xs mx-auto">
+    <div className="bg-[#000000] rounded-xl lg:block md:block hidden p-4 w-full md:w-78 max-w-xs mx-auto">
       <div className="flex justify-between items-center mb-3">
         <button
           onClick={handlePrevMonth}

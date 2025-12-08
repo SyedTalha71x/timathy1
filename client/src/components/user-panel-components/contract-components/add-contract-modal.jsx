@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
-import { X, FileText, Eye, ArrowLeft } from "lucide-react"
+import { X, FileText, Eye, ArrowLeft, BookOpen } from "lucide-react"
 import { useState, useEffect } from "react"
 
 const contractTypes = [
@@ -26,6 +26,54 @@ const contractTypes = [
     cost: "$19.99",
     billingPeriod: "Monthly",
   },
+]
+
+// Media templates configuration
+const mediaTemplates = [
+  {
+    id: "template-1",
+    name: "Basic Introduction",
+    description: "Standard introductory materials for new members",
+    pages: [
+      {
+        id: "page-1",
+        title: "Welcome to Our Studio",
+        content: "Welcome message and overview of facilities",
+        media: ["image1.jpg", "video1.mp4"]
+      },
+      {
+        id: "page-2",
+        title: "Studio Rules",
+        content: "Important guidelines and policies",
+        media: ["image2.jpg"]
+      },
+      {
+        id: "page-3",
+        title: "Getting Started",
+        content: "How to begin your fitness journey",
+        media: ["image3.jpg", "pdf-guide.pdf"]
+      }
+    ]
+  },
+  {
+    id: "template-2",
+    name: "Premium Package",
+    description: "Comprehensive materials for premium members",
+    pages: [
+      {
+        id: "page-1",
+        title: "Premium Benefits",
+        content: "Exclusive features for premium members",
+        media: ["premium1.jpg", "video2.mp4"]
+      },
+      {
+        id: "page-2",
+        title: "Advanced Training",
+        content: "Specialized workout programs",
+        media: ["premium2.jpg"]
+      }
+    ]
+  }
 ]
 
 // Add print-specific styles
@@ -101,6 +149,9 @@ export default function AddContractModal({ onClose, onSave, leadData = null }) {
     isPermanent: false,
   })
   const [filteredLeads, setFilteredLeads] = useState([])
+  const [showIntroductoryMaterials, setShowIntroductoryMaterials] = useState(false)
+  const [selectedTemplate, setSelectedTemplate] = useState(null)
+  const [currentMediaPage, setCurrentMediaPage] = useState(0)
 
   // Sample leads for demonstration (used if no leadData is provided)
   const sampleLeads = [
@@ -303,11 +354,165 @@ export default function AddContractModal({ onClose, onSave, leadData = null }) {
     setCurrentPage(0)
   }
 
+  const handleTemplateSelect = (template) => {
+    setSelectedTemplate(template)
+    setCurrentMediaPage(0)
+  }
+
+  const nextMediaPage = () => {
+    if (selectedTemplate && currentMediaPage < selectedTemplate.pages.length - 1) {
+      setCurrentMediaPage(currentMediaPage + 1)
+    }
+  }
+
+  const prevMediaPage = () => {
+    if (currentMediaPage > 0) {
+      setCurrentMediaPage(currentMediaPage - 1)
+    }
+  }
+
   const priceCalculation = calculateFinalPrice()
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] font-sans">
       <style>{printStyles}</style>
+      
+      {/* Introductory Materials Modal */}
+      {showIntroductoryMaterials && (
+        <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-[1001]">
+          <div className="relative bg-[#181818] p-6 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+            {/* Close button */}
+            <button
+              onClick={() => setShowIntroductoryMaterials(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white z-10"
+            >
+              <X size={20} />
+            </button>
+            
+            {!selectedTemplate ? (
+              // Template Selection View
+              <div>
+                <h3 className="text-white text-lg font-semibold mb-4">Select Media Template</h3>
+                <p className="text-gray-300 mb-6">Choose a template for your introductory materials</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto">
+                  {mediaTemplates.map((template) => (
+                    <div
+                      key={template.id}
+                      className="bg-[#101010] p-4 rounded-xl border border-gray-800 hover:border-[#3F74FF] cursor-pointer transition-colors"
+                      onClick={() => handleTemplateSelect(template)}
+                    >
+                      <h4 className="text-white font-medium mb-2">{template.name}</h4>
+                      <p className="text-gray-400 text-sm mb-3">{template.description}</p>
+                      <div className="text-xs text-gray-500">
+                        {template.pages.length} page{template.pages.length !== 1 ? 's' : ''}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              // Media Presentation View
+              <div className="h-full flex flex-col">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-white text-lg font-semibold">{selectedTemplate.name}</h3>
+                  <button
+                    onClick={() => setSelectedTemplate(null)}
+                    className="text-gray-400 hover:text-white text-sm flex items-center gap-1"
+                  >
+                    <ArrowLeft size={16} />
+                    Back to Templates
+                  </button>
+                </div>
+                
+                {/* PowerPoint-like Presentation */}
+                <div className="flex-1 bg-white rounded-lg overflow-hidden flex flex-col">
+                  {/* Presentation Header */}
+                  <div className="bg-gray-100 px-6 py-3 border-b flex justify-between items-center">
+                    <div className="text-gray-700 font-medium">
+                      Page {currentMediaPage + 1} of {selectedTemplate.pages.length}
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={prevMediaPage}
+                        disabled={currentMediaPage === 0}
+                        className={`px-3 py-1 rounded text-sm ${
+                          currentMediaPage === 0 
+                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                            : 'bg-gray-600 text-white hover:bg-gray-700'
+                        }`}
+                      >
+                        Previous
+                      </button>
+                      <button
+                        onClick={nextMediaPage}
+                        disabled={currentMediaPage === selectedTemplate.pages.length - 1}
+                        className={`px-3 py-1 rounded text-sm ${
+                          currentMediaPage === selectedTemplate.pages.length - 1
+                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                            : 'bg-gray-600 text-white hover:bg-gray-700'
+                        }`}
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                  
+                  {/* Presentation Content */}
+                  <div className="flex-1 p-8 flex flex-col items-center justify-center">
+                    <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">
+                      {selectedTemplate.pages[currentMediaPage].title}
+                    </h2>
+                    <p className="text-gray-600 mb-6 text-center max-w-2xl">
+                      {selectedTemplate.pages[currentMediaPage].content}
+                    </p>
+                    
+                    {/* Media Display Area */}
+                    <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-8 w-full max-w-2xl text-center">
+                      <div className="text-gray-500 mb-4">
+                        Media content would be displayed here
+                      </div>
+                      <div className="text-sm text-gray-400">
+                        Available media: {selectedTemplate.pages[currentMediaPage].media.join(', ')}
+                      </div>
+                      
+                      {/* Example clickable links */}
+                      <div className="mt-6 flex flex-wrap gap-3 justify-center">
+                        {selectedTemplate.pages[currentMediaPage].media.map((media, index) => (
+                          <a
+                            key={index}
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              alert(`Opening: ${media}`);
+                            }}
+                            className="px-4 py-2 bg-[#3F74FF] text-white rounded-lg text-sm hover:bg-[#3F74FF]/90 transition-colors"
+                          >
+                            Open {media.split('.').pop().toUpperCase()}
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Page Navigation Dots */}
+                  <div className="bg-gray-100 px-6 py-3 border-t flex justify-center gap-2">
+                    {selectedTemplate.pages.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setCurrentMediaPage(index)}
+                        className={`w-3 h-3 rounded-full ${
+                          index === currentMediaPage ? 'bg-[#3F74FF]' : 'bg-gray-400'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      
       {showSignatureOptions && (
         <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-[1001]">
           <div className="relative bg-[#181818] p-6 rounded-2xl max-w-md w-full">
@@ -337,6 +542,7 @@ export default function AddContractModal({ onClose, onSave, leadData = null }) {
           </div>
         </div>
       )}
+      
       {showPrintPrompt && (
         <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-[1001]">
           <div className="bg-[#181818] p-6 rounded-2xl max-w-md w-full">
@@ -359,10 +565,23 @@ export default function AddContractModal({ onClose, onSave, leadData = null }) {
           </div>
         </div>
       )}
+      
       <div className="bg-[#181818] p-3 w-full max-w-3xl mx-4 rounded-2xl">
         <div className="px-4 py-3 border-b border-gray-800 custom-scrollbar max-h-[10vh] sm:max-h-[80vh] overflow-y-auto">
           <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+
             <h2 className="text-base font-bold text-white">Add Contract</h2>
+              {/* Introductory Materials Icon */}
+              <button
+                  type="button"
+                  onClick={() => setShowIntroductoryMaterials(true)}
+                  className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#3a3a3a] transition-colors duration-200 flex items-center justify-center gap-2"
+                  title="Open Introductory Materials"
+                  >
+                  <BookOpen size={16} />
+                </button>
+                  </div>
             <div className="flex items-center gap-2">
               {!showLeadSelection && !showFormView && (
                 <button
@@ -488,95 +707,109 @@ export default function AddContractModal({ onClose, onSave, leadData = null }) {
                     </div>
                   </div>
                 )}
-                <div className="bg-[#101010]/60 p-4 rounded-xl border border-gray-800">
-                  <h4 className="text-white text-sm font-medium mb-2">Discount</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-gray-400 text-xs mb-1">Percentage (%)</label>
-                      <input
-                        type="number"
-                        name="percentage"
-                        min="0"
-                        max="100"
-                        value={discount.percentage}
-                        onChange={handleDiscountChange}
-                        className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
-                      />
-                    </div>
-                    <div className={discount.isPermanent ? "opacity-50" : ""}>
-                      <label className="block text-gray-400 text-xs mb-1">Billing Periods</label>
-                      <input
-                        type="number"
-                        name="duration"
-                        min="1"
-                        value={discount.duration}
-                        onChange={handleDiscountChange}
-                        disabled={discount.isPermanent}
-                        className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
-                      />
-                    </div>
-                    <div>
-                      {/* Empty label to align vertically with other input labels */}
-                      <label className="block text-gray-400 mt-7 text-xs mb-1"></label>
-                      <label className="flex items-center space-x-2 cursor-pointer">
+                
+                {/* Discount Section - Only show when rate type is selected */}
+                {contractData.rateType && (
+                  <div className="bg-[#101010]/60 p-4 rounded-xl border border-gray-800">
+                    <h4 className="text-white text-sm font-medium mb-2">Discount</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-gray-400 text-xs mb-1">Percentage (%)</label>
                         <input
-                          type="checkbox"
-                          name="isPermanent"
-                          checked={discount.isPermanent}
+                          type="number"
+                          name="percentage"
+                          min="0"
+                          max="100"
+                          value={discount.percentage}
                           onChange={handleDiscountChange}
-                          className="form-checkbox h-5 w-5 text-[#3F74FF] rounded border-gray-800 focus:ring-[#3F74FF]"
+                          className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
                         />
-                        <span className="text-gray-400 text-xs">Till End of Contract</span>
-                      </label>
-                    </div>
-                  </div>
-                  {/* Final Price Display */}
-                  {priceCalculation && (
-                    <div className="mt-4 pt-4 border-t border-gray-700">
-                      <h5 className="text-white text-sm font-medium mb-2">Price Calculation</h5>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Original Price:</span>
-                          <span className="text-white">
-                            {priceCalculation.currency}
-                            {priceCalculation.originalPrice.toFixed(2)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Discount ({discount.percentage}%):</span>
-                          <span className="text-red-400">
-                            -{priceCalculation.currency}
-                            {priceCalculation.discountAmount.toFixed(2)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between border-t border-gray-700 pt-2">
-                          <span className="text-white font-medium">Final Price:</span>
-                          <span className="text-green-400 font-medium">
-                            {priceCalculation.currency}
-                            {priceCalculation.finalPrice.toFixed(2)}
-                          </span>
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {discount.isPermanent
-                            ? "Discount applies for the entire contract duration"
-                            : `Discount applies for ${discount.duration} billing period${
-                                discount.duration > 1 ? "s" : ""
-                              }`}
-                        </div>
+                      </div>
+                      <div className={discount.isPermanent ? "opacity-50" : ""}>
+                        <label className="block text-gray-400 text-xs mb-1">Billing Periods</label>
+                        <input
+                          type="number"
+                          name="duration"
+                          min="1"
+                          value={discount.duration}
+                          onChange={handleDiscountChange}
+                          disabled={discount.isPermanent}
+                          className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
+                        />
+                      </div>
+                      <div>
+                        {/* Empty label to align vertically with other input labels */}
+                        <label className="block text-gray-400 mt-7 text-xs mb-1"></label>
+                        <label className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            name="isPermanent"
+                            checked={discount.isPermanent}
+                            onChange={handleDiscountChange}
+                            className="form-checkbox h-5 w-5 text-[#3F74FF] rounded border-gray-800 focus:ring-[#3F74FF]"
+                          />
+                          <span className="text-gray-400 text-xs">Till End of Contract</span>
+                        </label>
                       </div>
                     </div>
-                  )}
-                </div>
+                    {/* Final Price Display */}
+                    {priceCalculation && (
+                      <div className="mt-4 pt-4 border-t border-gray-700">
+                        <h5 className="text-white text-sm font-medium mb-2">Price Calculation</h5>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-gray-400">Original Price:</span>
+                            <span className="text-white">
+                              {priceCalculation.currency}
+                              {priceCalculation.originalPrice.toFixed(2)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-400">Discount ({discount.percentage}%):</span>
+                            <span className="text-red-400">
+                              -{priceCalculation.currency}
+                              {priceCalculation.discountAmount.toFixed(2)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between border-t border-gray-700 pt-2">
+                            <span className="text-white font-medium">Final Price:</span>
+                            <span className="text-green-400 font-medium">
+                              {priceCalculation.currency}
+                              {priceCalculation.finalPrice.toFixed(2)}
+                            </span>
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {discount.isPermanent
+                              ? "Discount applies for the entire contract duration"
+                              : `Discount applies for ${discount.duration} billing period${
+                                  discount.duration > 1 ? "s" : ""
+                                }`}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
-              <button
-                type="button"
-                onClick={toggleView}
-                className="w-full px-4 py-2 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors duration-200 flex items-center justify-center gap-2"
-              >
-                <Eye size={16} /> Fill out Contract
-              </button>
+              
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={toggleView}
+                  disabled={!contractData.rateType}
+                  className={`w-full px-4 py-2 text-sm font-medium rounded-xl transition-colors duration-200 flex items-center justify-center gap-2 ${
+                    contractData.rateType
+                      ? "bg-[#3F74FF] text-white hover:bg-[#3F74FF]/90"
+                      : "bg-gray-600 text-gray-400 cursor-not-allowed"
+                  }`}
+                >
+                  <Eye size={16} /> Fill out Contract
+                </button>
+                
+              
+              </div>
             </div>
-          ) : (
+          ) :  (
             <div className="max-h-[70vh] overflow-y-auto">
               {currentPage === 0 ? (
                 <div className="bg-white rounded-lg p-6 relative font-sans">

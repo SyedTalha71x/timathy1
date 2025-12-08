@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
 import { useState, useRef, useEffect } from "react";
 import { Plus, MoreVertical, Edit, Trash2 } from "lucide-react";
@@ -6,7 +7,7 @@ import EditNoteModal from "../notes-widget-components/EditNoteModal";
 import DeleteConfirmModal from "../notes-widget-components/DeleteConfirmModal";
 import { Link } from "react-router-dom";
 
-const NotesWidget = () => {
+const NotesWidget = ({isSidebarEditing}) => {
   const [notes, setNotes] = useState([
     {
       id: 1,
@@ -122,12 +123,12 @@ const NotesWidget = () => {
         {/* Header */}
         <div className="flex justify-between items-center">
           <h2 className="text-lg font-semibold">Notes</h2>
-          <button
+          {!isSidebarEditing && <button
             onClick={() => setIsCreateModalOpen(true)}
             className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
           >
             <Plus size={18} />
-          </button>
+          </button>}
         </div>
 
         {/* Filter */}

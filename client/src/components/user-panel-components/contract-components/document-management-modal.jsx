@@ -1,4 +1,3 @@
-
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react/prop-types */
@@ -7,6 +6,7 @@ import { X, Upload, Trash, Edit2, File, FileText, FilePlus, Eye, Download, Check
 import { toast } from "react-hot-toast"
 import { Printer } from "lucide-react"
 import { EditContractModal } from "./edit-contract-modal"
+import { DeleteConfirmationModal } from "./delete-confirmation-modal" // Import the new modal
 
 export function DocumentManagementModal({ contract, onClose }) {
   const [documents, setDocuments] = useState(contract.files || [])
@@ -14,8 +14,10 @@ export function DocumentManagementModal({ contract, onClose }) {
   const [editingDocId, setEditingDocId] = useState(null)
   const [newDocName, setNewDocName] = useState("")
   const [viewingDocument, setViewingDocument] = useState(null)
-  const [showEditContract, setShowEditContract] = useState(false) // Add state for edit contract modal
-  const [editingContract, setEditingContract] = useState(null) // Store contract being edited
+  const [showEditContract, setShowEditContract] = useState(false)
+  const [editingContract, setEditingContract] = useState(null)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false) // State for delete modal
+  const [documentToDelete, setDocumentToDelete] = useState(null) // Track which document to delete
   const fileInputRef = useRef(null)
   const [activePeriod, setActivePeriod] = useState("current")
 
@@ -90,9 +92,30 @@ export function DocumentManagementModal({ contract, onClose }) {
 
   const filteredDocuments = displayDocuments.filter((doc) => doc.periodId === activePeriod)
 
+  // Handle delete confirmation
+  const handleDeleteConfirm = () => {
+    if (documentToDelete) {
+      setDocuments(displayDocuments.filter((doc) => doc.id !== documentToDelete.id))
+      toast.success("Document deleted successfully")
+      setDeleteModalOpen(false)
+      setDocumentToDelete(null)
+    }
+  }
+
+  // Handle delete button click
+  const handleDeleteClick = (doc) => {
+    setDocumentToDelete(doc)
+    setDeleteModalOpen(true)
+  }
+
+  // Handle delete modal close
+  const handleDeleteModalClose = () => {
+    setDeleteModalOpen(false)
+    setDocumentToDelete(null)
+  }
+
   const handleUnsignedContractClick = (doc) => {
     if (doc.isUnsigned) {
-      // Open contract editing modal instead of viewing
       setEditingContract(doc)
       setShowEditContract(true)
       return
@@ -101,7 +124,6 @@ export function DocumentManagementModal({ contract, onClose }) {
   }
 
   const handleSaveSignedContract = (signedContractData) => {
-    // Remove the unsigned contract and add the signed PDF
     const newSignedContract = {
       id: `doc-signed-${Date.now()}`,
       name: `${contract.memberName} - Signed Contract.pdf`,
@@ -113,7 +135,6 @@ export function DocumentManagementModal({ contract, onClose }) {
       contractData: signedContractData,
     }
 
-    // Remove unsigned contract and add signed contract
     const updatedDocuments = displayDocuments.filter((doc) => !doc.isUnsigned).concat(newSignedContract)
 
     setDocuments(updatedDocuments)
@@ -129,7 +150,6 @@ export function DocumentManagementModal({ contract, onClose }) {
     const files = Array.from(e.target.files)
     if (files.length === 0) return
 
-    // Validate file types and sizes
     const validTypes = [
       "application/pdf",
       "image/jpeg",
@@ -147,7 +167,7 @@ export function DocumentManagementModal({ contract, onClose }) {
       return
     }
 
-    const largeFiles = files.filter((file) => file.size > 10 * 1024 * 1024) // 10MB limit
+    const largeFiles = files.filter((file) => file.size > 10 * 1024 * 1024)
     if (largeFiles.length > 0) {
       toast.error(`${largeFiles.length} file(s) exceed the 10MB size limit`)
       return
@@ -156,12 +176,11 @@ export function DocumentManagementModal({ contract, onClose }) {
     setIsUploading(true)
     toast.loading(`Uploading ${files.length} document(s)...`)
 
-    // Simulate upload delay
     setTimeout(() => {
       const newDocs = files.map((file) => ({
         id: `doc-${Math.random().toString(36).substr(2, 9)}`,
         name: file.name,
-        type: getFileExtension(file.name), // Use the helper function
+        type: getFileExtension(file.name),
         size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
         uploadDate: new Date().toISOString().split("T")[0],
         file: file,
@@ -177,10 +196,7 @@ export function DocumentManagementModal({ contract, onClose }) {
   }
 
   const handleDownload = (doc) => {
-    // In a real app, you would generate a download URL or use the stored file
     toast.success(`Downloading ${doc.name}...`)
-
-    // If we have the actual file object
     if (doc.file) {
       const url = URL.createObjectURL(doc.file)
       const a = document.createElement("a")
@@ -195,15 +211,11 @@ export function DocumentManagementModal({ contract, onClose }) {
 
   const handlePrint = (doc) => {
     toast.success(`Printing ${doc.name}...`)
-
-    // If we have the actual file object
     if (doc.file) {
       const url = URL.createObjectURL(doc.file)
       const printWindow = window.open(url)
-
       printWindow.onload = () => {
         printWindow.print()
-        // Clean up after printing
         setTimeout(() => {
           printWindow.close()
           URL.revokeObjectURL(url)
@@ -215,7 +227,6 @@ export function DocumentManagementModal({ contract, onClose }) {
   const handleViewDocument = (doc) => {
     setViewingDocument(doc)
     toast.success(`Viewing ${doc.name}...`)
-    // In a real app, you would open the document in a viewer
   }
 
   const getFileExtension = (filename) => {
@@ -224,21 +235,15 @@ export function DocumentManagementModal({ contract, onClose }) {
     return parts.length > 1 ? parts.pop().toLowerCase() : ""
   }
 
-  const handleDelete = (docId) => {
-    if (confirm("Are you sure you want to delete this document?")) {
-      setDocuments(displayDocuments.filter((doc) => doc.id !== docId))
-      toast.success("Document deleted successfully")
-    }
-  }
+  // Remove the old handleDelete function and replace it with handleDeleteClick above
 
   const startEditing = (doc) => {
-    // Extract just the name part without extension for editing
     const nameParts = doc.name.split(".")
-    const extension = nameParts.pop() // Remove and store the extension
-    const nameWithoutExtension = nameParts.join(".") // Rejoin in case there were multiple dots
+    const extension = nameParts.pop()
+    const nameWithoutExtension = nameParts.join(".")
 
     setEditingDocId(doc.id)
-    setNewDocName(nameWithoutExtension) // Only set the name part without extension
+    setNewDocName(nameWithoutExtension)
   }
 
   const saveDocName = (docId) => {
@@ -247,11 +252,8 @@ export function DocumentManagementModal({ contract, onClose }) {
       return
     }
 
-    // Get the original file extension
     const originalDoc = displayDocuments.find((doc) => doc.id === docId)
     const originalExtension = originalDoc.name.split(".").pop()
-
-    // Combine the name part with the original extension
     const finalName = `${newDocName.trim()}.${originalExtension}`
 
     setDocuments(displayDocuments.map((doc) => (doc.id === docId ? { ...doc, name: finalName } : doc)))
@@ -264,7 +266,6 @@ export function DocumentManagementModal({ contract, onClose }) {
       displayDocuments.map((doc) => {
         if (doc.id === docId) {
           const newStatus = !doc.isSignedContract
-          // If marking as signed, remove the tag from all other documents
           if (newStatus) {
             toast.success(`"${doc.name}" marked as the signed contract`)
           } else {
@@ -272,14 +273,12 @@ export function DocumentManagementModal({ contract, onClose }) {
           }
           return { ...doc, isSignedContract: newStatus }
         }
-        // If we're marking a document as signed, unmark all others
         return doc.id !== docId && doc.isSignedContract ? { ...doc, isSignedContract: false } : doc
       }),
     )
   }
 
   const getDocumentIcon = (type) => {
-    // Add null/undefined check and fallback
     if (!type) {
       return <File className="w-5 h-5 text-gray-400" />
     }
@@ -310,6 +309,14 @@ export function DocumentManagementModal({ contract, onClose }) {
 
   return (
     <>
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={deleteModalOpen}
+        onClose={handleDeleteModalClose}
+        onConfirm={handleDeleteConfirm}
+        documentName={documentToDelete?.name || ""}
+      />
+
       {showEditContract && editingContract && (
         <EditContractModal
           onClose={() => {
@@ -333,7 +340,6 @@ export function DocumentManagementModal({ contract, onClose }) {
                 </button>
               </div>
               <div className="p-4">
-                {/* In a real app, you would render the document content here */}
                 <div className="bg-gray-100 p-8 rounded text-center">
                   <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                   <p className="text-gray-600">Document preview would appear here.</p>
@@ -360,7 +366,6 @@ export function DocumentManagementModal({ contract, onClose }) {
                 <span className="font-medium text-white">{contract.memberName}</span>'s Contract Documents
               </p>
 
-              {/* Contract Periods Tabs */}
               <div className="flex flex-wrap gap-2">
                 {contractPeriods.map((period) => (
                   <button
@@ -550,7 +555,7 @@ export function DocumentManagementModal({ contract, onClose }) {
                             <Edit2 className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => handleDelete(doc.id)}
+                            onClick={() => handleDeleteClick(doc)} // Use the new delete handler
                             className="p-2 bg-[#2a2a2a] text-red-400 rounded-md hover:bg-[#333] transition-colors"
                             title="Delete"
                           >

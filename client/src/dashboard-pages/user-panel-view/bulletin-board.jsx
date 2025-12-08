@@ -1,6 +1,6 @@
 
 /* eslint-disable no-unused-vars */
-import { useState } from "react"
+import { useCallback, useState } from "react"
 import { Toaster } from "react-hot-toast"
 
 import DefaultAvatar from "../../../public/gray-avatar-fotor-20250912192528.png"
@@ -20,12 +20,12 @@ import { MemberOverviewModal } from "../../components/myarea-components/MemberOv
 import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"
 import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
 import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
-import CreateBulletinModal from "../../components/user-panel-components/bulletin-board-components/CreateBulletinBoard"
-import EditBulletinModal from "../../components/user-panel-components/bulletin-board-components/EditBulletinBoard"
 import DeleteBulletinModal from "../../components/user-panel-components/bulletin-board-components/DeleteBulletinBoard"
 import ViewBulletinModal from "../../components/user-panel-components/bulletin-board-components/ViewBulletinBoard"
 import TagManagerModal from "../../components/user-panel-components/bulletin-board-components/TagManagerModal"
 import { MdOutlineZoomOutMap } from "react-icons/md"
+import OptimizedEditBulletinModal from "../../components/user-panel-components/bulletin-board-components/EditBulletinBoard"
+import OptimizedCreateBulletinModal from "../../components/user-panel-components/bulletin-board-components/CreateBulletinBoard"
 
 const BulletinBoard = () => {
   const sidebarSystem = useSidebarSystem()
@@ -47,7 +47,7 @@ const BulletinBoard = () => {
       author: "Admin",
       createdAt: new Date().toLocaleDateString(),
       createdBy: "current-user",
-      image: "https://png.pngtree.com/png-clipart/20190515/original/pngtree-announcement-icon-png-image_3660817.jpg",
+      image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ4jcHkW1crqIhywqcD_vgxDLzY22tXEYnDqA&s",
       tags: [],
     },
   ])
@@ -61,23 +61,6 @@ const BulletinBoard = () => {
   const [filterStatus, setFilterStatus] = useState("All")
   const [viewingPost, setViewingPost] = useState(null)
 
-  const [createFormData, setCreateFormData] = useState({
-    title: "",
-    content: "",
-    visibility: "Members",
-    status: "Active",
-    image: null,
-    tags: [],
-  })
-
-  const [editFormData, setEditFormData] = useState({
-    title: "",
-    content: "",
-    visibility: "Members",
-    status: "Active",
-    image: null,
-    tags: [],
-  })
 
   const handleAddTag = (newTag) => {
     setTags([...tags, newTag])
@@ -93,28 +76,34 @@ const BulletinBoard = () => {
     )
   }
 
-  const handleCreatePost = () => {
-    if (createFormData.title.trim() && createFormData.content.trim()) {
+  const handleCreatePost = useCallback((formData) => {
+    if (formData.title.trim() && formData.content.trim()) {
       const newPost = {
         id: Date.now(),
-        ...createFormData,
+        ...formData,
         author: "Current User",
         createdAt: new Date().toLocaleDateString(),
         createdBy: "current-user",
       }
-      setPosts([newPost, ...posts])
-      setCreateFormData({ title: "", content: "", visibility: "Members", status: "Active", image: null, tags: [] })
-      setShowCreateModal(false)
+      setPosts(prev => [newPost, ...prev])
     }
-  }
+  }, [])
 
-  const handleEditPost = () => {
-    if (editFormData.title.trim() && editFormData.content.trim()) {
-      setPosts(posts.map((post) => (post.id === selectedPost.id ? { ...post, ...editFormData } : post)))
-      setShowEditModal(false)
+  // Update handleEditPost:
+  const handleEditPost = useCallback((formData) => {
+    if (formData.title.trim() && formData.content.trim() && selectedPost) {
+      setPosts(prev => prev.map((post) =>
+        post.id === selectedPost.id ? { ...post, ...formData } : post
+      ))
       setSelectedPost(null)
     }
-  }
+  }, [selectedPost])
+
+  // Update openEditModal:
+  const openEditModal = useCallback((post) => {
+    setSelectedPost(post)
+    setShowEditModal(true)
+  }, [])
 
   const handleDeletePost = () => {
     setPosts(posts.filter((post) => post.id !== selectedPost.id))
@@ -122,18 +111,14 @@ const BulletinBoard = () => {
     setSelectedPost(null)
   }
 
-  const openEditModal = (post) => {
-    setSelectedPost(post)
-    setEditFormData({
-      title: post.title,
-      content: post.content,
-      visibility: post.visibility,
-      status: post.status,
-      image: post.image,
-      tags: post.tags || [],
-    })
-    setShowEditModal(true)
+  const handleStatusToggle = (postId) => {
+    setPosts(posts.map(post =>
+      post.id === postId
+        ? { ...post, status: post.status === "Active" ? "Inactive" : "Active" }
+        : post
+    ))
   }
+
 
   const openDeleteModal = (post) => {
     setSelectedPost(post)
@@ -555,12 +540,12 @@ const BulletinBoard = () => {
                   <span className="hidden sm:inline">Create Post</span>
                 </button>
                 {isRightSidebarOpen ? (<div onClick={toggleRightSidebar} className="block ">
-                <img src='/expand-sidebar mirrored.svg' className="h-5 w-5 cursor-pointer" alt="" />
-              </div>
-              ) : (<div onClick={toggleRightSidebar} className="block ">
-                <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
-              </div>
-              )}
+                  <img src='/expand-sidebar mirrored.svg' className="h-5 w-5 cursor-pointer" alt="" />
+                </div>
+                ) : (<div onClick={toggleRightSidebar} className="block ">
+                  <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
+                </div>
+                )}
               </div>
             </div>
           </div>
@@ -603,14 +588,18 @@ const BulletinBoard = () => {
                 className="bg-[#1A1A1A] border border-gray-800 rounded-xl p-6 hover:shadow-xl hover:border-gray-700 transition-all duration-200 flex flex-col"
               >
                 {post.image && (
-                  <div className="relative mb-4 rounded-lg overflow-hidden border border-gray-700 h-32">
-                    <img src={post.image || "/placeholder.svg"} alt="Post" className="w-full h-full object-cover" />
+                  <div className="relative mb-4 rounded-lg overflow-hidden border border-gray-700 h-48"> {/* Fixed height */}
+                    <img
+                      src={post.image || "/placeholder.svg"}
+                      alt="Post"
+                      className="w-full h-full object-cover"
+                    />
                     <button
                       onClick={() => setViewingPost(post)}
                       className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white p-1.5 rounded transition-colors"
                       title="Expand image"
                     >
-                                     <MdOutlineZoomOutMap />
+                      <MdOutlineZoomOutMap />
                     </button>
                   </div>
                 )}
@@ -649,73 +638,74 @@ const BulletinBoard = () => {
                   </div>
                 </div>
 
+                {/* Full content without truncation */}
                 <div className="flex-1 overflow-hidden mb-4 min-h-0">
-                  <div className="h-full ">
+                  <div className="h-full">
                     <p className="text-gray-300 text-sm leading-relaxed break-words whitespace-pre-wrap">
-                      {post.content.slice(0, 60)}...
+                      {post.content}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-4 border-t border-gray-800 flex-shrink-0">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pt-4 border-t border-gray-800 flex-shrink-0 gap-3">
                   <div className="text-xs text-gray-500">
                     <p className="font-medium text-gray-400">By {post.author}</p>
                     <p>{post.createdAt}</p>
                   </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setViewingPost(post)}
-                      className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-800"
-                      title="View full post"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                        />
-                      </svg>
-                    </button>
 
-                    {post.createdBy === "current-user" && (
-                      <>
-                        <button
-                          onClick={() => openEditModal(post)}
-                          className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-800"
-                          title="Edit post"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                            />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => openDeleteModal(post)}
-                          className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-800"
-                          title="Delete post"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                            />
-                          </svg>
-                        </button>
-                      </>
-                    )}
+                  {/* Status Toggle in Footer */}
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full sm:w-auto">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-400">Status:</span>
+                      <button
+                        onClick={() => handleStatusToggle(post.id)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${post.status === "Active" ? "bg-emerald-500" : "bg-gray-600"
+                          }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${post.status === "Active" ? "translate-x-6" : "translate-x-1"
+                            }`}
+                        />
+                      </button>
+                      <span className="text-xs font-medium text-gray-300 min-w-[50px]">
+                        {post.status}
+                      </span>
+                    </div>
+
+                    <div className="flex gap-2">
+                      {post.createdBy === "current-user" && (
+                        <>
+                          <button
+                            onClick={() => openEditModal(post)}
+                            className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-800"
+                            title="Edit post"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                              />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => openDeleteModal(post)}
+                            className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-800"
+                            title="Delete post"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                              />
+                            </svg>
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -736,7 +726,7 @@ const BulletinBoard = () => {
               </div>
               <h3 className="text-xl font-medium text-gray-300 mb-3">No posts found</h3>
               <p className="text-gray-500 mb-6">Try adjusting your filters or create a new post</p>
-              <button
+              {/* <button
                 onClick={() => setShowCreateModal(true)}
                 className="bg-orange-500 text-white px-6 py-3 rounded-lg font-medium transition-colors inline-flex items-center gap-2"
               >
@@ -744,34 +734,31 @@ const BulletinBoard = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
                 Create Post
-              </button>
+              </button> */}
             </div>
           )}
         </div>
 
-        <CreateBulletinModal
+        <OptimizedCreateBulletinModal
           isOpen={showCreateModal}
           onClose={() => setShowCreateModal(false)}
-          formData={createFormData}
-          setFormData={setCreateFormData}
           onCreate={handleCreatePost}
           availableTags={tags}
           onOpenTagManager={() => setIsTagManagerOpen(true)}
         />
 
-        <EditBulletinModal
+        <OptimizedEditBulletinModal
           isOpen={showEditModal}
           onClose={() => {
             setShowEditModal(false)
             setSelectedPost(null)
-            setEditFormData({ title: "", content: "", visibility: "Members", status: "Active", image: null, tags: [] })
           }}
-          formData={editFormData}
-          setFormData={setEditFormData}
+          post={selectedPost}
           onSave={handleEditPost}
           availableTags={tags}
           onOpenTagManager={() => setIsTagManagerOpen(true)}
         />
+
 
         <DeleteBulletinModal
           isOpen={showDeleteModal}

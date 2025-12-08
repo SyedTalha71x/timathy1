@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react/no-unknown-property */
 /* eslint-disable react/no-unescaped-entities */
@@ -1103,7 +1102,7 @@ export default function Appointments() {
                   </div>
                 </div>
 
-                <div className="w-full lg:max-w-[320px] flex flex-col gap-4">
+                <div className="w-full lg:max-w-[320px] flex flex-col gap-3">
                   <div className="flex items-center gap-4 w-full">
                     <div className="relative w-full">
                       <input
@@ -1117,16 +1116,19 @@ export default function Appointments() {
                     </div>
                   </div>
 
-                  <div className="bg-[#000000] rounded-xl p-3 mt-4 w-full">
-                    <div className="flex items-center justify-between mb-3">
+                  <div className="bg-[#000000] rounded-xl p-3  w-full">
+                    <div className="flex items-center justify-between ">
                       <h3 className="text-white font-semibold text-sm">Appointment Filters</h3>
                       <div className="flex items-center gap-2">
-                        <button
-                          onClick={toggleAllFilters}
-                          className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
-                        >
-                          {Object.values(appointmentFilters).every((value) => value) ? "Deselect All" : "Select All"}
-                        </button>
+                       {!isFiltersCollapsed && (
+  <button
+    onClick={toggleAllFilters}
+    className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+  >
+    {Object.values(appointmentFilters).every((value) => value) ? "Deselect All" : "Select All"}
+  </button>
+)}
+
                         <button
                           onClick={() => setIsFiltersCollapsed(!isFiltersCollapsed)}
                           className="text-gray-400 hover:text-white transition-colors"
@@ -1136,7 +1138,7 @@ export default function Appointments() {
                       </div>
                     </div>
                     {!isFiltersCollapsed && (
-                      <div className="space-y-1.5 w-full">
+                      <div className="space-y-1.5 mt-3 w-full">
                         {/* Appointment Types */}
                         {appointmentTypesMain.map((type) => (
                           <label key={type.name} className="flex items-center gap-2 cursor-pointer w-full">
@@ -1266,7 +1268,7 @@ export default function Appointments() {
                                     e.stopPropagation()
                                     handleCheckInMain(appointment.id)
                                   }}
-                                  className={`px-2 py-1 text-xs font-medium rounded-lg ${appointment.isCheckedIn
+                                  className={`px-2 py-1 ml-12 text-xs font-medium rounded-lg ${appointment.isCheckedIn
                                     ? "border border-white/50 text-white bg-transparent"
                                     : "bg-black text-white"
                                     }`}
@@ -1312,6 +1314,7 @@ export default function Appointments() {
           onSubmit={handleAppointmentSubmit}
           setIsNotifyMemberOpenMain={setIsNotifyMemberOpenMain}
           setNotifyActionMain={setNotifyActionMain}
+          availableMembersLeads={availableMembersLeads}
         />
         <TrialTrainingModal
           isOpen={isTrialModalOpen}

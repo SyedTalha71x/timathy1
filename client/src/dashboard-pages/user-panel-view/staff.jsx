@@ -40,33 +40,42 @@ import VacationContingentModal from "../../components/user-panel-components/staf
 
 const StaffContext = createContext(null)
 
-const RoleTag = ({ role }) => {
+const RoleTag = ({ role, compact = false }) => {
   const getDynamicRoleColor = (role) => {
-    const colors = [
-      'bg-red-600', 'bg-blue-600', 'bg-green-600',
-      'bg-yellow-600', 'bg-purple-600', 'bg-pink-600',
-      'bg-indigo-600', 'bg-teal-600', 'bg-orange-600',
-      'bg-cyan-600', 'bg-lime-600', 'bg-amber-600'
-    ];
+    const roleColors = {
+      'Telephone operator': 'bg-purple-600',
+      'Software Engineer': 'bg-blue-600', 
+      'System Engineer': 'bg-green-600',
+      'Manager': 'bg-red-600',
+      'Trainer': 'bg-indigo-600',
+      'Reception': 'bg-yellow-600',
+      'Cleaner': 'bg-orange-600',
+      'Admin': 'bg-pink-600',
+      'Therapist': 'bg-teal-600'
+    };
 
-    let hash = 0;
-    for (let i = 0; i < role.length; i++) {
-      hash = role.charCodeAt(i) + ((hash << 5) - hash);
-    }
-
-    const index = Math.abs(hash) % colors.length;
-    return colors[index];
+    return roleColors[role] || 'bg-gray-600';
   };
 
   const bgColor = getDynamicRoleColor(role);
 
+  if (compact) {
+    return (
+      <div className={`inline-flex items-center gap-1 ${bgColor} text-white px-2 py-1 rounded-lg text-xs font-medium`}>
+        <Briefcase size={12} />
+        <span className="truncate max-w-[80px]">{role}</span>
+      </div>
+    );
+  }
+
   return (
-    <div className={`inline-flex items-center gap-2 ${bgColor} text-white px-2 py-1 rounded-md text-xs font-medium`}>
-      <Briefcase size={15} />
+    <div className={`inline-flex items-center gap-2 ${bgColor} text-white px-3 py-1.5 rounded-xl text-xs font-medium`}>
+      <Briefcase size={14} />
       <span>{role}</span>
     </div>
   );
 };
+
 export default function StaffManagement() {
   const sidebarSystem = useSidebarSystem();
   const [isShowDetails, setIsShowDetails] = useState(false)
@@ -569,10 +578,9 @@ export default function StaffManagement() {
                     Staff
                   </h1>
 
-                  <div className="md:flex gap-2 items-center  hidden">
-
-
-                    <div className="flex items-center gap-1 bg-black rounded-xl p-1 w-fit">
+                  <div className="md:flex gap-2 items-center hidden">
+                    {/* Combined View and Display Controls */}
+                    <div className="flex items-center gap-2 bg-black rounded-xl p-1">
                       <span className="text-xs text-gray-400 px-2">View</span>
                       <button
                         onClick={toggleViewMode}
@@ -580,7 +588,7 @@ export default function StaffManagement() {
                           ? "bg-[#FF843E] text-white"
                           : "text-gray-400 hover:text-white"
                           }`}
-                        title="Grid View"
+                        title={viewMode === "grid" ? "Grid View (Active)" : "Switch to Grid View"}
                       >
                         <Grid3X3 size={16} />
                       </button>
@@ -590,30 +598,31 @@ export default function StaffManagement() {
                           ? "bg-[#FF843E] text-white"
                           : "text-gray-400 hover:text-white"
                           }`}
-                        title="List View"
+                        title={viewMode === "list" ? "List View (Active)" : "Switch to List View"}
                       >
                         <List size={16} />
                       </button>
-                    </div>
-
-                    {/* Display Mode Switch - Added from members code */}
-                    <div className="flex bg-black items-center rounded-xl border border-gray-800 p-1 w-fit">
-                      <span className="text-xs text-gray-400 px-2">Display</span>
+                      
+                      {/* Three Dots Display Mode Toggle */}
+                      <div className="h-6 w-px bg-gray-700 mx-1"></div>
                       <button
-                        onClick={() => setIsCompactView(false)}
-                        className={`p-2 rounded-lg transition-colors ${!isCompactView ? "bg-[#F27A30] text-white" : "text-gray-400 hover:text-white"
-                          }`}
-                        title="Detailed View"
+                        onClick={() => setIsCompactView(!isCompactView)}
+                        className={`p-2 rounded-lg transition-colors flex items-center gap-1 ${isCompactView ? "text-[#F27A30]" : "text-[#F27A30]"}`}
+                        title={isCompactView ? "Compact View (Click for Detailed)" : "Detailed View (Click for Compact)"}
                       >
-                        <Eye className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => setIsCompactView(true)}
-                        className={`p-2 rounded-lg transition-colors ${isCompactView ? "bg-[#F27A30] text-white" : "text-gray-400 hover:text-white"
-                          }`}
-                        title="Compact View"
-                      >
-                        <Grid3X3 className="w-4 h-4" />
+                        <div className="flex flex-col gap-0.5">
+                          <div className="flex gap-0.5">
+                            <div className={`w-1.5 h-1.5 rounded-full ${!isCompactView ? 'bg-current' : 'bg-gray-500'}`}></div>
+                            <div className={`w-1.5 h-1.5 rounded-full ${!isCompactView ? 'bg-current' : 'bg-gray-500'}`}></div>
+                          </div>
+                          <div className="flex gap-0.5">
+                            <div className={`w-1.5 h-1.5 rounded-full ${isCompactView ? 'bg-current' : 'bg-gray-500'}`}></div>
+                            <div className={`w-1.5 h-1.5 rounded-full ${isCompactView ? 'bg-current' : 'bg-gray-500'}`}></div>
+                          </div>
+                        </div>
+                        <span className="text-xs ml-1 hidden sm:inline">
+                          {isCompactView ? "Compact" : "Detailed"}
+                        </span>
                       </button>
                     </div>
                   </div>
@@ -630,20 +639,18 @@ export default function StaffManagement() {
                 )}
               </div>
 
-              <div className="md:hidden flex items-center gap-2 ">
-
-
-                <div className="flex items-center gap-1 bg-black rounded-xl p-1 w-fit">
-                  <span className="text-xs text-gray-400 px-2">View</span>
+              <div className="md:hidden flex items-center gap-2">
+                {/* Mobile View Controls */}
+                <div className="flex items-center gap-2 bg-black rounded-xl p-1">
+                  <span className="text-xs text-gray-400 px-1">View</span>
                   <button
                     onClick={toggleViewMode}
                     className={`p-2 rounded-lg transition-colors ${viewMode === "grid"
                       ? "bg-[#FF843E] text-white"
                       : "text-gray-400 hover:text-white"
                       }`}
-                    title="Grid View"
                   >
-                    <Grid3X3 size={16} />
+                    <Grid3X3 size={14} />
                   </button>
                   <button
                     onClick={toggleViewMode}
@@ -651,36 +658,31 @@ export default function StaffManagement() {
                       ? "bg-[#FF843E] text-white"
                       : "text-gray-400 hover:text-white"
                       }`}
-                    title="List View"
                   >
-                    <List size={16} />
+                    <List size={14} />
                   </button>
-                </div>
-
-                {/* Display Mode Switch - Added from members code */}
-                <div className="flex bg-black items-center rounded-xl border border-gray-800 p-1 w-fit">
-                  <span className="text-xs text-gray-400 px-2">Display</span>
+                  
+                  <div className="h-5 w-px bg-gray-700 mx-1"></div>
                   <button
-                    onClick={() => setIsCompactView(false)}
-                    className={`p-2 rounded-lg transition-colors ${!isCompactView ? "bg-[#F27A30] text-white" : "text-gray-400 hover:text-white"
-                      }`}
-                    title="Detailed View"
+                    onClick={() => setIsCompactView(!isCompactView)}
+                    className={`p-2 rounded-lg transition-colors ${isCompactView ? "text-[#F27A30]" : "text-[#F27A30]"}`}
                   >
-                    <Eye className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => setIsCompactView(true)}
-                    className={`p-2 rounded-lg transition-colors ${isCompactView ? "bg-[#F27A30] text-white" : "text-gray-400 hover:text-white"
-                      }`}
-                    title="Compact View"
-                  >
-                    <Grid3X3 className="w-4 h-4" />
+                    <div className="flex flex-col gap-0.5">
+                      <div className="flex gap-0.5">
+                        <div className={`w-1.5 h-1.5 rounded-full ${!isCompactView ? 'bg-current' : 'bg-gray-500'}`}></div>
+                        <div className={`w-1.5 h-1.5 rounded-full ${!isCompactView ? 'bg-current' : 'bg-gray-500'}`}></div>
+                      </div>
+                      <div className="flex gap-0.5">
+                        <div className={`w-1.5 h-1.5 rounded-full ${isCompactView ? 'bg-current' : 'bg-gray-500'}`}></div>
+                        <div className={`w-1.5 h-1.5 rounded-full ${isCompactView ? 'bg-current' : 'bg-gray-500'}`}></div>
+                      </div>
+                    </div>
                   </button>
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-col lg:flex-row items-center gap-3 w-full  lg:justify-end">
+              <div className="flex flex-col lg:flex-row items-center gap-3 w-full lg:justify-end">
                 <button
                   onClick={() => setIsPlanningModalOpen(true)}
                   className="bg-black py-2.5 px-4 lg:px-6 text-sm rounded-xl flex items-center justify-center gap-2 w-full lg:w-auto"
@@ -733,11 +735,11 @@ export default function StaffManagement() {
                             <div className="flex items-center gap-4 flex-1 min-w-0">
                               <img
                                 src={staff.img || "/placeholder.svg?height=80&width=80"}
-                                className="h-12 w-12 rounded-2xl flex-shrink-0 object-cover"
+                                className="h-12 w-12 rounded-xl flex-shrink-0 object-cover"
                                 alt={`${staff.firstName} ${staff.lastName}`}
                               />
                               <div className="flex-1 min-w-0">
-                                <h3 className="text-white font-medium text-base sm:text-lg truncate">
+                                <h3 className="text-white font-medium text-base sm:text-lg">
                                   {staff.firstName} {staff.lastName}
                                 </h3>
                                 <div className="mb-2">
@@ -798,19 +800,14 @@ export default function StaffManagement() {
                               <img
                                 src={staff.img || "/placeholder.svg?height=80&width=80"}
                                 alt={`${staff.firstName} ${staff.lastName}`}
-                                className="w-10 h-10 rounded-full flex-shrink-0 object-cover"
+                                className="w-10 h-10 rounded-xl flex-shrink-0 object-cover"
                               />
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">
-                                  <span className="text-white font-medium text-sm truncate">
-                                    {staff.firstName}
+                                  <span className="text-white font-medium text-sm">
+                                    {staff.firstName} {staff.lastName}
                                   </span>
-                                  <span className="text-white font-medium text-sm truncate">
-                                    {staff.lastName}
-                                  </span>
-                                  <span className="px-1.5 py-0.5 text-xs font-medium rounded flex-shrink-0 bg-blue-600 text-white">
-                                    {staff.role}
-                                  </span>
+                                  <RoleTag role={staff.role} compact={true} />
                                 </div>
                               </div>
                             </div>
@@ -826,7 +823,7 @@ export default function StaffManagement() {
                     ))}
                   </div>
                 ) : (
-                  // DETAILED LIST VIEW (your existing list view)
+                  // DETAILED LIST VIEW
                   <div className="flex flex-col gap-3">
                     {staffMembers.map((staff) => (
                       <div
@@ -838,7 +835,7 @@ export default function StaffManagement() {
                             src={staff.img || "/placeholder.svg?height=80&width=80"}
                             width={80}
                             height={80}
-                            className="rounded-xl h-12 w-12 sm:h-16 sm:w-16"
+                            className="rounded-xl h-12 w-12 sm:h-16 sm:w-16 object-cover"
                             alt={`${staff.firstName} ${staff.lastName}`}
                           />
                         </div>
@@ -908,16 +905,16 @@ export default function StaffManagement() {
                               <div className="flex flex-col justify-center items-center gap-3 mb-3">
                                 <img
                                   src={staff.img || "/placeholder.svg?height=80&width=80"}
-                                  className="h-16 w-16 rounded-2xl flex-shrink-0 object-cover"
+                                  className="h-16 w-16 rounded-xl flex-shrink-0 object-cover"
                                   alt={`${staff.firstName} ${staff.lastName}`}
                                 />
                                 <div>
                                   <h3 className="text-white text-center font-medium text-lg leading-tight">
                                     {staff.firstName} {staff.lastName}
                                   </h3>
-                                  <p className="text-gray-400 text-center text-sm">
-                                    {staff.role}
-                                  </p>
+                                  <div className="mt-2">
+                                    <RoleTag role={staff.role} />
+                                  </div>
                                 </div>
                               </div>
                               <p className="text-gray-400 text-center text-sm leading-snug">
@@ -971,24 +968,21 @@ export default function StaffManagement() {
                         ) : (
                           // Compact tile view
                           <div className="bg-[#141414] p-3 rounded-xl hover:bg-[#1a1a1a] transition-colors flex flex-col items-center justify-center gap-2 h-full">
-                            <div className="relative w-full">
+                            <div className="relative w-full flex justify-center">
                               <img
                                 src={staff.img || "/placeholder.svg?height=80&width=80"}
                                 alt={`${staff.firstName} ${staff.lastName}`}
-                                className="w-12 h-12 rounded-full mx-auto object-cover"
+                                className="w-14 h-14 rounded-xl object-cover"
                               />
-                              <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-xs font-bold text-white bg-blue-600">
-                                {staff.role.charAt(0)}
-                              </span>
                             </div>
 
                             <div className="text-center w-full min-w-0">
-                              <p className="text-white font-medium text-xs truncate">
-                                {staff.firstName}
+                              <p className="text-white font-medium text-sm leading-tight mb-2">
+                                {staff.firstName} {staff.lastName}
                               </p>
-                              <p className="text-gray-400 text-xs truncate">
-                                {staff.lastName}
-                              </p>
+                              <div className="flex justify-center">
+                                <RoleTag role={staff.role} compact={true} />
+                              </div>
                             </div>
 
                             <button
@@ -1003,7 +997,7 @@ export default function StaffManagement() {
                     ))}
                   </div>
                 ) : (
-                  // DETAILED GRID VIEW (your existing grid view)
+                  // DETAILED GRID VIEW
                   <div
                     className={`grid grid-cols-1 sm:grid-cols-2 ${isRightSidebarOpen ? "xl:grid-cols-2" : "xl:grid-cols-3"
                       } gap-3 sm:gap-4`}
@@ -1018,16 +1012,16 @@ export default function StaffManagement() {
                             src={staff.img || "/placeholder.svg?height=80&width=80"}
                             width={80}
                             height={80}
-                            className="rounded-xl h-16 w-16 sm:h-20 sm:w-20 mx-auto"
+                            className="rounded-xl h-16 w-16 sm:h-20 sm:w-20 mx-auto object-cover"
                             alt={`${staff.firstName} ${staff.lastName}`}
                           />
                         </div>
 
                         <div className="w-full">
-                          <h3 className="text-white font-medium text-base sm:text-lg mb-1 text-center">
+                          <h3 className="text-white font-medium text-base sm:text-lg mb-2 text-center leading-tight">
                             {staff.firstName} {staff.lastName}
                           </h3>
-                          <div className="mb-2 text-center">
+                          <div className="mb-3 text-center">
                             <RoleTag role={staff.role} />
                           </div>
                           <p className="text-gray-400 text-xs sm:text-sm mb-4 text-center">
@@ -1105,7 +1099,7 @@ export default function StaffManagement() {
             onClick={() => setIsRemoveModalOpen(false)}
           >
             <div
-              className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl sm:rounded-2xl overflow-hidden animate-in slide-in-from-bottom duration-300"
+              className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl sm:rounded-xl overflow-hidden animate-in slide-in-from-bottom duration-300"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="px-4 sm:px-6 py-4 sm:py-6 border-b border-gray-800 flex justify-between items-center">
@@ -1507,7 +1501,4 @@ export default function StaffManagement() {
       </>
     </StaffContext.Provider>
   );
-
-
-
 }

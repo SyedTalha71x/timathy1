@@ -1,9 +1,10 @@
-/* eslint-disable no-unused-vars */
-/* eslint-disable react/prop-types */
-import React, { useState, useRef, useEffect } from "react"
-import { Plus, Filter, X, Calendar, Tag, Users, Repeat, Check, ChevronDown, Clock, Bell } from "lucide-react"
+/* eslint-disable react-hooks/exhaustive-deps */
+"use client"
+
+/* eslint-disable no-unused-vars */ /* eslint-disable react/prop-types */
+import React, { useState, useRef, useEffect, useCallback } from "react"
+import { Plus, X, Calendar, Tag, Repeat, Check, ChevronDown, Clock, Bell, ChevronRight } from "lucide-react"
 import EditTaskModal from "../../components/user-panel-components/task-components/edit-task-modal"
-import { IoIosMenu } from "react-icons/io"
 import toast, { Toaster } from "react-hot-toast"
 import RepeatTaskModal from "../../components/user-panel-components/task-components/repeat-task-modal"
 import TaskItem from "../../components/user-panel-components/task-components/task-item"
@@ -11,20 +12,12 @@ import AssignModal from "../../components/user-panel-components/task-components/
 import TagsModal from "../../components/user-panel-components/task-components/edit-tags"
 import Draggable from "react-draggable"
 import CalendarModal from "../../components/user-panel-components/task-components/calendar-modal"
-
 import { UserCheck, Briefcase } from "lucide-react"
-
-
-import {
-  todosTaskData,
-  configuredTagsData,
-  availableAssigneesData,
-} from "../../utils/user-panel-states/todo-states"
+import { todosTaskData, configuredTagsData, availableAssigneesData } from "../../utils/user-panel-states/todo-states"
 import DeleteModal from "../../components/user-panel-components/task-components/delete-task"
 import { useSidebarSystem } from "../../hooks/useSidebarSystem"
 import { trainingVideosData } from "../../utils/user-panel-states/training-states"
 import Sidebar from "../../components/central-sidebar"
-
 import EditMemberModal from "../../components/myarea-components/EditMemberModal"
 import AddBillingPeriodModal from "../../components/myarea-components/AddBillingPeriodModal"
 import ContingentModal from "../../components/myarea-components/ContigentModal"
@@ -33,61 +26,52 @@ import HistoryModal from "../../components/myarea-components/HistoryModal"
 import AppointmentModal from "../../components/myarea-components/AppointmentModal"
 import { WidgetSelectionModal } from "../../components/widget-selection-modal"
 import NotifyMemberModal from "../../components/myarea-components/NotifyMemberModal"
-import TrainingPlanModal from "../../components/myarea-components/TrainingPlanModal"
-import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'
+import DefaultAvatar from "../../../public/gray-avatar-fotor-20250912192528.png"
 import { MemberOverviewModal } from "../../components/myarea-components/MemberOverviewModal"
 import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"
 import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
 import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
-
-
+import { SimpleTitleEditModal } from "../../components/user-panel-components/task-components/simple-title-edit-modal"
+import { OptimizedTextarea } from "../../components/user-panel-components/task-components/optimized-text-area"
 
 const SelectedDateTimeDisplay = ({ date, time, onClear }) => {
-  if (!date && !time) return null;
-
+  if (!date && !time) return null
   const formatDate = (dateStr) => {
-    if (!dateStr) return '';
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-
+    if (!dateStr) return ""
+    const date = new Date(dateStr)
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    })
+  }
   const formatTime = (timeStr) => {
-    if (!timeStr) return '';
-    const [hours, minutes] = timeStr.split(':');
-    const hour = parseInt(hours);
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    const formattedHour = hour % 12 || 12;
-    return `${formattedHour}:${minutes} ${ampm}`;
-  };
-
+    if (!timeStr) return ""
+    const [hours, minutes] = timeStr.split(":")
+    const hour = Number.parseInt(hours)
+    const ampm = hour >= 12 ? "PM" : "AM"
+    const formattedHour = hour % 12 || 12
+    return `${formattedHour}:${minutes} ${ampm}`
+  }
   return (
     <div className="flex items-center gap-2 bg-[#2F2F2F] rounded-lg px-3 py-1 text-sm mr-2">
       <span className="text-white whitespace-nowrap">
         {date && formatDate(date)}
-        {date && time && ' • '}
+        {date && time && " • "}
         {time && formatTime(time)}
       </span>
-      <button
-        onClick={onClear}
-        className="text-gray-400 hover:text-white ml-1"
-        title="Clear date and time"
-      >
+      <button onClick={onClear} className="text-gray-400 hover:text-white ml-1" title="Clear date and time">
         <X size={14} />
       </button>
     </div>
-  );
-};
+  )
+}
 
 export default function TodoApp() {
-  const sidebarSystem = useSidebarSystem();
+  const sidebarSystem = useSidebarSystem()
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false)
   const [sortOption, setSortOption] = useState("dueDate-asc")
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false)
   const [openDropdownTaskId, setOpenDropdownTaskId] = useState(null)
-
   const [isCalendarOpen, setIsCalendarOpen] = useState(false)
   const [selectedDate, setSelectedDate] = useState("")
   const [selectedTime, setSelectedTime] = useState("")
@@ -95,63 +79,68 @@ export default function TodoApp() {
   const [selectedRepeat, setSelectedRepeat] = useState("")
   const [customReminderValue, setCustomReminderValue] = useState("")
   const [customReminderUnit, setCustomReminderUnit] = useState("Minutes")
-
   const [isAssignDropdownOpen, setIsAssignDropdownOpen] = useState(false)
   const [isTagDropdownOpen, setIsTagDropdownOpen] = useState(false)
-
+  const [titleEditModal, setTitleEditModal] = useState({
+    isOpen: false,
+    task: null,
+  })
   const [isTagManagerOpen, setIsTagManagerOpen] = useState(false)
   const [newTagName, setNewTagName] = useState("")
-  const [newTagColor, setNewTagColor] = useState("#FFFFFF")
-
+  const [newTagColor, setNewTagColor] = useState("#1890ff")
   const [isEditModalOpenTask, setIsEditModalOpenTask] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [selectedTask, setSelectedTask] = useState(null)
-
   const [newTaskInput, setNewTaskInput] = useState("")
   const [isRepeatModalOpen, setIsRepeatModalOpen] = useState(false)
   const [selectedTaskForRepeat, setSelectedTaskForRepeat] = useState(null)
-
   const [tasks, setTasks] = useState(todosTaskData)
   const [configuredTags, setConfiguredTags] = useState(configuredTagsData)
   const [availableAssignees] = useState(availableAssigneesData)
-
   const [availableRoles] = useState(["Trainer", "Manager", "Developer", "Designer", "Admin", "Support"])
-
-  const [repeatConfigs, setRepeatConfigs] = useState({});
-
-
+  const [repeatConfigs, setRepeatConfigs] = useState({})
+  const [collapsedColumns, setCollapsedColumns] = useState({})
   const trainingVideos = trainingVideosData
-
   const [columns, setColumns] = useState([
     { id: "ongoing", title: "Ongoing", color: "#f59e0b" },
     { id: "completed", title: "Completed", color: "#10b981" },
     { id: "canceled", title: "Canceled", color: "#ef4444" },
   ])
-
   const [calendarModal, setCalendarModal] = useState({
     isOpen: false,
     taskId: null,
     initialDate: "",
     initialTime: "",
     initialReminder: "",
-    initialRepeat: ""
-  });
-
+    initialRepeat: "",
+  })
   const [assignModalTask, setAssignModalTask] = useState(null)
   const [tagsModalTask, setTagsModalTask] = useState(null)
-
   const columnRefs = useRef({})
 
-  const handleOpenCalendarModal = (taskId, currentDate = "", currentTime = "", currentReminder = "", currentRepeat = "") => {
+  const toggleColumnCollapse = (columnId) => {
+    setCollapsedColumns((prev) => ({
+      ...prev,
+      [columnId]: !prev[columnId],
+    }))
+  }
+
+  const handleOpenCalendarModal = (
+    taskId,
+    currentDate = "",
+    currentTime = "",
+    currentReminder = "",
+    currentRepeat = "",
+  ) => {
     setCalendarModal({
       isOpen: true,
       taskId,
       initialDate: currentDate,
       initialTime: currentTime,
-      initialReminder: currentReminder,
-      initialRepeat: currentRepeat
-    });
-  };
+      initialReminder: currentReminder || "",
+      initialRepeat: currentRepeat || "",
+    })
+  }
 
   const handleClearDateTime = () => {
     setSelectedDate("")
@@ -162,29 +151,33 @@ export default function TodoApp() {
 
   const handleCalendarSave = (calendarData) => {
     if (calendarModal.taskId) {
-      // Update existing task
-      const taskToUpdate = tasks.find(t => t.id === calendarModal.taskId);
+      const taskToUpdate = tasks.find((t) => t.id === calendarModal.taskId)
       const updatedTask = {
         ...taskToUpdate,
         dueDate: calendarData.date,
         dueTime: calendarData.time,
         reminder: calendarData.reminder,
-        repeat: calendarData.repeat
-      };
-
-      handleTaskUpdate(updatedTask);
-      toast.success("Task date/time updated successfully!");
+        repeat: calendarData.repeat,
+        customReminder: calendarData.customReminder,
+        repeatEnd: calendarData.repeatEnd,
+      }
+      handleTaskUpdate(updatedTask)
+      toast.success("Task date/time updated successfully!")
+    } else {
+      setSelectedDate(calendarData.date)
+      setSelectedTime(calendarData.time)
+      setSelectedReminder(calendarData.reminder)
+      setSelectedRepeat(calendarData.repeat)
     }
-
     setCalendarModal({
       isOpen: false,
       taskId: null,
       initialDate: "",
       initialTime: "",
       initialReminder: "",
-      initialRepeat: ""
-    });
-  };
+      initialRepeat: "",
+    })
+  }
 
   const handleCalendarClose = () => {
     setCalendarModal({
@@ -193,9 +186,9 @@ export default function TodoApp() {
       initialDate: "",
       initialTime: "",
       initialReminder: "",
-      initialRepeat: ""
-    });
-  };
+      initialRepeat: "",
+    })
+  }
 
   const handleOpenAssignModal = (task) => {
     setAssignModalTask(task)
@@ -235,58 +228,48 @@ export default function TodoApp() {
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
-  // Add this useEffect to handle task completion and create repeat tasks
   useEffect(() => {
-    const now = new Date();
-    const updatedRepeatConfigs = { ...repeatConfigs };
-    let tasksUpdated = false;
-
+    const now = new Date()
+    const updatedRepeatConfigs = { ...repeatConfigs }
+    let tasksUpdated = false
     Object.entries(repeatConfigs).forEach(([taskId, config]) => {
-      const task = tasks.find(t => t.id === parseInt(taskId));
-
-      // Skip if task doesn't exist or isn't completed
-      if (!task || task.status !== "completed") return;
-
-      // Check if we need to create repeat tasks
-      const lastCompleted = config.lastCompletedDate ? new Date(config.lastCompletedDate) : null;
-      const taskCompletedDate = new Date(task.updatedAt || now);
-
-      // Only process if this completion is newer than our last processing
+      const task = tasks.find((t) => t.id === Number.parseInt(taskId))
+      if (!task || task.status !== "completed") return
+      const lastCompleted = config.lastCompletedDate ? new Date(config.lastCompletedDate) : null
+      const taskCompletedDate = new Date(task.updatedAt || now)
       if (!lastCompleted || lastCompleted < taskCompletedDate) {
-        const createdTasks = createNextRepeatTasks(config, task);
-
+        const createdTasks = createNextRepeatTasks(config, task)
         if (createdTasks > 0) {
-          // Update the last completed date
           updatedRepeatConfigs[taskId] = {
             ...config,
             lastCompletedDate: taskCompletedDate.toISOString(),
-            occurrencesCreated: (config.occurrencesCreated || 0) + createdTasks
-          };
-          tasksUpdated = true;
+            occurrencesCreated: (config.occurrencesCreated || 0) + createdTasks,
+          }
+          tasksUpdated = true
         }
       }
-    });
-
+    })
     if (tasksUpdated) {
-      setRepeatConfigs(updatedRepeatConfigs);
+      setRepeatConfigs(updatedRepeatConfigs)
     }
-  }, [tasks]);
+  }, [tasks])
 
   const handleTaskStatusChange = (taskId, newStatus) => {
     setTasks((prevTasks) =>
       prevTasks.map((task) =>
-        task.id === taskId ? {
-          ...task,
-          status: newStatus,
-          isPinned: false,
-          dragVersion: 0,
-          updatedAt: new Date().toISOString() // Add this line
-        } : task,
+        task.id === taskId
+          ? {
+            ...task,
+            status: newStatus,
+            isPinned: false,
+            dragVersion: 0,
+            updatedAt: new Date().toISOString(),
+          }
+          : task,
       ),
-    );
-
-    toast.success(`Task status changed to ${newStatus}!`);
-  };
+    )
+    toast.success(`Task status changed to ${newStatus}!`)
+  }
 
   const handleTaskUpdate = (updatedTask) => {
     setTasks((prevTasks) =>
@@ -300,86 +283,40 @@ export default function TodoApp() {
     toast.success("Task deleted successfully!")
   }
 
-  const handleAddTaskFromInput = () => {
-    if (newTaskInput.trim() !== "") {
-      const newId = tasks.length > 0 ? Math.max(...tasks.map((t) => t.id)) + 1 : 1
-      const newTask = {
-        id: newId,
-        title: newTaskInput.trim(),
-        assignees: selectedAssignees.map((a) => `${a.firstName} ${a.lastName}`),
-        roles: selectedRoles,
-        tags: selectedTags.map((t) => t.name),
-        status: "ongoing",
-        category: "general",
-        dueDate: selectedDate, // This uses selectedDate
-        dueTime: selectedTime, // This uses selectedTime
-        isPinned: false,
-        dragVersion: 0,
-      }
-      setTasks((prevTasks) => [...prevTasks, newTask])
-      setNewTaskInput("")
-      setSelectedDate("") // Clear after task creation
-      setSelectedTime("") // Clear after task creation
-      setSelectedAssignees([])
-      setSelectedRoles([])
-      setSelectedTags([])
-      toast.success("Task added successfully!")
-    }
-  }
 
   const createNextRepeatTasks = (config, completedTask) => {
-    const { originalTask, repeatOptions } = config;
-    let tasksCreated = 0;
-
+    const { originalTask, repeatOptions } = config
+    let tasksCreated = 0
     try {
-      // Calculate how many occurrences should exist based on the original task
-      const allRepeatTasks = tasks.filter(t =>
-        t.title === originalTask.title &&
-        t.id !== originalTask.id
-      );
-
-      const currentOccurrences = allRepeatTasks.length;
-      const maxOccurrences = repeatOptions.occurrences || Infinity;
-
-      // If we haven't reached the occurrence limit, create the next task
-      if (currentOccurrences < maxOccurrences - 1) { // -1 because original task counts as first occurrence
-        const lastTaskDate = new Date(completedTask.dueDate);
-        let nextDate = new Date(lastTaskDate);
-
-        // Calculate next occurrence based on repeat frequency
+      const allRepeatTasks = tasks.filter((t) => t.title === originalTask.title && t.id !== originalTask.id)
+      const currentOccurrences = allRepeatTasks.length
+      const maxOccurrences = repeatOptions.occurrences || Number.POSITIVE_INFINITY
+      if (currentOccurrences < maxOccurrences - 1) {
+        const lastTaskDate = new Date(completedTask.dueDate)
+        const nextDate = new Date(lastTaskDate)
         if (repeatOptions.frequency === "daily") {
-          nextDate.setDate(nextDate.getDate() + 1);
+          nextDate.setDate(nextDate.getDate() + 1)
         } else if (repeatOptions.frequency === "weekly") {
-          nextDate.setDate(nextDate.getDate() + 7);
-
-          // For weekly repeats with specific days, find the next selected day
+          nextDate.setDate(nextDate.getDate() + 7)
           if (repeatOptions.repeatDays && repeatOptions.repeatDays.length > 0) {
-            const currentDay = nextDate.getDay();
-            const nextDays = repeatOptions.repeatDays.filter(day => day > currentDay);
-            const daysToAdd = nextDays.length > 0
-              ? nextDays[0] - currentDay
-              : 7 - currentDay + repeatOptions.repeatDays[0];
-            nextDate.setDate(nextDate.getDate() + daysToAdd);
+            const currentDay = nextDate.getDay()
+            const nextDays = repeatOptions.repeatDays.filter((day) => day > currentDay)
+            const daysToAdd =
+              nextDays.length > 0 ? nextDays[0] - currentDay : 7 - currentDay + repeatOptions.repeatDays[0]
+            nextDate.setDate(nextDate.getDate() + daysToAdd)
           }
         } else if (repeatOptions.frequency === "monthly") {
-          nextDate.setMonth(nextDate.getMonth() + 1);
+          nextDate.setMonth(nextDate.getMonth() + 1)
         }
-
-        // Check end date condition
         if (repeatOptions.endDate && nextDate > new Date(repeatOptions.endDate)) {
-          return tasksCreated;
+          return tasksCreated
         }
-
-        // Check if this repeat task already exists
-        const newDueDate = nextDate.toISOString().split('T')[0];
-        const taskAlreadyExists = tasks.some(t =>
-          t.title === originalTask.title &&
-          t.dueDate === newDueDate &&
-          t.status === "ongoing"
-        );
-
+        const newDueDate = nextDate.toISOString().split("T")[0]
+        const taskAlreadyExists = tasks.some(
+          (t) => t.title === originalTask.title && t.dueDate === newDueDate && t.status === "ongoing",
+        )
         if (!taskAlreadyExists) {
-          const newId = tasks.length > 0 ? Math.max(...tasks.map(t => t.id)) + 1 : 1;
+          const newId = tasks.length > 0 ? Math.max(...tasks.map((t) => t.id)) + 1 : 1
           const newTask = {
             ...originalTask,
             id: newId,
@@ -387,21 +324,19 @@ export default function TodoApp() {
             isPinned: false,
             dragVersion: 0,
             status: "ongoing",
-            createdAt: new Date().toISOString()
-          };
-
-          setTasks(prevTasks => [...prevTasks, newTask]);
-          tasksCreated = 1;
-          toast.success(`New repeat task created for ${originalTask.title}`);
+            createdAt: new Date().toISOString(),
+          }
+          setTasks((prevTasks) => [...prevTasks, newTask])
+          tasksCreated = 1
+          toast.success(`New repeat task created for ${originalTask.title}`)
         }
       }
     } catch (error) {
-      console.error("Error creating repeat task:", error);
-      toast.error("Error creating repeat task");
+      console.error("Error creating repeat task:", error)
+      toast.error("Error creating repeat task")
     }
-
-    return tasksCreated;
-  };
+    return tasksCreated
+  }
 
   const handleTaskPinToggle = (taskId) => {
     setTasks((prevTasks) =>
@@ -452,32 +387,31 @@ export default function TodoApp() {
 
   const handleRepeatTask = (taskToRepeat, repeatOptions) => {
     try {
-      setRepeatConfigs(prev => ({
+      setRepeatConfigs((prev) => ({
         ...prev,
         [taskToRepeat.id]: {
           originalTask: { ...taskToRepeat },
           repeatOptions: repeatOptions,
           lastCompletedDate: null,
-          occurrencesCreated: 0
-        }
-      }));
-
-      toast.success(`Repeat settings saved! Task will repeat ${repeatOptions.occurrences || 'until'} ${repeatOptions.endDate || 'indefinitely'}.`);
+          occurrencesCreated: 0,
+        },
+      }))
+      toast.success(
+        `Repeat settings saved! Task will repeat ${repeatOptions.occurrences || "until"} ${repeatOptions.endDate || "indefinitely"}.`,
+      )
     } catch (error) {
-      toast.error("Error setting up repeat task. Please try again.");
-      console.error("Repeat task error:", error);
+      toast.error("Error setting up repeat task. Please try again.")
+      console.error("Repeat task error:", error)
     }
-
-    setIsRepeatModalOpen(false);
-    setSelectedTaskForRepeat(null);
-  };
+    setIsRepeatModalOpen(false)
+    setSelectedTaskForRepeat(null)
+  }
 
   const handleDragStop = (e, data, task, sourceColumnId) => {
     const draggedElem = e.target
     const draggedRect = draggedElem.getBoundingClientRect()
     const draggedCenterX = draggedRect.left + draggedRect.width / 2
     const draggedCenterY = draggedRect.top + draggedRect.height / 2
-
     let targetColumnId = null
     for (const [columnId, columnRef] of Object.entries(columnRefs.current)) {
       if (columnRef.current) {
@@ -493,7 +427,6 @@ export default function TodoApp() {
         }
       }
     }
-
     setTasks((prevTasks) => {
       const updatedTasks = prevTasks.map((t) => {
         if (t.id === task.id) {
@@ -515,16 +448,19 @@ export default function TodoApp() {
     return [...columnTasks].sort((a, b) => {
       if (a.isPinned && !b.isPinned) return -1
       if (!a.isPinned && b.isPinned) return 1
-
       const [criteria, direction] = sortOption.split("-")
       if (criteria === "dueDate") {
-        const dateA = new Date(a.dueDate)
-        const dateB = new Date(b.dueDate)
+        const dateA = new Date(a.dueDate || "9999-12-31")
+        const dateB = new Date(b.dueDate || "9999-12-31")
         return direction === "asc" ? dateA - dateB : dateB - dateA
       } else if (criteria === "tag") {
         const tagA = a.tags && a.tags.length > 0 ? a.tags[0].toLowerCase() : ""
         const tagB = b.tags && b.tags.length > 0 ? b.tags[0].toLowerCase() : ""
         return direction === "asc" ? tagA.localeCompare(tagB) : tagB.localeCompare(tagA)
+      } else if (criteria === "recentlyAdded") {
+        const dateA = new Date(a.createdAt || a.updatedAt || "1970-01-01")
+        const dateB = new Date(b.createdAt || b.updatedAt || "1970-01-01")
+        return direction === "desc" ? dateB - dateA : dateA - dateB
       }
       return 0
     })
@@ -570,11 +506,9 @@ export default function TodoApp() {
     const [repeatEndType, setRepeatEndType] = useState("never")
     const [repeatEndDate, setRepeatEndDate] = useState("")
     const [repeatOccurrences, setRepeatOccurrences] = useState("")
-
     const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate()
     const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay()
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-
     const generateTimeOptions = () => {
       const options = []
       for (let hour = 0; hour < 24; hour++) {
@@ -585,19 +519,16 @@ export default function TodoApp() {
       }
       return options
     }
-
     const handleDateClick = (day) => {
       const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`
       setTempDate(dateStr)
     }
-
     const handleTimeChange = (time) => {
       setTempTime(time)
       if (time && !tempReminder) {
         setTempReminder("On time")
       }
     }
-
     const handleReminderChange = (reminder) => {
       setTempReminder(reminder)
       if (reminder === "Custom") {
@@ -606,7 +537,6 @@ export default function TodoApp() {
         setShowCustomReminder(false)
       }
     }
-
     const handleOK = () => {
       setSelectedDate(tempDate)
       setSelectedTime(tempTime)
@@ -618,7 +548,6 @@ export default function TodoApp() {
       }
       setIsCalendarOpen(false)
     }
-
     const handleClear = () => {
       setTempDate("")
       setTempTime("")
@@ -631,7 +560,6 @@ export default function TodoApp() {
       setCustomReminderValue("")
       setIsCalendarOpen(false)
     }
-
     return (
       <div className="absolute top-full lg:-left-70 -left-55 mt-2 bg-[#2F2F2F] rounded-xl shadow-lg z-90 p-4 lg:w-84 w-70">
         <div className="flex justify-between items-center mb-4">
@@ -651,7 +579,6 @@ export default function TodoApp() {
             →
           </button>
         </div>
-
         <div className="grid grid-cols-7 gap-1 mb-4">
           {["S", "M", "T", "W", "T", "F", "S"].map((day) => (
             <div key={day} className="text-center text-gray-400 text-sm p-2">
@@ -677,7 +604,6 @@ export default function TodoApp() {
             )
           })}
         </div>
-
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-white">
             <Clock size={16} className="text-gray-400" />
@@ -695,7 +621,6 @@ export default function TodoApp() {
               ))}
             </select>
           </div>
-
           <div className="flex items-center gap-2 text-white">
             <Bell size={16} className="text-gray-400" />
             <span className="text-sm w-16">Reminder:</span>
@@ -714,7 +639,6 @@ export default function TodoApp() {
               <option value="Custom">Custom</option>
             </select>
           </div>
-
           {showCustomReminder && (
             <div className="flex items-center gap-2 text-white ml-6">
               <input
@@ -738,7 +662,6 @@ export default function TodoApp() {
               <span className="text-sm text-gray-400">ahead</span>
             </div>
           )}
-
           <div className="flex items-center gap-2 text-white">
             <Repeat size={16} className="text-gray-400" />
             <span className="text-sm w-16">Repeat:</span>
@@ -753,7 +676,6 @@ export default function TodoApp() {
               <option value="Monthly">Monthly</option>
             </select>
           </div>
-
           {tempRepeat && tempRepeat !== "" && (
             <div className="ml-6 space-y-2">
               <div className="text-sm text-gray-200">Ends:</div>
@@ -811,7 +733,6 @@ export default function TodoApp() {
             </div>
           )}
         </div>
-
         <div className="flex justify-between mt-4">
           <button onClick={handleClear} className="px-4 py-2 text-gray-300 hover:text-white text-sm">
             Clear
@@ -839,6 +760,8 @@ export default function TodoApp() {
     onDeleteRequest,
     onDuplicateRequest,
     onRepeatRequest,
+    isCollapsed,
+    onToggleCollapse,
   }) => {
     const taskItemRefs = useRef({})
     const [draggingTaskId, setDraggingTaskId] = useState(null)
@@ -847,22 +770,41 @@ export default function TodoApp() {
       <div
         ref={columnRef}
         id={`column-${id}`}
-        className="bg-[#141414] rounded-2xl overflow-visible h-full flex flex-col relative"
+        className={`bg-[#141414] rounded-2xl overflow-hidden h-[600px] flex flex-col relative transition-all duration-300 ${isCollapsed ? "w-12" : "flex-1"}`}
         data-column-id={id}
         style={{
           zIndex: draggingTaskId ? 1 : "auto",
+          minWidth: isCollapsed ? "48px" : "0",
         }}
       >
         <div className="p-3 flex justify-between items-center rounded-t-2xl" style={{ backgroundColor: `${color}20` }}>
-          <div className="flex items-center">
-            <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: color }}></div>
-            <h3 className="font-medium text-white text-sm">{title}</h3>
-          </div>
+          {!isCollapsed ? (
+            <>
+              <div className="flex items-center flex-1">
+                <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: color }}></div>
+                <h3 className="font-medium text-white text-sm">{title}</h3>
+              </div>
+              <button
+                onClick={() => onToggleCollapse(id)}
+                className="text-gray-400 hover:text-white ml-2 p-1 flex-shrink-0"
+                title="Collapse column"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={() => onToggleCollapse(id)}
+              className="text-gray-400 hover:text-white p-1 w-full flex justify-center"
+              title="Expand column"
+            >
+              <ChevronRight size={16} style={{ transform: "rotate(180deg)" }} />
+            </button>
+          )}
         </div>
-        <div className="">
 
-
-          <div className="p-3 flex-1 min-h-[400px] relative">
+        {!isCollapsed && (
+          <div className="flex-1 overflow-y-auto custom-scrollbar overflow-x-hidden p-3">
             {tasks.length > 0 ? (
               tasks.map((task, index) => {
                 if (!taskItemRefs.current[task.id]) {
@@ -882,7 +824,7 @@ export default function TodoApp() {
                   >
                     <div
                       ref={taskItemRefs.current[task.id]}
-                      className={`cursor-grab mb-3  ${draggingTaskId === task.id ? "z-[9999] relative" : ""} `}
+                      className={`cursor-grab mb-3 ${draggingTaskId === task.id ? "z-[9999] relative" : ""}`}
                       style={{
                         zIndex: draggingTaskId === task.id ? 9999 : "auto",
                         position: draggingTaskId === task.id ? "relative" : "static",
@@ -908,6 +850,7 @@ export default function TodoApp() {
                         onOpenTagsModal={handleOpenTagsModal}
                         onOpenCalendarModal={handleOpenCalendarModal}
                         repeatConfigs={repeatConfigs}
+                        onTitleEditRequest={handleTitleEditRequest}
                       />
                     </div>
                   </Draggable>
@@ -917,7 +860,7 @@ export default function TodoApp() {
               <div className="text-gray-400 text-center py-8">No {title.toLowerCase()} tasks found</div>
             )}
           </div>
-        </div>
+        )}
       </div>
     )
   }
@@ -960,9 +903,7 @@ export default function TodoApp() {
     })
   }
 
-  // Extract all states and functions from the hook
   const {
-    // States
     isRightSidebarOpen,
     isSidebarEditing,
     isRightWidgetModalOpen,
@@ -1012,8 +953,6 @@ export default function TodoApp() {
     widgets,
     rightSidebarWidgets,
     notePopoverRef,
-
-    // Setters
     setIsRightSidebarOpen,
     setIsSidebarEditing,
     setIsRightWidgetModalOpen,
@@ -1062,8 +1001,6 @@ export default function TodoApp() {
     setEditForm,
     setWidgets,
     setRightSidebarWidgets,
-
-    // Functions
     toggleRightSidebar,
     closeSidebar,
     toggleSidebarEditing,
@@ -1114,37 +1051,43 @@ export default function TodoApp() {
     handleUnarchiveMember,
     truncateUrl,
     renderSpecialNoteIcon,
-
-    // new states 
-    customLinks, setCustomLinks, communications, setCommunications,
-    todos, setTodos, expiringContracts, setExpiringContracts,
-    birthdays, setBirthdays, notifications, setNotifications,
-    appointments, setAppointments,
-    memberContingentData, setMemberContingentData,
-    memberRelations, setMemberRelations,
-
+    customLinks,
+    setCustomLinks,
+    communications,
+    setCommunications,
+    todos,
+    setTodos,
+    expiringContracts,
+    setExpiringContracts,
+    birthdays,
+    setBirthdays,
+    notifications,
+    setNotifications,
+    appointments,
+    setAppointments,
+    memberContingentData,
+    setMemberContingentData,
+    memberRelations,
+    setMemberRelations,
     memberTypes,
     availableMembersLeads,
     mockTrainingPlans,
     mockVideos,
-
     todoFilterOptions,
     relationOptions,
     appointmentTypes,
-
     handleAssignTrainingPlan,
     handleRemoveTrainingPlan,
     memberTrainingPlans,
-    setMemberTrainingPlans, availableTrainingPlans, setAvailableTrainingPlans
-  } = sidebarSystem;
+    setMemberTrainingPlans,
+    availableTrainingPlans,
+    setAvailableTrainingPlans,
+  } = sidebarSystem
 
-  // more sidebar related functions
-
-  // Chart configuration
   const chartSeries = [
     { name: "Comp1", data: memberTypes[selectedMemberType].data[0] },
     { name: "Comp2", data: memberTypes[selectedMemberType].data[1] },
-  ];
+  ]
 
   const chartOptions = {
     chart: {
@@ -1216,98 +1159,124 @@ export default function TodoApp() {
         series[seriesIndex][dataPointIndex] +
         "</span></div>",
     },
-  };
+  }
 
-
-  // Wrapper functions to pass local state to hook functions
   const handleTaskCompleteWrapper = (taskId) => {
-    handleTaskComplete(taskId, todos, setTodos);
-  };
+    handleTaskComplete(taskId, todos, setTodos)
+  }
 
   const handleUpdateTaskWrapper = (updatedTask) => {
-    handleUpdateTask(updatedTask, setTodos);
-  };
+    handleUpdateTask(updatedTask, setTodos)
+  }
 
   const handleCancelTaskWrapper = (taskId) => {
-    handleCancelTask(taskId, setTodos);
-  };
+    handleCancelTask(taskId, setTodos)
+  }
 
   const handleDeleteTaskWrapper = (taskId) => {
-    handleDeleteTask(taskId, setTodos);
-  };
+    handleDeleteTask(taskId, setTodos)
+  }
 
   const handleEditNoteWrapper = (appointmentId, currentNote) => {
-    handleEditNote(appointmentId, currentNote, appointments);
-  };
+    handleEditNote(appointmentId, currentNote, appointments)
+  }
 
   const handleCheckInWrapper = (appointmentId) => {
-    handleCheckIn(appointmentId, appointments, setAppointments);
-  };
+    handleCheckIn(appointmentId, appointments, setAppointments)
+  }
 
   const handleSaveSpecialNoteWrapper = (appointmentId, updatedNote) => {
-    handleSaveSpecialNote(appointmentId, updatedNote, setAppointments);
-  };
+    handleSaveSpecialNote(appointmentId, updatedNote, setAppointments)
+  }
 
   const actuallyHandleCancelAppointmentWrapper = (shouldNotify) => {
-    actuallyHandleCancelAppointment(shouldNotify, appointments, setAppointments);
-  };
+    actuallyHandleCancelAppointment(shouldNotify, appointments, setAppointments)
+  }
 
   const handleDeleteAppointmentWrapper = (id) => {
-    handleDeleteAppointment(id, appointments, setAppointments);
-  };
+    handleDeleteAppointment(id, appointments, setAppointments)
+  }
 
   const getMemberAppointmentsWrapper = (memberId) => {
-    return getMemberAppointments(memberId, appointments);
-  };
+    return getMemberAppointments(memberId, appointments)
+  }
 
   const handleAddBillingPeriodWrapper = () => {
-    handleAddBillingPeriod(memberContingentData, setMemberContingentData);
-  };
+    handleAddBillingPeriod(memberContingentData, setMemberContingentData)
+  }
 
   const handleSaveContingentWrapper = () => {
-    handleSaveContingent(memberContingentData, setMemberContingentData);
-  };
+    handleSaveContingent(memberContingentData, setMemberContingentData)
+  }
 
   const handleEditSubmitWrapper = (e) => {
-    handleEditSubmit(e, appointments, setAppointments);
-  };
+    handleEditSubmit(e, appointments, setAppointments)
+  }
 
   const handleAddRelationWrapper = () => {
-    handleAddRelation(memberRelations, setMemberRelations);
-  };
+    handleAddRelation(memberRelations, setMemberRelations)
+  }
 
   const handleDeleteRelationWrapper = (category, relationId) => {
-    handleDeleteRelation(category, relationId, memberRelations, setMemberRelations);
-  };
+    handleDeleteRelation(category, relationId, memberRelations, setMemberRelations)
+  }
 
   const handleArchiveMemberWrapper = (memberId) => {
-    handleArchiveMember(memberId, appointments, setAppointments);
-  };
+    handleArchiveMember(memberId, appointments, setAppointments)
+  }
 
   const handleUnarchiveMemberWrapper = (memberId) => {
-    handleUnarchiveMember(memberId, appointments, setAppointments);
-  };
+    handleUnarchiveMember(memberId, appointments, setAppointments)
+  }
 
   const getBillingPeriodsWrapper = (memberId) => {
-    return getBillingPeriods(memberId, memberContingentData);
-  };
+    return getBillingPeriods(memberId, memberContingentData)
+  }
 
-  const getDifficultyColor = (difficulty) => {
-    switch (difficulty) {
-      case "Beginner":
-        return "bg-green-600"
-      case "Intermediate":
-        return "bg-yellow-600"
-      case "Advanced":
-        return "bg-red-600"
-      default:
-        return "bg-gray-600"
+  const handleTitleEditRequest = (task) => {
+    setTitleEditModal({
+      isOpen: true,
+      task: task,
+    })
+  }
+
+  const handleTitleSave = (updatedTask) => {
+    handleTaskUpdate(updatedTask)
+    setTitleEditModal({ isOpen: false, task: null })
+    toast.success("Task title updated!")
+  }
+
+  const handleAddTaskFromInputOptimized = useCallback(() => {
+    if (newTaskInput.trim() !== "") {
+      const newId = tasks.length > 0 ? Math.max(...tasks.map((t) => t.id)) + 1 : 1;
+      const newTask = {
+        id: newId,
+        title: newTaskInput.trim(),
+        assignees: selectedAssignees.map((a) => `${a.firstName} ${a.lastName}`),
+        roles: selectedRoles,
+        tags: selectedTags.map((t) => t.name),
+        status: "ongoing",
+        category: "general",
+        dueDate: selectedDate,
+        dueTime: selectedTime,
+        isPinned: false,
+        dragVersion: 0,
+      };
+      setTasks((prevTasks) => [...prevTasks, newTask]);
+      setNewTaskInput("");
+      setSelectedDate("");
+      setSelectedTime("");
+      setSelectedAssignees([]);
+      setSelectedRoles([]);
+      setSelectedTags([]);
+      toast.success("Task added successfully!");
     }
-  }
+  }, [newTaskInput, tasks, selectedAssignees, selectedRoles, selectedTags, selectedDate, selectedTime]);
 
-  const getVideoById = (id) => {
-    return trainingVideos.find((video) => video.id === id)
-  }
+  // Optimized handler for textarea change
+  const handleTextareaChange = useCallback((newValue) => {
+    setNewTaskInput(newValue);
+  }, []);
 
   return (
     <>
@@ -1353,66 +1322,28 @@ export default function TodoApp() {
             <div className="flex flex-col gap-4 mb-6">
               <div className="flex justify-between items-center gap-4 mb-6">
                 <h1 className="text-2xl font-bold text-white">To-Do</h1>
-
-                {isRightSidebarOpen ? (<div onClick={toggleRightSidebar} className=" ">
-                  <img src='/expand-sidebar mirrored.svg' className="h-5 w-5 cursor-pointer" alt="" />
-                </div>
-                ) : (<div onClick={toggleRightSidebar} className=" ">
-                  <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
-                </div>
+                {isRightSidebarOpen ? (
+                  <div onClick={toggleRightSidebar} className=" ">
+                    <img src="/expand-sidebar mirrored.svg" className="h-5 w-5 cursor-pointer" alt="" />
+                  </div>
+                ) : (
+                  <div onClick={toggleRightSidebar} className=" ">
+                    <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
+                  </div>
                 )}
               </div>
-
               <div className="flex flex-col md:flex-row gap-4 items-stretch">
                 <div className="relative flex items-start flex-grow bg-[#101010] rounded-xl px-4 py-2.5 text-white placeholder-gray-500 outline-none min-h-[44px]">
                   <Plus size={18} className="text-gray-400 mr-2 mt-1 flex-shrink-0" />
-                  <textarea
-                    placeholder="Add new task"
+                  <OptimizedTextarea
                     value={newTaskInput}
-                    onChange={(e) => {
-                      const lines = e.target.value.split('\n');
-                      if (lines.length <= 4) {
-                        setNewTaskInput(e.target.value);
-                      }
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        if (e.shiftKey) {
-                          e.preventDefault();
-                          const cursorPosition = e.target.selectionStart;
-                          const newValue = newTaskInput.substring(0, cursorPosition) + '\n' + newTaskInput.substring(cursorPosition);
-                          const lines = newValue.split('\n');
-                          if (lines.length <= 4) {
-                            setNewTaskInput(newValue);
-                          }
-                        } else {
-                          e.preventDefault();
-                          handleAddTaskFromInput();
-                        }
-                      }
-                    }}
-                    className="flex-grow bg-transparent mt-0.5 text-sm outline-none placeholder-gray-500 resize-none overflow-hidden"
-                    rows={1}
-                    style={{
-                      minHeight: '20px',
-                      maxHeight: '80px',
-                      height: 'auto',
-                    }}
-                    ref={(textarea) => {
-                      if (textarea) {
-                        textarea.style.height = 'auto';
-                        textarea.style.height = Math.min(textarea.scrollHeight, 80) + 'px';
-                      }
-                    }}
+                    onChange={handleTextareaChange}
+                    onEnter={handleAddTaskFromInputOptimized}
+                    placeholder="Add new task"
+                    maxLines={4}
                   />
-
                   {/* Display selected date/time - LEFT of calendar icon */}
-                  <SelectedDateTimeDisplay
-                    date={selectedDate}
-                    time={selectedTime}
-                    onClear={handleClearDateTime}
-                  />
-
+                  <SelectedDateTimeDisplay date={selectedDate} time={selectedTime} onClear={handleClearDateTime} />
                   {/* Calendar icon - now on the RIGHT of the displayed date/time */}
                   <div className="relative calendar-dropdown">
                     <button
@@ -1425,7 +1356,6 @@ export default function TodoApp() {
                     </button>
                     {isCalendarOpen && <CalendarPopup />}
                   </div>
-
                   <div className="relative tag-dropdown">
                     {isTagDropdownOpen && (
                       <div className="absolute top-full right-0 mt-2 bg-[#2F2F2F] rounded-xl shadow-lg z-50 p-3 w-48">
@@ -1450,7 +1380,6 @@ export default function TodoApp() {
                       </div>
                     )}
                   </div>
-
                   <div className="relative assign-dropdown">
                     <button
                       type="button"
@@ -1467,8 +1396,8 @@ export default function TodoApp() {
                             <button
                               onClick={() => setAssignmentMode("staff")}
                               className={`flex-1 px-3 py-2 text-xs rounded-lg transition-colors ${assignmentMode === "staff"
-                                ? "bg-[#FF843E] text-white"
-                                : "bg-gray-600 text-gray-300 hover:bg-gray-500"
+                                  ? "bg-[#FF843E] text-white"
+                                  : "bg-gray-600 text-gray-300 hover:bg-gray-500"
                                 }`}
                             >
                               to Staff
@@ -1476,14 +1405,13 @@ export default function TodoApp() {
                             <button
                               onClick={() => setAssignmentMode("roles")}
                               className={`flex-1 px-3 py-2 text-xs rounded-lg transition-colors ${assignmentMode === "roles"
-                                ? "bg-[#FF843E] text-white"
-                                : "bg-gray-600 text-gray-300 hover:bg-gray-500"
+                                  ? "bg-[#FF843E] text-white"
+                                  : "bg-gray-600 text-gray-300 hover:bg-gray-500"
                                 }`}
                             >
                               to Roles
                             </button>
                           </div>
-
                           {assignmentMode === "staff" && (
                             <div>
                               <h4 className="text-white text-sm font-medium mb-2">Assign to Staff</h4>
@@ -1507,7 +1435,6 @@ export default function TodoApp() {
                               </div>
                             </div>
                           )}
-
                           {assignmentMode === "roles" && (
                             <div>
                               <h4 className="text-white text-sm font-medium mb-2">Assign to Roles</h4>
@@ -1529,7 +1456,6 @@ export default function TodoApp() {
                               </div>
                             </div>
                           )}
-
                           <div>
                             <h4 className="text-white text-sm font-medium mb-2">Add Tags</h4>
                             <div className="space-y-1 max-h-32 overflow-y-auto">
@@ -1556,7 +1482,6 @@ export default function TodoApp() {
                               })}
                             </div>
                           </div>
-
                           <button
                             onClick={() => setIsAssignDropdownOpen(false)}
                             className="w-full px-3 py-2 bg-gray-600 text-white rounded-lg text-xs hover:bg-gray-700"
@@ -1568,35 +1493,33 @@ export default function TodoApp() {
                     )}
                   </div>
                 </div>
-
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => setIsTagManagerOpen(true)}
-                    className="bg-[#2F2F2F] text-white px-3 py-2.5 rounded-xl text-sm flex items-center gap-2 hover:bg-gray-600 whitespace-nowrap"
+                    className="bg-[#2F2F2F] text-white px-4 py-3.5 rounded-xl text-sm flex items-center gap-2 hover:bg-gray-600 whitespace-nowrap"
                     title="Manage Tags"
                   >
                     <Tag size={16} />
                   </button>
-
                   <div className="relative sort-dropdown">
                     <button
                       onClick={() => setIsSortDropdownOpen(!isSortDropdownOpen)}
-                      className="md:w-auto w-full flex cursor-pointer items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-[#000000] min-w-[160px]"
+                      className="md:w-auto w-full flex cursor-pointer items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm border border-slate-300/30 bg-[#000000] min-w-[160px]"
                     >
                       <span>
                         {sortOption === "dueDate-asc" && "Due Date (Earliest)"}
                         {sortOption === "dueDate-desc" && "Due Date (Latest)"}
                         {sortOption === "tag-asc" && "Tag (A-Z)"}
                         {sortOption === "tag-desc" && "Tag (Z-A)"}
+                        {sortOption === "recentlyAdded-desc" && "Recently Added"}
+                        {sortOption === "recentlyAdded-asc" && "Last Added"}
                       </span>
                       <ChevronDown size={16} />
                     </button>
-
                     {isSortDropdownOpen && (
                       <div className="absolute right-0 top-full mt-1 bg-[#2F2F2F] rounded-xl shadow-lg z-10 w-48">
                         <div className="p-2">
                           <h3 className="text-xs text-gray-400 px-3 py-1">Sort by Due Date</h3>
-
                           <button
                             onClick={() => {
                               setSortOption("dueDate-asc")
@@ -1604,10 +1527,10 @@ export default function TodoApp() {
                             }}
                             className={`flex items-center gap-2 w-full text-left px-3 py-2 text-sm hover:bg-[#3F3F3F] rounded-lg ${sortOption === "dueDate-asc" ? "bg-[#3F3F3F]" : ""
                               }`}
-                          ><Calendar size={14} />
+                          >
+                            <Calendar size={14} />
                             <span>Earliest First</span>
                           </button>
-
                           <button
                             onClick={() => {
                               setSortOption("dueDate-desc")
@@ -1619,9 +1542,7 @@ export default function TodoApp() {
                             <Calendar size={14} />
                             <span>Latest First</span>
                           </button>
-
                           <h3 className="text-xs text-gray-400 px-3 py-1 mt-2">Sort by Tag</h3>
-
                           <button
                             onClick={() => {
                               setSortOption("tag-asc")
@@ -1633,7 +1554,6 @@ export default function TodoApp() {
                             <Tag size={14} />
                             <span>A to Z</span>
                           </button>
-
                           <button
                             onClick={() => {
                               setSortOption("tag-desc")
@@ -1649,12 +1569,10 @@ export default function TodoApp() {
                       </div>
                     )}
                   </div>
-
                 </div>
               </div>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 open_sans_font mt-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 open_sans_font mt-4 h-full">
               {columns.map((column) => (
                 <Column
                   key={column.id}
@@ -1677,12 +1595,13 @@ export default function TodoApp() {
                   configuredTags={configuredTags}
                   openDropdownTaskId={openDropdownTaskId}
                   setOpenDropdownTaskId={setOpenDropdownTaskId}
+                  isCollapsed={collapsedColumns[column.id] || false}
+                  onToggleCollapse={toggleColumnCollapse}
                 />
               ))}
             </div>
           </div>
         </div>
-
         {isTagManagerOpen && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-[#181818] rounded-xl p-6 w-full max-w-md">
@@ -1723,7 +1642,10 @@ export default function TodoApp() {
                   {configuredTags.length > 0 ? (
                     <div className="space-y-2">
                       {configuredTags.map((tag) => (
-                        <div key={tag.id} className="flex justify-between items-center bg-[#1C1C1C] px-4 py-2 rounded-lg">
+                        <div
+                          key={tag.id}
+                          className="flex justify-between items-center bg-[#1C1C1C] px-4 py-2 rounded-lg"
+                        >
                           <div className="flex items-center gap-2">
                             <span
                               className="px-2 py-1 rounded-md text-xs flex items-center gap-1 text-white"
@@ -1755,7 +1677,6 @@ export default function TodoApp() {
             </div>
           </div>
         )}
-
         {isEditModalOpenTask && selectedTask && (
           <EditTaskModal
             taskToEdit={selectedTask}
@@ -1767,7 +1688,6 @@ export default function TodoApp() {
             configuredTags={configuredTags}
           />
         )}
-
         <DeleteModal
           isOpen={isDeleteModalOpen}
           task={selectedTask}
@@ -1777,7 +1697,6 @@ export default function TodoApp() {
           }}
           onConfirm={confirmDeleteTask}
         />
-
         {isRepeatModalOpen && selectedTaskForRepeat && (
           <RepeatTaskModal
             task={selectedTaskForRepeat}
@@ -1788,7 +1707,6 @@ export default function TodoApp() {
             onRepeatTask={handleRepeatTask}
           />
         )}
-
         {assignModalTask && (
           <AssignModal
             task={assignModalTask}
@@ -1798,7 +1716,6 @@ export default function TodoApp() {
             onUpdate={handleTaskUpdate}
           />
         )}
-
         {tagsModalTask && (
           <TagsModal
             task={tagsModalTask}
@@ -1807,7 +1724,6 @@ export default function TodoApp() {
             onUpdate={handleTaskUpdate}
           />
         )}
-
         <CalendarModal
           isOpen={calendarModal.isOpen}
           onClose={handleCalendarClose}
@@ -1817,9 +1733,15 @@ export default function TodoApp() {
           initialReminder={calendarModal.initialReminder}
           initialRepeat={calendarModal.initialRepeat}
         />
+        {titleEditModal.isOpen && titleEditModal.task && (
+          <SimpleTitleEditModal
+            isOpen={titleEditModal.isOpen}
+            onClose={() => setTitleEditModal({ isOpen: false, task: null })}
+            task={titleEditModal.task}
+            onSave={handleTitleSave}
+          />
+        )}
 
-
-        {/* sidebar related modals */}
         <Sidebar
           isRightSidebarOpen={isRightSidebarOpen}
           toggleRightSidebar={toggleRightSidebar}
@@ -1878,37 +1800,33 @@ export default function TodoApp() {
           setTodos={setTodos}
         />
 
-        {/* Sidebar related modals */}
         <TrainingPlansModal
           isOpen={isTrainingPlanModalOpen}
           onClose={() => {
             setIsTrainingPlanModalOpen(false)
             setSelectedUserForTrainingPlan(null)
           }}
-          selectedMember={selectedUserForTrainingPlan} // Make sure this is passed correctly
+          selectedMember={selectedUserForTrainingPlan}
           memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
           availableTrainingPlans={availableTrainingPlans}
-          onAssignPlan={handleAssignTrainingPlan} // Make sure this function is passed
-          onRemovePlan={handleRemoveTrainingPlan} // Make sure this function is passed
+          onAssignPlan={handleAssignTrainingPlan}
+          onRemovePlan={handleRemoveTrainingPlan}
         />
-
-
         <AppointmentActionModalV2
           isOpen={showAppointmentOptionsModal}
           onClose={() => {
-            setShowAppointmentOptionsModal(false);
-            setSelectedAppointment(null);
+            setShowAppointmentOptionsModal(false)
+            setSelectedAppointment(null)
           }}
           appointment={selectedAppointment}
           isEventInPast={isEventInPast}
           onEdit={() => {
-            setShowAppointmentOptionsModal(false);
-            setIsEditAppointmentModalOpen(true);
+            setShowAppointmentOptionsModal(false)
+            setIsEditAppointmentModalOpen(true)
           }}
           onCancel={handleCancelAppointment}
           onViewMember={handleViewMemberDetails}
         />
-
         <NotifyMemberModal
           isOpen={isNotifyMemberOpen}
           onClose={() => setIsNotifyMemberOpen(false)}
@@ -1916,7 +1834,6 @@ export default function TodoApp() {
           actuallyHandleCancelAppointment={actuallyHandleCancelAppointmentWrapper}
           handleNotifyMember={handleNotifyMember}
         />
-
         {isEditAppointmentModalOpen && selectedAppointment && (
           <EditAppointmentModalV2
             selectedAppointment={selectedAppointment}
@@ -1924,7 +1841,7 @@ export default function TodoApp() {
             appointmentTypes={appointmentTypes}
             freeAppointments={freeAppointments}
             handleAppointmentChange={(changes) => {
-              setSelectedAppointment({ ...selectedAppointment, ...changes });
+              setSelectedAppointment({ ...selectedAppointment, ...changes })
             }}
             appointments={appointments}
             setAppointments={setAppointments}
@@ -1932,12 +1849,11 @@ export default function TodoApp() {
             setNotifyAction={setNotifyAction}
             onDelete={handleDeleteAppointmentWrapper}
             onClose={() => {
-              setIsEditAppointmentModalOpen(false);
-              setSelectedAppointment(null);
+              setIsEditAppointmentModalOpen(false)
+              setSelectedAppointment(null)
             }}
           />
         )}
-
         <WidgetSelectionModal
           isOpen={isRightWidgetModalOpen}
           onClose={() => setIsRightWidgetModalOpen(false)}
@@ -1945,12 +1861,11 @@ export default function TodoApp() {
           getWidgetStatus={(widgetType) => getWidgetPlacementStatus(widgetType, "sidebar")}
           widgetArea="sidebar"
         />
-
         <MemberOverviewModal
           isOpen={isMemberOverviewModalOpen}
           onClose={() => {
-            setIsMemberOverviewModalOpen(false);
-            setSelectedMember(null);
+            setIsMemberOverviewModalOpen(false)
+            setSelectedMember(null)
           }}
           selectedMember={selectedMember}
           calculateAge={calculateAge}
@@ -1961,13 +1876,12 @@ export default function TodoApp() {
           handleViewDetailedInfo={handleViewDetailedInfo}
           handleEditFromOverview={handleEditFromOverview}
         />
-
         <AppointmentModal
           show={showAppointmentModal}
           member={selectedMember}
           onClose={() => {
-            setShowAppointmentModal(false);
-            setSelectedMember(null);
+            setShowAppointmentModal(false)
+            setSelectedMember(null)
           }}
           getMemberAppointments={getMemberAppointmentsWrapper}
           appointmentTypes={appointmentTypes}
@@ -1978,24 +1892,22 @@ export default function TodoApp() {
           handleManageContingent={handleManageContingent}
           handleCreateNewAppointment={handleCreateNewAppointment}
         />
-
         <HistoryModal
           show={showHistoryModal}
           onClose={() => {
-            setShowHistoryModal(false);
-            setSelectedMember(null);
+            setShowHistoryModal(false)
+            setSelectedMember(null)
           }}
           selectedMember={selectedMember}
           historyTab={historyTab}
           setHistoryTab={setHistoryTab}
           memberHistory={memberHistory}
         />
-
         <MemberDetailsModal
           isOpen={isMemberDetailsModalOpen}
           onClose={() => {
-            setIsMemberDetailsModalOpen(false);
-            setSelectedMember(null);
+            setIsMemberDetailsModalOpen(false)
+            setSelectedMember(null)
           }}
           selectedMember={selectedMember}
           memberRelations={memberRelations}
@@ -2004,7 +1916,6 @@ export default function TodoApp() {
           isContractExpiringSoon={isContractExpiringSoon}
           redirectToContract={redirectToContract}
         />
-
         <ContingentModal
           show={showContingentModal}
           setShow={setShowContingentModal}
@@ -2018,7 +1929,6 @@ export default function TodoApp() {
           currentBillingPeriod={currentBillingPeriod}
           handleSaveContingent={handleSaveContingentWrapper}
         />
-
         <AddBillingPeriodModal
           show={showAddBillingPeriodModal}
           setShow={setShowAddBillingPeriodModal}
@@ -2026,12 +1936,11 @@ export default function TodoApp() {
           setNewBillingPeriod={setNewBillingPeriod}
           handleAddBillingPeriod={handleAddBillingPeriodWrapper}
         />
-
         <EditMemberModal
           isOpen={isEditModalOpen}
           onClose={() => {
-            setIsEditModalOpen(false);
-            setSelectedMember(null);
+            setIsEditModalOpen(false)
+            setSelectedMember(null)
           }}
           selectedMember={selectedMember}
           editModalTab={editModalTab}
@@ -2051,25 +1960,17 @@ export default function TodoApp() {
           handleArchiveMember={handleArchiveMemberWrapper}
           handleUnarchiveMember={handleUnarchiveMemberWrapper}
         />
-
-        {isRightSidebarOpen && (
-          <div
-            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-            onClick={closeSidebar}
-          />
-        )}
-
+        {isRightSidebarOpen && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={closeSidebar} />}
         {isEditTaskModalOpen && editingTask && (
           <EditTaskModal
             task={editingTask}
             onClose={() => {
-              setIsEditTaskModalOpen(false);
-              setEditingTask(null);
+              setIsEditTaskModalOpen(false)
+              setEditingTask(null)
             }}
             onUpdateTask={handleUpdateTaskWrapper}
           />
         )}
-
         {taskToDelete && (
           <div className="fixed inset-0 text-white bg-black/50 flex items-center justify-center z-50">
             <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
@@ -2094,7 +1995,6 @@ export default function TodoApp() {
             </div>
           </div>
         )}
-
         {taskToCancel && (
           <div className="fixed inset-0 bg-black/50 text-white flex items-center justify-center z-50">
             <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">

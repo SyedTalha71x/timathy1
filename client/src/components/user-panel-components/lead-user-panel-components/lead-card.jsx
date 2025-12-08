@@ -1,5 +1,6 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { AlertTriangle, Calendar, CalendarIcon, Edit, Info, MoreVertical, Trash2, Users, X } from 'lucide-react'
+import { AlertTriangle, Calendar, CalendarIcon, Edit, FileText, Info, MoreVertical, Trash2, Users, X } from 'lucide-react'
 import { useEffect, useRef, useState } from "react"
 import { MdHistory } from "react-icons/md"
 import Draggable from "react-draggable"
@@ -21,6 +22,9 @@ const LeadCard = ({
   setSelectedLead,
   onManageTrialAppointments,
   onEditNote,
+  onOpenDocuments,
+  onCreateAssessment, // Add this new prop
+  isTrialColumn, // Add this new prop
 }) => {
   const [isDragging, setIsDragging] = useState(false)
   const [isNoteOpen, setIsNoteOpen] = useState(false)
@@ -76,6 +80,9 @@ const LeadCard = ({
   const hasRelationsCount = Object.values(memberRelationsLead[lead.id] || {}).flat().length
   const isInTrialColumn = columnId === "trial"
 
+  // Check if this lead has a completed assessment
+  const hasAssessment = lead.hasAssessment || lead.assessmentCompletedAt
+
   const handleNoteClick = (e) => {
     e.stopPropagation()
     const rect = e.currentTarget.getBoundingClientRect()
@@ -124,6 +131,21 @@ const LeadCard = ({
   const handleSaveNote = (leadId, updatedNote) => {
     if (onEditNote) {
       onEditNote(leadId, updatedNote);
+    }
+  };
+
+  const handleOpenDocuments = (e) => {
+    e.stopPropagation();
+    if (onOpenDocuments) {
+      onOpenDocuments(lead);
+    }
+    setIsMenuOpen(false);
+  };
+
+  const handleCreateAssessment = (e) => {
+    e.stopPropagation();
+    if (onCreateAssessment) {
+      onCreateAssessment(lead);
     }
   };
 
@@ -246,6 +268,13 @@ const LeadCard = ({
               <p className="text-gray-500 text-xs">
                 Created: {lead.createdAt ? formatDate(lead.createdAt) : "Unknown date"}
               </p>
+              {hasAssessment && (
+                <div className="mt-1">
+                  <span className="text-xs bg-green-600 text-white px-2 py-1 rounded-full">
+                    Assessment Completed
+                  </span>
+                </div>
+              )}
               <div className="mt-2">
                 <div
                   className="text-xs text-blue-400 flex items-center gap-1 cursor-pointer no-drag"
@@ -269,7 +298,7 @@ const LeadCard = ({
               {isMenuOpen && (
                 <div
                   ref={menuRef}
-                  className="absolute right-0 top-8 mt-1 bg-[#1C1C1C] border border-gray-800 rounded-lg shadow-lg z-50 w-40 no-drag"
+                  className="absolute right-0 top-4 mt-1 bg-[#1C1C1C] border border-gray-800 rounded-lg shadow-lg z-50 w-48 no-drag"
                 >
                   <button
                     onClick={() => {
@@ -288,6 +317,12 @@ const LeadCard = ({
                     className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2"
                   >
                     <Edit size={14} /> Edit
+                  </button>
+                  <button
+                    onClick={handleOpenDocuments}
+                    className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2"
+                  >
+                    <FileText size={14} /> Documents
                   </button>
                   <button
                     onClick={() => {
@@ -316,15 +351,29 @@ const LeadCard = ({
           <div className="flex justify-center">
             {isInTrialColumn ? (
               <div className="flex items-center w-full gap-2">
-                <button
-                  onClick={() => onCreateContract(lead)}
-                  className="bg-[#FF843E] hover:bg-[#E64D2E] text-white text-xs rounded-xl px-4 py-2 w-full no-drag"
-                >
-                  Create Contract
-                </button>
+                {!hasAssessment ? (
+                  // Show Create Assessment button if no assessment exists
+                  <button
+                    onClick={handleCreateAssessment}
+                    className="flex-1 bg-blue-500 hover:bg-blue-700 text-white text-xs rounded-xl px-4 py-2 no-drag"
+                  >
+                    Create Assessment
+                  </button>
+                ) : (
+                  // Show Create Contract button if assessment is completed
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onCreateContract(lead);
+                    }}
+                    className="flex-1 bg-orange-500  text-white text-xs rounded-xl px-4 py-2 no-drag"
+                  >
+                    Create Contract
+                  </button>
+                )}
                 <button
                   onClick={() => onManageTrialAppointments(lead)}
-                  className="text-white bg-black cursor-pointer rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors no-drag text-sm flex items-center justify-center"
+                  className="text-white bg-black cursor-pointer rounded-xl border border-slate-600 py-2 px-2 hover:border-slate-400 transition-colors no-drag text-sm flex items-center justify-center"
                 >
                   <CalendarIcon size={16} />
                 </button>

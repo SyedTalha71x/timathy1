@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
 import { useEffect, useRef, useState } from "react"
 import {
@@ -67,6 +68,39 @@ import { trainingVideosData } from "../../utils/user-panel-states/training-state
 import ChatPopup from "../../components/user-panel-components/members-components/ChatPopup"
 import TrainingPlansModalMain from "../../components/user-panel-components/members-components/TrainingPlanModal"
 import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
+
+const StatusTag = ({ status, reason = "", compact = false }) => {
+  const getStatusColor = (status, isArchived) => {
+    if (isArchived) return 'bg-red-600';
+    if (status === 'active') return 'bg-green-600';
+    if (status === 'paused') return 'bg-yellow-600';
+    return 'bg-gray-600';
+  };
+
+  const getStatusText = (status, reason, isArchived) => {
+    if (isArchived) return 'Archived';
+    if (status === 'active') return 'Active';
+    if (status === 'paused') return `Paused${reason ? ` (${reason})` : ''}`;
+    return 'Unknown';
+  };
+
+  const bgColor = getStatusColor(status, status === 'archived');
+  const statusText = getStatusText(status, reason, status === 'archived');
+
+  if (compact) {
+    return (
+      <div className={`inline-flex items-center gap-1 ${bgColor} text-white px-2 py-1 rounded-lg text-xs font-medium`}>
+        <span className="truncate max-w-[80px]">{statusText}</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`inline-flex items-center gap-2 ${bgColor} text-white px-3 py-1.5 rounded-xl text-xs font-medium`}>
+      <span>{statusText}</span>
+    </div>
+  );
+};
 
 export default function Members() {
 
@@ -1177,26 +1211,26 @@ export default function Members() {
     <>
       <style>
         {`
-          @keyframes wobble {
-            0%, 100% { transform: rotate(0deg); }
-            15% { transform: rotate(-1deg); }
-            30% { transform: rotate(1deg); }
-            45% { transform: rotate(-1deg); }
-            60% { transform: rotate(1deg); }
-            75% { transform: rotate(-1deg); }
-            90% { transform: rotate(1deg); }
-          }
-          .animate-wobble {
-            animation: wobble 0.5s ease-in-out infinite;
-          }
-          .dragging {
-            opacity: 0.5;
-            border: 2px dashed #fff;
-          }
-          .drag-over {
-            border: 2px dashed #888;
-          }
-        `}
+            @keyframes wobble {
+              0%, 100% { transform: rotate(0deg); }
+              15% { transform: rotate(-1deg); }
+              30% { transform: rotate(1deg); }
+              45% { transform: rotate(-1deg); }
+              60% { transform: rotate(1deg); }
+              75% { transform: rotate(-1deg); }
+              90% { transform: rotate(1deg); }
+            }
+            .animate-wobble {
+              animation: wobble 0.5s ease-in-out infinite;
+            }
+            .dragging {
+              opacity: 0.5;
+              border: 2px dashed #fff;
+            }
+            .drag-over {
+              border: 2px dashed #888;
+            }
+          `}
       </style>
       <Toaster
         position="top-right"
@@ -1218,10 +1252,7 @@ export default function Members() {
             <div className="flex w-full lg:w-auto justify-between items-center gap-3">
               <div className="flex items-center gap-3">
                 <h1 className="text-xl sm:text-2xl oxanium_font text-white">Members</h1>
-
-
               </div>
-
 
               {isRightSidebarOpen ? (<div onClick={toggleRightSidebar} className="md:hidden block ">
                 <img src='/expand-sidebar mirrored.svg' className="h-5 w-5 cursor-pointer" alt="" />
@@ -1234,16 +1265,14 @@ export default function Members() {
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
               <div className="flex gap-2">
-
-
-                {/* View Mode Switch (only visible on small + tablet, left beside heading) */}
-                <div className="flex items-center gap-1 bg-black rounded-xl p-1 lg:hidden">
+                {/* Combined View and Display Controls */}
+                <div className="flex items-center gap-2 bg-black rounded-xl p-1">
                   <span className="text-xs text-gray-400 px-2">View</span>
                   <button
                     onClick={toggleViewMode}
                     className={`p-2 rounded-lg transition-colors ${viewMode === "grid" ? "bg-[#FF843E] text-white" : "text-gray-400 hover:text-white"
                       }`}
-                    title="Grid View"
+                    title={viewMode === "grid" ? "Grid View (Active)" : "Switch to Grid View"}
                   >
                     <Grid3X3 size={16} />
                   </button>
@@ -1251,51 +1280,32 @@ export default function Members() {
                     onClick={toggleViewMode}
                     className={`p-2 rounded-lg transition-colors ${viewMode === "list" ? "bg-[#FF843E] text-white" : "text-gray-400 hover:text-white"
                       }`}
-                    title="List View"
+                    title={viewMode === "list" ? "List View (Active)" : "Switch to List View"}
                   >
                     <List size={16} />
                   </button>
-                </div>
 
-                {/* Desktop View Mode (only visible on lg+) */}
-                <div className="hidden lg:flex items-center gap-1 bg-black rounded-xl p-1">
-                  <span className="text-xs text-gray-400 px-2">View</span>
+                  {/* Three Dots Display Mode Toggle */}
+                  <div className="h-6 w-px bg-gray-700 mx-1"></div>
                   <button
-                    onClick={toggleViewMode}
-                    className={`p-2 rounded-lg transition-colors ${viewMode === "grid" ? "bg-[#FF843E] text-white" : "text-gray-400 hover:text-white"
+                    onClick={() => setIsCompactView(!isCompactView)}
+                    className={`p-2 rounded-lg transition-colors flex items-center gap-1 ${isCompactView ? "text-[#F27A30]" : "text-[#F27A30]"
                       }`}
-                    title="Grid View"
+                    title={isCompactView ? "Compact View (Click for Detailed)" : "Detailed View (Click for Compact)"}
                   >
-                    <Grid3X3 size={16} />
-                  </button>
-                  <button
-                    onClick={toggleViewMode}
-                    className={`p-2 rounded-lg transition-colors ${viewMode === "list" ? "bg-[#FF843E] text-white" : "text-gray-400 hover:text-white"
-                      }`}
-                    title="List View"
-                  >
-                    <List size={16} />
-                  </button>
-                </div>
-
-                {/* Display Mode Switch */}
-                <div className="flex bg-black items-center rounded-xl border border-gray-800 p-1 w-fit">
-                  <span className="text-xs text-gray-400 px-2">Display</span>
-                  <button
-                    onClick={() => setIsCompactView(false)}
-                    className={`p-2 rounded-lg transition-colors ${!isCompactView ? "bg-[#F27A30] text-white" : "text-gray-400 hover:text-white"
-                      }`}
-                    title="Detailed View"
-                  >
-                    <Eye className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => setIsCompactView(true)}
-                    className={`p-2 rounded-lg transition-colors ${isCompactView ? "bg-[#F27A30] text-white" : "text-gray-400 hover:text-white"
-                      }`}
-                    title="Compact View"
-                  >
-                    <Grid3X3 className="w-4 h-4" />
+                    <div className="flex flex-col gap-0.5">
+                      <div className="flex gap-0.5">
+                        <div className={`w-1.5 h-1.5 rounded-full ${!isCompactView ? 'bg-current' : 'bg-gray-500'}`}></div>
+                        <div className={`w-1.5 h-1.5 rounded-full ${!isCompactView ? 'bg-current' : 'bg-gray-500'}`}></div>
+                      </div>
+                      <div className="flex gap-0.5">
+                        <div className={`w-1.5 h-1.5 rounded-full ${isCompactView ? 'bg-current' : 'bg-gray-500'}`}></div>
+                        <div className={`w-1.5 h-1.5 rounded-full ${isCompactView ? 'bg-current' : 'bg-gray-500'}`}></div>
+                      </div>
+                    </div>
+                    <span className="text-xs ml-1 hidden sm:inline">
+                      {isCompactView ? "Compact" : "Detailed"}
+                    </span>
                   </button>
                 </div>
               </div>
@@ -1318,8 +1328,6 @@ export default function Members() {
                     : 'Filter'}
                 </span>
               </button>
-
-
 
               {isRightSidebarOpen ? (<div onClick={toggleRightSidebar} className="md:block hidden ">
                 <img src='/expand-sidebar mirrored.svg' className="h-5 w-5 cursor-pointer" alt="" />
@@ -1444,7 +1452,7 @@ export default function Members() {
                             <div className="flex items-center gap-4 flex-1 min-w-0 pl-4">
                               <img
                                 src={member.image || DefaultAvatar1}
-                                className="h-12 w-12 rounded-2xl flex-shrink-0 object-cover"
+                                className="h-12 w-12 rounded-xl flex-shrink-0 object-cover"
                                 alt=""
                               />
                               <div className="flex-1 min-w-0">
@@ -1454,17 +1462,10 @@ export default function Members() {
                                   </h3>
 
                                   <div className="flex items-center gap-2 flex-shrink-0">
-                                    {member.isArchived ? (
-                                      <span className="px-2 py-0.5 text-xs rounded-full bg-red-600 text-white">Archived</span>
-                                    ) : (
-                                      <span
-                                        className={`px-2 py-0.5 text-xs rounded-full ${member.isActive ? "bg-green-900 text-green-300" : "bg-yellow-600 text-white"
-                                          }`}
-                                      >
-                                        {member.isActive ? "Active" : `Paused${member.reason ? ` (${member.reason})` : ""}`}
-                                      </span>
-                                    )}
-
+                                    <StatusTag
+                                      status={member.isArchived ? 'archived' : member.isActive ? 'active' : 'paused'}
+                                      reason={member.reason}
+                                    />
                                     {isBirthday(member.dateOfBirth) && <Cake size={16} className="text-yellow-500" />}
                                   </div>
                                 </div>
@@ -1583,26 +1584,18 @@ export default function Members() {
                               <img
                                 src={member.image || DefaultAvatar1}
                                 alt={member.title}
-                                className="w-10 h-10 rounded-full flex-shrink-0 object-cover"
+                                className="w-10 h-10 rounded-xl flex-shrink-0 object-cover"
                               />
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">
-                                  <span className="text-white font-medium text-sm truncate">
-                                    {getFirstAndLastName(member.title).firstName}
+                                  <span className="text-white font-medium text-sm">
+                                    {getFirstAndLastName(member.title).firstName} {getFirstAndLastName(member.title).lastName}
                                   </span>
-                                  <span className="text-white font-medium text-sm truncate">
-                                    {getFirstAndLastName(member.title).lastName}
-                                  </span>
-                                  <span
-                                    className={`px-1.5 py-0.5 text-xs font-medium rounded flex-shrink-0 ${member.isArchived
-                                      ? "bg-red-600 text-white"
-                                      : member.isActive
-                                        ? "bg-green-600 text-white"
-                                        : "bg-yellow-600 text-white"
-                                      }`}
-                                  >
-                                    {member.isArchived ? "A" : member.isActive ? "A" : "P"}
-                                  </span>
+                                  <StatusTag
+                                    status={member.isArchived ? 'archived' : member.isActive ? 'active' : 'paused'}
+                                    reason={member.reason}
+                                    compact={true}
+                                  />
                                 </div>
                               </div>
                             </div>
@@ -1706,7 +1699,7 @@ export default function Members() {
                           <div className="flex items-center gap-4 flex-1 min-w-0">
                             <img
                               src={member.image || DefaultAvatar1}
-                              className="h-12 w-12 sm:h-20 sm:w-20 rounded-2xl flex-shrink-0 object-cover"
+                              className="h-12 w-12 sm:h-20 sm:w-20 rounded-xl flex-shrink-0 object-cover"
                               alt=""
                             />
                             <div className="flex-1 min-w-0">
@@ -1716,17 +1709,10 @@ export default function Members() {
                                 </h3>
 
                                 <div className="flex items-center gap-2 flex-shrink-0">
-                                  {member.isArchived ? (
-                                    <span className="px-2 py-0.5 text-xs rounded-full bg-red-600 text-white">Archived</span>
-                                  ) : (
-                                    <span
-                                      className={`px-2 py-0.5 text-xs rounded-full ${member.isActive ? "bg-green-900 text-green-300" : "bg-yellow-600 text-white"
-                                        }`}
-                                    >
-                                      {member.isActive ? "Active" : `Paused${member.reason ? ` (${member.reason})` : ""}`}
-                                    </span>
-                                  )}
-
+                                  <StatusTag
+                                    status={member.isArchived ? 'archived' : member.isActive ? 'active' : 'paused'}
+                                    reason={member.reason}
+                                  />
                                   {isBirthday(member.dateOfBirth) && <Cake size={16} className="text-yellow-500" />}
                                 </div>
                               </div>
@@ -1883,16 +1869,10 @@ export default function Members() {
 
                             {/* Header section */}
                             <div className="flex justify-between items-start mb-3 pl-4">
-                              <span
-                                className={`px-2 py-0.5 text-xs font-medium rounded-lg ${member.isArchived
-                                  ? "bg-red-600 text-white"
-                                  : member.isActive
-                                    ? "bg-green-600 text-white"
-                                    : "bg-yellow-600 text-white"
-                                  }`}
-                              >
-                                {member.isArchived ? "Archived" : member.isActive ? "Active" : `Paused${member.reason ? ` (${member.reason})` : ""}`}
-                              </span>
+                              <StatusTag
+                                status={member.isArchived ? 'archived' : member.isActive ? 'active' : 'paused'}
+                                reason={member.reason}
+                              />
                             </div>
 
                             {/* Content section */}
@@ -1900,7 +1880,7 @@ export default function Members() {
                               <div className="flex items-center gap-3 mb-3">
                                 <img
                                   src={member.image || DefaultAvatar1}
-                                  className="h-16 w-16 rounded-2xl flex-shrink-0 object-cover"
+                                  className="h-16 w-16 rounded-xl flex-shrink-0 object-cover"
                                   alt=""
                                 />
                                 <div>
@@ -2073,31 +2053,25 @@ export default function Members() {
                               </div>
                             )}
 
-                            <div className="relative w-full">
+                            <div className="relative w-full flex justify-center">
                               <img
                                 src={member.image || DefaultAvatar1}
                                 alt={member.title}
-                                className="w-12 h-12 rounded-full mx-auto object-cover"
+                                className="w-14 h-14 rounded-xl object-cover"
                               />
-                              <span
-                                className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-xs font-bold text-white ${member.isArchived
-                                  ? "bg-red-600"
-                                  : member.isActive
-                                    ? "bg-green-600"
-                                    : "bg-yellow-600"
-                                  }`}
-                              >
-                                {member.isArchived ? "A" : member.isActive ? "A" : "P"}
-                              </span>
                             </div>
 
                             <div className="text-center w-full min-w-0">
-                              <p className="text-white font-medium text-xs truncate">
-                                {getFirstAndLastName(member.title).firstName}
+                              <p className="text-white font-medium text-sm leading-tight mb-2">
+                                {getFirstAndLastName(member.title).firstName} {getFirstAndLastName(member.title).lastName}
                               </p>
-                              <p className="text-gray-400 text-xs truncate">
-                                {getFirstAndLastName(member.title).lastName}
-                              </p>
+                              <div className="flex justify-center">
+                                <StatusTag
+                                  status={member.isArchived ? 'archived' : member.isActive ? 'active' : 'paused'}
+                                  reason={member.reason}
+                                  compact={true}
+                                />
+                              </div>
                             </div>
 
                             <button
@@ -2199,7 +2173,7 @@ export default function Members() {
                           <div className="flex flex-col items-center mb-4">
                             <img
                               src={member.image || DefaultAvatar1}
-                              className="h-20 w-20 rounded-2xl flex-shrink-0 object-cover mb-3"
+                              className="h-20 w-20 rounded-xl flex-shrink-0 object-cover mb-3"
                               alt=""
                             />
                             <div className="flex flex-col items-center">
@@ -2209,17 +2183,10 @@ export default function Members() {
                                 </h3>
 
                                 <div className="flex items-center gap-2">
-                                  {member.isArchived ? (
-                                    <span className="px-2 py-0.5 text-xs rounded-full bg-red-600 text-white">Archived</span>
-                                  ) : (
-                                    <span
-                                      className={`px-2 py-0.5 text-xs rounded-full ${member.isActive ? "bg-green-900 text-green-300" : "bg-yellow-600 text-white"
-                                        }`}
-                                    >
-                                      {member.isActive ? "Active" : `Paused${member.reason ? ` (${member.reason})` : ""}`}
-                                    </span>
-                                  )}
-
+                                  <StatusTag
+                                    status={member.isArchived ? 'archived' : member.isActive ? 'active' : 'paused'}
+                                    reason={member.reason}
+                                  />
                                   {isBirthday(member.dateOfBirth) && <Cake size={16} className="text-yellow-500" />}
                                 </div>
                               </div>

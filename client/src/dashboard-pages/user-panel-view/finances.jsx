@@ -33,6 +33,8 @@ import EditTaskModal from "../../components/user-panel-components/task-component
 import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"
 import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
 import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
+import SepaXmlSuccessModal from "../../components/user-panel-components/finance-components/sepa-xml-success-modal"
+import SuccessModal from "../../components/user-panel-components/finance-components/check-funds-success-modal"
 
 
 export default function FinancesPage() {
@@ -58,10 +60,21 @@ export default function FinancesPage() {
   const [documentViewerOpen, setDocumentViewerOpen] = useState(false)
   const [exportConfirmationOpen, setExportConfirmationOpen] = useState(false)
 
+  const [successModalOpen, setSuccessModalOpen] = useState(false)
+  const [successMessage, setSuccessMessage] = useState("")
+
+
+  const [sepaSuccessModalOpen, setSepaSuccessModalOpen] = useState(false)
+  const [generatedFileInfo, setGeneratedFileInfo] = useState({
+    fileName: '',
+    transactionCount: 0,
+    totalAmount: 0
+  })
+
+  const [shouldAutoDownload, setShouldAutoDownload] = useState(true)
+
   const transactionsPerPage = 5
 
-
-  const trainingVideos = trainingVideosData
   // Get all possible status values
   const statusOptions = ["All", "Successful", "Pending", "Failed", "Check incoming funds"]
 
@@ -129,9 +142,8 @@ export default function FinancesPage() {
   }
 
   const handleDeleteDocument = (documentId) => {
-    if (confirm("Are you sure you want to delete this document?")) {
       setSepaDocuments((prev) => prev.filter((doc) => doc.id !== documentId))
-    }
+    
   }
 
   const handleViewDocument = (document) => {
@@ -170,9 +182,8 @@ export default function FinancesPage() {
   }
   const [sepaDocuments, setSepaDocuments] = useState(financesData)
 
-  const handleGenerateXml = (selectedTransactions) => {
-    // In a real application, this would generate and download the XML file
-    console.log("Generating SEPA XML for:", selectedTransactions)
+  const handleGenerateXml = (selectedTransactions, period, shouldDownload = true) => {
+
     // Update transaction statuses
     const updatedFinancialState = { ...financialState }
     const periodData = { ...updatedFinancialState[selectedPeriod] }
@@ -184,7 +195,7 @@ export default function FinancesPage() {
         return {
           ...tx,
           status: "Check incoming funds",
-          amount: selected.amount, // Update amount if edited
+          amount: selected.amount,
         }
       }
       return tx
@@ -208,8 +219,18 @@ export default function FinancesPage() {
     updatedFinancialState[selectedPeriod] = periodData
     setFinancialState(updatedFinancialState)
 
-    // Simulate file download
-    alert("SEPA XML file generated successfully!")
+    // Calculate file info for the modal
+    const totalAmount = selectedTransactions.reduce((sum, tx) => sum + tx.amount, 0)
+    const fileName = `sepa_payment_${period.replace(/\s+/g, "_")}_${new Date().toISOString().split('T')[0]}.xml`
+
+    // Set auto-download preference and show success modal
+    setShouldAutoDownload(shouldDownload)
+    setGeneratedFileInfo({
+      fileName,
+      transactionCount: selectedTransactions.length,
+      totalAmount
+    })
+    setSepaSuccessModalOpen(true)
   }
 
   const handleUpdateStatuses = (updatedTransactions) => {
@@ -245,7 +266,10 @@ export default function FinancesPage() {
 
     updatedFinancialState[selectedPeriod] = periodData
     setFinancialState(updatedFinancialState)
-    alert("Transaction statuses updated successfully!")
+
+    // Show success modal instead of alert
+    setSuccessMessage("Transaction statuses updated successfully!")
+    setSuccessModalOpen(true)
   }
 
   // Check if there are any transactions with "Check incoming funds" status
@@ -253,20 +277,36 @@ export default function FinancesPage() {
     financialState[selectedPeriod]?.transactions?.some((tx) => tx.status === "Check incoming funds") || false
 
   // Get status color class based on status value
-  const getStatusColorClass = (status) => {
-    switch (status) {
-      case "Successful":
-        return "bg-green-900/30 text-green-500"
-      case "Pending":
-        return "bg-yellow-900/30 text-yellow-500"
-      case "Check incoming funds":
-        return "bg-blue-900/30 text-blue-500"
-      case "Failed":
-        return "bg-red-900/30 text-red-500"
-      default:
-        return "bg-gray-900/30 text-gray-500"
-    }
+  // const getStatusColorClass = (status) => {
+  //   switch (status) {
+  //     case "Successful":
+  //       return "bg-green-900/30 text-green-500" // #10b981 - green
+  //     case "Pending":
+  //       return "bg-yellow-900/30 text-yellow-500" // #f59e0b - amber/yellow
+  //     case "Check incoming funds":
+  //       return "bg-blue-900/30 text-blue-500" // #3b82f6 - blue
+  //     case "Failed":
+  //       return "bg-red-900/30 text-red-500" // #ef4444 - red
+  //     default:
+  //       return "bg-gray-900/30 text-gray-500"
+  //   }
+  // }
+
+  // Update the getStatusColorClass function for background colors
+const getStatusColorClass = (status) => {
+  switch (status) {
+    case "Successful":
+      return "bg-[#10b981]" // Active prospect green
+    case "Pending":
+      return "bg-[#f59e0b]" // Passive prospect amber
+    case "Check incoming funds":
+      return "bg-[#3b82f6]" // Trial Training blue
+    case "Failed":
+      return "bg-[#ef4444]" // Uninterested red
+    default:
+      return "bg-gray-500"
   }
+}
 
   // Get current period data
   const getCurrentPeriodData = () => {
@@ -663,7 +703,7 @@ export default function FinancesPage() {
       min-h-screen rounded-3xl p-3 sm:p-4 md:p-6 bg-[#1C1C1C]
       transition-all duration-500 ease-in-out flex-1
       ${isRightSidebarOpen
-            ? "lg:mr-96 mr-0" // Adjust right margin when sidebar is open on larger screens
+            ? "lg:mr-86 mr-0" // Adjust right margin when sidebar is open on larger screens
             : "mr-0" // No margin when closed
           }
     `}
@@ -926,24 +966,24 @@ export default function FinancesPage() {
 
             {statusFilterOpen && (
               <div className="absolute right-0 z-10 mt-2 w-[220px] bg-[#2F2F2F]/90 backdrop-blur-2xl rounded-xl border border-gray-800 shadow-lg">
-                {statusOptions.map((status) => (
-                  <button
-                    key={status}
-                    className={`w-full px-3 md:px-4 py-2 text-xs md:text-sm text-left flex items-center space-x-2 hover:bg-black ${selectedStatus === status ? "bg-black/50" : ""
-                      }`}
-                    onClick={() => {
-                      setSelectedStatus(status)
-                      setStatusFilterOpen(false)
-                    }}
-                  >
-                    {status !== "All" && (
-                      <span
-                        className={`inline-block w-2.5 h-2.5 md:w-3 md:h-3 rounded-full ${getStatusColorClass(status)}`}
-                      />
-                    )}
-                    <span className="text-gray-300">{status}</span>
-                  </button>
-                ))}
+               {statusOptions.map((status) => (
+  <button
+    key={status}
+    className={`w-full px-3 md:px-4 py-2 text-xs md:text-sm text-left flex items-center space-x-2 hover:bg-black ${selectedStatus === status ? "bg-black/50" : ""
+      }`}
+    onClick={() => {
+      setSelectedStatus(status)
+      setStatusFilterOpen(false)
+    }}
+  >
+    {status !== "All" && (
+      <span
+        className={`inline-block w-2.5 h-2.5 md:w-3 md:h-3 rounded-full ${getStatusColorClass(status)}`}
+      />
+    )}
+    <span className="text-gray-300">{status}</span>
+  </button>
+))}
               </div>
             )}
           </div>
@@ -1099,6 +1139,24 @@ export default function FinancesPage() {
           onClose={() => setCustomDateModalOpen(false)}
           onApply={handleCustomDateApply}
         />
+
+        <SepaXmlSuccessModal
+          isOpen={sepaSuccessModalOpen}
+          onClose={() => setSepaSuccessModalOpen(false)}
+          fileName={generatedFileInfo.fileName}
+          transactionCount={generatedFileInfo.transactionCount}
+          totalAmount={generatedFileInfo.totalAmount}
+          shouldAutoDownload={shouldAutoDownload}
+        />
+
+        <SuccessModal
+          isOpen={successModalOpen}
+          onClose={() => setSuccessModalOpen(false)}
+          title="Success"
+          message={successMessage}
+          buttonText="Continue"
+        />
+
 
         <Sidebar
           isRightSidebarOpen={isRightSidebarOpen}

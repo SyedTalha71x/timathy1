@@ -2,41 +2,97 @@
 /* eslint-disable react/prop-types */
 import React, { useState, useEffect } from "react";
 import { Clock, Bell, Repeat, X } from "lucide-react";
+import ConfirmationModal from "./confirmation-modal";
 
-const CalendarModal = ({ 
-  isOpen, 
-  onClose, 
-  onSave, 
-  initialDate = "", 
+const CalendarModal = ({
+  isOpen,
+  onClose,
+  onSave,
+  initialDate = "",
   initialTime = "",
   initialReminder = "",
-  initialRepeat = ""
+  initialRepeat = "",
+  initialCustomReminder = null,
+  initialRepeatEnd = null
 }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [showClearConfirmation, setShowClearConfirmation] = useState(false)
+
   const [tempDate, setTempDate] = useState(initialDate);
   const [tempTime, setTempTime] = useState(initialTime);
   const [tempReminder, setTempReminder] = useState(initialReminder);
   const [tempRepeat, setTempRepeat] = useState(initialRepeat);
   const [showCustomReminder, setShowCustomReminder] = useState(false);
-  const [customValue, setCustomValue] = useState("");
-  const [customUnit, setCustomUnit] = useState("Minutes");
-  const [repeatEndType, setRepeatEndType] = useState("never");
-  const [repeatEndDate, setRepeatEndDate] = useState("");
-  const [repeatOccurrences, setRepeatOccurrences] = useState("");
+  const [customValue, setCustomValue] = useState(initialCustomReminder?.value || "");
+  const [customUnit, setCustomUnit] = useState(initialCustomReminder?.unit || "Minutes");
+  const [repeatEndType, setRepeatEndType] = useState(initialRepeatEnd?.type || "never");
+  const [repeatEndDate, setRepeatEndDate] = useState(initialRepeatEnd?.date || "");
+  const [repeatOccurrences, setRepeatOccurrences] = useState(initialRepeatEnd?.occurrences || "");
 
   // Reset form when modal opens with new initial values
   useEffect(() => {
     if (isOpen) {
-      setTempDate(initialDate);
-      setTempTime(initialTime);
-      setTempReminder(initialReminder);
-      setTempRepeat(initialRepeat);
+      setTempDate(initialDate || "");
+      setTempTime(initialTime || "");
+      setTempReminder(initialReminder || "");
+      setTempRepeat(initialRepeat || "");
+
+      // Handle custom reminder
+      if (initialReminder === "Custom") {
+        setShowCustomReminder(true);
+        setCustomValue(initialCustomReminder?.value || "");
+        setCustomUnit(initialCustomReminder?.unit || "Minutes");
+      } else {
+        setShowCustomReminder(false);
+      }
+
+      // Handle repeat end settings
+      if (initialRepeatEnd) {
+        setRepeatEndType(initialRepeatEnd.type || "never");
+        setRepeatEndDate(initialRepeatEnd.date || "");
+        setRepeatOccurrences(initialRepeatEnd.occurrences || "");
+      } else {
+        setRepeatEndType("never");
+        setRepeatEndDate("");
+        setRepeatOccurrences("");
+      }
+
+      // Set current date to selected date if it exists
+      if (initialDate) {
+        const dateParts = initialDate.split('-');
+        if (dateParts.length === 3) {
+          setCurrentDate(new Date(
+            parseInt(dateParts[0]),
+            parseInt(dateParts[1]) - 1,
+            parseInt(dateParts[2])
+          ));
+        }
+      }
     }
-  }, [isOpen, initialDate, initialTime, initialReminder, initialRepeat]);
+  }, [isOpen, initialDate, initialTime, initialReminder, initialRepeat, initialCustomReminder, initialRepeatEnd]);
 
   const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
   const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
   const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+  // Highlight the selected date on the calendar
+  const getDayClassName = (day) => {
+    const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    const isSelected = tempDate === dateStr;
+    const isToday = dateStr === new Date().toISOString().split('T')[0];
+
+    let className = "p-1 text-sm rounded hover:bg-gray-600 ";
+
+    if (isSelected) {
+      className += "bg-blue-600 text-white";
+    } else if (isToday) {
+      className += "bg-blue-600/30 text-white";
+    } else {
+      className += "text-white";
+    }
+
+    return className;
+  };
 
   const generateTimeOptions = () => {
     const options = [];
@@ -83,18 +139,31 @@ const CalendarModal = ({
         occurrences: repeatOccurrences
       } : null
     };
-    
+
     onSave(result);
     onClose();
   };
 
+
+  if (!isOpen) return null;
+
+
   const handleClear = () => {
-    setTempDate("");
-    setTempTime("");
-    setTempReminder("");
-    setTempRepeat("");
-    setCustomValue("");
-    
+    setShowClearConfirmation(true)
+  }
+
+
+  const confirmClear = () => {
+    setTempDate("")
+    setTempTime("")
+    setTempReminder("")
+    setTempRepeat("")
+    setCustomValue("")
+    setShowCustomReminder(false)
+    setRepeatEndType("never")
+    setRepeatEndDate("")
+    setRepeatOccurrences("")
+
     const result = {
       date: "",
       time: "",
@@ -103,18 +172,17 @@ const CalendarModal = ({
       customReminder: null,
       repeatEnd: null
     };
-    
-    onSave(result);
-    onClose();
-  };
 
-  if (!isOpen) return null;
+    onSave(result)
+    onClose()
+    setShowClearConfirmation(false)
+  }
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-[#2F2F2F] rounded-xl shadow-lg z-90 p-4 w-full max-w-md">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-white font-medium">Set Date & Time</h3>
+          <h3 className="text-white font-medium">Edit Date & Time</h3>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-white"
@@ -122,6 +190,7 @@ const CalendarModal = ({
             <X size={20} />
           </button>
         </div>
+
 
         {/* Calendar Section */}
         <div className="mb-4">
@@ -154,15 +223,11 @@ const CalendarModal = ({
             ))}
             {Array.from({ length: daysInMonth }).map((_, index) => {
               const day = index + 1;
-              const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-              const isSelected = tempDate === dateStr;
               return (
                 <button
                   key={day}
                   onClick={() => handleDateClick(day)}
-                  className={`p-1 text-sm rounded hover:bg-gray-600 ${
-                    isSelected ? "bg-blue-600 text-white" : "text-white"
-                  }`}
+                  className={getDayClassName(day)}
                 >
                   {day}
                 </button>
@@ -184,7 +249,13 @@ const CalendarModal = ({
               <option value="">Select time</option>
               {generateTimeOptions().map((time) => (
                 <option key={time} value={time}>
-                  {time}
+                  {(() => {
+                    const [hours, minutes] = time.split(':');
+                    const hour = parseInt(hours);
+                    const ampm = hour >= 12 ? 'PM' : 'AM';
+                    const formattedHour = hour % 12 || 12;
+                    return `${formattedHour}:${minutes} ${ampm}`;
+                  })()}
                 </option>
               ))}
             </select>
@@ -307,28 +378,40 @@ const CalendarModal = ({
         </div>
 
         <div className="flex justify-between mt-4">
-          <button 
-            onClick={handleClear} 
-            className="px-4 py-2 text-gray-300 hover:text-white text-sm"
+          <button
+            onClick={handleClear}
+            className="px-4 py-2 text-gray-300 hover:text-white text-sm hover:bg-red-500/20 rounded"
+            title="Clear all date/time settings"
           >
-            Clear
+            Clear All
           </button>
           <div className="flex gap-2">
-            <button 
+            <button
               onClick={onClose}
               className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 text-sm"
             >
               Cancel
             </button>
-            <button 
-              onClick={handleOK} 
+            <button
+              onClick={handleOK}
               className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
             >
-              OK
+              Save Changes
             </button>
           </div>
         </div>
       </div>
+
+
+      <ConfirmationModal
+        isOpen={showClearConfirmation}
+        onClose={() => setShowClearConfirmation(false)}
+        onConfirm={confirmClear}
+        title="Clear All Settings"
+        message="Are you sure you want to clear all date, time, reminder, and repeat settings?"
+        confirmText="Clear All"
+        cancelText="Cancel"
+      />
     </div>
   );
 };

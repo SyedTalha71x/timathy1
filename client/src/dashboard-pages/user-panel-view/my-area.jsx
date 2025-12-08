@@ -1540,12 +1540,12 @@ export default function MyArea() {
                         <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
                           <div className="flex justify-between items-center">
                             <h2 className="text-lg font-semibold">Website Links</h2>
-                            <button
+                          {!isEditing &&  <button
                               onClick={addCustomLink}
                               className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg cursor-pointer transition-colors"
                             >
                               <Plus size={18} />
-                            </button>
+                            </button>}
                           </div>
                           <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
                             <div className="grid grid-cols-1 gap-3">
@@ -1614,12 +1614,12 @@ export default function MyArea() {
                         <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
                           <div className="flex justify-between items-center">
                             <h2 className="text-lg font-semibold">To-Do</h2>
-                            <button
+                          {!isEditing &&  <button
                               onClick={() => setIsAddTaskModalOpen(true)}
                               className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
                             >
                               <Plus size={18} />
-                            </button>
+                            </button>}
                           </div>
                           <div className="relative mb-3 w-full" ref={todoFilterDropdownRef}>
                             <button
@@ -1788,9 +1788,9 @@ export default function MyArea() {
                         </div>
                       )}
 
-                      {widget.type === "bulletinBoard" && <BulletinBoardWidget />}
+                      {widget.type === "bulletinBoard" && <BulletinBoardWidget isSidebarEditing={isEditing} />}
 
-                      {widget.type === "notes" && <NotesWidget />}
+                      {widget.type === "notes" && <NotesWidget isSidebarEditing={isEditing} />}
 
                       {widget.type === "shiftSchedule" && (
                         <ShiftScheduleWidget
@@ -2140,6 +2140,9 @@ export default function MyArea() {
           handleArchiveMember={handleArchiveMember}
           handleUnarchiveMember={handleUnarchiveMember}
         />
+
+
+        
       </div>
     </>
   )

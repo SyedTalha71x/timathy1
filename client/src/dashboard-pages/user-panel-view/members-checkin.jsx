@@ -1,5 +1,7 @@
 import { useState } from "react"
 import { Search, Calendar, Clock, CheckCircle, X } from "lucide-react"
+import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'
+
 
 export default function CheckIns() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -7,14 +9,13 @@ export default function CheckIns() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
   const [checkInHistory, setCheckInHistory] = useState([])
 
-  const DefaultAvatar = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect fill='%23666' width='100' height='100'/%3E%3Ctext fill='%23fff' font-family='Arial' font-size='40' x='50%25' y='50%25' text-anchor='middle' dy='.3em'%3EU%3C/text%3E%3C/svg%3E"
 
   const [upcomingAppointments, setUpcomingAppointments] = useState([
     {
       id: 1,
       memberId: 1,
       memberName: "John Doe",
-      memberImage: null,
+      memberImage: DefaultAvatar,
       appointmentType: "Personal Training",
       scheduledTime: "10:00 AM - 10:30 AM",
       
@@ -26,7 +27,7 @@ export default function CheckIns() {
       id: 2,
       memberId: 2,
       memberName: "Jane Smith",
-      memberImage: null,
+      memberImage: DefaultAvatar,
       appointmentType: "Group Class",
       scheduledTime: "11:30 AM - 12:30 PM",
       date: new Date().toISOString().split('T')[0],
@@ -37,7 +38,7 @@ export default function CheckIns() {
       id: 3,
       memberId: 3,
       memberName: "Mike Johnson",
-      memberImage: null,
+      memberImage: DefaultAvatar,
       appointmentType: "Consultation",
       scheduledTime: "02:00 PM - 3:00 PM",
       date: new Date().toISOString().split('T')[0],
@@ -220,7 +221,7 @@ export default function CheckIns() {
                     <img
                       src={appointment.memberImage || DefaultAvatar}
                       alt={appointment.memberName}
-                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover flex-shrink-0"
+                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl object-cover flex-shrink-0"
                     />
                     
                     <div className="flex-1 min-w-0">

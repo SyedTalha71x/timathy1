@@ -1,46 +1,117 @@
-
 /* eslint-disable react/prop-types */
+import { memo, useCallback, useState, useMemo, useEffect } from 'react';
 
-export default function EditBulletinModal({
+const OptimizedEditBulletinModal = memo(function OptimizedEditBulletinModal({
   isOpen,
   onClose,
-  formData,
-  setFormData,
+  post,
   onSave,
   availableTags,
   onOpenTagManager,
 }) {
-  if (!isOpen) return null
+  // Local state for form data
+  const [formData, setFormData] = useState({
+    title: "",
+    content: "",
+    visibility: "Members",
+    status: "Active",
+    image: null,
+    tags: [],
+  });
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0]
+  // Update form data when post changes
+  useEffect(() => {
+    if (post) {
+      setFormData({
+        title: post.title || "",
+        content: post.content || "",
+        visibility: post.visibility || "Members",
+        status: post.status || "Active",
+        image: post.image || null,
+        tags: post.tags || [],
+      });
+    }
+  }, [post]);
+
+  // Optimized handlers
+  const handleImageChange = useCallback((e) => {
+    const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader()
+      const reader = new FileReader();
       reader.onloadend = () => {
-        setFormData({ ...formData, image: reader.result })
-      }
-      reader.readAsDataURL(file)
+        setFormData(prev => ({ ...prev, image: reader.result }));
+      };
+      reader.readAsDataURL(file);
     }
-  }
+  }, []);
 
-  const handleTagToggle = (tagId) => {
-    const selectedTags = formData.tags || []
-    if (selectedTags.includes(tagId)) {
-      setFormData({
-        ...formData,
-        tags: selectedTags.filter((id) => id !== tagId),
-      })
-    } else {
-      setFormData({
-        ...formData,
-        tags: [...selectedTags, tagId],
-      })
+  const handleTagToggle = useCallback((tagId) => {
+    setFormData(prev => {
+      const selectedTags = prev.tags || [];
+      if (selectedTags.includes(tagId)) {
+        return {
+          ...prev,
+          tags: selectedTags.filter((id) => id !== tagId),
+        };
+      } else {
+        return {
+          ...prev,
+          tags: [...selectedTags, tagId],
+        };
+      }
+    });
+  }, []);
+
+  const handleInputChange = useCallback((field) => (e) => {
+    setFormData(prev => ({ ...prev, [field]: e.target.value }));
+  }, []);
+
+  const handleRemoveImage = useCallback(() => {
+    setFormData(prev => ({ ...prev, image: null }));
+  }, []);
+
+  const handleSave = useCallback(() => {
+    if (formData.title.trim() && formData.content.trim()) {
+      onSave(formData);
+      onClose();
     }
-  }
+  }, [formData, onSave, onClose]);
+
+  // Memoized tags display
+  const tagsDisplay = useMemo(() => {
+    if (!availableTags || availableTags.length === 0) {
+      return <p className="text-gray-400 text-xs">No tags available. Create one using Manage Tags.</p>;
+    }
+
+    return (
+      <div className="flex flex-wrap gap-2">
+        {availableTags.map((tag) => (
+          <button
+            key={tag.id}
+            onClick={() => handleTagToggle(tag.id)}
+            className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
+              (formData.tags || []).includes(tag.id)
+                ? "opacity-100 border-2"
+                : "opacity-50 border border-gray-600"
+            }`}
+            style={{
+              backgroundColor: tag.color,
+              borderColor: tag.color,
+              color: "white",
+            }}
+          >
+            {tag.name}
+          </button>
+        ))}
+      </div>
+    );
+  }, [availableTags, formData.tags, handleTagToggle]);
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-[#1C1C1C] rounded-xl shadow-2xl w-full custom-scrollbar max-w-lg max-h-[80vh] overflow-y-auto">
+      <div className="bg-[#1C1C1C] rounded-xl shadow-2xl w-full max-w-lg max-h-[80vh] overflow-y-auto custom-scrollbar">
         <div className="flex items-center justify-between p-6 border-b border-gray-700">
           <h2 className="text-xl font-semibold text-white">Edit Post</h2>
           <button
@@ -60,15 +131,16 @@ export default function EditBulletinModal({
             <input
               type="text"
               value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              onChange={handleInputChange('title')}
               className="w-full bg-[#181818] border outline-none border-slate-300/10 text-white rounded-xl px-4 py-2 text-sm"
             />
           </div>
+          
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">Content</label>
             <textarea
               value={formData.content}
-              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+              onChange={handleInputChange('content')}
               rows={6}
               className="w-full bg-[#181818] border outline-none border-slate-300/10 text-white rounded-xl px-4 py-2 text-sm resize-none"
             />
@@ -85,7 +157,7 @@ export default function EditBulletinModal({
               />
               {formData.image && (
                 <button
-                  onClick={() => setFormData({ ...formData, image: null })}
+                  onClick={handleRemoveImage}
                   className="text-red-400 hover:text-red-300 transition-colors p-2"
                   title="Remove image"
                 >
@@ -113,30 +185,7 @@ export default function EditBulletinModal({
               </button>
             </div>
             <div className="bg-[#181818] border border-slate-300/10 rounded-xl p-3 max-h-32 overflow-y-auto">
-              {availableTags && availableTags.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
-                  {availableTags.map((tag) => (
-                    <button
-                      key={tag.id}
-                      onClick={() => handleTagToggle(tag.id)}
-                      className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
-                        (formData.tags || []).includes(tag.id)
-                          ? "opacity-100 border-2"
-                          : "opacity-50 border border-gray-600"
-                      }`}
-                      style={{
-                        backgroundColor: tag.color,
-                        borderColor: tag.color,
-                        color: "white",
-                      }}
-                    >
-                      {tag.name}
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-400 text-xs">No tags available. Create one using Manage Tags.</p>
-              )}
+              {tagsDisplay}
             </div>
           </div>
 
@@ -145,7 +194,7 @@ export default function EditBulletinModal({
               <label className="block text-sm font-medium text-gray-300 mb-2">Visibility</label>
               <select
                 value={formData.visibility}
-                onChange={(e) => setFormData({ ...formData, visibility: e.target.value })}
+                onChange={handleInputChange('visibility')}
                 className="w-full bg-[#181818] border outline-none border-slate-300/10 text-white rounded-xl px-4 py-2 text-sm"
               >
                 <option value="Members">Members</option>
@@ -156,7 +205,7 @@ export default function EditBulletinModal({
               <label className="block text-sm font-medium text-gray-300 mb-2">Status</label>
               <select
                 value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                onChange={handleInputChange('status')}
                 className="w-full bg-[#181818] border outline-none border-slate-300/10 text-white rounded-xl px-4 py-2 text-sm"
               >
                 <option value="Active">Active</option>
@@ -173,7 +222,7 @@ export default function EditBulletinModal({
               Cancel
             </button>
             <button
-              onClick={onSave}
+              onClick={handleSave}
               className="flex-1 bg-blue-600 text-sm cursor-pointer hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium transition-colors"
             >
               Save Changes
@@ -182,5 +231,7 @@ export default function EditBulletinModal({
         </div>
       </div>
     </div>
-  )
-}
+  );
+});
+
+export default OptimizedEditBulletinModal;

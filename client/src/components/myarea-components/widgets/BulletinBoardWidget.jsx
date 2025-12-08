@@ -1,3 +1,5 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable react/prop-types */
 /* eslint-disable react/no-unescaped-entities */
 import { useState, useEffect } from "react"
 import {
@@ -10,7 +12,7 @@ import Modal from "../bulletin-board-widjet-components/Modal"
 import { Link } from "react-router-dom"
 import TagManagerModal from "../../user-panel-components/bulletin-board-components/TagManagerModal"
 
-export const BulletinBoardWidget = () => {
+export const BulletinBoardWidget = ({isSidebarEditing, expanded}) => {
   const [bulletinPosts, setBulletinPosts] = useState([
     {
       id: 1,
@@ -249,13 +251,13 @@ export const BulletinBoardWidget = () => {
       {/* Header with + icon */}
       <div className="flex justify-between items-center">
         <h2 className="text-lg font-semibold">Bulletin Board</h2>
-        <button
+      {!isSidebarEditing &&  <button
           onClick={openCreateModal}
           className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg cursor-pointer transition-colors"
           title="Add New Post"
         >
           <Plus size={18} />
-        </button>
+        </button>}
       </div>
 
       {/* Filter */}
@@ -270,6 +272,7 @@ export const BulletinBoardWidget = () => {
           <option value="members">Members Only</option>
         </select>
       </div>
+
 
       <div className="flex-1 overflow-y-auto max-h-60 custom-scrollbar pr-1 mt-2">
         <div className="space-y-2">

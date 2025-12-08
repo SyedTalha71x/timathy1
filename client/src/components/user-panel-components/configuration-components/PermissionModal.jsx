@@ -47,7 +47,8 @@ const GROUP_ICONS = {
     SettingOutlined: <SettingOutlined />,
   }
   
-  const PERMISSION_DATA = PERMISSION_GROUPS.flatMap((g) =>
+  // eslint-disable-next-line react-refresh/only-export-components
+  export const PERMISSION_DATA = PERMISSION_GROUPS.flatMap((g) =>
     g.items.map((perm) => ({
       key: perm, // Transfer uses key for selection
       title: perm, // shown in search
@@ -56,10 +57,15 @@ const GROUP_ICONS = {
     })),
   )
 
-export const PermissionModal = ({ visible, onClose, role, onPermissionChange }) => {
-  const [selectedPermissions, setSelectedPermissions] = useState(role?.permissions || []);
+export const PermissionModal = ({ visible, onClose, role, onPermissionChange, isAdminRole = false }) => {
+  const [selectedPermissions, setSelectedPermissions] = useState(
+    isAdminRole ? PERMISSION_DATA.map(p => p.key) : (role?.permissions || [])
+  );
 
+  // For admin role, always show all permissions selected and disabled
   const handlePermissionToggle = (permission) => {
+    if (isAdminRole) return; // Disable permission toggling for admin role
+    
     const newPermissions = selectedPermissions.includes(permission)
       ? selectedPermissions.filter(p => p !== permission)
       : [...selectedPermissions, permission];
@@ -67,6 +73,8 @@ export const PermissionModal = ({ visible, onClose, role, onPermissionChange }) 
   };
 
   const handleGroupToggle = (groupItems) => {
+    if (isAdminRole) return; // Disable group toggling for admin role
+    
     const allGroupSelected = groupItems.every(item =>
       selectedPermissions.includes(item)
     );
@@ -87,8 +95,23 @@ export const PermissionModal = ({ visible, onClose, role, onPermissionChange }) 
   };
 
   const handleSave = () => {
-    onPermissionChange(selectedPermissions);
+    if (isAdminRole) {
+      // For admin role, always save with all permissions
+      onPermissionChange(PERMISSION_DATA.map(p => p.key));
+    } else {
+      onPermissionChange(selectedPermissions);
+    }
     onClose();
+  };
+
+  const handleClearAll = () => {
+    if (isAdminRole) return; // Disable clear all for admin role
+    setSelectedPermissions([]);
+  };
+
+  const handleSelectAll = () => {
+    if (isAdminRole) return; // Disable select all for admin role
+    setSelectedPermissions(PERMISSION_DATA.map(p => p.key));
   };
 
   if (!visible) return null;
@@ -106,7 +129,15 @@ export const PermissionModal = ({ visible, onClose, role, onPermissionChange }) 
             </div>
             <div>
               <h2 className="text-xl font-semibold text-white">Manage Permissions</h2>
-              {/* <p className="text-gray-400 text-sm">{role?.name || "Role"}</p> */}
+              <p className="text-gray-400 text-sm">{role?.name || "Role"}</p>
+              {isAdminRole && (
+                <div className="flex items-center gap-1 mt-1">
+                  <span className="text-orange-400 text-xs bg-orange-400/10 px-2 py-1 rounded">
+                    Admin Role
+                  </span>
+                  <span className="text-gray-500 text-xs">(All permissions required)</span>
+                </div>
+              )}
             </div>
           </div>
           <button
@@ -120,11 +151,27 @@ export const PermissionModal = ({ visible, onClose, role, onPermissionChange }) 
         </div>
 
         <div className="flex-1 overflow-y-auto p-6">
+          {isAdminRole && (
+            <div className="mb-4 p-4 bg-orange-500/10 border border-orange-500/30 rounded-lg">
+              <div className="flex items-center gap-2 text-orange-300">
+                <InfoCircleOutlined />
+                <span className="text-sm">
+                  This is the Admin role with all permissions. Permissions cannot be modified.
+                </span>
+              </div>
+            </div>
+          )}
+
           <div className="mb-6 p-4 bg-[#161616] rounded-lg">
             <div className="flex flex-wrap gap-3">
               <button
-                onClick={() => setSelectedPermissions([])}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors flex items-center gap-2"
+                onClick={handleClearAll}
+                disabled={isAdminRole}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                  isAdminRole 
+                    ? 'bg-gray-700 text-gray-400 cursor-not-allowed' 
+                    : 'bg-red-600 text-white hover:bg-red-700'
+                }`}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -132,8 +179,13 @@ export const PermissionModal = ({ visible, onClose, role, onPermissionChange }) 
                 Clear All
               </button>
               <button
-                onClick={() => setSelectedPermissions(PERMISSION_DATA.map(p => p.key))}
-                className="px-4 py-2 bg-orange-500 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors flex items-center gap-2"
+                onClick={handleSelectAll}
+                disabled={isAdminRole}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                  isAdminRole 
+                    ? 'bg-gray-700 text-gray-400 cursor-not-allowed' 
+                    : 'bg-green-600 text-white hover:bg-green-700'
+                }`}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -141,8 +193,15 @@ export const PermissionModal = ({ visible, onClose, role, onPermissionChange }) 
                 Select All
               </button>
               <div className="ml-auto flex items-center gap-2 text-sm text-gray-300">
-                <span className="bg-blue-600 px-2 py-1 rounded">{selectedPermissions.length}</span>
+                <span className={`px-2 py-1 rounded ${
+                  isAdminRole ? 'bg-orange-600' : 'bg-blue-600'
+                }`}>
+                  {isAdminRole ? 'All' : selectedPermissions.length}
+                </span>
                 permissions selected
+                {isAdminRole && (
+                  <span className="text-orange-400 text-xs">(Required)</span>
+                )}
               </div>
             </div>
           </div>
@@ -150,13 +209,13 @@ export const PermissionModal = ({ visible, onClose, role, onPermissionChange }) 
           <div className="space-y-4">
             {PERMISSION_GROUPS.map((group) => {
               const groupItems = group.items;
-              const allGroupSelected = groupItems.every(item =>
+              const allGroupSelected = isAdminRole ? true : groupItems.every(item =>
                 selectedPermissions.includes(item)
               );
-              const someGroupSelected = groupItems.some(item =>
+              const someGroupSelected = isAdminRole ? false : groupItems.some(item =>
                 selectedPermissions.includes(item)
               );
-              const selectedCount = groupItems.filter(item => selectedPermissions.includes(item)).length;
+              const selectedCount = isAdminRole ? groupItems.length : groupItems.filter(item => selectedPermissions.includes(item)).length;
 
               return (
                 <div key={group.group} className="border border-gray-700 rounded-lg overflow-hidden">
@@ -169,19 +228,24 @@ export const PermissionModal = ({ visible, onClose, role, onPermissionChange }) 
                         <h3 className="text-white font-medium text-base">{group.group}</h3>
                         <p className="text-gray-400 text-sm">
                           {selectedCount} of {groupItems.length} selected
+                          {isAdminRole && <span className="text-orange-400 ml-1">(Required)</span>}
                         </p>
                       </div>
                     </div>
                     <button
                       onClick={() => handleGroupToggle(groupItems)}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${allGroupSelected
-                          ? 'bg-green-600 text-white hover:bg-green-700'
-                          : someGroupSelected
-                            ? 'bg-yellow-600 text-white hover:bg-yellow-700'
-                            : 'bg-gray-600 text-white hover:bg-gray-700'
-                        }`}
+                      disabled={isAdminRole}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
+                        isAdminRole
+                          ? 'bg-orange-600 text-white cursor-not-allowed'
+                          : allGroupSelected
+                            ? 'bg-green-600 text-white hover:bg-green-700'
+                            : someGroupSelected
+                              ? 'bg-yellow-600 text-white hover:bg-yellow-700'
+                              : 'bg-gray-600 text-white hover:bg-gray-700'
+                      }`}
                     >
-                      {allGroupSelected ? 'Deselect All' : someGroupSelected ? 'Some Selected' : 'Select All'}
+                      {isAdminRole ? 'All Required' : allGroupSelected ? 'Deselect All' : someGroupSelected ? 'Some Selected' : 'Select All'}
                     </button>
                   </div>
 
@@ -189,25 +253,37 @@ export const PermissionModal = ({ visible, onClose, role, onPermissionChange }) 
                   <div className="p-4 bg-[#161616]">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {groupItems.map((permission) => {
-                        const isSelected = selectedPermissions.includes(permission);
+                        const isSelected = isAdminRole ? true : selectedPermissions.includes(permission);
                         return (
                           <div
                             key={permission}
-                            className={`flex items-center gap-3 p-3 rounded-lg border transition-all cursor-pointer group ${isSelected
-                                ? 'border-gray-500 bg-[#1f1f1f]' // selected: darker clean bg
-                                : 'border-gray-700 bg-[#1a1a1a] hover:border-gray-500 hover:bg-[#1e1e1e]'
-                              }`}
-                            onClick={() => handlePermissionToggle(permission)}
+                            className={`flex items-center gap-3 p-3 rounded-lg border transition-all ${
+                              isAdminRole 
+                                ? 'cursor-not-allowed border-orange-500/30 bg-orange-500/5' 
+                                : 'cursor-pointer group hover:border-gray-500 hover:bg-[#1e1e1e]'
+                            } ${
+                              isSelected
+                                ? isAdminRole
+                                  ? 'border-orange-500/50 bg-orange-500/10'
+                                  : 'border-gray-500 bg-[#1f1f1f]'
+                                : 'border-gray-700 bg-[#1a1a1a]'
+                            }`}
+                            onClick={() => !isAdminRole && handlePermissionToggle(permission)}
                           >
                             <div
-                              className={`w-5 h-5 rounded border flex items-center justify-center transition-all ${isSelected
-                                  ? 'bg-[#2a2a2a] border-gray-400'
-                                  : 'bg-[#242424] border-gray-600 group-hover:border-gray-400'
-                                }`}
+                              className={`w-5 h-5 rounded border flex items-center justify-center transition-all ${
+                                isAdminRole
+                                  ? 'bg-orange-500/20 border-orange-400'
+                                  : isSelected
+                                    ? 'bg-[#2a2a2a] border-gray-400'
+                                    : 'bg-[#242424] border-gray-600 group-hover:border-gray-400'
+                              }`}
                             >
                               {isSelected && (
                                 <svg
-                                  className="w-3 h-3 text-gray-200"
+                                  className={`w-3 h-3 ${
+                                    isAdminRole ? 'text-orange-400' : 'text-gray-200'
+                                  }`}
                                   fill="currentColor"
                                   viewBox="0 0 20 20"
                                 >
@@ -220,12 +296,18 @@ export const PermissionModal = ({ visible, onClose, role, onPermissionChange }) 
                               )}
                             </div>
                             <span
-                              className={`text-sm font-medium flex-1 ${isSelected
-                                  ? 'text-gray-200'
-                                  : 'text-gray-400 group-hover:text-gray-100'
-                                }`}
+                              className={`text-sm font-medium flex-1 ${
+                                isAdminRole
+                                  ? 'text-orange-300'
+                                  : isSelected
+                                    ? 'text-gray-200'
+                                    : 'text-gray-400 group-hover:text-gray-100'
+                              }`}
                             >
                               {permission}
+                              {isAdminRole && (
+                                <span className="text-orange-400 text-xs ml-1">(Required)</span>
+                              )}
                             </span>
                           </div>
                         );
@@ -254,7 +336,7 @@ export const PermissionModal = ({ visible, onClose, role, onPermissionChange }) 
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
-            Save Permissions
+            {isAdminRole ? 'Confirm' : 'Save Permissions'}
           </button>
         </div>
       </div>

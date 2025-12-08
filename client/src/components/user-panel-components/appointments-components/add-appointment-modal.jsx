@@ -2,7 +2,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { Search, X, Plus, Trash2, Users, Info } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const AddAppointmentModal = ({
   isOpen,
@@ -28,6 +28,10 @@ const AddAppointmentModal = ({
   const [showAlternatives, setShowAlternatives] = useState(false);
   const [alternativeSlots, setAlternativeSlots] = useState([]);
   const [editingRelations, setEditingRelations] = useState(false);
+
+  const [showSuggestions, setShowSuggestions] = useState({}); // Track which member field shows suggestions
+const [filteredSuggestions, setFilteredSuggestions] = useState({}); // Store filtered suggestions per member
+const [availableMembers, setAvailableMembers] = useState([]); // List of all available members
 
   // Single appointment state with support for multiple members
   const [appointmentData, setAppointmentData] = useState({
@@ -66,6 +70,39 @@ const AddAppointmentModal = ({
     type: "manual",
     selectedMemberId: null,
   });
+
+
+  useEffect(() => {
+    // Extract members from availableMembersLeads or use a separate prop
+    const members = availableMembersLeads.filter(person => person.type === "member" || !person.type);
+    setAvailableMembers(members);
+  }, [availableMembersLeads]);
+
+  const filterSuggestions = (memberId, searchValue) => {
+    if (!searchValue.trim()) {
+      setFilteredSuggestions(prev => ({ ...prev, [memberId]: [] }));
+      return;
+    }
+    
+    const filtered = availableMembers.filter(member =>
+      member.name.toLowerCase().includes(searchValue.toLowerCase())
+    ).slice(0, 5); // Limit to 5 suggestions
+    
+    setFilteredSuggestions(prev => ({ ...prev, [memberId]: filtered }));
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (!e.target.closest('.member-input-container')) {
+        setShowSuggestions({});
+      }
+    };
+    
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
+  
+
 
   // Update single appointment field
   const updateAppointment = (field, value) => {
@@ -108,10 +145,33 @@ const AddAppointmentModal = ({
     setAppointmentData({
       ...appointmentData,
       members: appointmentData.members.map(member =>
-        member.id === memberId ? { ...member, [field]: value } : member
+        member.id === memberId ? { ...member, [field]: value, searchValue: value } : member
       ),
     });
+  
+    // Filter suggestions when typing
+    if (field === "name") {
+      filterSuggestions(memberId, value);
+      setShowSuggestions(prev => ({ ...prev, [memberId]: true }));
+    }
   };
+
+  const selectSuggestion = (memberId, member) => {
+    setAppointmentData({
+      ...appointmentData,
+      members: appointmentData.members.map(m =>
+        m.id === memberId ? { ...m, name: member.name, searchValue: member.name } : m
+      ),
+    });
+    
+    // Hide suggestions after selection
+    setShowSuggestions(prev => ({ ...prev, [memberId]: false }));
+    setFilteredSuggestions(prev => ({ ...prev, [memberId]: [] }));
+  };
+  
+  
+  
+  
 
   // Update recurring options
   const updateRecurringOptions = (field, value) => {
@@ -182,6 +242,10 @@ const AddAppointmentModal = ({
 
     return alternatives;
   };
+
+  const hasSelectedMember = appointmentData.members.some(member => 
+    member.name && member.name.trim() !== ""
+  );
 
   // Select an alternative slot
   const selectAlternative = (alt) => {
@@ -254,38 +318,50 @@ const AddAppointmentModal = ({
 
        
         {/* Tab Navigation */}
-        <div className="px-6 py-7">
-          <div className="flex border-b border-gray-700 mb-6">
-            <button
-              onClick={() => setActiveTab("details")}
-              className={`px-4 py-2 text-sm font-medium ${activeTab === "details"
-                ? "text-blue-400 border-b-2 border-blue-400"
-                : "text-gray-400 hover:text-white"
-                }`}
-            >
-              Details
-            </button>
-            
-            <button
-              onClick={() => setActiveTab("note")}
-              className={`px-4 py-2 text-sm font-medium ${activeTab === "note"
-                ? "text-blue-400 border-b-2 border-blue-400"
-                : "text-gray-400 hover:text-white"
-                }`}
-            >
-              Special Note
-            </button>
-            <button
-              onClick={() => setActiveTab("relations")}
-              className={`px-4 py-2 text-sm font-medium ${activeTab === "relations"
-                ? "text-blue-400 border-b-2 border-blue-400"
-                : "text-gray-400 hover:text-white"
-                }`}
-            >
-              Relations
-            </button>
-          </div>
-        </div>
+       {/* Tab Navigation */}
+<div className="px-6 py-7">
+  <div className="flex border-b border-gray-700 mb-6">
+    <button
+      onClick={() => setActiveTab("details")}
+      className={`px-4 py-2 text-sm font-medium ${
+        activeTab === "details"
+          ? "text-blue-400 border-b-2 border-blue-400"
+          : "text-gray-400 hover:text-white"
+      }`}
+    >
+      Details
+    </button>
+    
+    <button
+      onClick={() => setActiveTab("note")}
+      disabled={!hasSelectedMember}
+      className={`px-4 py-2 text-sm font-medium ${
+        activeTab === "note"
+          ? "text-blue-400 border-b-2 border-blue-400"
+          : !hasSelectedMember
+          ? "text-gray-400 cursor-not-allowed"
+          : "text-gray-400 hover:text-white"
+      }`}
+      title={!hasSelectedMember ? "Please select a member first" : ""}
+    >
+      Special Note
+    </button>
+    <button
+      onClick={() => setActiveTab("relations")}
+      disabled={!hasSelectedMember}
+      className={`px-4 py-2 text-sm font-medium ${
+        activeTab === "relations"
+          ? "text-blue-400 border-b-2 border-blue-400"
+          : !hasSelectedMember
+          ? "text-gray-400 cursor-not-allowed"
+          : "text-gray-400 hover:text-white"
+      }`}
+      title={!hasSelectedMember ? "Please select a member first" : ""}
+    >
+      Relations
+    </button>
+  </div>
+</div>
 
         <div className="px-2 pb-6">
           <div className="space-y-4 custom-scrollbar p-3 overflow-y-auto max-h-[50vh]">
@@ -312,30 +388,62 @@ const AddAppointmentModal = ({
                   
                   <div className="space-y-2">
                     {appointmentData.members.map((member, index) => (
-                      <div key={member.id} className="flex items-center gap-2">
-                        <div className="relative flex-1">
-                          <Search
-                            size={18}
-                            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-                          />
-                          <input
-                            type="text"
-                            placeholder={`Member ${index + 1} name...`}
-                            value={member.name}
-                            onChange={(e) => updateMember(member.id, "name", e.target.value)}
-                            className="w-full bg-[#101010] text-sm rounded-xl px-10 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF]"
-                          />
-                        </div>
-                        {appointmentData.members.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => removeMember(member.id)}
-                            className="p-2 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-lg transition-colors"
-                          >
-                            <Trash2 size={16} />
-                          </button>
+                      <div key={member.id} className="flex items-center gap-2 member-input-container relative">
+                      <div className="relative flex-1">
+                        <Search
+                          size={18}
+                          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                        />
+                        <input
+                          type="text"
+                          placeholder={`Member ${index + 1} name...`}
+                          value={member.name}
+                          onChange={(e) => updateMember(member.id, "name", e.target.value)}
+                          onFocus={() => {
+                            if (member.name) {
+                              filterSuggestions(member.id, member.name);
+                            }
+                            setShowSuggestions(prev => ({ ...prev, [member.id]: true }));
+                          }}
+                          className="w-full bg-[#101010] text-sm rounded-xl px-10 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF]"
+                        />
+                        
+                        {/* Suggestions dropdown */}
+                        {showSuggestions[member.id] && filteredSuggestions[member.id]?.length > 0 && (
+                          <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-[#101010] border border-gray-700 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                            {filteredSuggestions[member.id].map((suggestion, idx) => (
+                              <div
+                                key={suggestion.id || idx}
+                                className="px-4 py-3 hover:bg-[#3F74FF] hover:text-white cursor-pointer text-sm text-gray-200 border-b border-gray-800 last:border-b-0"
+                                onClick={() => selectSuggestion(member.id, suggestion)}
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center">
+                                    <Users size={14} />
+                                  </div>
+                                  <div>
+                                    <p className="font-medium">{suggestion.name}</p>
+                                    {suggestion.type && (
+                                      <p className="text-xs text-gray-400">{suggestion.type}</p>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
                         )}
                       </div>
+                      
+                      {appointmentData.members.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeMember(member.id)}
+                          className="p-2 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-lg transition-colors"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      )}
+                    </div>
                     ))}
                   </div>
                 </div>

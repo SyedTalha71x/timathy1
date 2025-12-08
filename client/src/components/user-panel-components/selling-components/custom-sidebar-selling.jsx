@@ -305,6 +305,13 @@ const SidebarAreaSelling = ({
     }
   }
 
+  const handleClose = () => {
+    // Only allow closing on mobile, or keep open on desktop
+    if (window.innerWidth < 768) {
+      onClose()
+    }
+  }
+
   const handleSidebarBulletinFilterChange = (filter) => {
     setSidebarBulletinFilter(filter)
   }
@@ -630,7 +637,7 @@ const SidebarAreaSelling = ({
     <>
       <aside
         className={`
-            fixed top-0 right-0 h-full text-white w-full md:w-[30%] bg-[#181818] border-l border-gray-700 z-50
+            fixed top-0 right-0 h-full text-white w-full sm:w-96 lg:w-88 bg-[#181818] border-l border-gray-700 z-50
             transform transition-transform duration-500 ease-in-out
             ${isOpen ? "translate-x-0" : "translate-x-full"}
           `}
@@ -648,7 +655,7 @@ const SidebarAreaSelling = ({
               <div></div>
               <div className="flex items-center gap-1 sm:gap-2">
                 {/* WIDGETS TAB LOGIC - View management and widget controls */}
-                {!isSidebarEditing && activeTab !== "notifications" && (
+                {/* {!isSidebarEditing && activeTab !== "notifications" && (
                   <button
                     onClick={() => setIsViewModalOpen(true)}
                     className="p-1.5 sm:p-2 flex items-center text-sm gap-2 bg-gray-600 text-white hover:bg-gray-700 rounded-lg cursor-pointer"
@@ -657,7 +664,7 @@ const SidebarAreaSelling = ({
                     <Eye size={16} />
                     {currentView ? currentView.name : "Standard View"}
                   </button>
-                )}
+                )} */}
                 {activeTab === "widgets" && isSidebarEditing && (
                   <button
                     onClick={() => setIsRightWidgetModalOpen(true)}
@@ -679,19 +686,18 @@ const SidebarAreaSelling = ({
                 )}
                 {/* Close button */}
                 <button
-                  onClick={onClose}
-                  className="p-1.5 sm:p-2 text-zinc-400 hover:bg-zinc-700 rounded-xl "
-                  aria-label="Close sidebar"
-                >
-                  <X size={16} />
-                </button>
+  onClick={handleClose}
+  className="p-1.5 sm:p-2 text-zinc-400 hover:bg-zinc-700 rounded-xl md:hidden" // Hide on desktop
+  aria-label="Close sidebar"
+>
+  <X size={16} />
+</button>
               </div>
             </div>
           </div>
 
           {/* Tab Navigation - Shopping, Widgets, Notifications */}
-          <div className="flex mb-3 sm:mb-4 bg-black rounded-xl p-1">
-            {/* SHOPPING TAB LOGIC - Shopping cart tab */}
+          {/* <div className="flex mb-3 sm:mb-4 bg-black rounded-xl p-1">
             <button
               onClick={() => setActiveTab("shopping")}
               className={`flex-1 py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors relative ${activeTab === "shopping" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
@@ -706,7 +712,6 @@ const SidebarAreaSelling = ({
               )}
             </button>
 
-            {/* WIDGETS TAB LOGIC - Widgets management tab */}
             <button
               onClick={() => setActiveTab("widgets")}
               className={`flex-1 py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors ${activeTab === "widgets" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
@@ -716,7 +721,6 @@ const SidebarAreaSelling = ({
               <span className="hidden sm:inline">Widgets</span>
             </button>
 
-            {/* NOTIFICATIONS TAB LOGIC - Notifications tab */}
             <button
               onClick={() => setActiveTab("notifications")}
               className={`flex-1 py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors relative ${activeTab === "notifications" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
@@ -731,13 +735,13 @@ const SidebarAreaSelling = ({
                 </span>
               )}
             </button>
-          </div>
+          </div> */}
 
           {/* SHOPPING TAB LOGIC - Shopping Cart Content */}
           {/* Shopping Tab */}
           {activeTab === "shopping" && (
             <div>
-              <h2 className="text-xl md:text-2xl font-bold oxanium_font mb-6">Shopping Basket</h2>
+              {/* <h2 className="text-xl md:text-2xl font-bold oxanium_font mb-6">Shopping Basket</h2> */}
               <div className="mt-3">
                 <label className="flex items-center gap-2 text-sm text-gray-200 cursor-pointer">
                   <input
@@ -1303,136 +1307,136 @@ const SidebarAreaSelling = ({
 
                     {/* Todo Widget */}
                     {widget.type === "todo" && (
-  <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
-    <div className="flex justify-between items-center">
-      <h2 className="text-lg font-semibold open_sans_font cursor-pointer">To-Do</h2>
-      <button
-        // onClick={() => setIsAddTaskModalOpen(true)}
-        className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
-      >
-        <Plus size={18} />
-      </button>
-    </div>
+                      <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
+                        <div className="flex justify-between items-center">
+                          <h2 className="text-lg font-semibold open_sans_font cursor-pointer">To-Do</h2>
+                          {!isSidebarEditing && <button
+                            // onClick={() => setIsAddTaskModalOpen(true)}
+                            className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                          >
+                            <Plus size={18} />
+                          </button>}
+                        </div>
 
-    <div className="relative mb-3 w-full" ref={todoFilterDropdownRef}>
-      <button
-        onClick={() => setIsTodoFilterDropdownOpen(!isTodoFilterDropdownOpen)}
-        className="flex items-center gap-2 px-3 py-1.5 bg-black rounded-xl text-white text-sm w-full justify-between"
-      >
-        {todoFilterOptions.find((option) => option.value === todoFilter)?.label}
-        <ChevronDown className="w-4 h-4" />
-      </button>
-      {isTodoFilterDropdownOpen && (
-        <div className="absolute z-10 mt-2 w-full bg-[#2F2F2F] rounded-xl shadow-lg">
-          {todoFilterOptions.map((option) => (
-            <button
-              key={option.value}
-              className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-white hover:bg-black first:rounded-t-xl last:rounded-b-xl"
-              onClick={() => {
-                setTodoFilter(option.value)
-                setIsTodoFilterDropdownOpen(false)
-              }}
-            >
-              {option.color && (
-                <div
-                  className="w-2 h-2 rounded-full"
-                  style={{ backgroundColor: option.color }}
-                />
-              )}
-              {option.label}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
+                        <div className="relative mb-3 w-full" ref={todoFilterDropdownRef}>
+                          <button
+                            onClick={() => setIsTodoFilterDropdownOpen(!isTodoFilterDropdownOpen)}
+                            className="flex items-center gap-2 px-3 py-1.5 bg-black rounded-xl text-white text-sm w-full justify-between"
+                          >
+                            {todoFilterOptions.find((option) => option.value === todoFilter)?.label}
+                            <ChevronDown className="w-4 h-4" />
+                          </button>
+                          {isTodoFilterDropdownOpen && (
+                            <div className="absolute z-10 mt-2 w-full bg-[#2F2F2F] rounded-xl shadow-lg">
+                              {todoFilterOptions.map((option) => (
+                                <button
+                                  key={option.value}
+                                  className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-white hover:bg-black first:rounded-t-xl last:rounded-b-xl"
+                                  onClick={() => {
+                                    setTodoFilter(option.value)
+                                    setIsTodoFilterDropdownOpen(false)
+                                  }}
+                                >
+                                  {option.color && (
+                                    <div
+                                      className="w-2 h-2 rounded-full"
+                                      style={{ backgroundColor: option.color }}
+                                    />
+                                  )}
+                                  {option.label}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
 
-    {/* Todo Items with Scroll */}
-    <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
-      <div className="space-y-2">
-        {getFilteredTodos().length > 0 ? (
-          <>
-            {getFilteredTodos()
-              .slice(0, 3)
-              .map((todo) => (
-                <div key={todo.id} className="p-3 bg-black rounded-xl flex items-center justify-between">
-                  <div className="flex items-center gap-2 flex-1">
-                    <input
-                      type="checkbox"
-                      checked={todo.completed}
-                      onChange={() => handleTaskComplete(todo.id)}
-                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                    />
-                    <div className="flex-1">
-                      <h3
-                        className={`font-semibold open_sans_font text-sm ${todo.completed ? "line-through text-gray-500" : ""}`}
-                      >
-                        {todo.title}
-                      </h3>
-                      <p className="text-xs open_sans_font text-zinc-400">
-                        Due: {todo.dueDate} {todo.dueTime && `at ${todo.dueTime}`}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="relative">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        toggleDropdown(`todo-${todo.id}`)
-                      }}
-                      className="p-1 hover:bg-zinc-700 rounded"
-                    >
-                      <MoreVertical size={16} />
-                    </button>
-                    {openDropdownIndex === `todo-${todo.id}` && (
-                      <div className="absolute right-0 top-8 bg-[#2F2F2F] rounded-lg shadow-lg z-10 min-w-[120px]">
-                        <button
-                          onClick={() => {
-                            handleEditTask(todo)
-                          }}
-                          className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-t-lg"
-                        >
-                          Edit Task
-                        </button>
-                        <button
-                          onClick={() => {
-                            setTaskToCancel(todo.id)
-                          }}
-                          className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600"
-                        >
-                          Cancel Task
-                        </button>
-                        <button
-                          onClick={() => {
-                            setTaskToDelete(todo.id)
-                          }}
-                          className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-b-lg text-red-400"
-                        >
-                          Delete Task
-                        </button>
+                        {/* Todo Items with Scroll */}
+                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
+                          <div className="space-y-2">
+                            {getFilteredTodos().length > 0 ? (
+                              <>
+                                {getFilteredTodos()
+                                  .slice(0, 3)
+                                  .map((todo) => (
+                                    <div key={todo.id} className="p-3 bg-black rounded-xl flex items-center justify-between">
+                                      <div className="flex items-center gap-2 flex-1">
+                                        <input
+                                          type="checkbox"
+                                          checked={todo.completed}
+                                          onChange={() => handleTaskComplete(todo.id)}
+                                          className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                                        />
+                                        <div className="flex-1">
+                                          <h3
+                                            className={`font-semibold open_sans_font text-sm ${todo.completed ? "line-through text-gray-500" : ""}`}
+                                          >
+                                            {todo.title}
+                                          </h3>
+                                          <p className="text-xs open_sans_font text-zinc-400">
+                                            Due: {todo.dueDate} {todo.dueTime && `at ${todo.dueTime}`}
+                                          </p>
+                                        </div>
+                                      </div>
+                                      <div className="relative">
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation()
+                                            toggleDropdown(`todo-${todo.id}`)
+                                          }}
+                                          className="p-1 hover:bg-zinc-700 rounded"
+                                        >
+                                          <MoreVertical size={16} />
+                                        </button>
+                                        {openDropdownIndex === `todo-${todo.id}` && (
+                                          <div className="absolute right-0 top-8 bg-[#2F2F2F] rounded-lg shadow-lg z-10 min-w-[120px]">
+                                            <button
+                                              onClick={() => {
+                                                handleEditTask(todo)
+                                              }}
+                                              className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-t-lg"
+                                            >
+                                              Edit Task
+                                            </button>
+                                            <button
+                                              onClick={() => {
+                                                setTaskToCancel(todo.id)
+                                              }}
+                                              className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600"
+                                            >
+                                              Cancel Task
+                                            </button>
+                                            <button
+                                              onClick={() => {
+                                                setTaskToDelete(todo.id)
+                                              }}
+                                              className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-b-lg text-red-400"
+                                            >
+                                              Delete Task
+                                            </button>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  ))}
+                              </>
+                            ) : (
+                              <div className="text-center py-4 text-gray-400">
+                                <p className="text-sm">No tasks in this category</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex justify-center">
+                          <Link
+                            to={"/dashboard/to-do"}
+                            className="text-sm open_sans_font text-white hover:underline"
+                          >
+                            See all
+                          </Link>
+                        </div>
                       </div>
                     )}
-                  </div>
-                </div>
-              ))}
-          </>
-        ) : (
-          <div className="text-center py-4 text-gray-400">
-            <p className="text-sm">No tasks in this category</p>
-          </div>
-        )}
-      </div>
-    </div>
-
-    <div className="flex justify-center">
-      <Link
-        to={"/dashboard/to-do"}
-        className="text-sm open_sans_font text-white hover:underline"
-      >
-        See all
-      </Link>
-    </div>
-  </div>
-)}
 
                     {widget.type === "birthday" && (
                       <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
@@ -1496,12 +1500,12 @@ const SidebarAreaSelling = ({
                         {/* Header */}
                         <div className="flex justify-between items-center">
                           <h2 className="text-lg font-semibold">Website Links</h2>
-                          <button
+                          {!isSidebarEditing && <button
                             onClick={addCustomLink}
                             className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg cursor-pointer transition-colors"
                           >
                             <Plus size={18} />
-                          </button>
+                          </button>}
                         </div>
 
                         {/* Scrollable Grid List */}
@@ -1676,20 +1680,25 @@ const SidebarAreaSelling = ({
                     )}
 
                     {widget.type === "expiringContracts" && (
-                      <div className="mb-6">
-                        <div className="flex items-center justify-between mb-3">
-                          <h2 className="text-lg md:text-xl font-bold cursor-pointer">Expiring Contracts</h2>
-                        </div>
-                        <div className="space-y-2 max-h-[300px] overflow-y-auto custom-scrollbar">
-                          {expiringContracts?.slice(0, 3).map((contract) => (
-                            <Link to="/dashboard/contract" key={contract.id}>
-                              <div className="p-3 bg-black rounded-lg hover:bg-zinc-900 mt-2 transition-colors">
-                                <div className="flex justify-between items-start gap-2">
-                                  <div className="min-w-0">
-                                    <h3 className="text-sm font-medium truncate">{contract.title}</h3>
-                                    <p className="text-xs mt-1 text-zinc-400">Expires: {contract.expiryDate}</p>
+                      <div className="space-y-3 p-4 rounded-xl max-h-[340px] overflow-y-auto custom-scrollbar bg-[#2F2F2F] h-full flex flex-col">
+                      <div className="flex justify-between items-center flex-shrink-0">
+                        <h2 className="text-lg font-semibold">Expiring Contracts</h2>
+                      </div>
+                      <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
+                        <div className="grid grid-cols-1 gap-3">
+                          {expiringContracts.map((contract) => (
+                            <Link to={"/dashboard/contract"} key={contract.id}>
+                              <div className="p-4 bg-black rounded-xl hover:bg-zinc-900 transition-colors">
+                                <div className="flex justify-between items-start gap-3">
+                                  <div className="flex-1 min-w-0">
+                                    <h3 className="text-sm font-medium break-words line-clamp-2">
+                                      {contract.title}
+                                    </h3>
+                                    <p className="text-xs mt-1 text-zinc-400 whitespace-nowrap overflow-hidden text-ellipsis">
+                                      Expires: {contract.expiryDate}
+                                    </p>
                                   </div>
-                                  <span className="px-2 py-1 text-xs rounded-full bg-yellow-500/20 text-yellow-400 whitespace-nowrap">
+                                  <span className="px-2 py-1 text-xs rounded-full bg-yellow-500/20 text-yellow-400 whitespace-nowrap flex-shrink-0">
                                     {contract.status}
                                   </span>
                                 </div>
@@ -1697,15 +1706,11 @@ const SidebarAreaSelling = ({
                             </Link>
                           ))}
                         </div>
-                        <div className="flex justify-center mt-3">
-                          <Link to="/dashboard/contract" className="text-sm text-white hover:underline">
-                            See all
-                          </Link>
-                        </div>
                       </div>
+                    </div>
                     )}
 
-                    {widget.type === "bulletinBoard" && <BulletinBoardWidget />}
+                    {widget.type === "bulletinBoard" && <BulletinBoardWidget isSidebarEditing={isSidebarEditing} />}
 
 
                     {widget.type === "staffCheckIn" && (
@@ -1719,7 +1724,7 @@ const SidebarAreaSelling = ({
                       </div>
                     )}
 
-                    {widget.type === "notes" && <NotesWidget />}
+                    {widget.type === "notes" && <NotesWidget isSidebarEditing={isSidebarEditing} />}
 
                     {widget.type === "shiftSchedule" && (
                       <ShiftScheduleWidget

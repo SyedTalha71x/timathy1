@@ -1,8 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
 
-import { Checkbox, Row } from "antd"
+import { Checkbox, Modal, Row } from "antd"
 import { useState, useEffect, useRef } from "react"
 import {
   Input,
@@ -52,6 +51,7 @@ import {
   LineChartOutlined,
   DownloadOutlined,
   SecurityScanOutlined,
+  CopyOutlined,
 } from "@ant-design/icons"
 import VariablePicker from "../../components/variable-picker"
 import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'
@@ -60,8 +60,10 @@ import { QRCode, Typography } from "antd"
 import { QrcodeOutlined, ImportOutlined } from "@ant-design/icons"
 
 import ContractBuilder from "../../components/user-panel-components/configuration-components/ContractBuilder"
-import { PermissionModal } from "../../components/user-panel-components/configuration-components/PermissionModal"
+import { PERMISSION_DATA, PermissionModal } from "../../components/user-panel-components/configuration-components/PermissionModal"
 import { WysiwygEditor } from "../../components/user-panel-components/configuration-components/WysiwygEditor"
+import { RoleItem } from "../../components/user-panel-components/configuration-components/RoleItem"
+import { StaffAssignmentModal } from "../../components/user-panel-components/configuration-components/StaffAssignmentModal"
 
 const { Title } = Typography
 const { Option } = Select
@@ -127,9 +129,43 @@ const ConfigurationPage = () => {
   // Other studio settings
   const [logo, setLogo] = useState([])
   const [logoUrl, setLogoUrl] = useState("")
-  const [roles, setRoles] = useState([])
+  const [roles, setRoles] = useState([
+    {
+      id: 1,
+      name: "Admin",
+      permissions: PERMISSION_DATA.map(p => p.key), // All permissions
+      color: "#FF843E",
+      defaultVacationDays: 20,
+      isAdmin: true,
+      staffCount: 1,
+      assignedStaff: [1] // Assign first staff as admin by default
+    }
+  ]);
+
   const [appointmentTypes, setAppointmentTypes] = useState([])
   const [tags, setTags] = useState([])
+
+
+  const [introductoryMaterials, setIntroductoryMaterials] = useState([])
+  const [editingCategory, setEditingCategory] = useState({ index: null, value: "" })
+
+  const [defaultStaffRole, setDefaultStaffRole] = useState(null);
+  const [defaultStaffCountry, setDefaultStaffCountry] = useState("studio");
+  const [staffAssignmentModalVisible, setStaffAssignmentModalVisible] = useState(false);
+  const [selectedRoleForAssignment, setSelectedRoleForAssignment] = useState(null);
+
+  const [allStaff, setAllStaff] = useState([
+    { id: 1, name: "John Doe", email: "john@studio.com", avatar: null },
+    { id: 2, name: "Jane Smith", email: "jane@studio.com", avatar: null },
+    { id: 3, name: "Mike Johnson", email: "mike@studio.com", avatar: null },
+  ]);
+
+  const [contractForms, setContractForms] = useState([]);
+  const [selectedContractForm, setSelectedContractForm] = useState(null);
+  const [contractBuilderModalVisible, setContractBuilderModalVisible] = useState(false);
+  const [newContractFormName, setNewContractFormName] = useState("");
+  const [showCreateFormModal, setShowCreateFormModal] = useState(false);
+
 
   // Countries for selection with currency
   const [countries, setCountries] = useState([
@@ -184,26 +220,42 @@ const ConfigurationPage = () => {
 
   const [defaultVacationDays, setDefaultVacationDays] = useState(20)
 
+  const [appointmentCategories, setAppointmentCategories] = useState([
+    "Health Check",
+    "Personal Training",
+    "Wellness",
+    "Recovery",
+    "Mindfulness",
+    "Group Class"
+  ])
+
   // <CHANGE> Settings Modal States - All Communication/Notification Settings
   const [settings, setSettings] = useState({
     autoArchiveDuration: 30,
     emailNotificationEnabled: false,
     birthdayMessageEnabled: false,
     birthdayMessageTemplate: "",
+    birthdaySendTime: "09:00", // Default send time
     appointmentNotificationEnabled: false,
     appNotificationEnabled: false,
     birthdayAppNotificationEnabled: false,
+    birthdayAppTemplate: "",
+    birthdayAppSendTime: "09:00",
     appointmentAppNotificationEnabled: false,
     appConfirmationEnabled: false,
     appCancellationEnabled: false,
     appRescheduledEnabled: false,
     appReminderEnabled: false,
+    appReminderHoursBefore: 24,
     notificationSubTab: "email",
     smtpHost: "",
     smtpPort: 587,
     smtpUser: "",
     smtpPass: "",
+    senderName: "",
     emailSignature: "Best regards,\n{Studio_Name} Team",
+    einvoiceSubject: "",
+    einvoiceTemplate: "",
   })
 
   const [appointmentNotificationTypes, setAppointmentNotificationTypes] = useState({
@@ -385,6 +437,84 @@ const ConfigurationPage = () => {
     }
   }, [studioCountry])
 
+  // Add this useEffect to fetch countries
+  useEffect(() => {
+    const fetchCountries = async () => {
+      try {
+        const response = await fetch('https://restcountries.com/v3.1/all?fields=name,cca2,currencies');
+        if (!response.ok) {
+          throw new Error('Failed to fetch countries');
+        }
+        const data = await response.json();
+
+        const formattedCountries = data.map(country => {
+          // Get the first currency as default
+          const currencyCode = country.currencies ? Object.keys(country.currencies)[0] : 'USD';
+          const currencySymbol = getCurrencySymbol(currencyCode);
+
+          return {
+            code: country.cca2,
+            name: country.name.common,
+            currency: currencySymbol
+          };
+        }).sort((a, b) => a.name.localeCompare(b.name));
+
+        setCountries(formattedCountries);
+      } catch (error) {
+        console.error('Error fetching countries:', error);
+        // Fallback to existing countries if API fails
+        notification.error({
+          message: 'Error Loading Countries',
+          description: 'Using default country list. Some countries may be missing.',
+        });
+      }
+    };
+
+    fetchCountries();
+  }, []);
+
+  useEffect(() => {
+    if (openingHours.length === 0) {
+      const defaultHours = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(day => ({
+        day,
+        startTime: null,
+        endTime: null,
+        closed: false
+      }));
+
+      // Sunday closed by default
+      defaultHours.push({
+        day: 'Sunday',
+        startTime: null,
+        endTime: null,
+        closed: true
+      });
+
+      setOpeningHours(defaultHours);
+    }
+  }, []);
+
+  // Helper function to get currency symbols
+  const getCurrencySymbol = (currencyCode) => {
+    const currencySymbols = {
+      USD: '$', EUR: '€', GBP: '£', JPY: '¥', CAD: 'C$', AUD: 'A$',
+      CHF: 'Fr', CNY: '¥', INR: '₹', BRL: 'R$', RUB: '₽', KRW: '₩',
+      MXN: '$', SGD: 'S$', NZD: 'NZ$', SEK: 'kr', NOK: 'kr', DKK: 'kr',
+      PLN: 'zł', TRY: '₺', ZAR: 'R', HKD: 'HK$', ILS: '₪'
+    };
+    return currencySymbols[currencyCode] || currencyCode;
+  };
+
+  const validateWebsite = (url) => {
+    if (!url) return true; // Empty is allowed
+    try {
+      const urlObj = new URL(url.startsWith('http') ? url : `https://${url}`);
+      return urlObj.protocol === 'http:' || urlObj.protocol === 'https:';
+    } catch {
+      return false;
+    }
+  };
+
   const fetchPublicHolidays = async (countryCode) => {
     if (!countryCode) return
     setIsLoadingHolidays(true)
@@ -462,7 +592,23 @@ const ConfigurationPage = () => {
   }
 
   const handleAddOpeningHour = () => {
-    setOpeningHours([...openingHours, { day: "", startTime: "", endTime: "" }])
+    const availableDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+      .filter(day => !openingHours.some(hour => hour.day === day && !hour.closed));
+
+    if (availableDays.length === 0) {
+      notification.warning({
+        message: "All Days Configured",
+        description: "All days already have opening hours. Please edit existing entries.",
+      });
+      return;
+    }
+
+    setOpeningHours([...openingHours, {
+      day: availableDays[0],
+      startTime: null,
+      endTime: null,
+      closed: false
+    }]);
   }
 
   const handleRemoveOpeningHour = (index) => {
@@ -480,16 +626,90 @@ const ConfigurationPage = () => {
   }
 
   const handleAddRole = () => {
-    setRoles([
-      ...roles,
-      {
-        name: "",
-        permissions: [],
-        color: "#1890ff",
-        defaultVacationDays: 20,
-      },
-    ])
-  }
+    const newRole = {
+      id: Date.now(),
+      name: "",
+      permissions: [],
+      color: "#1890ff",
+      defaultVacationDays: defaultVacationDays,
+      isAdmin: false,
+      staffCount: 0,
+      assignedStaff: []
+    };
+    setRoles([...roles, newRole]);
+  };
+
+
+  const handleUpdateRole = (index, field, value) => {
+    const updatedRoles = [...roles];
+    
+    // Check for duplicate names (applies to all roles including Admin)
+    if (field === "name" && value.trim()) {
+      const duplicate = roles.find((role, i) => i !== index && role.name.toLowerCase() === value.toLowerCase().trim());
+      if (duplicate) {
+        notification.error({
+          message: "Duplicate Role Name",
+          description: "A role with this name already exists. Please choose a different name.",
+        });
+        return;
+      }
+    }
+    
+    updatedRoles[index][field] = value;
+    setRoles(updatedRoles);
+  };
+
+  const handleDeleteRole = (index) => {
+    if (roles[index].isAdmin) {
+      notification.error({
+        message: "Cannot Delete Admin Role",
+        description: "The Admin role cannot be deleted.",
+      });
+      return;
+    }
+
+    if (roles[index].staffCount > 0) {
+      notification.error({
+        message: "Cannot Delete Role",
+        description: "This role has staff members assigned. Please reassign them first.",
+      });
+      return;
+    }
+
+    setRoles(roles.filter((_, i) => i !== index));
+  };
+
+  const handleCopyRole = (index) => {
+    const roleToCopy = roles[index];
+    const newRole = {
+      ...roleToCopy,
+      id: Date.now(),
+      name: `${roleToCopy.name} (copy)`,
+      staffCount: 0,
+      assignedStaff: [],
+      isAdmin: false // Ensure copied role is not admin
+    };
+    setRoles([...roles, newRole]);
+  };
+
+  const handleStaffAssignmentChange = (roleId, assignedStaffIds) => {
+    const updatedRoles = roles.map(role => {
+      if (role.id === roleId) {
+        return {
+          ...role,
+          assignedStaff: assignedStaffIds,
+          staffCount: assignedStaffIds.length
+        };
+      }
+      return role;
+    });
+    setRoles(updatedRoles);
+  };
+
+  const openStaffAssignmentModal = (index) => {
+    setSelectedRoleForAssignment(index);
+    setStaffAssignmentModalVisible(true);
+  };
 
   const handleAddAppointmentType = () => {
     setAppointmentTypes([
@@ -501,13 +721,97 @@ const ConfigurationPage = () => {
         color: "#1890ff",
         interval: 30,
         images: [],
+        category: "", // Add category field
       },
     ])
   }
 
-  const handleAddTag = () => {
-    setTags([...tags, { name: "", color: "#1890ff" }])
+  // Add these functions with your other handler functions  
+
+  const handleEditAppointmentCategory = (index) => {
+    const currentCategory = appointmentCategories[index]
+    const newCategory = prompt("Edit category name:", currentCategory)
+    if (newCategory && newCategory.trim()) {
+      const updatedCategories = [...appointmentCategories]
+      updatedCategories[index] = newCategory.trim()
+      setAppointmentCategories(updatedCategories)
+      notification.success({
+        message: "Category Updated",
+        description: `Category has been updated to "${newCategory}".`,
+      })
+    }
   }
+
+
+  const handleAddAppointmentCategory = () => {
+    setAppointmentCategories([...appointmentCategories, "New Category"])
+    setEditingCategory({ index: appointmentCategories.length, value: "New Category" })
+  }
+
+  const handleStartEditCategory = (index, value) => {
+    setEditingCategory({ index, value })
+  }
+
+  const handleSaveEditCategory = (index) => {
+    if (editingCategory.value.trim()) {
+      const updatedCategories = [...appointmentCategories]
+      updatedCategories[index] = editingCategory.value.trim()
+      setAppointmentCategories(updatedCategories)
+    }
+    setEditingCategory({ index: null, value: "" })
+  }
+
+  const handleCancelEditCategory = () => {
+    setEditingCategory({ index: null, value: "" })
+  }
+
+  const handleRemoveAppointmentCategory = (index) => {
+    const categoryToRemove = appointmentCategories[index]
+    const isUsed = appointmentTypes.some(type => type.category === categoryToRemove)
+
+    if (isUsed) {
+      notification.error({
+        message: "Cannot Remove Category",
+        description: `"${categoryToRemove}" is currently used in appointment types and cannot be removed.`,
+      })
+      return
+    }
+
+    const updatedCategories = appointmentCategories.filter((_, i) => i !== index)
+    setAppointmentCategories(updatedCategories)
+  }
+
+  const handleRemoveAppointmentType = (index) => {
+    const appointmentType = appointmentTypes[index]
+
+    // Check if there are active appointments (you'll need to implement this check based on your data)
+    const hasActiveAppointments = false // Replace with actual check
+
+    if (hasActiveAppointments) {
+      notification.error({
+        message: "Cannot Remove Appointment Type",
+        description: "This appointment type has active appointments and cannot be removed.",
+      })
+      return
+    }
+
+    // Show confirmation modal
+    Modal.confirm({
+      title: "Remove Appointment Type",
+      content: `Are you sure you want to remove "${appointmentType.name}"? This action cannot be undone.`,
+      okText: "Yes, Remove",
+      cancelText: "Cancel",
+      okType: "danger",
+      onOk: () => {
+        setAppointmentTypes(appointmentTypes.filter((_, i) => i !== index))
+        notification.success({
+          message: "Appointment Type Removed",
+          // description: `"${appointmentType.name}" has been removed.`,
+        })
+      },
+    })
+  }
+
 
   const handleAddContractPauseReason = () => {
     setContractPauseReasons([...contractPauseReasons, { name: "", maxDays: 30 }])
@@ -617,33 +921,6 @@ const ConfigurationPage = () => {
     })
   }
 
-  const handleAddBroadcastMessage = () => {
-    setBroadcastMessages([
-      ...broadcastMessages,
-      {
-        title: "",
-        message: "",
-        sendVia: ["email", "platform"],
-      },
-    ])
-  }
-
-  const handleRemoveBroadcastMessage = (index) => {
-    setBroadcastMessages(broadcastMessages.filter((_, i) => i !== index))
-  }
-
-  const handleUpdateBroadcastMessage = (index, field, value) => {
-    const updatedMessages = [...broadcastMessages]
-    updatedMessages[index][field] = value
-    setBroadcastMessages(updatedMessages)
-  }
-
-  const handleUpdateAppointmentNotification = (index, field, value) => {
-    const updatedNotifications = [...appointmentNotifications]
-    updatedNotifications[index][field] = value
-    setAppointmentNotifications(updatedNotifications)
-  }
-
   const handleAddLeadSource = () => {
     setLeadSources([...leadSources, { id: nextLeadSourceId.current++, name: "" }])
   }
@@ -657,6 +934,153 @@ const ConfigurationPage = () => {
   }
 
   const notificationSubTab = settings?.notificationSubTab || "email"
+
+  // Add this function to handle adding new introductory materials
+  const handleAddIntroductoryMaterial = () => {
+    setIntroductoryMaterials([
+      ...introductoryMaterials,
+      {
+        id: Date.now(),
+        name: "",
+        pages: [
+          {
+            id: Date.now() + 1,
+            content: "",
+            elements: []
+          }
+        ]
+      }
+    ])
+  }
+
+  // Add this function to handle removing introductory material
+  const handleRemoveIntroductoryMaterial = (index) => {
+    setIntroductoryMaterials(introductoryMaterials.filter((_, i) => i !== index))
+  }
+
+  // Add this function to handle adding a new page to an introductory material
+  const handleAddPage = (materialIndex) => {
+    const updatedMaterials = [...introductoryMaterials]
+    updatedMaterials[materialIndex].pages.push({
+      id: Date.now(),
+      content: "",
+      elements: []
+    })
+    setIntroductoryMaterials(updatedMaterials)
+  }
+
+  // Add this function to handle removing a page from an introductory material
+  const handleRemovePage = (materialIndex, pageIndex) => {
+    const updatedMaterials = [...introductoryMaterials]
+    updatedMaterials[materialIndex].pages = updatedMaterials[materialIndex].pages.filter((_, i) => i !== pageIndex)
+    setIntroductoryMaterials(updatedMaterials)
+  }
+
+  // Add this function to update introductory material name
+  const handleUpdateMaterialName = (index, name) => {
+    const updatedMaterials = [...introductoryMaterials]
+    updatedMaterials[index].name = name
+    setIntroductoryMaterials(updatedMaterials)
+  }
+
+  // Add this function to update page content
+  const handleUpdatePageContent = (materialIndex, pageIndex, content) => {
+    const updatedMaterials = [...introductoryMaterials]
+    updatedMaterials[materialIndex].pages[pageIndex].content = content
+    setIntroductoryMaterials(updatedMaterials)
+  }
+
+  // Add these functions for contract forms management
+  const handleCreateContractForm = () => {
+    if (!newContractFormName.trim()) {
+      notification.error({
+        message: "Error",
+        description: "Please enter a contract form name",
+      });
+      return;
+    }
+
+    const newForm = {
+      id: Date.now(),
+      name: newContractFormName.trim(),
+      pages: [
+        {
+          id: 1,
+          title: 'Contract Page 1',
+          elements: []
+        }
+      ],
+      createdAt: new Date().toISOString()
+    };
+
+    setContractForms([...contractForms, newForm]);
+    setNewContractFormName("");
+    setShowCreateFormModal(false);
+    notification.success({
+      message: "Success",
+      description: "Contract form created successfully",
+    });
+  };
+
+  const handleCopyContractForm = (formId) => {
+    const formToCopy = contractForms.find(form => form.id === formId);
+    if (formToCopy) {
+      const copiedForm = {
+        ...formToCopy,
+        id: Date.now(),
+        name: `${formToCopy.name} (Copy)`,
+        createdAt: new Date().toISOString()
+      };
+      setContractForms([...contractForms, copiedForm]);
+      notification.success({
+        message: "Success",
+        description: "Contract form copied successfully",
+      });
+    }
+  };
+
+  const handleRemoveContractForm = (formId) => {
+    Modal.confirm({
+      title: "Remove Contract Form",
+      content: "Are you sure you want to remove this contract form? This action cannot be undone.",
+      okText: "Yes, Remove",
+      cancelText: "Cancel",
+      okType: "danger",
+      onOk: () => {
+        setContractForms(contractForms.filter(form => form.id !== formId));
+        notification.success({
+          message: "Success",
+          description: "Contract form removed successfully",
+        });
+      },
+    });
+  };
+
+  const handleEditContractFormName = (formId, newName) => {
+    if (!newName.trim()) {
+      notification.error({
+        message: "Error",
+        description: "Contract form name cannot be empty",
+      });
+      return;
+    }
+
+    setContractForms(contractForms.map(form =>
+      form.id === formId ? { ...form, name: newName.trim() } : form
+    ));
+  };
+
+  const openContractBuilder = (form) => {
+    setSelectedContractForm(form);
+    setContractBuilderModalVisible(true);
+  };
+
+  const handleContractBuilderUpdate = (updatedForm) => {
+    setContractForms(contractForms.map(form =>
+      form.id === selectedContractForm.id ? updatedForm : form
+    ));
+    setSelectedContractForm(updatedForm);
+  };
 
   return (
     <>
@@ -713,7 +1137,11 @@ const ConfigurationPage = () => {
                         maxLength={50}
                       />
                     </Form.Item>
-                    <Form.Item label={<span className="text-white">Studio Operator</span>}>
+                    <Form.Item
+                      label={<span className="text-white">Studio Operator</span>}
+                      required
+                      rules={[{ required: true, message: 'Studio Operator is required' }]}
+                    >
                       <Input
                         value={studioOperator}
                         onChange={(e) => setStudioOperator(e.target.value)}
@@ -815,11 +1243,15 @@ const ConfigurationPage = () => {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-1 md:w-[49.5%] w-full gap-4">
-                    <Form.Item label={<span className="text-white">Studio Website</span>}>
+                    <Form.Item
+                      label={<span className="text-white">Studio Website</span>}
+                      validateStatus={studioWebsite && !validateWebsite(studioWebsite) ? 'error' : ''}
+                      help={studioWebsite && !validateWebsite(studioWebsite) ? 'Please enter a valid website URL' : ''}
+                    >
                       <Input
                         value={studioWebsite}
                         onChange={(e) => setStudioWebsite(e.target.value)}
-                        placeholder="Enter studio website URL"
+                        placeholder="Enter studio website URL (e.g., https://example.com)"
                         style={inputStyle}
                         maxLength={50}
                       />
@@ -830,69 +1262,159 @@ const ConfigurationPage = () => {
 
               <Panel header="Opening Hours" key="2" className="bg-[#202020]">
                 <div className="space-y-4">
-                  {openingHours.map((hour, index) => (
-                    <div key={index} className="flex flex-wrap gap-4 items-center">
-                      <Select
-                        placeholder="Select day"
-                        value={hour.day}
-                        onChange={(value) => {
-                          const updatedHours = [...openingHours]
-                          updatedHours[index].day = value
-                          setOpeningHours(updatedHours)
-                        }}
-                        className="w-full sm:w-40"
-                        style={selectStyle}
-                      >
-                        {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => (
-                          <Option key={day} value={day}>
-                            {day}
-                          </Option>
-                        ))}
-                      </Select>
-                      <TimePicker
-                        format="HH:mm"
-                        placeholder="Start Time"
-                        value={hour.startTime}
-                        onChange={(time) => {
-                          const updatedHours = [...openingHours]
-                          updatedHours[index].startTime = time
-                          setOpeningHours(updatedHours)
-                        }}
-                        className="w-full sm:w-32 white-text"
-                        style={inputStyle}
-                      />
-                      <TimePicker
-                        format="HH:mm"
-                        placeholder="End Time"
-                        value={hour.endTime}
-                        onChange={(time) => {
-                          const updatedHours = [...openingHours]
-                          updatedHours[index].endTime = time
-                          setOpeningHours(updatedHours)
-                        }}
-                        className="w-full sm:w-32 white-text"
-                        style={inputStyle}
-                      />
-                      <Button
-                        danger
-                        icon={<DeleteOutlined />}
-                        onClick={() => handleRemoveOpeningHour(index)}
-                        className="w-full sm:w-auto"
-                        style={buttonStyle}
-                      >
-                        Remove
-                      </Button>
-                    </div>
-                  ))}
-                  <Button
-                    type="dashed"
-                    onClick={handleAddOpeningHour}
-                    icon={<PlusOutlined />}
-                    className="w-full sm:w-auto"
-                    style={buttonStyle}
-                  >
-                    Add Opening Hour
-                  </Button>
+                  {/* Default days display */}
+                  <div className="mb-4">
+                    <h4 className="text-white mb-3">Weekly Schedule</h4>
+                    {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => {
+                      const existingHour = openingHours.find(hour => hour.day === day);
+                      const isClosed = existingHour ? existingHour.closed : (day === 'Sunday'); // Sunday closed by default
+
+                      return (
+                        <div key={day} className="flex items-center justify-between p-3 border border-[#303030] rounded-lg mb-2">
+                          <div className="flex items-center gap-4 w-full">
+                            <span className="text-white w-24">{day}</span>
+
+                            <Switch
+                              checked={!isClosed}
+                              onChange={(checked) => {
+                                if (checked) {
+                                  // Remove from opening hours if it exists as closed
+                                  const filteredHours = openingHours.filter(hour => hour.day !== day);
+                                  setOpeningHours([...filteredHours, { day, startTime: null, endTime: null, closed: false }]);
+                                } else {
+                                  // Set to closed
+                                  const filteredHours = openingHours.filter(hour => hour.day !== day);
+                                  setOpeningHours([...filteredHours, { day, startTime: null, endTime: null, closed: true }]);
+                                }
+                              }}
+                            />
+                            <span className="text-white">{isClosed ? 'Closed' : 'Open'}</span>
+
+                            {!isClosed && (
+                              <div className="flex items-center gap-2 ml-4">
+                                <TimePicker
+                                  format="HH:mm"
+                                  placeholder="Start Time"
+                                  value={existingHour?.startTime}
+                                  onChange={(time) => {
+                                    const existingIndex = openingHours.findIndex(hour => hour.day === day);
+                                    if (existingIndex >= 0) {
+                                      const updatedHours = [...openingHours];
+                                      updatedHours[existingIndex] = { ...updatedHours[existingIndex], startTime: time };
+                                      setOpeningHours(updatedHours);
+                                    } else {
+                                      setOpeningHours([...openingHours, { day, startTime: time, endTime: null, closed: false }]);
+                                    }
+                                  }}
+                                  className="white-text"
+                                  style={inputStyle}
+                                />
+                                <span className="text-white mx-2">-</span>
+                                <TimePicker
+                                  format="HH:mm"
+                                  placeholder="End Time"
+                                  value={existingHour?.endTime}
+                                  onChange={(time) => {
+                                    const existingIndex = openingHours.findIndex(hour => hour.day === day);
+                                    if (existingIndex >= 0) {
+                                      const updatedHours = [...openingHours];
+                                      updatedHours[existingIndex] = { ...updatedHours[existingIndex], endTime: time };
+                                      setOpeningHours(updatedHours);
+                                    } else {
+                                      setOpeningHours([...openingHours, { day, startTime: null, endTime: time, closed: false }]);
+                                    }
+                                  }}
+                                  className="white-text"
+                                  style={inputStyle}
+                                />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Legacy opening hours manager (keep for existing data) */}
+                  {/* <div className="mt-6 pt-4 border-t border-[#303030]">
+                    <h4 className="text-white mb-3">Additional Time Slots</h4>
+                    {openingHours
+                      .filter(hour => !hour.closed && hour.startTime && hour.endTime)
+                      .map((hour, index) => (
+                        <div key={index} className="flex flex-wrap gap-4 items-center mb-3">
+                          <Select
+                            placeholder="Select day"
+                            value={hour.day}
+                            onChange={(value) => {
+                              // Check if day already exists
+                              const dayExists = openingHours.some(h => h.day === value && !h.closed);
+                              if (dayExists) {
+                                notification.warning({
+                                  message: "Duplicate Day",
+                                  description: `${value} is already configured. Please edit the existing entry.`,
+                                });
+                                return;
+                              }
+
+                              const updatedHours = [...openingHours];
+                              updatedHours[index].day = value;
+                              setOpeningHours(updatedHours);
+                            }}
+                            className="w-full sm:w-40"
+                            style={selectStyle}
+                          >
+                            {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => (
+                              <Option key={day} value={day} disabled={openingHours.some(h => h.day === day && !h.closed && h !== hour)}>
+                                {day}
+                              </Option>
+                            ))}
+                          </Select>
+                          <TimePicker
+                            format="HH:mm"
+                            placeholder="Start Time"
+                            value={hour.startTime}
+                            onChange={(time) => {
+                              const updatedHours = [...openingHours];
+                              updatedHours[index].startTime = time;
+                              setOpeningHours(updatedHours);
+                            }}
+                            className="w-full sm:w-32 white-text"
+                            style={inputStyle}
+                          />
+                          <TimePicker
+                            format="HH:mm"
+                            placeholder="End Time"
+                            value={hour.endTime}
+                            onChange={(time) => {
+                              const updatedHours = [...openingHours];
+                              updatedHours[index].endTime = time;
+                              setOpeningHours(updatedHours);
+                            }}
+                            className="w-full sm:w-32 white-text"
+                            style={inputStyle}
+                          />
+                          <Button
+                            danger
+                            icon={<DeleteOutlined />}
+                            onClick={() => handleRemoveOpeningHour(index)}
+                            className="w-full sm:w-auto"
+                            style={buttonStyle}
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      ))}
+
+                    <Button
+                      type="dashed"
+                      onClick={handleAddOpeningHour}
+                      icon={<PlusOutlined />}
+                      className="w-full sm:w-auto"
+                      style={buttonStyle}
+                    >
+                      Add Additional Time Slot
+                    </Button>
+                  </div> */}
                 </div>
               </Panel>
               <Panel header="Closing Days" key="3" className="bg-[#202020]">
@@ -981,7 +1503,8 @@ const ConfigurationPage = () => {
                         label={
                           <div className="flex items-center">
                             <span className="text-white white-text">Default Maximum Capacity</span>
-                            <Tooltip title="Maximum number of participants for all appointment types">
+                            <Tooltip title="Total capacity defines how many appointments can run in parallel across all appointment types.
+For example, if the total capacity is set to 3, the system can handle up to 3 concurrent appointments, depending on how much capacity each appointment type consumes.">
                               <InfoCircleOutlined style={tooltipStyle} />
                             </Tooltip>
                           </div>
@@ -1000,6 +1523,67 @@ const ConfigurationPage = () => {
                   </Panel>
                   <Panel header="Appointment Types" key="1" className="bg-[#252525]">
                     <div className="space-y-4">
+                      {/* Categories Management */}
+                      <div className="mb-6 p-4 border border-[#303030] rounded-lg">
+                        <div className="flex justify-between items-center mb-4">
+                          <h4 className="text-white text-lg">Appointment Categories</h4>
+                          <Button
+                            type="dashed"
+                            onClick={handleAddAppointmentCategory}
+                            icon={<PlusOutlined />}
+                            style={buttonStyle}
+                          >
+                            Add Category
+                          </Button>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {appointmentCategories.map((category, index) => (
+                            <div key={index} className="flex items-center gap-1">
+                              {editingCategory.index === index ? (
+                                <div className="flex items-center gap-1">
+                                  <Input
+                                    value={editingCategory.value}
+                                    onChange={(e) => setEditingCategory({ ...editingCategory, value: e.target.value })}
+                                    onPressEnter={() => handleSaveEditCategory(index)}
+                                    onBlur={() => handleSaveEditCategory(index)}
+                                    autoFocus
+                                    size="small"
+                                    style={{ width: 120, backgroundColor: "#101010", border: "none", color: "#fff" }}
+                                  />
+                                  <Button
+                                    type="link"
+                                    size="small"
+                                    onClick={() => handleSaveEditCategory(index)}
+                                    style={{ color: "#FF843E", padding: 0, minWidth: 'auto' }}
+                                  >
+                                    ✓
+                                  </Button>
+                                  <Button
+                                    type="link"
+                                    size="small"
+                                    onClick={handleCancelEditCategory}
+                                    style={{ color: "#ff4d4f", padding: 0, minWidth: 'auto' }}
+                                  >
+                                    ✕
+                                  </Button>
+                                </div>
+                              ) : (
+                                <Tag
+                                  color="blue"
+                                  closable
+                                  onClose={() => handleRemoveAppointmentCategory(index)}
+                                  className="py-1 px-2 text-sm cursor-pointer"
+                                  onClick={() => handleStartEditCategory(index, category)}
+                                >
+                                  {category}
+                                </Tag>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Appointment Types List */}
                       {appointmentTypes.map((type, index) => (
                         <div key={index} className="flex flex-col gap-4 p-4 border border-[#303030] rounded-lg">
                           <div className="flex flex-wrap gap-4 items-center">
@@ -1012,6 +1596,22 @@ const ConfigurationPage = () => {
                                 style={inputStyle}
                               />
                             </Row>
+
+                            {/* Category Select */}
+                            <Select
+                              placeholder="Select Category"
+                              value={type.category}
+                              onChange={(value) => handleUpdateAppointmentType(index, "category", value)}
+                              className="w-full sm:w-40"
+                              style={selectStyle}
+                              allowClear
+                            >
+                              {appointmentCategories.map((category) => (
+                                <Option key={category} value={category}>
+                                  {category}
+                                </Option>
+                              ))}
+                            </Select>
 
                             <div className="flex items-center">
                               <InputNumber
@@ -1033,7 +1633,7 @@ const ConfigurationPage = () => {
                                 className="w-full sm:w-20 md:w-16 lg:w-18 white-text"
                                 style={inputStyle}
                               />
-                              <Tooltip title="Maximum number of participants">
+                              <Tooltip title="If the total capacity is set to 3 and this appointment type's capacity is 1, then up to 3 appointments of this type can be booked in parallel.">
                                 <InfoCircleOutlined style={tooltipStyle} />
                               </Tooltip>
                             </div>
@@ -1042,7 +1642,7 @@ const ConfigurationPage = () => {
                                 value={type.color}
                                 onChange={(color) => handleUpdateAppointmentType(index, "color", color)}
                               />
-                              <Tooltip title="Calendar display color">
+                              <Tooltip title="Appointment Calendar display color">
                                 <InfoCircleOutlined style={tooltipStyle} />
                               </Tooltip>
                             </div>
@@ -1054,21 +1654,30 @@ const ConfigurationPage = () => {
                                 className="w-full sm:w-20 md:w-16 lg:w-18 white-text"
                                 style={inputStyle}
                               />
-                              <Tooltip title="Time between appointments in minutes">
+                              <Tooltip title="The interval defines the allowed start times for bookings. For example, with a 15-minute interval, bookings can start at times like 10:15; with a 30-minute interval at times like 10:30; and with a 60-minute interval only on full hours such as 11:00.">
                                 <InfoCircleOutlined style={tooltipStyle} />
                               </Tooltip>
                             </div>
                             <Button
                               danger
                               icon={<DeleteOutlined />}
-                              onClick={() => setAppointmentTypes(appointmentTypes.filter((_, i) => i !== index))}
+                              onClick={() => handleRemoveAppointmentType(index)}
                               className="w-full sm:w-auto"
                               style={buttonStyle}
                             >
                               Remove
                             </Button>
                           </div>
-                          <Form.Item label={<span className="text-white">Upload Images</span>}>
+
+                          {/* Image Upload with Info Tooltip */}
+                          <Form.Item label={
+                            <div className="flex items-center">
+                              <span className="text-white">Upload Images</span>
+                              <Tooltip title="The image will later be shown in the appointment booking of the members">
+                                <InfoCircleOutlined style={{ ...tooltipStyle, color: "#FF843E" }} />
+                              </Tooltip>
+                            </div>
+                          }>
                             <Upload
                               accept="image/*"
                               multiple
@@ -1124,7 +1733,7 @@ const ConfigurationPage = () => {
                           label={
                             <div className="flex items-center">
                               <span className="white-text">Capacity</span>
-                              <Tooltip title="Maximum number of participants">
+                              <Tooltip title="If the total capacity is set to 3 and this trial type's capacity is 1, then up to 3 trial of this type can be booked in parallel.">
                                 <InfoCircleOutlined style={tooltipStyle} />
                               </Tooltip>
                             </div>
@@ -1165,12 +1774,19 @@ const ConfigurationPage = () => {
                 </Collapse>
               </Panel>
               <Panel header="Staff Management" key="2" className="bg-[#202020]">
-                <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
+                <Collapse defaultActiveKey={["1", "2"]} className="bg-[#181818] border-[#303030]">
+                  {/* General Settings Panel */}
                   <Panel header="General Settings" key="2" className="bg-[#252525]">
                     <div className="space-y-4">
+                      {/* Default Vacation Days */}
                       <Form.Item>
                         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                          <label className="text-white sm:w-38">Default Vacation Days</label>
+                          <div className="flex items-center">
+                            <label className="text-white sm:w-48">Default Vacation Days</label>
+                            <Tooltip title="Sets a default vacation value that will be automatically assigned when creating new Staff.">
+                              <InfoCircleOutlined style={tooltipStyle} />
+                            </Tooltip>
+                          </div>
                           <InputNumber
                             min={0}
                             max={365}
@@ -1181,53 +1797,75 @@ const ConfigurationPage = () => {
                           />
                         </div>
                       </Form.Item>
+
+                      {/* Default Staff Role */}
+                      <Form.Item>
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                          <div className="flex items-center">
+                            <label className="text-white sm:w-48">Default Staff Role</label>
+                            <Tooltip title="Sets a default Role that will be automatically assigned when creating new Staff.">
+                              <InfoCircleOutlined style={tooltipStyle} />
+                            </Tooltip>
+                          </div>
+                          <Select
+                            value={defaultStaffRole}
+                            onChange={(value) => setDefaultStaffRole(value)}
+                            style={selectStyle}
+                            className="w-full sm:w-64"
+                            placeholder="Select default role"
+                          >
+                            {roles.map((role) => (
+                              <Option key={role.id} value={role.id}>
+                                {role.name}
+                              </Option>
+                            ))}
+                          </Select>
+                        </div>
+                      </Form.Item>
+
+                      {/* Default Staff Country */}
+                      <Form.Item>
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                          <div className="flex items-center">
+                            <label className="text-white sm:w-48">Default Staff Country</label>
+                            <Tooltip title="Sets the default country for new staff members">
+                              <InfoCircleOutlined style={tooltipStyle} />
+                            </Tooltip>
+                          </div>
+                          <Select
+                            value={defaultStaffCountry}
+                            onChange={(value) => setDefaultStaffCountry(value)}
+                            style={selectStyle}
+                            className="w-full sm:w-64"
+                            placeholder="Select default country"
+                          >
+                            <Option value="studio">Same as Studio Country</Option>
+                            {countries.map((country) => (
+                              <Option key={country.code} value={country.code}>
+                                {country.name}
+                              </Option>
+                            ))}
+                          </Select>
+                        </div>
+                      </Form.Item>
                     </div>
                   </Panel>
+
+                  {/* Staff Roles Panel */}
                   <Panel header="Staff Roles" key="1" className="bg-[#252525]">
                     <div className="space-y-4">
                       {roles.map((role, index) => (
-                        <div key={index} className="flex flex-col gap-4 p-3 border border-[#303030] rounded-lg">
-                          <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-                            <Input
-                              placeholder="Role Name"
-                              value={role.name}
-                              onChange={(e) => {
-                                const updatedRoles = [...roles]
-                                updatedRoles[index].name = e.target.value
-                                setRoles(updatedRoles)
-                              }}
-                              className="!w-full sm:!w-48 !py-3.5"
-                              style={inputStyle}
-                            />
-
-                            <div className="flex items-center gap-2">
-                              <ColorPicker
-                                value={role.color}
-                                onChange={(color) => {
-                                  const updatedRoles = [...roles]
-                                  updatedRoles[index].color = color
-                                  setRoles(updatedRoles)
-                                }}
-                              />
-                            </div>
-
-                            <Button
-                              icon={<SecurityScanOutlined />}
-                              onClick={() => openPermissionModal(index)}
-                              className="bg-blue-600 text-white border-blue-600 hover:bg-blue-700"
-                            >
-                              Permissions ({role.permissions?.length || 0})
-                            </Button>
-
-                            <Button
-                              danger
-                              icon={<DeleteOutlined />}
-                              onClick={() => setRoles(roles.filter((_, i) => i !== index))}
-                            >
-                              Remove
-                            </Button>
-                          </div>
-                        </div>
+                        <RoleItem
+                          key={role.id}
+                          role={role}
+                          index={index}
+                          onUpdate={handleUpdateRole}
+                          onDelete={handleDeleteRole}
+                          onCopy={handleCopyRole}
+                          onOpenPermissionModal={openPermissionModal}
+                          onOpenStaffAssignment={openStaffAssignmentModal}
+                          isAdminRole={role.isAdmin}
+                        />
                       ))}
 
                       <Button
@@ -1352,7 +1990,7 @@ const ConfigurationPage = () => {
                   )}
                 </div>
               </Panel>
-              <Panel header="TO-DO" key="4" className="bg-[#202020]">
+              {/* <Panel header="TO-DO" key="4" className="bg-[#202020]">
                 <div className="space-y-4">
                   <h3 className="text-lg text-white font-medium">To-Do Tags</h3>
                   {tags.map((tag, index) => (
@@ -1397,12 +2035,100 @@ const ConfigurationPage = () => {
                     Add Tag
                   </Button>
                 </div>
+              </Panel> */}
+              <Panel header="Introductory Materials" key="5" className="bg-[#202020]">
+                <div className="space-y-4">
+                  {introductoryMaterials.map((material, materialIndex) => (
+                    <Collapse key={material.id} className="border border-[#303030] rounded-lg overflow-hidden mb-4">
+                      <Panel
+                        header={
+                          <div className="flex items-center justify-between">
+                            <span>{material.name || "Untitled Material"}</span>
+                            <Button
+                              danger
+                              size="small"
+                              icon={<DeleteOutlined />}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleRemoveIntroductoryMaterial(materialIndex)
+                              }}
+                            >
+                              Remove
+                            </Button>
+                          </div>
+                        }
+                        key="1"
+                        className="bg-[#252525]"
+                      >
+                        <div className="space-y-4">
+                          <Form.Item label={<span className="text-white">Material Name</span>}>
+                            <Input
+                              value={material.name}
+                              onChange={(e) => handleUpdateMaterialName(materialIndex, e.target.value)}
+                              placeholder="Enter material name"
+                              style={inputStyle}
+                            />
+                          </Form.Item>
+
+                          <div className="space-y-4">
+                            <h4 className="text-white text-lg">Pages</h4>
+                            {material.pages.map((page, pageIndex) => (
+                              <div key={page.id} className="border border-[#303030] rounded-lg p-4">
+                                <div className="flex justify-between items-center mb-3">
+                                  <h5 className="text-white">Page {pageIndex + 1}</h5>
+                                  {material.pages.length > 1 && (
+                                    <Button
+                                      danger
+                                      size="small"
+                                      icon={<DeleteOutlined />}
+                                      onClick={() => handleRemovePage(materialIndex, pageIndex)}
+                                    >
+                                      Remove Page
+                                    </Button>
+                                  )}
+                                </div>
+
+                                <Form.Item label={<span className="text-white">Page Content</span>}>
+                                  <WysiwygEditor
+                                    value={page.content}
+                                    onChange={(content) => handleUpdatePageContent(materialIndex, pageIndex, content)}
+                                    placeholder="Add text, images, and links to your presentation page..."
+                                  />
+                                </Form.Item>
+                              </div>
+                            ))}
+
+                            <Button
+                              type="dashed"
+                              onClick={() => handleAddPage(materialIndex)}
+                              icon={<PlusOutlined />}
+                              style={buttonStyle}
+                              className="w-full"
+                            >
+                              Add Page
+                            </Button>
+                          </div>
+                        </div>
+                      </Panel>
+                    </Collapse>
+                  ))}
+
+                  <Button
+                    type="dashed"
+                    onClick={handleAddIntroductoryMaterial}
+                    icon={<PlusOutlined />}
+                    style={buttonStyle}
+                    className="w-full"
+                  >
+                    Add Introductory Material
+                  </Button>
+                </div>
               </Panel>
             </Collapse>
           </TabPane>
           <TabPane tab="Contracts" key="3">
             <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
-              <Panel header="Contract Settings" key="5" className="bg-[#202020]">
+              <Panel header="General Settings" key="5" className="bg-[#202020]">
                 <div className="space-y-4">
                   <Form layout="vertical">
                     <Form.Item
@@ -1438,6 +2164,94 @@ const ConfigurationPage = () => {
                   </Form>
                 </div>
               </Panel>
+              <Panel header="Contract Forms" key="4" className="bg-[#202020]">
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <h4 className="text-white text-lg">Manage Contract Forms</h4>
+                    <Button
+                      type="primary"
+                      onClick={() => setShowCreateFormModal(true)}
+                      icon={<PlusOutlined />}
+                      style={saveButtonStyle}
+                    >
+                      Create New Form
+                    </Button>
+                  </div>
+
+                  {contractForms.length === 0 ? (
+                    <div className="text-center py-8 border border-dashed border-[#303030] rounded-lg">
+                      <FileTextOutlined className="text-4xl text-gray-400 mb-4" />
+                      <p className="text-gray-400 mb-4">No contract forms created yet</p>
+
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {contractForms.map((form) => (
+                        <div
+                          key={form.id}
+                          className="border border-[#303030] rounded-lg p-4 hover:border-[#FF843E] transition-colors"
+                        >
+                          <div className="flex justify-between items-start mb-3">
+                            <h5 className="text-white font-medium text-lg">{form.name}</h5>
+                            <div className="flex gap-1">
+                              <Button
+                                type="text"
+                                icon={<FileSearchOutlined />}
+                                onClick={() => openContractBuilder(form)}
+                                className="text-white  hover:text-blue-300"
+                                title="Open Contract Builder"
+                                style={{ color: "white" }}
+                              />
+                              <Button
+                                type="text"
+                                icon={<CopyOutlined />}
+                                onClick={() => handleCopyContractForm(form.id)}
+                                className="text-green-400 hover:text-green-300"
+                                title="Copy Form"
+                                style={{ color: "white" }}
+                              />
+                              <Button
+                                type="text"
+                                icon={<DeleteOutlined />}
+                                onClick={() => handleRemoveContractForm(form.id)}
+                                className="text-red-400 hover:text-red-300"
+                                title="Remove Form"
+                                style={{ color: "white" }}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-gray-400">Created:</span>
+                              <span className="text-white">
+                                {new Date(form.createdAt).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-gray-400">Pages:</span>
+                              <span className="text-white">{form.pages?.length || 1}</span>
+                            </div>
+                          </div>
+
+                          <div className="mt-4 flex gap-2">
+                            <Button
+                              type="default"
+                              onClick={() => openContractBuilder(form)}
+                              icon={<FileSearchOutlined />}
+                              style={buttonStyle}
+                              className="flex-1"
+                            >
+                              Open Contract Builder
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </Panel>
+
               <Panel header="Contract Types" key="1" className="bg-[#202020]">
                 <div className="space-y-4">
                   {contractTypes.map((type, index) => (
@@ -1456,6 +2270,29 @@ const ConfigurationPage = () => {
                               style={inputStyle}
                             />
                           </Form.Item>
+
+                          {/* Add Contract Form Selection */}
+                          <Form.Item label={<span className="text-white">Contract Form</span>}>
+                            <Select
+                              value={type.contractFormId}
+                              onChange={(value) => {
+                                const updated = [...contractTypes]
+                                updated[index].contractFormId = value
+                                setContractTypes(updated)
+                              }}
+                              style={selectStyle}
+                              className="!w-full md:!w-32 lg:!w-36 white-text"
+                              placeholder="Select a contract form"
+                            >
+                              <Option value={null}>No form selected</Option>
+                              {contractForms.map(form => (
+                                <Option key={form.id} value={form.id}>
+                                  {form.name}
+                                </Option>
+                              ))}
+                            </Select>
+                          </Form.Item>
+
                           <Form.Item label={<span className="text-white white-text">Duration (months)</span>}>
                             <div className="white-text">
                               <InputNumber
@@ -1502,7 +2339,7 @@ const ConfigurationPage = () => {
                           <Form.Item
                             label={
                               <div className="flex items-center">
-                                <span className="text-white white-text">User Capacity</span>
+                                <span className="text-white white-text">User Contigent</span>
                                 <Tooltip title="Maximum number of appointments a member can book per billing period">
                                   <InfoCircleOutlined style={tooltipStyle} />
                                 </Tooltip>
@@ -1582,14 +2419,25 @@ const ConfigurationPage = () => {
                             />
                           </Form.Item>
                         </Form>
-                        <Button
-                          danger
-                          icon={<DeleteOutlined />}
-                          onClick={() => setContractTypes(contractTypes.filter((_, i) => i !== index))}
-                          style={buttonStyle}
-                        >
-                          Remove
-                        </Button>
+                        <div className="flex justify-between items-center mt-4">
+                          <Button
+                            danger
+                            icon={<DeleteOutlined />}
+                            onClick={() => {
+                              Modal.confirm({
+                                title: "Remove Contract Type",
+                                content: "Are you sure you want to remove this contract type? This action cannot be undone.",
+                                okText: "Yes, Remove",
+                                cancelText: "Cancel",
+                                okType: "danger",
+                                onOk: () => setContractTypes(contractTypes.filter((_, i) => i !== index)),
+                              });
+                            }}
+                            style={buttonStyle}
+                          >
+                            Remove
+                          </Button>
+                        </div>
                       </Panel>
                     </Collapse>
                   ))}
@@ -1598,9 +2446,9 @@ const ConfigurationPage = () => {
                   </Button>
                 </div>
               </Panel>
-              <Panel header="Contract Form" key="2" className="bg-[#202020]">
-                <ContractBuilder />
-              </Panel>
+
+
+
               <Panel header="Contract Pause Reasons" key="3" className="bg-[#202020]">
                 <div className="space-y-4">
                   {contractPauseReasons.map((reason, index) => (
@@ -1647,7 +2495,16 @@ const ConfigurationPage = () => {
               <Panel header="General Communication Settings" key="1" className="bg-[#202020]">
                 <div className="space-y-4">
                   <Form layout="vertical">
-                    <Form.Item label={<span className="text-white">Auto-Archive Duration (days)</span>}>
+                    <Form.Item
+                      label={
+                        <div className="flex items-center">
+                          <span className="text-white">Auto-Archive Duration (days)</span>
+                          <Tooltip title="This setting only affects the member chat auto-archive functionality">
+                            <InfoCircleOutlined style={tooltipStyle} />
+                          </Tooltip>
+                        </div>
+                      }
+                    >
                       <InputNumber
                         min={1}
                         max={365}
@@ -1698,7 +2555,7 @@ const ConfigurationPage = () => {
                             }
                             className="rounded border-gray-600 bg-transparent cursor-pointer w-4 h-4"
                           />
-                          <span className="text-sm font-medium text-white text-gray-200">Activate E-Mail Notifications</span>
+                          <span className="text-sm font-medium text-white">Activate E-Mail Notifications</span>
                         </label>
                       </div>
 
@@ -1719,6 +2576,19 @@ const ConfigurationPage = () => {
                             </label>
                             {bool(settings?.birthdayMessageEnabled, false) && (
                               <div className="ml-6">
+                                <div className="flex items-center gap-4 mb-3">
+                                  <label className="text-sm text-gray-300">Send time:</label>
+                                  <TimePicker
+                                    value={settings.birthdaySendTime ? dayjs(settings.birthdaySendTime, 'HH:mm') : null}
+                                    onChange={(time) => setSettings({
+                                      ...settings,
+                                      birthdaySendTime: time ? time.format('HH:mm') : null
+                                    })}
+                                    format="HH:mm"
+                                    style={inputStyle}
+                                    className="white-text"
+                                  />
+                                </div>
                                 <div className="flex gap-2 mb-2 flex-wrap">
                                   <button
                                     onClick={() =>
@@ -1760,12 +2630,9 @@ const ConfigurationPage = () => {
                                     Member Last Name
                                   </button>
                                 </div>
-                                <textarea
-                                  ref={birthdayTextareaRef}
+                                <WysiwygEditor
                                   value={settings.birthdayMessageTemplate || ""}
-                                  onChange={(e) => setSettings({ ...settings, birthdayMessageTemplate: e.target.value })}
-                                  style={inputStyle}
-                                  className="w-full rounded-xl text-sm h-20"
+                                  onChange={(value) => setSettings({ ...settings, birthdayMessageTemplate: value })}
                                   placeholder="Happy Birthday, {Member_First_Name} {Member_Last_Name}! Best wishes from {Studio_Name}!"
                                 />
                               </div>
@@ -2413,6 +3280,14 @@ const ConfigurationPage = () => {
               <Panel header="SMTP Setup" key="3" className="bg-[#202020]">
                 <div className="space-y-4">
                   <Form layout="vertical">
+                    <Form.Item label={<span className="text-white">Display Name</span>}>
+                      <Input
+                        value={settings.senderName || ""}
+                        onChange={(e) => setSettings({ ...settings, senderName: e.target.value })}
+                        style={inputStyle}
+                        placeholder="Your Studio Name"
+                      />
+                    </Form.Item>
                     <Form.Item label={<span className="text-white">SMTP Host</span>}>
                       <Input
                         value={settings.smtpHost}
@@ -2444,6 +3319,13 @@ const ConfigurationPage = () => {
                         style={inputStyle}
                       />
                     </Form.Item>
+                    <Button
+                      onClick={testEmailConnection}
+                      style={buttonStyle}
+                      icon={<MailOutlined />}
+                    >
+                      Test Connection
+                    </Button>
                   </Form>
                 </div>
               </Panel>
@@ -2454,6 +3336,20 @@ const ConfigurationPage = () => {
                   <Form layout="vertical">
                     <Form.Item label={<span className="text-white">Default Email Signature</span>}>
                       <div className="bg-[#222222] rounded-xl">
+                        <div className="flex gap-2 mb-2 flex-wrap">
+                          <Button
+                            onClick={() => {
+                              const currentSignature = settings.emailSignature || "";
+                              const newSignature = currentSignature + "\n\nBest regards,\n{Studio_Name} Team";
+                              setSettings({ ...settings, emailSignature: newSignature });
+                            }}
+                            size="small"
+                            style={buttonStyle}
+                            icon={<FileTextOutlined />}
+                          >
+                            Insert Signature
+                          </Button>
+                        </div>
                         <WysiwygEditor
                           value={settings.emailSignature}
                           onChange={(value) => setSettings({ ...settings, emailSignature: value })}
@@ -2465,16 +3361,130 @@ const ConfigurationPage = () => {
                 </div>
               </Panel>
 
-              {/* <CHANGE> Save Settings Button */}
-              <div className="mt-6">
-                <Button
-                  onClick={handleSaveSettings}
-                  style={saveButtonStyle}
-                  className="w-full"
-                >
-                  Save Settings
-                </Button>
-              </div>
+              <Panel header="E-Invoice Email Template" key="5" className="bg-[#202020]">
+                <div className="space-y-4">
+                  <Form layout="vertical">
+                    <Form.Item label={<span className="text-white">Subject</span>}>
+                      <div className="flex gap-2 mb-2 flex-wrap">
+                        <button
+                          onClick={() => {
+                            const currentSubject = settings.einvoiceSubject || "";
+                            setSettings({
+                              ...settings,
+                              einvoiceSubject: currentSubject + "{Invoice_Number}"
+                            });
+                          }}
+                          className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                        >
+                          Invoice Number
+                        </button>
+                        <button
+                          onClick={() => {
+                            const currentSubject = settings.einvoiceSubject || "";
+                            setSettings({
+                              ...settings,
+                              einvoiceSubject: currentSubject + "{Selling_Date}"
+                            });
+                          }}
+                          className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                        >
+                          Selling Date
+                        </button>
+                      </div>
+                      <Input
+                        value={settings.einvoiceSubject || ""}
+                        onChange={(e) => setSettings({ ...settings, einvoiceSubject: e.target.value })}
+                        style={inputStyle}
+                        placeholder="Invoice {Invoice_Number} - {Selling_Date}"
+                      />
+                    </Form.Item>
+
+                    <Form.Item label={<span className="text-white">Message Template</span>}>
+                      <div className="flex gap-2 mb-2 flex-wrap">
+                        <button
+                          onClick={() => {
+                            const currentTemplate = settings.einvoiceTemplate || "";
+                            setSettings({
+                              ...settings,
+                              einvoiceTemplate: currentTemplate + "{Studio_Name}"
+                            });
+                          }}
+                          className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                        >
+                          Studio Name
+                        </button>
+                        <button
+                          onClick={() => {
+                            const currentTemplate = settings.einvoiceTemplate || "";
+                            setSettings({
+                              ...settings,
+                              einvoiceTemplate: currentTemplate + "{Member_First_Name}"
+                            });
+                          }}
+                          className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                        >
+                          Member First Name
+                        </button>
+                        <button
+                          onClick={() => {
+                            const currentTemplate = settings.einvoiceTemplate || "";
+                            setSettings({
+                              ...settings,
+                              einvoiceTemplate: currentTemplate + "{Member_Last_Name}"
+                            });
+                          }}
+                          className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                        >
+                          Member Last Name
+                        </button>
+                        <button
+                          onClick={() => {
+                            const currentTemplate = settings.einvoiceTemplate || "";
+                            setSettings({
+                              ...settings,
+                              einvoiceTemplate: currentTemplate + "{Invoice_Number}"
+                            });
+                          }}
+                          className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                        >
+                          Invoice Number
+                        </button>
+                        <button
+                          onClick={() => {
+                            const currentTemplate = settings.einvoiceTemplate || "";
+                            setSettings({
+                              ...settings,
+                              einvoiceTemplate: currentTemplate + "{Total_Amount}"
+                            });
+                          }}
+                          className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                        >
+                          Total Amount
+                        </button>
+                        <button
+                          onClick={() => {
+                            const currentTemplate = settings.einvoiceTemplate || "";
+                            setSettings({
+                              ...settings,
+                              einvoiceTemplate: currentTemplate + "{Selling_Date}"
+                            });
+                          }}
+                          className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                        >
+                          Selling Date
+                        </button>
+                      </div>
+                      <WysiwygEditor
+                        value={settings.einvoiceTemplate || ""}
+                        onChange={(value) => setSettings({ ...settings, einvoiceTemplate: value })}
+                        placeholder="Dear {Member_First_Name} {Member_Last_Name}, please find your invoice {Invoice_Number} for {Total_Amount}..."
+                      />
+                    </Form.Item>
+                  </Form>
+                </div>
+              </Panel>
+
+
             </Collapse>
           </TabPane>
 
@@ -2883,7 +3893,99 @@ const ConfigurationPage = () => {
         onClose={() => setPermissionModalVisible(false)}
         role={selectedRoleIndex !== null ? roles[selectedRoleIndex] : null}
         onPermissionChange={handlePermissionChange}
+        isAdminRole={selectedRoleIndex !== null ? roles[selectedRoleIndex]?.isAdmin : false}
       />
+
+      <StaffAssignmentModal
+        visible={staffAssignmentModalVisible}
+        onClose={() => setStaffAssignmentModalVisible(false)}
+        role={selectedRoleForAssignment !== null ? roles[selectedRoleForAssignment] : null}
+        allStaff={allStaff}
+        onStaffAssignmentChange={handleStaffAssignmentChange}
+      />
+
+      {/* Create Contract Form Modal */}
+      <Modal
+        title="Create New Contract Form"
+        open={showCreateFormModal}
+        onCancel={() => {
+          setShowCreateFormModal(false);
+          setNewContractFormName("");
+        }}
+        footer={[
+          <Button key="cancel" onClick={() => {
+            setShowCreateFormModal(false);
+            setNewContractFormName("");
+          }}>
+            Cancel
+          </Button>,
+          <Button
+            key="create"
+            type="primary"
+            onClick={handleCreateContractForm}
+            style={saveButtonStyle}
+          >
+            Create Form
+          </Button>,
+        ]}
+      >
+        <Form layout="vertical">
+          <Form.Item label="Contract Form Name">
+            <Input
+              value={newContractFormName}
+              onChange={(e) => setNewContractFormName(e.target.value)}
+              placeholder="Enter contract form name"
+              onPressEnter={handleCreateContractForm}
+              autoFocus
+            />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Contract Builder Modal */}
+      {/* Contract Builder Modal */}
+      <Modal
+        title={`Contract Builder - ${selectedContractForm?.name || 'Untitled'}`}
+        open={contractBuilderModalVisible}
+        onCancel={() => setContractBuilderModalVisible(false)}
+        width="100vw"
+        style={{
+          top: 0,
+          padding: 0,
+          maxWidth: '100vw'
+        }}
+        bodyStyle={{
+          padding: 0,
+          height: 'calc(100vh - 55px)',
+          overflow: 'hidden'
+        }}
+        footer={[
+          <Button key="cancel" onClick={() => setContractBuilderModalVisible(false)}>
+            Close
+          </Button>,
+          <Button
+            key="save"
+            type="primary"
+            onClick={() => {
+              notification.success({
+                message: "Success",
+                description: "Contract form saved successfully",
+              });
+              setContractBuilderModalVisible(false);
+            }}
+            style={saveButtonStyle}
+          >
+            Save Changes
+          </Button>,
+        ]}
+      >
+        <div style={{ height: '100%', overflow: 'hidden' }}>
+          <ContractBuilder
+            contractForm={selectedContractForm}
+            onUpdate={handleContractBuilderUpdate}
+          />
+        </div>
+      </Modal>
     </>
   )
 }

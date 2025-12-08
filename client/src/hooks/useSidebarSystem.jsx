@@ -157,7 +157,7 @@ export const useSidebarSystem = () => {
   ])
 
   const [rightSidebarWidgets, setRightSidebarWidgets] = useState([
-    { id: "communications", type: "communications", position: 0 },
+    // { id: "communications", type: "communications", position: 0 },
     { id: "todo", type: "todo", position: 1 },
     { id: "birthday", type: "birthday", position: 2 },
     { id: "websiteLinks", type: "websiteLinks", position: 3 },

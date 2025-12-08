@@ -3,7 +3,6 @@ import { useState } from "react"
 import CreateNoteModal from "../../components/user-panel-components/notes-components/CreateNoteModal"
 import EditNoteModal from "../../components/user-panel-components/notes-components/EditNoteModal"
 import DeleteConfirmModal from "../../components/user-panel-components/notes-components/DeleteConfirmModal"
-import { demoNotes } from "../../utils/user-panel-states/notes-states"
 import { Toaster } from "react-hot-toast"
 import { trainingVideosData } from "../../utils/user-panel-states/training-states"
 import { IoIosMenu } from "react-icons/io"
@@ -27,10 +26,12 @@ import AppointmentActionModalV2 from "../../components/myarea-components/Appoint
 import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
 import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
 
+import {demoNotesforUserPanel} from '../../utils/user-panel-states/notes-states'
+
 export default function NotesApp() {
   const sidebarSystem = useSidebarSystem();
   const [activeTab, setActiveTab] = useState("personal")
-  const [notes, setNotes] = useState(demoNotes)
+  const [notes, setNotes] = useState(demoNotesforUserPanel)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [editingNote, setEditingNote] = useState(null)
   const [viewingNote, setViewingNote] = useState(null)
@@ -81,10 +82,9 @@ export default function NotesApp() {
       year: "numeric",
       month: "short",
       day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
     })
   }
+
 
   const currentNotes = notes[activeTab]
 
@@ -533,93 +533,89 @@ export default function NotesApp() {
               </button>
             </div>
           ) : (
-            <div
-            className={`grid grid-cols-1 sm:grid-cols-2 ${
-              isRightSidebarOpen ? "lg:grid-cols-3" : "lg:grid-cols-4"
-            } gap-6`}
-          >
-            {currentNotes.map((note) => (
-              <div
-                key={note.id}
-                className="bg-[#1A1A1A] rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-800 hover:border-gray-700 h-64 flex flex-col"
-              >
-                <div className="p-6 flex flex-col h-full">
-                  <div className="flex justify-between items-start mb-4">
-                    <h3 className="text-lg font-semibold text-white line-clamp-1 flex-1 mr-2">
-                      {note.title}
-                    </h3>
-                  </div>
-          
-                  <p className="text-gray-300 text-sm mb-4 line-clamp-3 leading-relaxed flex-1 overflow-hidden">
-                    {note.content}
-                  </p>
-          
-                  <div className="flex items-center justify-between mt-auto">
-                    <p className="text-xs text-gray-500">
-                      {(note.createdAt)}
-                    </p>
-          
-                    <div className="flex gap-1 flex-shrink-0">
-                      <button
-                        onClick={() => setViewingNote(note)}
-                        className="text-gray-400 hover:text-green-400 p-2 rounded-lg hover:bg-gray-800 transition-colors"
-                        title="View note"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                          />
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                          />
-                        </svg>
-                      </button>
-          
-                      {/* Edit Button */}
-                      <button
-                        onClick={() => setEditingNote(note)}
-                        className="text-gray-400 hover:text-blue-400 p-2 rounded-lg hover:bg-gray-800 transition-colors"
-                        title="Edit note"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414
-                              a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                          />
-                        </svg>
-                      </button>
-          
-                      {/* Delete Button */}
-                      <button
-                        onClick={() => setDeleteConfirm(note)}
-                        className="text-gray-400 hover:text-red-400 p-2 rounded-lg hover:bg-gray-800 transition-colors"
-                        title="Delete note"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 
-                              7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                          />
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
+            <div className={`grid grid-cols-1 sm:grid-cols-2 ${
+  isRightSidebarOpen ? "lg:grid-cols-3" : "lg:grid-cols-4"
+} gap-6`}>
+  {currentNotes.map((note) => (
+    <div
+      key={note.id}
+      className="bg-[#1A1A1A] rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-800 hover:border-gray-700 h-64 flex flex-col"
+    >
+      <div className="p-6 flex flex-col h-full">
+        <div className="flex justify-between items-start mb-4">
+          <h3 className="text-lg font-semibold text-white line-clamp-1 flex-1 mr-2">
+            {note.title}
+          </h3>
+        </div>
+
+        <p className="text-gray-300 text-sm mb-4 line-clamp-3 leading-relaxed flex-1 overflow-hidden">
+          {note.content.length > 150 ? `${note.content.substring(0, 150)}...` : note.content}
+        </p>
+
+        <div className="flex items-center justify-between mt-auto">
+          <p className="text-xs text-gray-500">
+            Created: {formatDate(note.createdAt)}
+          </p>
+
+          <div className="flex gap-1 flex-shrink-0">
+            <button
+              onClick={() => setViewingNote(note)}
+              className="text-gray-400 hover:text-green-400 p-2 rounded-lg hover:bg-gray-800 transition-colors"
+              title="View note"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                />
+              </svg>
+            </button>
+
+            <button
+              onClick={() => setEditingNote(note)}
+              className="text-gray-400 hover:text-blue-400 p-2 rounded-lg hover:bg-gray-800 transition-colors"
+              title="Edit note"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414
+                    a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                />
+              </svg>
+            </button>
+
+            <button
+              onClick={() => setDeleteConfirm(note)}
+              className="text-gray-400 hover:text-red-400 p-2 rounded-lg hover:bg-gray-800 transition-colors"
+              title="Delete note"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 
+                    7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                />
+              </svg>
+            </button>
           </div>
+        </div>
+      </div>
+    </div>
+  ))}
+</div>
           
           )}
         </div>
@@ -642,33 +638,33 @@ export default function NotesApp() {
       </div>
 
       {viewingNote && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#1A1A1A] rounded-xl max-w-2xl w-full max-h-[80vh] overflow-hidden border border-gray-800">
-            <div className="p-6 border-b border-gray-800 flex justify-between items-start">
-              <h2 className="text-2xl font-bold text-white pr-8">{viewingNote.title}</h2>
-              <button
-                onClick={() => setViewingNote(null)}
-                className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-800 transition-colors flex-shrink-0"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className="p-6 overflow-y-auto max-h-[calc(80vh-140px)]">
-              <p className="text-gray-300 text-base leading-relaxed whitespace-pre-wrap">
-                {viewingNote.content}
-              </p>
-            </div>
-            <div className="p-6 border-t border-gray-800 text-xs text-gray-500 space-y-1">
-              <p> {(viewingNote.createdAt)}</p>
-              {viewingNote.updatedAt !== viewingNote.createdAt && (
-                <p>Updated: {(viewingNote.updatedAt)}</p>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div className="bg-[#1A1A1A] rounded-xl max-w-2xl w-full max-h-[80vh] overflow-hidden border border-gray-800">
+      <div className="p-6 border-b border-gray-800 flex justify-between items-start">
+        <h2 className="text-2xl font-bold text-white pr-8">{viewingNote.title}</h2>
+        <button
+          onClick={() => setViewingNote(null)}
+          className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-800 transition-colors flex-shrink-0"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div className="p-6 overflow-y-auto max-h-[calc(80vh-140px)]">
+        <p className="text-gray-300 text-base leading-relaxed whitespace-pre-wrap">
+          {viewingNote.content}
+        </p>
+      </div>
+      <div className="p-6 border-t border-gray-800 text-xs text-gray-500 space-y-1">
+        <p>Created: {formatDate(viewingNote.createdAt)}</p>
+        {viewingNote.updatedAt !== viewingNote.createdAt && (
+          <p>Updated: {formatDate(viewingNote.updatedAt)}</p>
+        )}
+      </div>
+    </div>
+  </div>
+)}
 
 
       <Sidebar

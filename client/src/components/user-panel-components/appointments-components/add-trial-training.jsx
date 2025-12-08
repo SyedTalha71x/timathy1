@@ -1,6 +1,7 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 // refernce trial modal
-import { Search, X, Trash2 } from "lucide-react"
+import { Search, X, Trash2, Check } from "lucide-react"
 import { useEffect, useState } from "react"
 import AddLeadModal from "../lead-user-panel-components/add-lead-modal"
 
@@ -26,6 +27,10 @@ const TrialTrainingModal = ({
   const [isAddLeadModalOpen, setIsAddLeadModalOpen] = useState(false)
   const [selectedLead, setSelectedLead] = useState(initialSelectedLead || null)
   const [editingRelations, setEditingRelations] = useState(false)
+
+  const [showLeadSuggestions, setShowLeadSuggestions] = useState(false);
+const [filteredLeadSuggestions, setFilteredLeadSuggestions] = useState([]);
+const [isSearchFocused, setIsSearchFocused] = useState(false);
   
   const [trialData, setTrialData] = useState({
     date: "",
@@ -63,6 +68,25 @@ const TrialTrainingModal = ({
     }
   }, [])
 
+  useEffect(() => {
+    const filtered = leads.filter(
+      (lead) =>
+        `${lead.firstName} ${lead.lastName || lead.surname || ""}`
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        lead.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        lead.phone?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setFilteredLeadSuggestions(filtered);
+    
+    // Show suggestions when there's a query and input is focused
+    if (isSearchFocused && searchQuery.trim() && filtered.length > 0) {
+      setShowLeadSuggestions(true);
+    } else {
+      setShowLeadSuggestions(false);
+    }
+  }, [searchQuery, leads, isSearchFocused]);
+
   // Filter leads based on search query
   useEffect(() => {
     const filtered = leads.filter(
@@ -91,6 +115,12 @@ const TrialTrainingModal = ({
       })
     }
   }
+
+  const selectLeadFromSuggestions = (lead) => {
+    setSelectedLead(lead);
+    setSearchQuery(`${lead.firstName} ${lead.lastName || lead.surname || ""}`);
+    setShowLeadSuggestions(false);
+  };
 
   // Filter available time slots based on selected date
   const getAvailableSlots = (selectedDate) => {
@@ -230,6 +260,8 @@ const TrialTrainingModal = ({
 
   if (!isOpen) return null
 
+  const hasSelectedLead = !!selectedLead;
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4" onClick={onClose}>
       <div
@@ -244,37 +276,48 @@ const TrialTrainingModal = ({
         </div>
 
         <div className="px-6 py-7">
-          <div className="flex border-b border-gray-700 mb-6">
-            <button
-              onClick={() => setActiveTab("details")}
-              className={`px-4 py-2 text-sm font-medium ${activeTab === "details"
-                ? "text-blue-400 border-b-2 border-blue-400"
-                : "text-gray-400 hover:text-white"
-                }`}
-            >
-              Details
-            </button>
-          
-            <button
-              onClick={() => setActiveTab("note")}
-              className={`px-4 py-2 text-sm font-medium ${activeTab === "note"
-                ? "text-blue-400 border-b-2 border-blue-400"
-                : "text-gray-400 hover:text-white"
-                }`}
-            >
-              Special Note
-            </button>
-            <button
-              onClick={() => setActiveTab("relations")}
-              className={`px-4 py-2 text-sm font-medium ${activeTab === "relations"
-                ? "text-blue-400 border-b-2 border-blue-400"
-                : "text-gray-400 hover:text-white"
-                }`}
-            >
-              Relations
-            </button>
-          </div>
-        </div>
+  <div className="flex border-b border-gray-700 mb-6">
+    <button
+      onClick={() => setActiveTab("details")}
+      className={`px-4 py-2 text-sm font-medium ${
+        activeTab === "details"
+          ? "text-blue-400 border-b-2 border-blue-400"
+          : "text-gray-400 hover:text-white"
+      }`}
+    >
+      Details
+    </button>
+    
+    <button
+      onClick={() => setActiveTab("note")}
+      disabled={!hasSelectedLead}
+      className={`px-4 py-2 text-sm font-medium ${
+        activeTab === "note"
+          ? "text-blue-400 border-b-2 border-blue-400"
+          : !hasSelectedLead
+          ? "text-gray-400 cursor-not-allowed"
+          : "text-gray-400 hover:text-white"
+      }`}
+      title={!hasSelectedLead ? "Please select a lead first" : ""}
+    >
+      Special Note
+    </button>
+    <button
+      onClick={() => setActiveTab("relations")}
+      disabled={!hasSelectedLead}
+      className={`px-4 py-2 text-sm font-medium ${
+        activeTab === "relations"
+          ? "text-blue-400 border-b-2 border-blue-400"
+          : !hasSelectedLead
+          ? "text-gray-400 cursor-not-allowed"
+          : "text-gray-400 hover:text-white"
+      }`}
+      title={!hasSelectedLead ? "Please select a lead first" : ""}
+    >
+      Relations
+    </button>
+  </div>
+</div>
 
         <div className="px-6 pb-6">
           <div className="space-y-4 custom-scrollbar overflow-y-auto max-h-[50vh]">
@@ -282,44 +325,91 @@ const TrialTrainingModal = ({
             {/* Details Tab */}
             {activeTab === "details" && (
               <>
-                <div className="space-y-1.5">
-                  <label className="text-sm text-gray-200">Lead</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Search lead..."
-                      className="w-full bg-[#101010] text-sm rounded-xl pl-10 pr-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF]"
-                    />
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                  </div>
+                <div className="space-y-1.5 lead-search-container relative">
+  <label className="text-sm text-gray-200">Lead</label>
+  <div className="relative">
+    <input
+      type="text"
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+      onFocus={() => {
+        setIsSearchFocused(true);
+        if (searchQuery.trim() && filteredLeadSuggestions.length > 0) {
+          setShowLeadSuggestions(true);
+        }
+      }}
+      placeholder="Search lead..."
+      className="w-full bg-[#101010] text-sm rounded-xl pl-10 pr-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF]"
+    />
+    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+    
+    {/* Clear button when there's text */}
+    {searchQuery && (
+      <button
+        type="button"
+        onClick={() => {
+          setSearchQuery("");
+          setSelectedLead(null);
+          setShowLeadSuggestions(false);
+        }}
+        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+      >
+        <X size={16} />
+      </button>
+    )}
+  </div>
 
-                  {searchQuery && filteredLeads.length > 0 && (
-                    <div className="mt-2 bg-[#101010] rounded-xl max-h-40 overflow-y-auto">
-                      {filteredLeads.map((lead) => (
-                        <div
-                          key={lead.id}
-                          onClick={() => setSelectedLead(lead)}
-                          className={`p-2 cursor-pointer hover:bg-[#252525] ${selectedLead?.id === lead.id ? "bg-[#252525]" : ""}`}
-                        >
-                          <div className="font-medium text-white">{`${lead.firstName} ${lead.lastName || lead.surname || ""}`}</div>
-                          <div className="text-sm text-white">{lead.email}</div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {(!searchQuery || filteredLeads.length === 0) && (
-                    <button
-                      type="button"
-                      onClick={() => setIsAddLeadModalOpen(true)}
-                      className="mt-2 w-full flex items-center justify-center text-sm gap-2 px-4 py-2 bg-orange-500 text-white rounded-xl  transition-colors"
-                    >
-                      Create New Lead
-                    </button>
-                  )}
+  {/* Suggestions dropdown */}
+  {showLeadSuggestions && filteredLeadSuggestions.length > 0 && (
+    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-[#101010] border border-gray-700 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+      {filteredLeadSuggestions.map((lead) => (
+        <div
+          key={lead.id}
+          onClick={() => selectLeadFromSuggestions(lead)}
+          className={`p-3 cursor-pointer hover:bg-[#3F74FF] hover:text-white border-b border-gray-800 last:border-b-0 ${
+            selectedLead?.id === lead.id ? "bg-[#252525]" : ""
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center">
+              {lead.firstName?.charAt(0) || "?"}
+            </div>
+            <div className="flex-1">
+              <div className="font-medium text-white text-sm">
+                {lead.firstName} {lead.lastName || lead.surname || ""}
+              </div>
+              {lead.email && (
+                <div className="text-xs text-gray-400">{lead.email}</div>
+              )}
+              {lead.phone && (
+                <div className="text-xs text-gray-400">{lead.phone}</div>
+              )}
+              {lead.source && (
+                <div className="text-xs text-gray-500 mt-1">
+                  Source: {lead.source}
                 </div>
+              )}
+            </div>
+            {selectedLead?.id === lead.id && (
+              <Check className="text-green-400" size={16} />
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  )}
+
+  {/* Create new lead button */}
+  {(!searchQuery.trim() || filteredLeadSuggestions.length === 0) && (
+    <button
+      type="button"
+      onClick={() => setIsAddLeadModalOpen(true)}
+      className="mt-2 w-full flex items-center justify-center text-sm gap-2 px-4 py-2 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-colors"
+    >
+      <span>+</span> Create New Lead
+    </button>
+  )}
+</div>
 
                 <div className="space-y-1.5">
                   <label className="text-sm text-gray-200">Trial Type</label>

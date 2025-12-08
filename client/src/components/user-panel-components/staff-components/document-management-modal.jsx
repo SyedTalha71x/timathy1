@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useState, useRef } from "react"
-import { X, Upload, Trash, Edit2, File, FileText, FilePlus, Eye, Download, Check, ChevronDown } from "lucide-react"
+import { X, Upload, Trash, Edit2, File, FileText, FilePlus, Eye, Download, Check, ChevronDown, Tag } from "lucide-react"
 import { toast } from "react-hot-toast"
 import { Printer } from "lucide-react"
 
@@ -13,6 +13,16 @@ export function StafffDocumentManagementModal({ member, isOpen, onClose }) {
   const [viewingDocument, setViewingDocument] = useState(null)
   const [openCategoryDropdown, setOpenCategoryDropdown] = useState(null)
   const fileInputRef = useRef(null)
+
+  const [isTagManagerOpen, setIsTagManagerOpen] = useState(false)
+  const [newTagName, setNewTagName] = useState("")
+  const [newTagColor, setNewTagColor] = useState("#FF843E")
+
+  const [configuredTags, setConfiguredTags] = useState([
+    { id: "tag-1", name: "Medical", color: "#EF4444" },
+    { id: "tag-2", name: "Emergency", color: "#F59E0B" },
+    { id: "tag-3", name: "Fitness", color: "#10B981" },
+  ])
 
   const sampleDocuments = [
     {
@@ -87,6 +97,8 @@ export function StafffDocumentManagementModal({ member, isOpen, onClose }) {
       return
     }
 
+
+
     setIsUploading(true)
     toast.loading(`Uploading ${files.length} document(s)...`)
 
@@ -108,6 +120,27 @@ export function StafffDocumentManagementModal({ member, isOpen, onClose }) {
       toast.success(`${files.length} document(s) uploaded successfully`)
     }, 1500)
   }
+
+  const addTag = () => {
+    if (!newTagName.trim()) return
+    
+    const newTag = {
+      id: `tag-${Date.now()}`,
+      name: newTagName.trim(),
+      color: newTagColor
+    }
+    
+    setConfiguredTags([...configuredTags, newTag])
+    setNewTagName("")
+    setNewTagColor("#FF843E")
+    toast.success("Tag created successfully")
+  }
+
+  const deleteTag = (tagId) => {
+    setConfiguredTags(configuredTags.filter(tag => tag.id !== tagId))
+    toast.success("Tag deleted successfully")
+  }
+
 
   const handleDownload = (doc) => {
     toast.success(`Downloading ${doc.name}...`)
@@ -278,16 +311,29 @@ export function StafffDocumentManagementModal({ member, isOpen, onClose }) {
             <p className="text-gray-300">
               Manage documents for <span className="font-medium text-white">{member.firstName} {member.lastName}</span>
             </p>
-            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-              <button
-                onClick={handleUploadClick}
-                disabled={isUploading}
-                className="text-sm gap-2 px-4 py-2 bg-[#3F74FF] text-white rounded-xl transition-colors w-full sm:w-auto flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <Upload className="w-4 h-4 mr-2" />
-                {isUploading ? "Uploading..." : "Upload Document"}
-              </button>
-            </div>
+            <div className="flex items-center gap-2">
+  <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+    <button
+      onClick={handleUploadClick}
+      disabled={isUploading}
+      className="text-sm gap-2 px-4 py-2 bg-[#3F74FF] text-white rounded-xl transition-colors w-full sm:w-auto flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      <Upload className="w-4 h-4" />
+      <span className="hidden lg:inline ml-2">
+        {isUploading ? "Uploading..." : "Upload Document"}
+      </span>
+    </button>
+  </div>
+
+  <button
+    onClick={() => setIsTagManagerOpen(true)}
+    className="text-sm gap-2 px-4 py-2 bg-gray-700 text-white rounded-xl hover:bg-gray-600 transition-colors w-full sm:w-auto flex items-center justify-center"
+  >
+    <Tag className="w-4 h-4" />
+    <span className="hidden lg:inline ">Tags</span>
+  </button>
+</div>
+
             <input 
               type="file" 
               ref={fileInputRef} 
@@ -482,6 +528,80 @@ export function StafffDocumentManagementModal({ member, isOpen, onClose }) {
           </div>
         </div>
       </div>
+
+      {/* Tag Manager Modal */}
+      {isTagManagerOpen && (
+        <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-[70]">
+          <div className="bg-[#181818] rounded-xl p-6 w-full max-w-md">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-white">Manage Tags</h2>
+              <button onClick={() => setIsTagManagerOpen(false)} className="text-gray-400 hover:text-white">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="mb-6">
+              <div className="flex flex-col gap-3 mb-4">
+                <input
+                  type="text"
+                  value={newTagName}
+                  onChange={(e) => setNewTagName(e.target.value)}
+                  placeholder="Enter tag name"
+                  className="w-full bg-[#1C1C1C] text-sm text-white px-4 py-2 rounded-lg outline-none"
+                />
+                <div className="flex items-center gap-3">
+                  <span className="text-white text-sm">Color:</span>
+                  <input
+                    type="color"
+                    value={newTagColor}
+                    onChange={(e) => setNewTagColor(e.target.value)}
+                    className="w-8 h-8 rounded border-none bg-transparent cursor-pointer"
+                  />
+                  <span className="text-gray-300 text-sm">{newTagColor}</span>
+                </div>
+                <button
+                  onClick={addTag}
+                  className="bg-[#FF843E] text-white text-sm px-4 py-2 rounded-lg mt-2 hover:bg-[#FF843E]/90"
+                  disabled={!newTagName.trim()}
+                >
+                  Add Tag
+                </button>
+              </div>
+              <div className="max-h-60 overflow-y-auto text-sm">
+                {configuredTags.length > 0 ? (
+                  <div className="space-y-2">
+                    {configuredTags.map((tag) => (
+                      <div key={tag.id} className="flex justify-between items-center bg-[#1C1C1C] px-4 py-2 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className="px-2 py-1 rounded-md text-xs flex items-center gap-1 text-white"
+                            style={{ backgroundColor: tag.color }}
+                          >
+                            <Tag size={10} />
+                            {tag.name}
+                          </span>
+                        </div>
+                        <button onClick={() => deleteTag(tag.id)} className="text-red-400 hover:text-red-300">
+                          <X size={18} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-400 text-center py-4 text-sm">No tags created yet</p>
+                )}
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <button
+                onClick={() => setIsTagManagerOpen(false)}
+                className="bg-[#FF843E] text-white px-6 py-2 text-sm rounded-lg hover:bg-[#FF843E]/90"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

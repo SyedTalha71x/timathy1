@@ -13,6 +13,9 @@ export default function HistoryModalMain({
 }) {
   if (!show || !member) return null;
 
+  // Check if member is a full member (not temporary)
+  const isFullMember = member.memberType === "full";
+
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
       <div className="bg-[#181818] rounded-xl text-white p-3 sm:p-4 md:p-6 w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] md:max-h-[80vh] overflow-y-auto">
@@ -29,7 +32,7 @@ export default function HistoryModalMain({
         {/* Tabs */}
         <div className="mb-4 sm:mb-6">
           <div className="flex flex-col sm:flex-row sm:space-x-1 space-y-1 sm:space-y-0 bg-[#141414] rounded-lg p-1">
-            {["general", "checkins", "appointments", "finance", "contracts"].map((tab) => (
+            {["general", "checkins", "appointments", "finance"].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setHistoryTabMain(tab)}
@@ -41,9 +44,20 @@ export default function HistoryModalMain({
                 {tab === "checkins" && "Check-ins & Check-outs"}
                 {tab === "appointments" && "Past Appointments"}
                 {tab === "finance" && "Finance Transactions"}
-                {tab === "contracts" && "Contract Changes"}
               </button>
             ))}
+            
+            {/* Only show contracts tab for full members */}
+            {isFullMember && (
+              <button
+                onClick={() => setHistoryTabMain("contracts")}
+                className={`px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm transition-colors ${
+                  historyTabMain === "contracts" ? "bg-blue-600 text-white" : "text-gray-300 hover:text-white"
+                }`}
+              >
+                Contract Changes
+              </button>
+            )}
           </div>
         </div>
 
@@ -139,7 +153,8 @@ export default function HistoryModalMain({
             />
           )}
 
-          {historyTabMain === "contracts" && (
+          {/* Only show contracts content for full members */}
+          {isFullMember && historyTabMain === "contracts" && (
             <Section
               title="Contract Changes"
               data={memberHistoryMain[member.id]?.contracts}

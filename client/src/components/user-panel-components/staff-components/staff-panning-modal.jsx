@@ -54,16 +54,40 @@ function StaffPlanningModal({ staffMembers, onClose }) {
   const [currentWeek, setCurrentWeek] = useState(new Date())
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
 
-  // Dummy data (as in the original file) for attendance/overview demo behavior
-  const dummyShiftsData = staffMembers.map((staff) => ({
-    ...staff,
-    shifts: [
-      { date: "2024-01-15", startTime: "09:00", endTime: "17:00", hoursWorked: 8, status: "completed" },
-      { date: "2024-01-16", startTime: "10:00", endTime: "18:00", hoursWorked: 8, status: "completed" },
-      { date: "2024-01-17", startTime: "08:00", endTime: "16:00", hoursWorked: 8, status: "scheduled" },
-      { date: "2024-01-18", startTime: "09:30", endTime: "17:30", hoursWorked: 8, status: "scheduled" },
-    ],
-  }))
+  // Updated dummy data with shifts for specific staff members
+  const dummyShiftsData = staffMembers.map((staff) => {
+    let shifts = []
+    
+    if (staff.firstName === "John" && staff.lastName === "Doe") {
+      shifts = [
+        { date: "2024-01-15", startTime: "09:00", endTime: "17:00", hoursWorked: 8, status: "completed" },
+        { date: "2024-01-18", startTime: "10:00", endTime: "18:00", hoursWorked: 8, status: "scheduled" },
+      ]
+    } else if (staff.firstName === "Natalia" && staff.lastName === "Brown") {
+      shifts = [
+        { date: "2024-01-16", startTime: "08:00", endTime: "16:00", hoursWorked: 8, status: "completed" },
+        { date: "2024-01-18", startTime: "09:00", endTime: "17:00", hoursWorked: 8, status: "scheduled" }, // Same day as John Doe but different time
+      ]
+    } else if (staff.firstName === "Micheal" && staff.lastName === "John") {
+      shifts = [
+        { date: "2024-01-17", startTime: "07:00", endTime: "15:00", hoursWorked: 8, status: "scheduled" },
+        { date: "2024-01-18", startTime: "09:00", endTime: "17:00", hoursWorked: 8, status: "scheduled" }, // Same time as Natalie Brown
+      ]
+    } else {
+      // Default shifts for other staff
+      shifts = [
+        { date: "2024-01-15", startTime: "09:00", endTime: "17:00", hoursWorked: 8, status: "completed" },
+        { date: "2024-01-16", startTime: "10:00", endTime: "18:00", hoursWorked: 8, status: "completed" },
+        { date: "2024-01-17", startTime: "08:00", endTime: "16:00", hoursWorked: 8, status: "scheduled" },
+        { date: "2024-01-18", startTime: "09:30", endTime: "17:30", hoursWorked: 8, status: "scheduled" },
+      ]
+    }
+    
+    return {
+      ...staff,
+      shifts
+    }
+  })
 
   // Initialize with some sample absences
   useState(() => {
@@ -487,7 +511,7 @@ function StaffPlanningModal({ staffMembers, onClose }) {
           startTime: shift.startTime,
           endTime: shift.endTime,
           status: shift.status,
-          color: s.color || "#3b82f6" // Use indicator color
+          color: s.color // Use the actual staff color from data
         })
       })
     })
@@ -718,21 +742,32 @@ function StaffPlanningModal({ staffMembers, onClose }) {
               const isWeekend = day.getDay() === 0 || day.getDay() === 6
               const isSelected = selectedDateStr === dateStr
 
-              const hasAny = entries.length > 0
+              // Calculate background color based on shifts
+              let backgroundColor = ""
+              if (entries.length > 0) {
+                if (entries.length === 1) {
+                  // Single shift - use that staff's color
+                  backgroundColor = `${entries[0].color}40` // 40 for 25% opacity
+                } else {
+                  // Multiple shifts - use gradient or default color
+                  backgroundColor = "#3b82f640" // Default blue with opacity
+                }
+              }
+
               return (
                 <div
                   key={dateStr}
                   className={`
                     relative text-center p-1 sm:p-2 rounded-md text-xs sm:text-sm cursor-pointer h-10 sm:h-12 flex flex-col items-center justify-center
-                    ${hasAny ? "bg-blue-600/40" : ""}
                     ${isSelected ? "outline outline-1 outline-blue-500" : ""}
                     ${isWeekend ? "text-gray-500" : ""}
-                    ${!hasAny ? "hover:bg-gray-700" : "hover:bg-blue-600/60"}
+                    ${!backgroundColor ? "hover:bg-gray-700" : "hover:opacity-80"}
                   `}
                   onClick={() => handleDateClick(day)}
+                  style={backgroundColor ? { backgroundColor } : {}}
                 >
                   <span>{day.getDate()}</span>
-                  {hasAny && (
+                  {entries.length > 0 && (
                     <div className="absolute bottom-0 left-0 right-0 text-[10px] text-center pb-0.5 px-0.5 truncate">
                       {entries.length} shift{entries.length > 1 ? "s" : ""}
                     </div>
@@ -749,7 +784,11 @@ function StaffPlanningModal({ staffMembers, onClose }) {
             dayEntries.length > 0 ? (
               <div className="space-y-2 max-h-[220px] overflow-y-auto">
                 {dayEntries.map((e, idx) => (
-                  <div key={idx} className="flex justify-between text-sm items-center p-2 bg-[#1C1C1C] rounded-lg">
+                  <div 
+                    key={idx} 
+                    className="flex justify-between text-sm items-center p-2 bg-[#1C1C1C] rounded-lg"
+                    style={{ borderLeft: `4px solid ${e.color}` }}
+                  >
                     <span className="text-gray-300">{e.staffName}</span>
                     <span className="font-medium">
                       {e.startTime}-{e.endTime}
@@ -900,17 +939,20 @@ function StaffPlanningModal({ staffMembers, onClose }) {
                     key={dateStr}
                     className={`
                       relative text-center p-1 sm:p-2 rounded-md text-xs sm:text-sm cursor-pointer h-10 sm:h-12 flex flex-col items-center justify-center
-                      ${isAbsent ? "bg-red-600/40 border border-red-500" : hasShiftBooked ? `bg-[${selectedStaff.color || '#3b82f6'}]/40` : ""}
+                      ${isAbsent ? "bg-red-600/40 border border-red-500" : hasShiftBooked ? "bg-opacity-40" : ""}
                       ${isSelected ? "bg-blue-600/40 border border-blue-500" : ""}
                       ${isWeekend ? "text-gray-500" : ""}
                       ${
                         !hasShiftBooked && !isSelected && !isAbsent
                           ? "hover:bg-gray-700"
                           : hasShiftBooked
-                            ? `hover:bg-[${selectedStaff.color || '#3b82f6'}]/60`
+                            ? "hover:opacity-80"
                             : ""
                       }
                     `}
+                    style={hasShiftBooked && !isAbsent ? { 
+                      backgroundColor: `${selectedStaff.color}40` 
+                    } : {}}
                     onClick={() => handleDateClick(day)}
                     title={isAbsent ? `Absent: ${absence?.reason}` : hasShiftBooked ? `${selectedStaff.firstName} ${selectedStaff.lastName}: ${shifts[dateStr]}` : ""}
                   >

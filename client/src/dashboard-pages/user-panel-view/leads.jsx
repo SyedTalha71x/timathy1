@@ -41,6 +41,9 @@ import AppointmentActionModalV2 from "../../components/myarea-components/Appoint
 import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
 import { LeadSpecialNoteModal } from "../../components/user-panel-components/lead-user-panel-components/special-note-modal"
 import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
+import { LeadDocumentModal } from "../../components/user-panel-components/lead-user-panel-components/document-management-modal"
+import AssessmentFormModal from "../../components/user-panel-components/lead-user-panel-components/assessment-form-modal"
+import AssessmentSelectionModal from "../../components/user-panel-components/lead-user-panel-components/assessment-selection-modal"
 
 export default function LeadManagement() {
   const sidebarSystem = useSidebarSystem()
@@ -54,6 +57,10 @@ export default function LeadManagement() {
     { id: "missed", title: "Missed Call", color: "#8b5cf6" },
     { id: "trial", title: "Trial Training Arranged", color: "#3b82f6", isFixed: true },
   ])
+
+  const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false)
+  const [selectedLeadForDocuments, setSelectedLeadForDocuments] = useState(null)
+
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isEditModalOpenLead, setIsEditModalOpenLead] = useState(false)
   const [isViewDetailsModalOpen, setIsViewDetailsModalOpen] = useState(false)
@@ -69,6 +76,12 @@ export default function LeadManagement() {
   const [selectedEditTab, setSelectedEditTab] = useState("details") // New state for EditLeadModal tab
 
   const [selectedViewTab, setSelectedViewTab] = useState("details")
+
+  //  new states regarding assiement management for lead 
+  const [isAssessmentSelectionModalOpen, setIsAssessmentSelectionModalOpen] = useState(false);
+  const [isAssessmentFormModalOpen, setIsAssessmentFormModalOpen] = useState(false);
+  const [selectedAssessment, setSelectedAssessment] = useState(null);
+  const [completedAssessments, setCompletedAssessments] = useState({});
 
 
 
@@ -169,7 +182,7 @@ export default function LeadManagement() {
     setIsTrialModalOpen(true)
   }
 
-  const handleCreateContract = (lead) => {  
+  const handleCreateContract = (lead) => {
     setSelectedLead(lead)
     setIsCreateContractModalOpen(true)
   }
@@ -196,6 +209,12 @@ export default function LeadManagement() {
     }
     setIsDeleteConfirmationModalOpen(false)
     toast.success("Lead has been deleted")
+  }
+
+
+  const handleOpenDocuments = (lead) => {
+    setSelectedLeadForDocuments(lead)
+    setIsDocumentModalOpen(true)
   }
 
   const handleSaveLead = (data) => {
@@ -907,30 +926,44 @@ export default function LeadManagement() {
     return getBillingPeriods(memberId, memberContingentData)
   }
 
-  // In the main LeadManagement component, add this function:
-  const handleEditNoteMain = (leadId, updatedNote) => {
-    const updatedLeads = leads.map((lead) =>
-      lead.id === leadId
-        ? {
-          ...lead,
-          specialNote: {
-            text: updatedNote.text || "",
-            isImportant: updatedNote.isImportant || false,
-            startDate: updatedNote.startDate || null,
-            endDate: updatedNote.endDate || null,
-          },
-          dragVersion: (lead.dragVersion || 0) + 1, // Force re-render
-        }
+  const handleCreateAssessmentClick = (lead) => {
+    setSelectedLead(lead);
+    setIsAssessmentSelectionModalOpen(true);
+  };
+
+  const handleAssessmentSelect = (assessment) => {
+    setSelectedAssessment(assessment);
+    setIsAssessmentSelectionModalOpen(false);
+    setIsAssessmentFormModalOpen(true);
+  };
+
+  const handleAssessmentComplete = (assessmentData) => {
+    setCompletedAssessments(prev => ({
+      ...prev,
+      [assessmentData.leadId]: assessmentData
+    }));
+
+    const updatedLeads = leads.map(lead =>
+      lead.id === assessmentData.leadId
+        ? { ...lead, hasAssessment: true, assessmentCompletedAt: assessmentData.completedAt }
         : lead
     );
 
     setLeads(updatedLeads);
 
-    // Update localStorage
-    const localStorageLeads = updatedLeads.filter((lead) => lead.source === "localStorage");
-    localStorage.setItem("leads", JSON.stringify(localStorageLeads));
+    setIsAssessmentFormModalOpen(false);
+    setSelectedAssessment(null);
 
-    toast.success("Note updated successfully");
+    setTimeout(() => {
+      if (window.confirm('Assessment completed successfully! Would you like to proceed with creating a contract?')) {
+        handleCreateContract(selectedLead);
+      }
+    }, 100);
+  };
+
+  const handleProceedToContract = () => {
+    setIsAssessmentSelectionModalOpen(false);
+    handleCreateContract(selectedLead);
   };
 
   return (
@@ -1044,6 +1077,8 @@ export default function LeadManagement() {
             setSelectedLead={setSelectedLead} // ADD THIS LINE - this was missing!
             onManageTrialAppointments={handleManageTrialAppointments}
             onEditNote={handleEditNote}
+            onOpenDocuments={handleOpenDocuments}
+            onCreateAssessment={handleCreateAssessmentClick}
           />
         ))}
       </div>
@@ -1256,6 +1291,36 @@ export default function LeadManagement() {
         title="Delete Trial Appointment"
         message="Are you sure you want to delete this trial appointment? This action cannot be undone."
       />
+
+      <LeadDocumentModal
+        lead={selectedLeadForDocuments}
+        isOpen={isDocumentModalOpen}
+        onClose={() => {
+          setIsDocumentModalOpen(false)
+          setSelectedLeadForDocuments(null)
+        }}
+      />
+
+      <AssessmentSelectionModal
+        isOpen={isAssessmentSelectionModalOpen}
+        onClose={() => setIsAssessmentSelectionModalOpen(false)}
+        onSelectAssessment={handleAssessmentSelect}
+        onProceedToContract={handleProceedToContract}
+        selectedLead={selectedLead}
+      />
+
+      <AssessmentFormModal
+        isOpen={isAssessmentFormModalOpen}
+        onClose={() => {
+          setIsAssessmentFormModalOpen(false);
+          setSelectedAssessment(null);
+        }}
+        assessment={selectedAssessment}
+        selectedLead={selectedLead}
+        onComplete={handleAssessmentComplete}
+        onProceedToContract={handleProceedToContract}
+      />
+
 
       {/* Sidebar related modals and logic  */}
       <Sidebar

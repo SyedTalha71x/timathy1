@@ -72,6 +72,20 @@ const CheckFundsModal = ({
     setTransactionStatuses(newStatuses);
   };
 
+  // New function to set all selected transactions to a specific status
+  const handleSetAllSelectedStatus = (status) => {
+    const newStatuses = { ...transactionStatuses };
+    
+    // Update status for all selected transactions
+    Object.keys(selectedTransactions).forEach((id) => {
+      if (selectedTransactions[id]) {
+        newStatuses[id] = status;
+      }
+    });
+    
+    setTransactionStatuses(newStatuses);
+  };
+
   // Helper function to get status display with appropriate styling
   const getStatusDisplay = (transaction) => {
     const isSelected = selectedTransactions[transaction.id];
@@ -86,10 +100,10 @@ const CheckFundsModal = ({
           <select
             value={individualStatus}
             onChange={(e) => handleUpdateStatus(transaction.id, e.target.value)}
-            className={`px-2 py-1 pr-6 rounded-lg text-xs border-none outline-none cursor-pointer appearance-none ${
+            className={`px-2 py-1 pr-6 rounded-lg text-xs border-none outline-none cursor-pointer appearance-none transition-colors ${
               individualStatus === "Successful"
-                ? "text-green-400 bg-green-900/20"
-                : "text-red-400 bg-red-900/20"
+                ? "text-green-400 bg-green-900/20 hover:bg-green-900/30"
+                : "text-red-400 bg-red-900/20 hover:bg-red-900/30"
             }`}
           >
             <option value="Successful" className="bg-[#1C1C1C] text-green-400">Successful</option>
@@ -121,6 +135,8 @@ const CheckFundsModal = ({
   const checkingTransactions = transactions.filter(
     (tx) => tx.status === "Check incoming funds"
   );
+
+  const selectedCount = Object.values(selectedTransactions).filter(Boolean).length;
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
@@ -157,6 +173,29 @@ const CheckFundsModal = ({
                 </div>
               </div>
 
+              {/* Bulk status update buttons */}
+              {selectedCount > 0 && (
+                <div className="mb-4 p-3 bg-[#141414] rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <span className="text-gray-300 text-sm">
+                      Set all selected ({selectedCount}) to:
+                    </span>
+                    <button
+                      onClick={() => handleSetAllSelectedStatus("Successful")}
+                      className="px-3 py-1 text-sm rounded-lg bg-green-900/20 text-green-400 hover:bg-green-900/30 transition-colors"
+                    >
+                      Successful
+                    </button>
+                    <button
+                      onClick={() => handleSetAllSelectedStatus("Failed")}
+                      className="px-3 py-1 text-sm rounded-lg bg-red-900/20 text-red-400 hover:bg-red-900/30 transition-colors"
+                    >
+                      Failed
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <div className="overflow-x-auto">
                 <table className="w-full text-sm text-gray-300 min-w-[500px]">
                   <thead className="text-xs text-gray-400 uppercase bg-[#141414]">
@@ -188,7 +227,14 @@ const CheckFundsModal = ({
                   </thead>
                   <tbody>
                     {checkingTransactions.map((tx) => (
-                      <tr key={tx.id} className="border-b border-gray-800">
+                      <tr 
+                        key={tx.id} 
+                        className={`border-b border-gray-800 ${
+                          selectedTransactions[tx.id] 
+                            ? "" 
+                            : "hover:bg-gray-800/10"
+                        } transition-colors`}
+                      >
                         <td className="px-3 py-2">
                           <input
                             type="checkbox"

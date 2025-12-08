@@ -760,702 +760,258 @@ export default function ContractList() {
         }}
       />
 
-      <div
-        className={`
-          min-h-screen rounded-3xl bg-[#1C1C1C] p-4 sm:p-6
-          transition-all duration-500 ease-in-out flex-1
-          ${isRightSidebarOpen
-            ? "lg:mr-86 mr-0" // Adjust right margin when sidebar is open on larger screens
-            : "mr-0" // No margin when closed
-          }
-        `}
-      >
-        <div className="flex flex-col lg:justify-between md:flex-col lg:flex-row gap-4 mb-6 sm:mb-8">
-          {/* Title and Menu Row */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <h2 className="text-white oxanium_font text-xl sm:text-2xl">Contracts</h2>
+<div
+  className={`
+    min-h-screen rounded-3xl bg-[#1C1C1C] p-4 sm:p-6
+    transition-all duration-500 ease-in-out flex-1
+    ${isRightSidebarOpen
+      ? "lg:mr-86 mr-0" // Adjust right margin when sidebar is open on larger screens
+      : "mr-0" // No margin when closed
+    }
+  `}
+>
+  <div className="flex flex-col lg:justify-between md:flex-col lg:flex-row gap-4 mb-6 sm:mb-8">
+    {/* Title and Menu Row */}
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-2">
+        <h2 className="text-white oxanium_font text-xl sm:text-2xl">Contracts</h2>
+      </div>
+      {isRightSidebarOpen ? (<div onClick={toggleRightSidebar} className="md:hidden">
+        <img src='/expand-sidebar mirrored.svg' className="h-5 w-5 cursor-pointer" alt="" />
+      </div>
+      ) : (<div onClick={toggleRightSidebar} className="md:hidden ">
+        <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
+      </div>
+      )}
+    </div>
 
-
-            </div>
-            {isRightSidebarOpen ? (<div onClick={toggleRightSidebar} className="md:hidden">
-              <img src='/expand-sidebar mirrored.svg' className="h-5 w-5 cursor-pointer" alt="" />
-            </div>
-            ) : (<div onClick={toggleRightSidebar} className="md:hidden ">
-              <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
-            </div>
-            )}
-          </div>
-
-          {/* Controls Row - Responsive Layout */}
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-
-            <div className="flex gap-2 items-center">
-
-
-              <div className="flex bg-black items-center rounded-xl border border-gray-800 p-1 w-fit">
-                <span className="text-xs text-gray-400 px-2">View</span>
-
-                <button
-                  onClick={() => setViewMode("grid")}
-                  className={`p-2 rounded-lg transition-colors ${viewMode === "grid" ? "bg-[#F27A30] text-white" : "text-gray-400 hover:text-white"
-                    }`}
-                  title="Grid View"
-                >
-                  <Grid3X3 className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => setViewMode("list")}
-                  className={`p-2 rounded-lg transition-colors ${viewMode === "list" ? "bg-[#F27A30] text-white" : "text-gray-400 hover:text-white"
-                    }`}
-                  title="List View"
-                >
-                  <List className="w-4 h-4" />
-                </button>
-
-
+    {/* Controls Row - Responsive Layout */}
+    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+      <div className="flex gap-2 items-center">
+        {/* Combined View and Display Controls */}
+        <div className="flex items-center gap-2 bg-black rounded-xl p-1">
+          <span className="text-xs text-gray-400 px-2">View</span>
+          
+          <button
+            onClick={() => setViewMode("grid")}
+            className={`p-2 rounded-lg transition-colors ${viewMode === "grid" ? "bg-[#F27A30] text-white" : "text-gray-400 hover:text-white"
+              }`}
+            title="Grid View"
+          >
+            <Grid3X3 className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => setViewMode("list")}
+            className={`p-2 rounded-lg transition-colors ${viewMode === "list" ? "bg-[#F27A30] text-white" : "text-gray-400 hover:text-white"
+              }`}
+            title="List View"
+          >
+            <List className="w-4 h-4" />
+          </button>
+          
+          {/* Three Dots Display Mode Toggle */}
+          <div className="h-6 w-px bg-gray-700 mx-1"></div>
+          <button
+            onClick={() => setIsCompactView(!isCompactView)}
+            className={`p-2 rounded-lg transition-colors flex items-center gap-1 ${isCompactView ? "text-[#F27A30]" : "text-[#F27A30]"}`}
+            title={isCompactView ? "Compact View (Click for Detailed)" : "Detailed View (Click for Compact)"}
+          >
+            <div className="flex flex-col gap-0.5">
+              <div className="flex gap-0.5">
+                <div className={`w-1.5 h-1.5 rounded-full ${!isCompactView ? 'bg-current' : 'bg-gray-500'}`}></div>
+                <div className={`w-1.5 h-1.5 rounded-full ${!isCompactView ? 'bg-current' : 'bg-gray-500'}`}></div>
               </div>
-
-              <div className="flex bg-black items-center rounded-xl border border-gray-800 p-1 w-fit ml-2">
-                <span className="text-xs text-gray-400 px-2">Display</span>
-                <button
-                  onClick={() => setIsCompactView(false)}
-                  className={`p-2 rounded-lg transition-colors ${!isCompactView ? "bg-[#F27A30] text-white" : "text-gray-400 hover:text-white"
-                    }`}
-                  title="Detailed View"
-                >
-                  <Eye className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => setIsCompactView(true)}
-                  className={`p-2 rounded-lg transition-colors ${isCompactView ? "bg-[#F27A30] text-white" : "text-gray-400 hover:text-white"
-                    }`}
-                  title="Compact View"
-                >
-                  <Grid3X3 className="w-4 h-4" />
-                </button>
+              <div className="flex gap-0.5">
+                <div className={`w-1.5 h-1.5 rounded-full ${isCompactView ? 'bg-current' : 'bg-gray-500'}`}></div>
+                <div className={`w-1.5 h-1.5 rounded-full ${isCompactView ? 'bg-current' : 'bg-gray-500'}`}></div>
               </div>
             </div>
-            {/* Filter and Sort Controls */}
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 flex-1">
-              {/* Filter Dropdown */}
-              <div className="relative filter-dropdown flex-1 sm:flex-none sm:min-w-[150px]">
-                <button
-                  onClick={() => setFilterDropdownOpen(!filterDropdownOpen)}
-                  className="bg-black text-sm cursor-pointer text-white px-4 py-2 rounded-xl border border-gray-800 flex items-center justify-between gap-2 w-full"
-                >
-                  {selectedFilter}
-                  <ChevronDown className="w-4 h-4" />
-                </button>
-                {filterDropdownOpen && (
-                  <div className="absolute left-0 right-0 sm:right-auto sm:w-full text-sm mt-2 bg-[#2F2F2F]/90 backdrop-blur-2xl rounded-xl border border-gray-800 shadow-lg z-10">
-                    {["All Contracts", "Active", "Ongoing", "Paused", "Cancelled"].map((filter) => (
-                      <button
-                        key={filter}
-                        className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-black cursor-pointer text-left"
-                        onClick={() => {
-                          setSelectedFilter(filter)
-                          setFilterDropdownOpen(false)
-                        }}
-                      >
-                        {filter}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="flex gap-3 items-center">
-              <button
-                onClick={handleAddContract}
-                className="flex items-center justify-center cursor-pointer gap-2 px-4 py-2 text-sm bg-orange-500 text-white rounded-xl hover:bg-[#e06b21] transition-colors flex-1 sm:flex-none"
-              >
-                <Plus className="w-5 h-5" />
-                <span>Create Contract</span>
-              </button>
-
-              {isRightSidebarOpen ? (<div onClick={toggleRightSidebar} className="md:block hidden ">
-                <img src='/expand-sidebar mirrored.svg' className="h-5 w-5 cursor-pointer" alt="" />
-              </div>
-              ) : (<div onClick={toggleRightSidebar} className="md:block hidden ">
-                <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
-              </div>
-              )}
-            </div>
-          </div>
+            <span className="text-xs ml-1 hidden sm:inline">
+              {isCompactView ? "Compact" : "Detailed"}
+            </span>
+          </button>
         </div>
-        <div className="flex justify-end items-center mb-4">
-          <div className="flex items-center text-white justify-end gap-2 w-full">
-            <div className="flex items-center gap-2">
-              <label htmlFor="sort" className="text-sm whitespace-nowrap">Sort by:</label>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="cursor-pointer px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-black min-w-[200px]"
-              >
-                {sortOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </div>
+      </div>
 
-        <div className="mb-6 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-          <input
-            type="text"
-            placeholder="Search Contracts"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-10"
-          />
-        </div>
-
-        {viewMode === "list" ? (
-          // List View
-          isCompactView ? (
-            <div className="space-y-2">
-              {paginatedContracts.map((contract) => (
-                <div key={contract.id}>
-                  {expandedCompactId === contract.id ? (
-                    // Expanded compact view shows full details
-                    <div className="flex flex-col lg:flex-row lg:items-center justify-between bg-[#141414] p-4 rounded-xl hover:bg-[#1a1a1a] transition-colors gap-4">
-                      <div className="flex flex-col items-start justify-start">
-                        <span
-                          className={`px-2 py-0.5 text-xs font-medium rounded-lg mb-1 ${contract.status === "Active"
-                            ? "bg-green-600 text-white"
-                            : contract.status === "Ongoing"
-                              ? "bg-gray-600 text-white"
-                              : contract.status === "Paused"
-                                ? "bg-yellow-600 text-white"
-                                : "bg-red-600 text-white"
-                            }`}
-                        >
-                          {contract.status}
-                          {contract.pauseReason && ` (${contract.pauseReason})`}
-                          {contract.cancelReason && ` (${contract.cancelReason})`}
-                        </span>
-
-                        {contract.status === "Ongoing" && contract.signatureRequired && (
-                          <div className="flex items-center gap-1 mb-1">
-                            <AlertTriangle className="w-3 h-3 text-red-500" />
-                            <span className="text-red-500 text-xs font-medium">Signature required</span>
-                          </div>
-                        )}
-
-                        <span className="text-white font-medium">{contract.memberName}</span>
-                        <span className="text-sm text-gray-400">{contract.contractType}</span>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-gray-400">
-                            {contract.startDate} - {contract.endDate}
-                          </span>
-                          {isContractExpired(contract.endDate) && contract.status === "Active" && (
-                            <span className="text-xs text-blue-400 font-medium">Automatically renewed</span>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
-                        <button
-                          onClick={() => handleViewDetails(contract)}
-                          className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-1.5 px-4 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
-                        >
-                          <Eye size={16} />
-                          View Details
-                        </button>
-
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleManageDocuments(contract)}
-                            className="text-white flex-1 sm:flex-none bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2 relative"
-                            title="Manage Documents"
-                          >
-                            <FileText size={16} />
-                            {contract.status === "Ongoing" && contract.signatureRequired && (
-                              <AiOutlineExclamation className="w-4 h-4 text-white rounded-full bg-red-600 absolute -top-2 -right-2" />
-                            )}
-                          </button>
-                          <button
-                            onClick={() => handleViewHistory(contract.id)}
-                            className="text-white flex-1 sm:flex-none bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
-                            title="View Contract History"
-                          >
-                            <History size={16} />
-                          </button>
-                          {contract.status === "Ongoing" ? (
-                            <button
-                              onClick={() => handleDeleteOngoingContract(contract.id)}
-                              className="p-2 bg-black rounded-xl border border-slate-600 hover:border-red-400 hover:text-red-400 transition-colors"
-                              title="Delete Ongoing Contract"
-                            >
-                              <Trash2 className="w-4 h-4 text-red-400 cursor-pointer" />
-                            </button>
-                          ) : (
-                            <div className="relative">
-                              <button
-                                onClick={(e) => toggleDropdownContract(contract.id, e)}
-                                className="dropdown-trigger p-2 bg-black rounded-xl border border-slate-600 hover:border-slate-400 transition-colors"
-                              >
-                                <MoreVertical className="w-4 h-4 text-gray-400 cursor-pointer" />
-                              </button>
-
-                              {activeDropdownId === contract.id && (
-                                <div className="dropdown-menu absolute right-0 top-10 w-46 bg-[#2F2F2F]/20 backdrop-blur-xl rounded-xl border border-gray-800 shadow-lg z-10">
-                                  <button
-                                    onClick={() => handleRenewContract(contract.id)}
-                                    className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
-                                  >
-                                    Renew Contract{" "}
-                                  </button>
-                                  <button
-                                    className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
-                                    onClick={() => handleChangeContract(contract.id)}
-                                  >
-                                    Change Contract
-                                  </button>
-                                  <button
-                                    className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
-                                    onClick={() => handleAddBonusTime(contract.id)}
-                                  >
-                                    Add Bonustime
-                                  </button>
-                                  <button
-                                    className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
-                                    onClick={() => handlePauseContract(contract.id)}
-                                  >
-                                    Pause Contract
-                                  </button>
-                                  <button
-                                    className="w-full px-4 py-2 text-sm text-red-500 hover:bg-gray-800 text-left"
-                                    onClick={() => handleCancelContract(contract.id)}
-                                  >
-                                    Cancel Contract
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-
-                        <button
-                          onClick={() => setExpandedCompactId(null)}
-                          className="p-2 bg-black rounded-xl border border-slate-600 hover:border-slate-400 transition-colors"
-                          title="Collapse"
-                        >
-                          <ChevronUp className="w-4 h-4 text-gray-400" />
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    // Collapsed compact view - minimal info
-                    <div className="flex items-center justify-between bg-[#141414] p-3 rounded-xl hover:bg-[#1a1a1a] transition-colors gap-3">
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <img
-                          src={DefaultAvatar || "/placeholder.svg"}
-                          alt={contract.memberName}
-                          className="w-10 h-10 rounded-full flex-shrink-0 object-cover"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="text-white font-medium text-sm truncate">
-                              {getFirstAndLastName(contract.memberName).firstName}{" "}
-                              {getFirstAndLastName(contract.memberName).lastName}
-                            </span>
-                            <span
-                              className={`px-1.5 py-0.5 text-xs font-medium rounded flex-shrink-0 ${contract.status === "Active"
-                                ? "bg-green-600 text-white"
-                                : contract.status === "Ongoing"
-                                  ? "bg-gray-600 text-white"
-                                  : contract.status === "Paused"
-                                    ? "bg-yellow-600 text-white"
-                                    : "bg-red-600 text-white"
-                                }`}
-                            >
-                              {contract.status.charAt(0)}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => setExpandedCompactId(contract.id)}
-                        className="p-2 bg-black rounded-xl border border-slate-600 hover:border-slate-400 transition-colors flex-shrink-0"
-                        title="Expand"
-                      >
-                        <ChevronDown className="w-4 h-4 text-gray-400" />
-                      </button>
-                    </div>
-                  )}
-                </div>
+      {/* Filter and Sort Controls */}
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 flex-1">
+        {/* Filter Dropdown */}
+        <div className="relative filter-dropdown flex-1 sm:flex-none sm:min-w-[150px]">
+          <button
+            onClick={() => setFilterDropdownOpen(!filterDropdownOpen)}
+            className="bg-black text-sm cursor-pointer text-white px-4 py-2 rounded-xl border border-gray-800 flex items-center justify-between gap-2 w-full"
+          >
+            {selectedFilter}
+            <ChevronDown className="w-4 h-4" />
+          </button>
+          {filterDropdownOpen && (
+            <div className="absolute left-0 right-0 sm:right-auto sm:w-full text-sm mt-2 bg-[#2F2F2F]/90 backdrop-blur-2xl rounded-xl border border-gray-800 shadow-lg z-10">
+              {["All Contracts", "Active", "Ongoing", "Paused", "Cancelled"].map((filter) => (
+                <button
+                  key={filter}
+                  className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-black cursor-pointer text-left"
+                  onClick={() => {
+                    setSelectedFilter(filter)
+                    setFilterDropdownOpen(false)
+                  }}
+                >
+                  {filter}
+                </button>
               ))}
             </div>
-          ) : (
-            // Detailed List View (Original Layout)
-            <div className="space-y-3">
-              {paginatedContracts.map((contract) => (
-                <div
-                  key={contract.id}
-                  className="flex flex-col lg:flex-row lg:items-center justify-between bg-[#141414] p-4 rounded-xl hover:bg-[#1a1a1a] transition-colors gap-4"
-                >
-                  <div className="flex flex-col items-start justify-start">
-                    <span
-                      className={`px-2 py-0.5 text-xs font-medium rounded-lg mb-1 ${contract.status === "Active"
-                        ? "bg-green-600 text-white"
-                        : contract.status === "Ongoing"
-                          ? "bg-gray-600 text-white"
-                          : contract.status === "Paused"
-                            ? "bg-yellow-600 text-white"
-                            : "bg-red-600 text-white"
-                        }`}
-                    >
-                      {contract.status}
-                      {contract.pauseReason && ` (${contract.pauseReason})`}
-                      {contract.cancelReason && ` (${contract.cancelReason})`}
-                    </span>
+          )}
+        </div>
+      </div>
 
-                    {contract.status === "Ongoing" && contract.signatureRequired && (
-                      <div className="flex items-center gap-1 mb-1">
-                        <AlertTriangle className="w-3 h-3 text-red-500" />
-                        <span className="text-red-500 text-xs font-medium">Signature required</span>
-                      </div>
+      <div className="flex gap-3 items-center">
+        <button
+          onClick={handleAddContract}
+          className="flex items-center justify-center cursor-pointer gap-2 px-4 py-2 text-sm bg-orange-500 text-white rounded-xl hover:bg-[#e06b21] transition-colors flex-1 sm:flex-none"
+        >
+          <Plus className="w-5 h-5" />
+          <span>Create Contract</span>
+        </button>
+
+        {isRightSidebarOpen ? (<div onClick={toggleRightSidebar} className="md:block hidden ">
+          <img src='/expand-sidebar mirrored.svg' className="h-5 w-5 cursor-pointer" alt="" />
+        </div>
+        ) : (<div onClick={toggleRightSidebar} className="md:block hidden ">
+          <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
+        </div>
+        )}
+      </div>
+    </div>
+  </div>
+  <div className="flex justify-end items-center mb-4">
+    <div className="flex items-center text-white justify-end gap-2 w-full">
+      <div className="flex items-center gap-2">
+        <label htmlFor="sort" className="text-sm whitespace-nowrap">Sort by:</label>
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+          className="cursor-pointer px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-black min-w-[200px]"
+        >
+          {sortOptions.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div className="mb-6 relative">
+    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+    <input
+      type="text"
+      placeholder="Search Contracts"
+      value={searchTerm}
+      onChange={(e) => setSearchTerm(e.target.value)}
+      className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-10"
+    />
+  </div>
+
+  {viewMode === "list" ? (
+    // List View
+    isCompactView ? (
+      <div className="space-y-2">
+        {paginatedContracts.map((contract) => (
+          <div key={contract.id}>
+            {expandedCompactId === contract.id ? (
+              // Expanded compact view shows full details
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between bg-[#141414] p-4 rounded-xl hover:bg-[#1a1a1a] transition-colors gap-4">
+                <div className="flex flex-col items-start justify-start">
+                  <span
+                    className={`px-2 py-0.5 text-xs font-medium rounded-lg mb-1 ${contract.status === "Active"
+                      ? "bg-green-600 text-white"
+                      : contract.status === "Ongoing"
+                        ? "bg-gray-600 text-white"
+                        : contract.status === "Paused"
+                          ? "bg-yellow-600 text-white"
+                          : "bg-red-600 text-white"
+                      }`}
+                  >
+                    {contract.status}
+                    {contract.pauseReason && ` (${contract.pauseReason})`}
+                    {contract.cancelReason && ` (${contract.cancelReason})`}
+                  </span>
+
+                  {contract.status === "Ongoing" && contract.signatureRequired && (
+                    <div className="flex items-center gap-1 mb-1">
+                      <AlertTriangle className="w-3 h-3 text-red-500" />
+                      <span className="text-red-500 text-xs font-medium">Signature required</span>
+                    </div>
+                  )}
+
+                  {/* First and Last Name in one line */}
+                  <span className="text-white font-medium">
+                    {getFirstAndLastName(contract.memberName).firstName} {getFirstAndLastName(contract.memberName).lastName}
+                  </span>
+                  
+                  {/* Status displayed fully underneath */}
+                  <span className="text-sm text-gray-400">{contract.contractType}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-400">
+                      {contract.startDate} - {contract.endDate}
+                    </span>
+                    {isContractExpired(contract.endDate) && contract.status === "Active" && (
+                      <span className="text-xs text-blue-400 font-medium">Automatically renewed</span>
                     )}
-
-                    <span className="text-white font-medium">{contract.memberName}</span>
-                    <span className="text-sm text-gray-400">{contract.contractType}</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-400">
-                        {contract.startDate} - {contract.endDate}
-                      </span>
-                      {isContractExpired(contract.endDate) && contract.status === "Active" && (
-                        <span className="text-xs text-blue-400 font-medium">Automatically renewed</span>
-                      )}
-                    </div>
                   </div>
+                </div>
 
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+                  <button
+                    onClick={() => handleViewDetails(contract)}
+                    className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-1.5 px-4 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
+                  >
+                    <Eye size={16} />
+                    View Details
+                  </button>
+
+                  <div className="flex gap-2">
                     <button
-                      onClick={() => handleViewDetails(contract)}
-                      className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-1.5 px-4 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
+                      onClick={() => handleManageDocuments(contract)}
+                      className="text-white flex-1 sm:flex-none bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2 relative"
+                      title="Manage Documents"
                     >
-                      <Eye size={16} />
-                      View Details
-                    </button>
-
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleManageDocuments(contract)}
-                        className="text-white flex-1 sm:flex-none bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2 relative"
-                        title="Manage Documents"
-                      >
-                        <FileText size={16} />
-                        {contract.status === "Ongoing" && contract.signatureRequired && (
-                          <AiOutlineExclamation className="w-4 h-4 text-white rounded-full bg-red-600 absolute -top-2 -right-2" />
-                        )}
-                      </button>
-                      <button
-                        onClick={() => handleViewHistory(contract.id)}
-                        className="text-white flex-1 sm:flex-none bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
-                        title="View Contract History"
-                      >
-                        <History size={16} />
-                      </button>
-                      {contract.status === "Ongoing" ? (
-                        <button
-                          onClick={() => handleDeleteOngoingContract(contract.id)}
-                          className="p-2 bg-black rounded-xl border border-slate-600 hover:border-red-400 hover:text-red-400 transition-colors"
-                          title="Delete Ongoing Contract"
-                        >
-                          <Trash2 className="w-4 h-4 text-red-400 cursor-pointer" />
-                        </button>
-                      ) : (
-                        <div className="relative">
-                          <button
-                            onClick={(e) => toggleDropdownContract(contract.id, e)}
-                            className="dropdown-trigger p-2 bg-black rounded-xl border border-slate-600 hover:border-slate-400 transition-colors"
-                          >
-                            <MoreVertical className="w-4 h-4 text-gray-400 cursor-pointer" />
-                          </button>
-
-                          {activeDropdownId === contract.id && (
-                            <div className="dropdown-menu absolute right-0 top-10 w-46 bg-[#2F2F2F]/20 backdrop-blur-xl rounded-xl border border-gray-800 shadow-lg z-10">
-                              <button
-                                onClick={() => handleRenewContract(contract.id)}
-                                className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
-                              >
-                                Renew Contract{" "}
-                              </button>
-                              <button
-                                className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
-                                onClick={() => handleChangeContract(contract.id)}
-                              >
-                                Change Contract
-                              </button>
-                              <button
-                                className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
-                                onClick={() => handleAddBonusTime(contract.id)}
-                              >
-                                Add Bonustime
-                              </button>
-                              <button
-                                className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
-                                onClick={() => handlePauseContract(contract.id)}
-                              >
-                                Pause Contract
-                              </button>
-                              <button
-                                className="w-full px-4 py-2 text-sm text-red-500 hover:bg-gray-800 text-left"
-                                onClick={() => handleCancelContract(contract.id)}
-                              >
-                                Cancel Contract
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )
-        ) : // Grid View
-          isCompactView ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-              {paginatedContracts.map((contract) => (
-                <div key={contract.id}>
-                  {expandedCompactId === contract.id ? (
-                    // Expanded view within grid
-                    <div className="bg-[#141414] p-4 rounded-xl hover:bg-[#1a1a1a] transition-colors flex flex-col h-full col-span-2 md:col-span-2 lg:col-span-2">
-                      {/* Header section */}
-                      <div className="flex justify-between items-start mb-3">
-                        <span
-                          className={`px-2 py-0.5 text-xs font-medium rounded-lg ${contract.status === "Active"
-                            ? "bg-green-600 text-white"
-                            : contract.status === "Ongoing"
-                              ? "bg-gray-600 text-white"
-                              : contract.status === "Paused"
-                                ? "bg-yellow-600 text-white"
-                                : "bg-red-600 text-white"
-                            }`}
-                        >
-                          {contract.status}
-                          {contract.pauseReason && ` (${contract.pauseReason})`}
-                          {contract.cancelReason && ` (${contract.cancelReason})`}
-                        </span>
-
-                        {contract.status === "Ongoing" ? (
-                          <button
-                            onClick={() => handleDeleteOngoingContract(contract.id)}
-                            className="p-1 hover:bg-[#2a2a2a] rounded-full transition-colors"
-                            title="Delete Ongoing Contract"
-                          >
-                            <Trash2 className="w-5 h-5 text-red-400 cursor-pointer" />
-                          </button>
-                        ) : (
-                          <div className="relative">
-                            <button
-                              onClick={(e) => toggleDropdownContract(contract.id, e)}
-                              className="dropdown-trigger p-1 hover:bg-[#2a2a2a] rounded-full transition-colors"
-                            >
-                              <MoreVertical className="w-5 h-5 text-gray-400 cursor-pointer" />
-                            </button>
-
-                            {activeDropdownId === contract.id && (
-                              <div className="dropdown-menu absolute right-0 top-6 w-46 bg-[#2F2F2F]/20 backdrop-blur-xl rounded-xl border border-gray-800 shadow-lg z-10">
-                                <button
-                                  onClick={() => handleRenewContract(contract.id)}
-                                  className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
-                                >
-                                  Renew Contract
-                                </button>
-                                <button
-                                  className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
-                                  onClick={() => handleChangeContract(contract.id)}
-                                >
-                                  Change Contract
-                                </button>
-                                <button
-                                  className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
-                                  onClick={() => handleAddBonusTime(contract.id)}
-                                >
-                                  Add Bonustime
-                                </button>
-                                <button
-                                  className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
-                                  onClick={() => handlePauseContract(contract.id)}
-                                >
-                                  Pause Contract
-                                </button>
-                                <button
-                                  className="w-full px-4 py-2 text-sm text-red-500 hover:bg-gray-800 text-left"
-                                  onClick={() => handleCancelContract(contract.id)}
-                                >
-                                  Cancel Contract
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-
+                      <FileText size={16} />
                       {contract.status === "Ongoing" && contract.signatureRequired && (
-                        <div className="flex items-center gap-1 mb-2">
-                          <AlertTriangle className="w-3 h-3 text-red-500" />
-                          <span className="text-red-500 text-xs font-medium">Signature required</span>
-                        </div>
+                        <AiOutlineExclamation className="w-4 h-4 text-white rounded-full bg-red-600 absolute -top-2 -right-2" />
                       )}
-
-                      {/* Content section - this will grow to fill available space */}
-                      <div className="flex-1 mb-4 flex flex-col gap-1.5">
-                        <h3 className="text-white font-medium text-lg leading-tight">{contract.memberName}</h3>
-                        <p className="text-gray-400 text-sm leading-snug">{contract.contractType}</p>
-
-                        <div className="flex items-center gap-2">
-                          <p className="text-gray-400 text-sm leading-snug">
-                            {contract.startDate} - {contract.endDate}
-                          </p>
-                          {isContractExpired(contract.endDate) && contract.status === "Active" && (
-                            <span className="text-xs text-blue-400 font-medium">Automatically renewed</span>
-                          )}
-                        </div>
-
-                        <p className="text-gray-400 text-sm leading-snug">{contract.isDigital ? "Digital" : "Analog"}</p>
-                      </div>
-
-                      {/* Button section - always at the bottom */}
-                      <div className="flex flex-col gap-2 mt-auto">
-                        <button
-                          onClick={() => handleViewDetails(contract)}
-                          className="px-3 py-1.5 bg-black text-sm cursor-pointer text-white border border-gray-800 rounded-xl hover:bg-gray-900 transition-colors flex items-center justify-center gap-2"
-                        >
-                          <Eye size={16} />
-                          View Details
-                        </button>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleManageDocuments(contract)}
-                            className="flex-1 p-1.5 bg-black text-sm cursor-pointer text-white border border-gray-800 rounded-xl hover:bg-gray-900 transition-colors flex items-center justify-center relative"
-                            title="Manage Documents"
-                          >
-                            <FileText className="w-5 h-5" />
-                            {contract.status === "Ongoing" && contract.signatureRequired && (
-                              <AiOutlineExclamation className="w-4 h-4 text-white rounded-full bg-red-600 absolute -top-2 -right-2" />
-                            )}
-                          </button>
-                          <button
-                            onClick={() => handleViewHistory(contract.id)}
-                            className="flex-1 p-1.5 bg-black text-sm cursor-pointer text-white border border-gray-800 rounded-xl hover:bg-gray-900 transition-colors flex items-center justify-center"
-                            title="View Contract History"
-                          >
-                            <History className="w-5 h-5" />
-                          </button>
-                        </div>
-                        <button
-                          onClick={() => setExpandedCompactId(null)}
-                          className="px-3 py-1.5 bg-black text-sm cursor-pointer text-white border border-gray-800 rounded-xl hover:bg-gray-900 transition-colors flex items-center justify-center gap-2"
-                          title="Collapse"
-                        >
-                          <ChevronUp size={16} />
-                          Collapse
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    // Compact tile view
-                    <div className="bg-[#141414] p-3 rounded-xl hover:bg-[#1a1a1a] transition-colors flex flex-col items-center justify-center gap-2 h-full">
-                      <div className="relative w-full">
-                        <img
-                          src={DefaultAvatar || "/placeholder.svg"}
-                          alt={contract.memberName}
-                          className="w-12 h-12 rounded-full mx-auto object-cover"
-                        />
-                        <span
-                          className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-xs font-bold text-white ${contract.status === "Active"
-                            ? "bg-green-600"
-                            : contract.status === "Ongoing"
-                              ? "bg-gray-600"
-                              : contract.status === "Paused"
-                                ? "bg-yellow-600"
-                                : "bg-red-600"
-                            }`}
-                        >
-                          {contract.status.charAt(0)}
-                        </span>
-                      </div>
-
-                      <div className="text-center w-full min-w-0">
-                        <p className="text-white font-medium text-xs truncate">
-                          {getFirstAndLastName(contract.memberName).firstName}
-                        </p>
-                        <p className="text-gray-400 text-xs truncate">
-                          {getFirstAndLastName(contract.memberName).lastName}
-                        </p>
-                      </div>
-
-                      <button
-                        onClick={() => setExpandedCompactId(contract.id)}
-                        className="p-1.5 bg-black rounded-lg border border-slate-600 hover:border-slate-400 transition-colors w-full flex items-center justify-center"
-                        title="Expand"
-                      >
-                        <ChevronDown className="w-4 h-4 text-gray-400" />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            // Detailed Grid View (Original Layout)
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {paginatedContracts.map((contract) => (
-                <div
-                  key={contract.id}
-                  className="bg-[#141414] p-4 rounded-xl hover:bg-[#1a1a1a] transition-colors flex flex-col h-full"
-                >
-                  {/* Header section */}
-                  <div className="flex justify-between items-start mb-3">
-                    <span
-                      className={`px-2 py-0.5 text-xs font-medium rounded-lg ${contract.status === "Active"
-                        ? "bg-green-600 text-white"
-                        : contract.status === "Ongoing"
-                          ? "bg-gray-600 text-white"
-                          : contract.status === "Paused"
-                            ? "bg-yellow-600 text-white"
-                            : "bg-red-600 text-white"
-                        }`}
+                    </button>
+                    <button
+                      onClick={() => handleViewHistory(contract.id)}
+                      className="text-white flex-1 sm:flex-none bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
+                      title="View Contract History"
                     >
-                      {contract.status}
-                      {contract.pauseReason && ` (${contract.pauseReason})`}
-                      {contract.cancelReason && ` (${contract.cancelReason})`}
-                    </span>
-
+                      <History size={16} />
+                    </button>
                     {contract.status === "Ongoing" ? (
                       <button
                         onClick={() => handleDeleteOngoingContract(contract.id)}
-                        className="p-1 hover:bg-[#2a2a2a] rounded-full transition-colors"
+                        className="p-2 bg-black rounded-xl border border-slate-600 hover:border-red-400 hover:text-red-400 transition-colors"
                         title="Delete Ongoing Contract"
                       >
-                        <Trash2 className="w-5 h-5 text-red-400 cursor-pointer" />
+                        <Trash2 className="w-4 h-4 text-red-400 cursor-pointer" />
                       </button>
                     ) : (
                       <div className="relative">
                         <button
                           onClick={(e) => toggleDropdownContract(contract.id, e)}
-                          className="dropdown-trigger p-1 hover:bg-[#2a2a2a] rounded-full transition-colors"
+                          className="dropdown-trigger p-2 bg-black rounded-xl border border-slate-600 hover:border-slate-400 transition-colors"
                         >
-                          <MoreVertical className="w-5 h-5 text-gray-400 cursor-pointer" />
+                          <MoreVertical className="w-4 h-4 text-gray-400 cursor-pointer" />
                         </button>
 
                         {activeDropdownId === contract.id && (
-                          <div className="dropdown-menu absolute right-0 top-6 w-46 bg-[#2F2F2F]/20 backdrop-blur-xl rounded-xl border border-gray-800 shadow-lg z-10">
+                          <div className="dropdown-menu absolute right-0 top-10 w-46 bg-[#2F2F2F]/20 backdrop-blur-xl rounded-xl border border-gray-800 shadow-lg z-10">
                             <button
                               onClick={() => handleRenewContract(contract.id)}
                               className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
                             >
-                              Renew Contract
+                              Renew Contract{" "}
                             </button>
                             <button
                               className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
@@ -1487,69 +1043,520 @@ export default function ContractList() {
                     )}
                   </div>
 
-                  {contract.status === "Ongoing" && contract.signatureRequired && (
-                    <div className="flex items-center gap-1 mb-2">
-                      <AlertTriangle className="w-3 h-3 text-red-500" />
-                      <span className="text-red-500 text-xs font-medium">Signature required</span>
-                    </div>
-                  )}
-
-                  {/* Content section - this will grow to fill available space */}
-                  <div className="flex-1 mb-4 flex flex-col gap-1.5">
-                    <h3 className="text-white font-medium text-lg leading-tight">{contract.memberName}</h3>
-                    <p className="text-gray-400 text-sm leading-snug">{contract.contractType}</p>
-
+                  <button
+                    onClick={() => setExpandedCompactId(null)}
+                    className="p-2 bg-black rounded-xl border border-slate-600 hover:border-slate-400 transition-colors"
+                    title="Collapse"
+                  >
+                    <ChevronUp className="w-4 h-4 text-gray-400" />
+                  </button>
+                </div>
+              </div>
+            ) : (
+              // Collapsed compact view - minimal info WITHOUT profile picture
+              <div className="flex items-center justify-between bg-[#141414] p-3 rounded-xl hover:bg-[#1a1a1a] transition-colors gap-3">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  {/* Profile picture removed */}
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <p className="text-gray-400 text-sm leading-snug">
-                        {contract.startDate} - {contract.endDate}
-                      </p>
-                      {isContractExpired(contract.endDate) && contract.status === "Active" && (
-                        <span className="text-xs text-blue-400 font-medium">Automatically renewed</span>
-                      )}
-                    </div>
-
-                    <p className="text-gray-400 text-sm leading-snug">{contract.isDigital ? "Digital" : "Analog"}</p>
-                  </div>
-
-                  {/* Button section - always at the bottom */}
-                  <div className="flex flex-col gap-2 mt-auto">
-                    <button
-                      onClick={() => handleViewDetails(contract)}
-                      className="px-3 py-1.5 bg-black text-sm cursor-pointer text-white border border-gray-800 rounded-xl hover:bg-gray-900 transition-colors flex items-center justify-center gap-2"
-                    >
-                      <Eye size={16} />
-                      View Details
-                    </button>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleManageDocuments(contract)}
-                        className="flex-1 p-1.5 bg-black text-sm cursor-pointer text-white border border-gray-800 rounded-xl hover:bg-gray-900 transition-colors flex items-center justify-center relative"
-                        title="Manage Documents"
+                      {/* First and Last Name in one line */}
+                      <span className="text-white font-medium text-sm">
+                        {getFirstAndLastName(contract.memberName).firstName} {getFirstAndLastName(contract.memberName).lastName}
+                      </span>
+                      {/* Status displayed fully */}
+                      <span
+                        className={`px-1.5 py-0.5 text-xs font-medium rounded flex-shrink-0 ${contract.status === "Active"
+                          ? "bg-green-600 text-white"
+                          : contract.status === "Ongoing"
+                            ? "bg-gray-600 text-white"
+                            : contract.status === "Paused"
+                              ? "bg-yellow-600 text-white"
+                              : "bg-red-600 text-white"
+                          }`}
                       >
-                        <FileText className="w-5 h-5" />
-                        {contract.status === "Ongoing" && contract.signatureRequired && (
-                          <AiOutlineExclamation className="w-4 h-4 text-white rounded-full bg-red-600 absolute -top-2 -right-2" />
-                        )}
-                      </button>
-                      <button
-                        onClick={() => handleViewHistory(contract.id)}
-                        className="flex-1 p-1.5 bg-black text-sm cursor-pointer text-white border border-gray-800 rounded-xl hover:bg-gray-900 transition-colors flex items-center justify-center"
-                        title="View Contract History"
-                      >
-                        <History className="w-5 h-5" />
-                      </button>
+                        {contract.status}
+                      </span>
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-
-        {paginatedContracts.length === 0 && (
-          <div className="bg-[#141414] p-6 rounded-xl text-center">
-            <p className="text-gray-400">No contracts found matching your criteria.</p>
+                <button
+                  onClick={() => setExpandedCompactId(contract.id)}
+                  className="p-2 bg-black rounded-xl border border-slate-600 hover:border-slate-400 transition-colors flex-shrink-0"
+                  title="Expand"
+                >
+                  <ChevronDown className="w-4 h-4 text-gray-400" />
+                </button>
+              </div>
+            )}
           </div>
-        )}
+        ))}
+      </div>
+    ) : (
+      // Detailed List View (Original Layout) WITHOUT profile picture
+      <div className="space-y-3">
+        {paginatedContracts.map((contract) => (
+          <div
+            key={contract.id}
+            className="flex flex-col lg:flex-row lg:items-center justify-between bg-[#141414] p-4 rounded-xl hover:bg-[#1a1a1a] transition-colors gap-4"
+          >
+            <div className="flex flex-col items-start justify-start">
+              <span
+                className={`px-2 py-0.5 text-xs font-medium rounded-lg mb-1 ${contract.status === "Active"
+                  ? "bg-green-600 text-white"
+                  : contract.status === "Ongoing"
+                    ? "bg-gray-600 text-white"
+                    : contract.status === "Paused"
+                      ? "bg-yellow-600 text-white"
+                      : "bg-red-600 text-white"
+                  }`}
+              >
+                {contract.status}
+                {contract.pauseReason && ` (${contract.pauseReason})`}
+                {contract.cancelReason && ` (${contract.cancelReason})`}
+              </span>
+
+              {contract.status === "Ongoing" && contract.signatureRequired && (
+                <div className="flex items-center gap-1 mb-1">
+                  <AlertTriangle className="w-3 h-3 text-red-500" />
+                  <span className="text-red-500 text-xs font-medium">Signature required</span>
+                </div>
+              )}
+
+              {/* First and Last Name in one line */}
+              <span className="text-white font-medium">
+                {getFirstAndLastName(contract.memberName).firstName} {getFirstAndLastName(contract.memberName).lastName}
+              </span>
+              
+              {/* Status displayed fully underneath */}
+              <span className="text-sm text-gray-400">{contract.contractType}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-400">
+                  {contract.startDate} - {contract.endDate}
+                </span>
+                {isContractExpired(contract.endDate) && contract.status === "Active" && (
+                  <span className="text-xs text-blue-400 font-medium">Automatically renewed</span>
+                )}
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+              <button
+                onClick={() => handleViewDetails(contract)}
+                className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-1.5 px-4 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
+              >
+                <Eye size={16} />
+                View Details
+              </button>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleManageDocuments(contract)}
+                  className="text-white flex-1 sm:flex-none bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2 relative"
+                  title="Manage Documents"
+                >
+                  <FileText size={16} />
+                  {contract.status === "Ongoing" && contract.signatureRequired && (
+                    <AiOutlineExclamation className="w-4 h-4 text-white rounded-full bg-red-600 absolute -top-2 -right-2" />
+                  )}
+                </button>
+                <button
+                  onClick={() => handleViewHistory(contract.id)}
+                  className="text-white flex-1 sm:flex-none bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
+                  title="View Contract History"
+                >
+                  <History size={16} />
+                </button>
+                {contract.status === "Ongoing" ? (
+                  <button
+                    onClick={() => handleDeleteOngoingContract(contract.id)}
+                    className="p-2 bg-black rounded-xl border border-slate-600 hover:border-red-400 hover:text-red-400 transition-colors"
+                    title="Delete Ongoing Contract"
+                  >
+                    <Trash2 className="w-4 h-4 text-red-400 cursor-pointer" />
+                  </button>
+                ) : (
+                  <div className="relative">
+                    <button
+                      onClick={(e) => toggleDropdownContract(contract.id, e)}
+                      className="dropdown-trigger p-2 bg-black rounded-xl border border-slate-600 hover:border-slate-400 transition-colors"
+                    >
+                      <MoreVertical className="w-4 h-4 text-gray-400 cursor-pointer" />
+                    </button>
+
+                    {activeDropdownId === contract.id && (
+                      <div className="dropdown-menu absolute right-0 top-10 w-46 bg-[#2F2F2F]/20 backdrop-blur-xl rounded-xl border border-gray-800 shadow-lg z-10">
+                        <button
+                          onClick={() => handleRenewContract(contract.id)}
+                          className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
+                        >
+                          Renew Contract{" "}
+                        </button>
+                        <button
+                          className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
+                          onClick={() => handleChangeContract(contract.id)}
+                        >
+                          Change Contract
+                        </button>
+                        <button
+                          className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
+                          onClick={() => handleAddBonusTime(contract.id)}
+                        >
+                          Add Bonustime
+                        </button>
+                        <button
+                          className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
+                          onClick={() => handlePauseContract(contract.id)}
+                        >
+                          Pause Contract
+                        </button>
+                        <button
+                          className="w-full px-4 py-2 text-sm text-red-500 hover:bg-gray-800 text-left"
+                          onClick={() => handleCancelContract(contract.id)}
+                        >
+                          Cancel Contract
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    )
+  ) : // Grid View
+    isCompactView ? (
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+        {paginatedContracts.map((contract) => (
+          <div key={contract.id}>
+            {expandedCompactId === contract.id ? (
+              // Expanded view within grid WITHOUT profile picture
+              <div className="bg-[#141414] p-4 rounded-xl hover:bg-[#1a1a1a] transition-colors flex flex-col h-full col-span-2 md:col-span-2 lg:col-span-2">
+                {/* Header section */}
+                <div className="flex justify-between items-start mb-3">
+                  <span
+                    className={`px-2 py-0.5 text-xs font-medium rounded-lg ${contract.status === "Active"
+                      ? "bg-green-600 text-white"
+                      : contract.status === "Ongoing"
+                        ? "bg-gray-600 text-white"
+                        : contract.status === "Paused"
+                          ? "bg-yellow-600 text-white"
+                          : "bg-red-600 text-white"
+                      }`}
+                  >
+                    {contract.status}
+                    {contract.pauseReason && ` (${contract.pauseReason})`}
+                    {contract.cancelReason && ` (${contract.cancelReason})`}
+                  </span>
+
+                  {contract.status === "Ongoing" ? (
+                    <button
+                      onClick={() => handleDeleteOngoingContract(contract.id)}
+                      className="p-1 hover:bg-[#2a2a2a] rounded-full transition-colors"
+                      title="Delete Ongoing Contract"
+                    >
+                      <Trash2 className="w-5 h-5 text-red-400 cursor-pointer" />
+                    </button>
+                  ) : (
+                    <div className="relative">
+                      <button
+                        onClick={(e) => toggleDropdownContract(contract.id, e)}
+                        className="dropdown-trigger p-1 hover:bg-[#2a2a2a] rounded-full transition-colors"
+                      >
+                        <MoreVertical className="w-5 h-5 text-gray-400 cursor-pointer" />
+                      </button>
+
+                      {activeDropdownId === contract.id && (
+                        <div className="dropdown-menu absolute right-0 top-6 w-46 bg-[#2F2F2F]/20 backdrop-blur-xl rounded-xl border border-gray-800 shadow-lg z-10">
+                          <button
+                            onClick={() => handleRenewContract(contract.id)}
+                            className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
+                          >
+                            Renew Contract
+                          </button>
+                          <button
+                            className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
+                            onClick={() => handleChangeContract(contract.id)}
+                          >
+                            Change Contract
+                          </button>
+                          <button
+                            className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
+                            onClick={() => handleAddBonusTime(contract.id)}
+                          >
+                            Add Bonustime
+                          </button>
+                          <button
+                            className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
+                            onClick={() => handlePauseContract(contract.id)}
+                          >
+                            Pause Contract
+                          </button>
+                          <button
+                            className="w-full px-4 py-2 text-sm text-red-500 hover:bg-gray-800 text-left"
+                            onClick={() => handleCancelContract(contract.id)}
+                          >
+                            Cancel Contract
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {contract.status === "Ongoing" && contract.signatureRequired && (
+                  <div className="flex items-center gap-1 mb-2">
+                    <AlertTriangle className="w-3 h-3 text-red-500" />
+                    <span className="text-red-500 text-xs font-medium">Signature required</span>
+                  </div>
+                )}
+
+                {/* Content section WITHOUT profile picture */}
+                <div className="flex-1 mb-4 flex flex-col gap-1.5">
+                  {/* First and Last Name in one line */}
+                  <h3 className="text-white font-medium text-lg leading-tight">
+                    {getFirstAndLastName(contract.memberName).firstName} {getFirstAndLastName(contract.memberName).lastName}
+                  </h3>
+                  
+                  {/* Status displayed fully underneath */}
+                  <p className="text-gray-400 text-sm leading-snug">{contract.contractType}</p>
+
+                  <div className="flex items-center gap-2">
+                    <p className="text-gray-400 text-sm leading-snug">
+                      {contract.startDate} - {contract.endDate}
+                    </p>
+                    {isContractExpired(contract.endDate) && contract.status === "Active" && (
+                      <span className="text-xs text-blue-400 font-medium">Automatically renewed</span>
+                    )}
+                  </div>
+
+                  <p className="text-gray-400 text-sm leading-snug">{contract.isDigital ? "Digital" : "Analog"}</p>
+                </div>
+
+                {/* Button section - always at the bottom */}
+                <div className="flex flex-col gap-2 mt-auto">
+                  <button
+                    onClick={() => handleViewDetails(contract)}
+                    className="px-3 py-1.5 bg-black text-sm cursor-pointer text-white border border-gray-800 rounded-xl hover:bg-gray-900 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Eye size={16} />
+                    View Details
+                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleManageDocuments(contract)}
+                      className="flex-1 p-1.5 bg-black text-sm cursor-pointer text-white border border-gray-800 rounded-xl hover:bg-gray-900 transition-colors flex items-center justify-center relative"
+                      title="Manage Documents"
+                    >
+                      <FileText className="w-5 h-5" />
+                      {contract.status === "Ongoing" && contract.signatureRequired && (
+                        <AiOutlineExclamation className="w-4 h-4 text-white rounded-full bg-red-600 absolute -top-2 -right-2" />
+                      )}
+                    </button>
+                    <button
+                      onClick={() => handleViewHistory(contract.id)}
+                      className="flex-1 p-1.5 bg-black text-sm cursor-pointer text-white border border-gray-800 rounded-xl hover:bg-gray-900 transition-colors flex items-center justify-center"
+                      title="View Contract History"
+                    >
+                      <History className="w-5 h-5" />
+                    </button>
+                  </div>
+                  <button
+                    onClick={() => setExpandedCompactId(null)}
+                    className="px-3 py-1.5 bg-black text-sm cursor-pointer text-white border border-gray-800 rounded-xl hover:bg-gray-900 transition-colors flex items-center justify-center gap-2"
+                    title="Collapse"
+                  >
+                    <ChevronUp size={16} />
+                    Collapse
+                  </button>
+                </div>
+              </div>
+            ) : (
+              // Compact tile view WITHOUT profile picture
+              <div className="bg-[#141414] p-3 rounded-xl hover:bg-[#1a1a1a] transition-colors flex flex-col items-center justify-center gap-2 h-full">
+                {/* Profile picture removed */}
+                <div className="text-center w-full min-w-0">
+                  {/* First and Last Name in one line */}
+                  <p className="text-white font-medium text-xs">
+                    {getFirstAndLastName(contract.memberName).firstName} {getFirstAndLastName(contract.memberName).lastName}
+                  </p>
+                  
+                  {/* Status displayed fully */}
+                  <span
+                    className={`px-1.5 py-0.5 text-xs font-medium rounded mt-1 inline-block ${contract.status === "Active"
+                      ? "bg-green-600 text-white"
+                      : contract.status === "Ongoing"
+                        ? "bg-gray-600 text-white"
+                        : contract.status === "Paused"
+                          ? "bg-yellow-600 text-white"
+                          : "bg-red-600 text-white"
+                      }`}
+                  >
+                    {contract.status}
+                  </span>
+                </div>
+
+                <button
+                  onClick={() => setExpandedCompactId(contract.id)}
+                  className="p-1.5 bg-black rounded-lg border border-slate-600 hover:border-slate-400 transition-colors w-full flex items-center justify-center"
+                  title="Expand"
+                >
+                  <ChevronDown className="w-4 h-4 text-gray-400" />
+                </button>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    ) : (
+      // Detailed Grid View WITHOUT profile picture
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {paginatedContracts.map((contract) => (
+          <div
+            key={contract.id}
+            className="bg-[#141414] p-4 rounded-xl hover:bg-[#1a1a1a] transition-colors flex flex-col h-full"
+          >
+            {/* Header section */}
+            <div className="flex justify-between items-start mb-3">
+              <span
+                className={`px-2 py-0.5 text-xs font-medium rounded-lg ${contract.status === "Active"
+                  ? "bg-green-600 text-white"
+                  : contract.status === "Ongoing"
+                    ? "bg-gray-600 text-white"
+                    : contract.status === "Paused"
+                      ? "bg-yellow-600 text-white"
+                      : "bg-red-600 text-white"
+                  }`}
+              >
+                {contract.status}
+                {contract.pauseReason && ` (${contract.pauseReason})`}
+                {contract.cancelReason && ` (${contract.cancelReason})`}
+              </span>
+
+              {contract.status === "Ongoing" ? (
+                <button
+                  onClick={() => handleDeleteOngoingContract(contract.id)}
+                  className="p-1 hover:bg-[#2a2a2a] rounded-full transition-colors"
+                  title="Delete Ongoing Contract"
+                >
+                  <Trash2 className="w-5 h-5 text-red-400 cursor-pointer" />
+                </button>
+              ) : (
+                <div className="relative">
+                  <button
+                    onClick={(e) => toggleDropdownContract(contract.id, e)}
+                    className="dropdown-trigger p-1 hover:bg-[#2a2a2a] rounded-full transition-colors"
+                  >
+                    <MoreVertical className="w-5 h-5 text-gray-400 cursor-pointer" />
+                  </button>
+
+                  {activeDropdownId === contract.id && (
+                    <div className="dropdown-menu absolute right-0 top-6 w-46 bg-[#2F2F2F]/20 backdrop-blur-xl rounded-xl border border-gray-800 shadow-lg z-10">
+                      <button
+                        onClick={() => handleRenewContract(contract.id)}
+                        className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
+                      >
+                        Renew Contract
+                      </button>
+                      <button
+                        className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
+                        onClick={() => handleChangeContract(contract.id)}
+                      >
+                        Change Contract
+                      </button>
+                      <button
+                        className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
+                        onClick={() => handleAddBonusTime(contract.id)}
+                      >
+                        Add Bonustime
+                      </button>
+                      <button
+                        className="w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 text-left"
+                        onClick={() => handlePauseContract(contract.id)}
+                      >
+                        Pause Contract
+                      </button>
+                      <button
+                        className="w-full px-4 py-2 text-sm text-red-500 hover:bg-gray-800 text-left"
+                        onClick={() => handleCancelContract(contract.id)}
+                      >
+                        Cancel Contract
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {contract.status === "Ongoing" && contract.signatureRequired && (
+              <div className="flex items-center gap-1 mb-2">
+                <AlertTriangle className="w-3 h-3 text-red-500" />
+                <span className="text-red-500 text-xs font-medium">Signature required</span>
+              </div>
+            )}
+
+            {/* Content section WITHOUT profile picture */}
+            <div className="flex-1 mb-4 flex flex-col gap-1.5">
+              {/* First and Last Name in one line */}
+              <h3 className="text-white font-medium text-lg leading-tight">
+                {getFirstAndLastName(contract.memberName).firstName} {getFirstAndLastName(contract.memberName).lastName}
+              </h3>
+              
+              {/* Status displayed fully underneath */}
+              <p className="text-gray-400 text-sm leading-snug">{contract.contractType}</p>
+
+              <div className="flex items-center gap-2">
+                <p className="text-gray-400 text-sm leading-snug">
+                  {contract.startDate} - {contract.endDate}
+                </p>
+                {isContractExpired(contract.endDate) && contract.status === "Active" && (
+                  <span className="text-xs text-blue-400 font-medium">Automatically renewed</span>
+                )}
+              </div>
+
+              <p className="text-gray-400 text-sm leading-snug">{contract.isDigital ? "Digital" : "Analog"}</p>
+            </div>
+
+            {/* Button section - always at the bottom */}
+            <div className="flex flex-col gap-2 mt-auto">
+              <button
+                onClick={() => handleViewDetails(contract)}
+                className="px-3 py-1.5 bg-black text-sm cursor-pointer text-white border border-gray-800 rounded-xl hover:bg-gray-900 transition-colors flex items-center justify-center gap-2"
+              >
+                <Eye size={16} />
+                View Details
+              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleManageDocuments(contract)}
+                  className="flex-1 p-1.5 bg-black text-sm cursor-pointer text-white border border-gray-800 rounded-xl hover:bg-gray-900 transition-colors flex items-center justify-center relative"
+                  title="Manage Documents"
+                >
+                  <FileText className="w-5 h-5" />
+                  {contract.status === "Ongoing" && contract.signatureRequired && (
+                    <AiOutlineExclamation className="w-4 h-4 text-white rounded-full bg-red-600 absolute -top-2 -right-2" />
+                  )}
+                </button>
+                <button
+                  onClick={() => handleViewHistory(contract.id)}
+                  className="flex-1 p-1.5 bg-black text-sm cursor-pointer text-white border border-gray-800 rounded-xl hover:bg-gray-900 transition-colors flex items-center justify-center"
+                  title="View Contract History"
+                >
+                  <History className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+
+  {paginatedContracts.length === 0 && (
+    <div className="bg-[#141414] p-6 rounded-xl text-center">
+      <p className="text-gray-400">No contracts found matching your criteria.</p>
+    </div>
+  )}
 
         {/* ... existing modals ... */}
         {isModalOpen && (

@@ -2,7 +2,7 @@
 /* eslint-disable react/prop-types */
 import { ImageIcon } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
-import { List, X } from "react-feather"
+import { X } from "react-feather"
 import ReactQuill from "react-quill"
 
 const WysiwygEditor = ({ value, onChange, placeholder }) => {
@@ -38,6 +38,7 @@ const WysiwygEditor = ({ value, onChange, placeholder }) => {
       }
       .ql-editor {
         color: #ffffff !important;
+        min-height: 200px !important;
       }
       .ql-toolbar {
         border-color: #303030 !important;
@@ -46,6 +47,7 @@ const WysiwygEditor = ({ value, onChange, placeholder }) => {
       .ql-container {
         border-color: #303030 !important;
         background-color: #101010 !important;
+        min-height: 250px !important;
       }
       .ql-snow .ql-stroke {
         stroke: #ffffff !important;
@@ -75,16 +77,18 @@ const WysiwygEditor = ({ value, onChange, placeholder }) => {
     />
   )
 }
+
 const NewTicketModal = ({ isOpen, onClose, onSubmit }) => {
     const [subject, setSubject] = useState("")
     const [reason, setReason] = useState("")
     const [additionalDescription, setAdditionalDescription] = useState("")
     const [uploadedImages, setUploadedImages] = useState([])
-    const [isBold, setIsBold] = useState(false)
-    const [isItalic, setIsItalic] = useState(false)
-    const [requesterName, setRequesterName] = useState("")
-    const [requesterEmail, setRequesterEmail] = useState("")
-    const textareaRef = useRef(null)
+    
+    // Auto-filled fields
+    const [studioName] = useState("My Studio")
+    const [requesterName] = useState("John Doe")
+    const [requesterEmail] = useState("john.doe@example.com")
+
     const fileInputRef = useRef(null)
 
     const subjects = [
@@ -199,29 +203,6 @@ const NewTicketModal = ({ isOpen, onClose, onSubmit }) => {
       setReason(e.target.value)
     }
 
-    const toggleBold = () => {
-      setIsBold(!isBold)
-    }
-
-    const toggleItalic = () => {
-      setIsItalic(!isItalic)
-    }
-
-    const addBulletPoint = () => {
-      const textarea = textareaRef.current
-      if (!textarea) return
-
-      const start = textarea.selectionStart
-      const text = textarea.value
-      const lines = text.split("\n")
-      const currentLineIndex = text.substring(0, start).split("\n").length - 1
-
-      if (!lines[currentLineIndex].startsWith("• ")) {
-        lines[currentLineIndex] = "• " + lines[currentLineIndex]
-        setAdditionalDescription(lines.join("\n"))
-      }
-    }
-
     const handleImageUpload = (e) => {
       const files = Array.from(e.target.files)
       files.forEach((file) => {
@@ -237,19 +218,43 @@ const NewTicketModal = ({ isOpen, onClose, onSubmit }) => {
       setUploadedImages((prev) => prev.filter((_, i) => i !== index))
     }
 
+    const formatTicketName = (subjectValue, reasonValue) => {
+      if (!subjectValue || !reasonValue) return ""
+      
+      const subjectObj = subjects.find(s => s.value === subjectValue)
+      const reasonObj = reasons[subjectValue]?.find(r => r.value === reasonValue)
+      
+      if (!subjectObj || !reasonObj) return ""
+      
+      return `${subjectObj.label} – ${reasonObj.label}`
+    }
+
+    const stripHtmlTags = (html) => {
+      if (!html) return ""
+      // Remove all HTML tags and decode HTML entities
+      const tempDiv = document.createElement('div')
+      tempDiv.innerHTML = html
+      return tempDiv.textContent || tempDiv.innerText || ""
+    }
+
     const handleSubmit = () => {
-      if (subject && reason && requesterName && requesterEmail) {
-        onSubmit(subject, reason, additionalDescription, uploadedImages, isBold, isItalic, requesterName, requesterEmail)
+      if (subject && reason) {
+        const ticketName = formatTicketName(subject, reason)
+        
+        // HTML content directly submit karo (formatting preserve hoga)
+        onSubmit(
+          ticketName, 
+          additionalDescription, // Yeh HTML content hai with formatting
+          uploadedImages
+        )
+        
+        // Reset form
         setSubject("")
         setReason("")
         setAdditionalDescription("")
         setUploadedImages([])
-        setIsBold(false)
-        setIsItalic(false)
-        setRequesterName("")
-        setRequesterEmail("")
       } else {
-        alert("Please fill in all required fields: Subject, Reason, Requester Name, and Requester Email.")
+        alert("Please fill in all required fields: Subject and Reason.")
       }
     }
 
@@ -267,31 +272,40 @@ const NewTicketModal = ({ isOpen, onClose, onSubmit }) => {
           <h2 className="text-lg sm:text-xl font-bold text-white mb-4 sm:mb-6 text-center pr-6">Create New Ticket</h2>
 
           <div className="space-y-4 sm:space-y-6 max-h-[60vh] overflow-y-auto custom-scrollbar pr-2">
-            {/* Requester Fields */}
+            {/* Auto-filled Studio Name */}
             <div>
-              <label className="block text-sm font-medium text-white mb-2">Requester Name *</label>
+              <label className="block text-sm font-medium text-white mb-2">Studio Name</label>
+              <input
+                type="text"
+                value={studioName}
+                readOnly
+                className="w-full bg-[#101010] text-sm rounded-lg sm:rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-white outline-none border border-[#333333] focus:border-[#3F74FF] cursor-not-allowed opacity-70"
+              />
+            </div>
+
+            {/* Auto-filled Requester Fields */}
+            <div>
+              <label className="block text-sm font-medium text-white mb-2">Requester Name</label>
               <input
                 type="text"
                 value={requesterName}
-                onChange={(e) => setRequesterName(e.target.value)}
-                className="w-full bg-[#101010] text-sm rounded-lg sm:rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-white outline-none border border-[#333333] focus:border-[#3F74FF]"
-                placeholder="Enter requester name"
+                readOnly
+                className="w-full bg-[#101010] text-sm rounded-lg sm:rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-white outline-none border border-[#333333] focus:border-[#3F74FF] cursor-not-allowed opacity-70"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-white mb-2">Requester Email *</label>
+              <label className="block text-sm font-medium text-white mb-2">Requester Email</label>
               <input
                 type="email"
                 value={requesterEmail}
-                onChange={(e) => setRequesterEmail(e.target.value)}
-                className="w-full bg-[#101010] text-sm rounded-lg sm:rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-white outline-none border border-[#333333] focus:border-[#3F74FF]"
-                placeholder="Enter requester email"
+                readOnly
+                className="w-full bg-[#101010] text-sm rounded-lg sm:rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-white outline-none border border-[#333333] focus:border-[#3F74FF] cursor-not-allowed opacity-70"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-white mb-2">Subject *</label>
+              <label className="block text-sm font-medium text-white mb-2">Subject</label>
               <select
                 value={subject}
                 onChange={handleSubjectChange}
@@ -306,7 +320,7 @@ const NewTicketModal = ({ isOpen, onClose, onSubmit }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-white mb-2">Reason *</label>
+              <label className="block text-sm font-medium text-white mb-2">Reason</label>
               <select
                 value={reason}
                 onChange={handleReasonChange}
@@ -326,52 +340,50 @@ const NewTicketModal = ({ isOpen, onClose, onSubmit }) => {
             </div>
 
             <div>
-  <label className="block text-sm font-medium text-white mb-2">Additional description</label>
-  
-  {/* Image upload section - keep this above the editor */}
-  <div className="mb-3">
-    <input
-      type="file"
-      ref={fileInputRef}
-      onChange={handleImageUpload}
-      accept="image/*"
-      multiple
-      className="hidden"
-    />
-    <button
-      onClick={() => fileInputRef.current?.click()}
-      className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
-    >
-      <ImageIcon size={16} />
-      Attach Images
-    </button>
-    
-    {uploadedImages.length > 0 && (
-      <div className="flex flex-wrap gap-2 mt-2">
-        {uploadedImages.map((img, idx) => (
-          <div key={idx} className="relative">
-            <img src={img || "/placeholder.svg"} alt="Preview" className="w-20 h-20 object-cover rounded border border-gray-600" />
-            <button
-              onClick={() => removeImage(idx)}
-              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
-            >
-              ×
-            </button>
-          </div>
-        ))}
-      </div>
-    )}
-  </div>
+              <label className="block text-sm font-medium text-white mb-2">Additional description</label>
+              
+              <div className="mb-3">
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleImageUpload}
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                />
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
+                >
+                  <ImageIcon size={16} />
+                  Attach Images
+                </button>
+                
+                {uploadedImages.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {uploadedImages.map((img, idx) => (
+                      <div key={idx} className="relative">
+                        <img src={img || "/placeholder.svg"} alt="Preview" className="w-20 h-20 object-cover rounded border border-gray-600" />
+                        <button
+                          onClick={() => removeImage(idx)}
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-  {/* WYSIWYG Editor */}
-  <div className="border border-gray-600 rounded-lg overflow-hidden bg-[#101010]">
-    <WysiwygEditor
-      value={additionalDescription}
-      onChange={setAdditionalDescription}
-      placeholder="Provide additional details about your issue..."
-    />
-  </div>
-</div>
+              <div className="border border-gray-600 rounded-lg overflow-hidden bg-[#101010] min-h-[300px]">
+                <WysiwygEditor
+                  value={additionalDescription}
+                  onChange={setAdditionalDescription}
+                  placeholder="Provide additional details about your issue..."
+                />
+              </div>
+            </div>
 
             <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
               <button
@@ -383,7 +395,7 @@ const NewTicketModal = ({ isOpen, onClose, onSubmit }) => {
               <button
                 onClick={handleSubmit}
                 className="w-full sm:w-auto px-4 py-2 text-sm rounded-md sm:rounded-lg font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed order-1 sm:order-2"
-                disabled={!subject || !reason || !requesterName || !requesterEmail}
+                disabled={!subject || !reason}
               >
                 Submit Ticket
               </button>

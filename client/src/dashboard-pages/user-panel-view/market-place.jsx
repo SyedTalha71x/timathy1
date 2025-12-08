@@ -37,6 +37,8 @@ const marketplaceProducts = [
     price: "5,00 €",
     image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSV1xUYD-Gqa5d08aoyqp4g1i6vs4lySrH4cA&s",
     link: "https://example.com/product/1",
+    pinned: true,
+    infoText: "Premium basketball shoes with enhanced ankle support and cushioning. Made from breathable materials."
   },
   {
     id: 2,
@@ -44,11 +46,14 @@ const marketplaceProducts = [
     brand: "NIKE",
     articleNo: "123",
     price: "5,00 €",
-    image:
-      "https://image.goat.com/transform/v1/attachments/product_template_additional_pictures/images/105/365/563/original/1507255_01.jpg.jpeg?action=crop&width=750",
+    image: "https://image.goat.com/transform/v1/attachments/product_template_additional_pictures/images/105/365/563/original/1507255_01.jpg.jpeg?action=crop&width=750",
     link: "https://example.com/product/2",
+    pinned: false,
+    infoText: "Limited edition collaboration with Off-White. Features deconstructed design elements."
   },
-]
+  // Add more products with pinned and infoText fields as needed
+];
+
 
 export default function MarketplacePage() {
   const sidebarSystem = useSidebarSystem();
@@ -56,6 +61,10 @@ export default function MarketplacePage() {
   const [searchQuery, setSearchQuery] = useState("")
 
   const trainingVideos = trainingVideosData
+
+  const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
+  const [productForInfo, setProductForInfo] = useState(null);
+
 
   const [sortDirection, setSortDirection] = useState("asc") // new state
 
@@ -128,6 +137,22 @@ export default function MarketplacePage() {
       direction: prev.direction === "asc" ? "desc" : "asc"
     }))
   }
+
+  const openInfoModal = (product) => {
+    setProductForInfo(product);
+    setIsInfoModalOpen(true);
+  };
+
+  const closeInfoModal = () => {
+    setIsInfoModalOpen(false);
+    setProductForInfo(null);
+  };
+
+  const openEditModal = (product) => {
+    // Implement or adapt your edit modal logic here
+    console.log("Edit product:", product);
+  };
+
 
   // Extract all states and functions from the hook
   const {
@@ -523,12 +548,17 @@ export default function MarketplacePage() {
 
           <div className="flex flex-col sm:flex-row gap-2 mb-8">
             <div className="relative flex-1">
+              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
               <input
                 type="search"
-                placeholder="Search by name, brand or article number......"
+                placeholder="Search by name, brand or article number..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-[#181818] text-white rounded-xl px-4 py-2 w-full text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                className="bg-[#181818] text-white rounded-xl px-10 py-2 w-full text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
               />
             </div>
 
@@ -556,19 +586,44 @@ export default function MarketplacePage() {
           <div className={`grid grid-cols-1 sm:grid-cols-2 ${isRightSidebarOpen ? 'lg:grid-cols-3' : 'lg:grid-cols-3 xl:grid-cols-4'} gap-4 sm:gap-6`}>
             {sortedProducts.map((product) => (
               <div key={product.id} className="bg-[#2a2a2a] rounded-2xl overflow-hidden relative">
+                {/* Pinned Icon */}
+                {product.pinned && (
+                  <div className="absolute top-3 left-3 z-10">
+                    <svg className="w-5 h-5" fill="#FF6B1A" viewBox="0 0 24 24">
+                      <path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z" />
+                    </svg>
+                  </div>
+                )}
+
                 <div className="relative w-full h-48 bg-white">
                   <img
                     src={product.image || "/placeholder.svg"}
                     alt={product.name}
                     className="object-cover w-full h-full"
                   />
-                  <button
-                    onClick={() => window.open(product.link, "_blank")}
-                    className="absolute bottom-3 right-3 bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-full transition-colors"
-                    aria-label="Open product link"
-                  >
-                    <ExternalLink size={16} />
-                  </button>
+
+                  {/* Top-right action buttons */}
+                  <div className="absolute top-3 right-3 flex gap-2">
+                    {/* Info Icon Button */}
+                    <button
+                      onClick={() => openInfoModal(product)}
+                      className="bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-full transition-colors"
+                      aria-label="Show product information"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </button>
+
+                    {/* External Link Button */}
+                    <button
+                      onClick={() => window.open(product.link, "_blank")}
+                      className="bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-full transition-colors"
+                      aria-label="Open product link"
+                    >
+                      <ExternalLink size={16} />
+                    </button>
+                  </div>
                 </div>
 
                 <div className="p-4 bg-[#2a2a2a] text-white">
@@ -590,6 +645,61 @@ export default function MarketplacePage() {
 
 
       </div>
+
+      {isInfoModalOpen && productForInfo && (
+        <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-[#1C1C1C] rounded-lg w-full max-w-md mx-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-white">Product Information</h2>
+                <button
+                  onClick={closeInfoModal}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-white mb-2">{productForInfo.productName || productForInfo.name}</h3>
+                <p className="text-gray-400 text-sm mb-1">Brand: {productForInfo.brandName || productForInfo.brand}</p>
+                <p className="text-gray-400 text-sm mb-3">Article No: {productForInfo.articleNo}</p>
+
+                {productForInfo.infoText ? (
+                  <div className="bg-[#101010] rounded-lg p-4">
+                    <p className="text-gray-300 text-sm leading-relaxed">{productForInfo.infoText}</p>
+                  </div>
+                ) : (
+                  <div className="bg-[#101010] rounded-lg p-4 text-center">
+                    <p className="text-gray-500 text-sm">No additional information available</p>
+                    <button
+                      onClick={() => {
+                        closeInfoModal();
+                        openEditModal(productForInfo);
+                      }}
+                      className="text-blue-400 hover:text-blue-300 text-sm mt-2"
+                    >
+                      Add information
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex space-x-3">
+
+                <button
+                  onClick={closeInfoModal}
+                  className="flex-1 bg-gray-600 text-sm hover:bg-gray-700 text-white py-3 px-4 rounded-lg font-medium transition-colors duration-200"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Sidebar
         isRightSidebarOpen={isRightSidebarOpen}

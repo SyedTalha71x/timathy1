@@ -30,7 +30,7 @@ const SendEmailModal = ({
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-medium flex items-center gap-2">
               <Mail className="w-5 h-5" />
-              Send Email
+              Send Emailss
             </h2>
             <button
               onClick={handleCloseEmailModal}
