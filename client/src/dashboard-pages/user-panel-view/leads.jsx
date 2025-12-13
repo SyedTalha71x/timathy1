@@ -36,7 +36,7 @@ import NotifyMemberModal from "../../components/myarea-components/NotifyMemberMo
 import TrainingPlanModal from "../../components/myarea-components/TrainingPlanModal"
 import Sidebar from "../../components/central-sidebar"
 import DefaultAvatar from "../../../public/gray-avatar-fotor-20250912192528.png"
-import { MemberOverviewModal } from "../../components/myarea-components/MemberOverviewModal"
+import  MemberOverviewModal  from "../../components/myarea-components/MemberOverviewModal"
 import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"
 import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
 import { LeadSpecialNoteModal } from "../../components/user-panel-components/lead-user-panel-components/special-note-modal"

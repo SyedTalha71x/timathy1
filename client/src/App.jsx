@@ -62,6 +62,13 @@ import MemberTraining from './dashboard-pages/member-view/training'
 import MemberDashboardLayout from "./layouts/member-dashboard-layout";
 import EditAdminPage from "./dashboard-pages/admin-view/edit-admin-page";
 import EditStudioPage from "./dashboard-pages/admin-view/edit-studio-page";
+import MemberFoodLogs from './dashboard-pages/member-view/nutrition-tracking/food-log'
+import MemberNutritionBreakDown from './dashboard-pages/member-view/nutrition-tracking/nutrition-breakdown'
+import MemberDailySummary from './dashboard-pages/member-view/nutrition-tracking/daily-summary'
+import MemberGoalSettings from './dashboard-pages/member-view/nutrition-tracking/goal-setting'
+import MemberNotificationsRemainders from './dashboard-pages/member-view/nutrition-tracking/notifications'
+import MemberOfflineMode from './dashboard-pages/member-view/nutrition-tracking/offline-mode'
+import MemberBarcodeEntry from './dashboard-pages/member-view/nutrition-tracking/barcode-entry'
 // import { useEffect } from "react";
 // import { startModalWatcher } from "./utils/fixModals";
 
@@ -142,6 +149,13 @@ function App() {
           <Route path="settings" element={<MemberSettings />} />
           <Route path="edit-profile" element={<MemberViewProfile />} />
           <Route path="training" element={<MemberTraining />} />
+          <Route path="food-log" element={<MemberFoodLogs />} />
+          <Route path="nutrition-breakdown" element={<MemberNutritionBreakDown />} />
+          <Route path="daily-summary" element={<MemberDailySummary />} />
+          <Route path="goal-settings" element={<MemberGoalSettings />} />
+          <Route path="notifications-remainders" element={<MemberNotificationsRemainders />} />
+          <Route path="offline-mode" element={<MemberOfflineMode />} />
+          <Route path="barcode-entry" element={<MemberBarcodeEntry />} />
 
         </Route>
       </Routes>

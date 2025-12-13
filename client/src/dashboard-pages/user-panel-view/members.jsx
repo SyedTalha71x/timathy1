@@ -59,7 +59,6 @@ import AppointmentActionModal from "../../components/user-panel-components/appoi
 import TrainingPlanModal from "../../components/myarea-components/TrainingPlanModal"
 import Sidebar from "../../components/central-sidebar"
 import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'
-import { MemberOverviewModal } from "../../components/myarea-components/MemberOverviewModal"
 import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"
 import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
 
@@ -68,6 +67,7 @@ import { trainingVideosData } from "../../utils/user-panel-states/training-state
 import ChatPopup from "../../components/user-panel-components/members-components/ChatPopup"
 import TrainingPlansModalMain from "../../components/user-panel-components/members-components/TrainingPlanModal"
 import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
+import MemberOverviewModal from "../../components/myarea-components/MemberOverviewModal"
 
 const StatusTag = ({ status, reason = "", compact = false }) => {
   const getStatusColor = (status, isArchived) => {

@@ -13,7 +13,6 @@ import Sidebar from "../../components/central-sidebar"
 import TrainingPlanModal from "../../components/myarea-components/TrainingPlanModal"
 import NotifyMemberModal from "../../components/myarea-components/NotifyMemberModal"
 import { WidgetSelectionModal } from "../../components/widget-selection-modal"
-import MemberOverviewModal from "../../components/user-panel-components/communication-components/MemberOverviewModal"
 import AppointmentModal from "../../components/myarea-components/AppointmentModal"
 import HistoryModal from "../../components/myarea-components/HistoryModal"
 import MemberDetailsModal from "../../components/myarea-components/MemberDetailsModal"
@@ -26,6 +25,7 @@ import AppointmentActionModalV2 from "../../components/myarea-components/Appoint
 import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
 import { appointmentsData } from "../../utils/user-panel-states/analytics-states"
 import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
+import MemberOverviewModal from "../../components/myarea-components/MemberOverviewModal"
 
 const tabs = [
   { name: "Appointments", icon: FaCalendarAlt },

@@ -89,8 +89,8 @@ const Appointments = () => {
   }, {})
 
   // Updated filter logic for multi-select
-  const filteredServices = selectedCategories.includes("All courses") 
-    ? services 
+  const filteredServices = selectedCategories.includes("All courses")
+    ? services
     : services.filter((service) => selectedCategories.includes(service.category))
 
   // Handle category selection for multi-select
@@ -99,11 +99,11 @@ const Appointments = () => {
       if (category === "All courses") {
         return ["All courses"]
       }
-      
+
       const newSelection = prev.includes(category)
         ? prev.filter(c => c !== category)
         : [...prev.filter(c => c !== "All courses"), category]
-      
+
       // If no categories selected, default to "All courses"
       return newSelection.length === 0 ? ["All courses"] : newSelection
     })
@@ -249,38 +249,7 @@ const Appointments = () => {
           </div>
         )}
 
-        <BookingModal
-          show={showBookingModal}
-          onClose={() => setShowBookingModal(false)}
-          onConfirm={confirmBooking}
-          selectedService={selectedService}
-          selectedMonth={selectedMonth}
-          selectedDate={selectedDate}
-          selectedYear={selectedYear}
-          selectedTimeSlot={selectedTimeSlot}
-          timeSlots={timeSlots}
-          months={months}
-        />
 
-        <RequestModal
-          show={showRequestModal}
-          onClose={() => setShowRequestModal(false)}
-          onConfirm={confirmRequest}
-          selectedService={selectedService}
-          selectedMonth={selectedMonth}
-          selectedDate={selectedDate}
-          selectedYear={selectedYear}
-          selectedTimeSlot={selectedTimeSlot}
-          timeSlots={timeSlots}
-          months={months}
-        />
-
-        <CancelModal
-          show={showCancelModal}
-          onClose={() => setShowCancelModal(false)}
-          onConfirm={confirmCancelBooking}
-          appointmentToCancel={appointmentToCancel}
-        />
 
         {!showBooking && !showMyAppointments ? (
           <>
@@ -728,6 +697,39 @@ const Appointments = () => {
           </>
         )}
       </div>
+
+      <BookingModal
+        show={showBookingModal}
+        onClose={() => setShowBookingModal(false)}
+        onConfirm={confirmBooking}
+        selectedService={selectedService}
+        selectedMonth={selectedMonth}
+        selectedDate={selectedDate}
+        selectedYear={selectedYear}
+        selectedTimeSlot={selectedTimeSlot}
+        timeSlots={timeSlots}
+        months={months}
+      />
+
+      <RequestModal
+        show={showRequestModal}
+        onClose={() => setShowRequestModal(false)}
+        onConfirm={confirmRequest}
+        selectedService={selectedService}
+        selectedMonth={selectedMonth}
+        selectedDate={selectedDate}
+        selectedYear={selectedYear}
+        selectedTimeSlot={selectedTimeSlot}
+        timeSlots={timeSlots}
+        months={months}
+      />
+
+      <CancelModal
+        show={showCancelModal}
+        onClose={() => setShowCancelModal(false)}
+        onConfirm={confirmCancelBooking}
+        appointmentToCancel={appointmentToCancel}
+      />
     </div>
   )
 }

@@ -27,7 +27,6 @@ import { WidgetSelectionModal } from "../../components/widget-selection-modal"
 import NotifyMemberModal from "../../components/myarea-components/NotifyMemberModal"
 import TrainingPlanModal from "../../components/myarea-components/TrainingPlanModal"
 import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'
-import { MemberOverviewModal } from "../../components/myarea-components/MemberOverviewModal"
 import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"
 import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
 import { StafffDocumentManagementModal } from "../../components/user-panel-components/staff-components/document-management-modal"
@@ -36,6 +35,7 @@ import TrainingPlansModal from "../../components/myarea-components/TrainingPlanM
 import { Briefcase } from 'lucide-react';
 import { FaPlusMinus } from "react-icons/fa6"
 import VacationContingentModal from "../../components/user-panel-components/staff-components/vacation-contigent"
+import MemberOverviewModal from "../../components/myarea-components/MemberOverviewModal"
 
 
 const StaffContext = createContext(null)

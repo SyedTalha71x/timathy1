@@ -32,7 +32,6 @@ import Sidebar from "../../components/central-sidebar"
 import TrainingPlanModal from "../../components/myarea-components/TrainingPlanModal"
 import NotifyMemberModal from "../../components/myarea-components/NotifyMemberModal"
 import { WidgetSelectionModal } from "../../components/widget-selection-modal"
-import MemberOverviewModal from "../../components/user-panel-components/communication-components/MemberOverviewModal"
 import AppointmentModal from "../../components/myarea-components/AppointmentModal"
 import MemberDetailsModal from "../../components/myarea-components/MemberDetailsModal"
 import ContingentModal from "../../components/myarea-components/ContigentModal"
@@ -49,6 +48,7 @@ import CreatePlanModal from "../../components/user-panel-components/training-com
 import EditPlanModal from "../../components/user-panel-components/training-components/edit-plan-modal"
 import VideoModal from "../../components/user-panel-components/training-components/video-modal"
 import AddToPlanModal from "../../components/user-panel-components/training-components/add-to-plan-modal"
+import MemberOverviewModal from "../../components/myarea-components/MemberOverviewModal"
 
 export default function Training() {
   const [activeTab, setActiveTab] = useState("videos")

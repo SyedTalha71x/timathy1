@@ -46,7 +46,6 @@ import NotifyMemberModal from "../../components/myarea-components/NotifyMemberMo
 import TrainingPlanModal from "../../components/myarea-components/TrainingPlanModal"
 import Sidebar from "../../components/central-sidebar"
 import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'
-import { MemberOverviewModal } from "../../components/myarea-components/MemberOverviewModal"
 import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"
 import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
 import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
@@ -54,8 +53,7 @@ import { createPortal } from "react-dom"
 import TrainingPlansModalMain from "../../components/user-panel-components/appointments-components/training-plan-modal"
 import MemberOverviewModalMain from "../../components/user-panel-components/appointments-components/calendar-components/MemberOverviewModalMain"
 import { SpecialNoteEditModal } from "../../components/myarea-components/SpecialNoteEditModal"
-
-import SidebarLogoLeft from '../../../public/expand-sidebar mirrored.svg'
+import MemberOverviewModal from "../../components/myarea-components/MemberOverviewModal"
 
 export default function Appointments() {
   const sidebarSystem = useSidebarSystem();
@@ -136,6 +134,7 @@ export default function Appointments() {
   const [filteredAppointments, setFilteredAppointments] = useState(appointmentsMain)
   const [isBlockModalOpen, setIsBlockModalOpen] = useState(false)
   const [isAppointmentActionModalOpen, setIsAppointmentActionModalOpen] = useState(false)
+
 
   const [availableTrainingPlansMain, setAvailableTrainingPlansMain] = useState([
     {
@@ -976,8 +975,26 @@ export default function Appointments() {
 
   const handleEditFromOverviewMain = () => {
     setIsMemberOverviewModalOpenMain(false)
-    // You can add edit functionality here
-    toast.success("Edit functionality would be implemented here")
+
+    setEditForm({
+      firstName: selectedMember.firstName || "",
+      lastName: selectedMember.lastName || "",
+      email: selectedMember.email || "",
+      phone: selectedMember.phone || "",
+      street: selectedMember.street || "",
+      zipCode: selectedMember.zipCode || "",
+      city: selectedMember.city || "",
+      dateOfBirth: selectedMember.dateOfBirth || "",
+      about: selectedMember.about || "",
+      note: selectedMember.note || "",
+      noteStartDate: selectedMember.noteStartDate || "",
+      noteEndDate: selectedMember.noteEndDate || "",
+      noteImportance: selectedMember.noteImportance || "unimportant",
+      contractStart: selectedMember.contractStart || "",
+      contractEnd: selectedMember.contractEnd || "",
+    })
+
+    setIsEditModalOpen(true)
   }
 
 

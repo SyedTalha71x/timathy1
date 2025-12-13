@@ -30,11 +30,11 @@ import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
 
 
 import EditTaskModal from "../../components/user-panel-components/task-components/edit-task-modal"
+import MemberOverviewModal from "../../components/myarea-components/MemberOverviewModal"
 import ViewManagementModal from "../../components/myarea-components/ViewManagementModal"
 import StaffCheckInWidget from "../../components/myarea-components/widgets/StaffWidgetCheckIn"
 import TrainingPlanModal from "../../components/myarea-components/TrainingPlanModal"
 import DraggableWidget from "../../components/myarea-components/DraggableWidget"
-import MemberOverviewModal from "../../components/user-panel-components/communication-components/MemberOverviewModal"
 import ContingentModal from "../../components/myarea-components/ContigentModal"
 import AddBillingPeriodModal from "../../components/myarea-components/AddBillingPeriodModal"
 import EditMemberModal from "../../components/myarea-components/EditMemberModal"
@@ -59,6 +59,7 @@ import { configuredTagsData } from "../../utils/user-panel-states/todo-states"
 import ShiftScheduleWidget from "../../components/myarea-components/widgets/ShiftScheduleWidget"
 import { createPortal } from "react-dom"
 import AnalyticsChartWidget from "../../components/myarea-components/widgets/AnalyticsChartWidget"
+import { MemberDocumentModal } from "../../components/myarea-components/MemberDocumentManageModal"
 
 
 export default function MyArea() {
@@ -120,6 +121,10 @@ export default function MyArea() {
 
   const [notifications, setnotifications] = useState(notificationData)
   const [memberContingentData, setMemberContingentData] = useState(memberContingentDataNew)
+
+  const [showDocumentModal, setShowDocumentModal] = useState(false)
+  const [selectedMemberForDocuments, setSelectedMemberForDocuments] = useState(null)
+
 
   const [editingRelations, setEditingRelations] = useState(false)
   const [newRelation, setNewRelation] = useState({
@@ -906,12 +911,24 @@ export default function MyArea() {
     navigate("/dashboard/communication")
   }
 
+  const handleTrainingPlansFromOverview = () =>{
+    setisMemberOverviewModalOpen(false)
+    setIsTrainingPlanModalOpen(true)
+  }
+
+  const handleDocumentClick = (member) => {
+    setSelectedMemberForDocuments(member)
+    setShowDocumentModal(true)
+  }
 
   const handleViewDetailedInfo = () => {
     setisMemberOverviewModalOpen(false)
     setActiveMemberDetailsTab("details")
     setIsMemberDetailsModalOpen(true)
   }
+
+
+
 
   const handleEditFromOverview = () => {
     setisMemberOverviewModalOpen(false)
@@ -936,6 +953,10 @@ export default function MyArea() {
 
     setIsEditModalOpen(true)
   }
+
+
+
+
 
   const handleAddWidget = (widgetType) => {
     const { canAdd, location } = getWidgetPlacementStatus(widgetType, "dashboard")
@@ -2050,7 +2071,18 @@ export default function MyArea() {
           handleCommunicationFromOverview={handleCommunicationFromOverview}
           handleViewDetailedInfo={handleViewDetailedInfo}
           handleEditFromOverview={handleEditFromOverview}
+          handleTrainingPlansFromOverview={handleTrainingPlansFromOverview}
+          handleDocumentFromOverview={handleDocumentClick}
         />
+
+        <MemberDocumentModal
+                member={selectedMemberForDocuments}
+                isOpen={showDocumentModal}
+                onClose={() => {
+                  setShowDocumentModal(false)
+                  setSelectedMemberForDocuments(null)
+                }}
+              />
 
         <AppointmentModal
           show={showAppointmentModal}

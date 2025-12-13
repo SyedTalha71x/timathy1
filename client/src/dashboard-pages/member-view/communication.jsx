@@ -121,7 +121,6 @@ export default function StudioChat() {
         </div>
       </div>
 
-      {/* Messages Area */}
       <div 
         ref={chatContainerRef}
         className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 md:space-y-6"
@@ -151,10 +150,8 @@ export default function StudioChat() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Area */}
       <div className="flex-shrink-0 p-4 md:p-6 border-t border-gray-700/50 bg-black/20 backdrop-blur-sm">
         <div className="relative">
-          {/* Emoji Picker */}
           {showEmojiPicker && (
             <div 
               ref={emojiPickerRef}
@@ -177,7 +174,6 @@ export default function StudioChat() {
           )}
           
           <div className="flex items-center gap-2 bg-gray-800/50 rounded-2xl p-3 md:p-4 border border-gray-600/30 backdrop-blur-sm">
-            {/* Emoji Button on Left */}
             <button 
               onClick={toggleEmojiPicker}
               aria-label="emoji-picker-toggle"
@@ -186,7 +182,6 @@ export default function StudioChat() {
               <Smile className="w-5 h-5 text-gray-400 hover:text-yellow-400 transition-colors" />
             </button>
             
-            {/* Text Input */}
             <textarea
               ref={textareaRef}
               value={messageText}
@@ -197,7 +192,6 @@ export default function StudioChat() {
               rows="1"
             />
             
-            {/* Send Button - aligned properly */}
             <button
               onClick={handleSendMessage}
               disabled={!messageText.trim()}

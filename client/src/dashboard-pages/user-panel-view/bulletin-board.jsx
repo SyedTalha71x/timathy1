@@ -16,7 +16,7 @@ import AppointmentModal from "../../components/myarea-components/AppointmentModa
 import { WidgetSelectionModal } from "../../components/widget-selection-modal"
 import NotifyMemberModal from "../../components/myarea-components/NotifyMemberModal"
 import Sidebar from "../../components/central-sidebar"
-import { MemberOverviewModal } from "../../components/myarea-components/MemberOverviewModal"
+import  MemberOverviewModal  from "../../components/myarea-components/MemberOverviewModal"
 import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"
 import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
 import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"

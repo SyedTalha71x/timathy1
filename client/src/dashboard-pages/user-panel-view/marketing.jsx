@@ -9,7 +9,6 @@ import { IoIosMenu } from "react-icons/io";
 import toast, { Toaster } from "react-hot-toast";
 
 import Sidebar from "../../components/central-sidebar";
-import MemberOverviewModal from "../../components/user-panel-components/communication-components/MemberOverviewModal";
 import NotifyMemberModal from "../../components/myarea-components/NotifyMemberModal";
 import { WidgetSelectionModal } from "../../components/widget-selection-modal";
 import EditMemberModal from "../../components/myarea-components/EditMemberModal";
@@ -25,6 +24,7 @@ import { useSidebarSystem } from "../../hooks/useSidebarSystem";
 import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal";
 import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal";
 import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal";
+import MemberOverviewModal from "../../components/myarea-components/MemberOverviewModal";
 
 const MarketingTable = () => {
   const navigate = useNavigate();

@@ -25,7 +25,6 @@ const ContractBuilder = ({ contractForm, onUpdate }) => {
   const nextElementId = useRef(2);
   const nextPageId = useRef(2);
 
-  // variables unchanged
   const [variables] = useState([
     'Studio Name',
     'Studio Owner Name',
@@ -48,7 +47,6 @@ const ContractBuilder = ({ contractForm, onUpdate }) => {
     'Creditor ID'
   ]);
 
-  // Field types with icons and categories
   const fieldTypes = [
     { 
       category: 'Basic Fields',
@@ -79,7 +77,6 @@ const ContractBuilder = ({ contractForm, onUpdate }) => {
     }
   ];
 
-  // small helper for deep-equality of pages (simple, works for our data)
   const pagesEqual = (a, b) => {
     try {
       return JSON.stringify(a) === JSON.stringify(b);
@@ -88,14 +85,13 @@ const ContractBuilder = ({ contractForm, onUpdate }) => {
     }
   };
 
-  // Sync viewport width for responsive rendering
   useEffect(() => {
     const onResize = () => setViewportWidth(window.innerWidth);
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
-  // Update local state when contractForm prop changes (only when it really changes)
+
   useEffect(() => {
     if (contractForm?.pages && !pagesEqual(contractForm.pages, contractPages)) {
       setContractPages(contractForm.pages);
@@ -128,7 +124,6 @@ const ContractBuilder = ({ contractForm, onUpdate }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [contractPages, onUpdate]);
 
-  // Add new page
   const addPage = () => {
     const newPage = {
       id: nextPageId.current++,
@@ -139,7 +134,6 @@ const ContractBuilder = ({ contractForm, onUpdate }) => {
     setCurrentPage(contractPages.length);
   };
 
-  // Remove page
   const removePage = (pageIndex) => {
     if (contractPages.length === 1) {
       notification.warning({
@@ -166,7 +160,6 @@ const ContractBuilder = ({ contractForm, onUpdate }) => {
     });
   };
 
-  // Create a stable updateElement function using functional updates
   const updateElement = useCallback((elementId, property, value) => {
     setContractPages(prev => {
       return prev.map((page, pIdx) => {
@@ -192,9 +185,7 @@ const ContractBuilder = ({ contractForm, onUpdate }) => {
     });
   }, [currentPage]);
 
-  // Add element to current page (deterministic placement)
   const addElement = (type) => {
-    // compute deterministic starting position in percent
     const yPercent = Math.min(85, (contractPages[currentPage]?.elements.length || 0) * 8 + 5);
     const baseElement = {
       id: nextElementId.current++,
@@ -301,7 +292,6 @@ const ContractBuilder = ({ contractForm, onUpdate }) => {
     }
   };
 
-  // Remove element
   const removeElement = (elementId) => {
     Modal.confirm({
       title: "Remove Element",
@@ -319,7 +309,6 @@ const ContractBuilder = ({ contractForm, onUpdate }) => {
     });
   };
 
-  // Handle drag start
   const handleDragStart = (elementId, e) => {
     const elNode = e.currentTarget;
     if (!elNode || !containerRef.current) return;
@@ -334,7 +323,6 @@ const ContractBuilder = ({ contractForm, onUpdate }) => {
     e.preventDefault?.();
   };
 
-  // Handle drag (stable callback)
   const handleDrag = useCallback((e) => {
     if (!isDragging || !selectedElement || !containerRef.current) return;
     const clientX = e.clientX || (e.touches && e.touches[0]?.clientX);
@@ -350,12 +338,10 @@ const ContractBuilder = ({ contractForm, onUpdate }) => {
     e.preventDefault?.();
   }, [isDragging, selectedElement, dragOffset, updateElement]);
 
-  // Handle drag end
   const handleDragEnd = useCallback(() => {
     setIsDragging(false);
   }, []);
 
-  // Add event listeners for dragging (attach only while dragging)
   useEffect(() => {
     if (isDragging) {
       document.addEventListener('mousemove', handleDrag);
@@ -372,7 +358,6 @@ const ContractBuilder = ({ contractForm, onUpdate }) => {
     return undefined;
   }, [isDragging, handleDrag, handleDragEnd]);
 
-  // Close sidebars when clicking on canvas on mobile
   const handleCanvasClick = () => {
     if (window.innerWidth < 1024) {
       setSidebarOpen(false);
@@ -382,7 +367,6 @@ const ContractBuilder = ({ contractForm, onUpdate }) => {
     setSelectedElement(null);
   };
 
-  // Render element content based on type
   const renderElementContent = (element) => {
     switch (element.type) {
       case 'heading':
@@ -494,7 +478,6 @@ const ContractBuilder = ({ contractForm, onUpdate }) => {
     }
   };
 
-  // Render element in builder
   const renderBuilderElement = (element) => {
     const isSelected = selectedElement === element.id;
     const style = {
@@ -564,7 +547,6 @@ const ContractBuilder = ({ contractForm, onUpdate }) => {
     );
   };
 
-  // Property panel for selected element
   const renderPropertyPanel = () => {
     if (!selectedElement) {
       return (
@@ -746,7 +728,6 @@ const ContractBuilder = ({ contractForm, onUpdate }) => {
 
   return (
     <div className="flex h-full bg-gray-100" style={{ height: 'calc(100vh - 108px)' }}>
-      {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b border-gray-200 p-4 flex justify-between items-center z-40">
         <h2 className="font-semibold text-lg">Contract Builder</h2>
         <div className="flex gap-2">
@@ -771,7 +752,6 @@ const ContractBuilder = ({ contractForm, onUpdate }) => {
         </div>
       </div>
 
-      {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div className="lg:hidden fixed inset-0 z-50">
           <div className="absolute inset-0 bg-black/50 bg-opacity-50" onClick={() => setSidebarOpen(false)} />
@@ -808,7 +788,6 @@ const ContractBuilder = ({ contractForm, onUpdate }) => {
         </div>
       )}
 
-      {/* Mobile Properties Overlay */}
       {propertiesOpen && (
         <div className="lg:hidden fixed inset-0 z-50">
           <div className="absolute inset-0 bg-black/50 bg-opacity-50" onClick={() => setPropertiesOpen(false)} />
@@ -818,7 +797,6 @@ const ContractBuilder = ({ contractForm, onUpdate }) => {
         </div>
       )}
 
-      {/* Left Sidebar - Tools (Desktop) */}
       <div className="hidden lg:flex lg:w-64 bg-white border-r border-gray-200 flex-col">
         <div className="p-4 border-b border-gray-200">
           <h2 className="font-semibold text-lg">Contract Builder</h2>
@@ -855,9 +833,7 @@ const ContractBuilder = ({ contractForm, onUpdate }) => {
         </div>
       </div>
 
-      {/* Main Canvas */}
       <div className="flex-1 flex flex-col min-w-0 mt-16 lg:mt-0" style={{ overflow: 'hidden' }}>
-        {/* Page Tabs */}
         <div className="bg-white border-b border-gray-200 flex-shrink-0">
           <div className="flex items-center px-4 overflow-x-auto">
             {contractPages.map((page, index) => (
@@ -886,7 +862,6 @@ const ContractBuilder = ({ contractForm, onUpdate }) => {
           </div>
         </div>
 
-        {/* Canvas Area */}
         <div className="flex-1 p-2 lg:p-4" style={{ overflow: 'auto' }}>
           <div
             ref={containerRef}
@@ -944,7 +919,6 @@ const ContractBuilder = ({ contractForm, onUpdate }) => {
         </div>
       </div>
 
-      {/* Right Sidebar - Properties (Desktop) */}
       <div className="hidden lg:block lg:w-80 bg-white border-l border-gray-200 overflow-y-auto">
         {renderPropertyPanel()}
       </div>

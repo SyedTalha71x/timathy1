@@ -27,12 +27,12 @@ import AppointmentModal from "../../components/myarea-components/AppointmentModa
 import { WidgetSelectionModal } from "../../components/widget-selection-modal"
 import NotifyMemberModal from "../../components/myarea-components/NotifyMemberModal"
 import DefaultAvatar from "../../../public/gray-avatar-fotor-20250912192528.png"
-import { MemberOverviewModal } from "../../components/myarea-components/MemberOverviewModal"
 import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"
 import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
 import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
 import { SimpleTitleEditModal } from "../../components/user-panel-components/task-components/simple-title-edit-modal"
 import { OptimizedTextarea } from "../../components/user-panel-components/task-components/optimized-text-area"
+import MemberOverviewModal from "../../components/myarea-components/MemberOverviewModal"
 
 const SelectedDateTimeDisplay = ({ date, time, onClear }) => {
   if (!date && !time) return null
