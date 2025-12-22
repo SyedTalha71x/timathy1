@@ -43,7 +43,7 @@ import Sidebar from "../../components/myarea-components/MyAreaSidebar"
 import { SpecialNoteEditModal } from "../../components/myarea-components/SpecialNoteEditModal"
 import { WidgetSelectionModal } from "../../components/widget-selection-modal"
 
-import { notificationData, memberContingentDataNew, mockTrainingPlansNew, mockVideosNew, memberRelationsData, mockMemberHistoryNew, mockMemberRelationsNew, availableMembersLeadsNew, customLinksData, communicationsData, todosData, appointmentsData, birthdaysData, memberTypesData, expiringContractsData, bulletinBoardData } from "../../utils/user-panel-states/myarea-states"
+import { notificationData, memberContingentDataNew, mockTrainingPlansNew, mockVideosNew, memberRelationsData, mockMemberHistoryNew, mockMemberRelationsNew, availableMembersLeadsNew, customLinksData, communicationsData, todosData, birthdaysData, memberTypesData, expiringContractsData, bulletinBoardData } from "../../utils/user-panel-states/myarea-states"
 import MemberDetailsModal from "../../components/myarea-components/MemberDetailsModal"
 import HistoryModal from "../../components/myarea-components/HistoryModal"
 import AppointmentModal from "../../components/myarea-components/AppointmentModal"
@@ -61,6 +61,8 @@ import { createPortal } from "react-dom"
 import AnalyticsChartWidget from "../../components/myarea-components/widgets/AnalyticsChartWidget"
 import { MemberDocumentModal } from "../../components/myarea-components/MemberDocumentManageModal"
 
+
+import {appointmentsData} from "../../utils/user-panel-states/appointment-states"
 
 export default function MyArea() {
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
@@ -199,13 +201,12 @@ export default function MyArea() {
     { id: "birthday", type: "birthday", position: 1 },
     { id: "websiteLinks", type: "websiteLinks", position: 2 },
     { id: "sidebarAppointments", type: "appointments", position: 3 },
-    { id: "sidebarChart", type: "chart", position: 4 },
-    { id: "sidebarExpiringContracts", type: "expiringContracts", position: 5 },
-    { id: "bulletinBoard", type: "bulletinBoard", position: 6 }, // Add this line
+    { id: "sidebarExpiringContracts", type: "expiringContracts", position: 4 },
+    { id: "bulletinBoard", type: "bulletinBoard", position: 5 }, // Add this line
 
-    { id: "sidebarStaffCheckIn", type: "staffCheckIn", position: 7 },
-    { id: "notes", type: "notes", position: 8 },
-    { id: "shiftSchedule", type: "shiftSchedule", position: 9 }
+    { id: "sidebarStaffCheckIn", type: "staffCheckIn", position: 6 },
+    { id: "notes", type: "notes", position: 7 },
+    { id: "shiftSchedule", type: "shiftSchedule", position: 8 }
   ])
 
   const toggleRightSidebar = () => setIsRightSidebarOpen(!isRightSidebarOpen)
@@ -1001,13 +1002,16 @@ export default function MyArea() {
 
   const renderSpecialNoteIcon = useCallback(
     (specialNote, memberId, event) => {
-      if (!specialNote?.text) return null
+      // Check if specialNote exists and has text content
+      if (!specialNote || !specialNote.text?.trim()) return null
+      
       const isActive =
-        specialNote.startDate === null ||
+        !specialNote.startDate ||
         (new Date() >= new Date(specialNote.startDate) && new Date() <= new Date(specialNote.endDate))
+      
       if (!isActive) return null
-
-
+  
+      // ... rest of the function remains the same
       const handleNoteClick = (e) => {
         e.stopPropagation()
         const rect = e.currentTarget.getBoundingClientRect()
@@ -1017,47 +1021,44 @@ export default function MyArea() {
         })
         setActiveNoteId(activeNoteId === memberId ? null : memberId)
       }
-
+  
+      // ... rest of the mouse handlers remain the same
       const handleMouseEnter = (e) => {
         e.stopPropagation()
-        // Clear any existing timeout
         if (hoverTimeout) {
           clearTimeout(hoverTimeout)
           setHoverTimeout(null)
         }
-
+  
         const rect = e.currentTarget.getBoundingClientRect()
         setNotePosition({
           top: rect.bottom + window.scrollY + 8,
           left: rect.left + window.scrollX,
         })
-
-        // Set a small delay before showing to prevent flickering
+  
         const timeout = setTimeout(() => {
           setActiveNoteId(memberId)
         }, 300)
         setHoverTimeout(timeout)
       }
-
+  
       const handleMouseLeave = (e) => {
         e.stopPropagation()
-        // Clear the timeout if mouse leaves before delay
         if (hoverTimeout) {
           clearTimeout(hoverTimeout)
           setHoverTimeout(null)
         }
-        // Only hide if it's not actively clicked/open
         if (activeNoteId !== memberId) {
           setActiveNoteId(null)
         }
       }
-
+  
       const handleEditClick = (e) => {
         e.stopPropagation()
-        setActiveNoteId(null) // Close the note popover
-        handleEditNote(memberId, specialNote) // Open the edit modal
+        setActiveNoteId(null)
+        handleEditNote(memberId, specialNote)
       }
-
+  
       return (
         <div className="relative">
           <div
@@ -1073,8 +1074,8 @@ export default function MyArea() {
               <Info size={18} className="text-white" />
             )}
           </div>
-
-          {activeNoteId === memberId && (
+  
+          {activeNoteId === memberId &&
             createPortal(
               <div
                 ref={notePopoverRef}
@@ -1083,8 +1084,8 @@ export default function MyArea() {
                   top: notePosition.top,
                   left: notePosition.left,
                 }}
-                onMouseEnter={() => setActiveNoteId(memberId)} // Keep open when hovering over popover
-                onMouseLeave={() => setActiveNoteId(null)} // Close when leaving popover
+                onMouseEnter={() => setActiveNoteId(memberId)}
+                onMouseLeave={() => setActiveNoteId(null)}
               >
                 <div className="bg-gray-800 p-2 sm:p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
                   {specialNote.isImportant ? (
@@ -1137,47 +1138,40 @@ export default function MyArea() {
                 </div>
               </div>,
               document.body
-            )
-          )}
+            )}
         </div>
       )
     },
     [activeNoteId, notePosition, hoverTimeout],
   )
 
-  const handleViewMemberDetails = () => {
-    if (selectedAppointment) {
-      // Create a more complete mock member object from appointment data
-      const mockMember = {
-        id: selectedAppointment.id,
-        title: selectedAppointment.name,
-        firstName: selectedAppointment.name.split(' ')[0] || selectedAppointment.name,
-        lastName: selectedAppointment.name.split(' ').slice(1).join(' ') || '',
-        name: selectedAppointment.name,
-        email: selectedAppointment.email || "",
-        phone: selectedAppointment.phone || "",
-        street: selectedAppointment.street || "",
-        zipCode: selectedAppointment.zipCode || "",
-        city: selectedAppointment.city || "",
-        dateOfBirth: selectedAppointment.dateOfBirth || "",
-        joinDate: selectedAppointment.joinDate || "",
-        about: selectedAppointment.about || "",
-        memberType: selectedAppointment.memberType || "",
-        contractStart: selectedAppointment.contractStart || "",
-        contractEnd: selectedAppointment.contractEnd || "",
-        autoArchiveDate: selectedAppointment.autoArchiveDate || "",
-        image: selectedAppointment.image || null,
-        note: selectedAppointment.specialNote?.text || null,
-        noteStartDate: selectedAppointment.specialNote?.startDate,
-        noteEndDate: selectedAppointment.specialNote?.endDate,
-        noteImportance: selectedAppointment.specialNote?.isImportant ? "important" : "unimportant"
+  const handleViewMemberDetails = (appointmentIdOrMemberId) => {
+    console.log("handleViewMemberDetails called with:", appointmentIdOrMemberId);
+    
+    // First, try to find the appointment
+    const appointment = appointments.find(app => 
+      app.id === appointmentIdOrMemberId
+    );
+    
+    if (appointment) {
+      console.log("Found appointment:", appointment);
+      console.log("Appointment memberId:", appointment.memberId);
+      
+      setshowAppointmentOptionsModal(false);
+      
+      // If appointment has memberId, use that, otherwise use appointment.id
+      const memberIdToNavigate = appointment.memberId || appointment.id;
+      
+      if (memberIdToNavigate) {
+        navigate(`/dashboard/member-details/${memberIdToNavigate}`);
+      } else {
+        toast.error("Member not found for this appointment");
       }
-
-      setSelectedMember(mockMember)
-      setisMemberOverviewModalOpen(true)
-      setshowAppointmentOptionsModal(false)
+    } else {
+      console.log("Appointment not found for ID:", appointmentIdOrMemberId);
+      toast.error("Appointment not found");
     }
-  }
+  };
 
   const redirectToContract = () => {
     navigate("/dashboard/contract")
@@ -1199,7 +1193,7 @@ export default function MyArea() {
 
   const handleCreateNewAppointment = () => {
     setShowAppointmentModal(false)
-    navigate("/dashboard/appointments?action=create")
+    // navigate("/dashboard/appointments?action=create")
   }
 
   const getMemberAppointments = (memberId) => {
@@ -2057,7 +2051,7 @@ export default function MyArea() {
           onSave={handleSaveSpecialNote}
         />
 
-        <MemberOverviewModal
+        {/* <MemberOverviewModal
           isOpen={isMemberOverviewModalOpen}
           onClose={() => {
             setisMemberOverviewModalOpen(false)
@@ -2171,7 +2165,7 @@ export default function MyArea() {
           handleDeleteRelation={handleDeleteRelation}
           handleArchiveMember={handleArchiveMember}
           handleUnarchiveMember={handleUnarchiveMember}
-        />
+        /> */}
 
 
         

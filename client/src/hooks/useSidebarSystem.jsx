@@ -2,10 +2,9 @@
 import { useState, useRef, useCallback } from "react"
 import toast from "react-hot-toast"
 import { useNavigate } from "react-router-dom"
-import { AlertTriangle, Info } from "react-feather" 
+import { AlertTriangle, Info } from "react-feather"
 import { CalendarIcon, Edit, X } from "lucide-react"
 import {
-  appointmentsData,
   availableMembersLeadsNew,
   birthdaysData,
   communicationsData,
@@ -19,6 +18,7 @@ import {
   notificationData,
   todosData,
 } from "../utils/user-panel-states/myarea-states"
+import { appointmentsData } from "../utils/user-panel-states/appointment-states"
 import { createPortal } from "react-dom"
 
 export const useSidebarSystem = () => {
@@ -162,12 +162,11 @@ export const useSidebarSystem = () => {
     { id: "birthday", type: "birthday", position: 2 },
     { id: "websiteLinks", type: "websiteLinks", position: 3 },
     { id: "sidebarAppointments", type: "appointments", position: 4 },
-    { id: "sidebarChart", type: "chart", position: 5 },
-    { id: "sidebarExpiringContracts", type: "expiringContracts", position: 6 },
-    { id: "bulletinBoard", type: "bulletinBoard", position: 7 },
-    { id: "sidebarStaffCheckIn", type: "staffCheckIn", position: 8 },
-    { id: "notes", type: "notes", position: 9 },
-    { id: "sidebarShiftSchedule", type: "shiftSchedule", position: 10 }
+    { id: "sidebarExpiringContracts", type: "expiringContracts", position: 5 },
+    { id: "bulletinBoard", type: "bulletinBoard", position: 6 },
+    { id: "sidebarStaffCheckIn", type: "staffCheckIn", position: 7 },
+    { id: "notes", type: "notes", position: 8 },
+    { id: "sidebarShiftSchedule", type: "shiftSchedule", position: 9 }
   ])
 
   // Training Plans States
@@ -426,36 +425,28 @@ export const useSidebarSystem = () => {
   }
 
   // ===== MEMBER FUNCTIONS =====
-  const handleViewMemberDetails = () => {
-    if (selectedAppointment) {
-      const mockMember = {
-        id: selectedAppointment.id,
-        title: selectedAppointment.name,
-        firstName: selectedAppointment.name.split(" ")[0] || selectedAppointment.name,
-        lastName: selectedAppointment.name.split(" ").slice(1).join(" ") || "",
-        name: selectedAppointment.name,
-        email: selectedAppointment.email || "",
-        phone: selectedAppointment.phone || "",
-        street: selectedAppointment.street || "",
-        zipCode: selectedAppointment.zipCode || "",
-        city: selectedAppointment.city || "",
-        dateOfBirth: selectedAppointment.dateOfBirth || "",
-        joinDate: selectedAppointment.joinDate || "",
-        about: selectedAppointment.about || "",
-        memberType: selectedAppointment.memberType || "",
-        contractStart: selectedAppointment.contractStart || "",
-        contractEnd: selectedAppointment.contractEnd || "",
-        autoArchiveDate: selectedAppointment.autoArchiveDate || "",
-        image: selectedAppointment.image || null,
-        note: selectedAppointment.specialNote?.text || null,
-        noteStartDate: selectedAppointment.specialNote?.startDate,
-        noteEndDate: selectedAppointment.specialNote?.endDate,
-        noteImportance: selectedAppointment.specialNote?.isImportant ? "important" : "unimportant",
+  const handleViewMemberDetails = (appointment = null) => {
+    if (appointment) {
+      let memberId;
+
+      if (typeof appointment === 'object' && appointment !== null) {
+        memberId = appointment.memberId || appointment.id;
+      } else {
+        memberId = appointment;
       }
-      setSelectedMember(mockMember)
-      setIsMemberOverviewModalOpen(true)
-      setShowAppointmentOptionsModal(false)
+
+      if (memberId) {
+        navigate(`/dashboard/member-details/${memberId}`);
+      } else {
+        toast.error("Unable to find member information");
+      }
     }
+    else {
+      toast.error("No member information available");
+    }
+
+    setShowAppointmentOptionsModal(false);
+    setIsMemberOverviewModalOpen(false);
   }
 
   const handleNotifyMember = (shouldNotify) => {
@@ -725,12 +716,12 @@ export const useSidebarSystem = () => {
         specialNote.startDate === null ||
         (new Date() >= new Date(specialNote.startDate) && new Date() <= new Date(specialNote.endDate))
       if (!isActive) return null
-  
+
       const handleNoteClick = (e) => {
         e.stopPropagation()
         setActiveNoteId(activeNoteId === memberId ? null : memberId)
       }
-  
+
       const handleMouseEnter = (e) => {
         e.stopPropagation()
         // Clear any existing timeout
@@ -738,14 +729,14 @@ export const useSidebarSystem = () => {
           clearTimeout(hoverTimeout)
           setHoverTimeout(null)
         }
-        
+
         // Set a small delay before showing to prevent flickering
         const timeout = setTimeout(() => {
           setHoveredNoteId(memberId)
         }, 300)
         setHoverTimeout(timeout)
       }
-  
+
       const handleMouseLeave = (e) => {
         e.stopPropagation()
         // Clear the timeout if mouse leaves before delay
@@ -755,17 +746,17 @@ export const useSidebarSystem = () => {
         }
         setHoveredNoteId(null)
       }
-  
+
       const handleEditClick = (e) => {
         e.stopPropagation()
         setActiveNoteId(null) // Close the note popover
         setHoveredNoteId(null) // Close hover popover
         handleEditNote(memberId, specialNote) // Open the edit modal
       }
-  
+
       // Determine if we should show the popover (either clicked or hovered)
       const shouldShowPopover = activeNoteId === memberId || hoveredNoteId === memberId
-  
+
       return (
         <div className="relative">
           <div
@@ -781,7 +772,7 @@ export const useSidebarSystem = () => {
               <Info size={18} className="text-white" />
             )}
           </div>
-  
+
           {shouldShowPopover && (
             createPortal(
               <div
@@ -794,7 +785,7 @@ export const useSidebarSystem = () => {
                     const rect = trigger.getBoundingClientRect();
                     const spaceBelow = window.innerHeight - rect.bottom;
                     const popoverHeight = 200; // approximate height
-  
+
                     // If not enough space below, show above
                     if (spaceBelow < popoverHeight && rect.top > popoverHeight) {
                       return `${rect.top - popoverHeight - 8}px`;
@@ -806,14 +797,14 @@ export const useSidebarSystem = () => {
                     if (!trigger) return '50%';
                     const rect = trigger.getBoundingClientRect();
                     const popoverWidth = 296; // w-74 = 296px
-  
+
                     // Keep within viewport
                     let left = rect.left;
                     if (left + popoverWidth > window.innerWidth) {
                       left = window.innerWidth - popoverWidth - 16;
                     }
                     if (left < 16) left = 16;
-  
+
                     return `${left}px`;
                   })(),
                 }}
@@ -884,9 +875,9 @@ export const useSidebarSystem = () => {
               document.body
             )
           )}
-          
+
           {/* Add data attribute to the trigger for positioning */}
-          <div 
+          <div
             data-note-trigger={memberId}
             className="hidden"
           />

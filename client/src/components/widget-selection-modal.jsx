@@ -91,13 +91,7 @@ export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, getWidge
       description: "Quick access to important websites",
       icon: Link,
     },
-   
-    {
-      id: "chart",
-      name: "Analytics Chart",
-      description: "Display member statistics and analytics",
-      icon: BarChart3,
-    },
+  
     {
       id: "expiringContracts",
       name: "Expiring Contracts",

@@ -25,18 +25,10 @@ import { hardcodedLeads, memberRelationsLeadNew } from "../../utils/user-panel-s
 import { useSidebarSystem } from "../../hooks/useSidebarSystem"
 import { trainingVideosData } from "../../utils/user-panel-states/training-states"
 import EditTaskModal from "../../components/user-panel-components/task-components/edit-task-modal"
-import EditMemberModal from "../../components/myarea-components/EditMemberModal"
-import AddBillingPeriodModal from "../../components/myarea-components/AddBillingPeriodModal"
-import ContingentModal from "../../components/myarea-components/ContigentModal"
-import MemberDetailsModal from "../../components/myarea-components/MemberDetailsModal"
-import HistoryModal from "../../components/myarea-components/HistoryModal"
-import AppointmentModal from "../../components/myarea-components/AppointmentModal"
+
 import { WidgetSelectionModal } from "../../components/widget-selection-modal"
 import NotifyMemberModal from "../../components/myarea-components/NotifyMemberModal"
-import TrainingPlanModal from "../../components/myarea-components/TrainingPlanModal"
 import Sidebar from "../../components/central-sidebar"
-import DefaultAvatar from "../../../public/gray-avatar-fotor-20250912192528.png"
-import  MemberOverviewModal  from "../../components/myarea-components/MemberOverviewModal"
 import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"
 import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
 import { LeadSpecialNoteModal } from "../../components/user-panel-components/lead-user-panel-components/special-note-modal"
@@ -47,7 +39,6 @@ import AssessmentSelectionModal from "../../components/user-panel-components/lea
 
 export default function LeadManagement() {
   const sidebarSystem = useSidebarSystem()
-  const navigate = useNavigate()
   const [showHistoryModalLead, setShowHistoryModalLead] = useState(false)
 
   const [columns, setColumns] = useState([
@@ -773,86 +764,6 @@ export default function LeadManagement() {
     setMemberTrainingPlans, availableTrainingPlans, setAvailableTrainingPlans
   } = sidebarSystem
 
-  // more sidebar related functions
-
-  // Chart configuration
-  const chartSeries = [
-    { name: "Comp1", data: memberTypes[selectedMemberType].data[0] },
-    { name: "Comp2", data: memberTypes[selectedMemberType].data[1] },
-  ]
-
-  const chartOptions = {
-    chart: {
-      type: "line",
-      height: 180,
-      toolbar: { show: false },
-      background: "transparent",
-      fontFamily: "Inter, sans-serif",
-    },
-    colors: ["#FF6B1A", "#2E5BFF"],
-    stroke: { curve: "smooth", width: 4, opacity: 1 },
-    markers: {
-      size: 1,
-      strokeWidth: 0,
-      hover: { size: 6 },
-    },
-    xaxis: {
-      categories: ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-      labels: { style: { colors: "#999999", fontSize: "12px" } },
-      axisBorder: { show: false },
-      axisTicks: { show: false },
-    },
-    yaxis: {
-      min: 0,
-      max: 600,
-      tickAmount: 6,
-      labels: {
-        style: { colors: "#999999", fontSize: "12px" },
-        formatter: (value) => Math.round(value),
-      },
-    },
-    grid: {
-      show: true,
-      borderColor: "#333333",
-      position: "back",
-      xaxis: { lines: { show: true } },
-      yaxis: { lines: { show: true } },
-      row: { opacity: 0.1 },
-      column: { opacity: 0.1 },
-    },
-    legend: {
-      show: true,
-      position: "top",
-      horizontalAlign: "right",
-      offsetY: -30,
-      offsetX: -10,
-      labels: { colors: "#ffffff" },
-      itemMargin: { horizontal: 5 },
-    },
-    title: {
-      text: memberTypes[selectedMemberType].title,
-      align: "left",
-      style: { fontSize: "16px", fontWeight: "bold", color: "#ffffff" },
-    },
-    subtitle: {
-      text: `↑ ${memberTypes[selectedMemberType].growth} more in 2024`,
-      align: "left",
-      style: { fontSize: "12px", color: "#ffffff", fontWeight: "bolder" },
-    },
-    tooltip: {
-      theme: "dark",
-      style: {
-        fontSize: "12px",
-        fontFamily: "Inter, sans-serif",
-      },
-      custom: ({ series, seriesIndex, dataPointIndex, w }) =>
-        '<div class="apexcharts-tooltip-box" style="background: white; color: black; padding: 8px;">' +
-        '<span style="color: black;">' +
-        series[seriesIndex][dataPointIndex] +
-        "</span></div>",
-    },
-  }
-
   // Wrapper functions to pass local state to hook functions
   const handleTaskCompleteWrapper = (taskId) => {
     handleTaskComplete(taskId, todos, setTodos)
@@ -888,42 +799,6 @@ export default function LeadManagement() {
 
   const handleDeleteAppointmentWrapper = (id) => {
     handleDeleteAppointment(id, appointments, setAppointments)
-  }
-
-  const getMemberAppointmentsWrapper = (memberId) => {
-    return getMemberAppointments(memberId, appointments)
-  }
-
-  const handleAddBillingPeriodWrapper = () => {
-    handleAddBillingPeriod(memberContingentData, setMemberContingentData)
-  }
-
-  const handleSaveContingentWrapper = () => {
-    handleSaveContingent(memberContingentData, setMemberContingentData)
-  }
-
-  const handleEditSubmitWrapper = (e) => {
-    handleEditSubmit(e, appointments, setAppointments)
-  }
-
-  const handleAddRelationWrapper = () => {
-    handleAddRelation(memberRelations, setMemberRelations)
-  }
-
-  const handleDeleteRelationWrapper = (category, relationId) => {
-    handleDeleteRelation(category, relationId, memberRelations, setMemberRelations)
-  }
-
-  const handleArchiveMemberWrapper = (memberId) => {
-    handleArchiveMember(memberId, appointments, setAppointments)
-  }
-
-  const handleUnarchiveMemberWrapper = (memberId) => {
-    handleUnarchiveMember(memberId, appointments, setAppointments)
-  }
-
-  const getBillingPeriodsWrapper = (memberId) => {
-    return getBillingPeriods(memberId, memberContingentData)
   }
 
   const handleCreateAssessmentClick = (lead) => {
@@ -1361,8 +1236,7 @@ export default function LeadManagement() {
         memberTypes={memberTypes}
         isChartDropdownOpen={isChartDropdownOpen}
         setIsChartDropdownOpen={setIsChartDropdownOpen}
-        chartOptions={chartOptions}
-        chartSeries={chartSeries}
+    
         expiringContracts={expiringContracts}
         getWidgetPlacementStatus={getWidgetPlacementStatus}
         onClose={toggleRightSidebar}
@@ -1449,112 +1323,6 @@ export default function LeadManagement() {
         onSelectWidget={handleAddRightSidebarWidget}
         getWidgetStatus={(widgetType) => getWidgetPlacementStatus(widgetType, "sidebar")}
         widgetArea="sidebar"
-      />
-
-      <MemberOverviewModal
-        isOpen={isMemberOverviewModalOpen}
-        onClose={() => {
-          setIsMemberOverviewModalOpen(false)
-          setSelectedMember(null)
-        }}
-        selectedMember={selectedMember}
-        calculateAge={calculateAge}
-        isContractExpiringSoon={isContractExpiringSoon}
-        handleCalendarFromOverview={handleCalendarFromOverview}
-        handleHistoryFromOverview={handleHistoryFromOverview}
-        handleCommunicationFromOverview={handleCommunicationFromOverview}
-        handleViewDetailedInfo={handleViewDetailedInfo}
-        handleEditFromOverview={handleEditFromOverview}
-      />
-
-      <AppointmentModal
-        show={showAppointmentModal}
-        member={selectedMember}
-        onClose={() => {
-          setShowAppointmentModal(false)
-          setSelectedMember(null)
-        }}
-        getMemberAppointments={getMemberAppointmentsWrapper}
-        appointmentTypes={appointmentTypes}
-        handleEditAppointment={handleEditAppointment}
-        handleCancelAppointment={handleCancelAppointment}
-        currentBillingPeriod={currentBillingPeriod}
-        memberContingentData={memberContingentData}
-        handleManageContingent={handleManageContingent}
-        handleCreateNewAppointment={handleCreateNewAppointment}
-      />
-
-      <HistoryModal
-        show={showHistoryModal}
-        onClose={() => {
-          setShowHistoryModal(false)
-          setSelectedMember(null)
-        }}
-        selectedMember={selectedMember}
-        historyTab={historyTab}
-        setHistoryTab={setHistoryTab}
-        memberHistory={memberHistory}
-      />
-
-      <MemberDetailsModal
-        isOpen={isMemberDetailsModalOpen}
-        onClose={() => {
-          setIsMemberDetailsModalOpen(false)
-          setSelectedMember(null)
-        }}
-        selectedMember={selectedMember}
-        memberRelations={memberRelations}
-        DefaultAvatar={DefaultAvatar}
-        calculateAge={calculateAge}
-        isContractExpiringSoon={isContractExpiringSoon}
-        redirectToContract={redirectToContract}
-      />
-
-      <ContingentModal
-        show={showContingentModal}
-        setShow={setShowContingentModal}
-        selectedMember={selectedMember}
-        getBillingPeriods={getBillingPeriodsWrapper}
-        selectedBillingPeriod={selectedBillingPeriod}
-        handleBillingPeriodChange={setSelectedBillingPeriod}
-        setShowAddBillingPeriodModal={setShowAddBillingPeriodModal}
-        tempContingent={tempContingent}
-        setTempContingent={setTempContingent}
-        currentBillingPeriod={currentBillingPeriod}
-        handleSaveContingent={handleSaveContingentWrapper}
-      />
-
-      <AddBillingPeriodModal
-        show={showAddBillingPeriodModal}
-        setShow={setShowAddBillingPeriodModal}
-        newBillingPeriod={newBillingPeriod}
-        setNewBillingPeriod={setNewBillingPeriod}
-        handleAddBillingPeriod={handleAddBillingPeriodWrapper}
-      />
-
-      <EditMemberModal
-        isOpen={isEditModalOpen}
-        onClose={() => {
-          setIsEditModalOpen(false)
-          setSelectedMember(null)
-        }}
-        selectedMember={selectedMember}
-        editModalTab={editModalTab}
-        setEditModalTab={setEditModalTab}
-        editForm={editForm}
-        handleInputChange={handleInputChange}
-        handleEditSubmit={handleEditSubmitWrapper}
-        editingRelations={editingRelations}
-        setEditingRelations={setEditingRelations}
-        newRelation={newRelation}
-        setNewRelation={setNewRelation}
-        availableMembersLeads={availableMembersLeads}
-        relationOptions={relationOptions}
-        handleAddRelation={handleAddRelationWrapper}
-        memberRelations={memberRelations}
-        handleDeleteRelation={handleDeleteRelationWrapper}
-        handleArchiveMember={handleArchiveMemberWrapper}
-        handleUnarchiveMember={handleUnarchiveMemberWrapper}
       />
 
       {isRightSidebarOpen && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={closeSidebar} />}

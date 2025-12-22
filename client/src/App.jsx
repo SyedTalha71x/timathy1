@@ -32,6 +32,7 @@ import NotesApp from "./dashboard-pages/user-panel-view/notes";
 import BulletinBoard from './dashboard-pages/user-panel-view/bulletin-board'
 import MembersCheckIn from './dashboard-pages/user-panel-view/members-checkin'
 import Assessment from "./dashboard-pages/user-panel-view/assessment";
+import MemberDetailPage from "./dashboard-pages/user-panel-view/member-detail";
 
 
 // Admin Dashboard
@@ -115,6 +116,8 @@ function App() {
           <Route path="bulletin-board" element={<BulletinBoard />} />
           <Route path="members-checkin" element={<MembersCheckIn />} />
           <Route path="assessment" element={<Assessment />} />
+          <Route path="member-details/:memberId" element={<MemberDetailPage />} />
+          
 
         </Route>
 

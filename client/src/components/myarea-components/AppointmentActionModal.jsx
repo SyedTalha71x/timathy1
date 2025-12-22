@@ -13,6 +13,26 @@ export default function AppointmentActionModalV2({
 }) {
   if (!isOpen || !appointment) return null;
 
+  // Debug logging
+  console.log("AppointmentActionModalV2 - appointment:", appointment);
+  console.log("AppointmentActionModalV2 - memberId:", appointment.memberId);
+  console.log("AppointmentActionModalV2 - appointment.id:", appointment.id);
+
+  const handleViewMemberClick = () => {
+    console.log("View Member button clicked");
+    
+    // Priority: memberId > id
+    const memberIdToUse = appointment.memberId || appointment.id;
+    
+    console.log("Using memberId:", memberIdToUse);
+    
+    if (memberIdToUse && onViewMember) {
+      onViewMember(memberIdToUse);
+    } else {
+      console.error("No valid member ID found or onViewMember not provided");
+    }
+  };
+
   return (
     <div
       className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] md:p-4 p-2"
@@ -34,15 +54,14 @@ export default function AppointmentActionModalV2({
 
         <div className="p-6 space-y-2">
           <div className="mb-4">
-          <p className="font-semibold text-white text-sm">{appointment.name} {appointment.lastName || ""}</p>
-          <p className="text-gray-400 text-sm">{appointment.type}</p>
-            <p className="text-gray-400  text-sm">
+            <p className="font-semibold text-white text-sm">
+              {appointment.name} {appointment.lastName || ""}
+            </p>
+            <p className="text-gray-400 text-sm">{appointment.type}</p>
+            <p className="text-gray-400 text-sm">
               {appointment.date && appointment.date.split("|")[1]} • {appointment.startTime} - {appointment.endTime}
             </p>
-
-          
-               {appointment.isPast === true && <p className="text-yellow-500 text-sm mt-2">This is a past appointment</p>}
-              
+            {appointment.isPast === true && <p className="text-yellow-500 text-sm mt-2">This is a past appointment</p>}
           </div>
 
           <button
@@ -60,7 +79,7 @@ export default function AppointmentActionModalV2({
           </button>
 
           <button
-            onClick={onViewMember}
+            onClick={handleViewMemberClick}
             className="w-full px-5 py-3 bg-gray-700 text-sm font-medium text-white rounded-xl hover:bg-gray-600 cursor-pointer transition-colors flex items-center justify-center"
           >
             <User className="mr-2" size={16} /> View Member

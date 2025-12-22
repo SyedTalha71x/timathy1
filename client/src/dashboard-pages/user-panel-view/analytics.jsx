@@ -1,97 +1,57 @@
 /* eslint-disable no-unused-vars */
 
 import { useState, useRef } from "react"
+import { Toaster } from "react-hot-toast"
 import { useNavigate } from "react-router-dom"
-import { IoIosMenu } from "react-icons/io"
-import { FaCalendarAlt, FaUsers, FaUserPlus, FaDollarSign } from "react-icons/fa"
-import { trainingVideosData } from "../../utils/user-panel-states/training-states"
 import Chart from "react-apexcharts"
 
-import DefaultAvatar from "../../../public/gray-avatar-fotor-20250912192528.png"
-import { useSidebarSystem } from "../../hooks/useSidebarSystem"
 import Sidebar from "../../components/central-sidebar"
-import TrainingPlanModal from "../../components/myarea-components/TrainingPlanModal"
 import NotifyMemberModal from "../../components/myarea-components/NotifyMemberModal"
-import { WidgetSelectionModal } from "../../components/widget-selection-modal"
-import AppointmentModal from "../../components/myarea-components/AppointmentModal"
-import HistoryModal from "../../components/myarea-components/HistoryModal"
-import MemberDetailsModal from "../../components/myarea-components/MemberDetailsModal"
-import ContingentModal from "../../components/myarea-components/ContigentModal"
-import AddBillingPeriodModal from "../../components/myarea-components/AddBillingPeriodModal"
-import EditMemberModal from "../../components/myarea-components/EditMemberModal"
 import EditTaskModal from "../../components/user-panel-components/task-components/edit-task-modal"
-import { Toaster } from "react-hot-toast"
 import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"
 import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
-import { appointmentsData } from "../../utils/user-panel-states/analytics-states"
 import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
-import MemberOverviewModal from "../../components/myarea-components/MemberOverviewModal"
 
-const tabs = [
-  { name: "Appointments", icon: FaCalendarAlt },
-  { name: "Members", icon: FaUsers },
-  { name: "Leads", icon: FaUserPlus },
-  { name: "Finances", icon: FaDollarSign },
-]
+import { WidgetSelectionModal } from "../../components/widget-selection-modal"
+import { useSidebarSystem } from "../../hooks/useSidebarSystem"
+import { trainingVideosData } from "../../utils/user-panel-states/training-states"
+import { appointmentsData } from "../../utils/user-panel-states/analytics-states"
+import {
+  tabs,
+  membersData,
+  leadsData,
+  financesData,
+  getMonthlyBreakdownChartConfig,
+  getPopularTimesChartConfig,
+  getMemberActivityChartConfig,
+  getMembersByTypeChartConfig,
+  getLeadsChartConfig,
+  getConversionRateChartConfig,
+  getTopServicesByRevenueChartConfig,
+  getMostFrequentlySoldChartConfig
+} from "../../utils/user-panel-states/analytics-states"
 
-const membersData = {
-  totalMembers: 342,
-  newFullMembers: [12, 15, 18, 22, 19, 25, 28, 30, 27],
-  newTempMembers: [5, 8, 6, 9, 7, 10, 8, 11, 9],
-  inactiveMembers: [3, 2, 4, 3, 5, 2, 4, 3, 2],
-  pausedMembers: [1, 2, 1, 3, 2, 1, 2, 1, 3],
-  membersByType: [
-    { type: "Premium", count: 145 },
-    { type: "Standard", count: 98 },
-    { type: "Basic", count: 67 },
-    { type: "Trial", count: 32 },
-  ],
-}
-
-const leadsData = {
-  totalLeads: 89,
-  monthlyData: [
-    { month: "Apr", newLeads: 8, converted: 3, convertedPercent: 37.5 },
-    { month: "May", newLeads: 12, converted: 5, convertedPercent: 41.7 },
-    { month: "Jun", newLeads: 10, converted: 4, convertedPercent: 40.0 },
-    { month: "Jul", newLeads: 15, converted: 7, convertedPercent: 46.7 },
-    { month: "Aug", newLeads: 11, converted: 5, convertedPercent: 45.5 },
-    { month: "Sep", newLeads: 9, converted: 3, convertedPercent: 33.3 },
-    { month: "Oct", newLeads: 13, converted: 6, convertedPercent: 46.2 },
-    { month: "Nov", newLeads: 14, converted: 7, convertedPercent: 50.0 },
-    { month: "Dec", newLeads: 16, converted: 8, convertedPercent: 50.0 },
-  ],
-}
-
-const financesData = {
-  totalRevenue: 45680,
-  averageRevenuePerMember: 133.57,
-  outstandingPayments: 2340,
-  topServicesByRevenue: [
-    { name: "Personal Training", revenue: 18500 },
-    { name: "Group Classes", revenue: 12300 },
-    { name: "Nutrition Coaching", revenue: 8900 },
-    { name: "Massage Therapy", revenue: 5980 },
-  ],
-  mostFrequentlySold: [
-    { name: "Monthly Membership", count: 245 },
-    { name: "Personal Training Session", count: 189 },
-    { name: "Group Class Pass", count: 156 },
-    { name: "Nutrition Plan", count: 98 },
-    { name: "Massage Session", count: 67 },
-  ],
-}
 
 export default function AnalyticsDashboard() {
+  // ==============================
+  // NAVIGATION & SIDEBAR HOOKS
+  // ==============================
   const navigate = useNavigate()
   const sidebarSystem = useSidebarSystem()
+
+  // ==============================
+  // COMPONENT STATES
+  // ==============================
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const analyticsFilterRef = useRef(null)
-  const trainingVideos = trainingVideosData
-
   const [activeTab, setActiveTab] = useState("Appointments")
 
-  // Extract all states and functions from the hook
+  // Get training videos data
+  const trainingVideos = trainingVideosData
+
+  // ==============================
+  // EXTRACT STATES & FUNCTIONS FROM SIDEBAR HOOK
+  // ==============================
   const {
     // States
     isRightSidebarOpen,
@@ -246,7 +206,7 @@ export default function AnalyticsDashboard() {
     truncateUrl,
     renderSpecialNoteIcon,
 
-    // new states
+    // Data states from sidebar
     customLinks,
     setCustomLinks,
     communications,
@@ -266,99 +226,30 @@ export default function AnalyticsDashboard() {
     memberRelations,
     setMemberRelations,
 
+    // Additional sidebar data
     memberTypes,
     availableMembersLeads,
     mockTrainingPlans,
     mockVideos,
 
+    // Options and filters
     todoFilterOptions,
     relationOptions,
     appointmentTypes,
 
+    // Training plan functions
     handleAssignTrainingPlan,
     handleRemoveTrainingPlan,
     memberTrainingPlans,
-    setMemberTrainingPlans, availableTrainingPlans, setAvailableTrainingPlans
+    setMemberTrainingPlans, 
+    availableTrainingPlans, 
+    setAvailableTrainingPlans
   } = sidebarSystem
 
-  const chartSeries = [
-    { name: "Comp1", data: memberTypes[selectedMemberType].data[0] },
-    { name: "Comp2", data: memberTypes[selectedMemberType].data[1] },
-  ]
-
-  const chartOptions = {
-    chart: {
-      type: "line",
-      height: 180,
-      toolbar: { show: false },
-      background: "transparent",
-      fontFamily: "Inter, sans-serif",
-    },
-    colors: ["#FF6B1A", "#2E5BFF"],
-    stroke: { curve: "smooth", width: 4, opacity: 1 },
-    markers: {
-      size: 1,
-      strokeWidth: 0,
-      hover: { size: 6 },
-    },
-    xaxis: {
-      categories: ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-      labels: { style: { colors: "#999999", fontSize: "12px" } },
-      axisBorder: { show: false },
-      axisTicks: { show: false },
-    },
-    yaxis: {
-      min: 0,
-      max: 600,
-      tickAmount: 6,
-      labels: {
-        style: { colors: "#999999", fontSize: "12px" },
-        formatter: (value) => Math.round(value),
-      },
-    },
-    grid: {
-      show: true,
-      borderColor: "#333333",
-      position: "back",
-      xaxis: { lines: { show: true } },
-      yaxis: { lines: { show: true } },
-      row: { opacity: 0.1 },
-      column: { opacity: 0.1 },
-    },
-    legend: {
-      show: true,
-      position: "top",
-      horizontalAlign: "right",
-      offsetY: -30,
-      offsetX: -10,
-      labels: { colors: "#ffffff" },
-      itemMargin: { horizontal: 5 },
-    },
-    title: {
-      text: memberTypes[selectedMemberType].title,
-      align: "left",
-      style: { fontSize: "16px", fontWeight: "bold", color: "#ffffff" },
-    },
-    subtitle: {
-      text: `↑ ${memberTypes[selectedMemberType].growth} more in 2024`,
-      align: "left",
-      style: { fontSize: "12px", color: "#ffffff", fontWeight: "bolder" },
-    },
-    tooltip: {
-      theme: "dark",
-      style: {
-        fontSize: "12px",
-        fontFamily: "Inter, sans-serif",
-      },
-      custom: ({ series, seriesIndex, dataPointIndex, w }) =>
-        '<div class="apexcharts-tooltip-box" style="background: white; color: black; padding: 8px;">' +
-        '<span style="color: black;">' +
-        series[seriesIndex][dataPointIndex] +
-        "</span></div>",
-    },
-  }
-
-  // Wrapper functions to pass local state to hook functions
+  // ==============================
+  // WRAPPER FUNCTIONS
+  // ==============================
+  // These wrapper functions pass local state to hook functions
   const handleTaskCompleteWrapper = (taskId) => {
     handleTaskComplete(taskId, todos, setTodos)
   }
@@ -395,530 +286,22 @@ export default function AnalyticsDashboard() {
     handleDeleteAppointment(id, appointments, setAppointments)
   }
 
-  const getMemberAppointmentsWrapper = (memberId) => {
-    return getMemberAppointments(memberId, appointments)
-  }
+  // ==============================
+  // CHART CONFIGURATIONS
+  // ==============================
+  // Get chart configurations from imported functions
+  const monthlyBreakdownChart = getMonthlyBreakdownChartConfig()
+  const popularTimesChart = getPopularTimesChartConfig()
+  const memberActivityChart = getMemberActivityChartConfig()
+  const membersByTypeChart = getMembersByTypeChartConfig()
+  const leadsChart = getLeadsChartConfig()
+  const conversionRateChart = getConversionRateChartConfig()
+  const topServicesByRevenueChart = getTopServicesByRevenueChartConfig()
+  const mostFrequentlySoldChart = getMostFrequentlySoldChartConfig()
 
-  const handleAddBillingPeriodWrapper = () => {
-    handleAddBillingPeriod(memberContingentData, setMemberContingentData)
-  }
-
-  const handleSaveContingentWrapper = () => {
-    handleSaveContingent(memberContingentData, setMemberContingentData)
-  }
-
-  const handleEditSubmitWrapper = (e) => {
-    handleEditSubmit(e, appointments, setAppointments)
-  }
-
-  const handleAddRelationWrapper = () => {
-    handleAddRelation(memberRelations, setMemberRelations)
-  }
-
-  const handleDeleteRelationWrapper = (category, relationId) => {
-    handleDeleteRelation(category, relationId, memberRelations, setMemberRelations)
-  }
-
-  const handleArchiveMemberWrapper = (memberId) => {
-    handleArchiveMember(memberId, appointments, setAppointments)
-  }
-
-  const handleUnarchiveMemberWrapper = (memberId) => {
-    handleUnarchiveMember(memberId, appointments, setAppointments)
-  }
-
-  const getBillingPeriodsWrapper = (memberId) => {
-    return getBillingPeriods(memberId, memberContingentData)
-  }
-
-  const getDifficultyColor = (difficulty) => {
-    switch (difficulty) {
-      case "Beginner":
-        return "bg-green-600"
-      case "Intermediate":
-        return "bg-yellow-600"
-      case "Advanced":
-        return "bg-red-600"
-      default:
-        return "bg-gray-600"
-    }
-  }
-
-  const getVideoById = (id) => {
-    return trainingVideos.find((video) => video.id === id)
-  }
-
-  // main content related to analytics page
-
-  const monthlyBreakdownChartOptions = {
-    chart: {
-      type: "line",
-      height: 350,
-      toolbar: { show: false },
-      background: "transparent",
-    },
-    colors: ["#10B981", "#3B82F6", "#EF4444", "#F59E0B", "#8B5CF6"],
-    stroke: {
-      curve: "smooth",
-      width: 3,
-    },
-    xaxis: {
-      categories: appointmentsData.monthlyBreakdown.map((item) => item.month),
-      labels: {
-        style: {
-          colors: "#9CA3AF",
-          fontSize: "12px",
-        },
-      },
-      axisBorder: { show: false },
-      axisTicks: { show: false },
-    },
-    yaxis: {
-      min: 0,
-      max: 10,
-      tickAmount: 5,
-      labels: {
-        style: {
-          colors: "#9CA3AF",
-          fontSize: "12px",
-        },
-      },
-    },
-    grid: {
-      borderColor: "#374151",
-      strokeDashArray: 3,
-    },
-    legend: {
-      labels: { colors: "#9CA3AF" },
-      position: "top",
-      horizontalAlign: "center",
-    },
-    tooltip: {
-      theme: "dark",
-      y: {
-        formatter: (value) => value.toString(),
-      },
-    },
-  }
-
-  const monthlyBreakdownChartSeries = [
-    {
-      name: "Bookings",
-      data: appointmentsData.monthlyBreakdown.map((item) => item.bookings),
-    },
-    {
-      name: "Check-ins",
-      data: appointmentsData.monthlyBreakdown.map((item) => item.checkIns),
-    },
-    {
-      name: "All Cancellations",
-      data: appointmentsData.monthlyBreakdown.map((item) => item.cancellations),
-    },
-    {
-      name: "Late Cancellations",
-      data: appointmentsData.monthlyBreakdown.map((item) => item.lateCancellations),
-    },
-    {
-      name: "No Shows",
-      data: appointmentsData.monthlyBreakdown.map((item) => item.noShows),
-    },
-  ]
-
-  const popularTimesChartOptions = {
-    chart: {
-      type: "bar",
-      height: 350,
-      toolbar: { show: false },
-      background: "transparent",
-    },
-    colors: ["#10B981"],
-    plotOptions: {
-      bar: {
-        borderRadius: 8,
-        columnWidth: "60%",
-        distributed: false,
-      },
-    },
-    dataLabels: {
-      enabled: false,
-    },
-    xaxis: {
-      categories: appointmentsData.popularTimes.map((item) => item.time),
-      labels: {
-        style: {
-          colors: "#9CA3AF",
-          fontSize: "12px",
-        },
-        rotate: -45,
-      },
-      axisBorder: { show: false },
-      axisTicks: { show: false },
-    },
-    yaxis: {
-      min: 0,
-      max: 5,
-      tickAmount: 5,
-      labels: {
-        style: {
-          colors: "#9CA3AF",
-          fontSize: "12px",
-        },
-      },
-    },
-    grid: {
-      borderColor: "#374151",
-      strokeDashArray: 3,
-    },
-    tooltip: {
-      theme: "dark",
-      y: {
-        formatter: (value) => `${value} bookings`,
-      },
-    },
-  }
-
-  const popularTimesChartSeries = [
-    {
-      name: "Bookings",
-      data: appointmentsData.popularTimes.map((item) => item.count),
-    },
-  ]
-
-  const memberActivityChartOptions = {
-    chart: {
-      type: "line",
-      height: 350,
-      toolbar: { show: false },
-      background: "transparent",
-    },
-    colors: ["#10B981", "#3B82F6", "#EF4444", "#F59E0B"],
-    stroke: {
-      curve: "smooth",
-      width: 3,
-    },
-    xaxis: {
-      categories: ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-      labels: {
-        style: {
-          colors: "#9CA3AF",
-          fontSize: "12px",
-        },
-      },
-      axisBorder: { show: false },
-      axisTicks: { show: false },
-    },
-    yaxis: {
-      min: 0,
-      labels: {
-        style: {
-          colors: "#9CA3AF",
-          fontSize: "12px",
-        },
-      },
-    },
-    grid: {
-      borderColor: "#374151",
-      strokeDashArray: 3,
-    },
-    legend: {
-      labels: { colors: "#9CA3AF" },
-      position: "top",
-      horizontalAlign: "center",
-    },
-    tooltip: {
-      theme: "dark",
-    },
-  }
-
-  const memberActivityChartSeries = [
-    {
-      name: "New Full Members",
-      data: membersData.newFullMembers,
-    },
-    {
-      name: "New Temp Members",
-      data: membersData.newTempMembers,
-    },
-    {
-      name: "Set Inactive",
-      data: membersData.inactiveMembers,
-    },
-    {
-      name: "Set Paused",
-      data: membersData.pausedMembers,
-    },
-  ]
-
-  const membersByTypeChartOptions = {
-    chart: {
-      type: "donut",
-      height: 350,
-      toolbar: { show: false },
-      background: "transparent",
-    },
-    colors: ["#10B981", "#3B82F6", "#F59E0B", "#8B5CF6"],
-    labels: membersData.membersByType.map((item) => item.type),
-    legend: {
-      labels: { colors: "#9CA3AF" },
-      position: "bottom",
-    },
-    plotOptions: {
-      pie: {
-        donut: {
-          size: "65%",
-          labels: {
-            show: true,
-            total: {
-              show: true,
-              label: "Total Members",
-              color: "#9CA3AF",
-              formatter: () => membersData.totalMembers.toString(),
-            },
-          },
-        },
-      },
-    },
-    dataLabels: {
-      enabled: true,
-      style: {
-        colors: ["#fff"],
-      },
-    },
-    tooltip: {
-      theme: "dark",
-    },
-  }
-
-  const membersByTypeChartSeries = membersData.membersByType.map((item) => item.count)
-
-  const leadsChartOptions = {
-    chart: {
-      type: "bar",
-      height: 350,
-      toolbar: { show: false },
-      background: "transparent",
-    },
-    colors: ["#3B82F6", "#10B981"],
-    plotOptions: {
-      bar: {
-        borderRadius: 8,
-        columnWidth: "60%",
-      },
-    },
-    dataLabels: {
-      enabled: false,
-    },
-    xaxis: {
-      categories: leadsData.monthlyData.map((item) => item.month),
-      labels: {
-        style: {
-          colors: "#9CA3AF",
-          fontSize: "12px",
-        },
-      },
-      axisBorder: { show: false },
-      axisTicks: { show: false },
-    },
-    yaxis: {
-      min: 0,
-      labels: {
-        style: {
-          colors: "#9CA3AF",
-          fontSize: "12px",
-        },
-      },
-    },
-    grid: {
-      borderColor: "#374151",
-      strokeDashArray: 3,
-    },
-    legend: {
-      labels: { colors: "#9CA3AF" },
-      position: "top",
-      horizontalAlign: "center",
-    },
-    tooltip: {
-      theme: "dark",
-    },
-  }
-
-  const leadsChartSeries = [
-    {
-      name: "New Leads",
-      data: leadsData.monthlyData.map((item) => item.newLeads),
-    },
-    {
-      name: "Converted",
-      data: leadsData.monthlyData.map((item) => item.converted),
-    },
-  ]
-
-  const conversionRateChartOptions = {
-    chart: {
-      type: "line",
-      height: 350,
-      toolbar: { show: false },
-      background: "transparent",
-    },
-    colors: ["#10B981"],
-    stroke: {
-      curve: "smooth",
-      width: 3,
-    },
-    xaxis: {
-      categories: leadsData.monthlyData.map((item) => item.month),
-      labels: {
-        style: {
-          colors: "#9CA3AF",
-          fontSize: "12px",
-        },
-      },
-      axisBorder: { show: false },
-      axisTicks: { show: false },
-    },
-    yaxis: {
-      min: 0,
-      max: 100,
-      labels: {
-        style: {
-          colors: "#9CA3AF",
-          fontSize: "12px",
-        },
-        formatter: (value) => `${value}%`,
-      },
-    },
-    grid: {
-      borderColor: "#374151",
-      strokeDashArray: 3,
-    },
-    tooltip: {
-      theme: "dark",
-      y: {
-        formatter: (value) => `${value}%`,
-      },
-    },
-  }
-
-  const conversionRateChartSeries = [
-    {
-      name: "Conversion Rate",
-      data: leadsData.monthlyData.map((item) => item.convertedPercent),
-    },
-  ]
-
-  const topServicesByRevenueChartOptions = {
-    chart: {
-      type: "bar",
-      height: 350,
-      toolbar: { show: false },
-      background: "transparent",
-    },
-    colors: ["#10B981"],
-    plotOptions: {
-      bar: {
-        borderRadius: 8,
-        horizontal: true,
-      },
-    },
-    dataLabels: {
-      enabled: false,
-    },
-    xaxis: {
-      categories: financesData.topServicesByRevenue.map((item) => item.name),
-      labels: {
-        style: {
-          colors: "#9CA3AF",
-          fontSize: "12px",
-        },
-        formatter: (value) => `$${value}`,
-      },
-      axisBorder: { show: false },
-      axisTicks: { show: false },
-    },
-    yaxis: {
-      labels: {
-        style: {
-          colors: "#9CA3AF",
-          fontSize: "12px",
-        },
-      },
-    },
-    grid: {
-      borderColor: "#374151",
-      strokeDashArray: 3,
-    },
-    tooltip: {
-      theme: "dark",
-      y: {
-        formatter: (value) => `$${value}`,
-      },
-    },
-  }
-
-  const topServicesByRevenueChartSeries = [
-    {
-      name: "Revenue",
-      data: financesData.topServicesByRevenue.map((item) => item.revenue),
-    },
-  ]
-
-  const mostFrequentlySoldChartOptions = {
-    chart: {
-      type: "bar",
-      height: 350,
-      toolbar: { show: false },
-      background: "transparent",
-    },
-    colors: ["#3B82F6"],
-    plotOptions: {
-      bar: {
-        borderRadius: 8,
-        columnWidth: "60%",
-      },
-    },
-    dataLabels: {
-      enabled: false,
-    },
-    xaxis: {
-      categories: financesData.mostFrequentlySold.map((item) => item.name),
-      labels: {
-        style: {
-          colors: "#9CA3AF",
-          fontSize: "10px",
-        },
-        rotate: -45,
-      },
-      axisBorder: { show: false },
-      axisTicks: { show: false },
-    },
-    yaxis: {
-      min: 0,
-      labels: {
-        style: {
-          colors: "#9CA3AF",
-          fontSize: "12px",
-        },
-      },
-    },
-    grid: {
-      borderColor: "#374151",
-      strokeDashArray: 3,
-    },
-    tooltip: {
-      theme: "dark",
-      y: {
-        formatter: (value) => `${value} sold`,
-      },
-    },
-  }
-
-  const mostFrequentlySoldChartSeries = [
-    {
-      name: "Units Sold",
-      data: financesData.mostFrequentlySold.map((item) => item.count),
-    },
-  ]
-
+  // ==============================
+  // RENDER FUNCTIONS
+  // ==============================
   const renderTabContent = () => {
     switch (activeTab) {
       case "Appointments":
@@ -954,8 +337,8 @@ export default function AnalyticsDashboard() {
               <h3 className="text-lg font-semibold text-white mb-4">Monthly Breakdown</h3>
               <div className="min-w-[600px]">
                 <Chart
-                  options={monthlyBreakdownChartOptions}
-                  series={monthlyBreakdownChartSeries}
+                  options={monthlyBreakdownChart.options}
+                  series={monthlyBreakdownChart.series}
                   type="line"
                   height={350}
                 />
@@ -966,7 +349,12 @@ export default function AnalyticsDashboard() {
             <div className="bg-[#2F2F2F] rounded-xl p-6 overflow-x-auto">
               <h3 className="text-lg font-semibold text-white mb-4">Most Popular Booking Times</h3>
               <div className="min-w-[600px]">
-                <Chart options={popularTimesChartOptions} series={popularTimesChartSeries} type="bar" height={350} />
+                <Chart 
+                  options={popularTimesChart.options} 
+                  series={popularTimesChart.series} 
+                  type="bar" 
+                  height={350} 
+                />
               </div>
             </div>
           </div>
@@ -984,8 +372,8 @@ export default function AnalyticsDashboard() {
               <h3 className="text-lg font-semibold text-white mb-4">Member Activity</h3>
               <div className="min-w-[600px]">
                 <Chart
-                  options={memberActivityChartOptions}
-                  series={memberActivityChartSeries}
+                  options={memberActivityChart.options}
+                  series={memberActivityChart.series}
                   type="line"
                   height={350}
                 />
@@ -997,8 +385,8 @@ export default function AnalyticsDashboard() {
               <h3 className="text-lg font-semibold text-white mb-4">Members by Membership Type</h3>
               <div className="flex justify-center">
                 <Chart
-                  options={membersByTypeChartOptions}
-                  series={membersByTypeChartSeries}
+                  options={membersByTypeChart.options}
+                  series={membersByTypeChart.series}
                   type="donut"
                   height={350}
                 />
@@ -1018,7 +406,12 @@ export default function AnalyticsDashboard() {
             <div className="bg-[#2F2F2F] rounded-xl p-6 overflow-x-auto">
               <h3 className="text-lg font-semibold text-white mb-4">New Leads & Converted</h3>
               <div className="min-w-[600px]">
-                <Chart options={leadsChartOptions} series={leadsChartSeries} type="bar" height={350} />
+                <Chart 
+                  options={leadsChart.options} 
+                  series={leadsChart.series} 
+                  type="bar" 
+                  height={350} 
+                />
               </div>
             </div>
 
@@ -1026,8 +419,8 @@ export default function AnalyticsDashboard() {
               <h3 className="text-lg font-semibold text-white mb-4">Conversion Rate (%)</h3>
               <div className="min-w-[600px]">
                 <Chart
-                  options={conversionRateChartOptions}
-                  series={conversionRateChartSeries}
+                  options={conversionRateChart.options}
+                  series={conversionRateChart.series}
                   type="line"
                   height={350}
                 />
@@ -1065,8 +458,8 @@ export default function AnalyticsDashboard() {
               <h3 className="text-lg font-semibold text-white mb-4">Top Services/Products by Revenue</h3>
               <div className="min-w-[600px]">
                 <Chart
-                  options={topServicesByRevenueChartOptions}
-                  series={topServicesByRevenueChartSeries}
+                  options={topServicesByRevenueChart.options}
+                  series={topServicesByRevenueChart.series}
                   type="bar"
                   height={350}
                 />
@@ -1077,8 +470,8 @@ export default function AnalyticsDashboard() {
               <h3 className="text-lg font-semibold text-white mb-4">Most Frequently Sold</h3>
               <div className="min-w-[600px]">
                 <Chart
-                  options={mostFrequentlySoldChartOptions}
-                  series={mostFrequentlySoldChartSeries}
+                  options={mostFrequentlySoldChart.options}
+                  series={mostFrequentlySoldChart.series}
                   type="bar"
                   height={350}
                 />
@@ -1092,6 +485,9 @@ export default function AnalyticsDashboard() {
     }
   }
 
+  // ==============================
+  // MAIN COMPONENT RETURN
+  // ==============================
   return (
     <>
       <style>
@@ -1180,6 +576,9 @@ export default function AnalyticsDashboard() {
           </div>
         </div>
 
+        {/* ============================== */}
+        {/* SIDEBAR COMPONENT */}
+        {/* ============================== */}
         <Sidebar
           isRightSidebarOpen={isRightSidebarOpen}
           toggleRightSidebar={toggleRightSidebar}
@@ -1218,8 +617,7 @@ export default function AnalyticsDashboard() {
           memberTypes={memberTypes}
           isChartDropdownOpen={isChartDropdownOpen}
           setIsChartDropdownOpen={setIsChartDropdownOpen}
-          chartOptions={chartOptions}
-          chartSeries={chartSeries}
+        
           expiringContracts={expiringContracts}
           getWidgetPlacementStatus={getWidgetPlacementStatus}
           onClose={toggleRightSidebar}
@@ -1238,20 +636,21 @@ export default function AnalyticsDashboard() {
           setTodos={setTodos}
         />
 
-        {/* Sidebar related modals */}
+        {/* ============================== */}
+        {/* SIDEBAR RELATED MODALS */}
+        {/* ============================== */}
         <TrainingPlansModal
           isOpen={isTrainingPlanModalOpen}
           onClose={() => {
             setIsTrainingPlanModalOpen(false)
             setSelectedUserForTrainingPlan(null)
           }}
-          selectedMember={selectedUserForTrainingPlan} // Make sure this is passed correctly
+          selectedMember={selectedUserForTrainingPlan}
           memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
           availableTrainingPlans={availableTrainingPlans}
-          onAssignPlan={handleAssignTrainingPlan} // Make sure this function is passed
-          onRemovePlan={handleRemoveTrainingPlan} // Make sure this function is passed
+          onAssignPlan={handleAssignTrainingPlan}
+          onRemovePlan={handleRemoveTrainingPlan}
         />
-
 
         <AppointmentActionModalV2
           isOpen={showAppointmentOptionsModal}
@@ -1304,112 +703,6 @@ export default function AnalyticsDashboard() {
           onSelectWidget={handleAddRightSidebarWidget}
           getWidgetStatus={(widgetType) => getWidgetPlacementStatus(widgetType, "sidebar")}
           widgetArea="sidebar"
-        />
-
-        <MemberOverviewModal
-          isOpen={isMemberOverviewModalOpen}
-          onClose={() => {
-            setIsMemberOverviewModalOpen(false)
-            setSelectedMember(null)
-          }}
-          selectedMember={selectedMember}
-          calculateAge={calculateAge}
-          isContractExpiringSoon={isContractExpiringSoon}
-          handleCalendarFromOverview={handleCalendarFromOverview}
-          handleHistoryFromOverview={handleHistoryFromOverview}
-          handleCommunicationFromOverview={handleCommunicationFromOverview}
-          handleViewDetailedInfo={handleViewDetailedInfo}
-          handleEditFromOverview={handleEditFromOverview}
-        />
-
-        <AppointmentModal
-          show={showAppointmentModal}
-          member={selectedMember}
-          onClose={() => {
-            setShowAppointmentModal(false)
-            setSelectedMember(null)
-          }}
-          getMemberAppointments={getMemberAppointmentsWrapper}
-          appointmentTypes={appointmentTypes}
-          handleEditAppointment={handleEditAppointment}
-          handleCancelAppointment={handleCancelAppointment}
-          currentBillingPeriod={currentBillingPeriod}
-          memberContingentData={memberContingentData}
-          handleManageContingent={handleManageContingent}
-          handleCreateNewAppointment={handleCreateNewAppointment}
-        />
-
-        <HistoryModal
-          show={showHistoryModal}
-          onClose={() => {
-            setShowHistoryModal(false)
-            setSelectedMember(null)
-          }}
-          selectedMember={selectedMember}
-          historyTab={historyTab}
-          setHistoryTab={setHistoryTab}
-          memberHistory={memberHistory}
-        />
-
-        <MemberDetailsModal
-          isOpen={isMemberDetailsModalOpen}
-          onClose={() => {
-            setIsMemberDetailsModalOpen(false)
-            setSelectedMember(null)
-          }}
-          selectedMember={selectedMember}
-          memberRelations={memberRelations}
-          DefaultAvatar={DefaultAvatar}
-          calculateAge={calculateAge}
-          isContractExpiringSoon={isContractExpiringSoon}
-          redirectToContract={redirectToContract}
-        />
-
-        <ContingentModal
-          show={showContingentModal}
-          setShow={setShowContingentModal}
-          selectedMember={selectedMember}
-          getBillingPeriods={getBillingPeriodsWrapper}
-          selectedBillingPeriod={selectedBillingPeriod}
-          handleBillingPeriodChange={setSelectedBillingPeriod}
-          setShowAddBillingPeriodModal={setShowAddBillingPeriodModal}
-          tempContingent={tempContingent}
-          setTempContingent={setTempContingent}
-          currentBillingPeriod={currentBillingPeriod}
-          handleSaveContingent={handleSaveContingentWrapper}
-        />
-
-        <AddBillingPeriodModal
-          show={showAddBillingPeriodModal}
-          setShow={setShowAddBillingPeriodModal}
-          newBillingPeriod={newBillingPeriod}
-          setNewBillingPeriod={setNewBillingPeriod}
-          handleAddBillingPeriod={handleAddBillingPeriodWrapper}
-        />
-
-        <EditMemberModal
-          isOpen={isEditModalOpen}
-          onClose={() => {
-            setIsEditModalOpen(false)
-            setSelectedMember(null)
-          }}
-          selectedMember={selectedMember}
-          editModalTab={editModalTab}
-          setEditModalTab={setEditModalTab}
-          editForm={editForm}
-          handleInputChange={handleInputChange}
-          handleEditSubmit={handleEditSubmitWrapper}
-          editingRelations={editingRelations}
-          setEditingRelations={setEditingRelations}
-          newRelation={newRelation}
-          setNewRelation={setNewRelation}
-          availableMembersLeads={availableMembersLeads}
-          relationOptions={relationOptions}
-          handleAddRelation={handleAddRelationWrapper}
-          memberRelations={memberRelations}
-          handleDeleteRelation={handleDeleteRelationWrapper}
-          handleArchiveMember={handleArchiveMemberWrapper}
-          handleUnarchiveMember={handleUnarchiveMemberWrapper}
         />
 
         {isRightSidebarOpen && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={closeSidebar} />}

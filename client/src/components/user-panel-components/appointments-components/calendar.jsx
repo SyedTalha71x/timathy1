@@ -1,4 +1,4 @@
- /* eslint-disable no-unused-vars */ /* eslint-disable react/prop-types */
+/* eslint-disable no-unused-vars */ /* eslint-disable react/prop-types */
 import FullCalendar from "@fullcalendar/react"
 import toast, { Toaster } from "react-hot-toast"
 import { useCallback, useEffect, useRef, useState } from "react"
@@ -7,24 +7,18 @@ import timeGridPlugin from "@fullcalendar/timegrid"
 import interactionPlugin from "@fullcalendar/interaction"
 import { GoArrowLeft, GoArrowRight } from "react-icons/go"
 
-import { membersData } from "../../../utils/user-panel-states/appointment-states"
-
 import AddAppointmentModal from "./add-appointment-modal"
 import BlockAppointmentModal from "./block-appointment-modal"
 import TrialTrainingModal from "./add-trial-training"
 import EditAppointmentModalMain from "./selected-appointment-modal"
-import HistoryModalMain from "./calendar-components/HistoryModalMain"
 
-import MemberOverviewModalMain from "./calendar-components/MemberOverviewModalMain"
-import MemberDetailsModalMain from "./calendar-components/MemberDetailsModalMain"
 import AppointmentActionModalMain from "./calendar-components/AppointmentActionModalMain"
 import NotifyMemberModalMain from "./calendar-components/NotifyMemberModalMain"
 import TypeSelectionModalMain from "./calendar-components/TypeSelectionModalMain"
-import ContingentModalMain from "./calendar-components/ContingentModalMain"
-import AppointmentModalMain from "./calendar-components/AppointmentModalMain"
 import EditBlockedSlotModalMain from "./calendar-components/EditBlockedSlotModalMain"
 
 import "../../../custom-css/calendar-fixes.css"
+import { useNavigate } from "react-router-dom"
 
 export default function Calendar({
   appointmentsMain,
@@ -35,31 +29,24 @@ export default function Calendar({
   setAppointmentsMain,
   appointmentFilters = {},
 }) {
+  const navigate = useNavigate();
   const [isMobile, setIsMobile] = useState(false)
   const [screenSize, setScreenSize] = useState("desktop")
   const [freeAppointments, setFreeAppointments] = useState([])
   const [currentDateDisplay, setCurrentDateDisplay] = useState("Feb 3 – 9, 2025")
 
   const [viewMode, setViewMode] = useState("all") // "all" or "free"
-  const [activeTab, setActiveTab] = useState("details") // Enhanced states for member functionality
-  const [showAppointmentModal, setShowAppointmentModal] = useState(false)
+
   const [selectedMemberForAppointments, setSelectedMemberForAppointments] = useState(null)
   const [showAddAppointmentModal, setShowAddAppointmentModal] = useState(false)
   const [showSelectedAppointmentModal, setShowSelectedAppointmentModal] = useState(false) // State for new modal
   const [selectedAppointmentData, setSelectedAppointmentData] = useState(null) // State for new modal data
-  const [showContingentModal, setShowContingentModal] = useState(false)
-  const [tempContingent, setTempContingent] = useState({ used: 0, total: 0 })
-  const [currentBillingPeriod, setCurrentBillingPeriod] = useState("04.14.25 - 04.18.2025")
-  const [showHistoryModal, setShowHistoryModal] = useState(false)
+
   const [showListView, setShowListView] = useState(false)
-  const [historyTab, setHistoryTab] = useState("general")
 
   const [showAllAppointmentsModal, setShowAllAppointmentsModal] = useState(false)
   const [allAppointmentsForDay, setAllAppointmentsForDay] = useState([])
   const [selectedDayDate, setSelectedDayDate] = useState("")
-
-  // New state for expanded days in month view
-  const [expandedDays, setExpandedDays] = useState({})
 
   // Tooltip states
   const [tooltip, setTooltip] = useState({
@@ -71,27 +58,6 @@ export default function Calendar({
 
   const [currentDate, setCurrentDate] = useState(selectedDate || "2025-02-03")
 
-  // Member contingent data
-  const [memberContingent, setMemberContingent] = useState({
-    1: { used: 2, total: 7 },
-    2: { used: 1, total: 8 },
-    3: { used: 0, total: 5 },
-    4: { used: 3, total: 6 },
-    5: { used: 1, total: 8 },
-    6: { used: 4, total: 7 },
-    7: { used: 2, total: 5 },
-    8: { used: 0, total: 6 },
-    9: { used: 1, total: 7 },
-    10: { used: 3, total: 8 },
-    11: { used: 2, total: 6 },
-    12: { used: 1, total: 5 },
-    13: { used: 0, total: 7 },
-    14: { used: 2, total: 6 },
-    15: { used: 1, total: 8 },
-    16: { used: 3, total: 7 },
-    17: { used: 0, total: 5 },
-    18: { used: 2, total: 6 },
-  })
 
   // Enhanced appointment types
   const [appointmentTypesMain, setAppointmentTypesMain] = useState([
@@ -185,153 +151,6 @@ export default function Calendar({
     },
   ])
 
-  const [memberHistory, setMemberHistory] = useState({
-    1: {
-      general: [
-        {
-          id: 1,
-          date: "2025-01-15",
-          action: "Email updated",
-          details: "Changed from old@email.com to yolanda@example.com",
-          user: "Admin",
-        },
-        { id: 2, date: "2025-01-10", action: "Phone updated", details: "Updated phone number", user: "Admin" },
-      ],
-      checkins: [
-        { id: 1, date: "2025-01-20T09:30", type: "Check-in", location: "Main Entrance", user: "Yolanda Martinez" },
-        { id: 2, date: "2025-01-20T11:45", type: "Check-out", location: "Main Entrance", user: "Yolanda Martinez" },
-      ],
-      appointments: [
-        { id: 1, date: "2025-01-18T10:00", title: "Personal Training", status: "completed", trainer: "Mike Johnson" },
-        { id: 2, date: "2025-01-15T14:30", title: "Consultation", status: "completed", trainer: "Sarah Wilson" },
-      ],
-      finance: [
-        {
-          id: 1,
-          date: "2025-01-01",
-          type: "Payment",
-          amount: "$99.99",
-          description: "Monthly membership fee",
-          status: "completed",
-        },
-        {
-          id: 2,
-          date: "2024-12-01",
-          type: "Payment",
-          amount: "$99.99",
-          description: "Monthly membership fee",
-          status: "completed",
-        },
-      ],
-      contracts: [
-        {
-          id: 1,
-          date: "2024-03-01",
-          action: "Contract signed",
-          details: "Initial 12-month membership contract",
-          user: "Admin",
-        },
-        { id: 2, date: "2024-02-28", action: "Contract updated", details: "Extended contract duration", user: "Admin" },
-      ],
-    },
-    2: {
-      general: [
-        {
-          id: 1,
-          date: "2025-01-12",
-          action: "Profile updated",
-          details: "Updated personal information",
-          user: "Admin",
-        },
-      ],
-      checkins: [
-        { id: 1, date: "2025-01-19T08:00", type: "Check-in", location: "Main Entrance", user: "Denis Johnson" },
-        { id: 2, date: "2025-01-19T10:30", type: "Check-out", location: "Main Entrance", user: "Denis Johnson" },
-      ],
-      appointments: [
-        { id: 1, date: "2025-01-17T14:00", title: "Cardio Session", status: "completed", trainer: "Lisa Davis" },
-      ],
-      finance: [
-        {
-          id: 1,
-          date: "2025-01-01",
-          type: "Payment",
-          amount: "$89.99",
-          description: "Monthly membership fee",
-          status: "completed",
-        },
-      ],
-      contracts: [
-        { id: 1, date: "2021-11-15", action: "Contract signed", details: "Initial membership contract", user: "Admin" },
-      ],
-    },
-    // Add default empty history for other members
-    3: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
-    4: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
-    5: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
-    6: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
-    7: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
-    8: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
-    9: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
-    10: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
-    11: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
-    12: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
-    13: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
-    14: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
-    15: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
-    16: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
-    17: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
-    18: { general: [], checkins: [], appointments: [], finance: [], contracts: [] },
-  })
-
-  const [members] = useState(membersData)
-
-  const [memberRelations] = useState({
-    1: {
-      family: [
-        { name: "Maria Martinez", relation: "Mother", id: 101 },
-        { name: "Carlos Martinez", relation: "Father", id: 102 },
-      ],
-      friendship: [{ name: "Sofia Garcia", relation: "Best Friend", id: 201 }],
-      relationship: [{ name: "David Lopez", relation: "Partner", id: 301 }],
-      work: [{ name: "Lisa Johnson", relation: "Colleague", id: 401 }],
-      other: [],
-    },
-    2: {
-      family: [{ name: "Robert Johnson", relation: "Brother", id: 103 }],
-      friendship: [{ name: "Mike Wilson", relation: "Friend", id: 202 }],
-      relationship: [],
-      work: [{ name: "Sarah Davis", relation: "Manager", id: 402 }],
-      other: [],
-    },
-    3: {
-      family: [
-        { name: "Emma Smith", relation: "Sister", id: 104 },
-        { name: "John Smith", relation: "Father", id: 105 },
-      ],
-      friendship: [{ name: "Ashley Brown", relation: "Best Friend", id: 203 }],
-      relationship: [{ name: "Ryan Taylor", relation: "Boyfriend", id: 302 }],
-      work: [],
-      other: [],
-    },
-    // Add default empty relations for other members
-    4: { family: [], friendship: [], relationship: [], work: [], other: [] },
-    5: { family: [], friendship: [], relationship: [], work: [], other: [] },
-    6: { family: [], friendship: [], relationship: [], work: [], other: [] },
-    7: { family: [], friendship: [], relationship: [], work: [], other: [] },
-    8: { family: [], friendship: [], relationship: [], work: [], other: [] },
-    9: { family: [], friendship: [], relationship: [], work: [], other: [] },
-    10: { family: [], friendship: [], relationship: [], work: [], other: [] },
-    11: { family: [], friendship: [], relationship: [], work: [], other: [] },
-    12: { family: [], friendship: [], relationship: [], work: [], other: [] },
-    13: { family: [], friendship: [], relationship: [], work: [], other: [] },
-    14: { family: [], friendship: [], relationship: [], work: [], other: [] },
-    15: { family: [], friendship: [], relationship: [], work: [], other: [] },
-    16: { family: [], friendship: [], relationship: [], work: [], other: [] },
-    17: { family: [], friendship: [], relationship: [], work: [], other: [] },
-    18: { family: [], friendship: [], relationship: [], work: [], other: [] },
-  })
-
   // </CHANGE> add state for editing blocked slot
   const [isEditBlockedModalOpen, setIsEditBlockedModalOpen] = useState(false)
   const [blockedEditData, setBlockedEditData] = useState(null)
@@ -353,23 +172,9 @@ export default function Calendar({
   const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false)
   const [isAppointmentActionModalOpen, setIsAppointmentActionModalOpen] = useState(false)
   const [selectedAppointment, setSelectedAppointment] = useState(null)
-  const [isEditAppointmentModalOpen, setIsEditAppointmentModalOpen] = useState(false)
-  const [isMemberDetailsModalOpen, setIsMemberDetailsModalOpen] = useState(false)
-  const [isMemberOverviewModalOpen, setIsMemberOverviewModalOpen] = useState(false)
-  const [selectedMember, setSelectedMember] = useState(null)
+
 
   const [isBlockModalOpen, setIsBlockModalOpen] = useState(false)
-
-  // Function to handle expanding/collapsing day in month view
-  const handleToggleDayExpand = (dateString, e) => {
-    e.stopPropagation(); // Prevent event from bubbling up
-    e.preventDefault(); // Prevent default behavior
-    setExpandedDays(prev => ({
-      ...prev,
-      [dateString]: !prev[dateString]
-    }))
-  }
-
 
   // Function to handle appointment click in month view
   const handleMonthViewAppointmentClick = (appointment, e) => {
@@ -590,19 +395,6 @@ export default function Calendar({
     }
     setAppointmentsMain([...appointmentsMain, newAppointment])
     toast.success("Appointment booked successfully")
-  }
-
-  const isContractExpiringSoon = (contractEnd) => {
-    if (!contractEnd) return false
-    const today = new Date()
-    const endDate = new Date(contractEnd)
-    const oneMonthFromNow = new Date()
-    oneMonthFromNow.setMonth(today.getMonth() + 1)
-    return endDate <= oneMonthFromNow && endDate >= today
-  }
-
-  const redirectToContract = () => {
-    window.location.href = "/dashboard/contract"
   }
 
   const handleTrialSubmit = (trialData) => {
@@ -872,80 +664,25 @@ export default function Calendar({
   }
 
   const handleViewMemberDetails = () => {
-    setIsAppointmentActionModalOpen(false)
-    // Find member by name from the appointment
-    const member = members.find((m) => m.title === selectedAppointment?.name)
-    if (member) {
-      setSelectedMember(member)
-      setIsMemberOverviewModalOpen(true) // Show overview first instead of details
+    setIsAppointmentActionModalOpen(false);
+
+    if (!selectedAppointment) {
+      toast.error("No appointment selected");
+      return;
+    }
+
+    console.log("Selected appointment for member details:", selectedAppointment);
+
+    const memberIdToNavigate = selectedAppointment.memberId || selectedAppointment.id;
+
+    if (memberIdToNavigate) {
+      console.log("Navigating to member ID:", memberIdToNavigate);
+      navigate(`/dashboard/member-details/${memberIdToNavigate}`);
     } else {
-      toast.error("Member details not found")
+      toast.error("Member ID not found for this appointment");
     }
-  }
+  };
 
-  // New function to handle going from overview to detailed view
-  const handleViewDetailedInfo = () => {
-    setIsMemberOverviewModalOpen(false)
-    setActiveTab("details")
-    setIsMemberDetailsModalOpen(true)
-  }
-
-  // Enhanced Calendar functions from members component
-  const handleCalendarFromOverview = () => {
-    setIsMemberOverviewModalOpen(false)
-    setSelectedMemberForAppointments(selectedMember)
-    setShowAppointmentModal(true)
-  }
-
-  // Enhanced History functions from members component
-  const handleHistoryFromOverview = () => {
-    setIsMemberOverviewModalOpen(false)
-    setShowHistoryModal(true)
-  }
-
-  // Enhanced Communication functions from members component
-  const handleCommunicationFromOverview = () => {
-    setIsMemberOverviewModalOpen(false)
-    // Redirect to communications with member selected
-    window.location.href = `/dashboard/communication`
-  }
-
-  // New function to handle edit from overview
-  const handleEditFromOverview = () => {
-    setIsMemberOverviewModalOpen(false)
-    // You can add edit functionality here
-    toast.success("Edit functionality would be implemented here")
-  }
-
-  // Enhanced appointment functions from members component
-  const handleEditAppointmentFromModal = (appointment) => {
-    const fullAppointment = {
-      ...appointment,
-      name: selectedMemberForAppointments?.title || "Member",
-      specialNote: appointment.specialNote || { text: "", isImportant: false, startDate: "", endDate: "" },
-    }
-    setSelectedAppointmentData(fullAppointment)
-    setShowSelectedAppointmentModal(true) // Open the new modal
-    setShowAppointmentModal(false)
-  }
-
-  // New function to handle saving edited appointment from SelectedAppointmentModal
-  const handleSaveEditedAppointment = (updatedAppointment) => {
-    setMemberAppointments((prevAppointments) =>
-      prevAppointments.map((app) => (app.id === updatedAppointment.id ? updatedAppointment : app)),
-    )
-    setShowSelectedAppointmentModal(false)
-    toast.success("Appointment updated successfully!")
-    // Optionally, prompt to notify member
-    setNotifyAction("change")
-    // Reconstruct a minimal eventInfo for notification if needed, or just trigger notification directly
-    setIsNotifyMemberOpen(true)
-  }
-
-  const handleCreateNewAppointment = () => {
-    setShowAddAppointmentModal(true)
-    setShowAppointmentModal(false)
-  }
 
   const handleAddAppointmentSubmit = (data) => {
     const newAppointment = {
@@ -1007,27 +744,6 @@ export default function Calendar({
     return currentDateDisplay
   }
 
-  const handleManageContingent = (memberId) => {
-    const contingent = memberContingent[memberId] || { used: 0, total: 0 }
-    setTempContingent(contingent)
-    setShowContingentModal(true)
-  }
-
-  const handleSaveContingent = () => {
-    if (selectedMemberForAppointments) {
-      setMemberContingent((prev) => ({
-        ...prev,
-        [selectedMemberForAppointments.id]: tempContingent,
-      }))
-      toast.success("Contingent updated successfully")
-    }
-    setShowContingentModal(false)
-  }
-
-  // Get member appointments
-  const getMemberAppointments = (memberId) => {
-    return memberAppointments.filter((app) => app.memberId === memberId)
-  }
 
   const isEventInPast = (eventStart) => {
     const now = new Date()
@@ -1746,62 +1462,6 @@ export default function Calendar({
         </div>
       </div>
 
-
-      <MemberOverviewModalMain
-        isOpen={isMemberOverviewModalOpen}
-        selectedMember={selectedMember}
-        calculateAge={calculateAge}
-        isContractExpiringSoon={isContractExpiringSoon}
-        handleCalendarFromOverview={handleCalendarFromOverview}
-        handleHistoryFromOverview={handleHistoryFromOverview}
-        handleCommunicationFromOverview={handleCommunicationFromOverview}
-        handleViewDetailedInfo={handleViewDetailedInfo}
-        handleEditFromOverview={handleEditFromOverview}
-        setIsMemberOverviewModalOpen={setIsMemberOverviewModalOpen}
-        setSelectedMember={setSelectedMember}
-      />
-      <MemberDetailsModalMain
-        isOpen={isMemberDetailsModalOpen}
-        selectedMember={selectedMember}
-        setIsOpen={setIsMemberDetailsModalOpen}
-        setSelectedMember={setSelectedMember}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        calculateAge={calculateAge}
-        isContractExpiringSoon={isContractExpiringSoon}
-        redirectToContract={redirectToContract}
-        memberRelations={memberRelations}
-      />
-      <AppointmentModalMain
-        showModal={showAppointmentModal}
-        selectedMember={selectedMemberForAppointments}
-        setShowModal={setShowAppointmentModal}
-        setSelectedMember={setSelectedMemberForAppointments}
-        getMemberAppointments={getMemberAppointments}
-        appointmentTypesMain={appointmentTypesMain}
-        handleEditAppointmentFromModal={handleEditAppointmentFromModal}
-        handleDeleteAppointment={handleDeleteAppointment}
-        currentBillingPeriod={currentBillingPeriod}
-        memberContingent={memberContingent}
-        handleManageContingent={handleManageContingent}
-        handleCreateNewAppointment={handleCreateNewAppointment}
-      />
-      <ContingentModalMain
-        showContingentModal={showContingentModal}
-        setShowContingentModal={setShowContingentModal}
-        currentBillingPeriod={currentBillingPeriod}
-        tempContingent={tempContingent}
-        setTempContingent={setTempContingent}
-        handleSaveContingent={handleSaveContingent}
-      />
-      <HistoryModalMain
-        showHistoryModal={showHistoryModal}
-        setShowHistoryModal={setShowHistoryModal}
-        selectedMember={selectedMember}
-        historyTab={historyTab}
-        setHistoryTab={setHistoryTab}
-        memberHistory={memberHistory}
-      />
       {/* Add Appointment Modal */}
       {showAddAppointmentModal && (
         <AddAppointmentModal

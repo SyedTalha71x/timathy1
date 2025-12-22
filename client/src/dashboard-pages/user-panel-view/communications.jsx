@@ -32,6 +32,7 @@ import {
   BadgeDollarSign,
 } from "lucide-react"
 
+import { ToastContainer } from "react-toastify"
 import { IoIosMegaphone } from "react-icons/io"
 import CommuncationBg from "../../../public/communication-bg.svg"
 import DefaultAvatar from "../../../public/gray-avatar-fotor-20250912192528.png"
@@ -39,98 +40,100 @@ import DefaultAvatar from "../../../public/gray-avatar-fotor-20250912192528.png"
 import data from '@emoji-mart/data'
 import Picker from '@emoji-mart/react'
 
+import { appointmentNotificationTypesNew, companyChatListNew, emailListNew, emailTemplatesNew, memberChatListNew, memberHistoryNew, memberRelationsNew, preConfiguredMessagesNew, settingsNew, staffChatListNew } from "../../utils/user-panel-states/communication-states"
+import { memberContingentDataNew } from "../../utils/user-panel-states/myarea-states"
+import { appointmentsData, membersData } from "../../utils/user-panel-states/appointment-states"
 
 import AddAppointmentModal from "../../components/user-panel-components/appointments-components/add-appointment-modal"
-import SelectedAppointmentModal from "../../components/user-panel-components/appointments-components/selected-appointment-modal"
 import EmailManagement from "../../components/user-panel-components/communication-components/EmailManagement"
 import ContingentModal from "../../components/user-panel-components/communication-components/ContingentModal"
 import CreateMessageModal from "../../components/user-panel-components/communication-components/CreateMessageModal"
 import AddBillingPeriodModal from "../../components/user-panel-components/communication-components/AddBillingPeriodModal"
-import MemberOverviewModal from "../../components/user-panel-components/communication-components/MemberOverviewModal"
 import NotifyMemberModal from "../../components/user-panel-components/communication-components/NotifyMemberModal"
 import SettingsModal from "../../components/user-panel-components/communication-components/SettingsModal"
 import ArchiveModal from "../../components/user-panel-components/communication-components/ArchiveModal"
-import { MemberHistoryModal } from "../../components/user-panel-components/communication-components/HistoryModal"
-import MemberDetailsModal from "../../components/myarea-components/MemberDetailsModal"
 import DraftModal from "../../components/user-panel-components/communication-components/DraftModal"
 import EmailModal from "../../components/user-panel-components/communication-components/EmailModal"
-
-import { memberContingentDataNew } from "../../utils/user-panel-states/myarea-states"
-import { appointmentNotificationTypesNew, appointmentsNew, companyChatListNew, emailListNew, emailTemplatesNew, memberChatListNew, memberHistoryNew, memberRelationsNew, membersNew, preConfiguredMessagesNew, settingsNew, staffChatListNew } from "../../utils/user-panel-states/communication-states"
 import SidebarMenu from "../../components/user-panel-components/communication-components/Sidebar"
 import BroadcastModal from "../../components/user-panel-components/communication-components/BroadcastModal"
 import ShowAppointmentModal from "../../components/user-panel-components/communication-components/ShowAppointmentsModal"
 import FolderModal from "../../components/user-panel-components/communication-components/broadcast-modal-components/FolderModal"
+import EditAppointmentModalMain from '../../components/user-panel-components/appointments-components/selected-appointment-modal'
+import ViewMemberConfirmationModal from "../../components/user-panel-components/communication-components/ViewConfirmationModal"
+// import ViewMemberConfirmationModal from "../../components/user-panel-components/communication-components/ViewMemberConfirmationModal"
 
 export default function Communications() {
+  // UI States
   const [isMessagesOpen, setIsMessagesOpen] = useState(true)
   const [activeDropdownId, setActiveDropdownId] = useState(null)
   const [showChatDropdown, setShowChatDropdown] = useState(false)
   const [showGroupDropdown, setShowGroupDropdown] = useState(false)
-  const [chatType, setChatType] = useState("member")
-  const [activeScreen, setActiveScreen] = useState("chat") // 'chat', 'send-message', 'email-frontend', 'email-view'
-  const [messageText, setMessageText] = useState("")
-  const [selectedChat, setSelectedChat] = useState(null)
-  const [messages, setMessages] = useState([])
-  const [showRecipientDropdown, setShowRecipientDropdown] = useState(false)
+  const [showChatMenu, setShowChatMenu] = useState(null)
+  const [showSidebar, setShowSidebar] = useState(false)
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  const [showRecipientDropdown, setShowRecipientDropdown] = useState(false)
+  const [showReactionPicker, setShowReactionPicker] = useState(null)
+  const [showTemplateDropdown, setShowTemplateDropdown] = useState(false)
+  const [open, setOpen] = useState(false)
+
+  // Navigation States
+  const [chatType, setChatType] = useState("member")
+  const [activeScreen, setActiveScreen] = useState("chat")
+  const [settingsTab, setSettingsTab] = useState("notifications")
+
+  // Chat States
+  const [selectedChat, setSelectedChat] = useState(null)
+  const [messageText, setMessageText] = useState("")
+  const [messages, setMessages] = useState([])
   const [chatList, setChatList] = useState([])
   const [archivedChats, setArchivedChats] = useState([])
+  const [pinnedChats, setPinnedChats] = useState(new Set())
   const [searchMember, setSearchMember] = useState("")
-  const [showReactionPicker, setShowReactionPicker] = useState(null)
   const [messageReactions, setMessageReactions] = useState({})
+
+  // Email States
   const [emailList, setEmailList] = useState(emailListNew)
   const [emailTemplates, setEmailTemplates] = useState(emailTemplatesNew)
   const [selectedEmailTemplate, setSelectedEmailTemplate] = useState(null)
-  const [showTemplateDropdown, setShowTemplateDropdown] = useState(false)
+  const [emailData, setEmailData] = useState({
+    to: "",
+    subject: "",
+    body: "",
+  })
+
+  // Modal States
   const [showDraftModal, setShowDraftModal] = useState(false)
-  const [showSidebar, setShowSidebar] = useState(false)
-  const [settingsTab, setSettingsTab] = useState("notifications")
+  const [showEmailModal, setShowEmailModal] = useState(false)
+  const [showEmailFrontend, setShowEmailFrontend] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
+  const [showArchive, setShowArchive] = useState(false)
+  const [showFolderModal, setShowFolderModal] = useState(false)
+  const [showCreateMessageModal, setShowCreateMessageModal] = useState(false)
+  const [showContingentModal, setShowContingentModal] = useState(false)
+  const [showAddBillingPeriodModal, setShowAddBillingPeriodModal] = useState(false)
+  const [showAppointmentModal, setShowAppointmentModal] = useState(false)
+  const [showAddAppointmentModal, setShowAddAppointmentModal] = useState(false)
+  const [showSelectedAppointmentModal, setShowSelectedAppointmentModal] = useState(false)
+  const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false)
+  const [showMemberConfirmation, setShowMemberConfirmation] = useState(false)
+  const [selectedMemberForConfirmation, setSelectedMemberForConfirmation] = useState(null)
+
+  // Data States
   const [appointmentNotificationTypes, setAppointmentNotificationTypes] = useState(appointmentNotificationTypesNew)
   const [unreadMessagesCount, setUnreadMessagesCount] = useState({
     member: 0,
     company: 0,
     email: 0,
   })
-  const [showEmailModal, setShowEmailModal] = useState(false)
-  const [showEmailFrontend, setShowEmailFrontend] = useState(false)
-  const [showSettings, setShowSettings] = useState(false)
-  const [showArchive, setShowArchive] = useState(false)
-  const [showChatMenu, setShowChatMenu] = useState(null)
-  const [pinnedChats, setPinnedChats] = useState(new Set())
-  const [showFolderModal, setShowFolderModal] = useState(false)
   const [broadcastFolders, setBroadcastFolders] = useState([
     { id: 1, name: "General", messages: [] },
     { id: 2, name: "Announcements", messages: [] },
     { id: 3, name: "Events", messages: [] },
   ])
-  const [newFolderName, setNewFolderName] = useState("")
-  const [emailData, setEmailData] = useState({
-    to: "",
-    subject: "",
-    body: "",
-  })
   const [settings, setSettings] = useState(settingsNew)
   const [preConfiguredMessages, setPreConfiguredMessages] = useState(preConfiguredMessagesNew)
   const [selectedMessage, setSelectedMessage] = useState(null)
-  const [showAppointmentModal, setShowAppointmentModal] = useState(false)
-  const [appointments, setAppointments] = useState(appointmentsNew)
-
-
-
-
-
-  const [showAddAppointmentModal, setShowAddAppointmentModal] = useState(false)
-  const [showSelectedAppointmentModal, setShowSelectedAppointmentModal] = useState(false)
-  const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false)
-  const [notifyAction, setNotifyAction] = useState("")
-  const [selectedAppointmentData, setSelectedAppointmentData] = useState(null)
-  const [appointmentTypes, setAppointmentTypes] = useState([
-    { name: "Consultation", duration: 30, color: "bg-blue-700" },
-    { name: "Follow-up", duration: 45, color: "bg-green-700" },
-    { name: "Annual Review", duration: 60, color: "bg-purple-600" },
-  ])
-
+  const [appointments, setAppointments] = useState(appointmentsData)
   const [freeAppointments, setFreeAppointments] = useState([
     { id: 1, date: "2025-03-15", time: "9:00 AM" },
     { id: 2, date: "2025-03-15", time: "11:00 AM" },
@@ -140,24 +143,20 @@ export default function Communications() {
     { id: 6, date: "2025-04-05", time: "9:30 AM" },
     { id: 7, date: "2025-04-05", time: "3:00 PM" },
   ])
-  const [showCreateMessageModal, setShowCreateMessageModal] = useState(false)
-  const [newMessage, setNewMessage] = useState({ title: "", message: "", folderId: 1 })
-  const [showContingentModal, setShowContingentModal] = useState(false)
-  const [currentBillingPeriod, setCurrentBillingPeriod] = useState("04.14.25 - 04.18.2025")
+  const [selectedAppointmentData, setSelectedAppointmentData] = useState(null)
+  const [selectedMember, setSelectedMember] = useState(null)
+  const [members, setMembers] = useState(membersData)
 
-  // States for contigent modal 
+  // Form States
+  const [newFolderName, setNewFolderName] = useState("")
+  const [newMessage, setNewMessage] = useState({ title: "", message: "", folderId: 1 })
   const [tempContingent, setTempContingent] = useState({ used: 0, total: 0 })
   const [selectedBillingPeriod, setSelectedBillingPeriod] = useState("current")
-  const [showAddBillingPeriodModal, setShowAddBillingPeriodModal] = useState(false)
   const [newBillingPeriod, setNewBillingPeriod] = useState("")
   const [memberContingentData, setMemberContingentData] = useState(memberContingentDataNew)
+  const [notifyAction, setNotifyAction] = useState("")
 
-  const [isMemberOverviewModalOpen, setIsMemberOverviewModalOpen] = useState(false)
-  const [isMemberDetailsModalOpen, setIsMemberDetailsModalOpen] = useState(false)
-  const [selectedMember, setSelectedMember] = useState(null)
-  const [activeMemberDetailsTab, setActiveMemberDetailsTab] = useState("details")
-  const [showHistoryModal, setShowHistoryModal] = useState(false)
-
+  // Refs
   const dropdownRef = useRef(null)
   const chatDropdownRef = useRef(null)
   const groupDropdownRef = useRef(null)
@@ -166,36 +165,48 @@ export default function Communications() {
   const messagesEndRef = useRef(null)
   const chatMenuRef = useRef(null)
   const notePopoverRef = useRef(null)
+  const menuRef = useRef(null)
+  const messagesContainerRef = useRef(null)
 
+  // Constants
   const staffChatList = staffChatListNew
   const memberChatList = memberChatListNew
   const companyChatList = companyChatListNew
+  const currentBillingPeriod = "04.14.25 - 04.18.2025"
 
-  const messagesContainerRef = useRef(null);
-
-
-  const [members, setMembers] = useState(membersNew)
-
-  const [memberRelations, setMemberRelations] = useState(memberRelationsNew)
-  const [memberHistory, setMemberHistory] = useState(memberHistoryNew)
-
-
-
-  const [open, setOpen] = useState(false)
-  const menuRef = useRef(null)
+  // EFFECTS SECTION
+  useEffect(() => {
+    const initialMemberChats = membersData
+      .filter(member => member.isActive && !member.isArchived) // This filters archived members
+      .map(member => ({
+        id: member.id,
+        name: `${member.firstName} ${member.lastName}`,
+        email: member.email,
+        logo: member.image || DefaultAvatar,
+        message: "No messages yet",
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        isRead: true,
+        unreadCount: 0,
+        messageStatus: "sent",
+        messages: [],
+        isBirthday: checkIfBirthday(member.dateOfBirth),
+        isArchived: false
+      }));
+  
+    const mergedChats = [...initialMemberChats];
+    if (chatType === "member") {
+      setChatList(mergedChats);
+    }
+  }, [membersData, chatType]);
 
   useEffect(() => {
-    // Auto-scroll to bottom when messages change
     if (messagesEndRef.current) {
-      // Messages container ko dhundho
       const messagesContainer = messagesEndRef.current.closest('.overflow-y-auto');
       if (messagesContainer) {
-        // Sirf messages container ko scroll karo
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
       }
     }
   }, [messages]);
-
 
   useEffect(() => {
     setSettings((prev) => ({
@@ -203,6 +214,7 @@ export default function Communications() {
       birthdaySendApp: typeof prev.birthdaySendApp === "boolean" ? prev.birthdaySendApp : false,
       birthdaySendEmail: typeof prev.birthdaySendEmail === "boolean" ? prev.birthdaySendEmail : false,
     }))
+
     setAppointmentNotificationTypes((prev) => ({
       ...prev,
       confirmation: {
@@ -231,7 +243,6 @@ export default function Communications() {
     }))
   }, [])
 
-
   useEffect(() => {
     function handleClickOutside(event) {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -246,16 +257,11 @@ export default function Communications() {
     }
     document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [])
+  }, [showEmojiPicker])
 
   useEffect(() => {
     function handleClickOutside(event) {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target) &&
-        buttonRef.current &&
-        !buttonRef.current.contains(event.target)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target) && buttonRef.current && !buttonRef.current.contains(event.target)) {
         setActiveDropdownId(null)
       }
       if (chatDropdownRef.current && !chatDropdownRef.current.contains(event.target)) {
@@ -271,8 +277,7 @@ export default function Communications() {
         setShowChatMenu(null)
       }
       if (notePopoverRef.current && !notePopoverRef.current.contains(event.target)) {
-        // Close note popover if clicked outside
-        // This state is not directly used in Communications, but good practice if it were.
+        // Close note popover
       }
     }
     document.addEventListener("mousedown", handleClickOutside)
@@ -280,6 +285,7 @@ export default function Communications() {
       document.removeEventListener("mousedown", handleClickOutside)
     }
   }, [])
+
   useEffect(() => {
     if (chatType === "staff") {
       setChatList(staffChatList)
@@ -291,7 +297,6 @@ export default function Communications() {
   }, [chatType])
 
   useEffect(() => {
-    // Calculate unread counts for tabs
     const memberUnread = memberChatList.filter((chat) => !chat.isRead && chat.unreadCount > 0).length
     const companyUnread = companyChatList.filter((chat) => !chat.isRead && chat.unreadCount > 0).length
     const emailUnread = emailList.inbox.filter((email) => !email.isRead && !email.isArchived).length
@@ -303,6 +308,14 @@ export default function Communications() {
     })
   }, [chatList, archivedChats, emailList])
 
+  // FUNCTIONS SECTION
+  const checkIfBirthday = (dateOfBirth) => {
+    if (!dateOfBirth) return false;
+    const today = new Date();
+    const birthDate = new Date(dateOfBirth);
+    return today.getMonth() === birthDate.getMonth() &&
+      today.getDate() === birthDate.getDate();
+  };
 
   const handleEmailManagementClose = () => {
     setShowEmailFrontend(false)
@@ -319,7 +332,6 @@ export default function Communications() {
     })
     setShowTemplateDropdown(false)
   }
-
 
   const handleSaveDraft = () => {
     const newDraft = {
@@ -352,29 +364,56 @@ export default function Communications() {
     setEmailData({ to: "", subject: "", body: "" })
     setSelectedEmailTemplate(null)
   }
+
   const handleArchiveChat = (chatId, e) => {
-    e.stopPropagation()
-    const chatToArchive = chatList.find((chat) => chat.id === chatId)
+    e.stopPropagation();
+    
+    const chatToArchive = chatList.find((chat) => chat.id === chatId);
+    
     if (chatToArchive) {
-      setArchivedChats((prev) => [...prev, { ...chatToArchive, isArchived: true }])
+      setMembers((prevMembers) =>
+        prevMembers.map((member) =>
+          member.id === chatId
+            ? { ...member, isArchived: true }
+            : member
+        )
+      );
+      
+      setArchivedChats((prev) => [...prev, { ...chatToArchive, isArchived: true }]);
+      
+      setChatList((prevList) => prevList.filter((chat) => chat.id !== chatId));
+      
+      if (selectedChat && selectedChat.id === chatId) {
+        setSelectedChat(null);
+        setIsMessagesOpen(true);
+      }
     }
-    setChatList((prevList) => prevList.filter((chat) => chat.id !== chatId))
-    if (selectedChat && selectedChat.id === chatId) {
-      setSelectedChat(null)
-      setIsMessagesOpen(true) // Go back to sidebar on mobile
-    }
-    setShowChatMenu(null)
-  }
+    
+    setShowChatMenu(null);
+  };
+
   const handleRestoreChat = (chatId) => {
-    const chatToRestore = archivedChats.find((chat) => chat.id === chatId)
+    const chatToRestore = archivedChats.find((chat) => chat.id === chatId);
+    
     if (chatToRestore) {
-      setChatList((prev) => [...prev, { ...chatToRestore, isArchived: false }])
-      setArchivedChats((prev) => prev.filter((chat) => chat.id !== chatId))
-      // Automatically open the chat after restoring
-      handleChatSelect(chatToRestore)
+      setMembers((prevMembers) =>
+        prevMembers.map((member) =>
+          member.id === chatId
+            ? { ...member, isArchived: false }
+            : member
+        )
+      );
+      
+      setChatList((prev) => [...prev, { ...chatToRestore, isArchived: false }]);
+      
+      setArchivedChats((prev) => prev.filter((chat) => chat.id !== chatId));
+      
+      handleChatSelect(chatToRestore);
     }
-    setShowArchive(false)
-  }
+    
+    setShowArchive(false);
+  };
+
   const handlePinChat = (chatId, e) => {
     e.stopPropagation()
     setPinnedChats((prev) => {
@@ -388,6 +427,7 @@ export default function Communications() {
     })
     setShowChatMenu(null)
   }
+
   const handleMarkChatAsRead = (chatId, e) => {
     e.stopPropagation()
     setChatList((prevList) =>
@@ -395,49 +435,46 @@ export default function Communications() {
     )
     setShowChatMenu(null)
   }
+
   const handleMarkChatAsUnread = (chatId, e) => {
     e.stopPropagation()
     setChatList((prevList) =>
       prevList.map((chat) => (chat.id === chatId ? { ...chat, isRead: false, unreadCount: 1 } : chat)),
-    ) // Set unread count to 1 for simplicity
+    )
     setShowChatMenu(null)
   }
-
-  const getSortedChatList = () => {
-    const list = getCombinedChatList();
-    return list.sort((a, b) => {
-      if (a.type === 'separator' || b.type === 'separator') return 0;
-      const aPinned = pinnedChats.has(a.id);
-      const bPinned = pinnedChats.has(b.id);
-      if (aPinned && !bPinned) return -1;
-      if (!aPinned && bPinned) return 1;
-      return 0;
-    });
-  };
 
   const handleViewMember = (chatId, e) => {
-    if (e) e.stopPropagation()
+    if (e) e.stopPropagation();
 
     if (chatType === "company") {
-      return
+      return;
     }
 
-    let member = members.find((m) => m.id === chatId)
+    let member = members.find((m) => m.id === chatId);
     if (!member) {
-      const chat = chatList.find((c) => c.id === chatId) || archivedChats.find((c) => c.id === chatId)
+      const chat = chatList.find((c) => c.id === chatId) || archivedChats.find((c) => c.id === chatId);
       if (chat) {
-        member = members.find((m) => m.name === chat.name)
+        member = members.find((m) => m.name === chat.name);
       }
     }
+
     if (member) {
-      setSelectedMember(member)
-      setIsMemberOverviewModalOpen(true)
-      setIsMessagesOpen(false)
+      setSelectedMemberForConfirmation(member);
+      setShowMemberConfirmation(true);
     } else {
-      alert("Member details not found.")
+      alert("Member details not found.");
     }
-    setShowChatMenu(null)
-  }
+    setShowChatMenu(null);
+  };
+
+  const handleConfirmViewMember = () => {
+    if (selectedMemberForConfirmation) {
+      window.location.href = `/dashboard/member-details/${selectedMemberForConfirmation.id}`;
+    }
+    setShowMemberConfirmation(false);
+    setSelectedMemberForConfirmation(null);
+  };
 
   const handleSendMessage = () => {
     if (!messageText.trim() || !selectedChat) return
@@ -461,29 +498,29 @@ export default function Communications() {
             messages: [...(chat.messages || []), newMessage],
             message: messageText,
             messageStatus: "sent",
-            isRead: true, // Mark as read when sending a message
+            isRead: true,
             unreadCount: 0,
           }
           : chat,
       ),
     )
-    // Auto-dearchive if chat was archived
+
     if (archivedChats.some((chat) => chat.id === selectedChat.id)) {
       handleRestoreChat(selectedChat.id)
     }
+
     setMessageText("")
 
-    // Immediate scroll after state update
     setTimeout(() => {
       if (messagesContainerRef.current) {
         messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
       }
     }, 0);
 
-    // Simulate message status updates
     setTimeout(() => {
       setMessages((prev) => prev.map((msg) => (msg.id === newMessage.id ? { ...msg, status: "delivered" } : msg)))
     }, 1000)
+
     setTimeout(() => {
       setMessages((prev) => prev.map((msg) => (msg.id === newMessage.id ? { ...msg, status: "read" } : msg)))
     }, 3000)
@@ -499,23 +536,23 @@ export default function Communications() {
     }))
     setShowReactionPicker(null)
   }
+
   const handleEmailClick = () => {
     setActiveScreen("email-frontend")
     setShowEmailFrontend(true)
-    setIsMessagesOpen(false) // Close sidebar on mobile
+    setIsMessagesOpen(false)
   }
+
   const handleSendEmail = (emailDataWithAttachments) => {
     if (!emailDataWithAttachments.to || !emailDataWithAttachments.subject || !emailDataWithAttachments.body) {
       alert("Please fill in all required email fields");
       return;
     }
 
-    // Add signature if enabled (you might want to check a settings option)
     const bodyWithSignature = settings.emailSignature
       ? `${emailDataWithAttachments.body}<br><br>${settings.emailSignature}`
       : emailDataWithAttachments.body;
 
-    // Create email object with attachments
     const newEmail = {
       id: Date.now(),
       recipient: emailDataWithAttachments.to,
@@ -529,19 +566,16 @@ export default function Communications() {
       attachments: emailDataWithAttachments.attachments || []
     };
 
-    // Update email list
     setEmailList(prev => ({
       ...prev,
       sent: [newEmail, ...prev.sent]
     }));
 
-    console.log("Sending email:", newEmail);
     alert("Email sent successfully!");
-
-    // Reset form
     setEmailData({ to: "", subject: "", body: "" });
     setShowEmailModal(false);
   };
+
   const handleAppointmentChange = (changes) => {
     if (selectedAppointmentData) {
       setSelectedAppointmentData({
@@ -550,6 +584,7 @@ export default function Communications() {
       })
     }
   }
+
   const handleDeleteAppointment = (id) => {
     setAppointments(appointments.filter((app) => app.id !== id))
     setSelectedAppointmentData(null)
@@ -557,55 +592,72 @@ export default function Communications() {
     setIsNotifyMemberOpen(true)
     setNotifyAction("delete")
   }
+
   const handleAddAppointmentSubmit = (data) => {
     const newAppointment = {
       id: Math.max(0, ...appointments.map((a) => a.id)) + 1,
       ...data,
-      memberId: selectedChat?.id, // Associate with selected chat member
+      memberId: selectedChat?.id,
     }
     setAppointments([...appointments, newAppointment])
     setShowAddAppointmentModal(false)
   }
+
   const handleCalendarClick = () => {
-    // When clicking calendar icon in chat header, open appointment modal for selected chat member
     if (selectedChat) {
-      setSelectedMember(members.find((m) => m.id === selectedChat.id)) // Find the full member object
-      setShowAppointmentModal(true)
+      const foundMember = membersData.find((m) => m.id === selectedChat.id)
+      if (foundMember) {
+        setSelectedMember(foundMember)
+        setShowAppointmentModal(true)
+      } else {
+        setSelectedMember({
+          id: selectedChat.id,
+          firstName: selectedChat.name.split(' ')[0],
+          lastName: selectedChat.name.split(' ')[1] || '',
+          email: selectedChat.email || '',
+          ...selectedChat
+        })
+        setShowAppointmentModal(true)
+      }
     }
   }
+
   const handleEditAppointment = (appointment) => {
+    const memberId = appointment.memberId;
+    const member = membersData.find(m => m.id === memberId);
+
     const fullAppointment = {
       ...appointment,
-      name: selectedChat?.name || "Member",
+      name: member ? `${member.firstName} ${member.lastName}` : "Member",
       specialNote: appointment.specialNote || {
         text: "",
         isImportant: false,
-        startDate: "",
-        endDate: "",
+        startDate: null,
+        endDate: null,
       },
-    }
-    setSelectedAppointmentData(fullAppointment)
-    setShowSelectedAppointmentModal(true)
-    setShowAppointmentModal(false)
+    };
+
+    setSelectedAppointmentData(fullAppointment);
+    setShowSelectedAppointmentModal(true);
+    setShowAppointmentModal(false);
   }
+
   const handleCreateNewAppointment = () => {
     setShowAddAppointmentModal(true)
     setShowAppointmentModal(false)
   }
+
   const handleRemoveEmoji = (messageId, emojiName) => {
     setMessageReactions((prev) => {
       const updatedReactions = { ...prev };
 
       if (updatedReactions[messageId] && updatedReactions[messageId][emojiName]) {
-        // Decrease the count
         updatedReactions[messageId][emojiName] -= 1;
 
-        // Remove the emoji if count reaches zero
         if (updatedReactions[messageId][emojiName] <= 0) {
           delete updatedReactions[messageId][emojiName];
         }
 
-        // Remove the entire message entry if no reactions left
         if (Object.keys(updatedReactions[messageId]).length === 0) {
           delete updatedReactions[messageId];
         }
@@ -628,19 +680,6 @@ export default function Communications() {
       return;
     }
 
-    // Add message to selected folder (if you want to track this)
-    // if (selectedFolder) {
-    //   setBroadcastFolders((prev) =>
-    //     prev.map((folder) =>
-    //       folder.id === selectedFolder.id ? { ...folder, messages: [...folder.messages, message] } : folder,
-    //     ),
-    //   )
-    // }
-
-    console.log("Broadcasting message to recipients:", recipients);
-    console.log("Broadcast title:", message.title);
-    console.log("Broadcast message:", message.message);
-
     alert(
       `Broadcast sent to ${recipients.length} recipients via ${settings.broadcastEmail && settings.broadcastChat
         ? "Email and Chat"
@@ -652,13 +691,7 @@ export default function Communications() {
 
     setActiveScreen("chat");
   }
-  const handleCreateMessage = () => {
-    setShowCreateMessageModal(true)
-    // Pre-select the first folder when opening "Create New Template"
-    if (broadcastFolders.length > 0) {
-      setNewMessage((prev) => ({ ...prev, folderId: broadcastFolders[0].id }))
-    }
-  }
+
   const handleSaveNewMessage = () => {
     if (!newMessage.title.trim() || !newMessage.message.trim()) {
       alert("Please enter both title and message")
@@ -682,7 +715,6 @@ export default function Communications() {
     setMessages(chat.messages || [])
     setIsMessagesOpen(false)
     setActiveScreen("chat")
-    // Only mark as read if not studio chat (or adjust as needed)
     if (chatType !== "company") {
       setChatList((prevList) => prevList.map((c) => (c.id === chat.id ? { ...c, isRead: true, unreadCount: 0 } : c)))
     }
@@ -695,7 +727,6 @@ export default function Communications() {
   }
 
   const handleManageContingent = () => {
-    // Use selectedChat.id to get the correct contingent data
     const memberId = selectedChat?.id
     if (memberId && memberContingentData[memberId]) {
       setTempContingent(memberContingentData[memberId].current)
@@ -706,6 +737,7 @@ export default function Communications() {
     }
     setShowContingentModal(true)
   }
+
   const handleSaveContingent = () => {
     const memberId = selectedChat?.id
     if (memberId && memberContingentData[memberId]) {
@@ -723,11 +755,12 @@ export default function Communications() {
     }
     setShowContingentModal(false)
   }
+
   const handleSaveSettings = () => {
-    // Save settings logic here
     setShowSettings(false)
     alert("Settings saved successfully!")
   }
+
   const handleCreateFolder = () => {
     if (!newFolderName.trim()) {
       alert("Please enter a folder name")
@@ -737,44 +770,6 @@ export default function Communications() {
     setBroadcastFolders([...broadcastFolders, { id: newId, name: newFolderName, messages: [] }])
     setNewFolderName("")
     setShowFolderModal(false)
-  }
-  const getMessageStatusIcon = (status) => {
-    switch (status) {
-      case "sent":
-        return <Check className="w-5  h-5  text-gray-400" /> // Smaller checkmark
-      case "delivered":
-        return <CheckCheck className="w-5 h-5 text-gray-400" /> // Smaller checkmark
-      case "read":
-        return <CheckCheck className="w-5 h-5 text-blue-500" /> // Smaller checkmark
-      default:
-        return null
-    }
-  }
-  const reactions = [
-    { emoji: "❤️", name: "heart" },
-    { emoji: "😂", name: "laugh" },
-    { emoji: "😮", name: "wow" },
-    { emoji: "😢", name: "sad" },
-    { emoji: "😡", name: "angry" },
-  ]
-
-  const searchResults = searchMember
-    ? [...chatList, ...archivedChats].filter((chat) => chat.name.toLowerCase().includes(searchMember.toLowerCase()))
-    : []
-  const getBillingPeriods = (memberId) => {
-    const memberData = memberContingentData[memberId]
-    if (!memberData) return []
-    const periods = [{ id: "current", label: `Current (${currentBillingPeriod})`, data: memberData.current }]
-    if (memberData.future) {
-      Object.entries(memberData.future).forEach(([period, data]) => {
-        periods.push({
-          id: period,
-          label: `Future (${period})`,
-          data: data,
-        })
-      })
-    }
-    return periods
   }
 
   const handleAddBillingPeriod = () => {
@@ -792,82 +787,138 @@ export default function Communications() {
   }
 
   const handleSearchMemberForEmail = (query) => {
-    // This would typically fetch members from a backend
-    // For now, filter from existing chat lists
     const allMembers = [...staffChatList, ...memberChatList].filter(
       (m) => m.name.toLowerCase().includes(query.toLowerCase()) || m.email?.toLowerCase().includes(query.toLowerCase()),
     )
     return allMembers
   }
+
   const handleSelectEmailRecipient = (member) => {
     setEmailData((prev) => ({ ...prev, to: member.email || member.name }))
-    setShowRecipientDropdown(false) // Close dropdown after selection
+    setShowRecipientDropdown(false)
   }
-  const calculateAge = (dateOfBirth) => {
-    if (!dateOfBirth) return ""
-    const today = new Date()
-    const birthDate = new Date(dateOfBirth)
-    let age = today.getFullYear() - birthDate.getFullYear()
-    const m = today.getMonth() - birthDate.getMonth()
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-      age--
-    }
-    return age
-  }
-  const isContractExpiringSoon = (contractEnd) => {
-    if (!contractEnd) return false
-    const today = new Date()
-    const endDate = new Date(contractEnd)
-    const oneMonthFromNow = new Date()
-    oneMonthFromNow.setMonth(today.getMonth() + 1)
-    return endDate <= oneMonthFromNow && endDate >= today
-  }
-  const redirectToContract = () => {
-    alert("Redirecting to contract page (placeholder)")
-    // window.location.href = "/dashboard/contract"
-  }
-  const handleViewDetailedInfo = () => {
-    setIsMemberOverviewModalOpen(false)
-    setActiveMemberDetailsTab("details")
-    setIsMemberDetailsModalOpen(true)
-  }
-  const handleCalendarFromOverview = () => {
-    setIsMemberOverviewModalOpen(false)
-    // Set the selected member for appointments and open the appointment modal
-    setSelectedMember(selectedMember) // Ensure selectedMember is passed to the appointment modal context
-    setShowAppointmentModal(true)
-  }
-  const handleHistoryFromOverview = () => {
-    setIsMemberOverviewModalOpen(false)
-    setShowHistoryModal(true)
-  }
-  const handleCommunicationFromOverview = () => {
-    setIsMemberOverviewModalOpen(false)
-    // If the member has a chat, select it and go to chat view
-    const chat = chatList.find((c) => c.id === selectedMember?.id)
-    if (chat) {
-      handleChatSelect(chat)
-    } else {
-      alert("No direct chat found for this member.")
-    }
-  }
-  const handleEditFromOverview = () => {
-    setIsMemberOverviewModalOpen(false)
-    alert("Edit functionality would be implemented here.")
-  }
+
   const getMemberAppointments = (memberId) => {
     return appointments.filter((app) => app.memberId === memberId)
   }
+
+  const getSortedChatList = () => {
+    const list = getCombinedChatList();
+    return list.sort((a, b) => {
+      if (a.type === 'separator' || b.type === 'separator') return 0;
+      const aPinned = pinnedChats.has(a.id);
+      const bPinned = pinnedChats.has(b.id);
+      if (aPinned && !bPinned) return -1;
+      if (!aPinned && bPinned) return 1;
+      return 0;
+    });
+  };
+
   const getCombinedChatList = () => {
     if (chatType === "company") {
-      // Studio chat at top, then employee chats below with separator
-      return [...companyChatList, { id: "separator", type: "separator" }, ...staffChatList]
+      return [...companyChatList, { id: "separator", type: "separator" }, ...staffChatList];
+    } else if (chatType === "member") {
+      const activeMembers = membersData.filter(member =>
+        member.isActive &&
+        !member.isArchived && 
+        member.memberType !== "blocked"
+      );
+  
+      const newMemberChats = activeMembers.map(member => ({
+        id: member.id,
+        name: `${member.firstName} ${member.lastName}`,
+        email: member.email,
+        logo: member.image || DefaultAvatar,
+        message: "New member - Start conversation",
+        time: new Date().toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        isRead: true,
+        unreadCount: 0,
+        messageStatus: "sent",
+        messages: [],
+        isBirthday: checkIfBirthday(member.dateOfBirth),
+        isArchived: false,
+        isNewMember: true
+      }));
+  
+      return newMemberChats;
     }
-    return chatType === "member" ? memberChatList : staffChatList
+  
+    return staffChatList;
+  };
+
+  const getAppointmentTypesFromData = () => {
+    const typesSet = new Set();
+    appointmentsData.forEach(app => {
+      if (app.type) {
+        typesSet.add(app.type);
+      }
+    });
+
+    const typesArray = Array.from(typesSet).map(type => {
+      const firstApp = appointmentsData.find(app => app.type === type);
+      return {
+        name: type,
+        color: firstApp?.color || "bg-gray-700",
+        duration: 30
+      };
+    });
+
+    return typesArray;
+  };
+
+  const getMessageStatusIcon = (status) => {
+    switch (status) {
+      case "sent":
+        return <Check className="w-5 h-5 text-gray-400" />
+      case "delivered":
+        return <CheckCheck className="w-5 h-5 text-gray-400" />
+      case "read":
+        return <CheckCheck className="w-5 h-5 text-blue-500" />
+      default:
+        return null
+    }
   }
 
+  const getBillingPeriods = (memberId) => {
+    const memberData = memberContingentData[memberId]
+    if (!memberData) return []
+    const periods = [{ id: "current", label: `Current (${currentBillingPeriod})`, data: memberData.current }]
+    if (memberData.future) {
+      Object.entries(memberData.future).forEach(([period, data]) => {
+        periods.push({
+          id: period,
+          label: `Future (${period})`,
+          data: data,
+        })
+      })
+    }
+    return periods
+  }
+
+  // Helper Arrays
+  const reactions = [
+    { emoji: "❤️", name: "heart" },
+    { emoji: "😂", name: "laugh" },
+    { emoji: "😮", name: "wow" },
+    { emoji: "😢", name: "sad" },
+    { emoji: "😡", name: "angry" },
+  ]
+
+  const searchResults = searchMember
+    ? getCombinedChatList().filter((chat) =>
+      chat.name.toLowerCase().includes(searchMember.toLowerCase())
+    )
+    : [];
+
+  const appointmentTypes = getAppointmentTypesFromData();
+
   return (
+
     <div className="relative flex lg:min-h-[92vh]   h-auto bg-[#1C1C1C] text-gray-200 rounded-3xl overflow-hidden">
+      <ToastContainer />
       <SidebarMenu showSidebar={showSidebar} setShowSidebar={setShowSidebar} />
 
 
@@ -977,7 +1028,7 @@ export default function Communications() {
           </>
 
 
-          <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2">
+          <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2" style={{ maxHeight: 'calc(100vh - 300px)' }}>
             {/* Show search results if searching */}
             {searchMember && searchResults.length > 0
               ? searchResults.map((chat, index) => (
@@ -995,9 +1046,16 @@ export default function Communications() {
                       height={40}
                       className="rounded-xl cursor-pointer"
                       onClick={(e) => {
-                        e.stopPropagation()
+                        e.stopPropagation();
                         if (chatType !== "company") {
-                          handleViewMember(chat.id, e)
+                          // Show confirmation dialog
+                          if (window.confirm(`Do you want to view details of ${chat.name}?`)) {
+                            // Find member and redirect
+                            const member = members.find(m => m.id === chat.id);
+                            if (member) {
+                              window.location.href = `/dashboard/member-details/${member.id}`;
+                            }
+                          }
                         }
                       }}
                     />
@@ -1564,20 +1622,23 @@ export default function Communications() {
         />
       )}
       {showSelectedAppointmentModal && selectedAppointmentData && (
-        <SelectedAppointmentModal
-          selectedAppointment={selectedAppointmentData}
-          setSelectedAppointment={setSelectedAppointmentData}
-          appointmentTypes={appointmentTypes}
-          freeAppointments={freeAppointments}
+        <EditAppointmentModalMain
+          selectedAppointmentMain={selectedAppointmentData}
+          setSelectedAppointmentMain={setSelectedAppointmentData}
+          appointmentTypesMain={appointmentTypes}
+          freeAppointmentsMain={freeAppointments}
           handleAppointmentChange={handleAppointmentChange}
-          appointments={appointments}
-          setAppointments={setAppointments}
-          setIsNotifyMemberOpen={setIsNotifyMemberOpen}
-          setNotifyAction={setNotifyAction}
+          appointmentsMain={appointments}
+          setAppointmentsMain={setAppointments}
+          setIsNotifyMemberOpenMain={setIsNotifyMemberOpen}
+          setNotifyActionMain={setNotifyAction}
           onDelete={handleDeleteAppointment}
+          onClose={() => {
+            setShowSelectedAppointmentModal(false);
+            setSelectedAppointmentData(null);
+          }}
         />
       )}
-
       <DraftModal
         show={showDraftModal}
         onClose={() => setShowDraftModal(false)}
@@ -1617,43 +1678,17 @@ export default function Communications() {
         onClose={() => setIsNotifyMemberOpen(false)}
         notifyAction={notifyAction}
       />
-      <MemberOverviewModal
-        isOpen={isMemberOverviewModalOpen}
+
+      <ViewMemberConfirmationModal
+        isOpen={showMemberConfirmation}
         onClose={() => {
-          setIsMemberOverviewModalOpen(false)
-          setSelectedMember(null)
+          setShowMemberConfirmation(false);
+          setSelectedMemberForConfirmation(null);
         }}
-        selectedMember={selectedMember}
-        calculateAge={calculateAge}
-        isContractExpiringSoon={isContractExpiringSoon}
-        handleCalendarFromOverview={handleCalendarFromOverview}
-        handleHistoryFromOverview={handleHistoryFromOverview}
-        handleCommunicationFromOverview={handleCommunicationFromOverview}
-        handleViewDetailedInfo={handleViewDetailedInfo}
-        handleEditFromOverview={handleEditFromOverview}
+        onConfirm={handleConfirmViewMember}
+        memberName={selectedMemberForConfirmation ? `${selectedMemberForConfirmation.firstName || ''} ${selectedMemberForConfirmation.lastName || ''}`.trim() || selectedMemberForConfirmation.name : ''}
       />
-      <MemberDetailsModal
-        isOpen={isMemberDetailsModalOpen}
-        onClose={() => {
-          setIsMemberDetailsModalOpen(false);
-          setSelectedMember(null);
-        }}
-        selectedMember={selectedMember}
-        memberRelations={memberRelations}
-        calculateAge={calculateAge}
-        isContractExpiringSoon={isContractExpiringSoon}
-        redirectToContract={redirectToContract}
-        DefaultAvatar={DefaultAvatar}
-      />
-      <MemberHistoryModal
-        isOpen={showHistoryModal}
-        onClose={() => {
-          setShowHistoryModal(false);
-          setSelectedMember(null);
-        }}
-        selectedMember={selectedMember}
-        memberHistory={memberHistory}
-      />
+
     </div>
   )
 }
