@@ -590,9 +590,7 @@ export default function LeadManagement() {
     isTodoFilterDropdownOpen,
     taskToCancel,
     taskToDelete,
-    isBirthdayMessageModalOpen,
-    selectedBirthdayPerson,
-    birthdayMessage,
+
     activeNoteId,
     isSpecialNoteModalOpen,
     selectedAppointmentForNote,
@@ -603,27 +601,10 @@ export default function LeadManagement() {
     showAppointmentOptionsModal,
     showAppointmentModal,
     freeAppointments,
-    selectedMember,
-    isMemberOverviewModalOpen,
-    isMemberDetailsModalOpen,
-    activeMemberDetailsTab,
-    isEditModalOpen,
-    editModalTab,
+
     isNotifyMemberOpen,
     notifyAction,
-    showHistoryModal,
-    historyTab,
-    memberHistory,
-    currentBillingPeriod,
-    tempContingent,
-    selectedBillingPeriod,
-    showAddBillingPeriodModal,
-    newBillingPeriod,
-    showContingentModal,
-    editingRelations,
-    newRelation,
-    editForm,
-    widgets,
+
     rightSidebarWidgets,
     notePopoverRef,
 
@@ -641,9 +622,7 @@ export default function LeadManagement() {
     setIsTodoFilterDropdownOpen,
     setTaskToCancel,
     setTaskToDelete,
-    setIsBirthdayMessageModalOpen,
-    setSelectedBirthdayPerson,
-    setBirthdayMessage,
+
     setActiveNoteId,
     setIsSpecialNoteModalOpen,
     setSelectedAppointmentForNote,
@@ -652,30 +631,10 @@ export default function LeadManagement() {
     setSelectedAppointment,
     setIsEditAppointmentModalOpen,
     setShowAppointmentOptionsModal,
-    setShowAppointmentModal,
-    setFreeAppointments,
-    setSelectedMember,
-    setIsMemberOverviewModalOpen,
-    setIsMemberDetailsModalOpen,
-    setActiveMemberDetailsTab,
-    setIsEditModalOpen,
-    setEditModalTab,
+
     setIsNotifyMemberOpen,
     setNotifyAction,
-    setShowHistoryModal,
-    setHistoryTab,
-    setMemberHistory,
-    setCurrentBillingPeriod,
-    setTempContingent,
-    setSelectedBillingPeriod,
-    setShowAddBillingPeriodModal,
-    setNewBillingPeriod,
-    setShowContingentModal,
-    setEditingRelations,
-    setNewRelation,
-    setEditForm,
-    setWidgets,
-    setRightSidebarWidgets,
+
 
     // Functions
     toggleRightSidebar,
@@ -703,29 +662,10 @@ export default function LeadManagement() {
     handleCancelAppointment,
     actuallyHandleCancelAppointment,
     handleDeleteAppointment,
-    handleEditAppointment,
-    handleCreateNewAppointment,
+
     handleViewMemberDetails,
     handleNotifyMember,
-    calculateAge,
-    isContractExpiringSoon,
-    redirectToContract,
-    handleCalendarFromOverview,
-    handleHistoryFromOverview,
-    handleCommunicationFromOverview,
-    handleViewDetailedInfo,
-    handleEditFromOverview,
-    getMemberAppointments,
-    handleManageContingent,
-    getBillingPeriods,
-    handleAddBillingPeriod,
-    handleSaveContingent,
-    handleInputChange,
-    handleEditSubmit,
-    handleAddRelation,
-    handleDeleteRelation,
-    handleArchiveMember,
-    handleUnarchiveMember,
+
     truncateUrl,
     renderSpecialNoteIcon,
 
@@ -744,10 +684,7 @@ export default function LeadManagement() {
     setNotifications,
     appointments,
     setAppointments,
-    memberContingentData,
-    setMemberContingentData,
-    memberRelations,
-    setMemberRelations,
+
 
     memberTypes,
     availableMembersLeads,
@@ -1236,7 +1173,7 @@ export default function LeadManagement() {
         memberTypes={memberTypes}
         isChartDropdownOpen={isChartDropdownOpen}
         setIsChartDropdownOpen={setIsChartDropdownOpen}
-    
+
         expiringContracts={expiringContracts}
         getWidgetPlacementStatus={getWidgetPlacementStatus}
         onClose={toggleRightSidebar}

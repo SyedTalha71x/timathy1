@@ -86,11 +86,6 @@ export default function Appointments() {
   const [isTrainingPlanModalOpenMain, setIsTrainingPlanModalOpenMain] = useState(false)
   const [selectedUserForTrainingPlanMain, setSelectedUserForTrainingPlanMain] = useState(null)
   const [memberTrainingPlansMain, setMemberTrainingPlansMain] = useState({})
-  const [isMemberDetailsModalOpenMain, setIsMemberDetailsModalOpenMain] = useState(false)
-  const [isMemberOverviewModalOpenMain, setIsMemberOverviewModalOpenMain] = useState(false)
-  const [activeTabMain, setActiveTabMain] = useState("details")
-  const [selectedMemberForAppointmentsMain, setSelectedMemberForAppointmentsMain] = useState(null)
-
   const [showEditNoteModalMain, setShowEditNoteModalMain] = useState(false)
   const [selectedAppointmentForNoteMain, setSelectedAppointmentForNoteMain] = useState(null)
 
@@ -254,16 +249,16 @@ export default function Appointments() {
   const handleViewMemberDetailsMain = () => {
     setIsAppointmentActionModalOpen(false);
     setshowAppointmentOptionsModalMain(false);
-    
+
     if (!selectedAppointmentMain) {
       toast.error("No appointment selected");
       return;
     }
-    
+
     console.log("Selected appointment for member details:", selectedAppointmentMain);
-    
+
     const memberIdToNavigate = selectedAppointmentMain.memberId || selectedAppointmentMain.id;
-    
+
     if (memberIdToNavigate) {
       navigate(`/dashboard/member-details/${memberIdToNavigate}`);
     } else {
@@ -605,7 +600,7 @@ export default function Appointments() {
     isTodoFilterDropdownOpen,
     taskToCancel,
     taskToDelete,
-  
+
     activeNoteId,
     isSpecialNoteModalOpen,
     selectedAppointmentForNote,
@@ -616,10 +611,10 @@ export default function Appointments() {
     showAppointmentOptionsModal,
     freeAppointments,
     selectedMember,
-   
+
     isNotifyMemberOpen,
     notifyAction,
-   
+
     rightSidebarWidgets,
     notePopoverRef,
 
@@ -679,10 +674,10 @@ export default function Appointments() {
     handleCancelAppointment,
     actuallyHandleCancelAppointment,
     handleDeleteAppointment,
-  
+
     handleViewMemberDetails,
     handleNotifyMember,
-  
+
     truncateUrl,
     renderSpecialNoteIcon,
 
@@ -691,7 +686,7 @@ export default function Appointments() {
     todos, setTodos, expiringContracts, setExpiringContracts,
     birthdays, setBirthdays, notifications, setNotifications,
     appointments, setAppointments,
-   
+
 
     memberTypes,
     availableMembersLeads,
@@ -878,14 +873,14 @@ export default function Appointments() {
                     <div className="flex items-center justify-between ">
                       <h3 className="text-white font-semibold text-sm">Appointment Filters</h3>
                       <div className="flex items-center gap-2">
-                       {!isFiltersCollapsed && (
-  <button
-    onClick={toggleAllFilters}
-    className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
-  >
-    {Object.values(appointmentFilters).every((value) => value) ? "Deselect All" : "Select All"}
-  </button>
-)}
+                        {!isFiltersCollapsed && (
+                          <button
+                            onClick={toggleAllFilters}
+                            className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                          >
+                            {Object.values(appointmentFilters).every((value) => value) ? "Deselect All" : "Select All"}
+                          </button>
+                        )}
 
                         <button
                           onClick={() => setIsFiltersCollapsed(!isFiltersCollapsed)}

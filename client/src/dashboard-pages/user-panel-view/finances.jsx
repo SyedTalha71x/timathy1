@@ -132,8 +132,8 @@ export default function FinancesPage() {
   }
 
   const handleDeleteDocument = (documentId) => {
-      setSepaDocuments((prev) => prev.filter((doc) => doc.id !== documentId))
-    
+    setSepaDocuments((prev) => prev.filter((doc) => doc.id !== documentId))
+
   }
 
   const handleViewDocument = (document) => {
@@ -283,20 +283,20 @@ export default function FinancesPage() {
   // }
 
   // Update the getStatusColorClass function for background colors
-const getStatusColorClass = (status) => {
-  switch (status) {
-    case "Successful":
-      return "bg-[#10b981]" // Active prospect green
-    case "Pending":
-      return "bg-[#f59e0b]" // Passive prospect amber
-    case "Check incoming funds":
-      return "bg-[#3b82f6]" // Trial Training blue
-    case "Failed":
-      return "bg-[#ef4444]" // Uninterested red
-    default:
-      return "bg-gray-500"
+  const getStatusColorClass = (status) => {
+    switch (status) {
+      case "Successful":
+        return "bg-[#10b981]" // Active prospect green
+      case "Pending":
+        return "bg-[#f59e0b]" // Passive prospect amber
+      case "Check incoming funds":
+        return "bg-[#3b82f6]" // Trial Training blue
+      case "Failed":
+        return "bg-[#ef4444]" // Uninterested red
+      default:
+        return "bg-gray-500"
+    }
   }
-}
 
   // Get current period data
   const getCurrentPeriodData = () => {
@@ -839,24 +839,24 @@ const getStatusColorClass = (status) => {
 
             {statusFilterOpen && (
               <div className="absolute right-0 z-10 mt-2 w-[220px] bg-[#2F2F2F]/90 backdrop-blur-2xl rounded-xl border border-gray-800 shadow-lg">
-               {statusOptions.map((status) => (
-  <button
-    key={status}
-    className={`w-full px-3 md:px-4 py-2 text-xs md:text-sm text-left flex items-center space-x-2 hover:bg-black ${selectedStatus === status ? "bg-black/50" : ""
-      }`}
-    onClick={() => {
-      setSelectedStatus(status)
-      setStatusFilterOpen(false)
-    }}
-  >
-    {status !== "All" && (
-      <span
-        className={`inline-block w-2.5 h-2.5 md:w-3 md:h-3 rounded-full ${getStatusColorClass(status)}`}
-      />
-    )}
-    <span className="text-gray-300">{status}</span>
-  </button>
-))}
+                {statusOptions.map((status) => (
+                  <button
+                    key={status}
+                    className={`w-full px-3 md:px-4 py-2 text-xs md:text-sm text-left flex items-center space-x-2 hover:bg-black ${selectedStatus === status ? "bg-black/50" : ""
+                      }`}
+                    onClick={() => {
+                      setSelectedStatus(status)
+                      setStatusFilterOpen(false)
+                    }}
+                  >
+                    {status !== "All" && (
+                      <span
+                        className={`inline-block w-2.5 h-2.5 md:w-3 md:h-3 rounded-full ${getStatusColorClass(status)}`}
+                      />
+                    )}
+                    <span className="text-gray-300">{status}</span>
+                  </button>
+                ))}
               </div>
             )}
           </div>
@@ -1069,7 +1069,7 @@ const getStatusColorClass = (status) => {
           memberTypes={memberTypes}
           isChartDropdownOpen={isChartDropdownOpen}
           setIsChartDropdownOpen={setIsChartDropdownOpen}
-     
+
           expiringContracts={expiringContracts}
           getWidgetPlacementStatus={getWidgetPlacementStatus}
           onClose={toggleRightSidebar}

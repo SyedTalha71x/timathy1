@@ -1,35 +1,33 @@
-/* eslint-disable no-unused-vars */
 /* eslint-disable react/no-unescaped-entities */
 import { Plus, Eye } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import CreateFormModal from '../../components/user-panel-components/assessment-components/CreateFormModal';
+import PreviewModal from '../../components/user-panel-components/assessment-components/PreviewModal';
+import DeleteModal from '../../components/user-panel-components/assessment-components/DeleteModal';
+
 
 const Assessment = () => {
+  // State for all forms
   const [forms, setForms] = useState([]);
+  
+  // Modal visibility states
   const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [formToDelete, setFormToDelete] = useState(null);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  
+  // Form editing states
   const [editingForm, setEditingForm] = useState(null);
+  const [formToDelete, setFormToDelete] = useState(null);
+  const [previewForm, setPreviewForm] = useState(null);
+  
+  // Current form states
   const [formTitle, setFormTitle] = useState('');
   const [sections, setSections] = useState([]);
+  
+  // UI states
   const [dropdownOpen, setDropdownOpen] = useState(null);
-  const [previewForm, setPreviewForm] = useState(null);
-  const [showPreviewModal, setShowPreviewModal] = useState(false);
 
-  // Function to add numbering to questions
-  const addNumberingToQuestions = (formsData) => {
-    return formsData.map(form => ({
-      ...form,
-      sections: form.sections.map(section => ({
-        ...section,
-        questions: section.questions.map((question, index) => ({
-          ...question,
-          number: question.number || index + 1
-        }))
-      }))
-    }));
-  };
-
-  // Sample initial data based on your image
+  // Sample initial data
   const initialForms = [
     {
       id: 1,
@@ -77,6 +75,20 @@ const Assessment = () => {
     }
   ];
 
+  // Add numbering to questions
+  const addNumberingToQuestions = (formsData) => {
+    return formsData.map(form => ({
+      ...form,
+      sections: form.sections.map(section => ({
+        ...section,
+        questions: section.questions.map((question, index) => ({
+          ...question,
+          number: question.number || index + 1
+        }))
+      }))
+    }));
+  };
+
   // Initialize with sample data if empty
   useEffect(() => {
     if (forms.length === 0) {
@@ -94,6 +106,7 @@ const Assessment = () => {
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
+  // Form creation handler
   const handleCreateForm = () => {
     setEditingForm(null);
     setFormTitle('');
@@ -101,10 +114,10 @@ const Assessment = () => {
     setShowModal(true);
   };
 
+  // Form editing handler
   const handleEditForm = (form) => {
     setEditingForm(form);
     setFormTitle(form.title);
-    // Ensure all questions have numbering when editing
     const sectionsWithNumbering = form.sections.map(section => ({
       ...section,
       questions: section.questions.map((question, index) => ({
@@ -117,8 +130,8 @@ const Assessment = () => {
     setDropdownOpen(null);
   };
 
+  // Form preview handler
   const handlePreviewForm = (form) => {
-    // Ensure all questions have numbering when previewing
     const formWithNumbering = {
       ...form,
       sections: form.sections.map(section => ({
@@ -134,6 +147,7 @@ const Assessment = () => {
     setDropdownOpen(null);
   };
 
+  // Form save handler
   const handleSaveForm = () => {
     if (!formTitle.trim()) return;
 
@@ -153,6 +167,7 @@ const Assessment = () => {
     setShowModal(false);
   };
 
+  // Delete form handler
   const handleDeleteClick = (form) => {
     setFormToDelete(form);
     setShowDeleteModal(true);
@@ -172,6 +187,7 @@ const Assessment = () => {
     setFormToDelete(null);
   };
 
+  // Toggle form active state
   const toggleFormActive = (formId, e) => {
     if (e) e.stopPropagation();
     setForms(forms.map(f => 
@@ -179,242 +195,10 @@ const Assessment = () => {
     ));
   };
 
+  // Toggle dropdown menu
   const toggleDropdown = (formId, e) => {
     if (e) e.stopPropagation();
     setDropdownOpen(dropdownOpen === formId ? null : formId);
-  };
-
-  const addSection = () => {
-    const newSection = {
-      id: Date.now(),
-      name: `Section ${sections.length + 1}`,
-      questions: []
-    };
-    setSections([...sections, newSection]);
-  };
-
-  const updateSectionName = (sectionId, newName) => {
-    setSections(sections.map(section =>
-      section.id === sectionId ? { ...section, name: newName } : section
-    ));
-  };
-
-  const deleteSection = (sectionId) => {
-    setSections(sections.filter(section => section.id !== sectionId));
-  };
-
-  const addQuestion = (sectionId) => {
-    setSections(sections.map(section => {
-      if (section.id === sectionId) {
-        const questionNumber = section.questions.length + 1;
-        return {
-          ...section,
-          questions: [
-            ...section.questions,
-            {
-              id: Date.now(),
-              text: "",
-              type: "yesno",
-              number: questionNumber
-            }
-          ]
-        };
-      }
-      return section;
-    }));
-  };
-
-  const updateQuestion = (sectionId, questionId, field, value) => {
-    setSections(sections.map(section =>
-      section.id === sectionId
-        ? {
-            ...section,
-            questions: section.questions.map(question =>
-              question.id === questionId
-                ? { ...question, [field]: value }
-                : question
-            )
-          }
-        : section
-    ));
-  };
-
-  const deleteQuestion = (sectionId, questionId) => {
-    setSections(sections.map(section => {
-      if (section.id === sectionId) {
-        const updatedQuestions = section.questions.filter(q => q.id !== questionId);
-        // Re-number questions after deletion
-        const renumberedQuestions = updatedQuestions.map((q, index) => ({
-          ...q,
-          number: index + 1
-        }));
-        return {
-          ...section,
-          questions: renumberedQuestions
-        };
-      }
-      return section;
-    }));
-  };
-
-  const addMultipleChoiceOption = (sectionId, questionId) => {
-    setSections(sections.map(section =>
-      section.id === sectionId
-        ? {
-            ...section,
-            questions: section.questions.map(question =>
-              question.id === questionId
-                ? {
-                    ...question,
-                    options: [
-                      ...(question.options || []),
-                      { id: Date.now(), text: "" }
-                    ]
-                  }
-                : question
-            )
-          }
-        : section
-    ));
-  };
-
-  const updateMultipleChoiceOption = (sectionId, questionId, optionId, value) => {
-    setSections(sections.map(section =>
-      section.id === sectionId
-        ? {
-            ...section,
-            questions: section.questions.map(question =>
-              question.id === questionId
-                ? {
-                    ...question,
-                    options: question.options?.map(option =>
-                      option.id === optionId
-                        ? { ...option, text: value }
-                        : option
-                    ) || []
-                  }
-                : question
-            )
-          }
-        : section
-    ));
-  };
-
-  const deleteMultipleChoiceOption = (sectionId, questionId, optionId) => {
-    setSections(sections.map(section =>
-      section.id === sectionId
-        ? {
-            ...section,
-            questions: section.questions.map(question =>
-              question.id === questionId
-                ? {
-                    ...question,
-                    options: question.options?.filter(opt => opt.id !== optionId) || []
-                  }
-                : question
-            )
-          }
-        : section
-    ));
-  };
-
-  // Render question input based on type
-  const renderQuestionInput = (question) => {
-    switch (question.type) {
-      case 'yesno':
-        return (
-          <div className="flex gap-4 mt-2">
-            <label className="flex items-center gap-2">
-              <input type="checkbox" className="w-4 h-4" />
-              <span>Yes</span>
-            </label>
-            <label className="flex items-center gap-2">
-              <input type="checkbox" className="w-4 h-4" />
-              <span>No</span>
-            </label>
-          </div>
-        );
-      case 'yesnodontknow':
-        return (
-          <div className="flex gap-4 mt-2">
-            <label className="flex items-center gap-2">
-              <input type="checkbox" className="w-4 h-4" />
-              <span>Yes</span>
-            </label>
-            <label className="flex items-center gap-2">
-              <input type="checkbox" className="w-4 h-4" />
-              <span>No</span>
-            </label>
-            <label className="flex items-center gap-2">
-              <input type="checkbox" className="w-4 h-4" />
-              <span>Don't know</span>
-            </label>
-          </div>
-        );
-      case 'multiple':
-        return (
-          <div className="space-y-2 mt-2">
-            {question.options?.map((option, index) => (
-              <label key={option.id} className="flex items-center gap-2">
-                <input type="checkbox" className="w-4 h-4" />
-                <span>{String.fromCharCode(97 + index)}). {option.text}</span>
-              </label>
-            ))}
-          </div>
-        );
-      case 'text':
-        return (
-          <input
-            type="text"
-            className="w-full bg-[#161616] border border-gray-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500 mt-2"
-            placeholder="Enter your answer..."
-          />
-        );
-      default:
-        return null;
-    }
-  };
-
-  // Render question editor based on type
-  const renderQuestionEditor = (sectionId, question) => {
-    switch (question.type) {
-      case 'multiple':
-        return (
-          <div className="mt-2 space-y-2">
-            <label className="block text-sm font-medium text-gray-300 mb-1">
-              Multiple Choice Options:
-            </label>
-            {question.options?.map((option, index) => (
-              <div key={option.id} className="flex items-center gap-2">
-                <span className="text-gray-400 text-sm w-4">
-                  {String.fromCharCode(97 + index)}).
-                </span>
-                <input
-                  type="text"
-                  value={option.text}
-                  onChange={(e) => updateMultipleChoiceOption(sectionId, question.id, option.id, e.target.value)}
-                  className="flex-1 bg-[#161616] border border-gray-600 rounded px-3 py-1 text-white text-sm focus:outline-none focus:border-blue-500"
-                  placeholder={`Option ${index + 1}`}
-                />
-                <button
-                  onClick={() => deleteMultipleChoiceOption(sectionId, question.id, option.id)}
-                  className="text-red-500 hover:text-red-400 text-sm px-2 py-1"
-                >
-                  Delete
-                </button>
-              </div>
-            ))}
-            <button
-              onClick={() => addMultipleChoiceOption(sectionId, question.id)}
-              className="text-blue-400 hover:text-blue-300 text-sm mt-1"
-            >
-              + Add Option
-            </button>
-          </div>
-        );
-      default:
-        return null;
-    }
   };
 
   return (
@@ -450,7 +234,6 @@ const Assessment = () => {
                 </svg>
               </button>
 
-              {/* Dropdown menu */}
               {dropdownOpen === form.id && (
                 <div className="absolute right-0 top-8 bg-[#1C1C1C] border border-gray-600 rounded-lg shadow-lg py-2 z-10 min-w-[120px]">
                   <button
@@ -526,240 +309,31 @@ const Assessment = () => {
         )}
       </div>
 
-      {/* Create/Edit Form Modal */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-start justify-center p-2 sm:p-4 z-50 overflow-y-auto">
-          <div className="bg-[#1C1C1C] rounded-lg p-4 sm:p-6 w-full max-w-6xl my-4 border border-gray-700 max-h-[calc(100vh-3 rem)] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4 sm:mb-6">
-              <h2 className="text-lg sm:text-xl font-bold">
-                {editingForm ? 'Edit Form' : 'Create New Form'}
-              </h2>
-              <button
-                onClick={() => setShowModal(false)}
-                className="text-gray-400 hover:text-white text-lg"
-              >
-                ✕
-              </button>
-            </div>
+      {/* Modal Components */}
+      <CreateFormModal
+        showModal={showModal}
+        setShowModal={setShowModal}
+        editingForm={editingForm}
+        formTitle={formTitle}
+        setFormTitle={setFormTitle}
+        sections={sections}
+        setSections={setSections}
+        handleSaveForm={handleSaveForm}
+      />
 
-            <div className="mb-4 sm:mb-6">
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Form Title
-              </label>
-              <input
-                type="text"
-                value={formTitle}
-                onChange={(e) => setFormTitle(e.target.value)}
-                className="w-full bg-[#161616] border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 text-sm sm:text-base"
-                placeholder="Enter a title..."
-              />
-            </div>
+      <PreviewModal
+        showPreviewModal={showPreviewModal}
+        setShowPreviewModal={setShowPreviewModal}
+        previewForm={previewForm}
+      />
 
-            <div className="mb-4 sm:mb-6 overflow-y-auto max-h-[60vh] custom-scrollbar pr-2">
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 sm:mb-4 gap-2">
-                <h3 className="text-base sm:text-lg font-semibold">Sections</h3>
-                <button
-                  onClick={addSection}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm transition-colors w-full sm:w-auto"
-                >
-                  + Add Section
-                </button>
-              </div>
-
-              <div className="space-y-3 sm:space-y-4">
-                {sections.map((section, sectionIndex) => (
-                  <div
-                    key={section.id}
-                    className="bg-[#161616] border border-gray-700 rounded-lg p-3 sm:p-4"
-                  >
-                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 gap-2">
-                      <input
-                        type="text"
-                        value={section.name}
-                        onChange={(e) => updateSectionName(section.id, e.target.value)}
-                        className="bg-transparent text-white font-medium flex-1 focus:outline-none focus:border-b border-gray-600 text-sm sm:text-base w-full"
-                      />
-                      <button
-                        onClick={() => deleteSection(section.id)}
-                        className="text-red-500 hover:text-red-400 text-sm w-full sm:w-auto sm:ml-2"
-                      >
-                        Delete Section
-                      </button>
-                    </div>
-
-                    {/* Questions */}
-                    <div className="space-y-2 sm:space-y-3">
-                      {section.questions.map((question, questionIndex) => (
-                        <div
-                          key={question.id}
-                          className="flex flex-col gap-2 sm:gap-3 p-2 sm:p-3 bg-[#1C1C1C] rounded"
-                        >
-                          <div className="flex items-start gap-2 sm:gap-3">
-                            <span className="text-gray-400 text-sm mt-2 flex-shrink-0">
-                              {question.number}.
-                            </span>
-                            <input
-                              type="text"
-                              value={question.text}
-                              onChange={(e) =>
-                                updateQuestion(section.id, question.id, 'text', e.target.value)
-                              }
-                              className="flex-1 bg-[#161616] border border-gray-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500 w-full"
-                              placeholder="Question text..."
-                            />
-                            <div className="flex gap-2 w-full sm:w-auto">
-                              <select
-                                value={question.type}
-                                onChange={(e) =>
-                                  updateQuestion(section.id, question.id, 'type', e.target.value)
-                                }
-                                className="bg-[#161616] border border-gray-600 rounded px-2 py-2 text-white text-sm focus:outline-none focus:border-blue-500 flex-1 sm:flex-none min-w-[140px]"
-                              >
-                                <option value="yesno">Yes/No</option>
-                                <option value="yesnodontknow">Yes/No/Don't know</option>
-                                <option value="multiple">Multiple Choice</option>
-                                <option value="text">Text</option>
-                              </select>
-                              <button
-                                onClick={() => deleteQuestion(section.id, question.id)}
-                                className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm transition-colors w-20 sm:w-auto"
-                              >
-                                Delete
-                              </button>
-                            </div>
-                          </div>
-                          {renderQuestionEditor(section.id, question)}
-                        </div>
-                      ))}
-                    </div>
-
-                    <button
-                      onClick={() => addQuestion(section.id)}
-                      className="mt-3 text-blue-400 hover:text-blue-300 text-sm w-full sm:w-auto text-center block"
-                    >
-                      + Add Question to this Section
-                    </button>
-                  </div>
-                ))}
-              </div>
-
-              {sections.length === 0 && (
-                <div className="text-center py-6 text-gray-400 text-sm">
-                  No sections added yet. Click "Add Section" to get started.
-                </div>
-              )}
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 sm:space-x-3">
-              <button
-                onClick={() => setShowModal(false)}
-                className="px-4 py-3 text-gray-300 text-sm hover:text-white transition-colors border border-gray-600 rounded-lg w-full sm:w-auto order-2 sm:order-1"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveForm}
-                className="bg-blue-600 hover:bg-blue-700 text-sm text-white px-4 py-3 rounded-lg transition-colors w-full sm:w-auto order-1 sm:order-2"
-                disabled={!formTitle.trim()}
-              >
-                {editingForm ? 'Save Changes' : 'Create Form'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Preview Modal */}
-      {showPreviewModal && previewForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-start justify-center p-2 sm:p-4 z-50 overflow-y-auto">
-          <div className="bg-[#1C1C1C] rounded-lg p-4 sm:p-6 w-full max-w-6xl my-4 border border-gray-700 max-h-[calc(100vh-3 rem)] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4 sm:mb-6">
-              <h2 className="text-lg sm:text-xl font-bold">Form Preview</h2>
-              <button
-                onClick={() => setShowPreviewModal(false)}
-                className="text-gray-400 hover:text-white text-lg"
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Preview Header */}
-            <div className="bg-[#161616] border border-gray-600 rounded-lg p-4 sm:p-6 mb-6">
-              <div className="text-center mb-2">
-                <h3 className="text-lg sm:text-xl font-bold">Studio Name</h3>
-                <p className="text-gray-400 text-sm sm:text-base">Member Assessment Form</p>
-              </div>
-              <div className="text-center">
-                <h1 className="text-xl sm:text-2xl font-bold">{previewForm.title}</h1>
-              </div>
-            </div>
-
-            {/* Preview Content */}
-            <div className="space-y-6 max-h-[50vh] overflow-y-auto custom-scrollbar pr-2">
-              {previewForm.sections.map((section, sectionIndex) => (
-                <div key={section.id} className="bg-[#161616] border border-gray-700 rounded-lg p-4 sm:p-6">
-                  <h3 className="text-lg sm:text-xl font-semibold mb-4 border-b border-gray-600 pb-2">
-                    {section.name}
-                  </h3>
-                  
-                  <div className="space-y-4">
-                    {section.questions.map((question, questionIndex) => (
-                      <div key={question.id} className="p-3 sm:p-4 bg-[#1C1C1C] rounded-lg">
-                        <p className="font-medium text-sm sm:text-base mb-3">
-                          {question.number}. {question.text}
-                        </p>
-                        {renderQuestionInput(question)}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Preview Footer */}
-            <div className="mt-6 pt-4 border-t border-gray-600">
-              <div className="flex justify-end">
-                <button
-                  onClick={() => setShowPreviewModal(false)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm transition-colors"
-                >
-                  Close Preview
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Delete Confirmation Modal */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-[#1C1C1C] rounded-lg p-6 w-full max-w-md border border-gray-700 mx-4">
-            <div className="mb-6">
-              <h2 className="text-xl font-bold mb-2">Confirm Deletion</h2>
-              <p className="text-gray-300 text-sm">
-                Are you sure you want to delete the form "{formToDelete?.title}"? This action cannot be undone.
-              </p>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-end">
-              <button
-                onClick={handleDeleteCancel}
-                className="px-4 py-2 text-gray-300 text-sm hover:text-white transition-colors border border-gray-600 rounded-lg w-full sm:w-auto"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDeleteConfirm}
-                className="bg-red-600 hover:bg-red-700 text-sm text-white px-4 py-2 rounded-lg transition-colors w-full sm:w-auto"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <DeleteModal
+        showDeleteModal={showDeleteModal}
+        setShowDeleteModal={setShowDeleteModal}
+        formToDelete={formToDelete}
+        handleDeleteConfirm={handleDeleteConfirm}
+        handleDeleteCancel={handleDeleteCancel}
+      />
     </div>
   );
 };

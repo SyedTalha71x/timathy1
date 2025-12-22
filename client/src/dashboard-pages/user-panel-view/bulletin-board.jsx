@@ -2,20 +2,20 @@
 /* eslint-disable no-unused-vars */
 import { useCallback, useState } from "react"
 import { Toaster } from "react-hot-toast"
-
+import { MdOutlineZoomOutMap } from "react-icons/md"
 
 import { trainingVideosData } from "../../utils/user-panel-states/training-states"
 import { useSidebarSystem } from "../../hooks/useSidebarSystem"
 import { WidgetSelectionModal } from "../../components/widget-selection-modal"
-import NotifyMemberModal from "../../components/myarea-components/NotifyMemberModal"
+
 import Sidebar from "../../components/central-sidebar"
+import NotifyMemberModal from "../../components/myarea-components/NotifyMemberModal"
 import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"
 import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
 import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
 import DeleteBulletinModal from "../../components/user-panel-components/bulletin-board-components/DeleteBulletinBoard"
 import ViewBulletinModal from "../../components/user-panel-components/bulletin-board-components/ViewBulletinBoard"
 import TagManagerModal from "../../components/user-panel-components/bulletin-board-components/TagManagerModal"
-import { MdOutlineZoomOutMap } from "react-icons/md"
 import OptimizedEditBulletinModal from "../../components/user-panel-components/bulletin-board-components/EditBulletinBoard"
 import OptimizedCreateBulletinModal from "../../components/user-panel-components/bulletin-board-components/CreateBulletinBoard"
 
@@ -148,47 +148,21 @@ const BulletinBoard = () => {
     selectedAppointment,
     isEditAppointmentModalOpen,
     showAppointmentOptionsModal,
-    showAppointmentModal,
     freeAppointments,
-    selectedMember,
-    isMemberOverviewModalOpen,
-    isMemberDetailsModalOpen,
-    activeMemberDetailsTab,
-    isEditModalOpen,
-    editModalTab,
+
     isNotifyMemberOpen,
     notifyAction,
-    showHistoryModal,
-    historyTab,
-    memberHistory,
-    currentBillingPeriod,
-    tempContingent,
-    selectedBillingPeriod,
-    showAddBillingPeriodModal,
-    newBillingPeriod,
-    showContingentModal,
-    editingRelations,
-    newRelation,
-    editForm,
-    widgets,
+
     rightSidebarWidgets,
-    notePopoverRef,
-    setIsRightSidebarOpen,
-    setIsSidebarEditing,
     setIsRightWidgetModalOpen,
-    setOpenDropdownIndex,
     setSelectedMemberType,
     setIsChartDropdownOpen,
     setIsWidgetModalOpen,
-    setEditingTask,
     setTodoFilter,
-    setIsEditTaskModalOpen,
     setIsTodoFilterDropdownOpen,
     setTaskToCancel,
     setTaskToDelete,
-    setIsBirthdayMessageModalOpen,
-    setSelectedBirthdayPerson,
-    setBirthdayMessage,
+
     setActiveNoteId,
     setIsSpecialNoteModalOpen,
     setSelectedAppointmentForNote,
@@ -197,30 +171,10 @@ const BulletinBoard = () => {
     setSelectedAppointment,
     setIsEditAppointmentModalOpen,
     setShowAppointmentOptionsModal,
-    setShowAppointmentModal,
-    setFreeAppointments,
-    setSelectedMember,
-    setIsMemberOverviewModalOpen,
-    setIsMemberDetailsModalOpen,
-    setActiveMemberDetailsTab,
-    setIsEditModalOpen,
-    setEditModalTab,
+
     setIsNotifyMemberOpen,
     setNotifyAction,
-    setShowHistoryModal,
-    setHistoryTab,
-    setMemberHistory,
-    setCurrentBillingPeriod,
-    setTempContingent,
-    setSelectedBillingPeriod,
-    setShowAddBillingPeriodModal,
-    setNewBillingPeriod,
-    setShowContingentModal,
-    setEditingRelations,
-    setNewRelation,
-    setEditForm,
-    setWidgets,
-    setRightSidebarWidgets,
+
     toggleRightSidebar,
     closeSidebar,
     toggleSidebarEditing,
@@ -246,62 +200,29 @@ const BulletinBoard = () => {
     handleCancelAppointment,
     actuallyHandleCancelAppointment,
     handleDeleteAppointment,
-    handleEditAppointment,
-    handleCreateNewAppointment,
+
     handleViewMemberDetails,
     handleNotifyMember,
-    calculateAge,
-    isContractExpiringSoon,
-    redirectToContract,
-    handleCalendarFromOverview,
-    handleHistoryFromOverview,
-    handleCommunicationFromOverview,
-    handleViewDetailedInfo,
-    handleEditFromOverview,
-    getMemberAppointments,
-    handleManageContingent,
-    getBillingPeriods,
-    handleAddBillingPeriod,
-    handleSaveContingent,
-    handleInputChange,
-    handleEditSubmit,
-    handleAddRelation,
-    handleDeleteRelation,
-    handleArchiveMember,
-    handleUnarchiveMember,
+
     truncateUrl,
     renderSpecialNoteIcon,
     customLinks,
-    setCustomLinks,
     communications,
-    setCommunications,
     todos,
     setTodos,
     expiringContracts,
-    setExpiringContracts,
     birthdays,
-    setBirthdays,
     notifications,
-    setNotifications,
     appointments,
     setAppointments,
-    memberContingentData,
-    setMemberContingentData,
-    memberRelations,
-    setMemberRelations,
+
     memberTypes,
-    availableMembersLeads,
-    mockTrainingPlans,
-    mockVideos,
     todoFilterOptions,
-    relationOptions,
     appointmentTypes,
     handleAssignTrainingPlan,
     handleRemoveTrainingPlan,
     memberTrainingPlans,
-    setMemberTrainingPlans,
     availableTrainingPlans,
-    setAvailableTrainingPlans,
   } = sidebarSystem
 
 
@@ -309,9 +230,6 @@ const BulletinBoard = () => {
     handleTaskComplete(taskId, todos, setTodos)
   }
 
-  const handleUpdateTaskWrapper = (updatedTask) => {
-    handleUpdateTask(updatedTask, setTodos)
-  }
 
   const handleCancelTaskWrapper = (taskId) => {
     handleCancelTask(taskId, setTodos)
@@ -591,15 +509,7 @@ const BulletinBoard = () => {
               </div>
               <h3 className="text-xl font-medium text-gray-300 mb-3">No posts found</h3>
               <p className="text-gray-500 mb-6">Try adjusting your filters or create a new post</p>
-              {/* <button
-                onClick={() => setShowCreateModal(true)}
-                className="bg-orange-500 text-white px-6 py-3 rounded-lg font-medium transition-colors inline-flex items-center gap-2"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-                Create Post
-              </button> */}
+
             </div>
           )}
         </div>
@@ -685,7 +595,7 @@ const BulletinBoard = () => {
           memberTypes={memberTypes}
           isChartDropdownOpen={isChartDropdownOpen}
           setIsChartDropdownOpen={setIsChartDropdownOpen}
-         
+
           expiringContracts={expiringContracts}
           getWidgetPlacementStatus={getWidgetPlacementStatus}
           onClose={toggleRightSidebar}

@@ -20,7 +20,7 @@ const HelpCenter = () => {
 
   const handleSubmitTicket = (ticketName, additionalDescription, uploadedImages) => {
     const currentDate = new Date().toLocaleDateString("en-GB")
-    
+
     const newTicket = {
       id: tickets.length + 1,
       subject: ticketName, // Sirf title: "Training – Training Materials Problem"
@@ -53,8 +53,8 @@ const HelpCenter = () => {
   }
 
   const handleUpdateTicket = (updatedTicket) => {
-    const updatedTickets = tickets.map((ticket) => 
-      ticket.id === updatedTicket.id 
+    const updatedTickets = tickets.map((ticket) =>
+      ticket.id === updatedTicket.id
         ? { ...updatedTicket, updatedAt: new Date().toLocaleDateString("en-GB") }
         : ticket
     )
@@ -87,27 +87,27 @@ const HelpCenter = () => {
     if (filter === "All") {
       setSelectedFilters(["All"])
     } else {
-      const newFilters = selectedFilters.includes("All") 
+      const newFilters = selectedFilters.includes("All")
         ? [filter]
         : selectedFilters.includes(filter)
           ? selectedFilters.filter(f => f !== filter)
           : [...selectedFilters, filter]
-      
+
       setSelectedFilters(newFilters.length === 0 ? ["All"] : newFilters)
     }
   }
 
   // Filter tickets based on selected filters
   const filteredTickets = tickets.filter((ticket) => {
-    const matchesSearch = 
+    const matchesSearch =
       ticket.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
       ticket.requesterName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       ticket.requesterEmail?.toLowerCase().includes(searchQuery.toLowerCase())
-    
-    const matchesFilter = 
-      selectedFilters.includes("All") || 
+
+    const matchesFilter =
+      selectedFilters.includes("All") ||
       selectedFilters.includes(ticket.status)
-    
+
     return matchesSearch && matchesFilter
   })
 
@@ -183,7 +183,7 @@ const HelpCenter = () => {
             onClick={handleNewTicketClick}
             className="w-full sm:w-auto px-4 flex justify-center items-center gap-2 sm:px-6 py-2 sm:py-3 bg-blue-600 text-white text-sm rounded-xl hover:bg-blue-700 transition-colors duration-200 whitespace-nowrap"
           >
-            <Plus size={16}/>
+            <Plus size={16} />
             New ticket
           </button>
         </div>
@@ -195,14 +195,13 @@ const HelpCenter = () => {
               <button
                 key={filter}
                 onClick={() => handleFilterClick(filter)}
-                className={`px-4 py-2 rounded-xl cursor-pointer text-sm font-medium transition-colors ${
-                  selectedFilters.includes(filter)
+                className={`px-4 py-2 rounded-xl cursor-pointer text-sm font-medium transition-colors ${selectedFilters.includes(filter)
                     ? "bg-blue-600 text-white"
                     : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
-                }`}
+                  }`}
               >
                 {filter}
-                
+
               </button>
             ))}
           </div>
@@ -211,54 +210,54 @@ const HelpCenter = () => {
 
       <div className="flex-1 flex flex-col px-4 sm:px-8 pb-8">
         <div className="w-full max-w-7xl mx-auto flex flex-col">
-        <div className="overflow-y-auto custom-scrollbar space-y-2 sm:space-y-2 px-2" style={{ maxHeight: "calc(3 * 240px)" }}>
-  {filteredTickets.map((ticket) => (
-    <div
-      key={ticket.id}
-      onClick={() => handleTicketClick(ticket)}
-      className="bg-[#161616] rounded-lg p-3 sm:p-4 lg:p-5 cursor-pointer transition-colors hover:bg-[#1F1F1F]"
-    >
-      <div className="flex justify-between items-start mb-2 min-w-0">
-        
-        {/* FIXED TITLE */}
-        <h3 className="text-white font-medium text-sm md:text-base flex-1 min-w-0 line-clamp-2 pr-2">
-          {ticket.subject}
-        </h3>
+          <div className="overflow-y-auto custom-scrollbar space-y-2 sm:space-y-2 px-2" style={{ maxHeight: "calc(3 * 240px)" }}>
+            {filteredTickets.map((ticket) => (
+              <div
+                key={ticket.id}
+                onClick={() => handleTicketClick(ticket)}
+                className="bg-[#161616] rounded-lg p-3 sm:p-4 lg:p-5 cursor-pointer transition-colors hover:bg-[#1F1F1F]"
+              >
+                <div className="flex justify-between items-start mb-2 min-w-0">
 
-        {/* DATE */}
-        <span className="text-xs sm:text-sm text-gray-300 whitespace-nowrap">
-          {ticket.date}
-        </span>
-      </div>
+                  {/* FIXED TITLE */}
+                  <h3 className="text-white font-medium text-sm md:text-base flex-1 min-w-0 line-clamp-2 pr-2">
+                    {ticket.subject}
+                  </h3>
 
-      <div className="flex items-center gap-4 mb-2 text-xs text-gray-400 flex-wrap">
-        <div className="flex items-center gap-1">
-          <span>Created:</span>
-          <span className="text-gray-300">{ticket.createdAt || ticket.date}</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <span>Updated:</span>
-          <span className="text-gray-300">{ticket.updatedAt || ticket.date}</span>
-        </div>
-      </div>
+                  {/* DATE */}
+                  <span className="text-xs sm:text-sm text-gray-300 whitespace-nowrap">
+                    {ticket.date}
+                  </span>
+                </div>
 
-      <div className="flex justify-between items-center">
-        <span
-          className={`inline-flex items-center px-2 sm:px-2.5 py-1 rounded-lg text-xs font-medium ${getStatusColor(ticket.status)}`}
-        >
-          {ticket.status}
-        </span>
-      </div>
+                <div className="flex items-center gap-4 mb-2 text-xs text-gray-400 flex-wrap">
+                  <div className="flex items-center gap-1">
+                    <span>Created:</span>
+                    <span className="text-gray-300">{ticket.createdAt || ticket.date}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span>Updated:</span>
+                    <span className="text-gray-300">{ticket.updatedAt || ticket.date}</span>
+                  </div>
+                </div>
 
-      {(ticket.requesterName || ticket.requesterEmail) && (
-        <div className="mt-2 text-xs text-gray-400">
-          {ticket.requesterName && <span>By: {ticket.requesterName}</span>}
-          {ticket.requesterEmail && <span> ({ticket.requesterEmail})</span>}
-        </div>
-      )}
-    </div>
-  ))}
-</div>
+                <div className="flex justify-between items-center">
+                  <span
+                    className={`inline-flex items-center px-2 sm:px-2.5 py-1 rounded-lg text-xs font-medium ${getStatusColor(ticket.status)}`}
+                  >
+                    {ticket.status}
+                  </span>
+                </div>
+
+                {(ticket.requesterName || ticket.requesterEmail) && (
+                  <div className="mt-2 text-xs text-gray-400">
+                    {ticket.requesterName && <span>By: {ticket.requesterName}</span>}
+                    {ticket.requesterEmail && <span> ({ticket.requesterEmail})</span>}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
 
         </div>
       </div>
@@ -266,9 +265,9 @@ const HelpCenter = () => {
       <NewTicketModal isOpen={isModalOpen} onClose={handleCloseModal} onSubmit={handleSubmitTicket} />
 
       {selectedTicket && (
-        <TicketView 
-          ticket={selectedTicket} 
-          onClose={handleCloseTicketView} 
+        <TicketView
+          ticket={selectedTicket}
+          onClose={handleCloseTicketView}
           onUpdateTicket={handleUpdateTicket}
           onCloseTicket={handleCloseTicket}
         />
