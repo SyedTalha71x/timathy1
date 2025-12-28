@@ -2,14 +2,15 @@ import { useState, useRef, useEffect } from "react"
 import { Send, Smile } from "lucide-react"
 import data from '@emoji-mart/data'
 import Picker from '@emoji-mart/react'
+import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'
 
 const studioInfo = {
   name: "FitZone Studio",
-  avatar: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=150&h=150&fit=crop&crop=center",
+  avatar: DefaultAvatar,
   status: "online",
   lastSeen: "Active now",
   description: "Your Personal Fitness Hub"
-}
+} 
 
 const initialMessages = [
   { id: 1, text: "Welcome to FitZone Studio! 🎉", sender: "other", timestamp: "9:00 AM" },
@@ -71,10 +72,25 @@ export default function StudioChat() {
   }
 
   const handleKeyPress = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    // Send message on Enter alone
+    if (e.key === "Enter" && !e.shiftKey && !e.altKey) {
       e.preventDefault()
-      // Instead of sending, add a new line (like WhatsApp)
-      setMessageText(prev => prev + '\n')
+      handleSendMessage()
+    }
+    // For paragraphs: Shift+Enter or Alt+Enter adds new line
+    if (e.key === "Enter" && (e.shiftKey || e.altKey)) {
+      e.preventDefault()
+      // Add new line at cursor position
+      const cursorPosition = e.target.selectionStart
+      const textBefore = messageText.substring(0, cursorPosition)
+      const textAfter = messageText.substring(cursorPosition)
+      setMessageText(textBefore + '\n' + textAfter)
+      
+      // Move cursor to after the new line
+      setTimeout(() => {
+        textareaRef.current.selectionStart = cursorPosition + 1
+        textareaRef.current.selectionEnd = cursorPosition + 1
+      }, 0)
     }
   }
 
@@ -105,18 +121,18 @@ export default function StudioChat() {
             <img
               src={studioInfo.avatar}
               alt={studioInfo.name}
-              className="w-12 h-12 md:w-14 md:h-14 rounded-full object-cover border-3 border-blue-500/50 shadow-lg"
+              className="w-12 h-12 md:w-16  md:h-16  rounded-xl object-cover shadow-lg"
               onError={(e) => {
                 e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(studioInfo.name)}&background=4f46e5&color=ffffff&size=150`
               }}
             />
-            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-gray-900"></div>
+            {/* <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-gray-900"></div> */}
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="font-bold text-white text-lg md:text-xl bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
               {studioInfo.name}
             </h3>
-            <p className="text-green-400 text-sm">{studioInfo.lastSeen}</p>
+            {/* <p className="text-green-400 text-sm">{studioInfo.lastSeen}</p> */}
           </div>
         </div>
       </div>
@@ -183,14 +199,14 @@ export default function StudioChat() {
             </button>
             
             <textarea
-              ref={textareaRef}
-              value={messageText}
-              onChange={(e) => setMessageText(e.target.value)}
-              onKeyDown={handleKeyPress}
-              placeholder="Type your message to FitZone Studio..."
-              className="flex-1 bg-transparent text-white placeholder-gray-400 outline-none text-sm md:text-base resize-none min-h-[20px] max-h-[120px] py-2"
-              rows="1"
-            />
+  ref={textareaRef}
+  value={messageText}
+  onChange={(e) => setMessageText(e.target.value)}
+  onKeyDown={handleKeyPress}
+  placeholder="Type your message here..."
+  className="flex-1 bg-transparent  text-white placeholder-gray-400 outline-none text-sm  resize-none min-h-[20px] max-h-[120px] py-2"
+  rows="1"
+/>
             
             <button
               onClick={handleSendMessage}

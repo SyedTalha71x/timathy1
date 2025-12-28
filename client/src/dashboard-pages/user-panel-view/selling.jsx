@@ -27,7 +27,7 @@ import AppointmentModal from "../../components/myarea-components/AppointmentModa
 import { WidgetSelectionModal } from "../../components/widget-selection-modal"
 import NotifyMemberModal from "../../components/myarea-components/NotifyMemberModal"
 import DefaultAvatar from "../../../public/gray-avatar-fotor-20250912192528.png"
-import  MemberOverviewModal  from "../../components/myarea-components/MemberOverviewModal"
+import MemberOverviewModal from "../../components/myarea-components/MemberOverviewModal"
 import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"
 import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
 import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
@@ -223,24 +223,22 @@ function App() {
         setIsRightSidebarOpen(false)
       }
     }
-  
+
     // Initial check
     handleResize()
-  
+
     // Add resize listener
     window.addEventListener('resize', handleResize)
-    
+
     return () => {
       window.removeEventListener('resize', handleResize)
     }
   }, [])
-  
+
   // Update the toggle function to handle mobile specifically
+  // Update the toggle function
   const toggleRightSidebar = () => {
-    if (window.innerWidth < 768) { // Mobile only
-      setIsRightSidebarOpen(!isRightSidebarOpen)
-    }
-    // On desktop, sidebar stays always open when selling menu is active
+    setIsRightSidebarOpen(!isRightSidebarOpen)
   }
 
   const openAddModal = () => {
@@ -1179,8 +1177,8 @@ Payment Method: ${invoiceData.paymentMethod}
                           onChange={handleInputChangeMain}
                           className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
                         >
-                          <option value="7">7%</option>
-                          <option value="19">19%</option>
+                          <option value="7">7% (take-away)</option>
+                          <option value="19">19% (eat-in)</option>
                         </select>
                       </div>
                     </div>
@@ -1225,8 +1223,8 @@ Payment Method: ${invoiceData.paymentMethod}
                           onChange={handleInputChangeMain}
                           className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
                         >
-                          <option value="7">7%</option>
-                          <option value="19">19%</option>
+                         <option value="7">7% (take-away)</option>
+                         <option value="19">19% (eat-in)</option>
                         </select>
                       </div>
                     </>
@@ -1353,15 +1351,14 @@ Payment Method: ${invoiceData.paymentMethod}
                   )}
                 </div> */}
                 <div onClick={toggleRightSidebar} className="cursor-pointer relative">
-  {/* Basket icon instead of sidebar icon */}
-  <ShoppingCart size={20} className="text-white" />
-  
-  {cart.length > 0 && (
-    <span className="bg-orange-500 text-white text-[10px] rounded-full px-[5px] py-[2px] min-w-[18px] h-[18px] flex items-center justify-center absolute -top-2 -right-2">
-      {cart.reduce((sum, item) => sum + item.quantity, 0)}
-    </span>
-  )}
-</div>
+                  <ShoppingCart size={20} className="text-white" />
+
+                  {cart.length > 0 && (
+                    <span className="bg-orange-500 text-white text-[10px] rounded-full px-[5px] py-[2px] min-w-[18px] h-[18px] flex items-center justify-center absolute -top-2 -right-2">
+                      {cart.reduce((sum, item) => sum + item.quantity, 0)}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
             <div className="flex items-center mb-3 justify-end gap-2">
@@ -1449,10 +1446,10 @@ Payment Method: ${invoiceData.paymentMethod}
                       <div className="w-full h-full bg-blue-600 flex items-center justify-center text-white text-center p-4">
                         <p
                           className={`font-medium line-clamp-3 ${item.name.length <= 20 ? "text-lg" :
-                              item.name.length <= 40 ? "text-base" :
-                                item.name.length <= 60 ? "text-sm" :
-                                  item.name.length <= 80 ? "text-xs" :
-                                    "text-[10px]"
+                            item.name.length <= 40 ? "text-base" :
+                              item.name.length <= 60 ? "text-sm" :
+                                item.name.length <= 80 ? "text-xs" :
+                                  "text-[10px]"
                             }`}
                         >
                           {item.name}
@@ -1460,23 +1457,23 @@ Payment Method: ${invoiceData.paymentMethod}
                       </div>
                     )}
 
-{!isEditModeActive && (
-  <div className="absolute bottom-3 right-3">
-    <button
-      onClick={() => addToCart(item)}
-      className="bg-blue-800 cursor-pointer hover:bg-[#3F74FF]/90 text-white p-2 rounded-full transition-colors relative"
-      aria-label="Add to cart"
-    >
-      <ShoppingBasket size={16} />
-      {/* Add number indicator for this specific item if it's in cart */}
-      {cart.some(cartItem => cartItem.id === item.id) && (
-        <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-[10px] rounded-full px-[4px] py-[1px] min-w-[16px] h-[16px] flex items-center justify-center border border-white">
-          {cart.find(cartItem => cartItem.id === item.id)?.quantity || 0}
-        </span>
-      )}
-    </button>
-  </div>
-)}
+                    {!isEditModeActive && (
+                      <div className="absolute bottom-3 right-3">
+                        <button
+                          onClick={() => addToCart(item)}
+                          className="bg-blue-800 cursor-pointer hover:bg-[#3F74FF]/90 text-white p-2 rounded-full transition-colors relative"
+                          aria-label="Add to cart"
+                        >
+                          <ShoppingBasket size={16} />
+                          {/* Add number indicator for this specific item if it's in cart */}
+                          {cart.some(cartItem => cartItem.id === item.id) && (
+                            <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-[10px] rounded-full px-[4px] py-[1px] min-w-[16px] h-[16px] flex items-center justify-center border border-white">
+                              {cart.find(cartItem => cartItem.id === item.id)?.quantity || 0}
+                            </span>
+                          )}
+                        </button>
+                      </div>
+                    )}
                     {isEditModeActive && (
                       <button
                         onClick={(e) => handleThreeDotsClick(e, item)}
@@ -1515,31 +1512,45 @@ Payment Method: ${invoiceData.paymentMethod}
 
                   {/* CONTENT */}
                   <div className="p-3">
-                    <div className="min-h-[80px] flex flex-col justify-between">
-                      <div className="mb-2">
-                        <h3 className="text-base font-medium oxanium_font truncate leading-tight">
-                          {item.name}
-                        </h3>
+  <div className="min-h-[80px] flex flex-col justify-between">
+    <div className="mb-2">
+      {/* Responsive title based on text length */}
+      <h3 className={`font-medium oxanium_font truncate leading-tight ${
+        item.name.length <= 10 ? 'text-xl' :
+        item.name.length <= 20 ? 'text-lg' :
+        item.name.length <= 30 ? 'text-base' :
+        item.name.length <= 40 ? 'text-sm' :
+        'text-xs'
+      }`}>
+        {item.name}
+      </h3>
 
-                        {activeTab === "products" && item.brandName && (
-                          <p className="text-xs text-slate-200 mt-1 open_sans_font truncate">
-                            {item.brandName}
-                          </p>
-                        )}
+      {activeTab === "products" && item.brandName && (
+        <p className={`text-slate-200 mt-1 open_sans_font truncate ${
+          item.brandName.length <= 15 ? 'text-sm' :
+          item.brandName.length <= 25 ? 'text-xs' :
+          'text-[10px]'
+        }`}>
+          {item.brandName}
+        </p>
+      )}
 
-                        {activeTab === "products" && item.articalNo && (
-                          <p className="text-xs text-slate-400 mt-1 open_sans_font truncate">
-                            Art. No: {item.articalNo}
-                          </p>
-                        )}
-                      </div>
+      {activeTab === "products" && item.articalNo && (
+        <p className={`text-slate-400 mt-1 open_sans_font truncate ${
+          item.articalNo.length <= 15 ? 'text-xs' :
+          'text-[10px]'
+        }`}>
+          Art. No: {item.articalNo}
+        </p>
+      )}
+    </div>
 
-                      {/* Price - always at the bottom */}
-                      <p className="text-lg font-bold text-white whitespace-nowrap mt-auto">
-                        ${item.price.toFixed(2)}
-                      </p>
-                    </div>
-                  </div>
+    {/* Price - always at the bottom */}
+    <p className="text-lg font-bold text-white whitespace-nowrap mt-auto">
+      ${item.price.toFixed(2)}
+    </p>
+  </div>
+</div>
                 </div>
               ))}
             </div>

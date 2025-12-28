@@ -395,9 +395,6 @@ export default function TaskItem({
                   );
                 }
               }}
-
-
-              title={getDateTimeTooltip()} // Basic tooltip as fallback
             >
               <Calendar size={12} />
               <span className="whitespace-nowrap">{formatDateTime()}</span>

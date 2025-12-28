@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
 
 
@@ -63,3 +64,20 @@ export const staffMemberDataNew = [
            color: '#D3D3D3'
     },
   ]
+
+  export const StaffColorIndicator = ({ color, size = "md", className = "" }) => {
+    const sizeClasses = {
+      sm: "w-2 h-2",
+      md: "w-3 h-3",
+      lg: "w-4 h-4",
+      xl: "w-5 h-5"
+    };
+  
+    return (
+      <div 
+        className={`${sizeClasses[size]} rounded-full ${className}`}
+        style={{ backgroundColor: color }}
+        title="Staff Color"
+      />
+    );
+  };

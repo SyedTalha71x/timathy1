@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import React, { useState, useEffect } from "react"
@@ -6,30 +7,30 @@ import ReactQuill from 'react-quill'
 import 'react-quill/dist/quill.snow.css'
 
 const WysiwygEditor = ({ value, onChange, placeholder }) => {
-  const modules = {
-    toolbar: [
-      [{ 'header': [1, 2, 3, false] }],
-      ['bold', 'italic', 'underline', 'strike'],
-      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-      [{ 'align': [] }],
-      [{ 'color': [] }, { 'background': [] }],
-      ['link', 'image'],
-      ['clean']
-    ],
-  }
+    const modules = {
+        toolbar: [
+            [{ 'header': [1, 2, 3, false] }],
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+            [{ 'align': [] }],
+            [{ 'color': [] }, { 'background': [] }],
+            ['link', 'image'],
+            ['clean']
+        ],
+    }
 
-  const formats = [
-    'header',
-    'bold', 'italic', 'underline', 'strike',
-    'list', 'bullet',
-    'align',
-    'color', 'background',
-    'link', 'image'
-  ]
+    const formats = [
+        'header',
+        'bold', 'italic', 'underline', 'strike',
+        'list', 'bullet',
+        'align',
+        'color', 'background',
+        'link', 'image'
+    ]
 
-  useEffect(() => {
-    const style = document.createElement('style')
-    style.textContent = `
+    useEffect(() => {
+        const style = document.createElement('style')
+        style.textContent = `
       .ql-editor.ql-blank::before {
         color: #9ca3af !important;
         opacity: 0.7 !important;
@@ -71,23 +72,23 @@ const WysiwygEditor = ({ value, onChange, placeholder }) => {
         background-color: #374151 !important;
       }
     `
-    document.head.appendChild(style)
+        document.head.appendChild(style)
 
-    return () => {
-      document.head.removeChild(style)
-    }
-  }, [])
+        return () => {
+            document.head.removeChild(style)
+        }
+    }, [])
 
-  return (
-    <ReactQuill
-      value={value}
-      onChange={onChange}
-      modules={modules}
-      formats={formats}
-      placeholder={placeholder}
-      theme="snow"
-    />
-  )
+    return (
+        <ReactQuill
+            value={value}
+            onChange={onChange}
+            modules={modules}
+            formats={formats}
+            placeholder={placeholder}
+            theme="snow"
+        />
+    )
 }
 
 const SendEmailModal = ({ sale, onClose }) => {
@@ -103,7 +104,7 @@ const SendEmailModal = ({ sale, onClose }) => {
         const invoiceContent = generateInvoicePDF()
         const blob = new Blob([invoiceContent], { type: 'application/pdf' })
         const invoiceFile = new File([blob], `invoice-${sale.invoiceNumber || sale.id}.pdf`, { type: 'application/pdf' })
-        
+
         // Set the invoice as the first attachment automatically
         setAttachments([invoiceFile])
     }, [sale])
@@ -125,9 +126,9 @@ ${sale.email ? `Email: ${sale.email}` : ''}
 
 ITEMS
 ----------------------------------------
-${sale.items.map((item, idx) => 
-    `${idx + 1}. ${item.name} x${item.quantity} - $${(item.price * item.quantity).toFixed(2)} (${item.type})`
-).join("\n")}
+${sale.items.map((item, idx) =>
+            `${idx + 1}. ${item.name} x${item.quantity} - $${(item.price * item.quantity).toFixed(2)} (${item.type})`
+        ).join("\n")}
 
 PAYMENT DETAILS
 ----------------------------------------
@@ -217,8 +218,8 @@ Thank you for your business!
                             <Mail className="w-6 h-6" />
                             Send Invoice via Email
                         </h2>
-                        <button 
-                            onClick={onClose} 
+                        <button
+                            onClick={onClose}
                             className="p-2 hover:bg-zinc-700 rounded-lg transition-colors text-white"
                         >
                             <X size={20} />
@@ -285,7 +286,7 @@ Thank you for your business!
                                     Add Attachment
                                 </button>
                             </div>
-                            
+
                             <div className="bg-[#222222] border border-gray-600 rounded-lg p-4">
                                 {attachments.length === 0 ? (
                                     <p className="text-gray-400 text-sm">
@@ -298,14 +299,7 @@ Thank you for your business!
                                                 <div className="flex items-center gap-3">
                                                     <Paperclip size={16} className="text-gray-400" />
                                                     <span className="text-white text-sm">{file.name}</span>
-                                                    {isInvoiceAttachment(file.name) && (
-                                                        <span className="text-green-400 text-xs bg-green-800 px-2 py-1 rounded">
-                                                            Invoice
-                                                        </span>
-                                                    )}
-                                                    <span className="text-gray-400 text-xs">
-                                                        (${(file.size / 1024).toFixed(1)} KB)
-                                                    </span>
+
                                                 </div>
                                                 <button
                                                     onClick={() => handleRemoveAttachment(index)}
@@ -319,9 +313,7 @@ Thank you for your business!
                                         ))}
                                     </div>
                                 )}
-                                <p className="text-xs text-green-400 mt-2">
-                                    ✓ Invoice has been automatically attached
-                                </p>
+
                             </div>
                         </div>
 

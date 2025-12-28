@@ -15,7 +15,7 @@ import TrainingPlansModal from "../../components/myarea-components/TrainingPlanM
 import { WidgetSelectionModal } from "../../components/widget-selection-modal"
 import { useSidebarSystem } from "../../hooks/useSidebarSystem"
 import { trainingVideosData } from "../../utils/user-panel-states/training-states"
-import { appointmentsData } from "../../utils/user-panel-states/analytics-states"
+import { appointmentsData, LeadOriginMap, leadOriginMapData } from "../../utils/user-panel-states/analytics-states"
 import {
   tabs,
   membersData,
@@ -402,6 +402,9 @@ export default function AnalyticsDashboard() {
               <div className="text-5xl font-bold text-orange-400 mb-2">{leadsData.totalLeads}</div>
               <div className="text-lg text-gray-400">Total Leads</div>
             </div>
+
+            <LeadOriginMap data={leadOriginMapData} />
+
 
             <div className="bg-[#2F2F2F] rounded-xl p-6 overflow-x-auto">
               <h3 className="text-lg font-semibold text-white mb-4">New Leads & Converted</h3>

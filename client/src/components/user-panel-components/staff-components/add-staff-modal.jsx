@@ -5,8 +5,11 @@ import { X, Info, Calculator } from "lucide-react"
 import { useState, useEffect } from "react"
 import toast from "react-hot-toast"
 import Avatar from "../../../../public/gray-avatar-fotor-20250912192528.png"
+import useCountries from "../../../hooks/useCountries";
 
 function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
+  const { countries, loading } = useCountries(); // Add this line
+
   const [activeTab, setActiveTab] = useState("details")
   const [showPassword, setShowPassword] = useState(false)
   const [newStaff, setNewStaff] = useState({
@@ -38,14 +41,14 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
       const currentDate = new Date()
       const startOfYear = new Date(currentYear, 0, 1) // January 1st of current year
       const endOfYear = new Date(currentYear, 11, 31) // December 31st of current year
-      
+
       const totalDaysInYear = Math.floor((endOfYear - startOfYear) / (1000 * 60 * 60 * 24)) + 1
       const daysPassedInYear = Math.floor((currentDate - startOfYear) / (1000 * 60 * 60 * 24)) + 1
-      
+
       // Calculate pro-rated vacation: (days remaining in year / total days) * annual entitlement
       const daysRemainingInYear = totalDaysInYear - daysPassedInYear
       const proRatedVacation = Math.round((daysRemainingInYear / totalDaysInYear) * newStaff.vacationEntitlement)
-      
+
       return Math.max(0, proRatedVacation) // Ensure non-negative
     }
 
@@ -72,8 +75,8 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
   // Special handler for vacation days current year to track manual adjustments
   const handleVacationDaysCurrentYearChange = (e) => {
     const value = parseInt(e.target.value) || 0
-    setNewStaff((prev) => ({ 
-      ...prev, 
+    setNewStaff((prev) => ({
+      ...prev,
       vacationDaysCurrentYear: value,
       hasManualAdjustment: true // Mark as manually adjusted
     }))
@@ -82,8 +85,8 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
   // Handler for annual entitlement that also updates current year if not manually adjusted
   const handleVacationEntitlementChange = (e) => {
     const value = parseInt(e.target.value) || 0
-    setNewStaff((prev) => ({ 
-      ...prev, 
+    setNewStaff((prev) => ({
+      ...prev,
       vacationEntitlement: value
       // Current year will be recalculated in useEffect if not manually adjusted
     }))
@@ -110,13 +113,13 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
     const currentDate = new Date()
     const startOfYear = new Date(currentYear, 0, 1)
     const endOfYear = new Date(currentYear, 11, 31)
-    
+
     const totalDaysInYear = Math.floor((endOfYear - startOfYear) / (1000 * 60 * 60 * 24)) + 1
     const daysPassedInYear = Math.floor((currentDate - startOfYear) / (1000 * 60 * 60 * 24)) + 1
     const daysRemainingInYear = totalDaysInYear - daysPassedInYear
-    
+
     const proRatedVacation = Math.round((daysRemainingInYear / totalDaysInYear) * newStaff.vacationEntitlement)
-    
+
     setNewStaff(prev => ({
       ...prev,
       vacationDaysCurrentYear: Math.max(0, proRatedVacation),
@@ -296,15 +299,24 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
           </div>
           <div>
             <label className="text-sm text-gray-200 block mb-2">Country</label>
-            <input
-              type="text"
+            <select
               name="country"
               value={newStaff.country}
               onChange={handleInputChange}
-              placeholder="Enter country"
               className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
               required
-            />
+            >
+              <option value="">Select a country</option>
+              {loading ? (
+                <option value="" disabled>Loading countries...</option>
+              ) : (
+                countries.map((country) => (
+                  <option key={country.code} value={country.name}>
+                    {country.name}
+                  </option>
+                ))
+              )}
+            </select>
           </div>
           <div>
             <label className="text-sm text-gray-200 block mb-2">Role</label>
@@ -455,17 +467,15 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
           <div className="flex border-b border-gray-700 mb-6">
             <button
               onClick={() => setActiveTab("details")}
-              className={`px-4 py-2 text-sm font-medium transition-colors ${
-                activeTab === "details" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400 hover:text-white"
-              }`}
+              className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === "details" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400 hover:text-white"
+                }`}
             >
               Details
             </button>
             <button
               onClick={() => setActiveTab("access")}
-              className={`px-4 py-2 text-sm font-medium transition-colors ${
-                activeTab === "access" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400 hover:text-white"
-              }`}
+              className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === "access" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400 hover:text-white"
+                }`}
             >
               Access Data
             </button>

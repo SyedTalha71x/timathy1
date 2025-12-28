@@ -61,10 +61,6 @@ export default function BroadcastModal({
   ])
   const [selectedEmailTemplate, setSelectedEmailTemplate] = useState(null)
 
-  const [showEmailBuilder, setShowEmailBuilder] = useState(false)
-  const [builderSubject, setBuilderSubject] = useState("")
-  const [builderFolderId, setBuilderFolderId] = useState(1001)
-  const [builderHtml, setBuilderHtml] = useState("")
   const [includeSignatureOnSend, setIncludeSignatureOnSend] = useState(true)
   
   // State for modals
@@ -73,9 +69,6 @@ export default function BroadcastModal({
   
   const [showMessageModal, setShowMessageModal] = useState(false)
   const [editingMessage, setEditingMessage] = useState(null)
-  
-  const [showEmailTemplateModal, setShowEmailTemplateModal] = useState(false)
-  const [editingEmailTemplate, setEditingEmailTemplate] = useState(null)
   
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [itemToDelete, setItemToDelete] = useState(null)
@@ -133,31 +126,8 @@ export default function BroadcastModal({
   useEffect(() => {
     if (!selectedEmailFolder && emailFolders.length) {
       setSelectedEmailFolder(emailFolders[0])
-      setBuilderFolderId(emailFolders[0].id)
     }
   }, [emailFolders, selectedEmailFolder])
-
-  const handleSaveEmailTemplate = () => {
-    if (!builderSubject.trim() || !builderHtml.trim()) {
-      alert("Please provide both Subject and Body for the email template.")
-      return
-    }
-    
-    const newId = Math.max(0, ...emailTemplates.map((t) => t.id)) + 1
-    const saved = {
-      id: newId,
-      folderId: builderFolderId,
-      subject: builderSubject.trim(),
-      body: builderHtml,
-    }
-    
-    setEmailTemplates([saved, ...emailTemplates])
-    setSelectedEmailTemplate(saved)
-    // Reset builder
-    setShowEmailBuilder(false)
-    setBuilderSubject("")
-    setBuilderHtml("")
-  }
 
   // Folder management
   const handleOpenFolderModal = (folder = null) => {
@@ -187,7 +157,6 @@ export default function BroadcastModal({
         const newFolder = { id: newId, name: folderName, messages: [] }
         setEmailFolders((prev) => [...prev, newFolder])
         setSelectedEmailFolder(newFolder)
-        setBuilderFolderId(newFolder.id)
       }
     }
   }
@@ -232,7 +201,7 @@ export default function BroadcastModal({
     }
   }
 
-  // Message management
+  // Message management - UPDATED: This now handles both push and email templates
   const handleOpenMessageModal = (message = null) => {
     setEditingMessage(message)
     setShowMessageModal(true)
@@ -240,10 +209,43 @@ export default function BroadcastModal({
 
   const handleSaveMessage = (messageData) => {
     if (activeMainTab === "push") {
+      // Save push message
       if (editingMessage) {
         onUpdateMessage?.(messageData)
       } else {
         onCreateMessage?.(messageData)
+      }
+    } else {
+      // Save email template
+      if (editingMessage) {
+        // Update existing email template
+        setEmailTemplates(prev =>
+          prev.map(template =>
+            template.id === editingMessage.id
+              ? messageData
+              : template
+          )
+        )
+        
+        if (selectedEmailTemplate?.id === editingMessage.id) {
+          setSelectedEmailTemplate(messageData)
+        }
+        
+        onUpdateEmailTemplate?.(messageData)
+      } else {
+        // Create new email template
+        const newId = Math.max(0, ...emailTemplates.map((t) => t.id)) + 1
+        const newTemplate = { 
+          ...messageData, 
+          id: newId,
+          // Ensure email templates have the right structure
+          subject: messageData.title || "Untitled Email",
+          body: messageData.message || "",
+          folderId: messageData.folderId || selectedEmailFolder?.id || emailFolders[0]?.id
+        }
+        
+        setEmailTemplates([newTemplate, ...emailTemplates])
+        setSelectedEmailTemplate(newTemplate)
       }
     }
   }
@@ -252,38 +254,6 @@ export default function BroadcastModal({
     setItemToDelete(message)
     setDeleteType(activeMainTab === "push" ? "pushMessage" : "emailTemplate")
     setShowDeleteModal(true)
-  }
-
-  // Email template management
-  const handleOpenEmailTemplateModal = (template = null) => {
-    setEditingEmailTemplate(template)
-    setShowEmailTemplateModal(true)
-  }
-
-  const handleSaveEmailTemplateModal = (templateData) => {
-    if (editingEmailTemplate) {
-      setEmailTemplates(prev =>
-        prev.map(template =>
-          template.id === editingEmailTemplate.id
-            ? templateData
-            : template
-        )
-      )
-      
-      if (selectedEmailTemplate?.id === editingEmailTemplate.id) {
-        setSelectedEmailTemplate(templateData)
-      }
-      
-      onUpdateEmailTemplate?.(templateData)
-    } else {
-      const newId = Math.max(0, ...emailTemplates.map((t) => t.id)) + 1
-      const newTemplate = { ...templateData, id: newId }
-      setEmailTemplates([newTemplate, ...emailTemplates])
-      setSelectedEmailTemplate(newTemplate)
-    }
-    
-    setShowEmailTemplateModal(false)
-    setEditingEmailTemplate(null)
   }
 
   const handleBroadcastClick = () => {
@@ -311,20 +281,13 @@ export default function BroadcastModal({
     }
 
     // Email branch
-    let emailSubject = ""
-    let emailBody = ""
-    
-    if (selectedEmailTemplate) {
-      emailSubject = selectedEmailTemplate.subject || ""
-      emailBody = selectedEmailTemplate.body || ""
-    } else if (showEmailBuilder) {
-      // Use builder content
-      emailSubject = builderSubject
-      emailBody = builderHtml
-    } else {
-      alert("Please select or create an email template.")
+    if (!selectedEmailTemplate) {
+      alert("Please select an email template.")
       return
     }
+
+    const emailSubject = selectedEmailTemplate.subject || ""
+    const emailBody = selectedEmailTemplate.body || ""
 
     if (!emailSubject || !emailBody) {
       alert("Please provide both Subject and Body.")
@@ -332,14 +295,15 @@ export default function BroadcastModal({
     }
 
     // Append signature if checked
+    let finalEmailBody = emailBody
     if (includeSignatureOnSend && settings?.emailSignature) {
-      emailBody = `${emailBody}<p><br/>${settings.emailSignature}</p>`
+      finalEmailBody = `${emailBody}<p><br/>${settings.emailSignature}</p>`
     }
 
     const emailMessageObj = {
       id: Date.now(),
       title: emailSubject,
-      message: emailBody,
+      message: finalEmailBody,
       folderId: selectedEmailFolder?.id,
       channel: "email",
     }
@@ -401,31 +365,16 @@ export default function BroadcastModal({
             {/* Recipient selector */}
             <div className="mb-4">
               <div className="relative">
-                {activeMainTab !== "email" ? (
-                  <div className="mb-2">
-                    <button
-                      onClick={() => handleOpenMessageModal()}
-                      className="w-full py-2 bg-blue-600 text-sm hover:bg-blue-700 text-white rounded-xl flex items-center justify-center gap-2"
-                    >
-                      <Plus size={16} />
-                      Create New Push Template
-                    </button>
-                  </div>
-                ) : (
+                {/* Create Template Button - SAME for both tabs */}
+                <div className="mb-2">
                   <button
-                    onClick={() => {
-                      setSelectedEmailTemplate(null)
-                      setShowEmailBuilder(true)
-                      setBuilderSubject("")
-                      setBuilderHtml("")
-                      if (selectedEmailFolder) setBuilderFolderId(selectedEmailFolder.id)
-                    }}
-                    className="w-full py-2 flex justify-center items-center gap-2 bg-blue-600 text-sm hover:bg-blue-700 text-white rounded-xl"
+                    onClick={() => handleOpenMessageModal()}
+                    className="w-full py-2 bg-blue-600 text-sm hover:bg-blue-700 text-white rounded-xl flex items-center justify-center gap-2"
                   >
                     <Plus size={16} />
-                    Create Email Template
+                    {activeMainTab === "push" ? "Create New Push Template" : "Create Email Template"}
                   </button>
-                )}
+                </div>
                 
                 {/* Recipients dropdown */}
                 {showRecipientDropdown && (
@@ -512,46 +461,50 @@ export default function BroadcastModal({
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <label className="block text-sm font-medium text-gray-400">Push Broadcast</label>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => selectedPushFolder && handleDeleteFolder(selectedPushFolder)}
-                        className="text-red-500 hover:text-red-400 text-sm flex items-center gap-1"
-                        disabled={!selectedPushFolder}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => selectedPushFolder && handleOpenFolderModal(selectedPushFolder)}
-                        className="text-blue-500 hover:text-blue-400 text-sm flex items-center gap-1"
-                        disabled={!selectedPushFolder}
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleOpenFolderModal()}
-                        className="text-blue-500 hover:text-blue-400 text-sm flex items-center gap-1"
-                      >
-                        <FolderPlus className="w-4 h-4" />
-                        New Folder
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => handleOpenFolderModal()}
+                      className="text-blue-500 hover:text-blue-400 text-sm flex items-center gap-1"
+                    >
+                      <FolderPlus className="w-4 h-4" />
+                      New Folder
+                    </button>
                   </div>
-                  <select
-                    value={selectedPushFolder?.id || ""}
-                    onChange={(e) =>
-                      setSelectedPushFolder(
-                        broadcastFolders.find((f) => f.id === Number.parseInt(e.target.value, 10)) || null,
-                      )
-                    }
-                    className="w-full bg-[#222222] text-white rounded-xl px-4 py-2 text-sm"
-                  >
-                    <option value="">Select folder...</option>
-                    {broadcastFolders.map((folder) => (
-                      <option key={folder.id} value={folder.id}>
-                        {folder.name} ({folder.messages?.length || 0} messages)
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <select
+                      value={selectedPushFolder?.id || ""}
+                      onChange={(e) =>
+                        setSelectedPushFolder(
+                          broadcastFolders.find((f) => f.id === Number.parseInt(e.target.value, 10)) || null,
+                        )
+                      }
+                      className="w-full bg-[#222222] text-white rounded-xl px-4 py-2 text-sm pr-20"
+                    >
+                      <option value="">Select folder...</option>
+                      {broadcastFolders.map((folder) => (
+                        <option key={folder.id} value={folder.id}>
+                          {folder.name} ({folder.messages?.length || 0} messages)
+                        </option>
+                      ))}
+                    </select>
+                    {selectedPushFolder && (
+                      <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
+                        <button
+                          onClick={() => handleOpenFolderModal(selectedPushFolder)}
+                          className="p-1 text-blue-500 hover:text-blue-400"
+                          aria-label="Edit folder"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteFolder(selectedPushFolder)}
+                          className="p-1 text-red-500 hover:text-red-400"
+                          aria-label="Delete folder"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Pre-configured push messages */}
@@ -634,46 +587,50 @@ export default function BroadcastModal({
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <label className="block text-sm font-medium text-gray-400">Email Broadcast Folder</label>
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => selectedEmailFolder && handleDeleteFolder(selectedEmailFolder)}
-                        className="text-red-500 hover:text-red-400 text-sm flex items-center gap-1"
-                        disabled={!selectedEmailFolder}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => selectedEmailFolder && handleOpenFolderModal(selectedEmailFolder)}
-                        className="text-blue-500 hover:text-blue-400 text-sm flex items-center gap-1"
-                        disabled={!selectedEmailFolder}
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleOpenFolderModal()}
-                        className="text-blue-500 hover:text-blue-400 text-sm flex items-center gap-1"
-                      >
-                        <FolderPlus className="w-4 h-4" />
-                        New Folder
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => handleOpenFolderModal()}
+                      className="text-blue-500 hover:text-blue-400 text-sm flex items-center gap-1"
+                    >
+                      <FolderPlus className="w-4 h-4" />
+                      New Folder
+                    </button>
                   </div>
-                  <select
-                    value={selectedEmailFolder?.id || emailFolders[0]?.id || ""}
-                    onChange={(e) => {
-                      const id = Number.parseInt(e.target.value, 10)
-                      const folder = emailFolders.find((f) => f.id === id)
-                      setSelectedEmailFolder(folder || null)
-                    }}
-                    className="w-full bg-[#222222] text-white rounded-xl px-4 py-2 text-sm"
-                  >
-                    <option value="">Select folder...</option>
-                    {emailFolders.map((folder) => (
-                      <option key={folder.id} value={folder.id}>
-                        {folder.name}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <select
+                      value={selectedEmailFolder?.id || emailFolders[0]?.id || ""}
+                      onChange={(e) => {
+                        const id = Number.parseInt(e.target.value, 10)
+                        const folder = emailFolders.find((f) => f.id === id)
+                        setSelectedEmailFolder(folder || null)
+                      }}
+                      className="w-full bg-[#222222] text-white rounded-xl px-4 py-2 text-sm pr-20"
+                    >
+                      <option value="">Select folder...</option>
+                      {emailFolders.map((folder) => (
+                        <option key={folder.id} value={folder.id}>
+                          {folder.name}
+                        </option>
+                      ))}
+                    </select>
+                    {selectedEmailFolder && (
+                      <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
+                        <button
+                          onClick={() => handleOpenFolderModal(selectedEmailFolder)}
+                          className="p-1 text-blue-500 hover:text-blue-400"
+                          aria-label="Edit folder"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteFolder(selectedEmailFolder)}
+                          className="p-1 text-red-500 hover:text-red-400"
+                          aria-label="Delete folder"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Email templates list */}
@@ -690,7 +647,7 @@ export default function BroadcastModal({
                             <Trash2 className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => handleOpenEmailTemplateModal(selectedEmailTemplate)}
+                            onClick={() => handleOpenMessageModal(selectedEmailTemplate)}
                             className="text-blue-500 hover:text-blue-400 text-sm"
                           >
                             <Edit className="w-4 h-4" />
@@ -707,7 +664,6 @@ export default function BroadcastModal({
                           key={t.id}
                           onClick={() => {
                             setSelectedEmailTemplate(t)
-                            setShowEmailBuilder(false)
                           }}
                           className={`p-3 cursor-pointer hover:bg-[#2F2F2F] group relative ${
                             selectedEmailTemplate?.id === t.id ? "bg-[#2F2F2F] border-l-4 border-blue-500" : ""
@@ -719,7 +675,12 @@ export default function BroadcastModal({
                             <button
                               onClick={(e) => {
                                 e.stopPropagation()
-                                handleOpenEmailTemplateModal(t)
+                                handleOpenMessageModal({
+                                  ...t,
+                                  title: t.subject, // Map subject to title for MessageModal
+                                  message: t.body,
+                                  folderId: t.folderId
+                                })
                               }}
                               className="p-1 bg-blue-600 hover:bg-blue-700 rounded"
                             >
@@ -740,6 +701,20 @@ export default function BroadcastModal({
                   </div>
                 </div>
 
+                {/* Include Signature Checkbox - Only for Email Tab */}
+                <div className="flex items-center gap-2">
+                  <input
+                    id="includeSignature"
+                    type="checkbox"
+                    checked={includeSignatureOnSend}
+                    onChange={(e) => setIncludeSignatureOnSend(e.target.checked)}
+                    className="rounded border-gray-600 bg-transparent"
+                  />
+                  <label htmlFor="includeSignature" className="text-sm text-gray-300">
+                    Append signature on send
+                  </label>
+                </div>
+
                 <button
                   onClick={() => {
                     setShowRecipientDropdown(!showRecipientDropdown)
@@ -749,78 +724,6 @@ export default function BroadcastModal({
                 >
                   Select Recipients
                 </button>
-
-                {showEmailBuilder && (
-                  <div className="border border-gray-800 rounded-xl p-3 space-y-3 bg-[#111111]">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                      <div className="md:col-span-2">
-                        <label className="block text-xs text-gray-400 mb-1">Subject</label>
-                        <input
-                          value={builderSubject}
-                          onChange={(e) => setBuilderSubject(e.target.value)}
-                          placeholder="Email subject"
-                          className="w-full bg-[#222222] text-white rounded-xl px-3 py-2 text-sm"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs text-gray-400 mb-1">Folder</label>
-                        <select
-                          value={builderFolderId}
-                          onChange={(e) => setBuilderFolderId(Number.parseInt(e.target.value, 10))}
-                          className="w-full bg-[#222222] text-white rounded-xl px-3 py-2 text-sm"
-                        >
-                          {emailFolders.map((f) => (
-                            <option key={f.id} value={f.id}>
-                              {f.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-
-                    {/* ReactQuill Editor */}
-                    <div className="bg-[#0E0E0E] border border-gray-800 rounded-lg overflow-hidden">
-                      <WysiwygEditor
-                        value={builderHtml}
-                        onChange={setBuilderHtml}
-                        placeholder="Compose your email..."
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <input
-                          id="includeSignature"
-                          type="checkbox"
-                          checked={includeSignatureOnSend}
-                          onChange={(e) => setIncludeSignatureOnSend(e.target.checked)}
-                          className="rounded border-gray-600 bg-transparent"
-                        />
-                        <label htmlFor="includeSignature" className="text-sm text-gray-300">
-                          Append signature on send
-                        </label>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          className="px-4 py-2 text-sm bg-gray-700 rounded-lg hover:bg-gray-600"
-                          onClick={() => {
-                            setShowEmailBuilder(false)
-                            setBuilderSubject("")
-                            setBuilderHtml("")
-                          }}
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          className="px-4 py-2 text-sm bg-blue-600 rounded-lg hover:bg-blue-700 text-white"
-                          onClick={handleSaveEmailTemplate}
-                        >
-                          Save Template
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
             )}
 
@@ -832,7 +735,7 @@ export default function BroadcastModal({
                   selectedRecipients.length > 0 &&
                   (
                     (activeMainTab === "push" && selectedPushMessage) ||
-                    (activeMainTab === "email" && (selectedEmailTemplate || (builderSubject && builderHtml)))
+                    (activeMainTab === "email" && selectedEmailTemplate)
                   )
                     ? "bg-[#FF843E] hover:bg-orange-600"
                     : "bg-gray-600"
@@ -841,7 +744,7 @@ export default function BroadcastModal({
                   !selectedRecipients.length ||
                   !(
                     (activeMainTab === "push" && selectedPushMessage) ||
-                    (activeMainTab === "email" && (selectedEmailTemplate || (builderSubject && builderHtml)))
+                    (activeMainTab === "email" && selectedEmailTemplate)
                   )
                 }
               >
@@ -865,6 +768,7 @@ export default function BroadcastModal({
         title={editingFolder ? `Edit "${editingFolder.name}"` : "Create New Folder"}
       />
 
+      {/* SAME MODAL for both Push and Email Templates */}
       <MessageModal
         isOpen={showMessageModal}
         onClose={() => {
@@ -873,8 +777,15 @@ export default function BroadcastModal({
         }}
         message={editingMessage}
         onSave={handleSaveMessage}
-        folders={broadcastFolders}
-        title={editingMessage ? "Edit Message" : "Create New Message"}
+        folders={activeMainTab === "push" ? broadcastFolders : emailFolders}
+        title={editingMessage ? 
+          (activeMainTab === "push" ? "Edit Push Template" : "Edit Email Template") : 
+          (activeMainTab === "push" ? "Create New Push Template" : "Create Email Template")
+        }
+        isEmailTemplate={activeMainTab === "email"}
+        includeSignature={includeSignatureOnSend}
+        onIncludeSignatureChange={setIncludeSignatureOnSend}
+        emailSignature={settings?.emailSignature}
       />
 
       <DeleteConfirmationModal

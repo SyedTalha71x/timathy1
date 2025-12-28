@@ -46,6 +46,7 @@ import ReactQuill from 'react-quill'
 import 'react-quill/dist/quill.snow.css'
 import dayjs from "dayjs"
 import { PermissionModal } from "../../components/admin-dashboard-components/studios-modal/permission-modal"
+import { useLocation } from "react-router-dom"
 
 const { Option } = Select
 const { TabPane } = Tabs
@@ -205,6 +206,24 @@ const WysiwygEditor = ({ value, onChange, placeholder }) => {
 }
 
 const ConfigurationPage = () => {
+
+  const location = useLocation()
+  
+  // Parse query parameters
+  const queryParams = new URLSearchParams(location.search)
+  const defaultTab = queryParams.get('tab')
+
+  
+ 
+  const [activeTab, setActiveTab] = useState(defaultTab === 'account-management' ? '1' : '1')
+  
+  const [expandedPanels, setExpandedPanels] = useState(
+    defaultTab === 'account-management' 
+      ? ["1", "2", "3", "4", "5", "account-management"] 
+      : ["1", "2", "3", "4", "5"]
+  )
+
+
   // Initialize all states with empty/default values for add mode
   const [currency, setCurrency] = useState("€")
   const [language, setLanguage] = useState("en")
@@ -714,9 +733,9 @@ const ConfigurationPage = () => {
     <div className=" w-full mx-auto lg:p-10 p-5 space-y-8 bg-[#181818] min-h-screen text-white">
       <h1 className="lg:text-3xl text-2xl font-bold oxanium_font">Add New Admin Configuration</h1>
 
-      <Tabs defaultActiveKey="1" style={{ color: "white" }}>
+      <Tabs  activeKey={activeTab} onChange={setActiveTab} defaultActiveKey="1" style={{ color: "white" }}>
         <TabPane tab="General" key="1">
-          <Collapse defaultActiveKey={["1", "2", "3", "4", "5"]} className="bg-[#181818] border-[#303030]">
+          <Collapse  activeKey={expandedPanels}  onChange={(keys) => setExpandedPanels(keys)}  defaultActiveKey={["1", "2", "3", "4", "5", "account-management"]}  className="bg-[#181818] border-[#303030]">
 
             {/* About Studio Panel */}
             <Panel header="About Studio" key="1" className="bg-[#202020] text-white">
@@ -1133,7 +1152,7 @@ const ConfigurationPage = () => {
               </div>
             </Panel>
 
-            <Panel header="Account Management" key="6" className="bg-[#202020] text-white">
+            <Panel  header="Account Management" key="account-management" className="bg-[#202020] text-white">
               <div className="space-y-4">
                 <Form layout="vertical">
                   {/* Logo Upload Section */}
@@ -1285,33 +1304,7 @@ const ConfigurationPage = () => {
               </div>
             </Panel>
 
-            <Panel header="Language Settings" key="7" className="bg-[#202020] text-white">
-              <div className="space-y-4">
-                <Form layout="vertical">
-                  <Form.Item label={<span className="text-white">Interface Language</span>}>
-                    <Select
-                      defaultValue="en"
-                      style={selectStyle}
-                      onChange={(value) => setLanguage(value)}
-                      dropdownStyle={{
-                        background: "#1C1C1C",
-                        border: "1px solid #303030"
-                      }}
-                    >
-                      <Option value="en">English</Option>
-                      <Option value="de">Deutsch</Option>
-                      <Option value="fr">Français</Option>
-                      <Option value="es">Español</Option>
-                      <Option value="it">Italiano</Option>
-                      <Option value="pt">Português</Option>
-                      <Option value="nl">Nederlands</Option>
-                      <Option value="pl">Polski</Option>
-                      <Option value="ru">Русский</Option>
-                    </Select>
-                  </Form.Item>
-                </Form>
-              </div>
-            </Panel>
+          
           </Collapse>
         </TabPane>
 

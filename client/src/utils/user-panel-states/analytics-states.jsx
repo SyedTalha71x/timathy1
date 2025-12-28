@@ -1,3 +1,5 @@
+/* eslint-disable react-refresh/only-export-components */
+/* eslint-disable react/prop-types */
 import { FaCalendarAlt, FaDollarSign, FaUserPlus, FaUsers } from "react-icons/fa";
 
 export const appointmentsData = {
@@ -556,3 +558,118 @@ export const getMostFrequentlySoldChartConfig = () => ({
     },
   ],
 });
+
+export const leadOriginMapData = {
+  // Sample data for lead origins by area
+  regions: [
+    { name: "North", leads: 150, color: "#FF6B35", intensity: 0.9 },
+    { name: "South", leads: 85, color: "#FFA726", intensity: 0.6 },
+    { name: "East", leads: 120, color: "#FF8A65", intensity: 0.8 },
+    { name: "West", leads: 65, color: "#FFB74D", intensity: 0.5 },
+    { name: "Central", leads: 200, color: "#FF5722", intensity: 1.0 },
+    { name: "Northwest", leads: 45, color: "#FFCC80", intensity: 0.4 },
+    { name: "Southeast", leads: 95, color: "#FF9800", intensity: 0.7 },
+  ],
+  totalLeads: 760
+}
+
+export const LeadOriginMap = ({ data, height = 400 }) => {
+  return (
+    <div className="bg-[#2F2F2F] rounded-xl p-6">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-lg font-semibold text-white">Lead Origin</h3>
+        <div className="text-sm text-gray-400">
+          Total: <span className="font-bold text-orange-400">{data.totalLeads}</span> leads
+        </div>
+      </div>
+      
+      <div className="relative" style={{ height: `${height}px` }}>
+        {/* Simplified SVG map visualization */}
+        <svg width="100%" height="100%" viewBox="0 0 800 400" className="rounded-lg">
+          {/* Map background */}
+          <rect width="800" height="400" fill="#1E1E1E" rx="8" />
+          
+          {/* Region areas with intensity-based colors */}
+          {/* North region */}
+          <path 
+            d="M200,50 Q400,30 600,50 L550,150 Q400,180 250,150 Z"
+            fill={`rgba(255, 107, 53, ${data.regions[0].intensity})`}
+            stroke="#fff"
+            strokeWidth="1"
+            className="hover:opacity-90 cursor-pointer transition-opacity"
+          />
+          
+          {/* Central region */}
+          <path 
+            d="M250,150 L550,150 Q600,250 550,350 Q400,380 250,350 Q200,250 250,150"
+            fill={`rgba(255, 87, 34, ${data.regions[4].intensity})`}
+            stroke="#fff"
+            strokeWidth="1"
+            className="hover:opacity-90 cursor-pointer transition-opacity"
+          />
+          
+          {/* South region */}
+          <path 
+            d="M250,350 Q400,380 550,350 L600,380 Q400,400 200,380 L250,350"
+            fill={`rgba(255, 167, 38, ${data.regions[1].intensity})`}
+            stroke="#fff"
+            strokeWidth="1"
+            className="hover:opacity-90 cursor-pointer transition-opacity"
+          />
+          
+          {/* East region */}
+          <path 
+            d="M550,150 L650,100 Q750,200 650,300 L550,350 L550,150"
+            fill={`rgba(255, 138, 101, ${data.regions[2].intensity})`}
+            stroke="#fff"
+            strokeWidth="1"
+            className="hover:opacity-90 cursor-pointer transition-opacity"
+          />
+          
+          {/* West region */}
+          <path 
+            d="M150,100 Q200,50 250,150 L250,350 L150,300 Q50,200 150,100"
+            fill={`rgba(255, 183, 77, ${data.regions[3].intensity})`}
+            stroke="#fff"
+            strokeWidth="1"
+            className="hover:opacity-90 cursor-pointer transition-opacity"
+          />
+          
+          {/* Region labels */}
+          <text x="400" y="80" fill="white" textAnchor="middle" fontSize="14" fontWeight="bold">North</text>
+          <text x="400" y="250" fill="white" textAnchor="middle" fontSize="14" fontWeight="bold">Central</text>
+          <text x="400" y="370" fill="white" textAnchor="middle" fontSize="14" fontWeight="bold">South</text>
+          <text x="600" y="220" fill="white" textAnchor="middle" fontSize="14" fontWeight="bold">East</text>
+          <text x="200" y="220" fill="white" textAnchor="middle" fontSize="14" fontWeight="bold">West</text>
+        </svg>
+      </div>
+      
+      {/* Legend */}
+      <div className="mt-4 flex flex-wrap items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <div className="text-sm text-gray-400">Intensity:</div>
+          <div className="flex items-center space-x-2">
+            <div className="w-4 h-4 bg-gray-700"></div>
+            <span className="text-xs text-gray-400">Low</span>
+            <div className="w-4 h-4 bg-orange-400"></div>
+            <span className="text-xs text-gray-400">High</span>
+          </div>
+        </div>
+        
+        {/* Region list with counts */}
+        <div className="flex flex-wrap gap-2 mt-2">
+          {data.regions.map((region, index) => (
+            <div key={index} className="flex items-center space-x-1">
+              <div 
+                className="w-3 h-3 rounded-full" 
+                style={{ backgroundColor: region.color }}
+              ></div>
+              <span className="text-xs text-gray-300">{region.name}:</span>
+              <span className="text-xs font-bold text-white">{region.leads}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}

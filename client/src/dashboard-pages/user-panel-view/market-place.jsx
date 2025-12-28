@@ -457,14 +457,7 @@ export default function MarketplacePage() {
           <div className={`grid grid-cols-1 sm:grid-cols-2 ${isRightSidebarOpen ? 'lg:grid-cols-3' : 'lg:grid-cols-3 xl:grid-cols-4'} gap-4 sm:gap-6`}>
             {sortedProducts.map((product) => (
               <div key={product.id} className="bg-[#2a2a2a] rounded-2xl overflow-hidden relative">
-                {/* Pinned Icon */}
-                {product.pinned && (
-                  <div className="absolute top-3 left-3 z-10">
-                    <svg className="w-5 h-5" fill="#FF6B1A" viewBox="0 0 24 24">
-                      <path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z" />
-                    </svg>
-                  </div>
-                )}
+              
 
                 <div className="relative w-full h-48 bg-white">
                   <img

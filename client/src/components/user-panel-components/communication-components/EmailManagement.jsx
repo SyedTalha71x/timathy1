@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react/prop-types */
 import { useState, useEffect, useRef } from "react"
@@ -510,9 +511,9 @@ ${studioName}<br/>
                   <span className="hidden sm:inline">Send Email</span>
                   <span className="sm:hidden">Send</span>
                 </button>
-                <button onClick={onOpenSettings} className="p-2 hover:bg-zinc-700 rounded-lg">
+                {/* <button onClick={onOpenSettings} className="p-2 hover:bg-zinc-700 rounded-lg">
                   <Settings className="w-5 h-5" />
-                </button>
+                </button> */}
                 <button onClick={handleClose} className="p-2 hover:bg-zinc-700 rounded-lg">
                   <X size={16} />
                 </button>

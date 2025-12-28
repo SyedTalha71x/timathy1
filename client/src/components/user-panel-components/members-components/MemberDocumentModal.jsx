@@ -1,9 +1,353 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { X, Upload, Trash, Edit2, File, FileText, FilePlus, Eye, Download, Check, Plus, Tag } from "lucide-react"
 import { toast } from "react-hot-toast"
 import { Printer } from "lucide-react"
+
+function DeleteConfirmationModal({ isOpen, onClose, onConfirm, documentName }) {
+  if (!isOpen) return null
+
+  return (
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[90]">
+      <div className="bg-[#1C1C1C] rounded-2xl w-full max-w-md p-6">
+        <div className="flex items-center gap-3 mb-4">
+          {/* <div className="w-10 h-10 bg-red-500/20 rounded-full flex items-center justify-center">
+            <Trash className="w-5 h-5 text-red-500" />
+          </div> */}
+          <div>
+            <h3 className="text-white text-lg font-medium">Delete Assessment</h3>
+            <p className="text-gray-400 text-sm">This action cannot be undone</p>
+          </div>
+        </div>
+        
+        <div className="bg-[#141414] p-4 rounded-xl mb-6">
+          <p className="text-gray-300 mb-2">Are you sure you want to delete this assessment?</p>
+          <p className="text-white font-medium">{documentName}</p>
+        </div>
+        
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 px-4 py-2 text-sm bg-gray-700 text-white rounded-xl hover:bg-gray-600 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="flex-1 px-4 py-2 text-sm bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors flex items-center justify-center gap-2"
+          >
+            {/* <Trash className="w-4 h-4" /> */}
+            Delete Assessment
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+function AssessmentEditModal({ 
+  isOpen, 
+  onClose, 
+  assessment, 
+  template,
+  onSave 
+}) {
+  const [answers, setAnswers] = useState({})
+  const [showSignature, setShowSignature] = useState(false)
+  const [signature, setSignature] = useState("")
+
+  useEffect(() => {
+    if (assessment && assessment.answers) {
+      setAnswers(assessment.answers)
+    }
+  }, [assessment])
+
+  if (!isOpen || !template) return null
+
+  const handleAnswerChange = (questionId, value) => {
+    setAnswers(prev => ({
+      ...prev,
+      [questionId]: value
+    }))
+  }
+
+  const renderQuestion = (question) => {
+    switch (question.type) {
+      case "multiple-choice":
+        return (
+          <div className="space-y-2">
+            {question.options.map((option, index) => (
+              <label key={index} className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name={question.id}
+                  value={option}
+                  checked={answers[question.id] === option}
+                  onChange={(e) => handleAnswerChange(question.id, e.target.value)}
+                  className="text-orange-500 focus:ring-orange-500"
+                  disabled={showSignature}
+                />
+                <span className="text-white">{option}</span>
+              </label>
+            ))}
+          </div>
+        )
+      case "text":
+        return (
+          <textarea
+            value={answers[question.id] || ""}
+            onChange={(e) => handleAnswerChange(question.id, e.target.value)}
+            className="w-full bg-[#2a2a2a] text-white rounded-lg p-3 border border-gray-700 focus:border-orange-500 outline-none"
+            rows={3}
+            placeholder="Type your answer here..."
+            disabled={showSignature}
+          />
+        )
+      default:
+        return null
+    }
+  }
+
+  const handleSaveWithSignature = () => {
+    if (!signature.trim()) {
+      toast.error("Please provide your signature")
+      return
+    }
+    
+    const updatedAssessment = {
+      ...assessment,
+      answers: answers,
+      signed: true,
+      signature: signature,
+      updatedAt: new Date().toISOString().split("T")[0]
+    }
+    
+    onSave(updatedAssessment)
+    setShowSignature(false)
+    setSignature("")
+    onClose()
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[80]">
+      <div className="bg-[#1C1C1C] rounded-2xl w-full max-w-3xl max-h-[80vh] overflow-hidden flex flex-col">
+        <div className="flex justify-between items-center p-4 border-b border-gray-800">
+          <div>
+            <h3 className="text-white text-lg font-medium">{template.name}</h3>
+            <p className="text-gray-400 text-sm">Edit Assessment</p>
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-white">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto p-4">
+          {showSignature ? (
+            <div className="space-y-4">
+              <div className="bg-[#141414] p-4 rounded-xl">
+                <h4 className="text-white font-medium mb-3">Review Your Changes</h4>
+                <div className="space-y-2 text-sm text-gray-300">
+                  <p>You are about to update the assessment. Please review your changes:</p>
+                  <ul className="list-disc pl-4 space-y-1">
+                    {template.questions.map((q, idx) => (
+                      <li key={q.id}>
+                        <span className="font-medium">Q{idx + 1}:</span> {answers[q.id] || "No answer"}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+              
+              <div className="bg-[#141414] p-4 rounded-xl">
+                <h4 className="text-white font-medium mb-3">Sign to Update</h4>
+                <p className="text-gray-400 mb-4">
+                  To update this assessment, you need to provide your signature confirming the changes.
+                </p>
+                <div className="space-y-3">
+                  <input
+                    type="text"
+                    value={signature}
+                    onChange={(e) => setSignature(e.target.value)}
+                    placeholder="Type your full name to sign"
+                    className="w-full bg-[#2a2a2a] text-white rounded-lg p-3 border border-gray-700 focus:border-orange-500 outline-none"
+                  />
+                  <p className="text-xs text-gray-500">
+                    By signing, you confirm that the information provided is accurate and complete.
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {template.questions.map((question, index) => (
+                <div key={question.id} className="bg-[#141414] p-4 rounded-xl">
+                  <h4 className="text-white font-medium mb-3">
+                    {index + 1}. {question.question}
+                  </h4>
+                  {renderQuestion(question)}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        
+        <div className="p-4 border-t border-gray-800">
+          <div className="flex gap-3">
+            <button
+              onClick={showSignature ? () => setShowSignature(false) : onClose}
+              className="flex-1 px-4 py-2 bg-gray-700 text-white rounded-xl hover:bg-gray-600 transition-colors"
+            >
+              {showSignature ? "Back" : "Cancel"}
+            </button>
+            <button
+              onClick={showSignature ? handleSaveWithSignature : () => setShowSignature(true)}
+              className="flex-1 px-4 py-2 bg-[#3F74FF] text-white rounded-xl hover:bg-[#2F64FF] transition-colors"
+            >
+              {showSignature ? "Sign & Update" : "Save Changes"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+function AssessmentPreviewModal({ 
+  isOpen, 
+  onClose, 
+  assessment, 
+  template 
+}) {
+  if (!isOpen || !template || !assessment) return null
+
+  const renderQuestionPreview = (question) => {
+    const answer = assessment.answers?.[question.id] || "No answer provided"
+    
+    switch (question.type) {
+      case "multiple-choice":
+        return (
+          <div className="space-y-2">
+            {question.options.map((option, index) => (
+              <label key={index} className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  name={`preview-${question.id}`}
+                  checked={answer === option}
+                  readOnly
+                  className="text-orange-500"
+                  disabled
+                />
+                <span className={`${answer === option ? 'text-white font-medium' : 'text-gray-400'}`}>
+                  {option}
+                </span>
+                {answer === option && (
+                  <span className="ml-2 px-2 py-0.5 bg-green-600 text-white text-xs rounded-full">
+                    Selected
+                  </span>
+                )}
+              </label>
+            ))}
+          </div>
+        )
+      case "text":
+        return (
+          <div className="w-full bg-[#2a2a2a] text-white rounded-lg p-3 border border-gray-700">
+            {answer || <span className="text-gray-500">No answer provided</span>}
+          </div>
+        )
+      default:
+        return null
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[80]">
+      <div className="bg-[#1C1C1C] rounded-2xl w-full max-w-3xl max-h-[80vh] overflow-hidden flex flex-col">
+        <div className="flex justify-between items-center p-4 border-b border-gray-800">
+          <div>
+            <h3 className="text-white text-lg font-medium">{template.name}</h3>
+            <p className="text-gray-400 text-sm">Assessment Preview</p>
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-white">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto p-4">
+          {/* Assessment Header Info */}
+          <div className="bg-[#141414] p-4 rounded-xl mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+              <div>
+                <span className="text-gray-400">Assessment Name:</span>
+                <p className="text-white">{assessment.name}</p>
+              </div>
+              <div>
+                <span className="text-gray-400">Created:</span>
+                <p className="text-white">{assessment.uploadDate}</p>
+              </div>
+              <div>
+                <span className="text-gray-400">Status:</span>
+                <p className="text-white">
+                  {assessment.signed ? (
+                    <span className="flex items-center gap-1">
+                      <Check className="w-3 h-3" />
+                      Signed
+                    </span>
+                  ) : "Not Signed"}
+                </p>
+              </div>
+              <div>
+                <span className="text-gray-400">File Type:</span>
+                <p className="text-white uppercase">{assessment.type}</p>
+              </div>
+            </div>
+          </div>
+          
+          {/* Questions Preview */}
+          <div className="space-y-6">
+            {template.questions.map((question, index) => (
+              <div key={question.id} className="bg-[#141414] p-4 rounded-xl">
+                <h4 className="text-white font-medium mb-3">
+                  {index + 1}. {question.question}
+                </h4>
+                {renderQuestionPreview(question)}
+              </div>
+            ))}
+          </div>
+          
+          {/* Signature Display */}
+          {assessment.signed && (
+            <div className="bg-[#141414] p-4 rounded-xl mt-4">
+              <h4 className="text-white font-medium mb-2">Signature</h4>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
+                  <Check className="w-4 h-4 text-white" />
+                </div>
+                <div>
+                  <p className="text-white">Digitally signed by: {assessment.signature || "User"}</p>
+                  <p className="text-gray-400 text-sm">Signed on: {assessment.updatedAt || assessment.uploadDate}</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+        
+        <div className="p-4 border-t border-gray-800">
+          <div className="flex justify-between items-center">
+            <div className="text-sm text-gray-400">
+              This is a preview only. No changes can be made.
+            </div>
+            <button
+              onClick={onClose}
+              className="px-4 py-2 bg-gray-700 text-white rounded-xl hover:bg-gray-600 transition-colors"
+            >
+              Close Preview
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export function MemberDocumentModal({ member, isOpen, onClose }) {
   const [documents, setDocuments] = useState(member?.documents || [])
@@ -27,6 +371,15 @@ export function MemberDocumentModal({ member, isOpen, onClose }) {
   const [showAssessmentForm, setShowAssessmentForm] = useState(false)
   const [editingAssessment, setEditingAssessment] = useState(null)
   const [showSignatureModal, setShowSignatureModal] = useState(false)
+  
+  // New states for modals
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [documentToDelete, setDocumentToDelete] = useState(null)
+  const [showAssessmentEdit, setShowAssessmentEdit] = useState(false)
+  const [showAssessmentPreview, setShowAssessmentPreview] = useState(false)
+  const [assessmentToEdit, setAssessmentToEdit] = useState(null)
+  const [assessmentToPreview, setAssessmentToPreview] = useState(null)
+  
   const fileInputRef = useRef(null)
 
   // Sample documents for demonstration
@@ -76,6 +429,8 @@ export function MemberDocumentModal({ member, isOpen, onClose }) {
         question3: "Moderate"
       },
       signed: true,
+      signature: "John Trainer",
+      updatedAt: "2023-05-26",
       tags: ["tag-1", "tag-3"]
     }
   ]
@@ -243,11 +598,19 @@ export function MemberDocumentModal({ member, isOpen, onClose }) {
     return parts.length > 1 ? parts.pop().toLowerCase() : ""
   }
 
-  const handleDelete = (docId) => {
-    if (confirm("Are you sure you want to delete this document?")) {
-      setDocuments(displayDocuments.filter((doc) => doc.id !== docId))
-      toast.success("Document deleted successfully")
+  // Updated delete function with custom modal
+  const handleDeleteClick = (doc) => {
+    setDocumentToDelete(doc)
+    setShowDeleteConfirm(true)
+  }
+
+  const handleDeleteConfirm = () => {
+    if (documentToDelete) {
+      setDocuments(displayDocuments.filter((doc) => doc.id !== documentToDelete.id))
+      toast.success("Assessment deleted successfully")
     }
+    setShowDeleteConfirm(false)
+    setDocumentToDelete(null)
   }
 
   const startEditing = (doc) => {
@@ -394,38 +757,39 @@ export function MemberDocumentModal({ member, isOpen, onClose }) {
     toast.success("Assessment created successfully")
   }
 
+  // Updated edit assessment function
   const handleEditAssessment = (doc) => {
-    if (doc.signed) {
-      setEditingAssessment(doc)
-      setShowSignatureModal(true)
-    } else {
-      setSelectedTemplate(assessmentTemplates.find(t => t.id === doc.templateId))
-      setAssessmentAnswers(doc.answers || {})
-      setShowAssessmentForm(true)
-      setEditingAssessment(doc)
+    const template = assessmentTemplates.find(t => t.id === doc.templateId)
+    if (!template) {
+      toast.error("Template not found for this assessment")
+      return
     }
+    
+    setAssessmentToEdit(doc)
+    setSelectedTemplate(template)
+    setAssessmentAnswers(doc.answers || {})
+    setShowAssessmentEdit(true)
   }
 
-  const handleSignAndUpdate = () => {
-    if (!editingAssessment) return
-
-    const updatedDoc = {
-      ...editingAssessment,
-      answers: assessmentAnswers,
-      signed: true,
-      uploadDate: new Date().toISOString().split("T")[0]
-    }
-
+  // New function to handle assessment update
+  const handleUpdateAssessment = (updatedAssessment) => {
     setDocuments(displayDocuments.map(doc => 
-      doc.id === editingAssessment.id ? updatedDoc : doc
+      doc.id === updatedAssessment.id ? updatedAssessment : doc
     ))
-
-    setShowSignatureModal(false)
-    setEditingAssessment(null)
-    setShowAssessmentForm(false)
-    setSelectedTemplate(null)
-    setAssessmentAnswers({})
     toast.success("Assessment updated and signed successfully")
+  }
+
+  // New function to handle assessment preview
+  const handlePreviewAssessment = (doc) => {
+    const template = assessmentTemplates.find(t => t.id === doc.templateId)
+    if (!template) {
+      toast.error("Template not found for this assessment")
+      return
+    }
+    
+    setAssessmentToPreview(doc)
+    setSelectedTemplate(template)
+    setShowAssessmentPreview(true)
   }
 
   const renderQuestion = (question) => {
@@ -465,6 +829,41 @@ export function MemberDocumentModal({ member, isOpen, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-60 p-2 sm:p-4">
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={showDeleteConfirm}
+        onClose={() => {
+          setShowDeleteConfirm(false)
+          setDocumentToDelete(null)
+        }}
+        onConfirm={handleDeleteConfirm}
+        documentName={documentToDelete?.name}
+      />
+
+      {/* Assessment Edit Modal */}
+      <AssessmentEditModal
+        isOpen={showAssessmentEdit}
+        onClose={() => {
+          setShowAssessmentEdit(false)
+          setAssessmentToEdit(null)
+          setAssessmentAnswers({})
+        }}
+        assessment={assessmentToEdit}
+        template={selectedTemplate}
+        onSave={handleUpdateAssessment}
+      />
+
+      {/* Assessment Preview Modal */}
+      <AssessmentPreviewModal
+        isOpen={showAssessmentPreview}
+        onClose={() => {
+          setShowAssessmentPreview(false)
+          setAssessmentToPreview(null)
+        }}
+        assessment={assessmentToPreview}
+        template={selectedTemplate}
+      />
+
       {/* Assessment Templates Modal */}
       {showAssessmentTemplates && (
         <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-[70]">
@@ -497,7 +896,7 @@ export function MemberDocumentModal({ member, isOpen, onClose }) {
         </div>
       )}
 
-      {/* Assessment Form Modal */}
+      {/* Assessment Form Modal (for new assessments) */}
       {showAssessmentForm && selectedTemplate && (
         <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-[70]">
           <div className="bg-[#1C1C1C] rounded-2xl w-full max-w-3xl max-h-[80vh] overflow-hidden flex flex-col">
@@ -534,35 +933,10 @@ export function MemberDocumentModal({ member, isOpen, onClose }) {
                 }} className="flex-1 px-4 py-2 bg-gray-700 text-white rounded-xl hover:bg-gray-600 transition-colors">
                   Cancel
                 </button>
-                <button onClick={editingAssessment ? () => setShowSignatureModal(true) : handleSaveAssessment} className="flex-1 px-4 py-2 bg-[#3F74FF] text-white rounded-xl hover:bg-[#2F64FF] transition-colors">
-                  {editingAssessment ? "Update Assessment" : "Save Assessment"}
+                <button onClick={handleSaveAssessment} className="flex-1 px-4 py-2 bg-[#3F74FF] text-white rounded-xl hover:bg-[#2F64FF] transition-colors">
+                  Save Assessment
                 </button>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Signature Modal */}
-      {showSignatureModal && (
-        <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-[80]">
-          <div className="bg-[#1C1C1C] rounded-2xl w-full max-w-md p-6">
-            <h3 className="text-white text-lg font-medium mb-4">Sign to Update Assessment</h3>
-            <p className="text-gray-400 mb-6">
-              To update this assessment, you need to provide your signature confirming the changes.
-            </p>
-            <div className="bg-[#141414] p-4 rounded-xl mb-6">
-              <div className="h-20 border-2 border-dashed border-gray-600 rounded-lg flex items-center justify-center">
-                <span className="text-gray-500">Signature area</span>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <button onClick={() => setShowSignatureModal(false)} className="flex-1 px-4 py-2 bg-gray-700 text-white rounded-xl hover:bg-gray-600 transition-colors">
-                Cancel
-              </button>
-              <button onClick={handleSignAndUpdate} className="flex-1 px-4 py-2 bg-[#3F74FF] text-white rounded-xl hover:bg-[#2F64FF] transition-colors">
-                Sign & Update
-              </button>
             </div>
           </div>
         </div>
@@ -849,12 +1223,12 @@ export function MemberDocumentModal({ member, isOpen, onClose }) {
                           <>
                             <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-1">
                               <p className="text-white font-medium truncate">{doc.name}</p>
-                              {doc.section === "assessment" && doc.signed && (
+                              {/* {doc.section === "assessment" && doc.signed && (
                                 <span className="px-2 py-0.5 bg-green-600 text-white text-xs rounded-full flex items-center gap-1">
                                   <Check size={10} />
                                   Signed
                                 </span>
-                              )}
+                              )} */}
                             </div>
                             <p className="text-xs text-gray-400">
                               {doc.size} • Uploaded on {doc.uploadDate}
@@ -911,22 +1285,24 @@ export function MemberDocumentModal({ member, isOpen, onClose }) {
                         </div>
                         
                         {doc.section === "assessment" && (
-                          <button
-                            onClick={() => handleEditAssessment(doc)}
-                            className="p-2 bg-[#2a2a2a] text-orange-400 rounded-md hover:bg-[#333] transition-colors"
-                            title="Edit Assessment"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </button>
+                          <>
+                            <button
+                              onClick={() => handlePreviewAssessment(doc)}
+                              className="p-2 bg-[#2a2a2a] text-blue-400 rounded-md hover:bg-[#333] transition-colors"
+                              title="Preview Assessment"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleEditAssessment(doc)}
+                              className="p-2 bg-[#2a2a2a] text-orange-400 rounded-md hover:bg-[#333] transition-colors"
+                              title="Edit Assessment"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                          </>
                         )}
                         
-                        <button
-                          onClick={() => handleViewDocument(doc)}
-                          className="p-2 bg-[#2a2a2a] text-gray-300 rounded-md hover:bg-[#333] transition-colors"
-                          title="View"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
                         <button
                           onClick={() => handleDownload(doc)}
                           className="p-2 bg-[#2a2a2a] text-gray-300 rounded-md hover:bg-[#333] transition-colors"
@@ -951,7 +1327,7 @@ export function MemberDocumentModal({ member, isOpen, onClose }) {
                           </button>
                         )}
                         <button
-                          onClick={() => handleDelete(doc.id)}
+                          onClick={() => handleDeleteClick(doc)}
                           className="p-2 bg-[#2a2a2a] text-red-400 rounded-md hover:bg-[#333] transition-colors"
                           title="Delete"
                         >

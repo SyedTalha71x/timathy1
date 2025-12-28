@@ -116,3 +116,75 @@ export const sampleLeads = [
         interestedIn: "Basic",
     },
 ]
+
+
+
+export const contractTypes = [
+  {
+    id: "basic",
+    name: "Basic",
+    duration: "12 months",
+    cost: "$29.99",
+    billingPeriod: "Monthly",
+  },
+  {
+    id: "premium",
+    name: "Premium",
+    duration: "12 months",
+    cost: "$49.99",
+    billingPeriod: "Monthly",
+  },
+  {
+    id: "bronze",
+    name: "Bronze",
+    duration: "6 months",
+    cost: "$19.99",
+    billingPeriod: "Monthly",
+  },
+]
+export const mediaTemplates = [
+  {
+    id: "template-1",
+    name: "Basic Introduction",
+    description: "Standard introductory materials for new members",
+    pages: [
+      {
+        id: "page-1",
+        title: "Welcome to Our Studio",
+        content: "Welcome message and overview of facilities",
+        media: ["image1.jpg", "video1.mp4"]
+      },
+      {
+        id: "page-2",
+        title: "Studio Rules",
+        content: "Important guidelines and policies",
+        media: ["image2.jpg"]
+      },
+      {
+        id: "page-3",
+        title: "Getting Started",
+        content: "How to begin your fitness journey",
+        media: ["image3.jpg", "pdf-guide.pdf"]
+      }
+    ]
+  },
+  {
+    id: "template-2",
+    name: "Premium Package",
+    description: "Comprehensive materials for premium members",
+    pages: [
+      {
+        id: "page-1",
+        title: "Premium Benefits",
+        content: "Exclusive features for premium members",
+        media: ["premium1.jpg", "video2.mp4"]
+      },
+      {
+        id: "page-2",
+        title: "Advanced Training",
+        content: "Specialized workout programs",
+        media: ["premium2.jpg"]
+      }
+    ]
+  }
+]

@@ -268,13 +268,13 @@ const LeadCard = ({
               <p className="text-gray-500 text-xs">
                 Created: {lead.createdAt ? formatDate(lead.createdAt) : "Unknown date"}
               </p>
-              {hasAssessment && (
+              {/* {hasAssessment && (
                 <div className="mt-1">
                   <span className="text-xs bg-green-600 text-white px-2 py-1 rounded-full">
                     Assessment Completed
                   </span>
                 </div>
-              )}
+              )} */}
               <div className="mt-2">
                 <div
                   className="text-xs text-blue-400 flex items-center gap-1 cursor-pointer no-drag"

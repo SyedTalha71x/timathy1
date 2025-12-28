@@ -3557,7 +3557,7 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                 <div className="space-y-4 white-text">
                   {vatRates.map((rate, index) => (
                     <div key={index} className="flex flex-wrap gap-4 items-center">
-                      <Input
+                      {/* <Input
                         placeholder="VAT Name (e.g. Standard, Reduced)"
                         value={rate.name}
                         onChange={(e) => {
@@ -3567,7 +3567,7 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                         }}
                         className="!w-full md:!w-32 lg:!w-90 white-text"
                         style={inputStyle}
-                      />
+                      /> */}
                       <InputNumber
                         placeholder="Rate (%)"
                         value={rate.percentage}

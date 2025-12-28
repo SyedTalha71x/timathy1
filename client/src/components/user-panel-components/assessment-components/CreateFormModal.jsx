@@ -165,20 +165,20 @@ const CreateFormModal = ({
               Multiple Choice Options:
             </label>
             {question.options?.map((option, index) => (
-              <div key={option.id} className="flex items-center gap-2">
-                <span className="text-gray-400 text-sm w-4">
+              <div key={option.id} className="flex flex-col xs:flex-row items-start xs:items-center gap-2">
+                <span className="text-gray-400 text-sm w-4 flex-shrink-0">
                   {String.fromCharCode(97 + index)}).
                 </span>
                 <input
                   type="text"
                   value={option.text}
                   onChange={(e) => updateMultipleChoiceOption(sectionId, question.id, option.id, e.target.value)}
-                  className="flex-1 bg-[#161616] border border-gray-600 rounded px-3 py-1 text-white text-sm focus:outline-none focus:border-blue-500"
+                  className="flex-1 w-full bg-[#161616] border border-gray-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
                   placeholder={`Option ${index + 1}`}
                 />
                 <button
                   onClick={() => deleteMultipleChoiceOption(sectionId, question.id, option.id)}
-                  className="text-red-500 hover:text-red-400 text-sm px-2 py-1"
+                  className="text-red-500 hover:text-red-400 text-sm px-3 py-2 xs:px-2 xs:py-1 rounded transition-colors self-end xs:self-auto"
                 >
                   Delete
                 </button>
@@ -186,7 +186,7 @@ const CreateFormModal = ({
             ))}
             <button
               onClick={() => addMultipleChoiceOption(sectionId, question.id)}
-              className="text-blue-400 hover:text-blue-300 text-sm mt-1"
+              className="text-blue-400 hover:text-blue-300 text-sm mt-1 px-2 py-1 rounded transition-colors"
             >
               + Add Option
             </button>
@@ -222,7 +222,7 @@ const CreateFormModal = ({
             type="text"
             value={formTitle}
             onChange={(e) => setFormTitle(e.target.value)}
-            className="w-full bg-[#161616] border border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-blue-500 text-sm sm:text-base"
+            className="w-full bg-[#161616] border border-gray-600 rounded-lg px-3 py-3 text-white focus:outline-none focus:border-blue-500 text-sm sm:text-base"
             placeholder="Enter a title..."
           />
         </div>
@@ -232,7 +232,7 @@ const CreateFormModal = ({
             <h3 className="text-base sm:text-lg font-semibold">Sections</h3>
             <button
               onClick={addSection}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm transition-colors w-full sm:w-auto"
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg text-sm transition-colors w-full sm:w-auto"
             >
               + Add Section
             </button>
@@ -242,31 +242,31 @@ const CreateFormModal = ({
             {sections.map((section) => (
               <div
                 key={section.id}
-                className="bg-[#161616] border border-gray-700 rounded-lg p-3 sm:p-4"
+                className="bg-[#161616] border border-gray-700 rounded-lg p-4"
               >
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 gap-2">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-3">
                   <input
                     type="text"
                     value={section.name}
                     onChange={(e) => updateSectionName(section.id, e.target.value)}
-                    className="bg-transparent text-white font-medium flex-1 focus:outline-none focus:border-b border-gray-600 text-sm sm:text-base w-full"
+                    className="bg-transparent text-white font-medium flex-1 focus:outline-none focus:border-b border-gray-600 text-base px-1 py-2 w-full"
                   />
                   <button
                     onClick={() => deleteSection(section.id)}
-                    className="text-red-500 hover:text-red-400 text-sm w-full sm:w-auto sm:ml-2"
+                    className="text-red-500 hover:text-red-400 text-sm px-3 py-2 rounded transition-colors w-full sm:w-auto sm:ml-2"
                   >
                     Delete Section
                   </button>
                 </div>
 
-                <div className="space-y-2 sm:space-y-3">
+                <div className="space-y-3">
                   {section.questions.map((question) => (
                     <div
                       key={question.id}
-                      className="flex flex-col gap-2 sm:gap-3 p-2 sm:p-3 bg-[#1C1C1C] rounded"
+                      className="flex flex-col gap-3 p-4 bg-[#1C1C1C] rounded-lg"
                     >
-                      <div className="flex items-start gap-2 sm:gap-3">
-                        <span className="text-gray-400 text-sm mt-2 flex-shrink-0">
+                      <div className="flex flex-col xs:flex-row items-start xs:items-center gap-3">
+                        <span className="text-gray-400 text-sm mt-2 flex-shrink-0 min-w-[24px]">
                           {question.number}.
                         </span>
                         <input
@@ -275,16 +275,16 @@ const CreateFormModal = ({
                           onChange={(e) =>
                             updateQuestion(section.id, question.id, 'text', e.target.value)
                           }
-                          className="flex-1 bg-[#161616] border border-gray-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500 w-full"
+                          className="flex-1 min-w-0 bg-[#161616] border border-gray-600 rounded-lg px-4 py-3 text-white text-base focus:outline-none focus:border-blue-500 w-full"
                           placeholder="Question text..."
                         />
-                        <div className="flex gap-2 w-full sm:w-auto">
+                        <div className="flex flex-col xs:flex-row gap-2 w-full xs:w-auto xs:items-center">
                           <select
                             value={question.type}
                             onChange={(e) =>
                               updateQuestion(section.id, question.id, 'type', e.target.value)
                             }
-                            className="bg-[#161616] border border-gray-600 rounded px-2 py-2 text-white text-sm focus:outline-none focus:border-blue-500 flex-1 sm:flex-none min-w-[140px]"
+                            className="bg-[#161616] border border-gray-600 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-blue-500 w-full xs:w-40"
                           >
                             <option value="yesno">Yes/No</option>
                             <option value="yesnodontknow">Yes/No/Don't know</option>
@@ -293,7 +293,7 @@ const CreateFormModal = ({
                           </select>
                           <button
                             onClick={() => deleteQuestion(section.id, question.id)}
-                            className="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded text-sm transition-colors w-20 sm:w-auto"
+                            className="bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-lg text-sm transition-colors w-full xs:w-24"
                           >
                             Delete
                           </button>
@@ -306,7 +306,7 @@ const CreateFormModal = ({
 
                 <button
                   onClick={() => addQuestion(section.id)}
-                  className="mt-3 text-blue-400 hover:text-blue-300 text-sm w-full sm:w-auto text-center block"
+                  className="mt-4 text-blue-400 hover:text-blue-300 text-sm px-3 py-2 rounded transition-colors w-full sm:w-auto text-center block"
                 >
                   + Add Question to this Section
                 </button>
@@ -315,13 +315,13 @@ const CreateFormModal = ({
           </div>
 
           {sections.length === 0 && (
-            <div className="text-center py-6 text-gray-400 text-sm">
+            <div className="text-center py-8 text-gray-400 text-base">
               No sections added yet. Click "Add Section" to get started.
             </div>
           )}
         </div>
 
-        <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 sm:space-x-3">
+        <div className="flex flex-col sm:flex-row justify-end gap-3 sm:space-x-3">
           <button
             onClick={() => setShowModal(false)}
             className="px-4 py-3 text-gray-300 text-sm hover:text-white transition-colors border border-gray-600 rounded-lg w-full sm:w-auto order-2 sm:order-1"

@@ -36,6 +36,7 @@ import TrainingPlansModal from "../../components/myarea-components/TrainingPlanM
 import { LeadDocumentModal } from "../../components/user-panel-components/lead-user-panel-components/document-management-modal"
 import AssessmentFormModal from "../../components/user-panel-components/lead-user-panel-components/assessment-form-modal"
 import AssessmentSelectionModal from "../../components/user-panel-components/lead-user-panel-components/assessment-selection-modal"
+import ContractPromptModal from "../../components/user-panel-components/lead-user-panel-components/contract-prompt-modal"
 
 export default function LeadManagement() {
   const sidebarSystem = useSidebarSystem()
@@ -81,6 +82,8 @@ export default function LeadManagement() {
   const [isDeleteTrialConfirmationModalOpen, setIsDeleteTrialConfirmationModalOpen] = useState(false)
   const [selectedTrialAppointment, setSelectedTrialAppointment] = useState(null)
   const [appointmentToDelete, setAppointmentToDelete] = useState(null)
+  const [showContractPromptModal, setShowContractPromptModal] = useState(false);
+
 
   const [memberRelationsLead, setMemberRelationsLead] = useState(memberRelationsLeadNew)
 
@@ -766,11 +769,17 @@ export default function LeadManagement() {
     setIsAssessmentFormModalOpen(false);
     setSelectedAssessment(null);
 
-    setTimeout(() => {
-      if (window.confirm('Assessment completed successfully! Would you like to proceed with creating a contract?')) {
-        handleCreateContract(selectedLead);
-      }
-    }, 100);
+    // Show custom contract prompt modal
+    setShowContractPromptModal(true);
+  };
+
+  const handleContractPromptConfirm = () => {
+    setShowContractPromptModal(false);
+    handleCreateContract(selectedLead);
+  };
+
+  const handleContractPromptCancel = () => {
+    setShowContractPromptModal(false);
   };
 
   const handleProceedToContract = () => {
@@ -1133,6 +1142,12 @@ export default function LeadManagement() {
         onProceedToContract={handleProceedToContract}
       />
 
+      <ContractPromptModal
+        isOpen={showContractPromptModal}
+        onClose={handleContractPromptCancel}
+        onConfirm={handleContractPromptConfirm}
+        leadName={selectedLead ? `${selectedLead.firstName} ${selectedLead.surname}` : ''}
+      />
 
       {/* Sidebar related modals and logic  */}
       <Sidebar

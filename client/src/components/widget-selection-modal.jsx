@@ -4,8 +4,6 @@ import { BarChart3, Calendar, Users, Link, CheckSquare, Gift, Clipboard } from "
 import { RiContractLine } from "react-icons/ri";
 import { MdOutlineSchedule } from "react-icons/md";
 
-
-
 export function WidgetSelectionModal({ isOpen, onClose, onSelectWidget, getWidgetStatus, widgetArea = "dashboard" }) {
   if (!isOpen) return null
 

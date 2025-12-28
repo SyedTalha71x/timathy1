@@ -603,36 +603,41 @@ export const appointmentTypesData = [
 
 export const birthdaysData = [
     {
-        id: 1,
-        name: "John Smith",
-        date: today, // Today's birthday for testing
-        avatar: Rectangle1, // Import separately
+      id: 1,
+      name: "John Smith",
+      date: today, // Today's birthday for testing
+      dateOfBirth: "1990-01-15", // Actual birth date with year
+      avatar: Rectangle1,
     },
     {
-        id: 2,
-        name: "Sarah Johnson",
-        date: "2025-01-20",
-        avatar: Rectangle1, // Import separately
+      id: 2,
+      name: "Sarah Johnson",
+      date: "2025-01-20",
+      dateOfBirth: "1992-01-20", // Actual birth date with year
+      avatar: Rectangle1,
     },
     {
-        id: 3,
-        name: "Mike Wilson",
-        date: "2025-01-25",
-        avatar: Rectangle1, // Import separately
+      id: 3,
+      name: "Mike Wilson",
+      date: "2025-01-25",
+      dateOfBirth: "1988-01-25", // Actual birth date with year
+      avatar: Rectangle1,
     },
     {
-        id: 4,
-        name: "Carter Jerry",
-        date: "2025-06-25",
-        avatar: Rectangle1, // Import separately
+      id: 4,
+      name: "Carter Jerry",
+      date: "2025-06-25",
+      dateOfBirth: "1995-06-25", // Actual birth date with year
+      avatar: Rectangle1,
     },
     {
-        id: 5,
-        name: "Harry Coston",
-        date: "2025-02-25",
-        avatar: Rectangle1, // Import separately
+      id: 5,
+      name: "Harry Coston",
+      date: "2025-02-25",
+      dateOfBirth: "1991-02-25", // Actual birth date with year
+      avatar: Rectangle1,
     },
-];
+  ];
 export const expiringContractsData = [
     {
         id: 1,

@@ -117,7 +117,7 @@ export default function CheckIns() {
     <div className="flex flex-col bg-[#1C1C1C] rounded-3xl text-white min-h-screen">
       <div className="flex-1 p-3 sm:p-4 md:p-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
-          <h1 className="text-xl sm:text-2xl font-bold text-white">Check-Ins</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-white">Check-In</h1>
 
           <div className="relative w-full sm:w-auto">
           <div className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-black rounded-xl border border-slate-300/30 text-sm">
@@ -262,7 +262,7 @@ export default function CheckIns() {
                         onClick={() => handleCheckIn(appointment.id)}
                         className="px-4 sm:px-6 py-2 bg-[#FF843E] hover:bg-[#FF6B1A] text-white rounded-xl text-xs sm:text-sm transition-colors"
                       >
-                        Check In
+                        Check-In
                       </button>
                     )}
                   </div>

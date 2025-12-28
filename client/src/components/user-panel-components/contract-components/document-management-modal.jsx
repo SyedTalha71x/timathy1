@@ -2,7 +2,7 @@
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react/prop-types */
 import { useState, useRef } from "react"
-import { X, Upload, Trash, Edit2, File, FileText, FilePlus, Eye, Download, Check } from "lucide-react"
+import { X, Upload, Trash, Edit2, File, FileText, FilePlus, Eye, Download, Check, Edit } from "lucide-react"
 import { toast } from "react-hot-toast"
 import { Printer } from "lucide-react"
 import { EditContractModal } from "./edit-contract-modal"
@@ -513,7 +513,7 @@ export function DocumentManagementModal({ contract, onClose }) {
                       </div>
                       {editingDocId !== doc.id && (
                         <div className="flex gap-2 mt-3 sm:mt-0 justify-end">
-                          <button
+                          {/* <button
                             onClick={() => toggleSignedContract(doc.id)}
                             className={`p-2 ${
                               doc.isSignedContract ? "bg-green-600 text-white" : "bg-[#2a2a2a] text-gray-300"
@@ -521,13 +521,13 @@ export function DocumentManagementModal({ contract, onClose }) {
                             title={doc.isSignedContract ? "Remove Signed Contract Tag" : "Mark as Signed Contract"}
                           >
                             <Check className="w-4 h-4" />
-                          </button>
+                          </button> */}
                           <button
                             onClick={() => handleUnsignedContractClick(doc)}
                             className="p-2 bg-[#2a2a2a] text-gray-300 rounded-md hover:bg-[#333] transition-colors"
                             title={doc.isUnsigned ? "Edit Contract" : "View"}
                           >
-                            <Eye className="w-4 h-4" />
+                            {doc.isUnsigned === true ? <Edit className="w-4 h-4" /> :<Eye className="w-4 h-4" />}
                           </button>
                           {!doc.isUnsigned && (
                             <>

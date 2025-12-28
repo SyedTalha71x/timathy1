@@ -520,7 +520,7 @@ const AdminTicketsSystem = () => {
                                         <span className="text-xs text-gray-400">
                                             Updated: {ticket.lastUpdated}
                                         </span>
-                                        <button
+                                        {/* <button
                                             onClick={(e) => {
                                                 e.stopPropagation()
                                                 handleTicketClick(ticket)
@@ -529,7 +529,7 @@ const AdminTicketsSystem = () => {
                                         >
                                             <Eye size={14} />
                                             View
-                                        </button>
+                                        </button> */}
                                     </div>
                                 </div>
                             ))}

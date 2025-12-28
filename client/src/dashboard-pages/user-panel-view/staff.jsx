@@ -9,7 +9,7 @@ import StaffPlanningModal from "../../components/user-panel-components/staff-com
 import AttendanceOverviewModal from "../../components/user-panel-components/staff-components/attendance-overview-modal"
 import VacationCalendarModal from "../../components/user-panel-components/staff-components/vacation-calendar-modal"
 import StaffHistoryModal from "../../components/user-panel-components/staff-components/staff-history-modal"
-import { staffMemberDataNew } from "../../utils/user-panel-states/staff-states"
+import { StaffColorIndicator, staffMemberDataNew } from "../../utils/user-panel-states/staff-states"
 import { useSidebarSystem } from "../../hooks/useSidebarSystem"
 import { trainingVideosData } from "../../utils/user-panel-states/training-states"
 import Sidebar from "../../components/central-sidebar"
@@ -595,9 +595,12 @@ export default function StaffManagement() {
                                 alt={`${staff.firstName} ${staff.lastName}`}
                               />
                               <div className="flex-1 min-w-0">
-                                <h3 className="text-white font-medium text-base sm:text-lg">
-                                  {staff.firstName} {staff.lastName}
-                                </h3>
+                              <div className="flex items-center gap-2">
+      <h3 className="text-white font-medium text-base sm:text-lg">
+        {staff.firstName} {staff.lastName}
+      </h3>
+      <StaffColorIndicator color={staff.color} />
+    </div>
                                 <div className="mb-2">
                                   <RoleTag role={staff.role} />
                                 </div>
@@ -659,12 +662,13 @@ export default function StaffManagement() {
                                 className="w-10 h-10 rounded-xl flex-shrink-0 object-cover"
                               />
                               <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-white font-medium text-sm">
-                                    {staff.firstName} {staff.lastName}
-                                  </span>
-                                  <RoleTag role={staff.role} compact={true} />
-                                </div>
+                              <div className="flex items-center gap-2">
+      <span className="text-white font-medium text-sm">
+        {staff.firstName} {staff.lastName}
+      </span>
+      <StaffColorIndicator color={staff.color} size="sm" />
+      <RoleTag role={staff.role} compact={true} />
+    </div>
                               </div>
                             </div>
                             <button
@@ -697,9 +701,12 @@ export default function StaffManagement() {
                         </div>
 
                         <div className="flex-1 min-w-0">
-                          <h3 className="text-white font-medium text-base sm:text-lg mb-1 text-center sm:text-left">
-                            {staff.firstName} {staff.lastName}
-                          </h3>
+                        <div className="flex items-center gap-2 justify-center sm:justify-start">
+    <h3 className="text-white font-medium text-base sm:text-lg mb-1 text-center sm:text-left">
+      {staff.firstName} {staff.lastName}
+    </h3>
+    <StaffColorIndicator color={staff.color} />
+  </div>
                           <div className="mb-2 text-center sm:text-left">
                             <RoleTag role={staff.role} />
                           </div>
@@ -765,9 +772,12 @@ export default function StaffManagement() {
                                   alt={`${staff.firstName} ${staff.lastName}`}
                                 />
                                 <div>
-                                  <h3 className="text-white text-center font-medium text-lg leading-tight">
-                                    {staff.firstName} {staff.lastName}
-                                  </h3>
+                                <div className="flex items-center gap-2">
+    <h3 className="text-white text-center font-medium text-lg leading-tight">
+      {staff.firstName} {staff.lastName}
+    </h3>
+    <StaffColorIndicator color={staff.color} />
+  </div>
                                   <div className="mt-2">
                                     <RoleTag role={staff.role} />
                                   </div>
@@ -874,9 +884,12 @@ export default function StaffManagement() {
                         </div>
 
                         <div className="w-full">
-                          <h3 className="text-white font-medium text-base sm:text-lg mb-2 text-center leading-tight">
-                            {staff.firstName} {staff.lastName}
-                          </h3>
+                        <div className="flex items-center justify-center mb-2 gap-2">
+    <h3 className="text-white text-center font-medium text-lg leading-tight">
+      {staff.firstName} {staff.lastName}
+    </h3>
+    <StaffColorIndicator color={staff.color} />
+  </div>
                           <div className="mb-3 text-center">
                             <RoleTag role={staff.role} />
                           </div>

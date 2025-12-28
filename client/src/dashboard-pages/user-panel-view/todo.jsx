@@ -109,12 +109,28 @@ export default function TodoApp() {
   const [tagsModalTask, setTagsModalTask] = useState(null)
   const columnRefs = useRef({})
 
+  const updateColumnWidths = () => {
+    // This will be handled by CSS flexbox, but we'll add a state update
+    // to trigger re-render
+    setColumns(prev => [...prev]);
+  };
+  
+
   const toggleColumnCollapse = (columnId) => {
-    setCollapsedColumns((prev) => ({
-      ...prev,
-      [columnId]: !prev[columnId],
-    }))
-  }
+    setCollapsedColumns((prev) => {
+      const newState = {
+        ...prev,
+        [columnId]: !prev[columnId],
+      };
+      
+      // Force re-render of column widths
+      setTimeout(() => {
+        updateColumnWidths();
+      }, 0);
+      
+      return newState;
+    });
+  };
 
   const handleOpenCalendarModal = (
     taskId,
@@ -818,7 +834,7 @@ export default function TodoApp() {
                       className={`cursor-grab mb-3 ${draggingTaskId === task.id ? "z-[9999] relative" : ""}`}
                       style={{
                         zIndex: draggingTaskId === task.id ? 9999 : "auto",
-                        position: draggingTaskId === task.id ? "relative" : "static",
+                        position: draggingTaskId === task.id ? "absolute" : "static",
                       }}
                     >
                       <TaskItem
@@ -1183,7 +1199,7 @@ export default function TodoApp() {
         `}
       </style>
       <div
-        className={`flex flex-col lg:flex-row rounded-3xl transition-all duration-500 bg-[#1C1C1C] text-white relative min-h-screen overflow-visible ${isRightSidebarOpen ? "lg:mr-86 mr-0" : "mr-0"
+        className={`flex flex-col lg:flex-row rounded-3xl transition-all duration-500 bg-[#1C1C1C] text-white relative md:h-[105vh] h-auto overflow-visible ${isRightSidebarOpen ? "lg:mr-86 mr-0" : "mr-0"
           }`}
       >
         <Toaster
@@ -1451,7 +1467,11 @@ export default function TodoApp() {
                 </div>
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 open_sans_font mt-4 h-full">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 open_sans_font mt-4 h-full"  style={{
+  gridTemplateColumns: columns.map(col => 
+    collapsedColumns[col.id] ? 'min-content' : '1fr'
+  ).join(' ')
+}}>
               {columns.map((column) => (
                 <Column
                   key={column.id}

@@ -148,7 +148,25 @@ const Sidebar = ({
     }));
   };
 
+
+  const calculateAge = (dateOfBirth) => {
+    if (!dateOfBirth) return ""
+    const today = new Date()
+    const birthDate = new Date(dateOfBirth)
+    let age = today.getFullYear() - birthDate.getFullYear()
+    const m = today.getMonth() - birthDate.getMonth()
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--
+    }
+    return age
+  }
+
   const getWidgetHeightClass = (widgetId, defaultHeight = "h-auto") => {
+    const widget = rightSidebarWidgets.find(w => w.id === widgetId);
+    if (widget && widget.type === "staffCheckIn") {
+      return "h-auto"; 
+    }
+    
     if (expandedWidgetSizes[widgetId]) {
       return "min-h-[500px] max-h-[600px] h-auto";
     }
@@ -953,7 +971,7 @@ const Sidebar = ({
                     ) : (
                       <div className="space-y-3">
                         {/* Widget Header with Controls */}
-                        {!isSidebarEditing && (
+                        {!isSidebarEditing && widget.type !== "staffCheckIn" && (
                           <div className="flex items-center justify-between px-1">
                             <button
                               onClick={() => toggleWidgetCollapse(widget.id)}
@@ -1142,14 +1160,23 @@ const Sidebar = ({
                                         </div>
 
                                         <div>
-                                          <h3 className="font-semibold text-sm flex items-center gap-1">
-                                            {birthday.name}
-                                            {isBirthdayToday(birthday.date) && (
-                                              <span className="text-yellow-500">🎂</span>
-                                            )}
-                                          </h3>
-                                          <p className="text-xs text-zinc-400">{birthday.date}</p>
-                                        </div>
+                                      <h3 className="font-semibold text-sm flex items-center gap-1">
+                                        {birthday.name}
+                                        {/* Check if dateOfBirth exists and calculate age */}
+                                        {birthday.dateOfBirth && (
+                                          <span className="text-zinc-400 font-normal">
+                                            ({calculateAge(birthday.dateOfBirth)})
+                                          </span>
+                                        )}
+                                        {isBirthdayToday(birthday.date) && (
+                                          <span className="text-yellow-500">🎂</span>
+                                        )}
+                                      </h3>
+                                      <p className="text-xs text-zinc-400">
+                                        {birthday.date} {/* This displays the birthdate */}
+                                        {/* If you want to show next birthday date instead, you might need different logic */}
+                                      </p>
+                                    </div>
                                       </div>
 
                                       {isBirthdayToday(birthday.date) && (
@@ -1367,7 +1394,7 @@ const Sidebar = ({
                           />
                         )}
 
-                      
+
 
                         {widget.type === "expiringContracts" && (
                           <div className={`space-y-3 p-4 rounded-xl bg-[#2F2F2F] ${getWidgetHeightClass(widget.id)} h-auto flex flex-col`}>
@@ -1425,9 +1452,23 @@ const Sidebar = ({
                           <div className={`space-y-3 p-4 rounded-xl bg-[#2F2F2F] ${getWidgetHeightClass(widget.id)} h-auto flex flex-col`}>
                             <div className="flex items-center justify-between">
                               <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">Staff login</h2>
+                              {/* Remove the expand button for this widget */}
+                              {!isSidebarEditing && widget.type !== "staffCheckIn" && (
+                                <button
+                                  onClick={() => toggleWidgetSize(widget.id)}
+                                  className="p-1.5 hover:bg-zinc-700 rounded-lg transition-colors"
+                                  title={expandedWidgetSizes[widget.id] ? "Reduce size" : "Expand size"}
+                                >
+                                  {expandedWidgetSizes[widget.id] ? (
+                                    <Minimize2 size={16} />
+                                  ) : (
+                                    <Maximize2 size={16} />
+                                  )}
+                                </button>
+                              )}
                             </div>
                             <div className="flex-1 bg-black rounded-xl p-4">
-                              <StaffCheckInWidget expanded={expandedWidgetSizes[widget.id]} />
+                              <StaffCheckInWidget  />
                             </div>
                           </div>
                         )}
@@ -1525,8 +1566,8 @@ const Sidebar = ({
                   <button
                     onClick={handleConfirmAction}
                     className={`flex-1 px-4 py-2 ${pendingActivityAction.action === "reject"
-                        ? "bg-red-600 hover:bg-red-700"
-                        : "bg-blue-600 hover:bg-blue-700"
+                      ? "bg-red-600 hover:bg-red-700"
+                      : "bg-blue-600 hover:bg-blue-700"
                       } rounded-lg font-medium text-white`}
                   >
                     Confirm {pendingActivityAction.action}

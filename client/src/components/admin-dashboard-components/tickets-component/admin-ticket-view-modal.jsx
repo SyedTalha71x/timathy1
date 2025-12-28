@@ -1,7 +1,8 @@
 /* eslint-disable no-case-declarations */
 /* eslint-disable react/prop-types */
-import { AlertCircle, Calendar, CheckCircle, Clock, Filter, ImageIcon, List, MessageSquare, User, X, XCircle } from "lucide-react"
+import { AlertCircle, Calendar, CheckCircle, Clock, Filter, ImageIcon, List, MessageSquare, X, XCircle } from "lucide-react"
 import { useRef, useState } from "react"
+import Logo from '../../../../public/Orgagym white without text.svg'
 
 /* eslint-disable no-unused-vars */
 const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
@@ -27,7 +28,7 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
         const newMessage = {
           id: ticket.messages.length + 1,
           sender: "support",
-          senderName: "Admin User",
+          senderName: "OrgaGym",
           content: replyText,
           timestamp: new Date().toLocaleDateString("en-GB") + " " + new Date().toLocaleTimeString(),
           attachments: []
@@ -143,11 +144,11 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
             {/* Customer Info Bar */}
             <div className="bg-[#161616] px-3 sm:px-4 py-2 border-b border-gray-700 flex-shrink-0">
               <div className="flex flex-wrap items-center gap-4 text-sm">
-                <div className="flex items-center gap-1 text-gray-300">
+                {/* <div className="flex items-center gap-1 text-gray-300">
                   <User size={14} />
                   <span className="font-medium">{ticket.customer.name}</span>
                   <span className="text-gray-500">({ticket.customer.email})</span>
-                </div>
+                </div> */}
                 <div className="flex items-center gap-1 text-gray-300">
                   <Calendar size={14} />
                   <span>Created: {ticket.createdDate}</span>
@@ -161,35 +162,48 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
   
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-3 sm:p-4 min-h-0">
-              <div className="space-y-4 sm:space-y-6">
-                {ticket.messages.map((message) => (
-                  <div key={message.id} className="flex items-start gap-2 sm:gap-3">
-                    <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-                      message.sender === "customer" ? "bg-blue-500" : "bg-green-500"
-                    }`}>
-                      <span className="text-white font-bold text-xs sm:text-sm">
-                        {message.sender === "customer" ? "C" : "S"}
-                      </span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-wrap items-center gap-2 mb-1 sm:mb-2">
-                        <span className="font-medium text-white text-sm">
-                          {message.senderName}
-                        </span>
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${
-                          message.sender === "customer" ? "bg-blue-900/30 text-blue-400" : "bg-green-900/30 text-green-400"
-                        }`}>
-                          {message.sender === "customer" ? "Customer" : "Support"}
-                        </span>
-                        <span className="text-gray-400 text-xs sm:text-sm">{message.timestamp}</span>
-                      </div>
-                      <div className="text-gray-200 text-sm leading-relaxed break-words bg-[#161616] rounded-lg p-3 border border-gray-700">
-                        {message.content}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+            <div className="space-y-4 sm:space-y-6">
+  {ticket.messages.map((message) => {
+const isOrgaGym = message.sender === "support";
+const firstLetter = message.senderName?.charAt(0).toUpperCase();
+
+    return (
+      <div key={message.id} className="flex items-start gap-2 sm:gap-3">
+        {/* Avatar */}
+        <div className="w-16 h-16 rounded-full flex items-center justify-center bg-[#222] border border-gray-700 overflow-hidden">
+          {isOrgaGym ? (
+            <img
+              src={Logo}
+              alt="OrgaGym"
+              className="w-7 h-7 bg-orange-500 object-cover"
+            />
+          ) : (
+            <span className="text-white font-semibold">
+              {firstLetter}
+            </span>
+          )}
+        </div>
+
+        {/* Message Content */}
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-wrap items-center gap-2 mb-1 sm:mb-2">
+            <span className="font-medium text-white text-sm">
+              {message.senderName}
+            </span>
+            <span className="text-gray-400 text-xs sm:text-sm">
+              {message.timestamp}
+            </span>
+          </div>
+
+          <div className="text-gray-200 text-sm leading-relaxed break-words bg-[#161616] rounded-lg p-3 border border-gray-700">
+            {message.content}
+          </div>
+        </div>
+      </div>
+    );
+  })}
+</div>
+
             </div>
   
             {/* Reply Section */}
@@ -311,7 +325,7 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
             <div className="p-4 border-b border-gray-700 text-sm">
               <h4 className="font-semibold text-white mb-3">Customer Details</h4>
               <div className="space-y-2 text-sm text-gray-300">
-                <div><strong className="text-gray-200">Name:</strong> {ticket.customer.name}</div>
+                <div><strong className="text-gray-200">Studio Name:</strong> {ticket.studioName}</div>
                 <div><strong className="text-gray-200">Email:</strong> {ticket.customer.email}</div>
                 <div><strong className="text-gray-200">Customer ID:</strong> {ticket.customer.id}</div>
               </div>

@@ -53,6 +53,10 @@ const StudioMenu = () => {
     email: "john.doe@email.com",
     phone: "+49 30 1234 5678",
   })
+
+  // Add state for viewing post image in full resolution
+  const [viewingPost, setViewingPost] = useState(null)
+
   const [messages, setMessages] = useState([
     {
       id: 1,
@@ -60,34 +64,100 @@ const StudioMenu = () => {
       content: "We will have special opening hours during the holiday season. Please check the updated schedule.",
       date: "2025-01-20",
       type: "info",
-      priority: "medium"
+      priority: "medium",
+      image: "https://e7.pngegg.com/pngimages/440/166/png-clipart-public-holiday-samsung-galaxy-s6-edge-android-android-text-calendar.png" // Added image
     },
     {
       id: 2,
       title: "New Equipment Arrived!",
-      content: "Check out our new cardio machines in the main workout area.",
+      content: "Check out our new cardio machines in the main workout area. We've added 5 new treadmills, 3 elliptical trainers, and a complete set of free weights.",
       date: "2025-01-18",
       type: "update",
-      priority: "high"
+      priority: "high",
+      image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT3pCKrt2I8JSBOv4piL9p1FEadf2zvwD-eOA&s" // Added image
     },
     {
       id: 3,
       title: "Maintenance Notice",
-      content: "The swimming pool will be closed for maintenance on January 25th.",
+      content: "The swimming pool will be closed for maintenance on January 25th from 8:00 AM to 2:00 PM. We apologize for any inconvenience.",
       date: "2025-01-15",
       type: "maintenance",
-      priority: "medium"
+      priority: "medium",
+        image: "https://www.shutterstock.com/image-vector/under-maintenance-stripes-caution-sign-260nw-2517500739.jpg"
     },
     {
       id: 4,
       title: "Yoga Class Update",
-      content: "New yoga classes starting next week. Sign up at the front desk!",
+      content: "New yoga classes starting next week. Sign up at the front desk! Morning classes at 7 AM and evening classes at 6 PM.",
       date: "2025-01-12",
       type: "class",
-      priority: "low"
+      priority: "low",
+      image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSLkR_cD_bdePwOvW_Ondondo2eM3Wytmf5aw&s" // Added image
     }
   ])
 
+  // Function to get border color based on message type
+  const getBorderColor = (type) => {
+    switch (type) {
+      case 'info': return 'border-blue-500'
+      case 'update': return 'border-green-500'
+      case 'maintenance': return 'border-yellow-500'
+      case 'class': return 'border-purple-500'
+      default: return 'border-orange-500'
+    }
+  }
+
+  // Function to get tag color based on message type
+  const getTagColor = (type) => {
+    switch (type) {
+      case 'info': return 'bg-blue-500/20 text-blue-400'
+      case 'update': return 'bg-green-500/20 text-green-400'
+      case 'maintenance': return 'bg-yellow-500/20 text-yellow-400'
+      case 'class': return 'bg-purple-500/20 text-purple-400'
+      default: return 'bg-orange-500/20 text-orange-400'
+    }
+  }
+
+  // Full screen image viewer component
+  const ImageViewer = () => {
+    if (!viewingPost) return null
+
+    return (
+      <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
+        <div className="relative max-w-4xl max-h-[90vh] w-full">
+          <button
+            onClick={() => setViewingPost(null)}
+            className="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full z-10"
+            title="Close"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+          
+          <div className="bg-gray-800 rounded-lg overflow-hidden">
+            <img
+              src={viewingPost.image}
+              alt="Full size"
+              className="w-full h-auto max-h-[70vh] object-contain"
+            />
+            <div className="p-4 bg-gray-900">
+              <h3 className="text-white font-bold text-lg mb-2">{viewingPost.title}</h3>
+              <p className="text-gray-300 text-sm">{viewingPost.content}</p>
+              <div className="mt-3 flex items-center justify-between">
+                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTagColor(viewingPost.type)}`}>
+                  {viewingPost.type}
+                </span>
+                <span className="text-gray-400 text-xs">{viewingPost.date}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Rest of your existing functions remain the same...
   const startScanning = async () => {
     try {
       setCameraError(null)
@@ -135,8 +205,7 @@ const StudioMenu = () => {
 
         const imageData = context.getImageData(0, 0, canvas.width, canvas.height)
 
-        // Simple QR code detection simulation (in real app, use a proper QR library)
-        // For demo purposes, we'll simulate a successful scan after 3 seconds
+        // Simple QR code detection simulation
         setTimeout(() => {
           if (isScanning) {
             handleSuccessfulScan("FITZONE_CHECKIN_" + Date.now())
@@ -150,7 +219,6 @@ const StudioMenu = () => {
     setScanResult(qrData)
     stopScanning()
 
-    // Add to check-in history
     const now = new Date()
     const newCheckIn = {
       date: now.toISOString().split("T")[0],
@@ -159,7 +227,6 @@ const StudioMenu = () => {
     }
     setCheckInHistory((prev) => [newCheckIn, ...prev])
 
-    // Show success message
     alert("Check-in successful! Welcome to FitZone Studio!")
   }
 
@@ -199,86 +266,68 @@ const StudioMenu = () => {
     setIsEditingContact(false)
   }
 
-  // Function to get border color based on message type
-  const getBorderColor = (type) => {
-    switch (type) {
-      case 'info': return 'border-blue-500'
-      case 'update': return 'border-green-500'
-      case 'maintenance': return 'border-yellow-500'
-      case 'class': return 'border-purple-500'
-      default: return 'border-orange-500'
-    }
-  }
-
-  // Function to get tag color based on message type
-  const getTagColor = (type) => {
-    switch (type) {
-      case 'info': return 'bg-blue-500/20 text-blue-400'
-      case 'update': return 'bg-green-500/20 text-green-400'
-      case 'maintenance': return 'bg-yellow-500/20 text-yellow-400'
-      case 'class': return 'bg-purple-500/20 text-purple-400'
-      default: return 'bg-orange-500/20 text-orange-400'
-    }
-  }
-
   return (
     <div className="min-h-screen rounded-3xl bg-[#1C1C1C] p-2 md:p-6">
-      <div className="text-center py-4 sm:py-6 md:py-8 border-b border-gray-700">
+      {/* Image Viewer Modal */}
+      <ImageViewer />
+
+      <div className="text-center border-b md:py-0 py-2 border-gray-700">
         <div className="flex flex-col items-center space-y-3 sm:space-y-4">
-          <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 bg-gradient-to-br from-red-500 to-pink-600 rounded-full flex items-center justify-center shadow-lg">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 bg-gradient-to-br from-red-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
             <svg className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
             </svg>
           </div>
           <div>
-            <h1 className="text-white oxanium_font text-lg sm:text-xl md:text-2xl">FitZone Studio</h1>
+            <h1 className="text-white oxanium_font text-lg sm:text-xl mb-3 md:text-2xl">FitZone Studio</h1>
           </div>
         </div>
       </div>
 
       <div className="flex border-b border-gray-700 bg-gray-800/50 rounded-lg mt-4 sm:mt-6 overflow-x-auto">
-  <div className="flex min-w-max w-full"> {/* Add this wrapper */}
-    <button
-      onClick={() => setActiveSection("checkin")}
-      className={`flex-1 min-w-[90px] py-2.5 sm:py-3 px-3 sm:px-4 text-center font-medium text-xs sm:text-sm md:text-base transition-all duration-300 whitespace-nowrap ${activeSection === "checkin"
-        ? "text-orange-400 bg-gray-700 border-b-2 border-orange-400"
-        : "text-gray-400 hover:text-white hover:bg-gray-700/50"
-        }`}
-    >
-      Check-in
-    </button>
-    <button
-      onClick={() => setActiveSection("bulletin")}
-      className={`flex-1 min-w-[90px] py-2.5 sm:py-3 px-3 sm:px-4 text-center font-medium text-xs sm:text-sm md:text-base transition-all duration-300 whitespace-nowrap ${activeSection === "bulletin"
-        ? "text-orange-400 bg-gray-700 border-b-2 border-orange-400"
-        : "text-gray-400 hover:text-white hover:bg-gray-700/50"
-        }`}
-    >
-      Bulletin Board
-    </button>
-    <button
-      onClick={() => setActiveSection("info")}
-      className={`flex-1 min-w-[90px] py-2.5 sm:py-3 px-3 sm:px-4 text-center font-medium text-xs sm:text-sm md:text-base transition-all duration-300 whitespace-nowrap ${activeSection === "info"
-        ? "text-orange-400 bg-gray-700 border-b-2 border-orange-400"
-        : "text-gray-400 hover:text-white hover:bg-gray-700/50"
-        }`}
-    >
-      Studio Info
-    </button>
-    <button
-      onClick={() => setActiveSection("data")}
-      className={`flex-1 min-w-[90px] py-2.5 sm:py-3 px-3 sm:px-4 text-center font-medium text-xs sm:text-sm md:text-base transition-all duration-300 whitespace-nowrap ${activeSection === "data"
-        ? "text-orange-400 bg-gray-700 border-b-2 border-orange-400"
-        : "text-gray-400 hover:text-white hover:bg-gray-700/50"
-        }`}
-    >
-      Studio Data
-    </button>
-  </div>
-</div>
+        <div className="flex min-w-max w-full">
+          <button
+            onClick={() => setActiveSection("checkin")}
+            className={`flex-1 min-w-[90px] py-2.5 sm:py-3 px-3 sm:px-4 text-center font-medium text-xs sm:text-sm md:text-base transition-all duration-300 whitespace-nowrap ${activeSection === "checkin"
+                ? "text-orange-400 bg-gray-700 border-b-2 border-orange-400"
+                : "text-gray-400 hover:text-white hover:bg-gray-700/50"
+              }`}
+          >
+            Check-in
+          </button>
+          <button
+            onClick={() => setActiveSection("bulletin")}
+            className={`flex-1 min-w-[90px] py-2.5 sm:py-3 px-3 sm:px-4 text-center font-medium text-xs sm:text-sm md:text-base transition-all duration-300 whitespace-nowrap ${activeSection === "bulletin"
+                ? "text-orange-400 bg-gray-700 border-b-2 border-orange-400"
+                : "text-gray-400 hover:text-white hover:bg-gray-700/50"
+              }`}
+          >
+            Bulletin Board
+          </button>
+          <button
+            onClick={() => setActiveSection("info")}
+            className={`flex-1 min-w-[90px] py-2.5 sm:py-3 px-3 sm:px-4 text-center font-medium text-xs sm:text-sm md:text-base transition-all duration-300 whitespace-nowrap ${activeSection === "info"
+                ? "text-orange-400 bg-gray-700 border-b-2 border-orange-400"
+                : "text-gray-400 hover:text-white hover:bg-gray-700/50"
+              }`}
+          >
+            Studio Info
+          </button>
+          <button
+            onClick={() => setActiveSection("data")}
+            className={`flex-1 min-w-[90px] py-2.5 sm:py-3 px-3 sm:px-4 text-center font-medium text-xs sm:text-sm md:text-base transition-all duration-300 whitespace-nowrap ${activeSection === "data"
+                ? "text-orange-400 bg-gray-700 border-b-2 border-orange-400"
+                : "text-gray-400 hover:text-white hover:bg-gray-700/50"
+              }`}
+          >
+            Studio Data
+          </button>
+        </div>
+      </div>
 
       <div className="p-2 md:p-4 mt-3 sm:mt-4">
         {activeSection === "checkin" && (
+          // ... (checkin section remains exactly the same)
           <div className="space-y-4 sm:space-y-6">
             <div className="bg-gray-800 rounded-xl p-4 sm:p-5 md:p-6 shadow-lg">
               <h2 className="text-lg sm:text-xl font-bold text-white mb-3 sm:mb-4 flex items-center">
@@ -372,6 +421,7 @@ const StudioMenu = () => {
         )}
 
         {activeSection === "info" && (
+          // ... (info section remains exactly the same)
           <div className="space-y-4 sm:space-y-6">
             <div className="bg-gray-800 rounded-xl overflow-hidden shadow-2xl">
               <div className="p-3 sm:p-4">
@@ -515,6 +565,7 @@ const StudioMenu = () => {
         )}
 
         {activeSection === "data" && (
+          // ... (data section remains exactly the same)
           <div className="space-y-4 sm:space-y-6">
             <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-4 sm:p-5 md:p-6 shadow-lg border border-gray-700">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
@@ -972,6 +1023,25 @@ const StudioMenu = () => {
                     key={message.id}
                     className={`bg-gray-700/50 rounded-xl p-3 sm:p-4 border-l-4 ${getBorderColor(message.type)} hover:bg-gray-700 transition-colors cursor-pointer`}
                   >
+                    {message.image && (
+                      <div className="relative mb-3 rounded-lg overflow-hidden border border-gray-700 h-40">
+                        <img
+                          src={message.image}
+                          alt={message.title}
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          onClick={() => setViewingPost(message)}
+                          className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white p-1.5 rounded transition-colors"
+                          title="View full size"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5h-4m4 0v-4m0 4l-5-5" />
+                          </svg>
+                        </button>
+                      </div>
+                    )}
+                    
                     <div className="flex justify-between items-start mb-2 gap-2">
                       <h3 className="text-white font-semibold text-base sm:text-lg flex-1">{message.title}</h3>
                       <span className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${getTagColor(message.type)}`}>
@@ -979,9 +1049,7 @@ const StudioMenu = () => {
                       </span>
                     </div>
                     <p className="text-gray-300 text-xs sm:text-sm mb-3">{message.content}</p>
-                    <div className="flex justify-between items-center text-[10px] sm:text-xs text-gray-400">
-                      <span>{message.date}</span>
-                    </div>
+                    
                   </div>
                 ))}
               </div>

@@ -38,6 +38,7 @@ import { contractHistory, initialContracts, sampleLeads } from "../../utils/user
 import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"
 import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
 import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
+import { DeleteContractModal } from "../../components/user-panel-components/contract-components/delete-contract-modal"
 
 export default function ContractList() {
   const navigate = useNavigate()
@@ -56,6 +57,12 @@ export default function ContractList() {
   const [viewMode, setViewMode] = useState("list") // Added view mode state for switching between grid and list views
   const [isCompactView, setIsCompactView] = useState(false)
   const [expandedCompactId, setExpandedCompactId] = useState(null)
+
+  const [showContractPromptModal, setShowContractPromptModal] = useState(false);
+
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [contractToDelete, setContractToDelete] = useState(null)
 
   const [isFinanceModalOpen, setIsFinanceModalOpen] = useState(false)
   const [isEditModalOpenContract, setIsEditModalOpenContract] = useState(false)
@@ -159,12 +166,21 @@ export default function ContractList() {
   }
 
   const handleDeleteOngoingContract = (contractId) => {
-    if (confirm("Are you sure you want to delete this ongoing contract?")) {
-      const updatedContracts = contracts.filter((contract) => contract.id !== contractId)
+    const contract = contracts.find((c) => c.id === contractId)
+    setContractToDelete(contract)
+    setIsDeleteModalOpen(true)
+  }
+
+  const confirmDeleteContract = () => {
+    if (contractToDelete) {
+      const updatedContracts = contracts.filter((contract) => contract.id !== contractToDelete.id)
       setContracts(updatedContracts)
       toast.success("Ongoing contract deleted successfully")
+      setIsDeleteModalOpen(false)
+      setContractToDelete(null)
     }
   }
+
 
   const totalPages = Math.ceil(filteredContracts.length / contractsPerPage)
   const startIndex = (currentPage - 1) * contractsPerPage
@@ -1418,6 +1434,18 @@ export default function ContractList() {
               setIsHistoryModalOpen(false)
               setSelectedContract(null)
             }}
+          />
+        )}
+
+        {isDeleteModalOpen && (
+          <DeleteContractModal
+            isOpen={isDeleteModalOpen}
+            onClose={() => {
+              setIsDeleteModalOpen(false)
+              setContractToDelete(null)
+            }}
+            onDelete={confirmDeleteContract}
+            contract={contractToDelete}
           />
         )}
       </div>

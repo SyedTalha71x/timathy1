@@ -563,12 +563,10 @@ export default function ContractList() {
                 className="flex items-center justify-center cursor-pointer gap-2 px-4 py-2 text-sm bg-[#F27A30] text-white rounded-xl hover:bg-[#e06b21] transition-colors w-full sm:w-auto"
               >
                 <Plus className="w-5 h-5" />
-                <span>Add Contract</span>
+                <span>Create Contract</span>
               </button>
 
-              {/* <div onClick={toggleRightSidebar} className="cursor-pointer lg:block md:block hidden text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md ">
-                <IoIosMenu size={26} />
-              </div> */}
+          
               <img
                   onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
                   className="h-5 w-5 mr-5  lg:block md:block hidden   cursor-pointer"
@@ -611,19 +609,19 @@ export default function ContractList() {
                 </span>
 
                 <span className="text-white font-medium">{contract.studioName}</span>
-                <span className="text-sm text-gray-400 mt-1">
+                {/* <span className="text-sm text-gray-400 mt-1">
                   <span className="font-semibold text-gray-300">Owner Name: </span>
                   {contract.studioOwnerName}
-                </span>
+                </span> */}
                 <span className="text-sm text-gray-400">
                   {" "}
-                  <span className="font-semibold text-gray-300">Contract Type:</span> {contract.contractType}
+                  <span className="font-semibold text-gray-300"></span> {contract.contractType}
                 </span>
                 <span className="text-sm text-gray-400">
-                  <span className="font-semibold text-gray-300">Contract Duration:</span> {contract.startDate} -{" "}
+                  <span className="font-semibold text-gray-300"></span> {contract.startDate} -{" "}
                   {contract.endDate}
                 </span>
-                <span className="text-sm text-gray-400">{contract.isDigital ? "Digital" : "Analog"}</span>
+                {/* <span className="text-sm text-gray-400">{contract.isDigital ? "Digital" : "Analog"}</span> */}
               </div>
 
               <div className="flex items-center gap-3">

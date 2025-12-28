@@ -1,4 +1,3 @@
-
 /* eslint-disable no-unused-vars */
 import { useCallback, useState } from "react"
 import { Toaster } from "react-hot-toast"
@@ -41,6 +40,31 @@ const BulletinBoard = () => {
       createdBy: "current-user",
       image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ4jcHkW1crqIhywqcD_vgxDLzY22tXEYnDqA&s",
       tags: [],
+    },
+    // Add a sample post with little content and no image
+    {
+      id: 2,
+      title: "Quick Update",
+      content: "Meeting at 3 PM today.",
+      visibility: "Staff",
+      status: "Active",
+      author: "Manager",
+      createdAt: new Date().toLocaleDateString(),
+      createdBy: "current-user",
+      image: "",
+      tags: [1],
+    },
+    {
+      id: 3,
+      title: "Reminder",
+      content: "Don't forget to submit your reports by Friday. This is a longer post with more content to show the difference in tile sizes. It should take up more space in the layout.",
+      visibility: "Members",
+      status: "Active",
+      author: "Supervisor",
+      createdAt: new Date().toLocaleDateString(),
+      createdBy: "other-user",
+      image: "",
+      tags: [2],
     },
   ])
 
@@ -259,6 +283,21 @@ const BulletinBoard = () => {
     handleDeleteAppointment(id, appointments, setAppointments)
   }
 
+  // Helper function to determine if a post should be compact
+  const getPostSizeClass = (post) => {
+    const hasImage = !!post.image;
+    const contentLength = post.content ? post.content.length : 0;
+    const hasLittleContent = contentLength < 100;
+    
+    if (hasImage) {
+      return "tile-large"; // Posts with images are always larger
+    } else if (hasLittleContent) {
+      return "tile-small"; // Posts with little text and no image
+    } else {
+      return "tile-medium"; // Posts with more text but no image
+    }
+  }
+
 
 
   return (
@@ -283,6 +322,65 @@ const BulletinBoard = () => {
           }
           .drag-over {
             border: 2px dashed #888;
+          }
+          
+          /* Masonry-like grid with variable heights */
+          .posts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-auto-rows: auto;
+            gap: 1.5rem;
+          }
+          
+          /* Different tile sizes */
+          .tile-small {
+            grid-row: span 1;
+            height: auto;
+            min-height: 200px;
+            max-height: 250px;
+          }
+          
+          .tile-medium {
+            grid-row: span 2;
+            height: auto;
+            min-height: 300px;
+            max-height: 400px;
+          }
+          
+          .tile-large {
+            grid-row: span 3;
+            height: auto;
+            min-height: 400px;
+            max-height: 500px;
+          }
+          
+          /* Ensure content area fills available space */
+          .post-tile {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+          }
+          
+          .post-content {
+            flex: 1;
+            overflow: hidden;
+            min-height: 0;
+          }
+          
+          /* Compact content styling */
+          .compact-content {
+            max-height: 60px;
+            overflow: hidden;
+          }
+          
+          .medium-content {
+            max-height: 150px;
+            overflow: hidden;
+          }
+          
+          .large-content {
+            max-height: 200px;
+            overflow: hidden;
           }
         `}
       </style>
@@ -362,137 +460,148 @@ const BulletinBoard = () => {
             </div>
           </div>
 
-          <div
-            className={`grid grid-cols-1 md:grid-cols-2 ${isRightSidebarOpen ? "lg:grid-cols-2" : "lg:grid-cols-3"} gap-6`}
-          >
-            {filteredPosts.map((post) => (
-              <div
-                key={post.id}
-                className="bg-[#1A1A1A] border border-gray-800 rounded-xl p-6 hover:shadow-xl hover:border-gray-700 transition-all duration-200 flex flex-col"
-              >
-                {post.image && (
-                  <div className="relative mb-4 rounded-lg overflow-hidden border border-gray-700 h-48"> {/* Fixed height */}
-                    <img
-                      src={post.image || "/placeholder.svg"}
-                      alt="Post"
-                      className="w-full h-full object-cover"
-                    />
-                    <button
-                      onClick={() => setViewingPost(post)}
-                      className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white p-1.5 rounded transition-colors"
-                      title="Expand image"
-                    >
-                      <MdOutlineZoomOutMap />
-                    </button>
-                  </div>
-                )}
-
-                <div className="flex items-start justify-between mb-4 flex-shrink-0">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-semibold text-white mb-2 break-words whitespace-normal overflow-hidden">
-                      {post.title}
-                    </h3>
-                    <div className="flex items-center gap-2 mb-2 flex-wrap">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${post.status === "Active" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-gray-500/10 text-gray-400 border border-gray-500/20"}`}
-                      >
-                        {post.status}
-                      </span>
-                      <span className="px-2 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full text-xs font-medium">
-                        {post.visibility}
-                      </span>
-                      {post.tags && post.tags.length > 0 && (
-                        <div className="flex gap-1 flex-wrap">
-                          {post.tags.map((tagId) => {
-                            const tag = tags.find((t) => t.id === tagId)
-                            return tag ? (
-                              <span
-                                key={tag.id}
-                                className="px-2 py-1 rounded-full text-xs font-medium text-white"
-                                style={{ backgroundColor: tag.color }}
-                              >
-                                {tag.name}
-                              </span>
-                            ) : null
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Full content without truncation */}
-                <div className="flex-1 overflow-hidden mb-4 min-h-0">
-                  <div className="h-full">
-                    <p className="text-gray-300 text-sm leading-relaxed break-words whitespace-pre-wrap">
-                      {post.content}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pt-4 border-t border-gray-800 flex-shrink-0 gap-3">
-                  <div className="text-xs text-gray-500">
-                    <p className="font-medium text-gray-400">By {post.author}</p>
-                    <p>{post.createdAt}</p>
-                  </div>
-
-                  {/* Status Toggle in Footer */}
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full sm:w-auto">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-400">Status:</span>
+          {/* Updated grid with variable tile sizes */}
+          <div className="posts-grid">
+            {filteredPosts.map((post) => {
+              const tileSize = getPostSizeClass(post);
+              const hasImage = !!post.image;
+              const contentLength = post.content ? post.content.length : 0;
+              const isCompactContent = contentLength < 100 && !hasImage;
+              const isMediumContent = contentLength >= 100 && contentLength < 300 && !hasImage;
+              
+              let contentClass = "large-content";
+              if (isCompactContent) contentClass = "compact-content";
+              else if (isMediumContent) contentClass = "medium-content";
+              
+              return (
+                <div
+                  key={post.id}
+                  className={`${tileSize} post-tile bg-[#1A1A1A] border border-gray-800 rounded-xl p-6 hover:shadow-xl hover:border-gray-700 transition-all duration-200`}
+                >
+                  {post.image && (
+                    <div className="relative mb-4 rounded-lg overflow-hidden border border-gray-700 h-48">
+                      <img
+                        src={post.image || "/placeholder.svg"}
+                        alt="Post"
+                        className="w-full h-full object-cover"
+                      />
                       <button
-                        onClick={() => handleStatusToggle(post.id)}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${post.status === "Active" ? "bg-emerald-500" : "bg-gray-600"
-                          }`}
+                        onClick={() => setViewingPost(post)}
+                        className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white p-1.5 rounded transition-colors"
+                        title="Expand image"
                       >
-                        <span
-                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${post.status === "Active" ? "translate-x-6" : "translate-x-1"
-                            }`}
-                        />
+                        <MdOutlineZoomOutMap />
                       </button>
-                      <span className="text-xs font-medium text-gray-300 min-w-[50px]">
-                        {post.status}
-                      </span>
+                    </div>
+                  )}
+
+                  <div className="flex items-start justify-between mb-4 flex-shrink-0">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-lg font-semibold text-white mb-2 break-words whitespace-normal overflow-hidden">
+                        {post.title}
+                      </h3>
+                      <div className="flex items-center gap-2 mb-2 flex-wrap">
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${post.status === "Active" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-gray-500/10 text-gray-400 border border-gray-500/20"}`}
+                        >
+                          {post.status}
+                        </span>
+                        <span className="px-2 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full text-xs font-medium">
+                          {post.visibility}
+                        </span>
+                        {post.tags && post.tags.length > 0 && (
+                          <div className="flex gap-1 flex-wrap">
+                            {post.tags.map((tagId) => {
+                              const tag = tags.find((t) => t.id === tagId)
+                              return tag ? (
+                                <span
+                                  key={tag.id}
+                                  className="px-2 py-1 rounded-full text-xs font-medium text-white"
+                                  style={{ backgroundColor: tag.color }}
+                                >
+                                  {tag.name}
+                                </span>
+                              ) : null
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Content area with variable height based on post size */}
+                  <div className="post-content">
+                    <div className={contentClass}>
+                      <p className="text-gray-300 text-sm leading-relaxed break-words whitespace-pre-wrap">
+                        {post.content}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pt-4 border-t border-gray-800 flex-shrink-0 gap-3 mt-4">
+                    <div className="text-xs text-gray-500">
+                      <p className="font-medium text-gray-400">By {post.author}</p>
+                      <p>{post.createdAt}</p>
                     </div>
 
-                    <div className="flex gap-2">
-                      {post.createdBy === "current-user" && (
-                        <>
-                          <button
-                            onClick={() => openEditModal(post)}
-                            className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-800"
-                            title="Edit post"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                              />
-                            </svg>
-                          </button>
-                          <button
-                            onClick={() => openDeleteModal(post)}
-                            className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-800"
-                            title="Delete post"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                              />
-                            </svg>
-                          </button>
-                        </>
-                      )}
+                    {/* Status Toggle in Footer */}
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full sm:w-auto">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-400">Status:</span>
+                        <button
+                          onClick={() => handleStatusToggle(post.id)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${post.status === "Active" ? "bg-emerald-500" : "bg-gray-600"
+                            }`}
+                        >
+                          <span
+                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${post.status === "Active" ? "translate-x-6" : "translate-x-1"
+                              }`}
+                          />
+                        </button>
+                        <span className="text-xs font-medium text-gray-300 min-w-[50px]">
+                          {post.status}
+                        </span>
+                      </div>
+
+                      <div className="flex gap-2">
+                        {post.createdBy === "current-user" && (
+                          <>
+                            <button
+                              onClick={() => openEditModal(post)}
+                              className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-800"
+                              title="Edit post"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                />
+                              </svg>
+                            </button>
+                            <button
+                              onClick={() => openDeleteModal(post)}
+                              className="text-gray-400 hover:text-white transition-colors p-2 rounded-lg hover:bg-gray-800"
+                              title="Delete post"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                />
+                              </svg>
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {filteredPosts.length === 0 && (

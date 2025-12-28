@@ -307,21 +307,9 @@ const SidebarAreaSelling = ({
 
   const handleClose = () => {
     // Only allow closing on mobile, or keep open on desktop
-    if (window.innerWidth < 768) {
-      onClose()
-    }
+    onClose()
   }
 
-  const handleSidebarBulletinFilterChange = (filter) => {
-    setSidebarBulletinFilter(filter)
-  }
-
-  const getSidebarFilteredBulletinPosts = () => {
-    if (sidebarBulletinFilter === "all") {
-      return bulletinBoardData
-    }
-    return bulletinBoardData.filter((post) => post.category === sidebarBulletinFilter)
-  }
 
   const handleSidebarEditNote = (appointmentId, currentNote) => {
     const appointment = appointments.find((app) => app.id === appointmentId)
@@ -687,7 +675,7 @@ const SidebarAreaSelling = ({
                 {/* Close button */}
                 <button
   onClick={handleClose}
-  className="p-1.5 sm:p-2 text-zinc-400 hover:bg-zinc-700 rounded-xl md:hidden" // Hide on desktop
+  className="p-1.5 sm:p-2 text-zinc-400 hover:bg-zinc-700 rounded-xl " // Hide on desktop
   aria-label="Close sidebar"
 >
   <X size={16} />
@@ -851,8 +839,8 @@ const SidebarAreaSelling = ({
                               className="text-xs bg-blue-600 px-2 py-1 rounded cursor-pointer outline-none hover:bg-blue-700 transition-colors"
                               onClick={(e) => e.stopPropagation()}
                             >
-                              <option value={19}>VAT: 19%</option>
-                              <option value={7}>VAT: 7%</option>
+                              <option value={19}>VAT: 19% (eat-in)</option>
+                              <option value={7}>VAT: 7% (take-away)</option>
                             </select>
                           </div>
                         </div>

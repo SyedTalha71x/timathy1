@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useState, useRef, useEffect } from "react"
 import Chart from "react-apexcharts"
@@ -511,14 +512,14 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
       {/* Header with Remove button in edit mode */}
       <div className="flex justify-between items-center mb-3 sm:mb-4">
         <h2 className="text-base sm:text-lg font-semibold">Analytics</h2>
-        {isEditing && (
+        {/* {isEditing && (
           <button
             onClick={onRemove}
             className="px-2 py-1 text-xs sm:text-sm bg-red-500/20 text-red-400 hover:bg-red-500/30 rounded-lg"
           >
             {isMobile ? "Remove" : "Remove Widget"}
           </button>
-        )}
+        )} */}
       </div>
 
       {/* Tabs - Scrollable on mobile */}

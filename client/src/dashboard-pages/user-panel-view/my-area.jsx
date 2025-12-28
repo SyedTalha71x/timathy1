@@ -62,7 +62,7 @@ import AnalyticsChartWidget from "../../components/myarea-components/widgets/Ana
 import { MemberDocumentModal } from "../../components/myarea-components/MemberDocumentManageModal"
 
 
-import {appointmentsData} from "../../utils/user-panel-states/appointment-states"
+import { appointmentsData } from "../../utils/user-panel-states/appointment-states"
 
 export default function MyArea() {
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
@@ -893,71 +893,6 @@ export default function MyArea() {
     return age
   }
 
-  const isContractExpiringSoon = (contractEnd) => {
-    if (!contractEnd) return false
-    const today = new Date()
-    const endDate = new Date(contractEnd)
-    const oneMonthFromNow = new Date()
-    oneMonthFromNow.setMonth(today.getMonth() + 1)
-    return endDate <= oneMonthFromNow && endDate >= today
-  }
-
-  const handleHistoryFromOverview = () => {
-    setisMemberOverviewModalOpen(false)
-    setShowHistoryModal(true)
-  }
-
-  const handleCommunicationFromOverview = () => {
-    setisMemberOverviewModalOpen(false)
-    navigate("/dashboard/communication")
-  }
-
-  const handleTrainingPlansFromOverview = () =>{
-    setisMemberOverviewModalOpen(false)
-    setIsTrainingPlanModalOpen(true)
-  }
-
-  const handleDocumentClick = (member) => {
-    setSelectedMemberForDocuments(member)
-    setShowDocumentModal(true)
-  }
-
-  const handleViewDetailedInfo = () => {
-    setisMemberOverviewModalOpen(false)
-    setActiveMemberDetailsTab("details")
-    setIsMemberDetailsModalOpen(true)
-  }
-
-
-
-
-  const handleEditFromOverview = () => {
-    setisMemberOverviewModalOpen(false)
-
-    setEditForm({
-      firstName: selectedMember.firstName || "",
-      lastName: selectedMember.lastName || "",
-      email: selectedMember.email || "",
-      phone: selectedMember.phone || "",
-      street: selectedMember.street || "",
-      zipCode: selectedMember.zipCode || "",
-      city: selectedMember.city || "",
-      dateOfBirth: selectedMember.dateOfBirth || "",
-      about: selectedMember.about || "",
-      note: selectedMember.note || "",
-      noteStartDate: selectedMember.noteStartDate || "",
-      noteEndDate: selectedMember.noteEndDate || "",
-      noteImportance: selectedMember.noteImportance || "unimportant",
-      contractStart: selectedMember.contractStart || "",
-      contractEnd: selectedMember.contractEnd || "",
-    })
-
-    setIsEditModalOpen(true)
-  }
-
-
-
-
 
   const handleAddWidget = (widgetType) => {
     const { canAdd, location } = getWidgetPlacementStatus(widgetType, "dashboard")
@@ -975,12 +910,6 @@ export default function MyArea() {
     toast.success(`${widgetType} widget has been added successfully`)
   }
 
-  const handleCalendarFromOverview = () => {
-    setisMemberOverviewModalOpen(false)
-    if (selectedMember) {
-      setShowAppointmentModal(true)
-    }
-  }
 
 
   const handleAddRightSidebarWidget = (widgetType) => {
@@ -1004,13 +933,13 @@ export default function MyArea() {
     (specialNote, memberId, event) => {
       // Check if specialNote exists and has text content
       if (!specialNote || !specialNote.text?.trim()) return null
-      
+
       const isActive =
         !specialNote.startDate ||
         (new Date() >= new Date(specialNote.startDate) && new Date() <= new Date(specialNote.endDate))
-      
+
       if (!isActive) return null
-  
+
       // ... rest of the function remains the same
       const handleNoteClick = (e) => {
         e.stopPropagation()
@@ -1021,7 +950,7 @@ export default function MyArea() {
         })
         setActiveNoteId(activeNoteId === memberId ? null : memberId)
       }
-  
+
       // ... rest of the mouse handlers remain the same
       const handleMouseEnter = (e) => {
         e.stopPropagation()
@@ -1029,19 +958,19 @@ export default function MyArea() {
           clearTimeout(hoverTimeout)
           setHoverTimeout(null)
         }
-  
+
         const rect = e.currentTarget.getBoundingClientRect()
         setNotePosition({
           top: rect.bottom + window.scrollY + 8,
           left: rect.left + window.scrollX,
         })
-  
+
         const timeout = setTimeout(() => {
           setActiveNoteId(memberId)
         }, 300)
         setHoverTimeout(timeout)
       }
-  
+
       const handleMouseLeave = (e) => {
         e.stopPropagation()
         if (hoverTimeout) {
@@ -1052,13 +981,13 @@ export default function MyArea() {
           setActiveNoteId(null)
         }
       }
-  
+
       const handleEditClick = (e) => {
         e.stopPropagation()
         setActiveNoteId(null)
         handleEditNote(memberId, specialNote)
       }
-  
+
       return (
         <div className="relative">
           <div
@@ -1074,7 +1003,7 @@ export default function MyArea() {
               <Info size={18} className="text-white" />
             )}
           </div>
-  
+
           {activeNoteId === memberId &&
             createPortal(
               <div
@@ -1147,21 +1076,21 @@ export default function MyArea() {
 
   const handleViewMemberDetails = (appointmentIdOrMemberId) => {
     console.log("handleViewMemberDetails called with:", appointmentIdOrMemberId);
-    
+
     // First, try to find the appointment
-    const appointment = appointments.find(app => 
+    const appointment = appointments.find(app =>
       app.id === appointmentIdOrMemberId
     );
-    
+
     if (appointment) {
       console.log("Found appointment:", appointment);
       console.log("Appointment memberId:", appointment.memberId);
-      
+
       setshowAppointmentOptionsModal(false);
-      
+
       // If appointment has memberId, use that, otherwise use appointment.id
       const memberIdToNavigate = appointment.memberId || appointment.id;
-      
+
       if (memberIdToNavigate) {
         navigate(`/dashboard/member-details/${memberIdToNavigate}`);
       } else {
@@ -1555,7 +1484,7 @@ export default function MyArea() {
                         <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
                           <div className="flex justify-between items-center">
                             <h2 className="text-lg font-semibold">Website Links</h2>
-                          {!isEditing &&  <button
+                            {!isEditing && <button
                               onClick={addCustomLink}
                               className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg cursor-pointer transition-colors"
                             >
@@ -1629,7 +1558,7 @@ export default function MyArea() {
                         <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
                           <div className="flex justify-between items-center">
                             <h2 className="text-lg font-semibold">To-Do</h2>
-                          {!isEditing &&  <button
+                            {!isEditing && <button
                               onClick={() => setIsAddTaskModalOpen(true)}
                               className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
                             >
@@ -1760,8 +1689,8 @@ export default function MyArea() {
                                 <div
                                   key={birthday.id}
                                   className={`p-3 cursor-pointer rounded-xl flex items-center gap-3 justify-between ${isBirthdayToday(birthday.date)
-                                      ? "bg-yellow-900/30 border border-yellow-600"
-                                      : "bg-black"
+                                    ? "bg-yellow-900/30 border border-yellow-600"
+                                    : "bg-black"
                                     }`}
                                 >
                                   <div className="flex items-center gap-3">
@@ -1776,11 +1705,20 @@ export default function MyArea() {
                                     <div>
                                       <h3 className="font-semibold text-sm flex items-center gap-1">
                                         {birthday.name}
+                                        {/* Check if dateOfBirth exists and calculate age */}
+                                        {birthday.dateOfBirth && (
+                                          <span className="text-zinc-400 font-normal">
+                                            ({calculateAge(birthday.dateOfBirth)})
+                                          </span>
+                                        )}
                                         {isBirthdayToday(birthday.date) && (
                                           <span className="text-yellow-500">🎂</span>
                                         )}
                                       </h3>
-                                      <p className="text-xs text-zinc-400">{birthday.date}</p>
+                                      <p className="text-xs text-zinc-400">
+                                        {birthday.date} {/* This displays the birthdate */}
+                                        {/* If you want to show next birthday date instead, you might need different logic */}
+                                      </p>
                                     </div>
                                   </div>
 
@@ -2168,7 +2106,7 @@ export default function MyArea() {
         /> */}
 
 
-        
+
       </div>
     </>
   )

@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { ImageIcon } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
@@ -83,11 +82,12 @@ const NewTicketModal = ({ isOpen, onClose, onSubmit }) => {
     const [reason, setReason] = useState("")
     const [additionalDescription, setAdditionalDescription] = useState("")
     const [uploadedImages, setUploadedImages] = useState([])
+    const [includeRequesterName, setIncludeRequesterName] = useState(true) // New state for toggle
     
     // Auto-filled fields
     const [studioName] = useState("My Studio")
     const [requesterName] = useState("John Doe")
-    const [requesterEmail] = useState("john.doe@example.com")
+    const [studioEmail] = useState("studio@example.com") // Renamed from requesterEmail
 
     const fileInputRef = useRef(null)
 
@@ -229,30 +229,29 @@ const NewTicketModal = ({ isOpen, onClose, onSubmit }) => {
       return `${subjectObj.label} – ${reasonObj.label}`
     }
 
-    const stripHtmlTags = (html) => {
-      if (!html) return ""
-      // Remove all HTML tags and decode HTML entities
-      const tempDiv = document.createElement('div')
-      tempDiv.innerHTML = html
-      return tempDiv.textContent || tempDiv.innerText || ""
-    }
-
     const handleSubmit = () => {
       if (subject && reason) {
         const ticketName = formatTicketName(subject, reason)
         
-        // HTML content directly submit karo (formatting preserve hoga)
-        onSubmit(
-          ticketName, 
-          additionalDescription, // Yeh HTML content hai with formatting
-          uploadedImages
-        )
+        // Prepare data to submit
+        const ticketData = {
+          ticketName,
+          additionalDescription,
+          uploadedImages,
+          studioName,
+          studioEmail,
+          // Include requester name only if the user wants to transmit it
+          requesterName: includeRequesterName ? requesterName : null
+        }
+        
+        onSubmit(ticketData)
         
         // Reset form
         setSubject("")
         setReason("")
         setAdditionalDescription("")
         setUploadedImages([])
+        setIncludeRequesterName(true) // Reset to default
       } else {
         alert("Please fill in all required fields: Subject and Reason.")
       }
@@ -283,22 +282,42 @@ const NewTicketModal = ({ isOpen, onClose, onSubmit }) => {
               />
             </div>
 
-            {/* Auto-filled Requester Fields */}
-            <div>
-              <label className="block text-sm font-medium text-white mb-2">Requester Name</label>
+            {/* Auto-filled Requester Name with Toggle */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="block text-sm font-medium text-white">Requester Name</label>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-400">Transmit to support</span>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={includeRequesterName}
+                      onChange={(e) => setIncludeRequesterName(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+                  </label>
+                </div>
+              </div>
               <input
                 type="text"
                 value={requesterName}
                 readOnly
                 className="w-full bg-[#101010] text-sm rounded-lg sm:rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-white outline-none border border-[#333333] focus:border-[#3F74FF] cursor-not-allowed opacity-70"
               />
+              <p className="text-xs text-gray-400">
+                {includeRequesterName 
+                  ? "Your name will be transmitted to support along with studio name."
+                  : "Only studio name will be transmitted to support. Your name will remain private."}
+              </p>
             </div>
 
+            {/* Studio Email (Renamed from Requester Email) */}
             <div>
-              <label className="block text-sm font-medium text-white mb-2">Requester Email</label>
+              <label className="block text-sm font-medium text-white mb-2">Studio Email</label>
               <input
                 type="email"
-                value={requesterEmail}
+                value={studioEmail}
                 readOnly
                 className="w-full bg-[#101010] text-sm rounded-lg sm:rounded-xl px-3 sm:px-4 py-2 sm:py-2.5 text-white outline-none border border-[#333333] focus:border-[#3F74FF] cursor-not-allowed opacity-70"
               />

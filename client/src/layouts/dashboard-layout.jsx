@@ -16,7 +16,58 @@ const Dashboardlayout = () => {
   const [isChangelogModalOpen, setIsChangelogModalOpen] = useState(false)
   const [isActivityLogModalOpen, setIsActivityLogModalOpen] = useState(false)
 
-  const toggleLanguageDropdown = () => setIsLanguageDropdownOpen(!isLanguageDropdownOpen)
+  // Refs for dropdown containers
+  const languageDropdownRef = useRef(null)
+  const profileDropdownRef = useRef(null)
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // Close language dropdown if clicked outside
+      if (isLanguageDropdownOpen && 
+          languageDropdownRef.current && 
+          !languageDropdownRef.current.contains(event.target)) {
+        setIsLanguageDropdownOpen(false)
+      }
+      
+      // Close profile dropdown if clicked outside
+      if (isDropdownOpen && 
+          profileDropdownRef.current && 
+          !profileDropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false)
+      }
+    }
+
+    // Close other dropdown when one opens
+    const handleCloseOtherDropdown = () => {
+      if (isLanguageDropdownOpen && isDropdownOpen) {
+        setIsDropdownOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    handleCloseOtherDropdown()
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isLanguageDropdownOpen, isDropdownOpen])
+
+  const toggleLanguageDropdown = () => {
+    setIsLanguageDropdownOpen(!isLanguageDropdownOpen)
+    // Close profile dropdown when opening language dropdown
+    if (!isLanguageDropdownOpen && isDropdownOpen) {
+      setIsDropdownOpen(false)
+    }
+  }
+
+  const toggleDropdownMain = () => {
+    setIsDropdownOpen(!isDropdownOpen)
+    // Close language dropdown when opening profile dropdown
+    if (!isDropdownOpen && isLanguageDropdownOpen) {
+      setIsLanguageDropdownOpen(false)
+    }
+  }
 
   const languages = [
     { code: "en", name: "English", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Flag_of_the_United_States.png/1024px-Flag_of_the_United_States.png" },
@@ -91,8 +142,6 @@ const Dashboardlayout = () => {
     setIsLanguageDropdownOpen(false)
     console.log("Language selected:", language)
   }
-
-  const toggleDropdownMain = () => setIsDropdownOpen(!isDropdownOpen)
 
   const handleActivityLogClick = () => {
     setIsActivityLogModalOpen(true)
@@ -177,7 +226,6 @@ const Dashboardlayout = () => {
     }
   }
 
-
   return (
     <>
 
@@ -222,7 +270,8 @@ const Dashboardlayout = () => {
                   </div>
                 </div>
 
-                <div className="relative mr-2">
+                {/* Language Dropdown */}
+                <div className="relative mr-2" ref={languageDropdownRef}>
                   <button
                     onClick={toggleLanguageDropdown}
                     className="p-2 px-3 rounded-xl text-gray-400 bg-[#161616] cursor-pointer flex items-center gap-1"
@@ -249,50 +298,56 @@ const Dashboardlayout = () => {
                   )}
                 </div>
 
-                <div onClick={toggleDropdownMain} className="flex items-center gap-1 cursor-pointer">
-                  <img src="/gray-avatar-fotor-20250912192528.png" alt="Profile" className="w-9 h-9 rounded-lg" />
-                </div>
-                <div className="flex ml-2 items-center gap-1">
-                  <h2 className="font-semibold text-white text-md leading-tight">{fullName}</h2>
-                </div>
-                {isDropdownOpen && (
-                  <div className="absolute right-[980px] top-17 w-46 bg-[#222222]/50 backdrop-blur-3xl rounded-lg shadow-lg z-[90]  ">
-                    <div className="py-2" role="menu">
-                      <button
-                        onClick={handleEditProfile}
-                        className="block w-full px-4 py-2 text-sm text-white hover:bg-zinc-700 text-left"
-                      >
-                        Edit Profile
-                      </button>
-                      <hr className="border-zinc-600 my-1" />
-                      <button
-                        onClick={handlePrivacyPolicy}
-                        className="block w-full px-4 py-2 text-sm text-white hover:bg-zinc-700 text-left"
-                      >
-                        Privacy Policy
-                      </button>
-                      <button
-                        onClick={handleTermsOfUse}
-                        className="block w-full px-4 py-2 text-sm text-white hover:bg-zinc-700 text-left"
-                      >
-                        Terms & Conditions
-                      </button>
-                      <button
-                        onClick={handleChangelog}
-                        className="block w-full px-4 py-2 text-sm text-white hover:bg-zinc-700 text-left"
-                      >
-                        Changelog
-                      </button>
-                      <hr className="border-zinc-600 my-1" />
-                      <button
-                        onClick={handleLogout}
-                        className="block w-full px-4 py-2 text-xs text-white hover:bg-zinc-700 text-left"
-                      >
-                        Logout
-                      </button>
-                    </div>
+                {/* Profile Dropdown */}
+                <div className="relative" ref={profileDropdownRef}>
+                  <div className="flex items-center">
+
+                  <div onClick={toggleDropdownMain} className="flex items-center gap-1 cursor-pointer">
+                    <img src="/gray-avatar-fotor-20250912192528.png" alt="Profile" className="w-9 h-9 rounded-lg" />
                   </div>
-                )}
+                  <div className="flex ml-2 items-center gap-1">
+                    <h2 className="font-semibold text-white text-md leading-tight">{fullName}</h2>
+                  </div>
+                  </div>
+                  {isDropdownOpen && (
+                    <div className="absolute right-0 top-12 w-48 bg-[#222222]/50 backdrop-blur-3xl rounded-lg shadow-lg z-[90]">
+                      <div className="py-2" role="menu">
+                        <button
+                          onClick={handleEditProfile}
+                          className="block w-full px-4 py-2 text-sm text-white hover:bg-zinc-700 text-left"
+                        >
+                          Edit Profile
+                        </button>
+                        <hr className="border-zinc-600 my-1" />
+                        <button
+                          onClick={handlePrivacyPolicy}
+                          className="block w-full px-4 py-2 text-sm text-white hover:bg-zinc-700 text-left"
+                        >
+                          Privacy Policy
+                        </button>
+                        <button
+                          onClick={handleTermsOfUse}
+                          className="block w-full px-4 py-2 text-sm text-white hover:bg-zinc-700 text-left"
+                        >
+                          Terms & Conditions
+                        </button>
+                        <button
+                          onClick={handleChangelog}
+                          className="block w-full px-4 py-2 text-sm text-white hover:bg-zinc-700 text-left"
+                        >
+                          Changelog
+                        </button>
+                        <hr className="border-zinc-600 my-1" />
+                        <button
+                          onClick={handleLogout}
+                          className="block w-full px-4 py-2 text-xs text-white hover:bg-zinc-700 text-left"
+                        >
+                          Logout
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
 
               </div>
 
@@ -314,10 +369,10 @@ const Dashboardlayout = () => {
               {activityLogs.map((activity) => (
                 <div
                   key={activity.id}
-                  className={`border-l-4 ${getActivityColor(activity.type)} pl-4 py-3 bg-[#222222] rounded-r-lg`}
+                  className={` pl-4 py-3 bg-[#222222] rounded-r-lg`}
                 >
                   <div className="flex items-start gap-3">
-                    <span className="text-lg">{getActivityIcon(activity.type)}</span>
+                    {/* <span className="text-lg">{getActivityIcon(activity.type)}</span> */}
                     <div className="flex-1">
                       <div className="flex items-center justify-between">
                         <h4 className="font-semibold text-white">{activity.action}</h4>

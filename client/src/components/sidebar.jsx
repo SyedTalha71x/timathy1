@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
 import { MdOutlineHelpCenter, MdOutlineMessage } from "react-icons/md"
 import { FaNotesMedical, FaPeopleLine } from "react-icons/fa6"
@@ -60,6 +60,10 @@ const Sidebar = () => {
   const [isProductivityHubOpen, setIsProductivityHubOpen] = useState(false)
   const [isMemberAreaOpen, setIsMemberAreaOpen] = useState(false)
   const [isFitnessHubOpen, setIsFitnessHubOpen] = useState(false)
+
+  // Refs for dropdowns
+  const languageDropdownRef = useRef(null)
+  const profileDropdownRef = useRef(null)
 
   const languages = [
     { code: "en", name: "English", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/de/Flag_of_the_United_States.png/1024px-Flag_of_the_United_States.png" },
@@ -136,10 +140,75 @@ const Sidebar = () => {
   const location = useLocation()
   const navigate = useNavigate()
 
+  // Close dropdowns when clicking outside (for mobile)
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // Close language dropdown if clicked outside
+      if (isLanguageDropdownOpen &&
+        languageDropdownRef.current &&
+        !languageDropdownRef.current.contains(event.target)) {
+        setIsLanguageDropdownOpen(false)
+      }
+
+      // Close profile dropdown if clicked outside
+      if (isDropdownOpen &&
+        profileDropdownRef.current &&
+        !profileDropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false)
+      }
+    }
+
+    // Close other dropdown when one opens
+    const handleCloseOtherDropdown = () => {
+      if (isLanguageDropdownOpen && isDropdownOpen) {
+        setIsDropdownOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener('touchstart', handleClickOutside) // For mobile touch
+    handleCloseOtherDropdown()
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('touchstart', handleClickOutside)
+    }
+  }, [isLanguageDropdownOpen, isDropdownOpen])
+
+  // Close dropdowns on scroll (mobile only)
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.innerWidth < 1024) { // Mobile screens only
+        setIsLanguageDropdownOpen(false)
+        setIsDropdownOpen(false)
+      }
+    }
+
+    window.addEventListener('scroll', handleScroll)
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+    }
+  }, [])
+
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen)
   const toggleCollapse = () => setIsCollapsed(!isCollapsed)
-  const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen)
-  const toggleLanguageDropdown = () => setIsLanguageDropdownOpen(!isLanguageDropdownOpen)
+
+  const toggleDropdown = () => {
+    setIsDropdownOpen(!isDropdownOpen)
+    // Close language dropdown when opening profile dropdown
+    if (!isDropdownOpen && isLanguageDropdownOpen) {
+      setIsLanguageDropdownOpen(false)
+    }
+  }
+
+  const toggleLanguageDropdown = () => {
+    setIsLanguageDropdownOpen(!isLanguageDropdownOpen)
+    // Close profile dropdown when opening language dropdown
+    if (!isLanguageDropdownOpen && isDropdownOpen) {
+      setIsDropdownOpen(false)
+    }
+  }
+
   const toggleCommunication = () => setIsCommunicationOpen(!isCommunicationOpen)
   const toggleProductivityHub = () => setIsProductivityHubOpen(!isProductivityHubOpen)
   const toggleMemberArea = () => setIsMemberAreaOpen(!isMemberAreaOpen)
@@ -252,7 +321,7 @@ const Sidebar = () => {
     },
     {
       icon: ClipboardList,
-      label: "Productivity Hub",
+      label: "Productivity Area",
       to: "#",
       hasSubmenu: true,
       submenu: [
@@ -278,7 +347,7 @@ const Sidebar = () => {
     { icon: BadgeDollarSign, label: "Finances", to: "/dashboard/finances" },
     {
       icon: IoFitnessOutline,
-      label: "Fitness Hub",
+      label: "Fitness Area",
       to: "#",
       hasSubmenu: true,
       submenu: [
@@ -336,7 +405,7 @@ const Sidebar = () => {
           </button>
         </div>
 
-        <div className="flex gap-1 items-center">
+        <div className="flex gap-1 items-center relative">
           {/* Activity Log Icon for Mobile */}
           <button
             onClick={handleActivityLogClick}
@@ -346,7 +415,8 @@ const Sidebar = () => {
             <History size={18} />
           </button>
 
-          <div className="relative mr-1">
+          {/* Language Dropdown */}
+          <div className="relative mr-1" ref={languageDropdownRef}>
             <button
               onClick={toggleLanguageDropdown}
               className="p-2 px-3 rounded-xl text-gray-400 bg-[#161616] cursor-pointer flex items-center gap-1"
@@ -372,64 +442,67 @@ const Sidebar = () => {
             )}
           </div>
 
-          <div onClick={toggleDropdown} className="flex items-center cursor-pointer">
-            <img src="/gray-avatar-fotor-20250912192528.png" alt="Profile" className="w-7 h-7 rounded-md" />
-          </div>
+          {/* Profile Dropdown */}
+          <div className="relative" ref={profileDropdownRef}>
+            <div onClick={toggleDropdown} className="flex items-center cursor-pointer">
+              <img src="/gray-avatar-fotor-20250912192528.png" alt="Profile" className="w-7 h-7 rounded-md" />
+            </div>
 
-          {isDropdownOpen && (
-            <div className="absolute right-3 top-11 w-40 bg-[#222222]/50 backdrop-blur-3xl rounded-lg shadow-lg z-50">
-              <div className="p-1.5">
-                <div className="flex flex-col">
-                  {/* Trainer Name and Role */}
+            {isDropdownOpen && (
+              <div className="absolute right-0 top-11 w-40 bg-[#222222]/50 backdrop-blur-3xl rounded-lg shadow-lg z-50">
+                <div className="p-1.5">
                   <div className="flex flex-col">
-                    <h2 className="font-semibold text-white text-xs leading-tight">{fullName}</h2>
-                  </div>
+                    {/* Trainer Name and Role */}
+                    <div className="flex flex-col">
+                      <h2 className="font-semibold text-white text-xs leading-tight">{fullName}</h2>
+                    </div>
 
-                  {/* Studio Name */}
-                  <div className="flex items-center mt-2 gap-1 bg-black py-1 px-2 rounded w-fit">
-                    <Building2 size={12} className="text-white" />
-                    <p className="text-xs font-medium text-white">{studioName}</p>
+                    {/* Studio Name */}
+                    <div className="flex items-center mt-2 gap-1 bg-black py-1 px-2 rounded w-fit">
+                      <Building2 size={12} className="text-white" />
+                      <p className="text-xs font-medium text-white">{studioName}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Menu Items */}
-              <div className="py-1" role="menu">
-                <button
-                  onClick={handleEditProfile}
-                  className="block w-full px-3 py-1.5 text-xs text-white hover:bg-zinc-700 text-left"
-                >
-                  Edit Profile
-                </button>
-                <hr className="border-zinc-600 my-1" />
-                <button
-                  onClick={handlePrivacyPolicy}
-                  className="block w-full px-3 py-1.5 text-xs text-white hover:bg-zinc-700 text-left"
-                >
-                  Privacy Policy
-                </button>
-                <button
-                  onClick={handleTermsOfUse}
-                  className="block w-full px-3 py-1.5 text-xs text-white hover:bg-zinc-700 text-left"
-                >
-                  Terms & Conditions
-                </button>
-                <button
-                  onClick={handleChangelog}
-                  className="block w-full px-3 py-1.5 text-xs text-white hover:bg-zinc-700 text-left"
-                >
-                  Changelog
-                </button>
-                <hr className="border-zinc-600 my-1" />
-                <button
-                  onClick={handleLogout}
-                  className="block w-full px-3 py-1.5 text-xs text-white hover:bg-zinc-700 text-left"
-                >
-                  Logout
-                </button>
+                {/* Menu Items */}
+                <div className="py-1" role="menu">
+                  <button
+                    onClick={handleEditProfile}
+                    className="block w-full px-3 py-1.5 text-xs text-white hover:bg-zinc-700 text-left"
+                  >
+                    Edit Profile
+                  </button>
+                  <hr className="border-zinc-600 my-1" />
+                  <button
+                    onClick={handlePrivacyPolicy}
+                    className="block w-full px-3 py-1.5 text-xs text-white hover:bg-zinc-700 text-left"
+                  >
+                    Privacy Policy
+                  </button>
+                  <button
+                    onClick={handleTermsOfUse}
+                    className="block w-full px-3 py-1.5 text-xs text-white hover:bg-zinc-700 text-left"
+                  >
+                    Terms & Conditions
+                  </button>
+                  <button
+                    onClick={handleChangelog}
+                    className="block w-full px-3 py-1.5 text-xs text-white hover:bg-zinc-700 text-left"
+                  >
+                    Changelog
+                  </button>
+                  <hr className="border-zinc-600 my-1" />
+                  <button
+                    onClick={handleLogout}
+                    className="block w-full px-3 py-1.5 text-xs text-white hover:bg-zinc-700 text-left"
+                  >
+                    Logout
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
@@ -491,8 +564,8 @@ const Sidebar = () => {
                         onClick={() => {
                           if (item.label === "Communication") toggleCommunication();
                           if (item.label === "Member Area") toggleMemberArea();
-                          if (item.label === "Productivity Hub") toggleProductivityHub();
-                          if (item.label === "Fitness Hub") toggleFitnessHub();
+                          if (item.label === "Productivity Area") toggleProductivityHub();
+                          if (item.label === "Fitness Area") toggleFitnessHub();
                         }}
                         className={`flex items-center gap-3 text-sm px-4 py-2 open_sans_font text-zinc-200 relative w-full ${isCollapsed ? "justify-center" : "text-left"
                           } group transition-all duration-500 ${location.pathname.startsWith(item.to) && item.to !== "#"
@@ -525,8 +598,8 @@ const Sidebar = () => {
                               size={16}
                               className={`transition-transform ${(item.label === "Communication" && isCommunicationOpen) ||
                                 (item.label === "Member Area" && isMemberAreaOpen) ||
-                                (item.label === "Productivity Hub" && isProductivityHubOpen) ||
-                                (item.label === "Fitness Hub" && isFitnessHubOpen)
+                                (item.label === "Productivity Area" && isProductivityHubOpen) ||
+                                (item.label === "Fitness Area" && isFitnessHubOpen)
                                 ? "rotate-90"
                                 : ""
                                 }`}
@@ -538,8 +611,8 @@ const Sidebar = () => {
                       {/* Submenu */}
                       {((item.label === "Communication" && isCommunicationOpen) ||
                         (item.label === "Member Area" && isMemberAreaOpen) ||
-                        (item.label === "Productivity Hub" && isProductivityHubOpen) ||
-                        (item.label === "Fitness Hub" && isFitnessHubOpen)) && (
+                        (item.label === "Productivity Area" && isProductivityHubOpen) ||
+                        (item.label === "Fitness Area" && isFitnessHubOpen)) && (
                           <ul className={`${isCollapsed ? 'ml-0' : 'ml-2'} mt-1 space-y-2`}>
                             {item.submenu.map((subItem) => (
                               <li key={subItem.label}>
@@ -551,27 +624,32 @@ const Sidebar = () => {
                                       : `hover:text-white ${!isCollapsed && "hover:border-l-2 hover:border-white hover:pl-3"}`
                                     }`}
                                 >
+                                  
                                   <div className="relative flex items-center gap-3">
-                                    {/* L-shaped indicator */}
-                                    <div className="relative">
-                                      <div className={`w-4 h-4 flex items-center justify-center ${location.pathname === subItem.to ? "text-white" : "text-zinc-400 group-hover:text-white"}`}>
-                                        <div className={`absolute left-0 top-0 w-0.5 h-2.5 ${location.pathname === subItem.to ? "bg-white" : "bg-zinc-400 group-hover:bg-white"} rounded-full`}></div>
-                                        <div className={`absolute left-0 top-0 w-2.5 h-0.5 ${location.pathname === subItem.to ? "bg-white" : "bg-zinc-400 group-hover:bg-white"} rounded-full`}></div>
-                                      </div>
-                                    </div>
-                                    <subItem.icon
-                                      size={20}
-                                      className={`cursor-pointer ${location.pathname === subItem.to
-                                        ? "text-white"
-                                        : "text-zinc-400 group-hover:text-white"
-                                        }`}
-                                    />
-                                    {subItem.label === "Messenger" && (
-                                      <span className="absolute -top-1 -right-2 bg-orange-600 text-white text-[10px] px-1.5 py-0.5 rounded-full z-10">
-                                        {unreadMessages}
-                                      </span>
-                                    )}
-                                  </div>
+              {/* Proper L-shape: Vertical line on left, Horizontal line at bottom */}
+              <div className="relative">
+                <div className={`w-5 h-5 flex items-center justify-center ${location.pathname === subItem.to ? "text-white" : "text-zinc-400 group-hover:text-white"}`}>
+                  {/* Left vertical line - full height */}
+                  <div className={`absolute left-0 top-0 w-0.5 h-full ${location.pathname === subItem.to ? "bg-white" : "bg-zinc-400 group-hover:bg-white"} rounded-full`}></div>
+                  {/* Bottom horizontal line - bottom se shuru */}
+                  <div className={`absolute left-0 bottom-0 w-2.5 h-0.5 ${location.pathname === subItem.to ? "bg-white" : "bg-zinc-400 group-hover:bg-white"} rounded-full`}></div>
+                </div>
+              </div>
+              
+              <subItem.icon
+                size={20}
+                className={`cursor-pointer ${location.pathname === subItem.to
+                  ? "text-white"
+                  : "text-zinc-400 group-hover:text-white"
+                  }`}
+              />
+              
+              {subItem.label === "Messenger" && (
+                <span className="absolute -top-1 -right-2 bg-orange-600 text-white text-[10px] px-1.5 py-0.5 rounded-full z-10">
+                  {unreadMessages}
+                </span>
+              )}
+            </div>
                                   {!isCollapsed && <span>{subItem.label}</span>}
                                 </button>
                               </li>
@@ -644,12 +722,12 @@ const Sidebar = () => {
               {activityLogs.map((activity) => (
                 <div
                   key={activity.id}
-                  className={`border-l-4 ${getActivityColor(activity.type)} pl-3 md:pl-4 py-2 md:py-3 bg-[#222222] rounded-r-lg mx-1 md:mx-0`}
+                  className={` pl-3 md:pl-4 py-2 md:py-3 bg-[#222222] rounded-r-lg mx-1 md:mx-0`}
                 >
                   <div className="flex items-start gap-2 md:gap-3">
-                    <span className="text-base md:text-lg mt-0.5 flex-shrink-0">
+                    {/* <span className="text-base md:text-lg mt-0.5 flex-shrink-0">
                       {getActivityIcon(activity.type)}
-                    </span>
+                    </span> */}
                     <div className="flex-1 min-w-0"> {/* min-w-0 prevents flex overflow */}
                       <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-1 xs:gap-2">
                         <h4 className="font-semibold text-white text-sm md:text-base truncate">

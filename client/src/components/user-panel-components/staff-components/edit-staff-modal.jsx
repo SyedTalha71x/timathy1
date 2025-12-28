@@ -2,6 +2,7 @@
 import { X, Info } from "lucide-react"
 import { useState } from "react"
 import toast from "react-hot-toast"
+import useCountries from "../../../hooks/useCountries";
 
 function EditStaffModal({
   staff,
@@ -12,6 +13,7 @@ function EditStaffModal({
   handleRemovalStaff,
 }) {
   const [activeTab, setActiveTab] = useState("details")
+  const { countries, loading } = useCountries();
   const [editedStaff, setEditedStaff] = useState({
     ...staff,
     about: staff.description || staff.about || "", // Handle both field names
@@ -83,8 +85,8 @@ function EditStaffModal({
               Change picture
             </label>
           </div>
-           {/* Staff Identification Color Field */}
-           <div>
+          {/* Staff Identification Color Field */}
+          <div>
             <label className="text-sm text-gray-200 block mb-2">Staff Identification Color</label>
             <div className="flex items-center gap-3">
               <input
@@ -205,14 +207,24 @@ function EditStaffModal({
           </div>
           <div>
             <label className="text-sm text-gray-200 block mb-2">Country</label>
-            <input
-              type="text"
+            <select
               name="country"
               value={editedStaff.country}
               onChange={handleInputChange}
               className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
               required
-            />
+            >
+              <option value="">Select a country</option>
+              {loading ? (
+                <option value="" disabled>Loading countries...</option>
+              ) : (
+                countries.map((country) => (
+                  <option key={country.code} value={country.name}>
+                    {country.name}
+                  </option>
+                ))
+              )}
+            </select>
           </div>
           <div>
             <label className="text-sm text-gray-200 block mb-2">Role</label>
@@ -229,8 +241,8 @@ function EditStaffModal({
               <option value="employee">Employee</option>
             </select>
           </div>
-          
-         
+
+
 
           {/* Vacation Entitlement with Info Icon */}
           <div>
@@ -342,17 +354,15 @@ function EditStaffModal({
           <div className="flex border-b border-gray-700 mb-6">
             <button
               onClick={() => setActiveTab("details")}
-              className={`px-4 py-2 text-sm font-medium transition-colors ${
-                activeTab === "details" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400 hover:text-white"
-              }`}
+              className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === "details" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400 hover:text-white"
+                }`}
             >
               Details
             </button>
             <button
               onClick={() => setActiveTab("access")}
-              className={`px-4 py-2 text-sm font-medium transition-colors ${
-                activeTab === "access" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400 hover:text-white"
-              }`}
+              className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === "access" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400 hover:text-white"
+                }`}
             >
               Access Data
             </button>
