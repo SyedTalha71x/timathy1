@@ -6,9 +6,6 @@ import { useEffect, useState } from "react"
 import CancelSaleConfirmationModal from "./cancel-sale-confirmation-modal"
 import InvoicePreviewModal from "./invoice-preview-modal"
 
-
-
-
 const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice, salesFilter, setSalesFilter }) => {
   const [filteredSales, setFilteredSales] = useState(salesHistory)
   const [saleToCancel, setSaleToCancel] = useState(null)

@@ -146,7 +146,19 @@ const ConfigurationPage = () => {
   const [tags, setTags] = useState([])
 
 
-  const [introductoryMaterials, setIntroductoryMaterials] = useState([])
+  const [introductoryMaterials, setIntroductoryMaterials] = useState([
+    {
+      id: 1,
+      name: "Welcome Guide",
+      pages: [
+        {
+          id: 1,
+          content: "Welcome to our studio! We're excited to have you join us.",
+          elements: []
+        }
+      ]
+    }
+  ])
   const [editingCategory, setEditingCategory] = useState({ index: null, value: "" })
 
   const [defaultStaffRole, setDefaultStaffRole] = useState(null);
@@ -265,6 +277,7 @@ const ConfigurationPage = () => {
       sendApp: false,
       sendEmail: false,
       hoursBefore: 24,
+      hasFormatting: true,
     },
     cancellation: {
       enabled: false,
@@ -272,6 +285,7 @@ const ConfigurationPage = () => {
       sendApp: false,
       sendEmail: false,
       hoursBefore: 24,
+      hasFormatting: true,
     },
     rescheduled: {
       enabled: false,
@@ -279,6 +293,7 @@ const ConfigurationPage = () => {
       sendApp: false,
       sendEmail: false,
       hoursBefore: 24,
+      hasFormatting: true,
     },
     reminder: {
       enabled: false,
@@ -286,7 +301,16 @@ const ConfigurationPage = () => {
       sendApp: false,
       sendEmail: false,
       hoursBefore: 24,
+      hasFormatting: true,
     },
+    // <NEW> Add registration notification
+    registration: {
+      enabled: false,
+      template: "",
+      sendApp: false,
+      sendEmail: false,
+      hasFormatting: true,
+    }
   })
 
   const birthdayTextareaRef = useRef(null)
@@ -294,56 +318,16 @@ const ConfigurationPage = () => {
   const cancellationTextareaRef = useRef(null)
   const rescheduledTextareaRef = useRef(null)
   const reminderTextareaRef = useRef(null)
+  const registrationTextareaRef = useRef(null) // <NEW> Add this line
 
-  // <CHANGE> Old Communication Settings (keeping for compatibility)
-  const [autoArchiveDuration, setAutoArchiveDuration] = useState(30)
-  const [emailNotifications, setEmailNotifications] = useState(true)
-  const [chatNotifications, setChatNotifications] = useState(true)
-  const [emailSignature, setEmailSignature] = useState("Best regards,\n{Studio_Name} Team")
-  const [broadcastEmail, setBroadcastEmail] = useState(true)
-  const [broadcastChat, setBroadcastChat] = useState(true)
-
-  const [birthdayMessage, setBirthdayMessage] = useState({
-    enabled: false,
-    message: "Happy Birthday! 🎉 Best wishes from {Studio_Name}",
-  })
-
+ 
   const [trialTraining, setTrialTraining] = useState({
     name: "Trial Training",
     duration: 60,
     capacity: 1,
     color: "#1890ff",
   })
-  const [broadcastMessages, setBroadcastMessages] = useState([
-    {
-      title: "",
-      message: "",
-      sendVia: ["email", "platform"],
-    },
-  ])
-  const [appointmentNotifications, setAppointmentNotifications] = useState([
-    {
-      type: "booking",
-      title: "Appointment Confirmation",
-      message: "Hello {Member_Name}, your {Appointment_Type} has been booked for {Booked_Time}.",
-      sendVia: ["email", "platform"],
-      enabled: true,
-    },
-    {
-      type: "cancellation",
-      title: "Appointment Cancellation",
-      message: "Hello {Member_Name}, your {Appointment_Type} scheduled for {Booked_Time} has been cancelled.",
-      sendVia: ["email", "platform"],
-      enabled: true,
-    },
-    {
-      type: "rescheduled",
-      title: "Appointment Rescheduled",
-      message: "Hello {Member_Name}, your {Appointment_Type} has been rescheduled to {Booked_Time}.",
-      sendVia: ["email", "platform"],
-      enabled: true,
-    },
-  ])
+
   const [emailConfig, setEmailConfig] = useState({
     smtpServer: "",
     smtpPort: 587,
@@ -411,13 +395,17 @@ const ConfigurationPage = () => {
       sendApp: bool(t.sendApp, false),
       sendEmail: bool(t.sendEmail, false),
       hoursBefore: typeof t.hoursBefore === "number" ? t.hoursBefore : 24,
+      hasFormatting: t.hasFormatting !== undefined ? t.hasFormatting : true,
     }
   }
+  
 
   const conf = getType("confirmation")
   const canc = getType("cancellation")
   const resch = getType("rescheduled")
   const reminder = getType("reminder")
+  const registration = getType("registration") 
+
 
   // <CHANGE> Handle save settings
   const handleSaveSettings = () => {
@@ -642,7 +630,7 @@ const ConfigurationPage = () => {
 
   const handleUpdateRole = (index, field, value) => {
     const updatedRoles = [...roles];
-    
+
     // Check for duplicate names (applies to all roles including Admin)
     if (field === "name" && value.trim()) {
       const duplicate = roles.find((role, i) => i !== index && role.name.toLowerCase() === value.toLowerCase().trim());
@@ -654,7 +642,7 @@ const ConfigurationPage = () => {
         return;
       }
     }
-    
+
     updatedRoles[index][field] = value;
     setRoles(updatedRoles);
   };
@@ -1056,19 +1044,6 @@ const ConfigurationPage = () => {
     });
   };
 
-  const handleEditContractFormName = (formId, newName) => {
-    if (!newName.trim()) {
-      notification.error({
-        message: "Error",
-        description: "Contract form name cannot be empty",
-      });
-      return;
-    }
-
-    setContractForms(contractForms.map(form =>
-      form.id === formId ? { ...form, name: newName.trim() } : form
-    ));
-  };
 
   const openContractBuilder = (form) => {
     setSelectedContractForm(form);
@@ -1080,6 +1055,129 @@ const ConfigurationPage = () => {
       form.id === selectedContractForm.id ? updatedForm : form
     ));
     setSelectedContractForm(updatedForm);
+  };
+
+
+  // Drag and drop handlers
+  const handleDragStart = (materialIndex, pageIndex, elementIndex, e) => {
+    e.dataTransfer.setData('text/plain', JSON.stringify({
+      materialIndex,
+      pageIndex,
+      elementIndex
+    }));
+  };
+
+  const handleDrop = (materialIndex, pageIndex, e) => {
+    e.preventDefault();
+    const data = e.dataTransfer.getData('text/plain');
+    if (data) {
+      const { materialIndex: sourceMaterialIndex, pageIndex: sourcePageIndex, elementIndex } = JSON.parse(data);
+
+      if (sourceMaterialIndex === materialIndex && sourcePageIndex === pageIndex) {
+        // Same page, handle reordering
+        const updatedMaterials = [...introductoryMaterials];
+        const element = updatedMaterials[sourceMaterialIndex].pages[sourcePageIndex].elements[elementIndex];
+
+        // Remove from source
+        updatedMaterials[sourceMaterialIndex].pages[sourcePageIndex].elements.splice(elementIndex, 1);
+
+        // Add to current position (end for simplicity, you can calculate drop position)
+        if (!updatedMaterials[materialIndex].pages[pageIndex].elements) {
+          updatedMaterials[materialIndex].pages[pageIndex].elements = [];
+        }
+        updatedMaterials[materialIndex].pages[pageIndex].elements.push(element);
+
+        setIntroductoryMaterials(updatedMaterials);
+      }
+    }
+  };
+
+  // Image upload handler
+  const handleImageUpload = (materialIndex, pageIndex, file) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const updatedMaterials = [...introductoryMaterials];
+      if (!updatedMaterials[materialIndex].pages[pageIndex].elements) {
+        updatedMaterials[materialIndex].pages[pageIndex].elements = [];
+      }
+      updatedMaterials[materialIndex].pages[pageIndex].elements.push({
+        type: 'image',
+        content: e.target.result
+      });
+      setIntroductoryMaterials(updatedMaterials);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Element removal
+  const handleRemoveElement = (materialIndex, pageIndex, elementIndex) => {
+    const updatedMaterials = [...introductoryMaterials];
+    updatedMaterials[materialIndex].pages[pageIndex].elements.splice(elementIndex, 1);
+    setIntroductoryMaterials(updatedMaterials);
+  };
+
+  // Text formatting
+  const applyFormat = (materialIndex, pageIndex, format, value) => {
+    // This is a simplified version - you might want to use a proper rich text editor
+    const textarea = document.querySelector(`[data-material="${materialIndex}"][data-page="${pageIndex}"]`);
+    if (textarea) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const selectedText = textarea.value.substring(start, end);
+
+      let formattedText = '';
+      switch (format) {
+        case 'bold':
+          formattedText = `<strong>${selectedText}</strong>`;
+          break;
+        case 'italic':
+          formattedText = `<em>${selectedText}</em>`;
+          break;
+        case 'underline':
+          formattedText = `<u>${selectedText}</u>`;
+          break;
+        case 'fontSize':
+          formattedText = `<span style="font-size: ${value}">${selectedText}</span>`;
+          break;
+        case 'color':
+          formattedText = `<span style="color: ${value}">${selectedText}</span>`;
+          break;
+        default:
+          formattedText = selectedText;
+      }
+
+      const newValue = textarea.value.substring(0, start) + formattedText + textarea.value.substring(end);
+      handleUpdatePageContent(materialIndex, pageIndex, newValue);
+    }
+  };
+
+  // Page navigation
+  const handlePreviousPage = (materialIndex, currentPageIndex) => {
+    if (currentPageIndex > 0) {
+      // Scroll to previous page element
+      const prevPageElement = document.getElementById(`page-${materialIndex}-${currentPageIndex - 1}`);
+      if (prevPageElement) {
+        prevPageElement.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
+
+  const handleNextPage = (materialIndex, currentPageIndex) => {
+    const material = introductoryMaterials[materialIndex];
+    if (currentPageIndex < material.pages.length - 1) {
+      // Scroll to next page element
+      const nextPageElement = document.getElementById(`page-${materialIndex}-${currentPageIndex + 1}`);
+      if (nextPageElement) {
+        nextPageElement.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
+
+  const handleGoToPage = (materialIndex, pageIndex) => {
+    const pageElement = document.getElementById(`page-${materialIndex}-${pageIndex}`);
+    if (pageElement) {
+      pageElement.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   return (
@@ -1335,86 +1433,6 @@ const ConfigurationPage = () => {
                     })}
                   </div>
 
-                  {/* Legacy opening hours manager (keep for existing data) */}
-                  {/* <div className="mt-6 pt-4 border-t border-[#303030]">
-                    <h4 className="text-white mb-3">Additional Time Slots</h4>
-                    {openingHours
-                      .filter(hour => !hour.closed && hour.startTime && hour.endTime)
-                      .map((hour, index) => (
-                        <div key={index} className="flex flex-wrap gap-4 items-center mb-3">
-                          <Select
-                            placeholder="Select day"
-                            value={hour.day}
-                            onChange={(value) => {
-                              // Check if day already exists
-                              const dayExists = openingHours.some(h => h.day === value && !h.closed);
-                              if (dayExists) {
-                                notification.warning({
-                                  message: "Duplicate Day",
-                                  description: `${value} is already configured. Please edit the existing entry.`,
-                                });
-                                return;
-                              }
-
-                              const updatedHours = [...openingHours];
-                              updatedHours[index].day = value;
-                              setOpeningHours(updatedHours);
-                            }}
-                            className="w-full sm:w-40"
-                            style={selectStyle}
-                          >
-                            {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"].map((day) => (
-                              <Option key={day} value={day} disabled={openingHours.some(h => h.day === day && !h.closed && h !== hour)}>
-                                {day}
-                              </Option>
-                            ))}
-                          </Select>
-                          <TimePicker
-                            format="HH:mm"
-                            placeholder="Start Time"
-                            value={hour.startTime}
-                            onChange={(time) => {
-                              const updatedHours = [...openingHours];
-                              updatedHours[index].startTime = time;
-                              setOpeningHours(updatedHours);
-                            }}
-                            className="w-full sm:w-32 white-text"
-                            style={inputStyle}
-                          />
-                          <TimePicker
-                            format="HH:mm"
-                            placeholder="End Time"
-                            value={hour.endTime}
-                            onChange={(time) => {
-                              const updatedHours = [...openingHours];
-                              updatedHours[index].endTime = time;
-                              setOpeningHours(updatedHours);
-                            }}
-                            className="w-full sm:w-32 white-text"
-                            style={inputStyle}
-                          />
-                          <Button
-                            danger
-                            icon={<DeleteOutlined />}
-                            onClick={() => handleRemoveOpeningHour(index)}
-                            className="w-full sm:w-auto"
-                            style={buttonStyle}
-                          >
-                            Remove
-                          </Button>
-                        </div>
-                      ))}
-
-                    <Button
-                      type="dashed"
-                      onClick={handleAddOpeningHour}
-                      icon={<PlusOutlined />}
-                      className="w-full sm:w-auto"
-                      style={buttonStyle}
-                    >
-                      Add Additional Time Slot
-                    </Button>
-                  </div> */}
                 </div>
               </Panel>
               <Panel header="Closing Days" key="3" className="bg-[#202020]">
@@ -1523,7 +1541,158 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                   </Panel>
                   <Panel header="Appointment Types" key="1" className="bg-[#252525]">
                     <div className="space-y-4">
-                      {/* Categories Management */}
+                      {/* Appointment Types List */}
+                      {appointmentTypes.map((type, index) => (
+                        <div key={index} className="flex flex-col gap-4 p-4 border border-[#303030] rounded-lg">
+                          <div className="flex flex-wrap gap-4 items-center">
+                            {/* Name Field */}
+                            <div className="flex flex-col">
+                              <label className="text-white text-xs mb-1">Appointment Name</label>
+                              <Input
+                                placeholder="Appointment Type Name"
+                                value={type.name}
+                                onChange={(e) => handleUpdateAppointmentType(index, "name", e.target.value)}
+                                className="!w-full md:!w-32 lg:!w-90 !py-3.5 white-text"
+                                style={inputStyle}
+                              />
+                            </div>
+
+                            {/* Category Select */}
+                            <div className="flex flex-col">
+                              <label className="text-white text-xs mb-1">Category</label>
+                              <Select
+                                placeholder="Select Category"
+                                value={type.category}
+                                onChange={(value) => handleUpdateAppointmentType(index, "category", value)}
+                                className="w-full sm:w-40"
+                                style={selectStyle}
+                                allowClear
+                              >
+                                {appointmentCategories.map((category) => (
+                                  <Option key={category} value={category}>
+                                    {category}
+                                  </Option>
+                                ))}
+                              </Select>
+                            </div>
+
+                            {/* Duration Field */}
+                            <div className="flex flex-col">
+                              <label className="text-white text-xs mb-1">Duration (min)</label>
+                              <div className="flex items-center">
+                                <InputNumber
+                                  placeholder="Duration"
+                                  value={type.duration}
+                                  onChange={(value) => handleUpdateAppointmentType(index, "duration", value)}
+                                  className="w-full sm:w-20 md:w-16 lg:w-18 white-text"
+                                  style={inputStyle}
+                                />
+                                <Tooltip title="Duration in minutes">
+                                  <InfoCircleOutlined style={tooltipStyle} />
+                                </Tooltip>
+                              </div>
+                            </div>
+
+                            {/* Capacity Field */}
+                            <div className="flex flex-col">
+                              <label className="text-white text-xs mb-1">Capacity</label>
+                              <div className="flex items-center">
+                                <InputNumber
+                                  placeholder="Capacity"
+                                  value={type.capacity}
+                                  onChange={(value) => handleUpdateAppointmentType(index, "capacity", value)}
+                                  className="w-full sm:w-20 md:w-16 lg:w-18 white-text"
+                                  style={inputStyle}
+                                />
+                                <Tooltip title="If the total capacity is set to 3 and this appointment type's capacity is 1, then up to 3 appointments of this type can be booked in parallel.">
+                                  <InfoCircleOutlined style={tooltipStyle} />
+                                </Tooltip>
+                              </div>
+                            </div>
+
+                            {/* Color Field */}
+                            <div className="flex flex-col mt-5">
+                              {/* <label className="text-white text-xs mb-1">Calendar Color</label> */}
+                              <div className="flex items-center">
+                                <ColorPicker
+                                  value={type.color}
+                                  onChange={(color) => handleUpdateAppointmentType(index, "color", color)}
+                                />
+                                <Tooltip title="Appointment Calendar display color">
+                                  <InfoCircleOutlined style={tooltipStyle} />
+                                </Tooltip>
+                              </div>
+                            </div>
+
+                            {/* Interval Field */}
+                            <div className="flex flex-col">
+                              <label className="text-white text-xs mb-1">Interval</label>
+                              <div className="flex items-center">
+                                <InputNumber
+                                  placeholder="Interval"
+                                  value={type.interval}
+                                  onChange={(value) => handleUpdateAppointmentType(index, "interval", value)}
+                                  className="w-full sm:w-20 md:w-16 lg:w-18 white-text"
+                                  style={inputStyle}
+                                />
+                                <Tooltip title="The interval defines the allowed start times for bookings. For example, with a 15-minute interval, bookings can start at times like 10:15; with a 30-minute interval at times like 10:30; and with a 60-minute interval only on full hours such as 11:00.">
+                                  <InfoCircleOutlined style={tooltipStyle} />
+                                </Tooltip>
+                              </div>
+                            </div>
+
+                            {/* Remove Button */}
+                            <div className="flex flex-col">
+                              <label className="text-white text-xs mb-1 opacity-0">Action</label>
+                              <Button
+                                danger
+                                icon={<DeleteOutlined />}
+                                onClick={() => handleRemoveAppointmentType(index)}
+                                className="w-full sm:w-auto"
+                                style={buttonStyle}
+                              >
+                                Remove
+                              </Button>
+                            </div>
+                          </div>
+
+                          {/* Image Upload with Info Tooltip */}
+                          <div className="flex flex-col">
+                            <label className="text-white text-xs mb-1">Appointment Images</label>
+                            <Form.Item>
+                              <div className="flex items-center">
+                                <Upload
+                                  accept="image/*"
+                                  multiple
+                                  fileList={type.images}
+                                  onChange={({ fileList }) => handleUpdateAppointmentTypeImages(index, fileList)}
+                                  listType="picture"
+                                >
+                                  <Button icon={<UploadOutlined />} style={buttonStyle}>
+                                    Upload Images
+                                  </Button>
+                                </Upload>
+                                <Tooltip title="The image will later be shown in the appointment booking of the members">
+                                  <InfoCircleOutlined style={{ ...tooltipStyle, color: "#FF843E" }} />
+                                </Tooltip>
+                              </div>
+                            </Form.Item>
+                          </div>
+                        </div>
+                      ))}
+                      <Button
+                        type="dashed"
+                        onClick={handleAddAppointmentType}
+                        icon={<PlusOutlined />}
+                        className="w-full sm:w-auto"
+                        style={buttonStyle}
+                      >
+                        Add Appointment Type
+                      </Button>
+                    </div>
+                  </Panel>
+                  <Panel header="Appointment Categories" key="4" className="bg-[#202020]">
+                    <div className="space-y-4">
                       <div className="mb-6 p-4 border border-[#303030] rounded-lg">
                         <div className="flex justify-between items-center mb-4">
                           <h4 className="text-white text-lg">Appointment Categories</h4>
@@ -1583,124 +1752,13 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                         </div>
                       </div>
 
-                      {/* Appointment Types List */}
-                      {appointmentTypes.map((type, index) => (
-                        <div key={index} className="flex flex-col gap-4 p-4 border border-[#303030] rounded-lg">
-                          <div className="flex flex-wrap gap-4 items-center">
-                            <Row>
-                              <Input
-                                placeholder="Appointment Type Name"
-                                value={type.name}
-                                onChange={(e) => handleUpdateAppointmentType(index, "name", e.target.value)}
-                                className="!w-full md:!w-32 lg:!w-90 !py-3.5 white-text"
-                                style={inputStyle}
-                              />
-                            </Row>
-
-                            {/* Category Select */}
-                            <Select
-                              placeholder="Select Category"
-                              value={type.category}
-                              onChange={(value) => handleUpdateAppointmentType(index, "category", value)}
-                              className="w-full sm:w-40"
-                              style={selectStyle}
-                              allowClear
-                            >
-                              {appointmentCategories.map((category) => (
-                                <Option key={category} value={category}>
-                                  {category}
-                                </Option>
-                              ))}
-                            </Select>
-
-                            <div className="flex items-center">
-                              <InputNumber
-                                placeholder="Duration"
-                                value={type.duration}
-                                onChange={(value) => handleUpdateAppointmentType(index, "duration", value)}
-                                className="w-full sm:w-20 md:w-16 lg:w-18 white-text"
-                                style={inputStyle}
-                              />
-                              <Tooltip title="Duration in minutes">
-                                <InfoCircleOutlined style={tooltipStyle} />
-                              </Tooltip>
-                            </div>
-                            <div className="flex items-center">
-                              <InputNumber
-                                placeholder="Capacity"
-                                value={type.capacity}
-                                onChange={(value) => handleUpdateAppointmentType(index, "capacity", value)}
-                                className="w-full sm:w-20 md:w-16 lg:w-18 white-text"
-                                style={inputStyle}
-                              />
-                              <Tooltip title="If the total capacity is set to 3 and this appointment type's capacity is 1, then up to 3 appointments of this type can be booked in parallel.">
-                                <InfoCircleOutlined style={tooltipStyle} />
-                              </Tooltip>
-                            </div>
-                            <div className="flex items-center">
-                              <ColorPicker
-                                value={type.color}
-                                onChange={(color) => handleUpdateAppointmentType(index, "color", color)}
-                              />
-                              <Tooltip title="Appointment Calendar display color">
-                                <InfoCircleOutlined style={tooltipStyle} />
-                              </Tooltip>
-                            </div>
-                            <div className="flex items-center">
-                              <InputNumber
-                                placeholder="Interval"
-                                value={type.interval}
-                                onChange={(value) => handleUpdateAppointmentType(index, "interval", value)}
-                                className="w-full sm:w-20 md:w-16 lg:w-18 white-text"
-                                style={inputStyle}
-                              />
-                              <Tooltip title="The interval defines the allowed start times for bookings. For example, with a 15-minute interval, bookings can start at times like 10:15; with a 30-minute interval at times like 10:30; and with a 60-minute interval only on full hours such as 11:00.">
-                                <InfoCircleOutlined style={tooltipStyle} />
-                              </Tooltip>
-                            </div>
-                            <Button
-                              danger
-                              icon={<DeleteOutlined />}
-                              onClick={() => handleRemoveAppointmentType(index)}
-                              className="w-full sm:w-auto"
-                              style={buttonStyle}
-                            >
-                              Remove
-                            </Button>
-                          </div>
-
-                          {/* Image Upload with Info Tooltip */}
-                          <Form.Item label={
-                            <div className="flex items-center">
-                              <span className="text-white">Upload Images</span>
-                              <Tooltip title="The image will later be shown in the appointment booking of the members">
-                                <InfoCircleOutlined style={{ ...tooltipStyle, color: "#FF843E" }} />
-                              </Tooltip>
-                            </div>
-                          }>
-                            <Upload
-                              accept="image/*"
-                              multiple
-                              fileList={type.images}
-                              onChange={({ fileList }) => handleUpdateAppointmentTypeImages(index, fileList)}
-                              listType="picture"
-                            >
-                              <Button icon={<UploadOutlined />} style={buttonStyle}>
-                                Upload Images
-                              </Button>
-                            </Upload>
-                          </Form.Item>
-                        </div>
-                      ))}
-                      <Button
-                        type="dashed"
-                        onClick={handleAddAppointmentType}
-                        icon={<PlusOutlined />}
-                        className="w-full sm:w-auto"
-                        style={buttonStyle}
-                      >
-                        Add Appointment Type
-                      </Button>
+                      <Alert
+                        message="Usage Note"
+                        description="Categories can be assigned to appointment types. Categories that are currently in use cannot be deleted."
+                        type="info"
+                        showIcon
+                        style={{ backgroundColor: "#202020", border: "1px solid #303030" }}
+                      />
                     </div>
                   </Panel>
                   <Panel header="Trial Training Settings" key="2" className="bg-[#252525]">
@@ -1990,52 +2048,7 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                   )}
                 </div>
               </Panel>
-              {/* <Panel header="TO-DO" key="4" className="bg-[#202020]">
-                <div className="space-y-4">
-                  <h3 className="text-lg text-white font-medium">To-Do Tags</h3>
-                  {tags.map((tag, index) => (
-                    <div key={index} className="flex flex-wrap gap-4 items-center">
-                      <Input
-                        placeholder="Tag Name"
-                        value={tag.name}
-                        onChange={(e) => {
-                          const updatedTags = [...tags]
-                          updatedTags[index].name = e.target.value
-                          setTags(updatedTags)
-                        }}
-                        className="!w-full md:!w-32 lg:!w-90 !py-3"
-                        style={inputStyle}
-                      />
-                      <ColorPicker
-                        value={tag.color}
-                        onChange={(color) => {
-                          const updatedTags = [...tags]
-                          updatedTags[index].color = color
-                          setTags(updatedTags)
-                        }}
-                      />
-                      <Button
-                        danger
-                        icon={<DeleteOutlined />}
-                        onClick={() => setTags(tags.filter((_, i) => i !== index))}
-                        className="w-full sm:w-auto"
-                        style={buttonStyle}
-                      >
-                        Remove
-                      </Button>
-                    </div>
-                  ))}
-                  <Button
-                    type="dashed"
-                    onClick={handleAddTag}
-                    icon={<PlusOutlined />}
-                    className="w-full sm:w-auto"
-                    style={buttonStyle}
-                  >
-                    Add Tag
-                  </Button>
-                </div>
-              </Panel> */}
+
               <Panel header="Introductory Materials" key="5" className="bg-[#202020]">
                 <div className="space-y-4">
                   {introductoryMaterials.map((material, materialIndex) => (
@@ -2088,13 +2101,125 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                   )}
                                 </div>
 
-                                <Form.Item label={<span className="text-white">Page Content</span>}>
+                                {/* PowerPoint-like Presentation Interface */}
+                                <div className="bg-white rounded-lg overflow-hidden flex flex-col mb-4">
+                                  {/* Presentation Header */}
+                                  <div className="bg-gray-100 px-6 py-3 border-b flex justify-between items-center">
+                                    <div className="text-gray-700 font-medium">
+                                      Page {pageIndex + 1} of {material.pages.length}
+                                    </div>
+                                    <div className="flex gap-2">
+                                      <Button
+                                        size="small"
+                                        onClick={() => handlePreviousPage(materialIndex, pageIndex)}
+                                        disabled={pageIndex === 0}
+                                        style={buttonStyle}
+                                      >
+                                        Previous
+                                      </Button>
+                                      <Button
+                                        size="small"
+                                        onClick={() => handleNextPage(materialIndex, pageIndex)}
+                                        disabled={pageIndex === material.pages.length - 1}
+                                        style={buttonStyle}
+                                      >
+                                        Next
+                                      </Button>
+                                    </div>
+                                  </div>
+
+                                  {/* Presentation Content - Drag & Drop Area */}
+                                  <div className="flex-1 p-8 flex flex-col items-center justify-center min-h-[300px]">
+                                    <div
+                                      className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-8 w-full max-w-2xl text-center min-h-[200px]"
+                                      onDragOver={(e) => e.preventDefault()}
+                                      onDrop={(e) => handleDrop(materialIndex, pageIndex, e)}
+                                    >
+                                      {page.elements && page.elements.length > 0 ? (
+                                        <div className="space-y-4">
+                                          {page.elements.map((element, elIndex) => (
+                                            <div
+                                              key={elIndex}
+                                              className="relative group"
+                                              draggable
+                                              onDragStart={(e) => handleDragStart(materialIndex, pageIndex, elIndex, e)}
+                                            >
+                                              {element.type === 'image' ? (
+                                                <div className="relative">
+                                                  <img
+                                                    src={element.content}
+                                                    alt="Uploaded"
+                                                    className="max-w-full max-h-64 mx-auto rounded"
+                                                  />
+                                                  <button
+                                                    onClick={() => handleRemoveElement(materialIndex, pageIndex, elIndex)}
+                                                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                                  >
+                                                    ×
+                                                  </button>
+                                                </div>
+                                              ) : (
+                                                <div className="relative">
+                                                  <div className="text-gray-800 p-4 bg-white rounded border">
+                                                    {element.content}
+                                                  </div>
+                                                  <button
+                                                    onClick={() => handleRemoveElement(materialIndex, pageIndex, elIndex)}
+                                                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                                  >
+                                                    ×
+                                                  </button>
+                                                </div>
+                                              )}
+                                            </div>
+                                          ))}
+                                        </div>
+                                      ) : (
+                                        <div className="text-gray-500 mb-4">
+                                          Drag and drop images or text here
+                                        </div>
+                                      )}
+
+                                      {/* Upload Button for Images */}
+                                      <Upload
+                                        accept="image/*"
+                                        multiple
+                                        showUploadList={false}
+                                        beforeUpload={(file) => {
+                                          handleImageUpload(materialIndex, pageIndex, file)
+                                          return false
+                                        }}
+                                      >
+                                        <Button icon={<UploadOutlined />} style={buttonStyle} className="mt-4">
+                                          Upload Images
+                                        </Button>
+                                      </Upload>
+                                    </div>
+                                  </div>
+
+                                  {/* Page Navigation Dots */}
+                                  {material.pages.length > 1 && (
+                                    <div className="bg-gray-100 px-6 py-3 border-t flex justify-center gap-2">
+                                      {material.pages.map((_, index) => (
+                                        <button
+                                          key={index}
+                                          onClick={() => handleGoToPage(materialIndex, index)}
+                                          className={`w-3 h-3 rounded-full ${index === pageIndex ? 'bg-[#FF843E]' : 'bg-gray-400'
+                                            }`}
+                                        />
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Text Editor with Formatting Options */}
+                                <div className="mb-4">
                                   <WysiwygEditor
                                     value={page.content}
-                                    onChange={(content) => handleUpdatePageContent(materialIndex, pageIndex, content)}
-                                    placeholder="Add text, images, and links to your presentation page..."
+                                    onChange={(value) => handleUpdatePageContent(materialIndex, pageIndex, value)}
+                                    placeholder="Add text content for this page..."
                                   />
-                                </Form.Item>
+                                </div>
                               </div>
                             ))}
 
@@ -2490,6 +2615,7 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
           </TabPane>
 
           {/* <CHANGE> Communication Tab - Completely Replaced with Settings Modal Logic */}
+          {/* <CHANGE> Communication Tab - Completely Replaced with Settings Modal Logic */}
           <TabPane tab="Communication" key="4">
             <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
               <Panel header="General Communication Settings" key="1" className="bg-[#202020]">
@@ -2673,106 +2799,123 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                   </div>
                                   {conf.enabled && (
                                     <div className="ml-6">
-                                      <div className="flex gap-2 mb-2 flex-wrap">
-                                        <button
-                                          onClick={() =>
-                                            insertVariable(
-                                              "Studio_Name",
-                                              confirmationTextareaRef,
-                                              appointmentNotificationTypes?.confirmation?.template || "",
-                                              (value) =>
-                                                setAppointmentNotificationTypes((prev) => ({
-                                                  ...prev,
-                                                  confirmation: { ...(prev.confirmation || {}), template: value },
-                                                })),
-                                            )
-                                          }
-                                          className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
-                                        >
-                                          Studio Name
-                                        </button>
-                                        <button
-                                          onClick={() =>
-                                            insertVariable(
-                                              "Member_First_Name",
-                                              confirmationTextareaRef,
-                                              appointmentNotificationTypes?.confirmation?.template || "",
-                                              (value) =>
-                                                setAppointmentNotificationTypes((prev) => ({
-                                                  ...prev,
-                                                  confirmation: { ...(prev.confirmation || {}), template: value },
-                                                })),
-                                            )
-                                          }
-                                          className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
-                                        >
-                                          Member First Name
-                                        </button>
-                                        <button
-                                          onClick={() =>
-                                            insertVariable(
-                                              "Member_Last_Name",
-                                              confirmationTextareaRef,
-                                              appointmentNotificationTypes?.confirmation?.template || "",
-                                              (value) =>
-                                                setAppointmentNotificationTypes((prev) => ({
-                                                  ...prev,
-                                                  confirmation: { ...(prev.confirmation || {}), template: value },
-                                                })),
-                                            )
-                                          }
-                                          className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
-                                        >
-                                          Member Last Name
-                                        </button>
-                                        <button
-                                          onClick={() =>
-                                            insertVariable(
-                                              "Appointment_Type",
-                                              confirmationTextareaRef,
-                                              appointmentNotificationTypes?.confirmation?.template || "",
-                                              (value) =>
-                                                setAppointmentNotificationTypes((prev) => ({
-                                                  ...prev,
-                                                  confirmation: { ...(prev.confirmation || {}), template: value },
-                                                })),
-                                            )
-                                          }
-                                          className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
-                                        >
-                                          Appointment Type
-                                        </button>
-                                        <button
-                                          onClick={() =>
-                                            insertVariable(
-                                              "Booked_Time",
-                                              confirmationTextareaRef,
-                                              appointmentNotificationTypes?.confirmation?.template || "",
-                                              (value) =>
-                                                setAppointmentNotificationTypes((prev) => ({
-                                                  ...prev,
-                                                  confirmation: { ...(prev.confirmation || {}), template: value },
-                                                })),
-                                            )
-                                          }
-                                          className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
-                                        >
-                                          Booked Time
-                                        </button>
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <label className="flex items-center gap-2 text-sm text-gray-300">
+                                          <input
+                                            type="checkbox"
+                                            checked={conf.sendEmail}
+                                            onChange={(e) =>
+                                              setAppointmentNotificationTypes((prev) => ({
+                                                ...prev,
+                                                confirmation: { ...(prev.confirmation || {}), sendEmail: e.target.checked },
+                                              }))
+                                            }
+                                            className="rounded border-gray-600 bg-transparent w-4 h-4"
+                                          />
+                                          <span>Send Email</span>
+                                        </label>
                                       </div>
-                                      <textarea
-                                        ref={confirmationTextareaRef}
-                                        value={appointmentNotificationTypes?.confirmation?.template || ""}
-                                        onChange={(e) =>
-                                          setAppointmentNotificationTypes((prev) => ({
-                                            ...prev,
-                                            confirmation: { ...(prev.confirmation || {}), template: e.target.value },
-                                          }))
-                                        }
-                                        style={inputStyle}
-                                        className="w-full rounded-xl text-sm h-20"
-                                        placeholder="Hello {Member_First_Name} {Member_Last_Name}, your {Appointment_Type} has been booked for {Booked_Time}."
-                                      />
+                                      {conf.sendEmail && (
+                                        <>
+                                          <div className="flex gap-2 mb-2 flex-wrap">
+                                            <button
+                                              onClick={() =>
+                                                insertVariable(
+                                                  "Studio_Name",
+                                                  confirmationTextareaRef,
+                                                  appointmentNotificationTypes?.confirmation?.template || "",
+                                                  (value) =>
+                                                    setAppointmentNotificationTypes((prev) => ({
+                                                      ...prev,
+                                                      confirmation: { ...(prev.confirmation || {}), template: value },
+                                                    })),
+                                                )
+                                              }
+                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                            >
+                                              Studio Name
+                                            </button>
+                                            <button
+                                              onClick={() =>
+                                                insertVariable(
+                                                  "Member_First_Name",
+                                                  confirmationTextareaRef,
+                                                  appointmentNotificationTypes?.confirmation?.template || "",
+                                                  (value) =>
+                                                    setAppointmentNotificationTypes((prev) => ({
+                                                      ...prev,
+                                                      confirmation: { ...(prev.confirmation || {}), template: value },
+                                                    })),
+                                                )
+                                              }
+                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                            >
+                                              Member First Name
+                                            </button>
+                                            <button
+                                              onClick={() =>
+                                                insertVariable(
+                                                  "Member_Last_Name",
+                                                  confirmationTextareaRef,
+                                                  appointmentNotificationTypes?.confirmation?.template || "",
+                                                  (value) =>
+                                                    setAppointmentNotificationTypes((prev) => ({
+                                                      ...prev,
+                                                      confirmation: { ...(prev.confirmation || {}), template: value },
+                                                    })),
+                                                )
+                                              }
+                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                            >
+                                              Member Last Name
+                                            </button>
+                                            <button
+                                              onClick={() =>
+                                                insertVariable(
+                                                  "Appointment_Type",
+                                                  confirmationTextareaRef,
+                                                  appointmentNotificationTypes?.confirmation?.template || "",
+                                                  (value) =>
+                                                    setAppointmentNotificationTypes((prev) => ({
+                                                      ...prev,
+                                                      confirmation: { ...(prev.confirmation || {}), template: value },
+                                                    })),
+                                                )
+                                              }
+                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                            >
+                                              Appointment Type
+                                            </button>
+                                            <button
+                                              onClick={() =>
+                                                insertVariable(
+                                                  "Booked_Time",
+                                                  confirmationTextareaRef,
+                                                  appointmentNotificationTypes?.confirmation?.template || "",
+                                                  (value) =>
+                                                    setAppointmentNotificationTypes((prev) => ({
+                                                      ...prev,
+                                                      confirmation: { ...(prev.confirmation || {}), template: value },
+                                                    })),
+                                                )
+                                              }
+                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                            >
+                                              Booked Time
+                                            </button>
+                                          </div>
+                                          <WysiwygEditor
+                                            value={appointmentNotificationTypes?.confirmation?.template || ""}
+                                            onChange={(value) =>
+                                              setAppointmentNotificationTypes((prev) => ({
+                                                ...prev,
+                                                confirmation: { ...(prev.confirmation || {}), template: value },
+                                              }))
+                                            }
+                                            placeholder="Hello {Member_First_Name} {Member_Last_Name}, your {Appointment_Type} has been booked for {Booked_Time}."
+                                          />
+                                        </>
+                                      )}
                                     </div>
                                   )}
                                 </div>
@@ -2795,106 +2938,123 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                   </div>
                                   {canc.enabled && (
                                     <div className="ml-6">
-                                      <div className="flex gap-2 mb-2 flex-wrap">
-                                        <button
-                                          onClick={() =>
-                                            insertVariable(
-                                              "Studio_Name",
-                                              cancellationTextareaRef,
-                                              appointmentNotificationTypes?.cancellation?.template || "",
-                                              (value) =>
-                                                setAppointmentNotificationTypes((prev) => ({
-                                                  ...prev,
-                                                  cancellation: { ...(prev.cancellation || {}), template: value },
-                                                })),
-                                            )
-                                          }
-                                          className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
-                                        >
-                                          Studio Name
-                                        </button>
-                                        <button
-                                          onClick={() =>
-                                            insertVariable(
-                                              "Member_First_Name",
-                                              cancellationTextareaRef,
-                                              appointmentNotificationTypes?.cancellation?.template || "",
-                                              (value) =>
-                                                setAppointmentNotificationTypes((prev) => ({
-                                                  ...prev,
-                                                  cancellation: { ...(prev.cancellation || {}), template: value },
-                                                })),
-                                            )
-                                          }
-                                          className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
-                                        >
-                                          Member First Name
-                                        </button>
-                                        <button
-                                          onClick={() =>
-                                            insertVariable(
-                                              "Member_Last_Name",
-                                              cancellationTextareaRef,
-                                              appointmentNotificationTypes?.cancellation?.template || "",
-                                              (value) =>
-                                                setAppointmentNotificationTypes((prev) => ({
-                                                  ...prev,
-                                                  cancellation: { ...(prev.cancellation || {}), template: value },
-                                                })),
-                                            )
-                                          }
-                                          className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
-                                        >
-                                          Member Last Name
-                                        </button>
-                                        <button
-                                          onClick={() =>
-                                            insertVariable(
-                                              "Appointment_Type",
-                                              cancellationTextareaRef,
-                                              appointmentNotificationTypes?.cancellation?.template || "",
-                                              (value) =>
-                                                setAppointmentNotificationTypes((prev) => ({
-                                                  ...prev,
-                                                  cancellation: { ...(prev.cancellation || {}), template: value },
-                                                })),
-                                            )
-                                          }
-                                          className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
-                                        >
-                                          Appointment Type
-                                        </button>
-                                        <button
-                                          onClick={() =>
-                                            insertVariable(
-                                              "Booked_Time",
-                                              cancellationTextareaRef,
-                                              appointmentNotificationTypes?.cancellation?.template || "",
-                                              (value) =>
-                                                setAppointmentNotificationTypes((prev) => ({
-                                                  ...prev,
-                                                  cancellation: { ...(prev.cancellation || {}), template: value },
-                                                })),
-                                            )
-                                          }
-                                          className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
-                                        >
-                                          Booked Time
-                                        </button>
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <label className="flex items-center gap-2 text-sm text-gray-300">
+                                          <input
+                                            type="checkbox"
+                                            checked={canc.sendEmail}
+                                            onChange={(e) =>
+                                              setAppointmentNotificationTypes((prev) => ({
+                                                ...prev,
+                                                cancellation: { ...(prev.cancellation || {}), sendEmail: e.target.checked },
+                                              }))
+                                            }
+                                            className="rounded border-gray-600 bg-transparent w-4 h-4"
+                                          />
+                                          <span>Send Email</span>
+                                        </label>
                                       </div>
-                                      <textarea
-                                        ref={cancellationTextareaRef}
-                                        value={appointmentNotificationTypes?.cancellation?.template || ""}
-                                        onChange={(e) =>
-                                          setAppointmentNotificationTypes((prev) => ({
-                                            ...prev,
-                                            cancellation: { ...(prev.cancellation || {}), template: e.target.value },
-                                          }))
-                                        }
-                                        style={inputStyle}
-                                        className="w-full rounded-xl text-sm h-20"
-                                        placeholder="Hello {Member_First_Name} {Member_Last_Name}, your {Appointment_Type} has been cancelled."
-                                      />
+                                      {canc.sendEmail && (
+                                        <>
+                                          <div className="flex gap-2 mb-2 flex-wrap">
+                                            <button
+                                              onClick={() =>
+                                                insertVariable(
+                                                  "Studio_Name",
+                                                  cancellationTextareaRef,
+                                                  appointmentNotificationTypes?.cancellation?.template || "",
+                                                  (value) =>
+                                                    setAppointmentNotificationTypes((prev) => ({
+                                                      ...prev,
+                                                      cancellation: { ...(prev.cancellation || {}), template: value },
+                                                    })),
+                                                )
+                                              }
+                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                            >
+                                              Studio Name
+                                            </button>
+                                            <button
+                                              onClick={() =>
+                                                insertVariable(
+                                                  "Member_First_Name",
+                                                  cancellationTextareaRef,
+                                                  appointmentNotificationTypes?.cancellation?.template || "",
+                                                  (value) =>
+                                                    setAppointmentNotificationTypes((prev) => ({
+                                                      ...prev,
+                                                      cancellation: { ...(prev.cancellation || {}), template: value },
+                                                    })),
+                                                )
+                                              }
+                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                            >
+                                              Member First Name
+                                            </button>
+                                            <button
+                                              onClick={() =>
+                                                insertVariable(
+                                                  "Member_Last_Name",
+                                                  cancellationTextareaRef,
+                                                  appointmentNotificationTypes?.cancellation?.template || "",
+                                                  (value) =>
+                                                    setAppointmentNotificationTypes((prev) => ({
+                                                      ...prev,
+                                                      cancellation: { ...(prev.cancellation || {}), template: value },
+                                                    })),
+                                                )
+                                              }
+                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                            >
+                                              Member Last Name
+                                            </button>
+                                            <button
+                                              onClick={() =>
+                                                insertVariable(
+                                                  "Appointment_Type",
+                                                  cancellationTextareaRef,
+                                                  appointmentNotificationTypes?.cancellation?.template || "",
+                                                  (value) =>
+                                                    setAppointmentNotificationTypes((prev) => ({
+                                                      ...prev,
+                                                      cancellation: { ...(prev.cancellation || {}), template: value },
+                                                    })),
+                                                )
+                                              }
+                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                            >
+                                              Appointment Type
+                                            </button>
+                                            <button
+                                              onClick={() =>
+                                                insertVariable(
+                                                  "Booked_Time",
+                                                  cancellationTextareaRef,
+                                                  appointmentNotificationTypes?.cancellation?.template || "",
+                                                  (value) =>
+                                                    setAppointmentNotificationTypes((prev) => ({
+                                                      ...prev,
+                                                      cancellation: { ...(prev.cancellation || {}), template: value },
+                                                    })),
+                                                )
+                                              }
+                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                            >
+                                              Booked Time
+                                            </button>
+                                          </div>
+                                          <WysiwygEditor
+                                            value={appointmentNotificationTypes?.cancellation?.template || ""}
+                                            onChange={(value) =>
+                                              setAppointmentNotificationTypes((prev) => ({
+                                                ...prev,
+                                                cancellation: { ...(prev.cancellation || {}), template: value },
+                                              }))
+                                            }
+                                            placeholder="Hello {Member_First_Name} {Member_Last_Name}, your {Appointment_Type} has been cancelled."
+                                          />
+                                        </>
+                                      )}
                                     </div>
                                   )}
                                 </div>
@@ -2917,106 +3077,123 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                   </div>
                                   {resch.enabled && (
                                     <div className="ml-6">
-                                      <div className="flex gap-2 mb-2 flex-wrap">
-                                        <button
-                                          onClick={() =>
-                                            insertVariable(
-                                              "Studio_Name",
-                                              rescheduledTextareaRef,
-                                              appointmentNotificationTypes?.rescheduled?.template || "",
-                                              (value) =>
-                                                setAppointmentNotificationTypes((prev) => ({
-                                                  ...prev,
-                                                  rescheduled: { ...(prev.rescheduled || {}), template: value },
-                                                })),
-                                            )
-                                          }
-                                          className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
-                                        >
-                                          Studio Name
-                                        </button>
-                                        <button
-                                          onClick={() =>
-                                            insertVariable(
-                                              "Member_First_Name",
-                                              rescheduledTextareaRef,
-                                              appointmentNotificationTypes?.rescheduled?.template || "",
-                                              (value) =>
-                                                setAppointmentNotificationTypes((prev) => ({
-                                                  ...prev,
-                                                  rescheduled: { ...(prev.rescheduled || {}), template: value },
-                                                })),
-                                            )
-                                          }
-                                          className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
-                                        >
-                                          Member First Name
-                                        </button>
-                                        <button
-                                          onClick={() =>
-                                            insertVariable(
-                                              "Member_Last_Name",
-                                              rescheduledTextareaRef,
-                                              appointmentNotificationTypes?.rescheduled?.template || "",
-                                              (value) =>
-                                                setAppointmentNotificationTypes((prev) => ({
-                                                  ...prev,
-                                                  rescheduled: { ...(prev.rescheduled || {}), template: value },
-                                                })),
-                                            )
-                                          }
-                                          className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
-                                        >
-                                          Member Last Name
-                                        </button>
-                                        <button
-                                          onClick={() =>
-                                            insertVariable(
-                                              "Appointment_Type",
-                                              rescheduledTextareaRef,
-                                              appointmentNotificationTypes?.rescheduled?.template || "",
-                                              (value) =>
-                                                setAppointmentNotificationTypes((prev) => ({
-                                                  ...prev,
-                                                  rescheduled: { ...(prev.rescheduled || {}), template: value },
-                                                })),
-                                            )
-                                          }
-                                          className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
-                                        >
-                                          Appointment Type
-                                        </button>
-                                        <button
-                                          onClick={() =>
-                                            insertVariable(
-                                              "Booked_Time",
-                                              rescheduledTextareaRef,
-                                              appointmentNotificationTypes?.rescheduled?.template || "",
-                                              (value) =>
-                                                setAppointmentNotificationTypes((prev) => ({
-                                                  ...prev,
-                                                  rescheduled: { ...(prev.rescheduled || {}), template: value },
-                                                })),
-                                            )
-                                          }
-                                          className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
-                                        >
-                                          Booked Time
-                                        </button>
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <label className="flex items-center gap-2 text-sm text-gray-300">
+                                          <input
+                                            type="checkbox"
+                                            checked={resch.sendEmail}
+                                            onChange={(e) =>
+                                              setAppointmentNotificationTypes((prev) => ({
+                                                ...prev,
+                                                rescheduled: { ...(prev.rescheduled || {}), sendEmail: e.target.checked },
+                                              }))
+                                            }
+                                            className="rounded border-gray-600 bg-transparent w-4 h-4"
+                                          />
+                                          <span>Send Email</span>
+                                        </label>
                                       </div>
-                                      <textarea
-                                        ref={rescheduledTextareaRef}
-                                        value={appointmentNotificationTypes?.rescheduled?.template || ""}
-                                        onChange={(e) =>
-                                          setAppointmentNotificationTypes((prev) => ({
-                                            ...prev,
-                                            rescheduled: { ...(prev.rescheduled || {}), template: e.target.value },
-                                          }))
-                                        }
-                                        style={inputStyle}
-                                        className="w-full rounded-xl text-sm h-20"
-                                        placeholder="Hello {Member_First_Name} {Member_Last_Name}, your {Appointment_Type} has been rescheduled to {Booked_Time}."
-                                      />
+                                      {resch.sendEmail && (
+                                        <>
+                                          <div className="flex gap-2 mb-2 flex-wrap">
+                                            <button
+                                              onClick={() =>
+                                                insertVariable(
+                                                  "Studio_Name",
+                                                  rescheduledTextareaRef,
+                                                  appointmentNotificationTypes?.rescheduled?.template || "",
+                                                  (value) =>
+                                                    setAppointmentNotificationTypes((prev) => ({
+                                                      ...prev,
+                                                      rescheduled: { ...(prev.rescheduled || {}), template: value },
+                                                    })),
+                                                )
+                                              }
+                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                            >
+                                              Studio Name
+                                            </button>
+                                            <button
+                                              onClick={() =>
+                                                insertVariable(
+                                                  "Member_First_Name",
+                                                  rescheduledTextareaRef,
+                                                  appointmentNotificationTypes?.rescheduled?.template || "",
+                                                  (value) =>
+                                                    setAppointmentNotificationTypes((prev) => ({
+                                                      ...prev,
+                                                      rescheduled: { ...(prev.rescheduled || {}), template: value },
+                                                    })),
+                                                )
+                                              }
+                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                            >
+                                              Member First Name
+                                            </button>
+                                            <button
+                                              onClick={() =>
+                                                insertVariable(
+                                                  "Member_Last_Name",
+                                                  rescheduledTextareaRef,
+                                                  appointmentNotificationTypes?.rescheduled?.template || "",
+                                                  (value) =>
+                                                    setAppointmentNotificationTypes((prev) => ({
+                                                      ...prev,
+                                                      rescheduled: { ...(prev.rescheduled || {}), template: value },
+                                                    })),
+                                                )
+                                              }
+                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                            >
+                                              Member Last Name
+                                            </button>
+                                            <button
+                                              onClick={() =>
+                                                insertVariable(
+                                                  "Appointment_Type",
+                                                  rescheduledTextareaRef,
+                                                  appointmentNotificationTypes?.rescheduled?.template || "",
+                                                  (value) =>
+                                                    setAppointmentNotificationTypes((prev) => ({
+                                                      ...prev,
+                                                      rescheduled: { ...(prev.rescheduled || {}), template: value },
+                                                    })),
+                                                )
+                                              }
+                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                            >
+                                              Appointment Type
+                                            </button>
+                                            <button
+                                              onClick={() =>
+                                                insertVariable(
+                                                  "Booked_Time",
+                                                  rescheduledTextareaRef,
+                                                  appointmentNotificationTypes?.rescheduled?.template || "",
+                                                  (value) =>
+                                                    setAppointmentNotificationTypes((prev) => ({
+                                                      ...prev,
+                                                      rescheduled: { ...(prev.rescheduled || {}), template: value },
+                                                    })),
+                                                )
+                                              }
+                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                            >
+                                              Booked Time
+                                            </button>
+                                          </div>
+                                          <WysiwygEditor
+                                            value={appointmentNotificationTypes?.rescheduled?.template || ""}
+                                            onChange={(value) =>
+                                              setAppointmentNotificationTypes((prev) => ({
+                                                ...prev,
+                                                rescheduled: { ...(prev.rescheduled || {}), template: value },
+                                              }))
+                                            }
+                                            placeholder="Hello {Member_First_Name} {Member_Last_Name}, your {Appointment_Type} has been rescheduled to {Booked_Time}."
+                                          />
+                                        </>
+                                      )}
                                     </div>
                                   )}
                                 </div>
@@ -3041,128 +3218,267 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                   </div>
                                   {reminder.enabled && (
                                     <div className="ml-6">
-                                      <div className="flex flex-wrap items-center gap-3 mb-3">
-                                        <label className="text-sm text-gray-300">Send reminder</label>
-                                        <input
-                                          type="number"
-                                          min="1"
-                                          value={reminder.hoursBefore}
-                                          onChange={(e) =>
-                                            setAppointmentNotificationTypes((prev) => ({
-                                              ...prev,
-                                              reminder: {
-                                                ...(prev.reminder || {}),
-                                                hoursBefore: Number.parseInt(e.target.value || "1", 10),
-                                              },
-                                            }))
-                                          }
-                                          style={inputStyle}
-                                          className="w-24 rounded text-sm"
-                                        />
-                                        <span className="text-sm text-gray-300">hours before</span>
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <label className="flex items-center gap-2 text-sm text-gray-300">
+                                          <input
+                                            type="checkbox"
+                                            checked={reminder.sendEmail}
+                                            onChange={(e) =>
+                                              setAppointmentNotificationTypes((prev) => ({
+                                                ...prev,
+                                                reminder: { ...(prev.reminder || {}), sendEmail: e.target.checked },
+                                              }))
+                                            }
+                                            className="rounded border-gray-600 bg-transparent w-4 h-4"
+                                          />
+                                          <span>Send Email</span>
+                                        </label>
                                       </div>
+                                      {reminder.sendEmail && (
+                                        <>
+                                          <div className="flex flex-wrap items-center gap-3 mb-3">
+                                            <label className="text-sm text-gray-300">Send reminder</label>
+                                            <input
+                                              type="number"
+                                              min="1"
+                                              value={reminder.hoursBefore}
+                                              onChange={(e) =>
+                                                setAppointmentNotificationTypes((prev) => ({
+                                                  ...prev,
+                                                  reminder: {
+                                                    ...(prev.reminder || {}),
+                                                    hoursBefore: Number.parseInt(e.target.value || "1", 10),
+                                                  },
+                                                }))
+                                              }
+                                              style={inputStyle}
+                                              className="w-24 rounded text-sm"
+                                            />
+                                            <span className="text-sm text-gray-300">hours before</span>
+                                          </div>
 
-                                      <div className="flex gap-2 mb-2 flex-wrap">
-                                        <button
-                                          onClick={() =>
-                                            insertVariable(
-                                              "Studio_Name",
-                                              reminderTextareaRef,
-                                              appointmentNotificationTypes?.reminder?.template || "",
-                                              (value) =>
-                                                setAppointmentNotificationTypes((prev) => ({
-                                                  ...prev,
-                                                  reminder: { ...(prev.reminder || {}), template: value },
-                                                })),
-                                            )
-                                          }
-                                          className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
-                                        >
-                                          Studio Name
-                                        </button>
-                                        <button
-                                          onClick={() =>
-                                            insertVariable(
-                                              "Member_First_Name",
-                                              reminderTextareaRef,
-                                              appointmentNotificationTypes?.reminder?.template || "",
-                                              (value) =>
-                                                setAppointmentNotificationTypes((prev) => ({
-                                                  ...prev,
-                                                  reminder: { ...(prev.reminder || {}), template: value },
-                                                })),
-                                            )
-                                          }
-                                          className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
-                                        >
-                                          Member First Name
-                                        </button>
-                                        <button
-                                          onClick={() =>
-                                            insertVariable(
-                                              "Member_Last_Name",
-                                              reminderTextareaRef,
-                                              appointmentNotificationTypes?.reminder?.template || "",
-                                              (value) =>
-                                                setAppointmentNotificationTypes((prev) => ({
-                                                  ...prev,
-                                                  reminder: { ...(prev.reminder || {}), template: value },
-                                                })),
-                                            )
-                                          }
-                                          className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
-                                        >
-                                          Member Last Name
-                                        </button>
-                                        <button
-                                          onClick={() =>
-                                            insertVariable(
-                                              "Appointment_Type",
-                                              reminderTextareaRef,
-                                              appointmentNotificationTypes?.reminder?.template || "",
-                                              (value) =>
-                                                setAppointmentNotificationTypes((prev) => ({
-                                                  ...prev,
-                                                  reminder: { ...(prev.reminder || {}), template: value },
-                                                })),
-                                            )
-                                          }
-                                          className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
-                                        >
-                                          Appointment Type
-                                        </button>
-                                        <button
-                                          onClick={() =>
-                                            insertVariable(
-                                              "Booked_Time",
-                                              reminderTextareaRef,
-                                              appointmentNotificationTypes?.reminder?.template || "",
-                                              (value) =>
-                                                setAppointmentNotificationTypes((prev) => ({
-                                                  ...prev,
-                                                  reminder: { ...(prev.reminder || {}), template: value },
-                                                })),
-                                            )
-                                          }
-                                          className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
-                                        >
-                                          Booked Time
-                                        </button>
+                                          <div className="flex gap-2 mb-2 flex-wrap">
+                                            <button
+                                              onClick={() =>
+                                                insertVariable(
+                                                  "Studio_Name",
+                                                  reminderTextareaRef,
+                                                  appointmentNotificationTypes?.reminder?.template || "",
+                                                  (value) =>
+                                                    setAppointmentNotificationTypes((prev) => ({
+                                                      ...prev,
+                                                      reminder: { ...(prev.reminder || {}), template: value },
+                                                    })),
+                                                )
+                                              }
+                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                            >
+                                              Studio Name
+                                            </button>
+                                            <button
+                                              onClick={() =>
+                                                insertVariable(
+                                                  "Member_First_Name",
+                                                  reminderTextareaRef,
+                                                  appointmentNotificationTypes?.reminder?.template || "",
+                                                  (value) =>
+                                                    setAppointmentNotificationTypes((prev) => ({
+                                                      ...prev,
+                                                      reminder: { ...(prev.reminder || {}), template: value },
+                                                    })),
+                                                )
+                                              }
+                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                            >
+                                              Member First Name
+                                            </button>
+                                            <button
+                                              onClick={() =>
+                                                insertVariable(
+                                                  "Member_Last_Name",
+                                                  reminderTextareaRef,
+                                                  appointmentNotificationTypes?.reminder?.template || "",
+                                                  (value) =>
+                                                    setAppointmentNotificationTypes((prev) => ({
+                                                      ...prev,
+                                                      reminder: { ...(prev.reminder || {}), template: value },
+                                                    })),
+                                                )
+                                              }
+                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                            >
+                                              Member Last Name
+                                            </button>
+                                            <button
+                                              onClick={() =>
+                                                insertVariable(
+                                                  "Appointment_Type",
+                                                  reminderTextareaRef,
+                                                  appointmentNotificationTypes?.reminder?.template || "",
+                                                  (value) =>
+                                                    setAppointmentNotificationTypes((prev) => ({
+                                                      ...prev,
+                                                      reminder: { ...(prev.reminder || {}), template: value },
+                                                    })),
+                                                )
+                                              }
+                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                            >
+                                              Appointment Type
+                                            </button>
+                                            <button
+                                              onClick={() =>
+                                                insertVariable(
+                                                  "Booked_Time",
+                                                  reminderTextareaRef,
+                                                  appointmentNotificationTypes?.reminder?.template || "",
+                                                  (value) =>
+                                                    setAppointmentNotificationTypes((prev) => ({
+                                                      ...prev,
+                                                      reminder: { ...(prev.reminder || {}), template: value },
+                                                    })),
+                                                )
+                                              }
+                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                            >
+                                              Booked Time
+                                            </button>
+                                          </div>
+
+                                          <WysiwygEditor
+                                            value={appointmentNotificationTypes?.reminder?.template || ""}
+                                            onChange={(value) =>
+                                              setAppointmentNotificationTypes((prev) => ({
+                                                ...prev,
+                                                reminder: { ...(prev.reminder || {}), template: value },
+                                              }))
+                                            }
+                                            placeholder="Hello {Member_First_Name} {Member_Last_Name}, this is a reminder for your {Appointment_Type} at {Booked_Time}."
+                                          />
+                                        </>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* <NEW> Registration Notification - Added below appointment notifications */}
+                                <div className="border-t border-gray-700 my-4 pt-4">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <input
+                                      type="checkbox"
+                                      checked={registration.enabled}
+                                      onChange={(e) =>
+                                        setAppointmentNotificationTypes((prev) => ({
+                                          ...prev,
+                                          registration: { ...(prev.registration || {}), enabled: e.target.checked },
+                                        }))
+                                      }
+                                      className="rounded border-gray-600 bg-transparent w-4 h-4"
+                                    />
+                                    <span className="text-sm font-medium text-white">Registration Notification</span>
+                                  </div>
+                                  {registration.enabled && (
+                                    <div className="ml-6">
+                                      <div className="flex items-center gap-2 mb-2">
+                                        <label className="flex items-center gap-2 text-sm text-gray-300">
+                                          <input
+                                            type="checkbox"
+                                            checked={registration.sendEmail}
+                                            onChange={(e) =>
+                                              setAppointmentNotificationTypes((prev) => ({
+                                                ...prev,
+                                                registration: { ...(prev.registration || {}), sendEmail: e.target.checked },
+                                              }))
+                                            }
+                                            className="rounded border-gray-600 bg-transparent w-4 h-4"
+                                          />
+                                          <span>Send Email</span>
+                                        </label>
                                       </div>
-
-                                      <textarea
-                                        ref={reminderTextareaRef}
-                                        value={appointmentNotificationTypes?.reminder?.template || ""}
-                                        onChange={(e) =>
-                                          setAppointmentNotificationTypes((prev) => ({
-                                            ...prev,
-                                            reminder: { ...(prev.reminder || {}), template: e.target.value },
-                                          }))
-                                        }
-                                        style={inputStyle}
-                                        className="w-full rounded-xl text-sm h-20"
-                                        placeholder="Hello {Member_First_Name} {Member_Last_Name}, this is a reminder for your {Appointment_Type} at {Booked_Time}."
-                                      />
+                                      {registration.sendEmail && (
+                                        <>
+                                          <div className="flex gap-2 mb-2 flex-wrap">
+                                            <button
+                                              onClick={() =>
+                                                insertVariable(
+                                                  "Studio_Name",
+                                                  registrationTextareaRef,
+                                                  appointmentNotificationTypes?.registration?.template || "",
+                                                  (value) =>
+                                                    setAppointmentNotificationTypes((prev) => ({
+                                                      ...prev,
+                                                      registration: { ...(prev.registration || {}), template: value },
+                                                    })),
+                                                )
+                                              }
+                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                            >
+                                              Studio Name
+                                            </button>
+                                            <button
+                                              onClick={() =>
+                                                insertVariable(
+                                                  "Member_First_Name",
+                                                  registrationTextareaRef,
+                                                  appointmentNotificationTypes?.registration?.template || "",
+                                                  (value) =>
+                                                    setAppointmentNotificationTypes((prev) => ({
+                                                      ...prev,
+                                                      registration: { ...(prev.registration || {}), template: value },
+                                                    })),
+                                                )
+                                              }
+                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                            >
+                                              Member First Name
+                                            </button>
+                                            <button
+                                              onClick={() =>
+                                                insertVariable(
+                                                  "Member_Last_Name",
+                                                  registrationTextareaRef,
+                                                  appointmentNotificationTypes?.registration?.template || "",
+                                                  (value) =>
+                                                    setAppointmentNotificationTypes((prev) => ({
+                                                      ...prev,
+                                                      registration: { ...(prev.registration || {}), template: value },
+                                                    })),
+                                                )
+                                              }
+                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                            >
+                                              Member Last Name
+                                            </button>
+                                            <button
+                                              onClick={() =>
+                                                insertVariable(
+                                                  "Registration_Link",
+                                                  registrationTextareaRef,
+                                                  appointmentNotificationTypes?.registration?.template || "",
+                                                  (value) =>
+                                                    setAppointmentNotificationTypes((prev) => ({
+                                                      ...prev,
+                                                      registration: { ...(prev.registration || {}), template: value },
+                                                    })),
+                                                )
+                                              }
+                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                            >
+                                              Registration Link
+                                            </button>
+                                          </div>
+                                          <WysiwygEditor
+                                            value={appointmentNotificationTypes?.registration?.template || ""}
+                                            onChange={(value) =>
+                                              setAppointmentNotificationTypes((prev) => ({
+                                                ...prev,
+                                                registration: { ...(prev.registration || {}), template: value },
+                                              }))
+                                            }
+                                            placeholder="Welcome {Member_First_Name} {Member_Last_Name} to {Studio_Name}! Complete your registration here: {Registration_Link}"
+                                          />
+                                        </>
+                                      )}
                                     </div>
                                   )}
                                 </div>
@@ -3193,6 +3509,7 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
 
                       {bool(settings?.appNotificationEnabled, false) && (
                         <div className="space-y-4 pl-4 border-l-2 border-purple-500">
+                          {/* Birthday App Notifications */}
                           <div>
                             <label className="flex items-center gap-2 mb-2">
                               <input
@@ -3207,6 +3524,7 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                             </label>
                           </div>
 
+                          {/* Appointment App Notifications */}
                           <div>
                             <label className="flex items-center gap-2 mb-2">
                               <input
@@ -3222,49 +3540,84 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
 
                             {bool(settings?.appointmentAppNotificationEnabled, false) && (
                               <div className="ml-6 space-y-3">
+                                {/* Appointment Confirmation (App) */}
                                 <label className="flex items-center gap-2">
                                   <input
                                     type="checkbox"
-                                    checked={bool(settings?.appConfirmationEnabled, false)}
+                                    checked={conf.sendApp}
                                     onChange={(e) =>
-                                      setSettings({ ...settings, appConfirmationEnabled: e.target.checked })
+                                      setAppointmentNotificationTypes((prev) => ({
+                                        ...prev,
+                                        confirmation: { ...(prev.confirmation || {}), sendApp: e.target.checked },
+                                      }))
                                     }
                                     className="rounded border-gray-600 bg-transparent w-4 h-4"
                                   />
                                   <span className="text-sm text-white">Appointment Confirmation</span>
                                 </label>
+
+                                {/* Appointment Cancellation (App) */}
                                 <label className="flex items-center gap-2">
                                   <input
                                     type="checkbox"
-                                    checked={bool(settings?.appCancellationEnabled, false)}
+                                    checked={canc.sendApp}
                                     onChange={(e) =>
-                                      setSettings({ ...settings, appCancellationEnabled: e.target.checked })
+                                      setAppointmentNotificationTypes((prev) => ({
+                                        ...prev,
+                                        cancellation: { ...(prev.cancellation || {}), sendApp: e.target.checked },
+                                      }))
                                     }
                                     className="rounded border-gray-600 bg-transparent w-4 h-4"
                                   />
                                   <span className="text-sm text-white">Appointment Cancellation</span>
                                 </label>
+
+                                {/* Appointment Rescheduled (App) */}
                                 <label className="flex items-center gap-2">
                                   <input
                                     type="checkbox"
-                                    checked={bool(settings?.appRescheduledEnabled, false)}
+                                    checked={resch.sendApp}
                                     onChange={(e) =>
-                                      setSettings({ ...settings, appRescheduledEnabled: e.target.checked })
+                                      setAppointmentNotificationTypes((prev) => ({
+                                        ...prev,
+                                        rescheduled: { ...(prev.rescheduled || {}), sendApp: e.target.checked },
+                                      }))
                                     }
                                     className="rounded border-gray-600 bg-transparent w-4 h-4"
                                   />
                                   <span className="text-sm text-white">Appointment Rescheduled</span>
                                 </label>
+
+                                {/* Appointment Reminder (App) */}
                                 <label className="flex items-center gap-2">
                                   <input
                                     type="checkbox"
-                                    checked={bool(settings?.appReminderEnabled, false)}
+                                    checked={reminder.sendApp}
                                     onChange={(e) =>
-                                      setSettings({ ...settings, appReminderEnabled: e.target.checked })
+                                      setAppointmentNotificationTypes((prev) => ({
+                                        ...prev,
+                                        reminder: { ...(prev.reminder || {}), sendApp: e.target.checked },
+                                      }))
                                     }
                                     className="rounded border-gray-600 bg-transparent w-4 h-4"
                                   />
                                   <span className="text-sm text-white">Appointment Reminder</span>
+                                </label>
+
+                                {/* <NEW> Registration Notification (App) */}
+                                <label className="flex items-center gap-2">
+                                  <input
+                                    type="checkbox"
+                                    checked={registration.sendApp}
+                                    onChange={(e) =>
+                                      setAppointmentNotificationTypes((prev) => ({
+                                        ...prev,
+                                        registration: { ...(prev.registration || {}), sendApp: e.target.checked },
+                                      }))
+                                    }
+                                    className="rounded border-gray-600 bg-transparent w-4 h-4"
+                                  />
+                                  <span className="text-sm text-white">Registration Notification</span>
                                 </label>
                               </div>
                             )}
@@ -3336,20 +3689,7 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                   <Form layout="vertical">
                     <Form.Item label={<span className="text-white">Default Email Signature</span>}>
                       <div className="bg-[#222222] rounded-xl">
-                        <div className="flex gap-2 mb-2 flex-wrap">
-                          <Button
-                            onClick={() => {
-                              const currentSignature = settings.emailSignature || "";
-                              const newSignature = currentSignature + "\n\nBest regards,\n{Studio_Name} Team";
-                              setSettings({ ...settings, emailSignature: newSignature });
-                            }}
-                            size="small"
-                            style={buttonStyle}
-                            icon={<FileTextOutlined />}
-                          >
-                            Insert Signature
-                          </Button>
-                        </div>
+                       
                         <WysiwygEditor
                           value={settings.emailSignature}
                           onChange={(value) => setSettings({ ...settings, emailSignature: value })}
@@ -3483,8 +3823,6 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                   </Form>
                 </div>
               </Panel>
-
-
             </Collapse>
           </TabPane>
 

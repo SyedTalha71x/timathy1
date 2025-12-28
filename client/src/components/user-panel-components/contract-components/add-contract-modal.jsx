@@ -321,7 +321,6 @@ export default function AddContractModal({ onClose, onSave, leadData = null }) {
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] font-sans">
       <style>{printStyles}</style>
 
-      {/* Introductory Materials Modal */}
       {showIntroductoryMaterials && (
         <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-[1001]">
           <div className="relative bg-[#181818] p-6 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
