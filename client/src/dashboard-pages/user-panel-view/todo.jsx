@@ -834,7 +834,7 @@ export default function TodoApp() {
                       className={`cursor-grab mb-3 ${draggingTaskId === task.id ? "z-[9999] relative" : ""}`}
                       style={{
                         zIndex: draggingTaskId === task.id ? 9999 : "auto",
-                        position: draggingTaskId === task.id ? "absolute" : "static",
+                        position: draggingTaskId === task.id ? "relative" : "static",
                       }}
                     >
                       <TaskItem
