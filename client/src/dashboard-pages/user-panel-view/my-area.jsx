@@ -30,23 +30,17 @@ import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
 
 
 import EditTaskModal from "../../components/user-panel-components/task-components/edit-task-modal"
-import MemberOverviewModal from "../../components/myarea-components/MemberOverviewModal"
 import ViewManagementModal from "../../components/myarea-components/ViewManagementModal"
 import StaffCheckInWidget from "../../components/myarea-components/widgets/StaffWidgetCheckIn"
 import TrainingPlanModal from "../../components/myarea-components/TrainingPlanModal"
 import DraggableWidget from "../../components/myarea-components/DraggableWidget"
 import ContingentModal from "../../components/myarea-components/ContigentModal"
-import AddBillingPeriodModal from "../../components/myarea-components/AddBillingPeriodModal"
-import EditMemberModal from "../../components/myarea-components/EditMemberModal"
 
 import Sidebar from "../../components/myarea-components/MyAreaSidebar"
 import { SpecialNoteEditModal } from "../../components/myarea-components/SpecialNoteEditModal"
 import { WidgetSelectionModal } from "../../components/widget-selection-modal"
 
 import { notificationData, memberContingentDataNew, mockTrainingPlansNew, mockVideosNew, memberRelationsData, mockMemberHistoryNew, mockMemberRelationsNew, availableMembersLeadsNew, customLinksData, communicationsData, todosData, birthdaysData, memberTypesData, expiringContractsData, bulletinBoardData } from "../../utils/user-panel-states/myarea-states"
-import MemberDetailsModal from "../../components/myarea-components/MemberDetailsModal"
-import HistoryModal from "../../components/myarea-components/HistoryModal"
-import AppointmentModal from "../../components/myarea-components/AppointmentModal"
 import NotifyMemberModal from "../../components/myarea-components/NotifyMemberModal"
 import BirthdayMessageModal from "../../components/myarea-components/BirthdayMessageModal"
 import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"
@@ -59,7 +53,6 @@ import { configuredTagsData } from "../../utils/user-panel-states/todo-states"
 import ShiftScheduleWidget from "../../components/myarea-components/widgets/ShiftScheduleWidget"
 import { createPortal } from "react-dom"
 import AnalyticsChartWidget from "../../components/myarea-components/widgets/AnalyticsChartWidget"
-import { MemberDocumentModal } from "../../components/myarea-components/MemberDocumentManageModal"
 
 
 import { appointmentsData } from "../../utils/user-panel-states/appointment-states"

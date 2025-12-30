@@ -843,12 +843,12 @@ export default function Appointments() {
 
 
             <div className="flex lg:flex-row flex-col gap-6 relative">
-              <div
-                className={`transition-all duration-500 ease-in-out ${isSidebarCollapsed
-                  ? "lg:w-0 lg:opacity-0 lg:overflow-hidden lg:m-0 lg:p-0"
-                  : "lg:w-[320px] lg:opacity-100" // Fixed width for large screens only
-                  } w-full md:w-full flex flex-col gap-6`} // Full width on tablet and mobile
-              >
+            <div
+    className={`transition-all duration-500 ease-in-out ${isSidebarCollapsed
+      ? "lg:w-0 lg:opacity-0 lg:overflow-hidden lg:m-0 lg:p-0"
+      : "lg:w-[320px] lg:opacity-100" // Fixed width for large screens only
+      } w-full md:w-full flex flex-col gap-6`} // Full width on tablet and mobile
+  >
                 <div className="w-full">
                   <div className="w-full lg:max-w-[320px]">
                     <MiniCalendar onDateSelect={handleDateSelect} selectedDate={selectedDate} />
@@ -1042,9 +1042,9 @@ export default function Appointments() {
                 </div>
               </div>
               <div
-                className={`w-full bg-[#000000] rounded-xl p-4 overflow-hidden transition-all duration-500 ${isSidebarCollapsed ? "lg:w-full" : "lg:w-[calc(100%-320px-0.3rem)]" // Keep large screen behavior unchanged
-                  }`}
-              >
+    className={`w-full bg-[#000000] rounded-xl p-4 overflow-hidden transition-all duration-500 ${isSidebarCollapsed ? "lg:w-full" : "lg:w-[calc(100%-320px-0.3rem)]" // Keep large screen behavior unchanged
+      }`}
+  >
                 <Calendar
                   appointmentsMain={appointmentsMain}
                   onDateSelect={handleDateSelect}

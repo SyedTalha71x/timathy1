@@ -1,10 +1,8 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable react/prop-types */
 /* eslint-disable react/no-unknown-property */
 /* eslint-disable no-unused-vars */
 import { useState, useRef, useEffect } from "react"
 import { X, Plus, ShoppingBasket, Edit, Check, Move, ExternalLink, History, Search, Trash2, ShoppingCart } from "lucide-react"
-import ProductImage from "../../../public/default-avatar.avif"
 import { RiServiceFill } from "react-icons/ri"
 import SidebarAreaSelling from "../../components/user-panel-components/selling-components/custom-sidebar-selling"
 import { MdOutlineProductionQuantityLimits } from "react-icons/md"
@@ -15,56 +13,11 @@ import SalesJournalModal from "../../components/user-panel-components/selling-co
 import { productsMainData, sellingMainData, serviceMainData } from "../../utils/user-panel-states/selling-states"
 import { useSidebarSystem } from "../../hooks/useSidebarSystem"
 import { trainingVideosData } from "../../utils/user-panel-states/training-states"
+import ThreeDotsDropdown from "../../components/user-panel-components/selling-components/three-drop-down"
+import ProductServiceModal from "../../components/user-panel-components/selling-components/product-service-modal"
 
-// sidebar related import
-import EditTaskModal from "../../components/user-panel-components/task-components/edit-task-modal"
-import EditMemberModal from "../../components/myarea-components/EditMemberModal"
-import AddBillingPeriodModal from "../../components/myarea-components/AddBillingPeriodModal"
-import ContingentModal from "../../components/myarea-components/ContigentModal"
-import MemberDetailsModal from "../../components/myarea-components/MemberDetailsModal"
-import HistoryModal from "../../components/myarea-components/HistoryModal"
-import AppointmentModal from "../../components/myarea-components/AppointmentModal"
-import { WidgetSelectionModal } from "../../components/widget-selection-modal"
-import NotifyMemberModal from "../../components/myarea-components/NotifyMemberModal"
-import DefaultAvatar from "../../../public/gray-avatar-fotor-20250912192528.png"
-import MemberOverviewModal from "../../components/myarea-components/MemberOverviewModal"
-import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"
-import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
-import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
 
-const ThreeDotsDropdown = ({ isOpen, onClose, position, onEdit, onDelete }) => {
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 z-[1001]" onClick={onClose}>
-      <div
-        className="absolute bg-[#2A2A2A] rounded-xl shadow-lg py-2 min-w-[150px] border border-[#404040]"
-        style={{
-          top: position.y,
-          left: position.x,
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button
-          onClick={onEdit}
-          className="w-full text-left px-4 py-2 text-sm text-white hover:bg-[#3A3A3A] transition-colors flex items-center gap-2"
-        >
-          <Edit size={14} />
-          Edit
-        </button>
-        <button
-          onClick={onDelete}
-          className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-[#3A3A3A] transition-colors flex items-center gap-2"
-        >
-          <Trash2 size={14} />
-          Delete
-        </button>
-      </div>
-    </div>
-  );
-};
-
-function App() {
+const Selling = () => {
   const sidebarSystem = useSidebarSystem()
   const trainingVideos = trainingVideosData
   const [threeDotsDropdown, setThreeDotsDropdown] = useState({
@@ -649,363 +602,9 @@ Payment Method: ${invoiceData.paymentMethod}
   // Extract all states and functions from the hook
   const {
     isRightSidebarOpen,
-    isSidebarEditing,
-    isRightWidgetModalOpen,
-    openDropdownIndex,
-    selectedMemberType,
-    isChartDropdownOpen,
-    isWidgetModalOpen,
-    editingTask,
-    todoFilter,
-    isEditTaskModalOpen,
-    isTodoFilterDropdownOpen,
-    taskToCancel,
-    taskToDelete,
-    isBirthdayMessageModalOpen,
-    selectedBirthdayPerson,
-    birthdayMessage,
-    activeNoteId,
-    isSpecialNoteModalOpen,
-    selectedAppointmentForNote,
-    isTrainingPlanModalOpen,
-    selectedUserForTrainingPlan,
-    selectedAppointment,
-    isEditAppointmentModalOpen,
-    showAppointmentOptionsModal,
-    showAppointmentModal,
-    freeAppointments,
-    selectedMember,
-    isMemberOverviewModalOpen,
-    isMemberDetailsModalOpen,
-    activeMemberDetailsTab,
-    isEditModalOpen,
-    editModalTab,
-    isNotifyMemberOpen,
-    notifyAction,
-    showHistoryModal,
-    historyTab,
-    memberHistory,
-    currentBillingPeriod,
-    tempContingent,
-    selectedBillingPeriod,
-    showAddBillingPeriodModal,
-    newBillingPeriod,
-    showContingentModal,
-    editingRelations,
-    newRelation,
-    editForm,
-    widgets,
-    rightSidebarWidgets,
-    notePopoverRef,
-
-    // Setters
     setIsRightSidebarOpen,
-    setIsSidebarEditing,
-    setIsRightWidgetModalOpen,
-    setOpenDropdownIndex,
-    setSelectedMemberType,
-    setIsChartDropdownOpen,
-    setIsWidgetModalOpen,
-    setEditingTask,
-    setTodoFilter,
-    setIsEditTaskModalOpen,
-    setIsTodoFilterDropdownOpen,
-    setTaskToCancel,
-    setTaskToDelete,
-    setIsBirthdayMessageModalOpen,
-    setSelectedBirthdayPerson,
-    setBirthdayMessage,
-    setActiveNoteId,
-    setIsSpecialNoteModalOpen,
-    setSelectedAppointmentForNote,
-    setIsTrainingPlanModalOpen,
-    setSelectedUserForTrainingPlan,
-    setSelectedAppointment,
-    setIsEditAppointmentModalOpen,
-    setShowAppointmentOptionsModal,
-    setShowAppointmentModal,
-    setFreeAppointments,
-    setSelectedMember,
-    setIsMemberOverviewModalOpen,
-    setIsMemberDetailsModalOpen,
-    setActiveMemberDetailsTab,
-    setIsEditModalOpen,
-    setEditModalTab,
-    setIsNotifyMemberOpen,
-    setNotifyAction,
-    setShowHistoryModal,
-    setHistoryTab,
-    setMemberHistory,
-    setCurrentBillingPeriod,
-    setTempContingent,
-    setSelectedBillingPeriod,
-    setShowAddBillingPeriodModal,
-    setNewBillingPeriod,
-    setShowContingentModal,
-    setEditingRelations,
-    setNewRelation,
-    setEditForm,
-    setWidgets,
-    setRightSidebarWidgets,
 
-    // Functions
-    // toggleRightSidebar,
-    closeSidebar,
-    toggleSidebarEditing,
-    toggleDropdown,
-    redirectToCommunication,
-    moveRightSidebarWidget,
-    removeRightSidebarWidget,
-    getWidgetPlacementStatus,
-    handleAddRightSidebarWidget,
-    handleTaskComplete,
-    handleEditTask,
-    handleUpdateTask,
-    handleCancelTask,
-    handleDeleteTask,
-    isBirthdayToday,
-    handleSendBirthdayMessage,
-    handleEditNote,
-    handleDumbbellClick,
-    handleCheckIn,
-    handleAppointmentOptionsModal,
-    handleSaveSpecialNote,
-    isEventInPast,
-    handleCancelAppointment,
-    actuallyHandleCancelAppointment,
-    handleDeleteAppointment,
-    handleEditAppointment,
-    handleCreateNewAppointment,
-    handleViewMemberDetails,
-    handleNotifyMember,
-    calculateAge,
-    isContractExpiringSoon,
-    redirectToContract,
-    handleCalendarFromOverview,
-    handleHistoryFromOverview,
-    handleCommunicationFromOverview,
-    handleViewDetailedInfo,
-    handleEditFromOverview,
-    getMemberAppointments,
-    handleManageContingent,
-    getBillingPeriods,
-    handleAddBillingPeriod,
-    handleSaveContingent,
-    handleInputChange,
-    handleEditSubmit,
-    handleAddRelation,
-    handleDeleteRelation,
-    handleArchiveMember,
-    handleUnarchiveMember,
-    truncateUrl,
-    renderSpecialNoteIcon,
-
-    // new states
-    customLinks,
-    setCustomLinks,
-    communications,
-    setCommunications,
-    todos,
-    setTodos,
-    expiringContracts,
-    setExpiringContracts,
-    birthdays,
-    setBirthdays,
-    notifications,
-    setNotifications,
-    appointments,
-    setAppointments,
-    memberContingentData,
-    setMemberContingentData,
-    memberRelations,
-    setMemberRelations,
-
-    memberTypes,
-    availableMembersLeads,
-    mockTrainingPlans,
-    mockVideos,
-
-    todoFilterOptions,
-    relationOptions,
-    appointmentTypes,
-
-    handleAssignTrainingPlan,
-    handleRemoveTrainingPlan,
-    memberTrainingPlans,
-    setMemberTrainingPlans,
-    availableTrainingPlans,
-    setAvailableTrainingPlans,
   } = sidebarSystem
-
-  // more sidebar related functions
-
-  // Chart configuration
-  const chartSeries = [
-    { name: "Comp1", data: memberTypes[selectedMemberType].data[0] },
-    { name: "Comp2", data: memberTypes[selectedMemberType].data[1] },
-  ]
-
-  const chartOptions = {
-    chart: {
-      type: "line",
-      height: 180,
-      toolbar: { show: false },
-      background: "transparent",
-      fontFamily: "Inter, sans-serif",
-    },
-    colors: ["#FF6B1A", "#2E5BFF"],
-    stroke: { curve: "smooth", width: 4, opacity: 1 },
-    markers: {
-      size: 1,
-      strokeWidth: 0,
-      hover: { size: 6 },
-    },
-    xaxis: {
-      categories: ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-      labels: { style: { colors: "#999999", fontSize: "12px" } },
-      axisBorder: { show: false },
-      axisTicks: { show: false },
-    },
-    yaxis: {
-      min: 0,
-      max: 600,
-      tickAmount: 6,
-      labels: {
-        style: { colors: "#999999", fontSize: "12px" },
-        formatter: (value) => Math.round(value),
-      },
-    },
-    grid: {
-      show: true,
-      borderColor: "#333333",
-      position: "back",
-      xaxis: { lines: { show: true } },
-      yaxis: { lines: { show: true } },
-      row: { opacity: 0.1 },
-      column: { opacity: 0.1 },
-    },
-    legend: {
-      show: true,
-      position: "top",
-      horizontalAlign: "right",
-      offsetY: -30,
-      offsetX: -10,
-      labels: { colors: "#ffffff" },
-      itemMargin: { horizontal: 5 },
-    },
-    title: {
-      text: memberTypes[selectedMemberType].title,
-      align: "left",
-      style: { fontSize: "16px", fontWeight: "bold", color: "#ffffff" },
-    },
-    subtitle: {
-      text: `↑ ${memberTypes[selectedMemberType].growth} more in 2024`,
-      align: "left",
-      style: { fontSize: "12px", color: "#ffffff", fontWeight: "bolder" },
-    },
-    tooltip: {
-      theme: "dark",
-      style: {
-        fontSize: "12px",
-        fontFamily: "Inter, sans-serif",
-      },
-      custom: ({ series, seriesIndex, dataPointIndex, w }) =>
-        '<div class="apexcharts-tooltip-box" style="background: white; color: black; padding: 8px;">' +
-        '<span style="color: black;">' +
-        series[seriesIndex][dataPointIndex] +
-        "</span></div>",
-    },
-  }
-
-  // Wrapper functions to pass local state to hook functions
-  const handleTaskCompleteWrapper = (taskId) => {
-    handleTaskComplete(taskId, todos, setTodos)
-  }
-
-  const handleUpdateTaskWrapper = (updatedTask) => {
-    handleUpdateTask(updatedTask, setTodos)
-  }
-
-  const handleCancelTaskWrapper = (taskId) => {
-    handleCancelTask(taskId, setTodos)
-  }
-
-  const handleDeleteTaskWrapper = (taskId) => {
-    handleDeleteTask(taskId, setTodos)
-  }
-
-  const handleEditNoteWrapper = (appointmentId, currentNote) => {
-    handleEditNote(appointmentId, currentNote, appointments)
-  }
-
-  const handleCheckInWrapper = (appointmentId) => {
-    handleCheckIn(appointmentId, appointments, setAppointments)
-  }
-
-  const handleSaveSpecialNoteWrapper = (appointmentId, updatedNote) => {
-    handleSaveSpecialNote(appointmentId, updatedNote, setAppointments)
-  }
-
-  const actuallyHandleCancelAppointmentWrapper = (shouldNotify) => {
-    actuallyHandleCancelAppointment(shouldNotify, appointments, setAppointments)
-  }
-
-  const handleDeleteAppointmentWrapper = (id) => {
-    handleDeleteAppointment(id, appointments, setAppointments)
-  }
-
-  const getMemberAppointmentsWrapper = (memberId) => {
-    return getMemberAppointments(memberId, appointments)
-  }
-
-  const handleAddBillingPeriodWrapper = () => {
-    handleAddBillingPeriod(memberContingentData, setMemberContingentData)
-  }
-
-  const handleSaveContingentWrapper = () => {
-    handleSaveContingent(memberContingentData, setMemberContingentData)
-  }
-
-  const handleEditSubmitWrapper = (e) => {
-    handleEditSubmit(e, appointments, setAppointments)
-  }
-
-  const handleAddRelationWrapper = () => {
-    handleAddRelation(memberRelations, setMemberRelations)
-  }
-
-  const handleDeleteRelationWrapper = (category, relationId) => {
-    handleDeleteRelation(category, relationId, memberRelations, setMemberRelations)
-  }
-
-  const handleArchiveMemberWrapper = (memberId) => {
-    handleArchiveMember(memberId, appointments, setAppointments)
-  }
-
-  const handleUnarchiveMemberWrapper = (memberId) => {
-    handleUnarchiveMember(memberId, appointments, setAppointments)
-  }
-
-  const getBillingPeriodsWrapper = (memberId) => {
-    return getBillingPeriods(memberId, memberContingentData)
-  }
-
-  const getDifficultyColor = (difficulty) => {
-    switch (difficulty) {
-      case "Beginner":
-        return "bg-green-600"
-      case "Intermediate":
-        return "bg-yellow-600"
-      case "Advanced":
-        return "bg-red-600"
-      default:
-        return "bg-gray-600"
-    }
-  }
-
-  const getVideoById = (id) => {
-    return trainingVideos.find((video) => video.id === id)
-  }
 
   return (
     <>
@@ -1053,232 +652,6 @@ Payment Method: ${invoiceData.paymentMethod}
           }
     `}
       >
-        <CreateTempMemberModal
-          show={showCreateTempMemberModal}
-          onClose={() => setShowCreateTempMemberModal(false)}
-          onSubmit={handleCreateTempMember}
-          tempMemberModalTab={tempMemberModalTab}
-          setTempMemberModalTab={setTempMemberModalTab}
-          tempMemberForm={tempMemberForm}
-          handleTempMemberInputChange={handleTempMemberInputChange}
-          setTempMemberForm={setTempMemberForm}
-        />
-
-        <DeleteConfirmationModal
-          show={isDeleteModalOpen}
-          onClose={() => setIsDeleteModalOpen(false)}
-          onConfirm={confirmDelete}
-          productToDelete={productToDelete}
-        />
-
-        <ThreeDotsDropdown
-          isOpen={threeDotsDropdown.isOpen}
-          onClose={closeThreeDotsDropdown}
-          position={threeDotsDropdown.position}
-          onEdit={handleEditFromDropdown}
-          onDelete={handleDeleteFromDropdown}
-        />
-        {/* Edit/Add Modal */}
-        {isModalOpen && (
-          <div className="fixed inset-0 cursor-pointer open_sans_font w-full h-full bg-black/50 flex items-center justify-center z-[1000] p-4">
-            <div className="bg-[#181818] rounded-xl w-full max-w-md my-8 relative">
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-white text-lg open_sans_font_700">
-                    {modalMode === "add"
-                      ? `Add ${activeTab === "services" ? "Service" : "Product"}`
-                      : `Edit ${activeTab === "services" ? "Service" : "Product"}`}
-                  </h2>
-                  <button onClick={closeModal} className="text-gray-400 hover:text-white transition-colors">
-                    <X size={20} />
-                  </button>
-                </div>
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault()
-                    handleSubmit()
-                  }}
-                  className="space-y-3 custom-scrollbar overflow-y-auto max-h-[70vh]"
-                >
-                  {/* Upload Image */}
-                  <div className="flex flex-col items-start">
-                    <div className="w-24 h-24 rounded-xl overflow-hidden mb-4">
-                      {selectedImage || currentProduct?.image ? (
-                        <img
-                          src={selectedImage || currentProduct?.image || ProductImage}
-                          alt={activeTab === "services" ? "Service" : "Product"}
-                          width={96}
-                          height={96}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-blue-600 flex items-center justify-center text-white text-xs font-medium text-center p-2">
-                          {currentProduct?.name || "New Item"}
-                        </div>
-                      )}
-                    </div>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className="hidden"
-                      id="product-image-upload"
-                      ref={fileInputRef}
-                    />
-                    <label
-                      htmlFor="product-image-upload"
-                      className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 transition-colors text-white px-6 py-2 rounded-xl text-sm cursor-pointer"
-                    >
-                      Upload picture
-                    </label>
-                  </div>
-
-                  {/* Name */}
-                  <div>
-                    <label className="text-sm text-gray-200 block mb-2">
-                      {activeTab === "services" ? "Service" : "Product"} name *
-                    </label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChangeMain}
-                      placeholder={`Enter ${activeTab === "services" ? "service" : "product"} name`}
-                      className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-                      required
-                    />
-                  </div>
-
-                  {/* Price + VAT for services | Price + Article for products */}
-                  {activeTab === "services" ? (
-                    <div className="grid grid-cols-2 gap-4">
-                      {/* Price */}
-                      <div>
-                        <label className="text-sm text-gray-200 block mb-2">Price *</label>
-                        <div className="flex items-center rounded-xl bg-[#101010] border border-transparent focus-within:border-[#3F74FF] transition-colors">
-                          <span className="px-3 text-white text-sm">€</span>
-                          <input
-                            type="text"
-                            name="price"
-                            value={formData.price}
-                            onChange={handleInputChangeMain}
-                            placeholder="0.00"
-                            className="w-full bg-transparent text-sm py-3 pr-4 text-white placeholder-gray-500 outline-none"
-                            required
-                          />
-                        </div>
-                      </div>
-                      {/* VAT */}
-                      <div>
-                        <label className="text-sm text-gray-200 block mb-2">VAT Rate (%)</label>
-                        <select
-                          name="vatRate"
-                          value={formData.vatRate}
-                          onChange={handleInputChangeMain}
-                          className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-                        >
-                          <option value="7">7% (take-away)</option>
-                          <option value="19">19% (eat-in)</option>
-                        </select>
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      {/* Price + Article */}
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="text-sm text-gray-200 block mb-2">Price *</label>
-                          <div className="flex items-center rounded-xl bg-[#101010] border border-transparent focus-within:border-[#3F74FF] transition-colors">
-                            <span className="px-3 text-white text-sm">€</span>
-                            <input
-                              type="text"
-                              name="price"
-                              value={formData.price}
-                              onChange={handleInputChangeMain}
-                              placeholder="0.00"
-                              className="w-full bg-transparent text-sm py-3 pr-4 text-white placeholder-gray-500 outline-none"
-                              required
-                            />
-                          </div>
-                        </div>
-                        <div>
-                          <label className="text-sm text-gray-200 block mb-2">Article Number</label>
-                          <input
-                            type="text"
-                            name="articalNo"
-                            value={formData.articalNo}
-                            onChange={handleInputChangeMain}
-                            placeholder="Enter article no"
-                            className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-                          />
-                        </div>
-                      </div>
-
-                      {/* VAT Rate below */}
-                      <div>
-                        <label className="text-sm text-gray-200 block mb-2">VAT Rate (%)</label>
-                        <select
-                          name="vatRate"
-                          value={formData.vatRate}
-                          onChange={handleInputChangeMain}
-                          className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-                        >
-                         <option value="7">7% (take-away)</option>
-                         <option value="19">19% (eat-in)</option>
-                        </select>
-                      </div>
-                    </>
-                  )}
-
-                  {/* Brand for products */}
-                  {activeTab === "products" && (
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">Brand</label>
-                      <input
-                        type="text"
-                        name="brandName"
-                        value={formData.brandName}
-                        onChange={handleInputChangeMain}
-                        placeholder="Enter brand name"
-                        className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-gray-400 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-                      />
-                    </div>
-                  )}
-
-                  {/* Link */}
-                  <div>
-                    <label className="text-sm text-gray-200 block mb-2">Link (Optional)</label>
-                    <input
-                      type="url"
-                      name="link"
-                      value={formData.link}
-                      onChange={handleInputChangeMain}
-                      placeholder="https://example.com"
-                      className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-                    />
-                  </div>
-
-                  {/* Buttons */}
-                  <div className="flex flex-row gap-3 pt-2">
-                    <button
-                      type="submit"
-                      className="w-full sm:w-auto px-8 py-2.5 bg-[#3F74FF] text-sm text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors"
-                    >
-                      Save
-                    </button>
-                    <button
-                      type="button"
-                      onClick={closeModal}
-                      className="w-full sm:w-auto px-8 py-2.5 bg-transparent text-sm text-white rounded-xl border border-[#333333] hover:bg-[#101010] transition-colors"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        )}
 
         <main className="flex-1 min-w-0">
           <div className="p-4 md:p-8">
@@ -1512,50 +885,87 @@ Payment Method: ${invoiceData.paymentMethod}
 
                   {/* CONTENT */}
                   <div className="p-3">
-  <div className="min-h-[80px] flex flex-col justify-between">
-    <div className="mb-2">
-      {/* Responsive title based on text length */}
-      <h3 className={`font-medium oxanium_font truncate leading-tight ${
-        item.name.length <= 10 ? 'text-xl' :
-        item.name.length <= 20 ? 'text-lg' :
-        item.name.length <= 30 ? 'text-base' :
-        item.name.length <= 40 ? 'text-sm' :
-        'text-xs'
-      }`}>
-        {item.name}
-      </h3>
+                    <div className="min-h-[80px] flex flex-col justify-between">
+                      <div className="mb-2">
+                        {/* Responsive title based on text length */}
+                        <h3 className={`font-medium oxanium_font truncate leading-tight ${item.name.length <= 10 ? 'text-xl' :
+                          item.name.length <= 20 ? 'text-lg' :
+                            item.name.length <= 30 ? 'text-base' :
+                              item.name.length <= 40 ? 'text-sm' :
+                                'text-xs'
+                          }`}>
+                          {item.name}
+                        </h3>
 
-      {activeTab === "products" && item.brandName && (
-        <p className={`text-slate-200 mt-1 open_sans_font truncate ${
-          item.brandName.length <= 15 ? 'text-sm' :
-          item.brandName.length <= 25 ? 'text-xs' :
-          'text-[10px]'
-        }`}>
-          {item.brandName}
-        </p>
-      )}
+                        {activeTab === "products" && item.brandName && (
+                          <p className={`text-slate-200 mt-1 open_sans_font truncate ${item.brandName.length <= 15 ? 'text-sm' :
+                            item.brandName.length <= 25 ? 'text-xs' :
+                              'text-[10px]'
+                            }`}>
+                            {item.brandName}
+                          </p>
+                        )}
 
-      {activeTab === "products" && item.articalNo && (
-        <p className={`text-slate-400 mt-1 open_sans_font truncate ${
-          item.articalNo.length <= 15 ? 'text-xs' :
-          'text-[10px]'
-        }`}>
-          Art. No: {item.articalNo}
-        </p>
-      )}
-    </div>
+                        {activeTab === "products" && item.articalNo && (
+                          <p className={`text-slate-400 mt-1 open_sans_font truncate ${item.articalNo.length <= 15 ? 'text-xs' :
+                            'text-[10px]'
+                            }`}>
+                            Art. No: {item.articalNo}
+                          </p>
+                        )}
+                      </div>
 
-    {/* Price - always at the bottom */}
-    <p className="text-lg font-bold text-white whitespace-nowrap mt-auto">
-      ${item.price.toFixed(2)}
-    </p>
-  </div>
-</div>
+                      {/* Price - always at the bottom */}
+                      <p className="text-lg font-bold text-white whitespace-nowrap mt-auto">
+                        ${item.price.toFixed(2)}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
         </main>
+
+        <CreateTempMemberModal
+          show={showCreateTempMemberModal}
+          onClose={() => setShowCreateTempMemberModal(false)}
+          onSubmit={handleCreateTempMember}
+          tempMemberModalTab={tempMemberModalTab}
+          setTempMemberModalTab={setTempMemberModalTab}
+          tempMemberForm={tempMemberForm}
+          handleTempMemberInputChange={handleTempMemberInputChange}
+          setTempMemberForm={setTempMemberForm}
+        />
+
+        <DeleteConfirmationModal
+          show={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          onConfirm={confirmDelete}
+          productToDelete={productToDelete}
+        />
+
+        <ThreeDotsDropdown
+          isOpen={threeDotsDropdown.isOpen}
+          onClose={closeThreeDotsDropdown}
+          position={threeDotsDropdown.position}
+          onEdit={handleEditFromDropdown}
+          onDelete={handleDeleteFromDropdown}
+        />
+        {/* Edit/Add Modal */}
+        <ProductServiceModal
+          isOpen={isModalOpen}
+          closeModal={closeModal}
+          modalMode={modalMode}
+          activeTab={activeTab}
+          formData={formData}
+          handleSubmit={handleSubmit}
+          handleInputChangeMain={handleInputChangeMain}
+          selectedImage={selectedImage}
+          currentProduct={currentProduct}
+          handleImageUpload={handleImageUpload}
+          fileInputRef={fileInputRef}
+        />
 
         {/* History Modal */}
         {showHistoryModalMain && (
@@ -1601,53 +1011,8 @@ Payment Method: ${invoiceData.paymentMethod}
           afterDiscount={afterDiscount}
           vatAmount={vatAmount}
           total={total}
-          handleCheckout={handleCheckout}
-          // WIDGETS TAB LOGIC - Widget system integration
-          isSidebarEditing={isSidebarEditing}
-          toggleSidebarEditing={toggleSidebarEditing}
-          rightSidebarWidgets={rightSidebarWidgets}
-          moveRightSidebarWidget={moveRightSidebarWidget}
-          removeRightSidebarWidget={removeRightSidebarWidget}
-          setIsRightWidgetModalOpen={setIsRightWidgetModalOpen}
-          communications={communications}
-          redirectToCommunication={redirectToCommunication}
-          todos={todos}
-          handleTaskComplete={handleTaskCompleteWrapper}
-          todoFilter={todoFilter}
-          setTodoFilter={setTodoFilter}
-          todoFilterOptions={todoFilterOptions}
-          isTodoFilterDropdownOpen={isTodoFilterDropdownOpen}
-          setIsTodoFilterDropdownOpen={setIsTodoFilterDropdownOpen}
-          openDropdownIndex={openDropdownIndex}
-          toggleDropdown={toggleDropdown}
-          handleEditTask={handleEditTask}
-          setTaskToCancel={setTaskToCancel}
-          setTaskToDelete={setTaskToDelete}
-          birthdays={birthdays}
-          isBirthdayToday={isBirthdayToday}
-          handleSendBirthdayMessage={handleSendBirthdayMessage}
-          customLinks={customLinks}
-          truncateUrl={truncateUrl}
-          appointments={appointments}
-          renderSpecialNoteIcon={renderSpecialNoteIcon}
-          handleDumbbellClick={handleDumbbellClick}
-          handleCheckIn={handleCheckInWrapper}
-          handleAppointmentOptionsModal={handleAppointmentOptionsModal}
-          selectedMemberType={selectedMemberType}
-          setSelectedMemberType={setSelectedMemberType}
-          memberTypes={memberTypes}
-          isChartDropdownOpen={isChartDropdownOpen}
-          setIsChartDropdownOpen={setIsChartDropdownOpen}
-          chartOptions={chartOptions}
-          chartSeries={chartSeries}
-          expiringContracts={expiringContracts}
-          getWidgetPlacementStatus={getWidgetPlacementStatus}
-          onSaveSpecialNote={handleSaveSpecialNoteWrapper}
-          // NOTIFICATIONS TAB LOGIC - Notification system
-          notifications={notifications}
-          hasUnreadNotifications={notifications?.length > 0}
+          handleCheckout={handleCheckout}        
           updateItemVatRate={updateItemVatRate}
-          setTodos={setTodos}
         />
 
         {isRightSidebarOpen && (
@@ -1655,240 +1020,6 @@ Payment Method: ${invoiceData.paymentMethod}
             className="fixed inset-0 bg-black/50 z-40 lg:hidden block cursor-pointer"
             onClick={() => setIsRightSidebarOpen(false)}
           ></div>
-        )}
-
-        {/* Sidebar related modals */}
-        <TrainingPlansModal
-          isOpen={isTrainingPlanModalOpen}
-          onClose={() => {
-            setIsTrainingPlanModalOpen(false)
-            setSelectedUserForTrainingPlan(null)
-          }}
-          selectedMember={selectedUserForTrainingPlan} // Make sure this is passed correctly
-          memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
-          availableTrainingPlans={availableTrainingPlans}
-          onAssignPlan={handleAssignTrainingPlan} // Make sure this function is passed
-          onRemovePlan={handleRemoveTrainingPlan} // Make sure this function is passed
-        />
-
-        <AppointmentActionModalV2
-          isOpen={showAppointmentOptionsModal}
-          onClose={() => {
-            setShowAppointmentOptionsModal(false)
-            setSelectedAppointment(null)
-          }}
-          appointment={selectedAppointment}
-          isEventInPast={isEventInPast}
-          onEdit={() => {
-            setShowAppointmentOptionsModal(false)
-            setIsEditAppointmentModalOpen(true)
-          }}
-          onCancel={handleCancelAppointment}
-          onViewMember={handleViewMemberDetails}
-        />
-
-        <NotifyMemberModal
-          isOpen={isNotifyMemberOpen}
-          onClose={() => setIsNotifyMemberOpen(false)}
-          notifyAction={notifyAction}
-          actuallyHandleCancelAppointment={actuallyHandleCancelAppointmentWrapper}
-          handleNotifyMember={handleNotifyMember}
-        />
-
-        {isEditAppointmentModalOpen && selectedAppointment && (
-          <EditAppointmentModalV2
-            selectedAppointment={selectedAppointment}
-            setSelectedAppointment={setSelectedAppointment}
-            appointmentTypes={appointmentTypes}
-            freeAppointments={freeAppointments}
-            handleAppointmentChange={(changes) => {
-              setSelectedAppointment({ ...selectedAppointment, ...changes })
-            }}
-            appointments={appointments}
-            setAppointments={setAppointments}
-            setIsNotifyMemberOpen={setIsNotifyMemberOpen}
-            setNotifyAction={setNotifyAction}
-            onDelete={handleDeleteAppointmentWrapper}
-            onClose={() => {
-              setIsEditAppointmentModalOpen(false)
-              setSelectedAppointment(null)
-            }}
-          />
-        )}
-
-        <WidgetSelectionModal
-          isOpen={isRightWidgetModalOpen}
-          onClose={() => setIsRightWidgetModalOpen(false)}
-          onSelectWidget={handleAddRightSidebarWidget}
-          getWidgetStatus={(widgetType) => getWidgetPlacementStatus(widgetType, "sidebar")}
-          widgetArea="sidebar"
-        />
-
-        <MemberOverviewModal
-          isOpen={isMemberOverviewModalOpen}
-          onClose={() => {
-            setIsMemberOverviewModalOpen(false)
-            setSelectedMember(null)
-          }}
-          selectedMember={selectedMember}
-          calculateAge={calculateAge}
-          isContractExpiringSoon={isContractExpiringSoon}
-          handleCalendarFromOverview={handleCalendarFromOverview}
-          handleHistoryFromOverview={handleHistoryFromOverview}
-          handleCommunicationFromOverview={handleCommunicationFromOverview}
-          handleViewDetailedInfo={handleViewDetailedInfo}
-          handleEditFromOverview={handleEditFromOverview}
-        />
-
-        <AppointmentModal
-          show={showAppointmentModal}
-          member={selectedMember}
-          onClose={() => {
-            setShowAppointmentModal(false)
-            setSelectedMember(null)
-          }}
-          getMemberAppointments={getMemberAppointmentsWrapper}
-          appointmentTypes={appointmentTypes}
-          handleEditAppointment={handleEditAppointment}
-          handleCancelAppointment={handleCancelAppointment}
-          currentBillingPeriod={currentBillingPeriod}
-          memberContingentData={memberContingentData}
-          handleManageContingent={handleManageContingent}
-          handleCreateNewAppointment={handleCreateNewAppointment}
-        />
-
-        <HistoryModal
-          show={showHistoryModal}
-          onClose={() => {
-            setShowHistoryModal(false)
-            setSelectedMember(null)
-          }}
-          selectedMember={selectedMember}
-          historyTab={historyTab}
-          setHistoryTab={setHistoryTab}
-          memberHistory={memberHistory}
-        />
-
-        <MemberDetailsModal
-          isOpen={isMemberDetailsModalOpen}
-          onClose={() => {
-            setIsMemberDetailsModalOpen(false)
-            setSelectedMember(null)
-          }}
-          selectedMember={selectedMember}
-          memberRelations={memberRelations}
-          DefaultAvatar={DefaultAvatar}
-          calculateAge={calculateAge}
-          isContractExpiringSoon={isContractExpiringSoon}
-          redirectToContract={redirectToContract}
-        />
-
-        <ContingentModal
-          show={showContingentModal}
-          setShow={setShowContingentModal}
-          selectedMember={selectedMember}
-          getBillingPeriods={getBillingPeriodsWrapper}
-          selectedBillingPeriod={selectedBillingPeriod}
-          handleBillingPeriodChange={setSelectedBillingPeriod}
-          setShowAddBillingPeriodModal={setShowAddBillingPeriodModal}
-          tempContingent={tempContingent}
-          setTempContingent={setTempContingent}
-          currentBillingPeriod={currentBillingPeriod}
-          handleSaveContingent={handleSaveContingentWrapper}
-        />
-
-        <AddBillingPeriodModal
-          show={showAddBillingPeriodModal}
-          setShow={setShowAddBillingPeriodModal}
-          newBillingPeriod={newBillingPeriod}
-          setNewBillingPeriod={setNewBillingPeriod}
-          handleAddBillingPeriod={handleAddBillingPeriodWrapper}
-        />
-
-        <EditMemberModal
-          isOpen={isEditModalOpen}
-          onClose={() => {
-            setIsEditModalOpen(false)
-            setSelectedMember(null)
-          }}
-          selectedMember={selectedMember}
-          editModalTab={editModalTab}
-          setEditModalTab={setEditModalTab}
-          editForm={editForm}
-          handleInputChange={handleInputChange}
-          handleEditSubmit={handleEditSubmitWrapper}
-          editingRelations={editingRelations}
-          setEditingRelations={setEditingRelations}
-          newRelation={newRelation}
-          setNewRelation={setNewRelation}
-          availableMembersLeads={availableMembersLeads}
-          relationOptions={relationOptions}
-          handleAddRelation={handleAddRelationWrapper}
-          memberRelations={memberRelations}
-          handleDeleteRelation={handleDeleteRelationWrapper}
-          handleArchiveMember={handleArchiveMemberWrapper}
-          handleUnarchiveMember={handleUnarchiveMemberWrapper}
-        />
-
-        {isRightSidebarOpen && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={closeSidebar} />}
-
-        {isEditTaskModalOpen && editingTask && (
-          <EditTaskModal
-            task={editingTask}
-            onClose={() => {
-              setIsEditTaskModalOpen(false)
-              setEditingTask(null)
-            }}
-            onUpdateTask={handleUpdateTaskWrapper}
-          />
-        )}
-
-        {taskToDelete && (
-          <div className="fixed inset-0 text-white bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
-              <h3 className="text-lg font-semibold mb-4">Delete Task</h3>
-              <p className="text-gray-300 mb-6">
-                Are you sure you want to delete this task? This action cannot be undone.
-              </p>
-              <div className="flex gap-3 justify-end">
-                <button
-                  onClick={() => setTaskToDelete(null)}
-                  className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#2F2F2F]/90"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => handleDeleteTaskWrapper(taskToDelete)}
-                  className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {taskToCancel && (
-          <div className="fixed inset-0 bg-black/50 text-white flex items-center justify-center z-50">
-            <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
-              <h3 className="text-lg font-semibold mb-4">Cancel Task</h3>
-              <p className="text-gray-300 mb-6">Are you sure you want to cancel this task?</p>
-              <div className="flex gap-3 justify-end">
-                <button
-                  onClick={() => setTaskToCancel(null)}
-                  className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#2F2F2F]/90"
-                >
-                  No
-                </button>
-                <button
-                  onClick={() => handleCancelTaskWrapper(taskToCancel)}
-                  className="px-4 py-2 bg-orange-600 text-white rounded-xl hover:bg-orange-700"
-                >
-                  Cancel Task
-                </button>
-              </div>
-            </div>
-          </div>
         )}
 
         <style jsx>{`
@@ -1918,4 +1049,4 @@ Payment Method: ${invoiceData.paymentMethod}
   )
 }
 
-export default App
+export default Selling

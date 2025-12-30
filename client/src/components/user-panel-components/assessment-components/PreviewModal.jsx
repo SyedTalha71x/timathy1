@@ -112,7 +112,7 @@ const PreviewModal = ({ showPreviewModal, setShowPreviewModal, previewForm }) =>
         <div className="bg-[#161616] border border-gray-600 rounded-lg p-4 sm:p-6 mb-6">
           <div className="text-center mb-2">
             <h3 className="text-lg sm:text-xl font-bold">Studio Name</h3>
-            <p className="text-gray-400 text-sm sm:text-base">Member Assessment Form</p>
+            <p className="text-gray-400 text-sm sm:text-base">Member Medical History Form</p>
           </div>
           <div className="text-center">
             <h1 className="text-xl sm:text-2xl font-bold break-words">{previewForm.title}</h1>

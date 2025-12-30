@@ -3,10 +3,8 @@
 import { X, Trash2, Archive, ArchiveRestore } from "lucide-react"
 import DefaultAvatar from "../../../../public/gray-avatar-fotor-20250912192528.png"
 import { toast } from "react-hot-toast"
-import { useState, useMemo } from "react"
-import { COUNTRIES } from "../../../utils/user-panel-states/members-states"
-
-
+import { useState } from "react"
+import useCountries from "../../../hooks/useCountries"
 
 const EditMemberModalMain = ({
   isOpen,
@@ -30,25 +28,14 @@ const EditMemberModalMain = ({
   handleUnarchiveMemberMain,
 }) => {
   const [countryInput, setCountryInput] = useState(editFormMain.country || "")
-  const [showCountrySuggestions, setShowCountrySuggestions] = useState(false)
-
-  const filteredCountries = useMemo(() => {
-    if (!countryInput) return []
-    return COUNTRIES.filter((country) => country.toLowerCase().startsWith(countryInput.toLowerCase())).slice(0, 5)
-  }, [countryInput])
+  const {countries, loading} = useCountries();
 
   const handleCountryChange = (e) => {
     const value = e.target.value
     setCountryInput(value)
-    setShowCountrySuggestions(true)
     handleInputChangeMain({ target: { name: "country", value } })
   }
 
-  const handleCountrySelect = (country) => {
-    setCountryInput(country)
-    setShowCountrySuggestions(false)
-    handleInputChangeMain({ target: { name: "country", value: country } })
-  }
 
   const handleImageUpload = (e) => {
     if (e.target.files && e.target.files[0]) {
@@ -179,31 +166,26 @@ const EditMemberModalMain = ({
                 </div>
 
                 <div className="relative">
-                  <label className="text-sm text-gray-200 block mb-2">Country</label>
-                  <input
-                    type="text"
-                    value={countryInput}
-                    onChange={handleCountryChange}
-                    onFocus={() => setShowCountrySuggestions(true)}
-                    onBlur={() => setTimeout(() => setShowCountrySuggestions(false), 200)}
-                    placeholder="Type country name..."
-                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                  />
-                  {showCountrySuggestions && filteredCountries.length > 0 && (
-                    <div className="absolute top-full left-0 right-0 bg-[#222] border border-gray-600 rounded-xl mt-1 z-50 max-h-40 overflow-y-auto">
-                      {filteredCountries.map((country) => (
-                        <div
-                          key={country}
-                          onClick={() => handleCountrySelect(country)}
-                          className="px-4 py-2 text-white text-sm hover:bg-[#333] cursor-pointer"
-                        >
-                          {country}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
+            <label className="text-sm text-gray-200 block mb-2">Country</label>
+            <select
+              name="country"
+              value={countryInput}
+              onChange={handleCountryChange}
+              className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+              required
+            >
+              <option value="">Select a country</option>
+              {loading ? (
+                <option value="" disabled>Loading countries...</option>
+              ) : (
+                countries.map((country) => (
+                  <option key={country.code} value={country.name}>
+                    {country.name}
+                  </option>
+                ))
+              )}
+            </select>
+          </div>
                 <div>
                   <label className="text-sm text-gray-200 block mb-2">Street</label>
                   <input

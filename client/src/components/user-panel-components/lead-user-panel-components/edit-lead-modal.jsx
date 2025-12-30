@@ -1,7 +1,9 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable react/prop-types */
 import { Trash2, X } from "lucide-react"
 import { useEffect, useState } from "react"
 import toast from "react-hot-toast"
-/* eslint-disable react/prop-types */
+import useCountries from "../../../hooks/useCountries"
 
 const EditLeadModal = ({
   isVisible,
@@ -23,6 +25,8 @@ const EditLeadModal = ({
   const [activeTab, setActiveTab] = useState(initialTab) // Use initialTab
   const [editingRelationsLead, setEditingRelationsLead] = useState(false)
   const [showCountryDropdown, setShowCountryDropdown] = useState(false)
+  const {countries, loading} = useCountries();
+  
   
   const [formData, setFormData] = useState({
     firstName: "",
@@ -49,44 +53,6 @@ const EditLeadModal = ({
       setActiveTab(initialTab)
     }
   }, [initialTab, isVisible])
-
-  // Country options - same as in AddLeadModal
-  const countryOptions = [
-    "United States",
-    "Canada",
-    "United Kingdom",
-    "Germany",
-    "France",
-    "Italy",
-    "Spain",
-    "Australia",
-    "Japan",
-    "China",
-    "Brazil",
-    "Mexico",
-    "India",
-    "South Korea",
-    "Netherlands",
-    "Switzerland",
-    "Sweden",
-    "Norway",
-    "Denmark",
-    "Finland",
-    "Austria",
-    "Belgium",
-    "Portugal",
-    "Ireland",
-    "New Zealand",
-    "Singapore",
-    "United Arab Emirates",
-    "South Africa",
-    // Add more countries as needed
-  ]
-
-  // Filter countries based on input
-  const filteredCountries = countryOptions.filter(country =>
-    country.toLowerCase().includes(formData.country.toLowerCase())
-  )
 
   const sourceOptions = [
     "Website",
@@ -217,15 +183,6 @@ const EditLeadModal = ({
       ...formData,
       [field]: value
     })
-  }
-
-  // Handle country selection
-  const handleCountrySelect = (country) => {
-    setFormData({
-      ...formData,
-      country: country
-    })
-    setShowCountryDropdown(false)
   }
 
   // Handle country input change
@@ -414,31 +371,26 @@ const EditLeadModal = ({
                     />
                   </div>
                   <div className="relative">
-                    <label className="text-sm text-gray-200 block mb-2">Country</label>
-                    <input
-                      type="text"
-                      value={formData.country}
-                      onChange={(e) => handleCountryChange(e.target.value)}
-                      onFocus={() => setShowCountryDropdown(true)}
-                      className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                      placeholder="Type or select country"
-                    />
-                    
-                    {/* Country Dropdown */}
-                    {showCountryDropdown && filteredCountries.length > 0 && (
-                      <div className="absolute z-10 w-full mt-1 bg-[#141414] border border-gray-700 rounded-xl shadow-lg max-h-48 overflow-y-auto">
-                        {filteredCountries.map((country) => (
-                          <div
-                            key={country}
-                            onClick={() => handleCountrySelect(country)}
-                            className="px-4 py-2 text-sm text-white hover:bg-[#2A2A2A] cursor-pointer first:rounded-t-xl last:rounded-b-xl"
-                          >
-                            {country}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+            <label className="text-sm text-gray-200 block mb-2">Country</label>
+            <select
+              name="country"
+              value={formData.country}
+              onChange={handleCountryChange}
+              className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+              required
+            >
+              <option value="">Select a country</option>
+              {loading ? (
+                <option value="" disabled>Loading countries...</option>
+              ) : (
+                countries.map((country) => (
+                  <option key={country.code} value={country.name}>
+                    {country.name}
+                  </option>
+                ))
+              )}
+            </select>
+          </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">

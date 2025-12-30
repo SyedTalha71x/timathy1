@@ -205,14 +205,14 @@ const Assessment = () => {
     <div className="min-h-screen rounded-3xl bg-[#1C1C1C] text-white md:p-6 p-3">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-2xl font-bold mb-2">Assessment</h1>
+          <h1 className="text-2xl font-bold mb-2">Medical History</h1>
         </div>
         <button
           onClick={handleCreateForm}
           className="bg-blue-600 text-sm hover:bg-blue-700 gap-2 text-white px-4 md:px-6 py-3 rounded-lg font-medium transition-colors flex justify-center items-center"
         >
           <span><Plus size={20}/></span>
-          <span className='hidden sm:inline'>Create Assessment</span>
+          <span className='hidden sm:inline'>Create Medical History</span>
         </button>
       </div>
 
