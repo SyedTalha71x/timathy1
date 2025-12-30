@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unknown-property */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */ /* eslint-disable react/prop-types */
 
@@ -772,16 +773,22 @@ export default function TodoApp() {
   }) => {
     const taskItemRefs = useRef({})
     const [draggingTaskId, setDraggingTaskId] = useState(null)
-
+  
     return (
       <div
         ref={columnRef}
         id={`column-${id}`}
-        className={`bg-[#141414] rounded-2xl overflow-hidden h-[600px] flex flex-col relative transition-all duration-300 ${isCollapsed ? "w-12" : "flex-1"}`}
+        className={`bg-[#141414] rounded-2xl flex flex-col relative transition-all duration-300 ${
+          isCollapsed ? "w-12" : "flex-1"
+        }`}
         data-column-id={id}
         style={{
-          zIndex: draggingTaskId ? 1 : "auto",
+          // CRITICAL FIX: Remove overflow when dragging
+          overflow: draggingTaskId ? "visible" : "hidden",
+          height: "600px",
           minWidth: isCollapsed ? "48px" : "0",
+          // Lower z-index for columns
+          zIndex: draggingTaskId ? 1 : "auto",
         }}
       >
         <div className="p-3 flex justify-between items-center rounded-t-2xl" style={{ backgroundColor: `${color}20` }}>
@@ -809,9 +816,16 @@ export default function TodoApp() {
             </button>
           )}
         </div>
-
+  
         {!isCollapsed && (
-          <div className="flex-1 overflow-y-auto custom-scrollbar overflow-x-hidden p-3">
+          <div 
+            className="flex-1 custom-scrollbar p-3"
+            style={{
+              // CRITICAL FIX: Remove overflow constraints when dragging
+              overflowY: draggingTaskId ? "visible" : "auto",
+              overflowX: draggingTaskId ? "visible" : "hidden",
+            }}
+          >
             {tasks.length > 0 ? (
               tasks.map((task, index) => {
                 if (!taskItemRefs.current[task.id]) {
@@ -828,13 +842,16 @@ export default function TodoApp() {
                     }}
                     cancel=".no-drag"
                     defaultPosition={{ x: 0, y: 0 }}
+                    // CRITICAL FIX: Add position strategy
+                    positionOffset={{ x: 0, y: 0 }}
                   >
                     <div
                       ref={taskItemRefs.current[task.id]}
-                      className={`cursor-grab mb-3 ${draggingTaskId === task.id ? "z-[9999] relative" : ""}`}
+                      className={`mb-3 ${draggingTaskId === task.id ? "dragging-task" : ""}`}
                       style={{
-                        zIndex: draggingTaskId === task.id ? 9999 : "auto",
+                        // CRITICAL FIX: Ensure proper stacking
                         position: draggingTaskId === task.id ? "relative" : "static",
+                        zIndex: draggingTaskId === task.id ? 9999 : "auto",
                       }}
                     >
                       <TaskItem
@@ -868,6 +885,12 @@ export default function TodoApp() {
             )}
           </div>
         )}
+  
+        <style jsx>{`
+          .dragging-task {
+            cursor: grabbing !important;
+          }
+        `}</style>
       </div>
     )
   }

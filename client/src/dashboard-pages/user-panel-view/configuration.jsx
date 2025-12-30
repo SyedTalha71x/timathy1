@@ -320,7 +320,7 @@ const ConfigurationPage = () => {
   const reminderTextareaRef = useRef(null)
   const registrationTextareaRef = useRef(null) // <NEW> Add this line
 
- 
+
   const [trialTraining, setTrialTraining] = useState({
     name: "Trial Training",
     duration: 60,
@@ -398,13 +398,13 @@ const ConfigurationPage = () => {
       hasFormatting: t.hasFormatting !== undefined ? t.hasFormatting : true,
     }
   }
-  
+
 
   const conf = getType("confirmation")
   const canc = getType("cancellation")
   const resch = getType("rescheduled")
   const reminder = getType("reminder")
-  const registration = getType("registration") 
+  const registration = getType("registration")
 
 
   // <CHANGE> Handle save settings
@@ -1359,82 +1359,97 @@ const ConfigurationPage = () => {
               </Panel>
 
               <Panel header="Opening Hours" key="2" className="bg-[#202020]">
-                <div className="space-y-4">
-                  {/* Default days display */}
-                  <div className="mb-4">
-                    <h4 className="text-white mb-3">Weekly Schedule</h4>
-                    {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => {
-                      const existingHour = openingHours.find(hour => hour.day === day);
-                      const isClosed = existingHour ? existingHour.closed : (day === 'Sunday'); // Sunday closed by default
+  <div className="space-y-4">
+    {/* Default days display */}
+    <div className="mb-4">
+      <h4 className="text-white mb-3 text-lg font-medium">Weekly Schedule</h4>
+      {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => {
+        const existingHour = openingHours.find(hour => hour.day === day);
+        const isClosed = existingHour ? existingHour.closed : (day === 'Sunday'); // Sunday closed by default
 
-                      return (
-                        <div key={day} className="flex items-center justify-between p-3 border border-[#303030] rounded-lg mb-2">
-                          <div className="flex items-center gap-4 w-full">
-                            <span className="text-white w-24">{day}</span>
+        return (
+          <div key={day} className="flex flex-col p-3 border border-[#303030] rounded-lg mb-2 gap-3">
+            {/* Day header and switch - stacked on mobile */}
+            <div className="flex items-center justify-between w-full">
+              <span className="text-white font-medium truncate">{day}</span>
+              <div className="flex items-center gap-2">
+                <Switch
+                  checked={!isClosed}
+                  onChange={(checked) => {
+                    if (checked) {
+                      const filteredHours = openingHours.filter(hour => hour.day !== day);
+                      setOpeningHours([...filteredHours, { day, startTime: null, endTime: null, closed: false }]);
+                    } else {
+                      const filteredHours = openingHours.filter(hour => hour.day !== day);
+                      setOpeningHours([...filteredHours, { day, startTime: null, endTime: null, closed: true }]);
+                    }
+                  }}
+                  size="small"
+                />
+                <span className="text-white text-sm min-w-[50px]">
+                  {isClosed ? 'Closed' : 'Open'}
+                </span>
+              </div>
+            </div>
 
-                            <Switch
-                              checked={!isClosed}
-                              onChange={(checked) => {
-                                if (checked) {
-                                  // Remove from opening hours if it exists as closed
-                                  const filteredHours = openingHours.filter(hour => hour.day !== day);
-                                  setOpeningHours([...filteredHours, { day, startTime: null, endTime: null, closed: false }]);
-                                } else {
-                                  // Set to closed
-                                  const filteredHours = openingHours.filter(hour => hour.day !== day);
-                                  setOpeningHours([...filteredHours, { day, startTime: null, endTime: null, closed: true }]);
-                                }
-                              }}
-                            />
-                            <span className="text-white">{isClosed ? 'Closed' : 'Open'}</span>
-
-                            {!isClosed && (
-                              <div className="flex items-center gap-2 ml-4">
-                                <TimePicker
-                                  format="HH:mm"
-                                  placeholder="Start Time"
-                                  value={existingHour?.startTime}
-                                  onChange={(time) => {
-                                    const existingIndex = openingHours.findIndex(hour => hour.day === day);
-                                    if (existingIndex >= 0) {
-                                      const updatedHours = [...openingHours];
-                                      updatedHours[existingIndex] = { ...updatedHours[existingIndex], startTime: time };
-                                      setOpeningHours(updatedHours);
-                                    } else {
-                                      setOpeningHours([...openingHours, { day, startTime: time, endTime: null, closed: false }]);
-                                    }
-                                  }}
-                                  className="white-text"
-                                  style={inputStyle}
-                                />
-                                <span className="text-white mx-2">-</span>
-                                <TimePicker
-                                  format="HH:mm"
-                                  placeholder="End Time"
-                                  value={existingHour?.endTime}
-                                  onChange={(time) => {
-                                    const existingIndex = openingHours.findIndex(hour => hour.day === day);
-                                    if (existingIndex >= 0) {
-                                      const updatedHours = [...openingHours];
-                                      updatedHours[existingIndex] = { ...updatedHours[existingIndex], endTime: time };
-                                      setOpeningHours(updatedHours);
-                                    } else {
-                                      setOpeningHours([...openingHours, { day, startTime: null, endTime: time, closed: false }]);
-                                    }
-                                  }}
-                                  className="white-text"
-                                  style={inputStyle}
-                                />
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
+            {/* Time pickers - full width on mobile when open */}
+            {!isClosed && (
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full">
+                <div className="flex items-center gap-2 w-full">
+                  <TimePicker
+                    format="HH:mm"
+                    placeholder="Start"
+                    value={existingHour?.startTime}
+                    onChange={(time) => {
+                      const existingIndex = openingHours.findIndex(hour => hour.day === day);
+                      if (existingIndex >= 0) {
+                        const updatedHours = [...openingHours];
+                        updatedHours[existingIndex] = { ...updatedHours[existingIndex], startTime: time };
+                        setOpeningHours(updatedHours);
+                      } else {
+                        setOpeningHours([...openingHours, { day, startTime: time, endTime: null, closed: false }]);
+                      }
+                    }}
+                    className="white-text flex-1"
+                    style={{ 
+                      ...inputStyle,
+                      width: '100%',
+                      minHeight: '32px'
+                    }}
+                    size="small"
+                  />
+                  <span className="text-white mx-1">-</span>
+                  <TimePicker
+                    format="HH:mm"
+                    placeholder="End"
+                    value={existingHour?.endTime}
+                    onChange={(time) => {
+                      const existingIndex = openingHours.findIndex(hour => hour.day === day);
+                      if (existingIndex >= 0) {
+                        const updatedHours = [...openingHours];
+                        updatedHours[existingIndex] = { ...updatedHours[existingIndex], endTime: time };
+                        setOpeningHours(updatedHours);
+                      } else {
+                        setOpeningHours([...openingHours, { day, startTime: null, endTime: time, closed: false }]);
+                      }
+                    }}
+                    className="white-text flex-1"
+                    style={{ 
+                      ...inputStyle,
+                      width: '100%',
+                      minHeight: '32px'
+                    }}
+                    size="small"
+                  />
                 </div>
-              </Panel>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  </div>
+</Panel>
               <Panel header="Closing Days" key="3" className="bg-[#202020]">
                 <div className="space-y-4">
                   {studioCountry && (
@@ -1692,75 +1707,90 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                     </div>
                   </Panel>
                   <Panel header="Appointment Categories" key="4" className="bg-[#202020]">
-                    <div className="space-y-4">
-                      <div className="mb-6 p-4 border border-[#303030] rounded-lg">
-                        <div className="flex justify-between items-center mb-4">
-                          <h4 className="text-white text-lg">Appointment Categories</h4>
-                          <Button
-                            type="dashed"
-                            onClick={handleAddAppointmentCategory}
-                            icon={<PlusOutlined />}
-                            style={buttonStyle}
-                          >
-                            Add Category
-                          </Button>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                          {appointmentCategories.map((category, index) => (
-                            <div key={index} className="flex items-center gap-1">
-                              {editingCategory.index === index ? (
-                                <div className="flex items-center gap-1">
-                                  <Input
-                                    value={editingCategory.value}
-                                    onChange={(e) => setEditingCategory({ ...editingCategory, value: e.target.value })}
-                                    onPressEnter={() => handleSaveEditCategory(index)}
-                                    onBlur={() => handleSaveEditCategory(index)}
-                                    autoFocus
-                                    size="small"
-                                    style={{ width: 120, backgroundColor: "#101010", border: "none", color: "#fff" }}
-                                  />
-                                  <Button
-                                    type="link"
-                                    size="small"
-                                    onClick={() => handleSaveEditCategory(index)}
-                                    style={{ color: "#FF843E", padding: 0, minWidth: 'auto' }}
-                                  >
-                                    ✓
-                                  </Button>
-                                  <Button
-                                    type="link"
-                                    size="small"
-                                    onClick={handleCancelEditCategory}
-                                    style={{ color: "#ff4d4f", padding: 0, minWidth: 'auto' }}
-                                  >
-                                    ✕
-                                  </Button>
-                                </div>
-                              ) : (
-                                <Tag
-                                  color="blue"
-                                  closable
-                                  onClose={() => handleRemoveAppointmentCategory(index)}
-                                  className="py-1 px-2 text-sm cursor-pointer"
-                                  onClick={() => handleStartEditCategory(index, category)}
-                                >
-                                  {category}
-                                </Tag>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
+  <div className="space-y-4">
+    <div className="mb-6 p-3 md:p-4 border border-[#303030] rounded-lg">
+      {/* Mobile responsive header */}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-3">
+        <h4 className="text-white text-lg font-medium">Appointment Categories</h4>
+        <Button
+          type="dashed"
+          onClick={handleAddAppointmentCategory}
+          icon={<PlusOutlined />}
+          style={buttonStyle}
+          className="w-full sm:w-auto justify-center sm:justify-start"
+          size="small"
+        >
+          Add Category
+        </Button>
+      </div>
+      
+      {/* Mobile responsive categories grid */}
+      <div className="flex flex-wrap gap-2">
+        {appointmentCategories.map((category, index) => (
+          <div key={index} className="flex items-center gap-1 mb-1">
+            {editingCategory.index === index ? (
+              <div className="flex items-center gap-1 w-full">
+                <Input
+                  value={editingCategory.value}
+                  onChange={(e) => setEditingCategory({ ...editingCategory, value: e.target.value })}
+                  onPressEnter={() => handleSaveEditCategory(index)}
+                  onBlur={() => handleSaveEditCategory(index)}
+                  autoFocus
+                  size="small"
+                  className="w-full min-w-0 sm:w-32 flex-1"
+                  style={{ backgroundColor: "#101010", border: "none", color: "#fff" }}
+                />
+                <div className="flex gap-1">
+                  <Button
+                    type="link"
+                    size="small"
+                    onClick={() => handleSaveEditCategory(index)}
+                    style={{ color: "#FF843E", padding: "0 4px", minWidth: 'auto' }}
+                  >
+                    ✓
+                  </Button>
+                  <Button
+                    type="link"
+                    size="small"
+                    onClick={handleCancelEditCategory}
+                    style={{ color: "#ff4d4f", padding: "0 4px", minWidth: 'auto' }}
+                  >
+                    ✕
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <Tag
+                color="blue"
+                closable
+                onClose={() => handleRemoveAppointmentCategory(index)}
+                className="py-1 px-2 text-sm cursor-pointer max-w-full truncate"
+                onClick={() => handleStartEditCategory(index, category)}
+                style={{ maxWidth: "calc(100vw - 120px)" }}
+              >
+                {category}
+              </Tag>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
 
-                      <Alert
-                        message="Usage Note"
-                        description="Categories can be assigned to appointment types. Categories that are currently in use cannot be deleted."
-                        type="info"
-                        showIcon
-                        style={{ backgroundColor: "#202020", border: "1px solid #303030" }}
-                      />
-                    </div>
-                  </Panel>
+    {/* Mobile responsive alert */}
+    <Alert
+      message="Usage Note"
+      description="Categories can be assigned to appointment types. Categories that are currently in use cannot be deleted."
+      type="info"
+      showIcon
+      className="text-xs sm:text-sm"
+      style={{ 
+        backgroundColor: "#202020", 
+        border: "1px solid #303030",
+        fontSize: "0.875rem"
+      }}
+    />
+  </div>
+</Panel>
                   <Panel header="Trial Training Settings" key="2" className="bg-[#252525]">
                     <div className="space-y-4">
                       <Form layout="vertical">
@@ -2614,8 +2644,7 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
             </Collapse>
           </TabPane>
 
-          {/* <CHANGE> Communication Tab - Completely Replaced with Settings Modal Logic */}
-          {/* <CHANGE> Communication Tab - Completely Replaced with Settings Modal Logic */}
+
           <TabPane tab="Communication" key="4">
             <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
               <Panel header="General Communication Settings" key="1" className="bg-[#202020]">
@@ -2644,14 +2673,14 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                 </div>
               </Panel>
 
-              {/* <CHANGE> Email and App Notification Sub-Tabs */}
               <Panel header="Notifications" key="2" className="bg-[#202020]">
                 <div className="space-y-4">
-                  <div className="flex gap-1 mb-4 border-b border-gray-600">
+                  {/* Responsive Tab Navigation */}
+                  <div className="flex flex-col sm:flex-row gap-1 mb-4 border-b border-gray-600">
                     <button
                       onClick={() => setSettings({ ...settings, notificationSubTab: "email" })}
-                      className={`px-4 py-2 text-sm ${notificationSubTab === "email"
-                        ? "bg-blue-500 text-white rounded-t"
+                      className={`px-4 py-2 text-sm w-full sm:w-auto text-center ${notificationSubTab === "email"
+                        ? "bg-blue-500 text-white rounded-t sm:rounded-t"
                         : "text-gray-400 hover:text-white"
                         }`}
                     >
@@ -2659,8 +2688,8 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                     </button>
                     <button
                       onClick={() => setSettings({ ...settings, notificationSubTab: "app" })}
-                      className={`px-4 py-2 text-sm ${notificationSubTab === "app"
-                        ? "bg-blue-500 text-white rounded-t"
+                      className={`px-4 py-2 text-sm w-full sm:w-auto text-center ${notificationSubTab === "app"
+                        ? "bg-blue-500 text-white rounded-t sm:rounded-t"
                         : "text-gray-400 hover:text-white"
                         }`}
                     >
@@ -2668,54 +2697,61 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                     </button>
                   </div>
 
-                  {/* <CHANGE> E-Mail Notification Tab */}
+                  {/* E-Mail Notification Tab */}
                   {notificationSubTab === "email" && (
-                    <div>
+                    <div className="overflow-x-hidden">
                       <div className="mb-6 p-4 bg-[#252525] rounded-lg">
-                        <label className="flex items-center gap-3">
+                        <label className="flex flex-wrap items-center gap-3">
                           <input
                             type="checkbox"
                             checked={bool(settings?.emailNotificationEnabled, false)}
                             onChange={(e) =>
                               setSettings({ ...settings, emailNotificationEnabled: e.target.checked })
                             }
-                            className="rounded border-gray-600 bg-transparent cursor-pointer w-4 h-4"
+                            className="rounded border-gray-600 bg-transparent cursor-pointer w-4 h-4 shrink-0"
                           />
-                          <span className="text-sm font-medium text-white">Activate E-Mail Notifications</span>
+                          <span className="text-sm font-medium text-white break-words">Activate E-Mail Notifications</span>
                         </label>
                       </div>
 
                       {bool(settings?.emailNotificationEnabled, false) && (
-                        <div className="space-y-4 pl-4 border-l-2 border-blue-500">
+                        <div className="space-y-4 sm:pl-4 sm:border-l-2 sm:border-blue-500">
                           {/* Birthday Message */}
                           <div>
-                            <label className="flex items-center gap-2 mb-2">
+                            <label className="flex flex-wrap items-center gap-2 mb-2">
                               <input
                                 type="checkbox"
                                 checked={bool(settings?.birthdayMessageEnabled, false)}
                                 onChange={(e) =>
                                   setSettings({ ...settings, birthdayMessageEnabled: e.target.checked })
                                 }
-                                className="rounded border-gray-600 bg-transparent w-4 h-4"
+                                className="rounded border-gray-600 bg-transparent w-4 h-4 shrink-0"
                               />
-                              <span className="text-sm text-gray-300">Send automatic Birthday Messages</span>
+                              <span className="text-sm text-gray-300 break-words">Send automatic Birthday Messages</span>
                             </label>
                             {bool(settings?.birthdayMessageEnabled, false) && (
-                              <div className="ml-6">
-                                <div className="flex items-center gap-4 mb-3">
-                                  <label className="text-sm text-gray-300">Send time:</label>
-                                  <TimePicker
-                                    value={settings.birthdaySendTime ? dayjs(settings.birthdaySendTime, 'HH:mm') : null}
-                                    onChange={(time) => setSettings({
-                                      ...settings,
-                                      birthdaySendTime: time ? time.format('HH:mm') : null
-                                    })}
-                                    format="HH:mm"
-                                    style={inputStyle}
-                                    className="white-text"
-                                  />
+                              <div className="sm:ml-6 mt-3">
+                                <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-3">
+                                  <label className="text-sm text-gray-300 shrink-0">Send time:</label>
+                                  <div className="w-full sm:w-auto">
+                                    <TimePicker
+                                      value={settings.birthdaySendTime ? dayjs(settings.birthdaySendTime, 'HH:mm') : null}
+                                      onChange={(time) => setSettings({
+                                        ...settings,
+                                        birthdaySendTime: time ? time.format('HH:mm') : null
+                                      })}
+                                      format="HH:mm"
+                                      style={{
+                                        ...inputStyle,
+                                        width: '100%',
+                                        maxWidth: '200px'
+                                      }}
+                                      className="white-text"
+                                      popupClassName="time-picker-popup"
+                                    />
+                                  </div>
                                 </div>
-                                <div className="flex gap-2 mb-2 flex-wrap">
+                                <div className="flex flex-wrap gap-2 mb-2">
                                   <button
                                     onClick={() =>
                                       insertVariable(
@@ -2725,7 +2761,7 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                         (value) => setSettings({ ...settings, birthdayMessageTemplate: value }),
                                       )
                                     }
-                                    className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded whitespace-nowrap"
                                   >
                                     Studio Name
                                   </button>
@@ -2738,7 +2774,7 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                         (value) => setSettings({ ...settings, birthdayMessageTemplate: value }),
                                       )
                                     }
-                                    className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded whitespace-nowrap"
                                   >
                                     Member First Name
                                   </button>
@@ -2751,39 +2787,41 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                         (value) => setSettings({ ...settings, birthdayMessageTemplate: value }),
                                       )
                                     }
-                                    className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded whitespace-nowrap"
                                   >
                                     Member Last Name
                                   </button>
                                 </div>
-                                <WysiwygEditor
-                                  value={settings.birthdayMessageTemplate || ""}
-                                  onChange={(value) => setSettings({ ...settings, birthdayMessageTemplate: value })}
-                                  placeholder="Happy Birthday, {Member_First_Name} {Member_Last_Name}! Best wishes from {Studio_Name}!"
-                                />
+                                <div className="wysiwyg-container">
+                                  <WysiwygEditor
+                                    value={settings.birthdayMessageTemplate || ""}
+                                    onChange={(value) => setSettings({ ...settings, birthdayMessageTemplate: value })}
+                                    placeholder="Happy Birthday, {Member_First_Name} {Member_Last_Name}! Best wishes from {Studio_Name}!"
+                                  />
+                                </div>
                               </div>
                             )}
                           </div>
 
                           {/* Appointment Notifications */}
                           <div>
-                            <label className="flex items-center gap-2 mb-2">
+                            <label className="flex flex-wrap items-center gap-2 mb-2">
                               <input
                                 type="checkbox"
                                 checked={bool(settings?.appointmentNotificationEnabled, false)}
                                 onChange={(e) =>
                                   setSettings({ ...settings, appointmentNotificationEnabled: e.target.checked })
                                 }
-                                className="rounded border-gray-600 bg-transparent w-4 h-4"
+                                className="rounded border-gray-600 bg-transparent w-4 h-4 shrink-0"
                               />
-                              <span className="text-sm text-gray-300">Appointment Notifications</span>
+                              <span className="text-sm text-gray-300 break-words">Appointment Notifications</span>
                             </label>
 
                             {bool(settings?.appointmentNotificationEnabled, false) && (
-                              <div className="ml-6 space-y-4">
+                              <div className="sm:ml-6 space-y-4 mt-3">
                                 {/* Confirmation */}
                                 <div>
-                                  <div className="flex items-center gap-2 mb-2">
+                                  <div className="flex flex-wrap items-center gap-2 mb-2">
                                     <input
                                       type="checkbox"
                                       checked={conf.enabled}
@@ -2793,13 +2831,13 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                           confirmation: { ...(prev.confirmation || {}), enabled: e.target.checked },
                                         }))
                                       }
-                                      className="rounded border-gray-600 bg-transparent w-4 h-4"
+                                      className="rounded border-gray-600 bg-transparent w-4 h-4 shrink-0"
                                     />
-                                    <span className="text-sm text-white font-medium">Appointment Confirmation</span>
+                                    <span className="text-sm text-white font-medium break-words">Appointment Confirmation</span>
                                   </div>
                                   {conf.enabled && (
-                                    <div className="ml-6">
-                                      <div className="flex items-center gap-2 mb-2">
+                                    <div className="sm:ml-6 mt-3">
+                                      <div className="flex flex-wrap items-center gap-2 mb-2">
                                         <label className="flex items-center gap-2 text-sm text-gray-300">
                                           <input
                                             type="checkbox"
@@ -2810,14 +2848,14 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                                 confirmation: { ...(prev.confirmation || {}), sendEmail: e.target.checked },
                                               }))
                                             }
-                                            className="rounded border-gray-600 bg-transparent w-4 h-4"
+                                            className="rounded border-gray-600 bg-transparent w-4 h-4 shrink-0"
                                           />
-                                          <span>Send Email</span>
+                                          <span className="break-words">Send Email</span>
                                         </label>
                                       </div>
                                       {conf.sendEmail && (
                                         <>
-                                          <div className="flex gap-2 mb-2 flex-wrap">
+                                          <div className="flex flex-wrap gap-2 mb-2">
                                             <button
                                               onClick={() =>
                                                 insertVariable(
@@ -2831,7 +2869,7 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                                     })),
                                                 )
                                               }
-                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded whitespace-nowrap"
                                             >
                                               Studio Name
                                             </button>
@@ -2848,7 +2886,7 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                                     })),
                                                 )
                                               }
-                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded whitespace-nowrap"
                                             >
                                               Member First Name
                                             </button>
@@ -2865,7 +2903,7 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                                     })),
                                                 )
                                               }
-                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded whitespace-nowrap"
                                             >
                                               Member Last Name
                                             </button>
@@ -2882,7 +2920,7 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                                     })),
                                                 )
                                               }
-                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded whitespace-nowrap"
                                             >
                                               Appointment Type
                                             </button>
@@ -2899,21 +2937,23 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                                     })),
                                                 )
                                               }
-                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded whitespace-nowrap"
                                             >
                                               Booked Time
                                             </button>
                                           </div>
-                                          <WysiwygEditor
-                                            value={appointmentNotificationTypes?.confirmation?.template || ""}
-                                            onChange={(value) =>
-                                              setAppointmentNotificationTypes((prev) => ({
-                                                ...prev,
-                                                confirmation: { ...(prev.confirmation || {}), template: value },
-                                              }))
-                                            }
-                                            placeholder="Hello {Member_First_Name} {Member_Last_Name}, your {Appointment_Type} has been booked for {Booked_Time}."
-                                          />
+                                          <div className="wysiwyg-container">
+                                            <WysiwygEditor
+                                              value={appointmentNotificationTypes?.confirmation?.template || ""}
+                                              onChange={(value) =>
+                                                setAppointmentNotificationTypes((prev) => ({
+                                                  ...prev,
+                                                  confirmation: { ...(prev.confirmation || {}), template: value },
+                                                }))
+                                              }
+                                              placeholder="Hello {Member_First_Name} {Member_Last_Name}, your {Appointment_Type} has been booked for {Booked_Time}."
+                                            />
+                                          </div>
                                         </>
                                       )}
                                     </div>
@@ -2922,7 +2962,7 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
 
                                 {/* Cancellation */}
                                 <div>
-                                  <div className="flex items-center gap-2 mb-2">
+                                  <div className="flex flex-wrap items-center gap-2 mb-2">
                                     <input
                                       type="checkbox"
                                       checked={canc.enabled}
@@ -2932,13 +2972,13 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                           cancellation: { ...(prev.cancellation || {}), enabled: e.target.checked },
                                         }))
                                       }
-                                      className="rounded border-gray-600 bg-transparent w-4 h-4"
+                                      className="rounded border-gray-600 bg-transparent w-4 h-4 shrink-0"
                                     />
-                                    <span className="text-sm font-medium text-white">Appointment Cancellation</span>
+                                    <span className="text-sm font-medium text-white break-words">Appointment Cancellation</span>
                                   </div>
                                   {canc.enabled && (
-                                    <div className="ml-6">
-                                      <div className="flex items-center gap-2 mb-2">
+                                    <div className="sm:ml-6 mt-3">
+                                      <div className="flex flex-wrap items-center gap-2 mb-2">
                                         <label className="flex items-center gap-2 text-sm text-gray-300">
                                           <input
                                             type="checkbox"
@@ -2949,14 +2989,14 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                                 cancellation: { ...(prev.cancellation || {}), sendEmail: e.target.checked },
                                               }))
                                             }
-                                            className="rounded border-gray-600 bg-transparent w-4 h-4"
+                                            className="rounded border-gray-600 bg-transparent w-4 h-4 shrink-0"
                                           />
-                                          <span>Send Email</span>
+                                          <span className="break-words">Send Email</span>
                                         </label>
                                       </div>
                                       {canc.sendEmail && (
                                         <>
-                                          <div className="flex gap-2 mb-2 flex-wrap">
+                                          <div className="flex flex-wrap gap-2 mb-2">
                                             <button
                                               onClick={() =>
                                                 insertVariable(
@@ -2970,7 +3010,7 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                                     })),
                                                 )
                                               }
-                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded whitespace-nowrap"
                                             >
                                               Studio Name
                                             </button>
@@ -2987,7 +3027,7 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                                     })),
                                                 )
                                               }
-                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded whitespace-nowrap"
                                             >
                                               Member First Name
                                             </button>
@@ -3004,7 +3044,7 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                                     })),
                                                 )
                                               }
-                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded whitespace-nowrap"
                                             >
                                               Member Last Name
                                             </button>
@@ -3021,7 +3061,7 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                                     })),
                                                 )
                                               }
-                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded whitespace-nowrap"
                                             >
                                               Appointment Type
                                             </button>
@@ -3038,21 +3078,23 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                                     })),
                                                 )
                                               }
-                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded whitespace-nowrap"
                                             >
                                               Booked Time
                                             </button>
                                           </div>
-                                          <WysiwygEditor
-                                            value={appointmentNotificationTypes?.cancellation?.template || ""}
-                                            onChange={(value) =>
-                                              setAppointmentNotificationTypes((prev) => ({
-                                                ...prev,
-                                                cancellation: { ...(prev.cancellation || {}), template: value },
-                                              }))
-                                            }
-                                            placeholder="Hello {Member_First_Name} {Member_Last_Name}, your {Appointment_Type} has been cancelled."
-                                          />
+                                          <div className="wysiwyg-container">
+                                            <WysiwygEditor
+                                              value={appointmentNotificationTypes?.cancellation?.template || ""}
+                                              onChange={(value) =>
+                                                setAppointmentNotificationTypes((prev) => ({
+                                                  ...prev,
+                                                  cancellation: { ...(prev.cancellation || {}), template: value },
+                                                }))
+                                              }
+                                              placeholder="Hello {Member_First_Name} {Member_Last_Name}, your {Appointment_Type} has been cancelled."
+                                            />
+                                          </div>
                                         </>
                                       )}
                                     </div>
@@ -3061,7 +3103,7 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
 
                                 {/* Rescheduled */}
                                 <div>
-                                  <div className="flex items-center gap-2 mb-2">
+                                  <div className="flex flex-wrap items-center gap-2 mb-2">
                                     <input
                                       type="checkbox"
                                       checked={resch.enabled}
@@ -3071,13 +3113,13 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                           rescheduled: { ...(prev.rescheduled || {}), enabled: e.target.checked },
                                         }))
                                       }
-                                      className="rounded border-gray-600 bg-transparent w-4 h-4"
+                                      className="rounded border-gray-600 bg-transparent w-4 h-4 shrink-0"
                                     />
-                                    <span className="text-sm font-medium text-white">Appointment Rescheduled</span>
+                                    <span className="text-sm font-medium text-white break-words">Appointment Rescheduled</span>
                                   </div>
                                   {resch.enabled && (
-                                    <div className="ml-6">
-                                      <div className="flex items-center gap-2 mb-2">
+                                    <div className="sm:ml-6 mt-3">
+                                      <div className="flex flex-wrap items-center gap-2 mb-2">
                                         <label className="flex items-center gap-2 text-sm text-gray-300">
                                           <input
                                             type="checkbox"
@@ -3088,14 +3130,14 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                                 rescheduled: { ...(prev.rescheduled || {}), sendEmail: e.target.checked },
                                               }))
                                             }
-                                            className="rounded border-gray-600 bg-transparent w-4 h-4"
+                                            className="rounded border-gray-600 bg-transparent w-4 h-4 shrink-0"
                                           />
-                                          <span>Send Email</span>
+                                          <span className="break-words">Send Email</span>
                                         </label>
                                       </div>
                                       {resch.sendEmail && (
                                         <>
-                                          <div className="flex gap-2 mb-2 flex-wrap">
+                                          <div className="flex flex-wrap gap-2 mb-2">
                                             <button
                                               onClick={() =>
                                                 insertVariable(
@@ -3109,7 +3151,7 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                                     })),
                                                 )
                                               }
-                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded whitespace-nowrap"
                                             >
                                               Studio Name
                                             </button>
@@ -3126,7 +3168,7 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                                     })),
                                                 )
                                               }
-                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded whitespace-nowrap"
                                             >
                                               Member First Name
                                             </button>
@@ -3143,7 +3185,7 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                                     })),
                                                 )
                                               }
-                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded whitespace-nowrap"
                                             >
                                               Member Last Name
                                             </button>
@@ -3160,7 +3202,7 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                                     })),
                                                 )
                                               }
-                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded whitespace-nowrap"
                                             >
                                               Appointment Type
                                             </button>
@@ -3177,21 +3219,23 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                                     })),
                                                 )
                                               }
-                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded whitespace-nowrap"
                                             >
                                               Booked Time
                                             </button>
                                           </div>
-                                          <WysiwygEditor
-                                            value={appointmentNotificationTypes?.rescheduled?.template || ""}
-                                            onChange={(value) =>
-                                              setAppointmentNotificationTypes((prev) => ({
-                                                ...prev,
-                                                rescheduled: { ...(prev.rescheduled || {}), template: value },
-                                              }))
-                                            }
-                                            placeholder="Hello {Member_First_Name} {Member_Last_Name}, your {Appointment_Type} has been rescheduled to {Booked_Time}."
-                                          />
+                                          <div className="wysiwyg-container">
+                                            <WysiwygEditor
+                                              value={appointmentNotificationTypes?.rescheduled?.template || ""}
+                                              onChange={(value) =>
+                                                setAppointmentNotificationTypes((prev) => ({
+                                                  ...prev,
+                                                  rescheduled: { ...(prev.rescheduled || {}), template: value },
+                                                }))
+                                              }
+                                              placeholder="Hello {Member_First_Name} {Member_Last_Name}, your {Appointment_Type} has been rescheduled to {Booked_Time}."
+                                            />
+                                          </div>
                                         </>
                                       )}
                                     </div>
@@ -3202,7 +3246,7 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
 
                                 {/* Reminder */}
                                 <div>
-                                  <div className="flex items-center gap-2 mb-2">
+                                  <div className="flex flex-wrap items-center gap-2 mb-2">
                                     <input
                                       type="checkbox"
                                       checked={reminder.enabled}
@@ -3212,13 +3256,13 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                           reminder: { ...(prev.reminder || {}), enabled: e.target.checked },
                                         }))
                                       }
-                                      className="rounded border-gray-600 bg-transparent w-4 h-4"
+                                      className="rounded border-gray-600 bg-transparent w-4 h-4 shrink-0"
                                     />
-                                    <span className="text-sm font-medium text-white">Appointment Reminder</span>
+                                    <span className="text-sm font-medium text-white break-words">Appointment Reminder</span>
                                   </div>
                                   {reminder.enabled && (
-                                    <div className="ml-6">
-                                      <div className="flex items-center gap-2 mb-2">
+                                    <div className="sm:ml-6 mt-3">
+                                      <div className="flex flex-wrap items-center gap-2 mb-2">
                                         <label className="flex items-center gap-2 text-sm text-gray-300">
                                           <input
                                             type="checkbox"
@@ -3229,15 +3273,15 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                                 reminder: { ...(prev.reminder || {}), sendEmail: e.target.checked },
                                               }))
                                             }
-                                            className="rounded border-gray-600 bg-transparent w-4 h-4"
+                                            className="rounded border-gray-600 bg-transparent w-4 h-4 shrink-0"
                                           />
-                                          <span>Send Email</span>
+                                          <span className="break-words">Send Email</span>
                                         </label>
                                       </div>
                                       {reminder.sendEmail && (
                                         <>
                                           <div className="flex flex-wrap items-center gap-3 mb-3">
-                                            <label className="text-sm text-gray-300">Send reminder</label>
+                                            <label className="text-sm text-gray-300 shrink-0">Send reminder</label>
                                             <input
                                               type="number"
                                               min="1"
@@ -3251,13 +3295,17 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                                   },
                                                 }))
                                               }
-                                              style={inputStyle}
-                                              className="w-24 rounded text-sm"
+                                              style={{
+                                                ...inputStyle,
+                                                width: '100%',
+                                                maxWidth: '120px'
+                                              }}
+                                              className="rounded text-sm"
                                             />
-                                            <span className="text-sm text-gray-300">hours before</span>
+                                            <span className="text-sm text-gray-300 shrink-0">hours before</span>
                                           </div>
 
-                                          <div className="flex gap-2 mb-2 flex-wrap">
+                                          <div className="flex flex-wrap gap-2 mb-2">
                                             <button
                                               onClick={() =>
                                                 insertVariable(
@@ -3271,7 +3319,7 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                                     })),
                                                 )
                                               }
-                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded whitespace-nowrap"
                                             >
                                               Studio Name
                                             </button>
@@ -3288,7 +3336,7 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                                     })),
                                                 )
                                               }
-                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded whitespace-nowrap"
                                             >
                                               Member First Name
                                             </button>
@@ -3305,7 +3353,7 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                                     })),
                                                 )
                                               }
-                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded whitespace-nowrap"
                                             >
                                               Member Last Name
                                             </button>
@@ -3322,7 +3370,7 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                                     })),
                                                 )
                                               }
-                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded whitespace-nowrap"
                                             >
                                               Appointment Type
                                             </button>
@@ -3339,31 +3387,33 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                                     })),
                                                 )
                                               }
-                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded whitespace-nowrap"
                                             >
                                               Booked Time
                                             </button>
                                           </div>
 
-                                          <WysiwygEditor
-                                            value={appointmentNotificationTypes?.reminder?.template || ""}
-                                            onChange={(value) =>
-                                              setAppointmentNotificationTypes((prev) => ({
-                                                ...prev,
-                                                reminder: { ...(prev.reminder || {}), template: value },
-                                              }))
-                                            }
-                                            placeholder="Hello {Member_First_Name} {Member_Last_Name}, this is a reminder for your {Appointment_Type} at {Booked_Time}."
-                                          />
+                                          <div className="wysiwyg-container">
+                                            <WysiwygEditor
+                                              value={appointmentNotificationTypes?.reminder?.template || ""}
+                                              onChange={(value) =>
+                                                setAppointmentNotificationTypes((prev) => ({
+                                                  ...prev,
+                                                  reminder: { ...(prev.reminder || {}), template: value },
+                                                }))
+                                              }
+                                              placeholder="Hello {Member_First_Name} {Member_Last_Name}, this is a reminder for your {Appointment_Type} at {Booked_Time}."
+                                            />
+                                          </div>
                                         </>
                                       )}
                                     </div>
                                   )}
                                 </div>
 
-                                {/* <NEW> Registration Notification - Added below appointment notifications */}
+                                {/* Registration Notification */}
                                 <div className="border-t border-gray-700 my-4 pt-4">
-                                  <div className="flex items-center gap-2 mb-2">
+                                  <div className="flex flex-wrap items-center gap-2 mb-2">
                                     <input
                                       type="checkbox"
                                       checked={registration.enabled}
@@ -3373,13 +3423,13 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                           registration: { ...(prev.registration || {}), enabled: e.target.checked },
                                         }))
                                       }
-                                      className="rounded border-gray-600 bg-transparent w-4 h-4"
+                                      className="rounded border-gray-600 bg-transparent w-4 h-4 shrink-0"
                                     />
-                                    <span className="text-sm font-medium text-white">Registration Notification</span>
+                                    <span className="text-sm font-medium text-white break-words">Registration Notification</span>
                                   </div>
                                   {registration.enabled && (
-                                    <div className="ml-6">
-                                      <div className="flex items-center gap-2 mb-2">
+                                    <div className="sm:ml-6 mt-3">
+                                      <div className="flex flex-wrap items-center gap-2 mb-2">
                                         <label className="flex items-center gap-2 text-sm text-gray-300">
                                           <input
                                             type="checkbox"
@@ -3390,14 +3440,14 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                                 registration: { ...(prev.registration || {}), sendEmail: e.target.checked },
                                               }))
                                             }
-                                            className="rounded border-gray-600 bg-transparent w-4 h-4"
+                                            className="rounded border-gray-600 bg-transparent w-4 h-4 shrink-0"
                                           />
-                                          <span>Send Email</span>
+                                          <span className="break-words">Send Email</span>
                                         </label>
                                       </div>
                                       {registration.sendEmail && (
                                         <>
-                                          <div className="flex gap-2 mb-2 flex-wrap">
+                                          <div className="flex flex-wrap gap-2 mb-2">
                                             <button
                                               onClick={() =>
                                                 insertVariable(
@@ -3411,7 +3461,7 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                                     })),
                                                 )
                                               }
-                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded whitespace-nowrap"
                                             >
                                               Studio Name
                                             </button>
@@ -3428,7 +3478,7 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                                     })),
                                                 )
                                               }
-                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded whitespace-nowrap"
                                             >
                                               Member First Name
                                             </button>
@@ -3445,7 +3495,7 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                                     })),
                                                 )
                                               }
-                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded whitespace-nowrap"
                                             >
                                               Member Last Name
                                             </button>
@@ -3462,21 +3512,23 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                                     })),
                                                 )
                                               }
-                                              className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded"
+                                              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded whitespace-nowrap"
                                             >
                                               Registration Link
                                             </button>
                                           </div>
-                                          <WysiwygEditor
-                                            value={appointmentNotificationTypes?.registration?.template || ""}
-                                            onChange={(value) =>
-                                              setAppointmentNotificationTypes((prev) => ({
-                                                ...prev,
-                                                registration: { ...(prev.registration || {}), template: value },
-                                              }))
-                                            }
-                                            placeholder="Welcome {Member_First_Name} {Member_Last_Name} to {Studio_Name}! Complete your registration here: {Registration_Link}"
-                                          />
+                                          <div className="wysiwyg-container">
+                                            <WysiwygEditor
+                                              value={appointmentNotificationTypes?.registration?.template || ""}
+                                              onChange={(value) =>
+                                                setAppointmentNotificationTypes((prev) => ({
+                                                  ...prev,
+                                                  registration: { ...(prev.registration || {}), template: value },
+                                                }))
+                                              }
+                                              placeholder="Welcome {Member_First_Name} {Member_Last_Name} to {Studio_Name}! Complete your registration here: {Registration_Link}"
+                                            />
+                                          </div>
                                         </>
                                       )}
                                     </div>
@@ -3490,57 +3542,56 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                     </div>
                   )}
 
-                  {/* <CHANGE> App Notification Tab */}
+                  {/* App Notification Tab */}
                   {notificationSubTab === "app" && (
-                    <div>
+                    <div className="overflow-x-hidden">
                       <div className="mb-6 p-4 bg-[#252525] rounded-lg">
-                        <label className="flex items-center gap-3">
+                        <label className="flex flex-wrap items-center gap-3">
                           <input
                             type="checkbox"
                             checked={bool(settings?.appNotificationEnabled, false)}
                             onChange={(e) =>
                               setSettings({ ...settings, appNotificationEnabled: e.target.checked })
                             }
-                            className="rounded border-gray-600 bg-transparent cursor-pointer w-4 h-4"
+                            className="rounded border-gray-600 bg-transparent cursor-pointer w-4 h-4 shrink-0"
                           />
-                          <span className="text-sm font-medium text-white ">Activate App Notifications</span>
+                          <span className="text-sm font-medium text-white break-words">Activate App Notifications</span>
                         </label>
                       </div>
 
                       {bool(settings?.appNotificationEnabled, false) && (
-                        <div className="space-y-4 pl-4 border-l-2 border-purple-500">
+                        <div className="space-y-4 sm:pl-4 sm:border-l-2 sm:border-purple-500">
                           {/* Birthday App Notifications */}
                           <div>
-                            <label className="flex items-center gap-2 mb-2">
+                            <label className="flex flex-wrap items-center gap-2 mb-2">
                               <input
                                 type="checkbox"
                                 checked={bool(settings?.birthdayAppNotificationEnabled, false)}
                                 onChange={(e) =>
                                   setSettings({ ...settings, birthdayAppNotificationEnabled: e.target.checked })
                                 }
-                                className="rounded border-gray-600 bg-transparent w-4 h-4"
+                                className="rounded border-gray-600 bg-transparent w-4 h-4 shrink-0"
                               />
-                              <span className="text-sm text-gray-300">Send automatic Birthday Messages</span>
+                              <span className="text-sm text-gray-300 break-words">Send automatic Birthday Messages</span>
                             </label>
                           </div>
 
                           {/* Appointment App Notifications */}
                           <div>
-                            <label className="flex items-center gap-2 mb-2">
+                            <label className="flex flex-wrap items-center gap-2 mb-2">
                               <input
                                 type="checkbox"
                                 checked={bool(settings?.appointmentAppNotificationEnabled, false)}
                                 onChange={(e) =>
                                   setSettings({ ...settings, appointmentAppNotificationEnabled: e.target.checked })
                                 }
-                                className="rounded border-gray-600 bg-transparent w-4 h-4"
+                                className="rounded border-gray-600 bg-transparent w-4 h-4 shrink-0"
                               />
-                              <span className="text-sm text-gray-300">Appointment Notifications</span>
+                              <span className="text-sm text-gray-300 break-words">Appointment Notifications</span>
                             </label>
 
                             {bool(settings?.appointmentAppNotificationEnabled, false) && (
-                              <div className="ml-6 space-y-3">
-                                {/* Appointment Confirmation (App) */}
+                              <div className="sm:ml-6 space-y-3 mt-3">
                                 <label className="flex items-center gap-2">
                                   <input
                                     type="checkbox"
@@ -3551,12 +3602,11 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                         confirmation: { ...(prev.confirmation || {}), sendApp: e.target.checked },
                                       }))
                                     }
-                                    className="rounded border-gray-600 bg-transparent w-4 h-4"
+                                    className="rounded border-gray-600 bg-transparent w-4 h-4 shrink-0"
                                   />
-                                  <span className="text-sm text-white">Appointment Confirmation</span>
+                                  <span className="text-sm text-white break-words">Appointment Confirmation</span>
                                 </label>
 
-                                {/* Appointment Cancellation (App) */}
                                 <label className="flex items-center gap-2">
                                   <input
                                     type="checkbox"
@@ -3567,12 +3617,11 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                         cancellation: { ...(prev.cancellation || {}), sendApp: e.target.checked },
                                       }))
                                     }
-                                    className="rounded border-gray-600 bg-transparent w-4 h-4"
+                                    className="rounded border-gray-600 bg-transparent w-4 h-4 shrink-0"
                                   />
-                                  <span className="text-sm text-white">Appointment Cancellation</span>
+                                  <span className="text-sm text-white break-words">Appointment Cancellation</span>
                                 </label>
 
-                                {/* Appointment Rescheduled (App) */}
                                 <label className="flex items-center gap-2">
                                   <input
                                     type="checkbox"
@@ -3583,12 +3632,11 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                         rescheduled: { ...(prev.rescheduled || {}), sendApp: e.target.checked },
                                       }))
                                     }
-                                    className="rounded border-gray-600 bg-transparent w-4 h-4"
+                                    className="rounded border-gray-600 bg-transparent w-4 h-4 shrink-0"
                                   />
-                                  <span className="text-sm text-white">Appointment Rescheduled</span>
+                                  <span className="text-sm text-white break-words">Appointment Rescheduled</span>
                                 </label>
 
-                                {/* Appointment Reminder (App) */}
                                 <label className="flex items-center gap-2">
                                   <input
                                     type="checkbox"
@@ -3599,12 +3647,11 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                         reminder: { ...(prev.reminder || {}), sendApp: e.target.checked },
                                       }))
                                     }
-                                    className="rounded border-gray-600 bg-transparent w-4 h-4"
+                                    className="rounded border-gray-600 bg-transparent w-4 h-4 shrink-0"
                                   />
-                                  <span className="text-sm text-white">Appointment Reminder</span>
+                                  <span className="text-sm text-white break-words">Appointment Reminder</span>
                                 </label>
 
-                                {/* <NEW> Registration Notification (App) */}
                                 <label className="flex items-center gap-2">
                                   <input
                                     type="checkbox"
@@ -3615,9 +3662,9 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                                         registration: { ...(prev.registration || {}), sendApp: e.target.checked },
                                       }))
                                     }
-                                    className="rounded border-gray-600 bg-transparent w-4 h-4"
+                                    className="rounded border-gray-600 bg-transparent w-4 h-4 shrink-0"
                                   />
-                                  <span className="text-sm text-white">Registration Notification</span>
+                                  <span className="text-sm text-white break-words">Registration Notification</span>
                                 </label>
                               </div>
                             )}
@@ -3689,7 +3736,7 @@ For example, if the total capacity is set to 3, the system can handle up to 3 co
                   <Form layout="vertical">
                     <Form.Item label={<span className="text-white">Default Email Signature</span>}>
                       <div className="bg-[#222222] rounded-xl">
-                       
+
                         <WysiwygEditor
                           value={settings.emailSignature}
                           onChange={(value) => setSettings({ ...settings, emailSignature: value })}

@@ -3,7 +3,7 @@
 /* eslint-disable no-unused-vars */
 import { useState, useEffect, useRef } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
-import { MdOutlineHelpCenter, MdOutlineMessage } from "react-icons/md"
+import { MdOutlineHelpCenter, MdOutlineMessage, MdOutlineSupportAgent, MdOutlineLocalActivity } from "react-icons/md"
 import { FaNotesMedical, FaPeopleLine } from "react-icons/fa6"
 import { FaCartPlus } from "react-icons/fa"
 
@@ -60,6 +60,7 @@ const Sidebar = () => {
   const [isProductivityHubOpen, setIsProductivityHubOpen] = useState(false)
   const [isMemberAreaOpen, setIsMemberAreaOpen] = useState(false)
   const [isFitnessHubOpen, setIsFitnessHubOpen] = useState(false)
+  const [isSupportAreaOpen, setIsSupportAreaOpen] = useState(false)
 
   // Refs for dropdowns
   const languageDropdownRef = useRef(null)
@@ -213,6 +214,7 @@ const Sidebar = () => {
   const toggleProductivityHub = () => setIsProductivityHubOpen(!isProductivityHubOpen)
   const toggleMemberArea = () => setIsMemberAreaOpen(!isMemberAreaOpen)
   const toggleFitnessHub = () => setIsFitnessHubOpen(!isFitnessHubOpen)
+  const toggleSupportArea = () => setIsSupportAreaOpen(!isSupportAreaOpen)
 
   const handleLanguageSelect = (language) => {
     setSelectedLanguage(language.name)
@@ -299,7 +301,6 @@ const Sidebar = () => {
     }
   }
 
-
   const menuItems = [
     { icon: Home, label: "My Area", to: "/dashboard/my-area" },
     {
@@ -362,9 +363,22 @@ const Sidebar = () => {
       to: "/dashboard/analytics",
     },
     {
-      icon: MdOutlineHelpCenter,
-      label: "Help Center",
-      to: "/dashboard/help-center",
+      icon: MdOutlineSupportAgent,
+      label: "Support Area",
+      to: "#",
+      hasSubmenu: true,
+      submenu: [
+        { 
+          label: "Tickets", 
+          to: "/dashboard/tickets", 
+          icon: MdOutlineLocalActivity 
+        },
+        { 
+          label: "Help Center", 
+          to: "/dashboard/help-center", 
+          icon: MdOutlineHelpCenter 
+        },
+      ],
     },
     { icon: Settings, label: "Configuration", to: "/dashboard/configuration" },
   ]
@@ -566,6 +580,7 @@ const Sidebar = () => {
                           if (item.label === "Member Area") toggleMemberArea();
                           if (item.label === "Productivity Area") toggleProductivityHub();
                           if (item.label === "Fitness Area") toggleFitnessHub();
+                          if (item.label === "Support Area") toggleSupportArea();
                         }}
                         className={`flex items-center gap-3 text-sm px-4 py-2 open_sans_font text-zinc-200 relative w-full ${isCollapsed ? "justify-center" : "text-left"
                           } group transition-all duration-500 ${location.pathname.startsWith(item.to) && item.to !== "#"
@@ -599,7 +614,8 @@ const Sidebar = () => {
                               className={`transition-transform ${(item.label === "Communication" && isCommunicationOpen) ||
                                 (item.label === "Member Area" && isMemberAreaOpen) ||
                                 (item.label === "Productivity Area" && isProductivityHubOpen) ||
-                                (item.label === "Fitness Area" && isFitnessHubOpen)
+                                (item.label === "Fitness Area" && isFitnessHubOpen) ||
+                                (item.label === "Support Area" && isSupportAreaOpen)
                                 ? "rotate-90"
                                 : ""
                                 }`}
@@ -612,7 +628,8 @@ const Sidebar = () => {
                       {((item.label === "Communication" && isCommunicationOpen) ||
                         (item.label === "Member Area" && isMemberAreaOpen) ||
                         (item.label === "Productivity Area" && isProductivityHubOpen) ||
-                        (item.label === "Fitness Area" && isFitnessHubOpen)) && (
+                        (item.label === "Fitness Area" && isFitnessHubOpen) ||
+                        (item.label === "Support Area" && isSupportAreaOpen)) && (
                           <ul className={`${isCollapsed ? 'ml-0' : 'ml-2'} mt-1 space-y-2`}>
                             {item.submenu.map((subItem) => (
                               <li key={subItem.label}>

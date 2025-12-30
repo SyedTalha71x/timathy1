@@ -26,13 +26,13 @@ import Finances from "./dashboard-pages/user-panel-view/finances";
 import Training from "./dashboard-pages/user-panel-view/training";
 import ActivityMonitor from "./dashboard-pages/user-panel-view/activity-monitor";
 import Analytics from './dashboard-pages/user-panel-view/analytics'
-import HelpCenter from "./dashboard-pages/user-panel-view/help-center";
 import MarketPlace from './dashboard-pages/user-panel-view/market-place'
 import NotesApp from "./dashboard-pages/user-panel-view/notes";
 import BulletinBoard from './dashboard-pages/user-panel-view/bulletin-board'
 import MembersCheckIn from './dashboard-pages/user-panel-view/members-checkin'
 import Assessment from "./dashboard-pages/user-panel-view/assessment";
 import MemberDetailPage from "./dashboard-pages/user-panel-view/member-detail";
+import HelpCenter from "./dashboard-pages/user-panel-view/help-center";
 
 
 // Admin Dashboard
@@ -70,6 +70,7 @@ import MemberGoalSettings from './dashboard-pages/member-view/nutrition-tracking
 import MemberNotificationsRemainders from './dashboard-pages/member-view/nutrition-tracking/notifications'
 import MemberOfflineMode from './dashboard-pages/member-view/nutrition-tracking/offline-mode'
 import MemberBarcodeEntry from './dashboard-pages/member-view/nutrition-tracking/barcode-entry'
+import Tickets from "./dashboard-pages/user-panel-view/tickets";
 // import { useEffect } from "react";
 // import { startModalWatcher } from "./utils/fixModals";
 
@@ -110,13 +111,14 @@ function App() {
           <Route path="training" element={<Training />} />
           <Route path="activity-monitor" element={<ActivityMonitor />} />
           <Route path="analytics" element={<Analytics />} />
-          <Route path="help-center" element={<HelpCenter />} />
+          <Route path="tickets" element={<Tickets />} />
           <Route path="market-place" element={<MarketPlace />} />
           <Route path="notes" element={<NotesApp />} />
           <Route path="bulletin-board" element={<BulletinBoard />} />
           <Route path="members-checkin" element={<MembersCheckIn />} />
           <Route path="assessment" element={<Assessment />} />
           <Route path="member-details/:memberId" element={<MemberDetailPage />} />
+          <Route path="help-center" element={<HelpCenter />} />
           
 
         </Route>

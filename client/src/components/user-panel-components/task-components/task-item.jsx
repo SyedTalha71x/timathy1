@@ -28,8 +28,6 @@ export default function TaskItem({
   const [isCheckboxAnimating, setIsCheckboxAnimating] = useState(false)
   const [showTagMenu, setShowTagMenu] = useState(false)
   const [showAssigneeMenu, setShowAssigneeMenu] = useState(false)
-  const [isTitleEditModalOpen, setIsTitleEditModalOpen] = useState(false);
-
   const [showCalendar, setShowCalendar] = useState(false)
   const [isEditMode, setIsEditMode] = useState(false)
   const [assignmentMode, setAssignmentMode] = useState("staff")
@@ -58,7 +56,6 @@ export default function TaskItem({
   const handleEditTask = (e) => {
     e.stopPropagation();
 
-    // Call a new prop function to handle title edit
     if (onTitleEditRequest) {
       onTitleEditRequest(task);
     }
@@ -69,51 +66,34 @@ export default function TaskItem({
     setIsEditMode(false);
   };
 
-
-
-  // const handleEditTask = (e) => {
-  //   e.stopPropagation();
-  //   setIsTitleEditModalOpen(true);
-  //   setShowTagMenu(false);
-  //   setShowAssigneeMenu(false);
-  //   setShowCalendar(false);
-  //   setIsEditMode(false);
-  // };
-
   const handleTitleSave = (updatedTask) => {
     onUpdate(updatedTask);
-    setIsTitleEditModalOpen(false);
   };
 
   const openDeleteConfirmation = (e) => {
     e.stopPropagation()
     onDeleteRequest(task.id)
-    // Don't close edit mode - let user manually close it
   }
 
   const handlePinToggle = (e) => {
     e.stopPropagation()
     onPinToggle(task.id)
-    // Don't close edit mode - let user manually close it
   }
 
   const handleDuplicate = (e) => {
     e.stopPropagation()
     onDuplicateRequest(task)
-    // Don't close edit mode - let user manually close it
   }
 
   const handleRepeat = (e) => {
     e.stopPropagation()
     onRepeatRequest(task)
-    // Don't close edit mode - let user manually close it
   }
 
   const toggleEditMode = (e) => {
     e.stopPropagation()
     setIsEditMode(!isEditMode)
   }
-
 
   const formatDateTime = () => {
     let display = ""
@@ -126,7 +106,6 @@ export default function TaskItem({
     return display || "No due date"
   }
 
-  // Add this new function to format the tooltip content
   const getDateTimeTooltip = () => {
     if (!task.dueDate && !task.dueTime) {
       return "No due date set"
@@ -134,7 +113,6 @@ export default function TaskItem({
 
     let tooltip = ""
 
-    // Format date nicely
     if (task.dueDate) {
       const date = new Date(task.dueDate)
       tooltip += date.toLocaleDateString('en-US', {
@@ -145,7 +123,6 @@ export default function TaskItem({
       })
     }
 
-    // Format time nicely
     if (task.dueTime) {
       const [hours, minutes] = task.dueTime.split(':')
       const hour = parseInt(hours)
@@ -154,7 +131,6 @@ export default function TaskItem({
       tooltip += task.dueDate ? ` at ${formattedHour}:${minutes} ${ampm}` : `${formattedHour}:${minutes} ${ampm}`
     }
 
-    // Add reminder info if available
     if (task.reminder && task.reminder !== "None" && task.reminder !== "") {
       if (task.reminder === "Custom" && task.customReminder) {
         tooltip += `\nReminder: ${task.customReminder.value} ${task.customReminder.unit} before`
@@ -163,7 +139,6 @@ export default function TaskItem({
       }
     }
 
-    // Add enhanced repeat info if available
     if (task.repeat && task.repeat !== "" && task.repeat !== "Never") {
       const repeatConfig = repeatConfigs[task.id]
       if (repeatConfig) {
@@ -204,7 +179,6 @@ export default function TaskItem({
     if (onOpenAssignModal) {
       onOpenAssignModal(task)
     }
-    // Don't close edit mode - let user manually close it
   }
 
   const handleTagsClick = (e) => {
@@ -212,7 +186,6 @@ export default function TaskItem({
     if (onOpenTagsModal) {
       onOpenTagsModal(task)
     }
-    // Don't close edit mode - let user manually close it
   }
 
   const isCompleted = task.status === "completed"
@@ -230,7 +203,6 @@ export default function TaskItem({
       if (calendarRef.current && !calendarRef.current.contains(event.target)) {
         setShowCalendar(false)
       }
-      // Only close edit mode if clicking outside the entire task item
       if (editButtonsRef.current &&
         !editButtonsRef.current.contains(event.target) &&
         !event.target.closest('.edit-mode-toggle')) {
@@ -246,17 +218,20 @@ export default function TaskItem({
 
   return (
     <div
-      className={`rounded-2xl p-4 transition-all duration-300 ease-in-out relative ${isDragging ? "opacity-90 z-[9999] shadow-2xl" : "opacity-100"
-        } ${isCompleted
+      className={`rounded-2xl p-4 transition-all duration-300 ease-in-out relative cursor-grab ${
+        isDragging ? "opacity-70 shadow-2xl scale-[1.02]" : "opacity-100"
+      } ${
+        isCompleted
           ? "bg-[#1c1c1c] text-gray-500"
           : isCanceled
             ? "bg-[#1a1a1a] text-gray-600 italic line-through"
             : "bg-[#1a1a1a] text-white"
-        } ${isAnimatingCompletion ? "animate-pulse scale-[0.98]" : ""}`}
+      } ${isAnimatingCompletion ? "animate-pulse scale-[0.98]" : ""}`}
       style={{
-        position: isDragging ? "relative" : "static",
-        zIndex: isDragging ? 9999 : "auto",
-        pointerEvents: isDragging ? "none" : "auto",
+        touchAction: "none",
+        // Let parent handle positioning, just ensure proper stacking
+        position: "relative",
+        zIndex: isDragging ? 9999 : 1,
       }}
     >
       <div className="flex flex-col gap-3">
@@ -277,11 +252,13 @@ export default function TaskItem({
                   type="checkbox"
                   checked={isCompleted}
                   onChange={() => handleStatusChange(isCompleted ? "ongoing" : "completed")}
-                  className={`form-checkbox h-4 w-4 cursor-pointer rounded-full border-gray-300 focus:ring-[#FF843E] no-drag transition-all duration-200 ${isCheckboxAnimating ? "opacity-0 scale-90" : "opacity-100 scale-100"
-                    } ${isCompleted
+                  className={`form-checkbox h-4 w-4 cursor-pointer rounded-full border-gray-300 focus:ring-[#FF843E] no-drag transition-all duration-200 ${
+                    isCheckboxAnimating ? "opacity-0 scale-90" : "opacity-100 scale-100"
+                  } ${
+                    isCompleted
                       ? "text-gray-500 bg-gray-500 border-gray-500"
                       : "text-[#FF843E]"
-                    }`}
+                  }`}
                 />
                 {isCheckboxAnimating && (
                   <div className="absolute inset-0 flex items-center justify-center">
@@ -300,11 +277,13 @@ export default function TaskItem({
             )}
             <div className="flex-grow min-w-0">
               <h3
-                className={`font-medium text-sm break-words whitespace-normal word-wrap-break-word no-drag ${isCompleted || isCanceled ? "" : "cursor-pointer hover:text-gray-300 transition-colors"
-                  } ${!isDragging && !isCompleted && !isCanceled
+                className={`font-medium text-sm break-words whitespace-normal word-wrap-break-word no-drag ${
+                  isCompleted || isCanceled ? "" : "cursor-pointer hover:text-gray-300 transition-colors"
+                } ${
+                  !isDragging && !isCompleted && !isCanceled
                     ? "hover:bg-gray-800 hover:bg-opacity-30 rounded px-1 py-0.5 -mx-1 -my-0.5"
                     : ""
-                  }`}
+                }`}
                 onClick={!isCompleted && !isCanceled ? handleEditTask : undefined}
                 title={!isCompleted && !isCanceled ? "Click to edit task" : ""}
                 style={{
@@ -344,10 +323,11 @@ export default function TaskItem({
                   tag && (
                     <span
                       key={index}
-                      className={`px-2 py-1 rounded-md text-xs flex items-center gap-1 cursor-pointer no-drag ${isCompleted || isCanceled
-                        ? "bg-[#2b2b2b] text-gray-500"
-                        : "text-white"
-                        }`}
+                      className={`px-2 py-1 rounded-md text-xs flex items-center gap-1 cursor-pointer no-drag ${
+                        isCompleted || isCanceled
+                          ? "bg-[#2b2b2b] text-gray-500"
+                          : "text-white"
+                      }`}
                       style={{
                         backgroundColor: isCompleted || isCanceled ? "#2b2b2b" : getTagColor(tag),
                       }}
@@ -367,8 +347,9 @@ export default function TaskItem({
           {(task.assignees?.length > 0 || task.roles?.length > 0) && (
             <div className="relative">
               <div
-                className={`px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 cursor-pointer no-drag ${isCompleted || isCanceled ? "bg-[#2d2d2d] text-gray-500" : "bg-[#2F2F2F] text-gray-300"
-                  }`}
+                className={`px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 cursor-pointer no-drag ${
+                  isCompleted || isCanceled ? "bg-[#2d2d2d] text-gray-500" : "bg-[#2F2F2F] text-gray-300"
+                }`}
                 onClick={handleAssignClick}
               >
                 <Users size={12} />
@@ -379,8 +360,9 @@ export default function TaskItem({
 
           <div className="relative">
             <div
-              className={`px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 no-drag cursor-pointer group relative ${isCompleted || isCanceled ? "bg-[#2d2d2d] text-gray-500" : "bg-[#2F2F2F] text-gray-300 hover:bg-gray-700"
-                }`}
+              className={`px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 no-drag cursor-pointer group relative ${
+                isCompleted || isCanceled ? "bg-[#2d2d2d] text-gray-500" : "bg-[#2F2F2F] text-gray-300 hover:bg-gray-700"
+              }`}
               onClick={(e) => {
                 e.stopPropagation();
                 if (!isCompleted && !isCanceled) {
@@ -390,8 +372,8 @@ export default function TaskItem({
                     task.dueTime,
                     task.reminder,
                     task.repeat,
-                    task.customReminder, // Add this
-                    task.repeatEnd // Add this
+                    task.customReminder,
+                    task.repeatEnd
                   );
                 }
               }}
@@ -425,12 +407,6 @@ export default function TaskItem({
             ref={editButtonsRef}
             className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 pt-3 mt-2 border-t border-gray-700 no-drag"
           >
-            {/* <button
-              onClick={handleEditTask}
-              className="px-3 py-2 text-xs bg-[#2F2F2F] text-gray-300 hover:bg-gray-700 rounded-lg flex items-center justify-center gap-1 no-drag"
-            >
-              <Edit size={12} /> Edit
-            </button> */}
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -512,30 +488,35 @@ export default function TaskItem({
         )}
       </div>
 
-
       <style jsx global>{`
-          @keyframes tick {
-            from {
-              stroke-dashoffset: 18;
-              transform: scale(0.8);
-            }
-            to {
-              stroke-dashoffset: 0;
-              transform: scale(1);
-            }
+        @keyframes tick {
+          from {
+            stroke-dashoffset: 18;
+            transform: scale(0.8);
           }
-          .animate-tick {
-            animation: tick 0.5s ease-out forwards;
+          to {
+            stroke-dashoffset: 0;
+            transform: scale(1);
           }
-          @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(0.98); }
-            100% { transform: scale(1); }
-          }
-          .animate-pulse {
-            animation: pulse 0.5s ease-out;
-          }
-        `}</style>
+        }
+        .animate-tick {
+          animation: tick 0.5s ease-out forwards;
+        }
+        @keyframes pulse {
+          0% { transform: scale(1); }
+          50% { transform: scale(0.98); }
+          100% { transform: scale(1); }
+        }
+        .animate-pulse {
+          animation: pulse 0.5s ease-out;
+        }
+        .cursor-grab {
+          cursor: grab;
+        }
+        .cursor-grab:active {
+          cursor: grabbing;
+        }
+      `}</style>
     </div>
   )
 }
