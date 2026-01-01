@@ -1,14 +1,17 @@
-/* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
 import React, { useState, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { IoIosMenu } from 'react-icons/io';
-import { FaInfoCircle, FaThumbtack } from 'react-icons/fa';
+import { FaInfoCircle, FaThumbtack, FaPlus } from 'react-icons/fa';
+import { HiInformationCircle } from 'react-icons/hi';
 
 import WebsiteLinkModal from '../../components/admin-dashboard-components/myarea-components/website-link-modal';
 import WidgetSelectionModal from '../../components/admin-dashboard-components/myarea-components/widgets';
 import ConfirmationModal from '../../components/admin-dashboard-components/myarea-components/confirmation-modal';
 import Sidebar from '../../components/admin-dashboard-components/central-sidebar';
+import ProductModal from '../../components/admin-dashboard-components/marketplace-components/ProductModal';
+import DeleteConfirmationModal from '../../components/admin-dashboard-components/marketplace-components/DeleteConfirmationModal';
+import ProductInfoModal from '../../components/admin-dashboard-components/marketplace-components/ProductInfoModal';
 
 const Marketplace = () => {
   const sampleProducts = [
@@ -21,7 +24,8 @@ const Marketplace = () => {
       link: 'https://nike.com/air-jordan-1',
       picture: 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?w=400&h=300&fit=crop',
       isPinned: false,
-      infoText: ''
+      infoText: '',
+      isActive: true
     },
     {
       id: '2',
@@ -32,7 +36,8 @@ const Marketplace = () => {
       link: 'https://apple.com/iphone-15',
       picture: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=400&h=300&fit=crop',
       isPinned: true,
-      infoText: 'Latest iPhone model with titanium design and advanced camera system'
+      infoText: 'Latest iPhone model with titanium design and advanced camera system',
+      isActive: true
     },
     {
       id: '3',
@@ -43,7 +48,8 @@ const Marketplace = () => {
       link: 'https://sony.com/wh-1000xm5',
       picture: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=300&fit=crop',
       isPinned: false,
-      infoText: 'Industry-leading noise cancellation with 30-hour battery life'
+      infoText: 'Industry-leading noise cancellation with 30-hour battery life',
+      isActive: false
     }
   ];
 
@@ -62,7 +68,8 @@ const Marketplace = () => {
     link: '',
     picture: null,
     picturePreview: '',
-    infoText: ''
+    infoText: '',
+    isActive: true
   });
 
   const fileInputRef = useRef(null);
@@ -200,7 +207,8 @@ const Marketplace = () => {
       link: '',
       picture: null,
       picturePreview: '',
-      infoText: ''
+      infoText: '',
+      isActive: true
     });
     setIsModalOpen(true);
   };
@@ -215,7 +223,8 @@ const Marketplace = () => {
       link: product.link,
       picture: null,
       picturePreview: product.picture || '',
-      infoText: product.infoText || ''
+      infoText: product.infoText || '',
+      isActive: product.isActive
     });
     setIsModalOpen(true);
   };
@@ -253,15 +262,27 @@ const Marketplace = () => {
     }
   };
 
+  const toggleProductStatus = (productId) => {
+    setProducts(products.map(product =>
+      product.id === productId
+        ? { ...product, isActive: !product.isActive }
+        : product
+    ));
+    
+    const product = products.find(p => p.id === productId);
+    if (product) {
+      toast.success(product.isActive ? 'Product deactivated' : 'Product activated!');
+    }
+  };
+
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: type === 'checkbox' ? checked : value
     }));
   };
 
-  // Handle picture upload
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -277,12 +298,10 @@ const Marketplace = () => {
     }
   };
 
-  // Trigger file input click
   const triggerFileInput = () => {
     fileInputRef.current?.click();
   };
 
-  // Remove picture
   const handleRemovePicture = () => {
     setFormData(prev => ({
       ...prev,
@@ -291,11 +310,9 @@ const Marketplace = () => {
     }));
   };
 
-  // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Create product data
     const productData = {
       brandName: formData.brandName,
       productName: formData.productName,
@@ -304,11 +321,11 @@ const Marketplace = () => {
       link: formData.link,
       picture: formData.picturePreview || (editingProduct ? editingProduct.picture : ''),
       infoText: formData.infoText,
-      isPinned: editingProduct ? editingProduct.isPinned : false
+      isPinned: editingProduct ? editingProduct.isPinned : false,
+      isActive: formData.isActive
     };
 
     if (editingProduct) {
-      // Update existing product
       setProducts(products.map(product =>
         product.id === editingProduct.id
           ? { ...productData, id: editingProduct.id }
@@ -316,7 +333,6 @@ const Marketplace = () => {
       ));
       toast.success('Product updated successfully!');
     } else {
-      // Add new product
       const newProduct = {
         ...productData,
         id: Date.now().toString()
@@ -328,7 +344,6 @@ const Marketplace = () => {
     setIsModalOpen(false);
   };
 
-  // Confirm and delete product
   const confirmDelete = () => {
     if (productToDelete) {
       setProducts(products.filter(product => product.id !== productToDelete.id));
@@ -337,7 +352,6 @@ const Marketplace = () => {
     }
   };
 
-  // continue sidebar logic
   const updateCustomLink = (id, field, value) => {
     setCustomLinks((currentLinks) => currentLinks.map((link) => (link.id === id ? { ...link, [field]: value } : link)))
   }
@@ -366,7 +380,6 @@ const Marketplace = () => {
   }
 
   const getSidebarWidgetStatus = (widgetType) => {
-    // Check if widget exists in sidebar widgets
     const existsInSidebar = sidebarWidgets.some((widget) => widget.type === widgetType)
 
     if (existsInSidebar) {
@@ -391,7 +404,6 @@ const Marketplace = () => {
     `}>
       <div className="mb-8 flex items-center justify-between">
         <div className='flex justify-between items-center gap-2 md:w-auto w-full'>
-
           <h1 className="text-2xl font-bold mb-2">Marketplace</h1>
           
           <img
@@ -405,13 +417,14 @@ const Marketplace = () => {
         <div className="mb-6 flex items-center gap-2">
           <button
             onClick={openAddModal}
-            className="bg-blue-600 lg:block md:block hidden text-sm hover:bg-blue-700 text-white px-6 py-2 cursor-pointer rounded-lg font-medium transition-colors duration-200"
+            className="bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-white px-6 py-2 cursor-pointer rounded-lg font-medium transition-colors duration-200 flex items-center gap-2"
           >
-            Add New Product
+            <FaPlus size={14} />
+            <span>Add Product</span>
           </button>
           <img
               onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
-              className="h-5 w-5 mr-5 lg:block md:block hidden  cursor-pointer"
+              className="h-5 w-5 mr-5 lg:block md:block hidden cursor-pointer"
               src="/icon.svg"
               alt=""
             />
@@ -420,9 +433,10 @@ const Marketplace = () => {
 
       <button
         onClick={openAddModal}
-        className="bg-blue-600 lg:hidden md:hidden flex justify-center items-center w-full mb-3 text-sm hover:bg-blue-700 text-white px-6 py-2 cursor-pointer rounded-lg font-medium transition-colors duration-200"
+        className="bg-[#FF6B35] hover:bg-[#FF6B35]/90 lg:hidden md:hidden flex justify-center items-center w-full mb-3 text-sm text-white px-6 py-2 cursor-pointer rounded-lg font-medium transition-colors duration-200 gap-2"
       >
-        Add New Product
+        <FaPlus size={14} />
+        <span>Add Product</span>
       </button>
 
       {products.length === 0 ? (
@@ -430,9 +444,10 @@ const Marketplace = () => {
           <div className="text-gray-400 text-sm mb-4">No products added yet</div>
           <button
             onClick={openAddModal}
-            className="bg-blue-600 hover:bg-blue-700 text-sm text-white px-6 py-2 rounded-lg"
+            className="bg-[#FF6B35] hover:bg-[#FF6B35]/90 text-sm text-white px-6 py-2 rounded-lg flex items-center gap-2 mx-auto"
           >
-            Add Your First Product
+            <FaPlus size={14} />
+            <span>Add Product</span>
           </button>
         </div>
       ) : (
@@ -442,14 +457,16 @@ const Marketplace = () => {
               key={product.id} 
               className={`
                 bg-[#1C1C1C] rounded-lg border-slate-400/40 overflow-hidden border transition-colors duration-200 relative
-                
+                ${!product.isActive ? 'opacity-60' : ''}
               `}
             >
+
+
               {/* Pin Badge */}
               {product.isPinned && (
-                <div className="absolute top-2 left-2 bg-yellow-500 text-black px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1 z-10">
-                  <FaThumbtack size={10} />
-                  Pinned
+                <div className="absolute top-3 left-2 bg-[#FF6B35] text-white px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1 z-10">
+                  <FaThumbtack size={10} className="text-white" />
+                  <span className="text-white">Pinned</span>
                 </div>
               )}
 
@@ -467,28 +484,29 @@ const Marketplace = () => {
 
               {/* Action Icons */}
               <div className="absolute top-2 right-2 flex space-x-2">
+                {/* Pin Button */}
                 <button
                   onClick={() => togglePinProduct(product.id)}
                   className={`p-2 rounded-full transition-colors duration-200 ${
                     product.isPinned 
-                      ? 'bg-gray-500 text-white ' 
+                      ? 'bg-[#FF6B35] text-white hover:bg-[#FF6B35]/90' 
                       : 'bg-gray-600 text-white hover:bg-gray-700'
                   }`}
                   title={product.isPinned ? 'Unpin Product' : 'Pin Product'}
                 >
-                  <FaThumbtack size={14} />
+                  <FaThumbtack size={14} className={product.isPinned ? 'text-white' : ''} />
                 </button>
                 
-                {/* {product.infoText && (
-                  <button
-                    onClick={() => openInfoModal(product)}
-                    className="bg-blue-600 text-white p-2 rounded-full transition-colors duration-200 hover:bg-blue-700"
-                    title="View Info"
-                  >
-                    <FaInfoCircle size={14} />
-                  </button>
-                )} */}
+                {/* Info Button */}
+                <button
+                  onClick={() => openInfoModal(product)}
+                  className="bg-blue-600 text-white p-2 rounded-full transition-colors duration-200 hover:bg-blue-700"
+                  title="View Info"
+                >
+                  <FaInfoCircle size={14} />
+                </button>
                 
+                {/* Edit Button */}
                 <button
                   onClick={() => openEditModal(product)}
                   className="bg-gray-600 text-white p-2 rounded-full transition-colors duration-200 hover:bg-gray-700"
@@ -499,6 +517,7 @@ const Marketplace = () => {
                   </svg>
                 </button>
                 
+                {/* Delete Button */}
                 <button
                   onClick={() => openDeleteModal(product)}
                   className="bg-gray-600 text-white p-2 rounded-full transition-colors duration-200 hover:bg-gray-700"
@@ -516,15 +535,15 @@ const Marketplace = () => {
                   <h3 className="text-lg font-semibold text-white truncate flex-1 mr-2">
                     {product.productName}
                   </h3>
-                  {/* {!product.infoText && (
+                  {!product.infoText && (
                     <button
                       onClick={() => openEditModal(product)}
                       className="text-gray-400 hover:text-blue-400 transition-colors"
                       title="Add Info"
                     >
-                      <FaInfoCircle size={16} />
+                      <HiInformationCircle size={18} />
                     </button>
-                  )} */}
+                  )}
                 </div>
                 <p className="text-gray-400 text-sm mb-1 truncate">Brand: {product.brandName}</p>
                 <p className="text-gray-400 text-sm mb-1">Article No: {product.articleNo}</p>
@@ -540,286 +559,60 @@ const Marketplace = () => {
                     View Product
                   </a>
                 )}
+
+                {/* Active/Inactive Toggle - Added below View Product link */}
+                <div className="flex items-center justify-between pt-3 border-t border-gray-800">
+                  <span className="text-sm text-gray-300">Status</span>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={product.isActive}
+                      onChange={() => toggleProductStatus(product.id)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    <span className="ml-3 text-sm font-medium text-gray-300">
+                      {product.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                  </label>
+                </div>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Add/Edit Product Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-[#1C1C1C] rounded-lg w-full max-w-md mx-auto max-h-[80vh] custom-scrollbar overflow-y-auto">
-            <div className="p-6">
-              <h2 className="text-xl font-bold mb-4 text-white">
-                {editingProduct ? 'Edit Product' : 'Add New Product'}
-              </h2>
-
-              <form onSubmit={handleSubmit}>
-                {/* Picture Upload */}
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-300 mb-3">
-                    Product Picture
-                  </label>
-                  <div className="flex flex-col items-start space-y-4">
-                    <div className="w-24 h-24 rounded-xl overflow-hidden border-2  border-gray-600/40 flex items-center justify-center">
-                      {formData.picturePreview ? (
-                        <img
-                          src={formData.picturePreview}
-                          alt="Product preview"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="text-gray-500 text-2xl">📷</div>
-                      )}
-                    </div>
-
-                    <div className="flex space-x-3">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        className="hidden"
-                        id="product-image-upload"
-                        ref={fileInputRef}
-                      />
-                      <button
-                        type="button"
-                        onClick={triggerFileInput}
-                        className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 transition-colors text-white px-4 py-2 rounded-lg text-sm cursor-pointer"
-                      >
-                        Upload Picture
-                      </button>
-
-                      {formData.picturePreview && (
-                        <button
-                          type="button"
-                          onClick={handleRemovePicture}
-                          className="bg-gray-600 hover:bg-gray-700 transition-colors text-white px-4 py-2 rounded-lg text-sm"
-                        >
-                          Remove
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Brand Name
-                    </label>
-                    <input
-                      type="text"
-                      name="brandName"
-                      value={formData.brandName}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-                      placeholder="Enter brand name"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Product Name
-                    </label>
-                    <input
-                      type="text"
-                      name="productName"
-                      value={formData.productName}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-                      placeholder="Enter product name"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Article No
-                    </label>
-                    <input
-                      type="text"
-                      name="articleNo"
-                      value={formData.articleNo}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-                      placeholder="Enter article number"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Price ($)
-                    </label>
-                    <input
-                      type="number"
-                      name="price"
-                      value={formData.price}
-                      onChange={handleInputChange}
-                      required
-                      min="0"
-                      step="0.01"
-                      className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-                      placeholder="Enter price"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Product Link
-                    </label>
-                    <input
-                      type="url"
-                      name="link"
-                      value={formData.link}
-                      onChange={handleInputChange}
-                      className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-                      placeholder="https://example.com/product"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Product Info
-                    </label>
-                    <textarea
-                      name="infoText"
-                      value={formData.infoText}
-                      onChange={handleInputChange}
-                      rows="3"
-                      className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors resize-none"
-                      placeholder="Add additional information about the product..."
-                    />
-                  </div>
-                </div>
-
-                <div className="flex space-x-3 mt-6">
-                  <button
-                    type="button"
-                    onClick={() => setIsModalOpen(false)}
-                    className="flex-1 bg-gray-600 text-sm hover:bg-gray-700 text-white py-3 px-4 rounded-lg font-medium transition-colors duration-200"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 bg-blue-600 text-sm hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium transition-colors duration-200"
-                  >
-                    {editingProduct ? 'Update Product' : 'Add Product'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Product Modal */}
+      <ProductModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        editingProduct={editingProduct}
+        formData={formData}
+        handleInputChange={handleInputChange}
+        handleImageUpload={handleImageUpload}
+        handleRemovePicture={handleRemovePicture}
+        handleSubmit={handleSubmit}
+        triggerFileInput={triggerFileInput}
+        fileInputRef={fileInputRef}
+      />
 
       {/* Delete Confirmation Modal */}
-      {isDeleteModalOpen && productToDelete && (
-        <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-[#1C1C1C] rounded-lg w-full max-w-md mx-auto">
-            <div className="p-6">
-              <div className="flex items-center mb-4">
-                <div className="bg-red-100 p-2 rounded-full mr-3">
-                  <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
-                  </svg>
-                </div>
-                <h2 className="text-xl font-bold text-white">Confirm Deletion</h2>
-              </div>
-
-              <p className="text-gray-300 mb-6">
-                Are you sure you want to delete <strong>"{productToDelete.productName}"</strong>? This action cannot be undone.
-              </p>
-
-              <div className="flex space-x-3">
-                <button
-                  onClick={closeDeleteModal}
-                  className="flex-1 bg-gray-600 text-sm hover:bg-gray-700 text-white py-3 px-4 rounded-lg font-medium transition-colors duration-200"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={confirmDelete}
-                  className="flex-1 bg-red-600 text-sm hover:bg-red-700 text-white py-3 px-4 rounded-lg font-medium transition-colors duration-200"
-                >
-                  Delete Product
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <DeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={closeDeleteModal}
+        onConfirm={confirmDelete}
+        productToDelete={productToDelete}
+      />
 
       {/* Product Info Modal */}
-      {isInfoModalOpen && productForInfo && (
-        <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-[#1C1C1C] rounded-lg w-full max-w-md mx-auto">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-white">Product Information</h2>
-                <button
-                  onClick={closeInfoModal}
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
+      <ProductInfoModal
+        isOpen={isInfoModalOpen}
+        onClose={closeInfoModal}
+        productForInfo={productForInfo}
+        onEditClick={openEditModal}
+      />
 
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold text-white mb-2">{productForInfo.productName}</h3>
-                <p className="text-gray-400 text-sm mb-1">Brand: {productForInfo.brandName}</p>
-                <p className="text-gray-400 text-sm mb-3">Article No: {productForInfo.articleNo}</p>
-                
-                {productForInfo.infoText ? (
-                  <div className="bg-[#101010] rounded-lg p-4">
-                    <p className="text-gray-300 text-sm leading-relaxed">{productForInfo.infoText}</p>
-                  </div>
-                ) : (
-                  <div className="bg-[#101010] rounded-lg p-4 text-center">
-                    <p className="text-gray-500 text-sm">No additional information available</p>
-                    <button
-                      onClick={() => {
-                        closeInfoModal();
-                        openEditModal(productForInfo);
-                      }}
-                      className="text-blue-400 hover:text-blue-300 text-sm mt-2"
-                    >
-                      Add information
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex space-x-3">
-                <button
-                  onClick={() => {
-                    closeInfoModal();
-                    openEditModal(productForInfo);
-                  }}
-                  className="flex-1 bg-blue-600 text-sm hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium transition-colors duration-200"
-                >
-                  Edit Product
-                </button>
-                <button
-                  onClick={closeInfoModal}
-                  className="flex-1 bg-gray-600 text-sm hover:bg-gray-700 text-white py-3 px-4 rounded-lg font-medium transition-colors duration-200"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* sidebar related modals */}
-
+      {/* Sidebar */}
       <Sidebar
         isOpen={isRightSidebarOpen}
         onClose={() => setIsRightSidebarOpen(false)}
@@ -840,7 +633,7 @@ const Marketplace = () => {
         setEditingLink={setEditingLink}
         openDropdownIndex={openDropdownIndex}
         setOpenDropdownIndex={setOpenDropdownIndex}
-        onToggleEditing={()=>{ setIsEditing(!isEditing);}} // Add this line
+        onToggleEditing={()=>{ setIsEditing(!isEditing);}}
         setTodos={setTodos}
       />
 

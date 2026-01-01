@@ -18,6 +18,8 @@ import {
   Search,
   X,
 } from "lucide-react"
+import { ChevronUp, ChevronDown, Type, Paperclip } from "lucide-react"
+
 import { IoIosMegaphone, IoIosMenu } from "react-icons/io"
 import toast from "react-hot-toast"
 
@@ -27,6 +29,7 @@ import ConfirmationModal from "../../components/admin-dashboard-components/myare
 import Sidebar from "../../components/admin-dashboard-components/central-sidebar"
 import BroadcastModal from "../../components/admin-dashboard-components/email-components/BroadcastModal"
 import SendEmailModal from "../../components/admin-dashboard-components/email-components/SendEmail"
+import { WysiwygEditor } from "../../components/user-panel-components/configuration-components/WysiwygEditor"
 
 const emailListNew = {
   inbox: [
@@ -141,8 +144,12 @@ const EmailManagementPage = () => {
   const [activeDropdown, setActiveDropdown] = useState(null)
   const [showReplyModal, setShowReplyModal] = useState(false)
   const [showSendEmailModal, setShowSendEmailModal] = useState(false)
+  const [showOriginalMessage, setShowOriginalMessage] = useState(false)
+
   const [replyData, setReplyData] = useState({
     to: "",
+    cc: "",
+    bcc: "",
     subject: "",
     body: "",
   })
@@ -178,9 +185,12 @@ const EmailManagementPage = () => {
   // Email Modal States
   const [emailData, setEmailData] = useState({
     to: "",
+    cc: "", // Add CC field
     subject: "",
     body: "",
   })
+
+
   const [selectedEmailTemplate, setSelectedEmailTemplate] = useState(null)
   const [showTemplateDropdown, setShowTemplateDropdown] = useState(false)
   const [showRecipientDropdown, setShowRecipientDropdown] = useState(false)
@@ -336,21 +346,27 @@ const EmailManagementPage = () => {
       return newEmailList
     })
   }
-
   const handleReply = (email) => {
     setReplyData({
       to: email.sender,
+      cc: "",
+      bcc: "",
       subject: email.subject.startsWith("Re: ") ? email.subject : `Re: ${email.subject}`,
-      body: `\n\n--- Original Message ---\nFrom: ${email.sender}\nDate: ${new Date(email.time).toLocaleString()}\nSubject: ${email.subject}\n\n${email.body}`,
+      body: "",
     })
+    setShowOriginalMessage(true) // Show original message by default
     setShowReplyModal(true)
   }
+
+
 
   const sendReply = () => {
     const newReply = {
       id: Date.now().toString(),
       sender: "You",
       recipient: replyData.to,
+      cc: replyData.cc || null,
+      bcc: replyData.bcc || null,
       subject: replyData.subject,
       body: replyData.body,
       time: new Date().toISOString(),
@@ -366,8 +382,10 @@ const EmailManagementPage = () => {
     }))
 
     setShowReplyModal(false)
-    setReplyData({ to: "", subject: "", body: "" })
+    setReplyData({ to: "", cc: "", bcc: "", subject: "", body: "" })
+    setShowOriginalMessage(false)
   }
+
 
   const bulkAction = (action) => {
     selectedEmails.forEach((emailId) => {
@@ -522,11 +540,12 @@ const EmailManagementPage = () => {
     setActiveDropdown(null)
     setShowReplyModal(false)
   }
-
   const handleCloseReplyModal = () => {
     setShowReplyModal(false)
-    setReplyData({ to: "", subject: "", body: "" })
+    setReplyData({ to: "", cc: "", bcc: "", subject: "", body: "" })
+    setShowOriginalMessage(false)
   }
+
 
   // Email Modal Functions
   const handleTemplateSelect = (template) => {
@@ -560,6 +579,7 @@ const EmailManagementPage = () => {
       id: Date.now().toString(),
       sender: "You",
       recipient: emailData.to,
+      cc: emailData.cc || null, // Include CC
       subject: emailData.subject,
       body: emailData.body,
       time: new Date().toISOString(),
@@ -575,9 +595,10 @@ const EmailManagementPage = () => {
     }))
 
     setShowSendEmailModal(false)
-    setEmailData({ to: "", subject: "", body: "" })
+    setEmailData({ to: "", cc: "", subject: "", body: "" }) // Reset CC too
     setSelectedEmailTemplate(null)
   }
+
 
   const onRefresh = () => {
     // Simulate refresh - in real app this would fetch from server
@@ -676,12 +697,12 @@ const EmailManagementPage = () => {
                 >
                   <IoIosMenu size={26} />
                 </div> */}
-                 <img
-                            onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
-                            className="h-5 w-5 mr-5    cursor-pointer"
-                            src="/icon.svg"
-                            alt=""
-                        />
+                <img
+                  onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
+                  className="h-5 w-5 mr-5    cursor-pointer"
+                  src="/icon.svg"
+                  alt=""
+                />
               </div>
             </div>
 
@@ -880,10 +901,10 @@ const EmailManagementPage = () => {
                         <div className="flex items-center gap-2 md:gap-4 flex-shrink-0 ml-2">
                           <span
                             className={`text-xs px-2 py-1 rounded hidden sm:inline ${email.status === "Read"
-                                ? "bg-blue-600"
-                                : email.status === "Delivered"
-                                  ? "bg-green-600"
-                                  : "bg-gray-600"
+                              ? "bg-blue-600"
+                              : email.status === "Delivered"
+                                ? "bg-green-600"
+                                : "bg-gray-600"
                               }`}
                           >
                             {email.status}
@@ -952,60 +973,195 @@ const EmailManagementPage = () => {
       {activeDropdown && <div className="fixed inset-0 z-0" onClick={() => setActiveDropdown(null)} />}
 
       {/* Reply Modal */}
-      {showReplyModal && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#1C1C1C] rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
-            <div className="p-4 flex justify-between items-center">
-              <h3 className="text-lg font-medium">Reply to Email</h3>
-              <button onClick={handleCloseReplyModal} className="p-2 hover:bg-zinc-700 rounded-lg">
-                <X size={16} />
-              </button>
-            </div>
-
-            <div className="p-4 space-y-4 overflow-y-auto max-h-[calc(90vh-140px)]">
+      {showReplyModal && selectedEmail && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-60 p-4">
+          <div className="bg-[#1C1C1C] rounded-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="p-4 border-b border-gray-800 flex justify-between items-center">
               <div>
-                <label className="block text-sm text-gray-200 mb-1">To</label>
-                <input
-                  type="email"
-                  value={replyData.to}
-                  onChange={(e) => setReplyData((prev) => ({ ...prev, to: e.target.value }))}
-                  className="w-full bg-[#181818] text-white border border-gray-600/60 rounded-lg outline-none p-2 text-sm"
-                  placeholder="recipient@example.com"
-                />
+                <h3 className="text-lg font-medium text-white">Reply</h3>
+                <p className="text-sm text-gray-400">Replying to: {selectedEmail.subject}</p>
               </div>
-
-              <div>
-                <label className="block text-sm text-gray-200 mb-1">Subject</label>
-                <input
-                  type="text"
-                  value={replyData.subject}
-                  onChange={(e) => setReplyData((prev) => ({ ...prev, subject: e.target.value }))}
-                  className="w-full bg-[#181818] text-white border border-gray-600/60 rounded-lg outline-none p-2 text-sm"
-                  placeholder="Email Subject"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm text-gray-400 mb-1">Message</label>
-                <textarea
-                  value={replyData.body}
-                  onChange={(e) => setReplyData((prev) => ({ ...prev, body: e.target.value }))}
-                  className="w-full bg-[#181818] text-white border border-gray-600/60 rounded-lg p-2 text-sm outline-none h-64"
-                  placeholder="Type your reply here..."
-                />
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowOriginalMessage(!showOriginalMessage)}
+                  className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg text-sm flex items-center gap-2"
+                  title={showOriginalMessage ? "Hide original message" : "Show original message"}
+                >
+                  {showOriginalMessage ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                  <span className="hidden sm:inline">
+                    {showOriginalMessage ? "Hide Original" : "Show Original"}
+                  </span>
+                </button>
+                <button onClick={handleCloseReplyModal} className="p-2 hover:bg-zinc-700 rounded-lg">
+                  <X size={16} />
+                </button>
               </div>
             </div>
 
-            <div className="p-4 flex justify-end gap-2">
+            <div className="flex-1 overflow-y-auto">
+              <div className="p-4 space-y-4">
+                {/* To Field */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">To</label>
+                  <input
+                    type="email"
+                    value={replyData.to}
+                    onChange={(e) => setReplyData((prev) => ({ ...prev, to: e.target.value }))}
+                    className="w-full bg-[#222222] border border-gray-700 text-white rounded-xl px-4 py-2.5 text-sm placeholder-gray-500 focus:border-blue-500 focus:outline-none transition-colors"
+                    placeholder="recipient@example.com"
+                  />
+                </div>
+
+                {/* CC Field */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">CC</label>
+                  <input
+                    type="text"
+                    value={replyData.cc}
+                    onChange={(e) => setReplyData((prev) => ({ ...prev, cc: e.target.value }))}
+                    className="w-full bg-[#222222] border border-gray-700 text-white rounded-xl px-4 py-2.5 text-sm placeholder-gray500 focus:border-blue-500 focus:outline-none transition-colors"
+                    placeholder="carbon copy (optional)"
+                  />
+                </div>
+
+                {/* BCC Field */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">BCC</label>
+                  <input
+                    type="text"
+                    value={replyData.bcc}
+                    onChange={(e) => setReplyData((prev) => ({ ...prev, bcc: e.target.value }))}
+                    className="w-full bg-[#222222] border border-gray-700 text-white rounded-xl px-4 py-2.5 text-sm placeholder-gray-500 focus:border-blue-500 focus:outline-none transition-colors"
+                    placeholder="blind carbon copy (optional)"
+                  />
+                </div>
+
+                {/* Subject */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Subject</label>
+                  <input
+                    type="text"
+                    value={replyData.subject}
+                    onChange={(e) => setReplyData((prev) => ({ ...prev, subject: e.target.value }))}
+                    className="w-full bg-[#222222] border border-gray-700 text-white rounded-xl px-4 py-2.5 text-sm placeholder-gray-500 focus:border-blue-500 focus:outline-none transition-colors"
+                    placeholder="Email Subject"
+                  />
+                </div>
+
+                {/* Message with Wysiwyg Editor and Insert Button */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-gray-300">
+                      Message <span className="text-red-400">*</span>
+                    </label>
+                    <button
+                      onClick={() => {
+                        // Handle signature insertion
+                        const signature = "\n\nBest regards,\n[Your Name]";
+                        setReplyData(prev => ({
+                          ...prev,
+                          body: prev.body + signature
+                        }));
+                      }}
+                      className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg text-sm flex items-center gap-2 transition-colors"
+                    >
+                      <Type className="w-4 h-4" />
+                      Insert Signature
+                    </button>
+                  </div>
+
+                  <div className="border border-gray-700 rounded-xl overflow-hidden mb-4">
+                    <WysiwygEditor
+                      value={replyData.body}
+                      onChange={(value) => setReplyData((prev) => ({ ...prev, body: value }))}
+                      placeholder="Type your reply here..."
+                    />
+                  </div>
+                </div>
+
+                {/* Attachments Section */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-gray-300">
+                      Attachments
+                    </label>
+                    <button
+                      onClick={() => {
+                        // Create a file input element
+                        const fileInput = document.createElement('input');
+                        fileInput.type = 'file';
+                        fileInput.multiple = true;
+                        fileInput.onchange = (e) => {
+                          const files = Array.from(e.target.files);
+                          // Handle file upload logic here
+                          console.log('Files selected:', files);
+                        };
+                        fileInput.click();
+                      }}
+                      className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg text-sm flex items-center gap-2 transition-colors"
+                    >
+                      <Paperclip className="w-4 h-4" />
+                      Add Attachment
+                    </button>
+                  </div>
+
+                  {/* You can add attachment preview here if needed */}
+                </div>
+
+                {/* Original Message (Outlook style) */}
+                {showOriginalMessage && (
+                  <div className="mt-6 pt-4 border-t border-gray-800">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-sm font-medium text-gray-300">Original Message</h4>
+                      <button
+                        onClick={() => setShowOriginalMessage(false)}
+                        className="p-1 hover:bg-gray-800 rounded"
+                      >
+                        <ChevronUp className="w-4 h-4 text-gray-400" />
+                      </button>
+                    </div>
+                    <div className="bg-gray-900/50 rounded-lg p-4 max-h-64 overflow-y-auto">
+                      <div className="space-y-2 text-sm text-gray-400">
+                        <div className="flex">
+                          <span className="w-16 flex-shrink-0 font-medium">From:</span>
+                          <span>{selectedEmail.sender}</span>
+                        </div>
+                        <div className="flex">
+                          <span className="w-16 flex-shrink-0 font-medium">Date:</span>
+                          <span>{new Date(selectedEmail.time).toLocaleString()}</span>
+                        </div>
+                        <div className="flex">
+                          <span className="w-16 flex-shrink-0 font-medium">To:</span>
+                          <span>{selectedEmail.recipient || 'N/A'}</span>
+                        </div>
+                        <div className="flex">
+                          <span className="w-16 flex-shrink-0 font-medium">Subject:</span>
+                          <span className="font-medium">{selectedEmail.subject}</span>
+                        </div>
+                      </div>
+                      <div className="mt-4 pt-4 border-t border-gray-700">
+                        <div className="prose prose-invert text-sm">
+                          <pre className="whitespace-pre-wrap font-sans text-gray-300">
+                            {selectedEmail.body}
+                          </pre>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-gray-800 flex justify-end gap-3">
               <button
                 onClick={handleCloseReplyModal}
-                className="px-4 py-2 bg-gray-600 cursor-pointer text-sm hover:bg-gray-700 text-white rounded-lg"
+                className="px-6 py-2.5 bg-gray-800 hover:bg-gray-700 text-white rounded-xl text-sm font-medium transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={sendReply}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 cursor-pointer text-sm text-white rounded-lg flex items-center gap-2"
+                className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-medium flex items-center gap-2 transition-colors"
               >
                 <Send className="w-4 h-4" />
                 Send Reply
@@ -1014,7 +1170,6 @@ const EmailManagementPage = () => {
           </div>
         </div>
       )}
-
       {/* Send Email Modal */}
       <SendEmailModal
         show={showSendEmailModal}

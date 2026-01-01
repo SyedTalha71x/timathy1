@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { X, Search, Eye, Edit, Calendar, FileText, History } from "lucide-react"
+import { X, Search, Eye, Edit, Calendar, FileText, History, Plus, Dumbbell } from "lucide-react"
 
 const StudioMembersModal = ({
     isOpen,
@@ -13,7 +13,9 @@ const StudioMembersModal = ({
     onEditMember,
     handleHistoryFromOverview,
     handleDocumentFromOverview,
-    handleCalendarFromOverview
+    handleCalendarFromOverview,
+    onCreateTempMember,
+    handleTrainingPlanFromOverview // Add this new prop
 }) => {
     if (!isOpen || !studio) return null
 
@@ -30,8 +32,9 @@ const StudioMembersModal = ({
                         </button>
                     </div>
 
-                    <div className="mb-4">
-                        <div className="relative">
+                    {/* Add Create Temporary Member button */}
+                    <div className="flex justify-between items-center mb-4">
+                        <div className="relative flex-1 mr-4">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
                             <input
                                 type="text"
@@ -41,6 +44,14 @@ const StudioMembersModal = ({
                                 className="w-full bg-[#101010] pl-10 pr-4 py-2 text-sm outline-none rounded-lg text-white placeholder-gray-500 border border-slate-600"
                             />
                         </div>
+                        
+                        <button
+                            onClick={onCreateTempMember}
+                            className="bg-gray-700 px-4 py-2 rounded-lg text-white text-sm flex items-center gap-2 whitespace-nowrap cursor-pointer"
+                        >
+                            <Plus size={16} />
+                            Create Temporary Member
+                        </button>
                     </div>
 
                     <div className="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar">
@@ -53,6 +64,12 @@ const StudioMembersModal = ({
                                     <div className="flex items-center gap-1">
                                         <h3 className="font-medium text-white">{member.firstName}</h3>
                                         <h3 className="font-medium text-white">{member.lastName}</h3>
+                                        {/* Add temporary member indicator */}
+                                        {member.isTemporary && (
+                                            <span className="ml-2 px-2 py-0.5 bg-yellow-900 text-yellow-300 text-xs rounded-full">
+                                                Temporary
+                                            </span>
+                                        )}
                                     </div>
                                     <div className="text-sm text-gray-400 mt-2">
                                         <p className="flex gap-1">
@@ -69,9 +86,18 @@ const StudioMembersModal = ({
                                 </div>
 
                                 <div className="flex gap-2 w-full md:w-auto justify-end flex-col">
-                                    <div className="grid grid-cols-3 gap-2">
+                                    <div className="grid grid-cols-2 gap-2"> {/* Changed from grid-cols-3 to grid-cols-4 */}
+                                        {/* Training Plan Button - Added as first icon */}
                                         <button
-                                        onClick={() => handleCalendarFromOverview(member)}
+                                            onClick={() => handleTrainingPlanFromOverview(member)}
+                                            className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                                            title="Manage Training Plans"
+                                        >
+                                            <Dumbbell size={16} />
+                                        </button>
+
+                                        <button
+                                            onClick={() => handleCalendarFromOverview(member)}
                                             className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
                                             title="View Appointments"
                                         >

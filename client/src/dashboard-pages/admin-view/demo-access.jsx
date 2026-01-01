@@ -172,7 +172,7 @@ export default function DemoCreationPage() {
       <div className="mb-6 md:mb-8">
         <div className="flex items-center gap-3 md:gap-4 mb-2">
           
-          <h1 className="text-xl md:text-2xl font-bold oxanium_font">Create Demo Access</h1>
+          <h1 className="text-xl md:text-2xl font-bold oxanium_font">Demo Access</h1>
         </div>
       </div>
 

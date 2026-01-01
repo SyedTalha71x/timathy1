@@ -56,7 +56,6 @@ import EditMemberModal from "../../components/admin-dashboard-components/studios
 import EditStaffModal from "../../components/admin-dashboard-components/studios-modal/staff-components/edit-staff-modal"
 import StudioDetailsModal from "../../components/admin-dashboard-components/studios-modal/studios-detail-modal"
 
-import EditStudioModal from '../../components/admin-dashboard-components/studios-modal/edit-studio-modal'
 import ContractsModal from "../../components/admin-dashboard-components/studios-modal/contract-components/contract-modal"
 import AddStaffModal from "../../components/admin-dashboard-components/studios-modal/staff-components/add-staff-modal"
 import { ViewStaffModal } from "../../components/admin-dashboard-components/studios-modal/staff-components/view-staff-details"
@@ -78,11 +77,7 @@ import ContingentModalMain from "../../components/admin-dashboard-components/stu
 import AddBillingPeriodModalMain from "../../components/admin-dashboard-components/studios-modal/members-component/add-biling-period-modal"
 import StaffHistoryModalMain from "../../components/admin-dashboard-components/studios-modal/staff-components/staff-history-modal"
 import { StaffDocumentModal } from "../../components/admin-dashboard-components/studios-modal/staff-components/staff-document-modal"
-import AppointmentModalStaff from "../../components/admin-dashboard-components/studios-modal/staff-components/appointment-modal"
-import AddAppointmentModalStaff from "../../components/admin-dashboard-components/studios-modal/staff-components/add-appointment-modal"
-import EditAppointmentModalStaff from "../../components/admin-dashboard-components/studios-modal/staff-components/edit-appointment-modal"
-import ContingentModalStaff from "../../components/admin-dashboard-components/studios-modal/staff-components/show-contigent-modal"
-import AddBillingPeriodModalStaff from "../../components/admin-dashboard-components/studios-modal/staff-components/add-billing-period"
+
 import { ContractHistoryModal } from "../../components/admin-dashboard-components/studios-modal/contract-components/contract-history-modal"
 import StudioFinancesModal from "../../components/admin-dashboard-components/studios-modal/finances-components/finances-modal";
 import { FaPeopleLine } from "react-icons/fa6";
@@ -93,6 +88,8 @@ import { EditLeadModal } from "../../components/admin-dashboard-components/studi
 import { availableMembersLeadsMain, memberRelationsMainData } from "../../utils/user-panel-states/members-states";
 import EditStudioOptionsModal from "../../components/admin-dashboard-components/studios-modal/edit-studio-options-modal";
 import { useNavigate } from "react-router-dom";
+import CreateTempMemberModal from "../../components/admin-dashboard-components/studios-modal/members-component/create-temporary-member-modal";
+import TrainingPlansModal from "../../components/admin-dashboard-components/studios-modal/members-component/training-plan-modal";
 
 export default function Studios() {
   const navigate = useNavigate();
@@ -142,7 +139,6 @@ export default function Studios() {
   })
 
   const [isEditOptionsModalOpen, setIsEditOptionsModalOpen] = useState(false)
-  const [configurationMode, setConfigurationMode] = useState("studio") // "studio" or "admin"
 
   // New states for view details modals
   const [isMemberDetailsModalOpen, setIsMemberDetailsModalOpen] = useState(false)
@@ -355,6 +351,74 @@ export default function Studios() {
 
   const [memberRelations, setMemberRelations] = useState(memberRelationsMainData)
 
+  // Add these states to your Studios component
+  const [isCreateTempMemberModalOpen, setIsCreateTempMemberModalOpen] = useState(false)
+  const [tempMemberModalTab, setTempMemberModalTab] = useState("details")
+  const [editingRelationsMain, setEditingRelationsMain] = useState(false)
+  const [newRelationMain, setNewRelationMain] = useState({
+    name: "",
+    relation: "",
+    category: "family",
+    type: "manual",
+    selectedMemberId: null,
+  })
+
+  const [tempMemberForm, setTempMemberForm] = useState({
+    img: "",
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    gender: "",
+    country: "",
+    street: "",
+    zipCode: "",
+    city: "",
+    dateOfBirth: "",
+    about: "",
+    note: "",
+    noteImportance: "unimportant",
+    noteStartDate: "",
+    noteEndDate: "",
+    autoArchivePeriod: 4,
+    relations: {
+      family: [],
+      friendship: [],
+      relationship: [],
+      work: [],
+      other: [],
+    },
+  })
+
+  const [showTrainingPlansModalMain, setShowTrainingPlansModalMain] = useState(false)
+  const [memberTrainingPlansMain, setMemberTrainingPlansMain] = useState({})
+  const [availableTrainingPlansMain, setAvailableTrainingPlansMain] = useState([
+    {
+      id: 1,
+      name: "Beginner Strength Program",
+      description: "8-week beginner strength training program",
+      duration: "8 weeks",
+      difficulty: "Beginner",
+      assignedDate: "2024-01-15"
+    },
+    {
+      id: 2,
+      name: "Advanced HIIT Program",
+      description: "High-intensity interval training for advanced users",
+      duration: "6 weeks",
+      difficulty: "Advanced",
+      assignedDate: "2024-01-20"
+    },
+    {
+      id: 3,
+      name: "Cardio Endurance Plan",
+      description: "12-week cardiovascular endurance program",
+      duration: "12 weeks",
+      difficulty: "Intermediate",
+      assignedDate: "2024-02-01"
+    }
+  ])
+
 
   const [isNotifyMemberOpenMain, setIsNotifyMemberOpenMain] = useState(false)
   const [notifyActionMain, setNotifyActionMain] = useState("")
@@ -419,57 +483,10 @@ export default function Studios() {
   const [historyTabStaff, setHistoryTabStaff] = useState("general")
   const [showDocumentModalStaff, setShowDocumentModalStaff] = useState(false)
   const [showAppointmentModalStaff, setShowAppointmentModalStaff] = useState(false)
-  const [appointmentsStaff, setAppointmentsStaff] = useState(studioappointmentsStaffData)
-  const [appointmentTypesStaff, setAppointmentTypesStaff] = useState(studioappointmentTypeStaffData)
-  const [freeAppointmentsStaff, setFreeAppointmentsStaff] = useState(studiofreeAppointmentsStaffData)
-  const [appointmentStaffToDelete, setAppointmentStaffToDelete] = useState(null)
+
 
   const [selectedAppointmentDataStaff, setSelectedAppointmentDataStaff] = useState(null)
-  const [showAddAppointmentModalStaff, setShowAddAppointmentModalStaff] = useState(false)
-  const [showSelectedAppointmentModalStaff, setShowSelectedAppointmentModalStaff] = useState(false)
 
-  const [staffContingent, setStaffContingent] = useState({
-    1: {
-      current: { used: 2, total: 7 },
-      future: {
-        "05.14.25 - 05.18.2025": { used: 0, total: 8 },
-        "06.14.25 - 06.18.2025": { used: 0, total: 8 },
-      },
-    },
-    2: {
-      current: { used: 1, total: 8 },
-      future: {
-        "05.14.25 - 05.18.2025": { used: 0, total: 8 },
-        "06.14.25 - 06.18.2025": { used: 0, total: 8 },
-      },
-    },
-  })
-
-  const [showContingentModalStaff, setShowContingentModalStaff] = useState(false)
-  const [tempContingentStaff, setTempContingentStaff] = useState({ used: 0, total: 0 })
-  const [currentBillingPeriodStaff, setCurrentBillingPeriodStaff] = useState("04.14.25 - 04.18.2025")
-  const [selectedBillingPeriodStaff, setSelectedBillingPeriodStaff] = useState("current")
-  const [showAddBillingPeriodModalStaff, setShowAddBillingPeriodModalStaff] = useState(false)
-  const [newBillingPeriodStaff, setNewBillingPeriodStaff] = useState("")
-
-  const [isNotifyMemberOpenStaff, setIsNotifyMemberOpenStaff] = useState(false)
-  const [notifyActionStaff, setNotifyActionStaff] = useState("")
-
-  const getBillingPeriodsStaff = (staffId) => {
-    const staffData = staffContingent[staffId]
-    if (!staffData) return []
-    const periods = [{ id: "current", label: `Current (${currentBillingPeriodMain})`, data: staffData.current }]
-    if (staffData.future) {
-      Object.entries(staffData.future).forEach(([period, data]) => {
-        periods.push({
-          id: period,
-          label: `Future (${period})`,
-          data: data,
-        })
-      })
-    }
-    return periods
-  }
 
   // for contracts 
 
@@ -814,25 +831,6 @@ export default function Studios() {
     }
   }
 
-  const handleEditSubmit = (e) => {
-    e.preventDefault()
-
-    const updatedStudios = studios.map((studio) => {
-      if (studio.id === selectedStudio.id) {
-        return {
-          ...studio,
-          ...editForm,
-        }
-      }
-      return studio
-    })
-
-    setStudios(updatedStudios)
-    setIsEditModalOpen(false)
-    setSelectedStudio(null)
-    toast.success("Studio details have been updated successfully")
-  }
-
   const handleFranchiseSubmit = (e) => {
     e.preventDefault()
 
@@ -1072,7 +1070,7 @@ export default function Studios() {
     navigate(`/admin-dashboard/edit-studio-configuration/${studio.id}`)
     setIsEditOptionsModalOpen(false)
   }
-  
+
   const handleAdminConfig = (studio) => {
     navigate(`/admin-dashboard/edit-admin-configuration/${studio.id}`)
     setIsEditOptionsModalOpen(false)
@@ -1408,106 +1406,153 @@ export default function Studios() {
     setShowDocumentModalStaff(true)
   }
 
-  const handleStaffCalendarFromOverview = (staff) => {
-    setselectedStaffForEdit(staff)
-    setShowAppointmentModalStaff(true)
-  }
-
-  // const getStaffAppointments = (staffId) => {
-  //   return appointmentsStaff.filter((app) => app.staffId === staffId)
-  // }
-
-  // const handleEditAppointmentStaff = (appointment) => {
-  //   const fullAppointment = {
-  //     ...appointment,
-  //     name: selectedStaffForEdit?.title || "Staff",
-  //     specialNote: appointment.specialNote || {
-  //       text: "",
-  //       isImportant: false,
-  //       startDate: "",
-  //       endDate: "",
-  //     },
-  //   }
-  //   setSelectedAppointmentDataStaff(fullAppointment)
-  //   setShowSelectedAppointmentModalStaff(true)
-  //   setShowAppointmentModalStaff(false)
-  // }
-
-  // const handleDeleteAppointmentStaff = (id) => {
-  //   setAppointmentStaffToDelete(id)
-  // }
-
-  // const handleCreateNewAppointmentStaff = () => {
-  //   setShowAddAppointmentModalStaff(true)
-  //   setShowAppointmentModalStaff(false)
-  // }
-
-  // const handleManageContingentStaff = (staffId) => {
-  //   const staffData = staffContingent[staffId]
-  //   if (staffData) {
-  //     setTempContingentStaff(staffData.current)
-  //     setSelectedBillingPeriodStaff("current")
-  //   } else {
-  //     setTempContingentStaff({ used: 0, total: 0 })
-  //   }
-  //   setShowContingentModalStaff(true)
-  // }
-
-  // const handleAddAppointmentSubmitStaff = (data) => {
-  //   const newAppointment = {
-  //     id: Math.max(0, ...appointmentsStaff.map((a) => a.id)) + 1,
-  //     ...data,
-  //     staffId: selectedStaffForEdit?.id,
-  //   }
-  //   setAppointmentsStaff([...appointmentsStaff, newAppointment])
-  //   setShowAddAppointmentModalStaff(false)
-  // }
-
-  // const handleBillingPeriodChangeStaff = (periodId) => {
-  //   setSelectedBillingPeriodStaff(periodId)
-  //   const staffData = staffContingent[selectedStaffForEdit.id]
-  //   if (periodId === "current") {
-  //     setTempContingentStaff(staffData.current)
-  //   } else {
-  //     setTempContingentStaff(staffData.future[periodId] || { used: 0, total: 0 })
-  //   }
-  // }
-
-  // const handleAddBillingPeriodStaff = () => {
-  //   if (newBillingPeriodStaff.trim() && selectedStaffForEdit) {
-  //     const updatedContingent = { ...staffContingent }
-  //     if (!updatedContingent[selectedStaffForEdit.id].future) {
-  //       updatedContingent[selectedStaffForEdit.id].future = {}
-  //     }
-  //     updatedContingent[selectedStaffForEdit.id].future[newBillingPeriodStaff] = { used: 0, total: 0 }
-  //     setStaffContingent(updatedContingent)
-  //     setNewBillingPeriodStaff("")
-  //     setShowAddBillingPeriodModalStaff(false)
-  //     toast.success("New billing period added successfully")
-  //   }
-  // }
-
-  // const handleSaveContingentStaff = () => {
-  //   if (selectedStaffForEdit) {
-  //     const updatedContingent = { ...staffContingent }
-  //     if (selectedBillingPeriodStaff === "current") {
-  //       updatedContingent[selectedStaffForEdit.id].current = { ...tempContingentStaff }
-  //     } else {
-  //       if (!updatedContingent[selectedStaffForEdit.id].future) {
-  //         updatedContingent[selectedStaffForEdit.id].future = {}
-  //       }
-  //       updatedContingent[selectedStaffForEdit.id].future[selectedBillingPeriodStaff] = { ...tempContingentStaff }
-  //     }
-  //     setStaffContingent(updatedContingent)
-  //     toast.success("Contingent updated successfully")
-  //   }
-  //   setShowContingentModalStaff(false)
-  // }
-
   const handleViewContractHistory = (contract) => {
     setSelectedContractForHistory(contract)
     setIsContractHistoryModalOpen(true)
   }
+
+  // new functions related to create temp member in member overview window
+
+  // Add this function to handle temp member creation
+  const handleCreateTempMember = (e) => {
+    e.preventDefault()
+
+    if (!selectedStudioForModal) return
+
+    const newTempMember = {
+      id: Math.max(0, ...(studioMembers[selectedStudioForModal.id] || []).map(m => m.id)) + 1,
+      firstName: tempMemberForm.firstName,
+      lastName: tempMemberForm.lastName,
+      email: tempMemberForm.email,
+      phone: tempMemberForm.phone,
+      gender: tempMemberForm.gender,
+      country: tempMemberForm.country,
+      street: tempMemberForm.street,
+      zipCode: tempMemberForm.zipCode,
+      city: tempMemberForm.city,
+      dateOfBirth: tempMemberForm.dateOfBirth,
+      about: tempMemberForm.about,
+      joinDate: new Date().toISOString().split('T')[0],
+      status: "active",
+      isTemporary: true,
+      note: tempMemberForm.note,
+      noteImportance: tempMemberForm.noteImportance,
+      noteStartDate: tempMemberForm.noteStartDate,
+      noteEndDate: tempMemberForm.noteEndDate,
+      autoArchiveDate: tempMemberForm.autoArchivePeriod
+        ? new Date(Date.now() + tempMemberForm.autoArchivePeriod * 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+        : null,
+    }
+
+    // Initialize if studio doesn't have members yet
+    setStudioMembers(prev => ({
+      ...prev,
+      [selectedStudioForModal.id]: [
+        ...(prev[selectedStudioForModal.id] || []),
+        newTempMember
+      ]
+    }))
+
+    // Reset form
+    setTempMemberForm({
+      img: "",
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      gender: "",
+      country: "",
+      street: "",
+      zipCode: "",
+      city: "",
+      dateOfBirth: "",
+      about: "",
+      note: "",
+      noteImportance: "unimportant",
+      noteStartDate: "",
+      noteEndDate: "",
+      autoArchivePeriod: 4,
+      relations: {
+        family: [],
+        friendship: [],
+        relationship: [],
+        work: [],
+        other: [],
+      },
+    })
+
+    setTempMemberModalTab("details")
+    setIsCreateTempMemberModalOpen(false)
+
+    toast.success("Temporary member created successfully!")
+  }
+
+  const handleTempMemberInputChange = (e) => {
+    const { name, value } = e.target
+    setTempMemberForm(prev => ({
+      ...prev,
+      [name]: value,
+    }))
+  }
+
+  const handleImgUpload = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        setTempMemberForm(prev => ({
+          ...prev,
+          img: event.target.result,
+        }))
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  // Add relation options
+  const relationOptionsMain = {
+    family: ["Parent", "Child", "Sibling", "Spouse", "Grandparent", "Grandchild", "Cousin", "Aunt/Uncle", "Nephew/Niece"],
+    friendship: ["Friend", "Close Friend", "Best Friend", "Acquaintance"],
+    relationship: ["Partner", "Fiancé(e)", "Girlfriend/Boyfriend", "Ex-partner"],
+    work: ["Colleague", "Boss", "Employee", "Business Partner", "Client"],
+    other: ["Neighbor", "Mentor", "Teammate", "Classmate", "Other"]
+  }
+
+  // Add this function to handle training plan management
+  const handleTrainingPlanFromOverview = (member) => {
+    setSelectedMemberForEdit(member)
+    setShowTrainingPlansModalMain(true)
+  }
+
+  // Add this function to assign training plans
+  const handleAssignPlanMain = (memberId, planId) => {
+    const plan = availableTrainingPlansMain.find(p => p.id === parseInt(planId))
+    if (!plan) return
+
+    const assignedPlan = {
+      ...plan,
+      assignedDate: new Date().toISOString().split('T')[0]
+    }
+
+    setMemberTrainingPlansMain(prev => ({
+      ...prev,
+      [memberId]: [...(prev[memberId] || []), assignedPlan]
+    }))
+
+    toast.success("Training plan assigned successfully!")
+    setShowTrainingPlansModalMain(false)
+  }
+
+  // Add this function to remove training plans
+  const handleRemovePlanMain = (memberId, planId) => {
+    setMemberTrainingPlansMain(prev => ({
+      ...prev,
+      [memberId]: (prev[memberId] || []).filter(plan => plan.id !== planId)
+    }))
+
+    toast.success("Training plan removed successfully!")
+  }
+
 
 
   return (
@@ -1544,12 +1589,12 @@ export default function Studios() {
               >
                 <IoIosMenu size={26} />
               </div> */}
-               <img
-                  onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
-                  className="h-5 w-5 lg:hidden md:hidden block   cursor-pointer"
-                  src="/icon.svg"
-                  alt=""
-                />
+              <img
+                onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
+                className="h-5 w-5 lg:hidden md:hidden block   cursor-pointer"
+                src="/icon.svg"
+                alt=""
+              />
             </div>
 
             <div className="flex md:items-center items-start  md:flex-row flex-col gap-3 w-full sm:w-auto">
@@ -1617,11 +1662,11 @@ export default function Studios() {
                 <IoIosMenu size={26} />
               </div> */}
               <img
-                  onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
-                  className="h-5 w-5 mr-5  lg:block md:block hidden   cursor-pointer"
-                  src="/icon.svg"
-                  alt=""
-                />
+                onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
+                className="h-5 w-5 mr-5  lg:block md:block hidden   cursor-pointer"
+                src="/icon.svg"
+                alt=""
+              />
             </div>
           </div>
           <div className="flex flex-col space-y-4 mb-6">
@@ -2065,6 +2110,8 @@ export default function Studios() {
         handleHistoryFromOverview={handleHistoryFromOverview}
         handleDocumentFromOverview={handleDocumentFromOverview}
         handleCalendarFromOverview={handleCalendarFromOverview}
+        onCreateTempMember={() => setIsCreateTempMemberModalOpen(true)}
+        handleTrainingPlanFromOverview={handleTrainingPlanFromOverview}
       />
 
       <EditMemberModal
@@ -2082,6 +2129,68 @@ export default function Studios() {
           // Implement unarchive functionality  
           toast.success("Member unarchived successfully")
         }}
+      />
+
+      {showTrainingPlansModalMain && selectedMemberForEdit && (
+        <TrainingPlansModal
+          isOpen={showTrainingPlansModalMain}
+          onClose={() => {
+            setShowTrainingPlansModalMain(false)
+            setSelectedMemberForEdit(null)
+          }}
+          selectedMemberMain={selectedMemberForEdit}
+          memberTrainingPlansMain={memberTrainingPlansMain[selectedMemberForEdit.id] || []}
+          availableTrainingPlansMain={availableTrainingPlansMain}
+          onAssignPlanMain={handleAssignPlanMain}
+          onRemovePlanMain={handleRemovePlanMain}
+        />
+      )}
+
+      <CreateTempMemberModal
+        show={isCreateTempMemberModalOpen}
+        onClose={() => {
+          setIsCreateTempMemberModalOpen(false)
+          setTempMemberForm({
+            img: "",
+            firstName: "",
+            lastName: "",
+            email: "",
+            phone: "",
+            gender: "",
+            country: "",
+            street: "",
+            zipCode: "",
+            city: "",
+            dateOfBirth: "",
+            about: "",
+            note: "",
+            noteImportance: "unimportant",
+            noteStartDate: "",
+            noteEndDate: "",
+            autoArchivePeriod: 4,
+            relations: {
+              family: [],
+              friendship: [],
+              relationship: [],
+              work: [],
+              other: [],
+            },
+          })
+          setTempMemberModalTab("details")
+        }}
+        tempMemberForm={tempMemberForm}
+        setTempMemberForm={setTempMemberForm}
+        tempMemberModalTab={tempMemberModalTab}
+        setTempMemberModalTab={setTempMemberModalTab}
+        handleCreateTempMember={handleCreateTempMember}
+        handleTempMemberInputChange={handleTempMemberInputChange}
+        handleImgUpload={handleImgUpload}
+        editingRelationsMain={editingRelationsMain}
+        setEditingRelationsMain={setEditingRelationsMain}
+        newRelationMain={newRelationMain}
+        setNewRelationMain={setNewRelationMain}
+        availableMembersLeadsMain={availableMembersLeadsMain}
+        relationOptionsMain={relationOptionsMain}
       />
 
       <MemberDetailsModal

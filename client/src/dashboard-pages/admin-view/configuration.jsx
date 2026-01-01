@@ -93,39 +93,12 @@ const tooltipStyle = {
   color: "rgba(255, 255, 255, 0.5)",
 }
 
-// Dark theme styles for Ant Design components
-const darkThemeStyles = {
-  modal: {
-    header: {
-      background: "#1C1C1C",
-      color: "#fff",
-      borderBottom: "1px solid #303030"
-    },
-    body: {
-      background: "#1C1C1C",
-      color: "#fff"
-    },
-    footer: {
-      background: "#1C1C1C",
-      borderTop: "1px solid #303030"
-    }
-  },
-  card: {
-    background: "#1C1C1C",
-    border: "1px solid #303030",
-    color: "#fff"
-  },
-  tag: {
-    background: "#252525",
-    color: "#fff",
-    border: "1px solid #303030"
-  }
-}
-
 // Permission Templates Data
 const initialPermissionTemplates = []
 
 const WysiwygEditor = ({ value, onChange, placeholder }) => {
+  const quillRef = useRef(null);
+  
   const modules = {
     toolbar: [
       [{ 'header': [1, 2, 3, false] }],
@@ -147,79 +120,114 @@ const WysiwygEditor = ({ value, onChange, placeholder }) => {
     'link', 'image'
   ]
 
+  // Use a useEffect to apply styles
   useEffect(() => {
-    const style = document.createElement('style')
+    // Create a style element
+    const style = document.createElement('style');
     style.textContent = `
-      .ql-editor.ql-blank::before {
-        color: #ffffff !important;
-        opacity: 0.7 !important;
-        font-style: normal !important;
-      }
-      .ql-editor {
-        color: #ffffff !important;
-        background-color: #101010 !important;
+      .ql-container {
+        min-height: 200px !important;
+        border: 1px solid #303030 !important;
+        border-top: none !important;
+        border-bottom-left-radius: 6px !important;
+        border-bottom-right-radius: 6px !important;
+        background: #101010 !important;
       }
       .ql-toolbar {
-        border-color: #303030 !important;
-        background-color: #151515 !important;
+        border: 1px solid #303030 !important;
+        border-top-left-radius: 6px !important;
+        border-top-right-radius: 6px !important;
+        background: #151515 !important;
       }
-      .ql-container {
-        border-color: #303030 !important;
-        background-color: #101010 !important;
+      .ql-editor {
+        min-height: 200px !important;
+        color: #fff !important;
+        font-family: inherit !important;
+      }
+      .ql-editor.ql-blank::before {
+        color: rgba(255, 255, 255, 0.7) !important;
+        font-style: normal !important;
+        font-size: 14px !important;
+        left: 15px !important;
+        right: 15px !important;
       }
       .ql-snow .ql-stroke {
-        stroke: #ffffff !important;
+        stroke: #fff !important;
       }
       .ql-snow .ql-fill {
-        fill: #ffffff !important;
+        fill: #fff !important;
+      }
+      .ql-snow .ql-picker {
+        color: #fff !important;
       }
       .ql-snow .ql-picker-label {
-        color: #ffffff !important;
+        color: #fff !important;
       }
       .ql-snow .ql-picker-options {
         background-color: #1C1C1C !important;
         border: 1px solid #303030 !important;
         color: #fff !important;
       }
-    `
-    document.head.appendChild(style)
-
+      .ql-snow .ql-picker-item:hover {
+        color: #FF843E !important;
+      }
+      .ql-snow.ql-toolbar button:hover .ql-stroke,
+      .ql-snow.ql-toolbar button.ql-active .ql-stroke {
+        stroke: #FF843E !important;
+      }
+      .ql-snow.ql-toolbar button:hover .ql-fill,
+      .ql-snow.ql-toolbar button.ql-active .ql-fill {
+        fill: #FF843E !important;
+      }
+    `;
+    
+    // Inject the styles
+    document.head.appendChild(style);
+    
+    // Cleanup
     return () => {
-      document.head.removeChild(style)
-    }
-  }, [])
+      document.head.removeChild(style);
+    };
+  }, []);
 
   return (
-    <ReactQuill
-      value={value}
-      onChange={onChange}
-      modules={modules}
-      formats={formats}
-      placeholder={placeholder}
-      theme="snow"
-      style={{
-        border: "1px solid #303030",
-        borderRadius: "6px"
-      }}
-    />
-  )
-}
+    <div style={{ 
+      borderRadius: '6px',
+      overflow: 'hidden',
+      minHeight: '250px'
+    }}>
+      <ReactQuill
+        ref={quillRef}
+        theme="snow"
+        value={value}
+        onChange={onChange}
+        modules={modules}
+        formats={formats}
+        placeholder={placeholder}
+        style={{ 
+          height: '250px',
+          border: 'none'
+        }}
+      />
+    </div>
+  );
+};
 
 const ConfigurationPage = () => {
 
   const location = useLocation()
-  
+
   // Parse query parameters
   const queryParams = new URLSearchParams(location.search)
   const defaultTab = queryParams.get('tab')
 
-  
- 
+
+
   const [activeTab, setActiveTab] = useState(defaultTab === 'account-management' ? '1' : '1')
-  
+
   const [expandedPanels, setExpandedPanels] = useState(
-    defaultTab === 'account-management' 
-      ? ["1", "2", "3", "4", "5", "account-management"] 
+    defaultTab === 'account-management'
+      ? ["1", "2", "3", "4", "5", "account-management"]
       : ["1", "2", "3", "4", "5"]
   )
 
@@ -230,17 +238,6 @@ const ConfigurationPage = () => {
   const [logoUrl, setLogoUrl] = useState("")
   const [hasExistingPassword, sethasExistingPassword] = useState(false)
   const [newLeadSource, setNewLeadSource] = useState("")
-
-  // About Studio Section
-  const [aboutStudio, setAboutStudio] = useState("")
-
-  // Special Note Section
-  const [specialNote, setSpecialNote] = useState({
-    content: "",
-    isImportant: false,
-    startDate: null,
-    endDate: null,
-  })
 
   // Permissions Management
   const [roles, setRoles] = useState([])
@@ -265,8 +262,6 @@ const ConfigurationPage = () => {
     smtpPass: "",
   })
 
-  const [autoArchiveDuration, setAutoArchiveDuration] = useState(30)
-
   // Opening hours and closing days
   const [closingDays, setClosingDays] = useState([])
 
@@ -283,8 +278,6 @@ const ConfigurationPage = () => {
     { name: "Vacation", maxDays: 30 },
     { name: "Medical", maxDays: 90 },
   ])
-
-  const [additionalDocs, setAdditionalDocs] = useState([])
 
   // Appearance settings
   const [appearance, setAppearance] = useState({
@@ -324,77 +317,23 @@ const ConfigurationPage = () => {
     { id: 3, name: "Referral", description: "Word of mouth referrals", isActive: true },
   ])
 
-  // About Studio Handlers
-  const handleAboutStudioChange = (value) => {
-    setAboutStudio(value)
-  }
-
-  // Special Note Handlers
-  const handleSpecialNoteChange = (field, value) => {
-    setSpecialNote(prev => ({
-      ...prev,
-      [field]: value
-    }))
-  }
-
-  // Role Management Handlers
-  const handleAddRole = () => {
-    const newRole = {
-      name: `New Role ${roles.length + 1}`,
-      permissions: [],
-      color: "#3B82F6",
-      defaultVacationDays: 20
-    }
-    setRoles([...roles, newRole])
-  }
-
-  const handleEditRole = (index) => {
-    const roleToEdit = roles[index];
-    console.log("Editing role:", roleToEdit);
-    setCurrentRole({ 
-        ...roleToEdit, 
-        index,
-        permissions: [...roleToEdit.permissions]
-    });
-  };
-
-  const handleUpdateRole = (field, value) => {
-    if (currentRole) {
-      const updatedRoles = [...roles]
-      updatedRoles[currentRole.index] = {
-        ...updatedRoles[currentRole.index],
-        [field]: value
-      }
-      setRoles(updatedRoles)
-      setCurrentRole({ ...updatedRoles[currentRole.index], index: currentRole.index })
-    }
-  }
-
-  const handleDeleteRole = (index) => {
-    setRoles(roles.filter((_, i) => i !== index))
-    notification.success({
-      message: "Role Deleted",
-      description: "Role has been successfully deleted."
-    })
-  }
-
   const handlePermissionChange = (permissions) => {
     console.log("Received permissions from modal:", permissions);
     if (currentRole) {
-        const updatedRoles = [...roles];
-        updatedRoles[currentRole.index].permissions = [...permissions];
-        setRoles(updatedRoles);
-        
-        setCurrentRole({
-            ...updatedRoles[currentRole.index],
-            index: currentRole.index
-        });
-        
-        setIsPermissionModalVisible(false);
-        notification.success({
-            message: "Permissions Updated",
-            description: "Role permissions have been updated successfully."
-        });
+      const updatedRoles = [...roles];
+      updatedRoles[currentRole.index].permissions = [...permissions];
+      setRoles(updatedRoles);
+
+      setCurrentRole({
+        ...updatedRoles[currentRole.index],
+        index: currentRole.index
+      });
+
+      setIsPermissionModalVisible(false);
+      notification.success({
+        message: "Permissions Updated",
+        description: "Role permissions have been updated successfully."
+      });
     }
   };
 
@@ -421,26 +360,7 @@ const ConfigurationPage = () => {
     }
   }
 
-  const handleApplyTemplate = (template) => {
-    if (currentRole) {
-      const updatedRoles = [...roles]
-      updatedRoles[currentRole.index].permissions = [...template.permissions]
-      setRoles(updatedRoles)
-      setCurrentRole({ ...updatedRoles[currentRole.index], index: currentRole.index })
-      notification.success({
-        message: "Template Applied",
-        description: `${template.name} template has been applied to the role.`
-      })
-    }
-  }
 
-  const handleDeleteTemplate = (templateId) => {
-    setPermissionTemplates(permissionTemplates.filter(template => template.id !== templateId))
-    notification.success({
-      message: "Template Deleted",
-      description: "Permission template has been deleted."
-    })
-  }
 
   const handleAddContractPauseReason = () => {
     setContractPauseReasons([...contractPauseReasons, { name: "", maxDays: 30 }])
@@ -491,11 +411,6 @@ const ConfigurationPage = () => {
 
     // Save all configuration including new sections
     const newConfiguration = {
-      about: aboutStudio,
-      note: specialNote.content,
-      noteImportance: specialNote.isImportant ? "important" : "normal",
-      noteStartDate: specialNote.startDate ? specialNote.startDate.format('YYYY-MM-DD') : null,
-      noteEndDate: specialNote.endDate ? specialNote.endDate.format('YYYY-MM-DD') : null,
       roles: roles,
       // Add other configuration data here
     }
@@ -517,21 +432,6 @@ const ConfigurationPage = () => {
     ])
   }
 
-  const handleAddContractSection = () => {
-    setContractSections([
-      ...contractSections,
-      {
-        title: "",
-        content: "",
-        editable: true,
-        requiresAgreement: true,
-      },
-    ])
-  }
-
-  const handleViewBlankContract = () => {
-    console.log("check handle view blank contract")
-  }
 
   // General settings handlers
   const handleUpdateGeneralSettings = (field, value) => {
@@ -617,10 +517,6 @@ const ConfigurationPage = () => {
       message: "Lead Source Added",
       description: "New lead source has been successfully added.",
     })
-  }
-
-  const handleUpdateLeadSource = (id, field, value) => {
-    setLeadSources(leadSources.map((source) => (source.id === id ? { ...source, [field]: value } : source)))
   }
 
   const handleRemoveLeadSource = (id) => {
@@ -731,346 +627,12 @@ const ConfigurationPage = () => {
 
   return (
     <div className=" w-full mx-auto lg:p-10 p-5 space-y-8 bg-[#181818] min-h-screen text-white">
-      <h1 className="lg:text-3xl text-2xl font-bold oxanium_font">Add New Admin Configuration</h1>
+      <h1 className="lg:text-3xl text-2xl font-bold oxanium_font">Configuration</h1>
 
-      <Tabs  activeKey={activeTab} onChange={setActiveTab} defaultActiveKey="1" style={{ color: "white" }}>
+      <Tabs activeKey={activeTab} onChange={setActiveTab} defaultActiveKey="1" style={{ color: "white" }}>
         <TabPane tab="General" key="1">
-          <Collapse  activeKey={expandedPanels}  onChange={(keys) => setExpandedPanels(keys)}  defaultActiveKey={["1", "2", "3", "4", "5", "account-management"]}  className="bg-[#181818] border-[#303030]">
+          <Collapse activeKey={expandedPanels} onChange={(keys) => setExpandedPanels(keys)} defaultActiveKey={["1", "2", "3", "4", "5", "account-management"]} className="bg-[#181818] border-[#303030]">
 
-            {/* About Studio Panel */}
-            <Panel header="About Studio" key="1" className="bg-[#202020] text-white">
-              <div className="space-y-4">
-                <Form layout="vertical">
-                  <Form.Item label={<span className="text-white">Studio Description</span>}>
-                    <WysiwygEditor
-                      value={aboutStudio}
-                      onChange={handleAboutStudioChange}
-                      placeholder="Describe your studio, its mission, facilities, and what makes it unique..."
-                    />
-                  </Form.Item>
-                </Form>
-              </div>
-            </Panel>
-
-            {/* Special Note Panel */}
-            <Panel header="Special Note" key="2" className="bg-[#202020] text-white">
-              <div className="space-y-4">
-                <Form layout="vertical">
-                  <Form.Item label={<span className="text-white">Note Content</span>}>
-                    <TextArea
-                      value={specialNote.content}
-                      onChange={(e) => handleSpecialNoteChange('content', e.target.value)}
-                      rows={4}
-                      style={inputStyle}
-                      placeholder="Enter special note or announcement..."
-                    />
-                  </Form.Item>
-
-                  <div className="flex items-center gap-4">
-                    <Form.Item label={<span className="text-white">Mark as Important</span>}>
-                      <Switch
-                        checked={specialNote.isImportant}
-                        onChange={(checked) => handleSpecialNoteChange('isImportant', checked)}
-                      />
-                    </Form.Item>
-
-                    <Form.Item label={<span className="text-white">Active Period</span>}>
-                      <RangePicker
-                        value={[specialNote.startDate, specialNote.endDate]}
-                        onChange={(dates) => {
-                          handleSpecialNoteChange('startDate', dates ? dates[0] : null)
-                          handleSpecialNoteChange('endDate', dates ? dates[1] : null)
-                        }}
-                        style={{
-                          backgroundColor: "#101010",
-                          border: "1px solid #303030",
-                          color: "#fff"
-                        }}
-                        className="dark-date-picker"
-                      />
-                    </Form.Item>
-                  </div>
-                </Form>
-              </div>
-            </Panel>
-
-            {/* Permissions Management Panel */}
-            <Panel header="Permissions Management" key="3" className="bg-[#202020] text-white">
-              <div className="space-y-6">
-                {/* Add Role Button */}
-                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-4">
-                  <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    onClick={handleAddRole}
-                    style={saveButtonStyle}
-                    className="w-full sm:w-auto"
-                  >
-                    Add Role
-                  </Button>
-                </div>
-
-                {/* Roles List */}
-                <div className="space-y-4">
-                  {roles.map((role, index) => (
-                    <Card
-                      key={index}
-                      className="w-full"
-                      style={{
-                        marginTop: "10px",
-                        backgroundColor: "#1C1C1C",
-                        border: "1px solid #303030",
-                      }}
-                      styles={{
-                        header: {
-                          backgroundColor: "#1C1C1C",
-                          borderBottom: "1px solid #303030",
-                          padding: "12px 16px",
-                        },
-                        body: {
-                          backgroundColor: "#1C1C1C",
-                          color: "#fff",
-                          padding: "16px",
-                        },
-                      }}
-                      title={
-                        <div className="flex items-center gap-3">
-                          <span style={{ color: "white" }} className="text-base sm:text-lg">{role.name}</span>
-                        </div>
-                      }
-                      extra={
-                        <div className="flex gap-2 mt-2 sm:mt-0">
-                          <Button
-                            icon={<EditOutlined />}
-                            onClick={() => handleEditRole(index)}
-                            style={buttonStyle}
-                            size="small"
-                            className="flex-1 sm:flex-none"
-                          >
-                            <span className="hidden xs:inline">Edit</span>
-                          </Button>
-
-                          <Popconfirm
-                            title="Delete Role"
-                            description="Are you sure you want to delete this role?"
-                            onConfirm={() => handleDeleteRole(index)}
-                            okText="Yes"
-                            cancelText="No"
-                            overlayStyle={{
-                              background: "#1C1C1C",
-                              color: "#fff",
-                              border: "1px solid #303030",
-                            }}
-                          >
-                            <Button
-                              icon={<DeleteOutlined />}
-                              danger
-                              size="small"
-                              style={buttonStyle}
-                              className="flex-1 sm:flex-none"
-                            >
-                              <span className="hidden xs:inline">Delete</span>
-                            </Button>
-                          </Popconfirm>
-                        </div>
-                      }
-                    >
-                      {currentRole?.index === index ? (
-                        <div className="space-y-4">
-                          <Form layout="vertical">
-                            <Form.Item label={<span style={{ color: "white" }}>Role Name</span>}>
-                              <Input
-                                value={currentRole.name}
-                                onChange={(e) => handleUpdateRole("name", e.target.value)}
-                                style={inputStyle}
-                              />
-                            </Form.Item>
-
-                            <Form.Item label={<span style={{ color: "white" }}>Role Color</span>}>
-                              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-                                <ColorPicker
-                                  value={currentRole.color}
-                                  onChange={(color) => handleUpdateRole("color", color.toHexString())}
-                                />
-                                <div
-                                  className="h-8 w-20 rounded-md"
-                                  style={{ backgroundColor: currentRole.color }}
-                                />
-                              </div>
-                            </Form.Item>
-
-                            <Form.Item label={<span style={{ color: "white" }}>Permissions</span>}>
-                              <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-2">
-                                <span style={{ color: "#aaa" }} className="text-sm">
-                                  {currentRole.permissions.length} permissions selected
-                                </span>
-
-                                <div className="flex flex-wrap gap-2">
-                                  <Button
-                                    type="primary"
-                                    onClick={() => {
-                                      const updatedRole = { 
-                                        ...currentRole, 
-                                        permissions: [...currentRole.permissions] 
-                                      };
-                                      setCurrentRole(updatedRole);
-                                      setIsPermissionModalVisible(true);
-                                    }}
-                                    style={buttonStyle}
-                                    size="small"
-                                    className="flex-1 sm:flex-none"
-                                  >
-                                    <span className="text-xs sm:text-sm">Manage Permissions</span>
-                                  </Button>
-
-                                  <Button
-                                    icon={<CopyOutlined />}
-                                    onClick={() => setIsTemplateModalVisible(true)}
-                                    style={buttonStyle}
-                                    size="small"
-                                    className="flex-1 sm:flex-none"
-                                  >
-                                    <span className="hidden sm:inline">Save as Template</span>
-                                    <span className="sm:hidden">Template</span>
-                                  </Button>
-                                </div>
-                              </div>
-
-                              {currentRole.permissions.length > 0 && (
-                                <div className="mt-2">
-                                  <div className="flex flex-wrap gap-1">
-                                    {currentRole.permissions.slice(0, 5).map((perm, idx) => (
-                                      <Tag
-                                        key={idx}
-                                        color="blue"
-                                        className="text-xs"
-                                        style={darkThemeStyles.tag}
-                                      >
-                                        {perm}
-                                      </Tag>
-                                    ))}
-
-                                    {currentRole.permissions.length > 5 && (
-                                      <Tag color="blue" className="text-xs" style={darkThemeStyles.tag}>
-                                        +{currentRole.permissions.length - 5} more
-                                      </Tag>
-                                    )}
-                                  </div>
-                                </div>
-                              )}
-                            </Form.Item>
-                          </Form>
-                        </div>
-                      ) : (
-                        <div className="space-y-1">
-                          <div className="flex justify-start items-center gap-2 text-sm">
-                            <span style={{ color: "#aaa" }}>Permissions:</span>
-                            <span style={{ color: "white" }}>{role.permissions.length}</span>
-                          </div>
-                        </div>
-                      )}
-                    </Card>
-                  ))}
-                </div>
-
-                {/* Permission Templates Section */}
-                <Divider style={{ borderColor: "#303030" }} />
-
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium text-white">Permission Templates</h3>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {permissionTemplates.length === 0 ? (
-                      <div
-                        className="text-white flex justify-center items-center p-6 bg-[#1C1C1C] border border-[#303030] rounded-lg"
-                      >
-                        No templates yet
-                      </div>
-                    ) : (
-                      permissionTemplates.map((template) => (
-                        <Card
-                          key={template.id}
-                          className="w-full"
-                          styles={{
-                            header: {
-                              backgroundColor: "#1C1C1C",
-                              borderBottom: "1px solid #303030",
-                              padding: "12px 16px",
-                            },
-                            body: {
-                              backgroundColor: "#1C1C1C",
-                              color: "#fff",
-                              padding: "16px",
-                            },
-                          }}
-                          style={{
-                            backgroundColor: "#1C1C1C",
-                            border: "1px solid #303030",
-                          }}
-                          title={
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span style={{ color: "white" }} className="text-sm sm:text-base">{template.name}</span>
-                              {template.isDefault && (
-                                <Tag
-                                  color="green"
-                                  className="text-xs"
-                                  style={{ background: "#093f09", border: "none", color: "white" }}
-                                >
-                                  Default
-                                </Tag>
-                              )}
-                            </div>
-                          }
-                          extra={
-                            <div className="flex gap-1 mt-2 sm:mt-0">
-                              <Button
-                                icon={<CheckCircleOutlined />}
-                                onClick={() => handleApplyTemplate(template)}
-                                size="small"
-                                style={buttonStyle}
-                                disabled={!currentRole}
-                                className="flex-1 sm:flex-none"
-                              >
-                                <span className="hidden md:inline">Apply</span>
-                              </Button>
-                              {!template.isDefault && (
-                                <Popconfirm
-                                  title="Delete Template"
-                                  description="Are you sure you want to delete this template?"
-                                  onConfirm={() => handleDeleteTemplate(template.id)}
-                                  okText="Yes"
-                                  cancelText="No"
-                                  overlayStyle={{
-                                    background: "#1C1C1C",
-                                    color: "#fff",
-                                    border: "1px solid #303030",
-                                  }}
-                                >
-                                  <Button
-                                    icon={<DeleteOutlined />}
-                                    danger
-                                    size="small"
-                                    style={buttonStyle}
-                                    className="flex-1 sm:flex-none"
-                                  >
-                                    <span className="hidden xs:inline">Delete</span>
-                                  </Button>
-                                </Popconfirm>
-                              )}
-                            </div>
-                          }
-                        >
-                          <p className="text-gray-400 text-sm mb-2 line-clamp-2">{template.description}</p>
-                          <div className="flex flex-col xs:flex-row xs:justify-between text-xs gap-1">
-                            <span className="text-gray-500">{template.permissions.length} permissions</span>
-                          </div>
-                        </Card>
-                      ))
-                    )}
-                  </div>
-                </div>
-              </div>
-            </Panel>
 
             {/* Existing Legal Information Panel */}
             <Panel header="Legal Information" key="4" className="bg-[#202020] text-white">
@@ -1152,7 +714,7 @@ const ConfigurationPage = () => {
               </div>
             </Panel>
 
-            <Panel  header="Account Management" key="account-management" className="bg-[#202020] text-white">
+            <Panel header="Account Management" key="account-management" className="bg-[#202020] text-white">
               <div className="space-y-4">
                 <Form layout="vertical">
                   {/* Logo Upload Section */}
@@ -1304,7 +866,7 @@ const ConfigurationPage = () => {
               </div>
             </Panel>
 
-          
+
           </Collapse>
         </TabPane>
 
@@ -1655,7 +1217,7 @@ const ConfigurationPage = () => {
               </div>
             </Panel>
 
-           
+
           </Collapse>
         </TabPane>
 
@@ -1729,182 +1291,229 @@ const ConfigurationPage = () => {
         </TabPane>
 
         <TabPane tab="Email" key="6">
-  <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
-    {/* New Demo Access Email Section */}
-    <Panel header="Demo Access Email" key="1" className="bg-[#202020]">
-      <div className="space-y-4">
-        <Form layout="vertical">
-          <Form.Item label={<span className="text-white">Demo Access Email Subject</span>}>
-            <Input
-              placeholder="Enter email subject for demo access"
-              style={inputStyle}
-            />
-          </Form.Item>
-          
-          <Form.Item label={<span className="text-white">Demo Access Email Content</span>}>
-            <WysiwygEditor
-              placeholder="Compose your demo access email content..."
-            />
-            <div className="text-xs text-gray-400 mt-2">
-              <strong>Available variables:</strong> {"{Link}"}, {"{Studio_Name}"}, {"{Recipient_Name}"}, {"{Expiry_Date}"}
-            </div>
-          </Form.Item>
-          
-          <Form.Item label={<span className="text-white">Demo Link Expiry (Days)</span>}>
-            <InputNumber
-              min={1}
-              max={30}
-              defaultValue={7}
-              style={inputStyle}
-              placeholder="7"
-              className="white-text"
-            />
-            <div className="text-xs text-gray-400 mt-1">
-              Number of days until the demo access link expires
-            </div>
-          </Form.Item>
-          
-          <div className="flex gap-3">
-            <Button type="primary" style={saveButtonStyle}>
-              Save Demo Email Template
-            </Button>
-            <Button style={buttonStyle}>
-              Send Test Email
-            </Button>
-          </div>
-        </Form>
-      </div>
-    </Panel>
+          <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
+            {/* New Demo Access Email Section */}
+            <Panel header="Demo Access Email" key="1" className="bg-[#202020]">
+              <div className="space-y-4">
+                <Form layout="vertical">
+                  <Form.Item label={<span className="text-white">Demo Access Email Subject</span>}>
+                    <Input
+                      placeholder="Enter email subject for demo access"
+                      style={inputStyle}
+                    />
+                  </Form.Item>
 
-    <Panel header="Email Signature" key="2" className="bg-[#202020]">
-      <div className="space-y-4">
-        <Form layout="vertical">
-          <Form.Item label={<span className="text-white">Default Email Signature</span>}>
-            <WysiwygEditor
-              value={emailSignature}
-              onChange={setEmailSignature}
-              placeholder="Enter your default email signature..."
-            />
-            <div className="text-xs text-gray-400 mt-2">
-              <strong>Available variables:</strong> {"{Studio_Name}"}, {"{Your_Name}"}, {"{Phone_Number}"}, {"{Email}"}
-            </div>
-          </Form.Item>
-          
-          {/* Signature Pasting Options */}
-          <Form.Item label={<span className="text-white">Signature Pasting Options</span>}>
-            <div className="space-y-3">
-              <div className="flex items-center gap-3">
-                <Switch defaultChecked />
-                <span className="text-white text-sm">Automatically append signature to all outgoing emails</span>
-              </div>
-              
-              <div className="flex items-center gap-3">
-                <Switch />
-                <span className="text-white text-sm">Include signature in replies and forwards</span>
-              </div>
-              
-              <div className="flex items-center gap-3">
-                <Switch defaultChecked />
-                <span className="text-white text-sm">Use HTML signature format</span>
-              </div>
-            </div>
-          </Form.Item>
-        </Form>
-      </div>
-    </Panel>
+                  <Form.Item label={<span className="text-white">Demo Access Email Content</span>}>
+                    <WysiwygEditor
+                      placeholder="Compose your demo access email content..."
+                    />
+                    <div className="text-xs text-gray-400 mt-2">
+                      <strong>Available variables:</strong> {"{Link}"}, {"{Studio_Name}"}, {"{Recipient_Name}"}, {"{Expiry_Date}"}
+                    </div>
+                  </Form.Item>
 
-    <Panel header="SMTP Setup" key="3" className="bg-[#202020]">
-      <div className="space-y-4">
-        <Form layout="vertical">
-          <Form.Item label={<span className="text-white white-text">SMTP Server</span>}>
-            <Input
-              value={emailConfig.smtpServer}
-              onChange={(e) =>
-                setEmailConfig({
-                  ...emailConfig,
-                  smtpServer: e.target.value,
-                })
-              }
-              className="!w-full md:!w-32 lg:!w-90 white-text"
-              style={inputStyle}
-              placeholder="smtp.example.com"
-            />
-          </Form.Item>
-          <Form.Item label={<span className="text-white white-text">SMTP Port</span>}>
-            <div className="white-text">
-              <InputNumber
-                value={emailConfig.smtpPort}
-                onChange={(value) =>
-                  setEmailConfig({
-                    ...emailConfig,
-                    smtpPort: value || 587,
-                  })
-                }
-                style={inputStyle}
-                placeholder="587"
-              />
-            </div>
-          </Form.Item>
-          <Form.Item label={<span className="text-white">Email Address (Username)</span>}>
-            <Input
-              value={emailConfig.smtpUser}
-              onChange={(e) =>
-                setEmailConfig({
-                  ...emailConfig,
-                  smtpUser: e.target.value,
-                })
-              }
-              className="!w-full md:!w-32 lg:!w-90 white-text"
-              style={inputStyle}
-              placeholder="studio@example.com"
-            />
-          </Form.Item>
-          <Form.Item label={<span className="text-white white-text">Password</span>}>
-            <Input.Password
-              value={emailConfig.smtpPass}
-              onChange={(e) =>
-                setEmailConfig({
-                  ...emailConfig,
-                  smtpPass: e.target.value,
-                })
-              }
-              className="!w-full md:!w-32 lg:!w-90 white-text"
-              style={inputStyle}
-            />
-          </Form.Item>
-          <Form.Item label={<span className="text-white">Use SSL/TLS</span>}>
-            <Switch
-              checked={emailConfig.useSSL}
-              onChange={(checked) =>
-                setEmailConfig({
-                  ...emailConfig,
-                  useSSL: checked,
-                })
-              }
-            />
-          </Form.Item>
-          <Form.Item label={<span className="text-white">Default Sender Name</span>}>
-            <Input
-              value={emailConfig.senderName}
-              onChange={(e) =>
-                setEmailConfig({
-                  ...emailConfig,
-                  senderName: e.target.value,
-                })
-              }
-              className="!w-full md:!w-32 lg:!w-90 white-text"
-              style={inputStyle}
-              placeholder="Your Studio Name"
-            />
-          </Form.Item>
-          <Button type="primary" style={buttonStyle} onClick={testEmailConnection}>
-            Test Connection
-          </Button>
-        </Form>
+                  <Form.Item label={<span className="text-white">Demo Link Expiry (Days)</span>}>
+                    <InputNumber
+                      min={1}
+                      max={30}
+                      defaultValue={7}
+                      style={inputStyle}
+                      placeholder="7"
+                      className="white-text"
+                    />
+                    <div className="text-xs text-gray-400 mt-1">
+                      Number of days until the demo access link expires
+                    </div>
+                  </Form.Item>
+
+                  <div className="flex gap-3">
+                    <Button type="primary" style={saveButtonStyle}>
+                      Save Demo Email Template
+                    </Button>
+                    <Button style={buttonStyle}>
+                      Send Test Email
+                    </Button>
+                  </div>
+                </Form>
+              </div>
+            </Panel>
+
+            <Panel header="Email Signature" key="2" className="bg-[#202020]">
+              <div className="space-y-4">
+                <Form layout="vertical">
+                  <Form.Item label={<span className="text-white">Default Email Signature</span>}>
+                    <WysiwygEditor
+                      value={emailSignature}
+                      onChange={setEmailSignature}
+                      placeholder="Enter your default email signature..."
+                    />
+                    <div className="text-xs text-gray-400 mt-2">
+                      <strong>Available variables:</strong> {"{Studio_Name}"}, {"{Your_Name}"}, {"{Phone_Number}"}, {"{Email}"}
+                    </div>
+                  </Form.Item>
+
+                  {/* Signature Pasting Options */}
+                  <Form.Item label={<span className="text-white">Signature Pasting Options</span>}>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <Switch defaultChecked />
+                        <span className="text-white text-sm">Automatically append signature to all outgoing emails</span>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <Switch />
+                        <span className="text-white text-sm">Include signature in replies and forwards</span>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <Switch defaultChecked />
+                        <span className="text-white text-sm">Use HTML signature format</span>
+                      </div>
+                    </div>
+                  </Form.Item>
+                </Form>
+              </div>
+            </Panel>
+
+            <Panel header="SMTP Setup" key="3" className="bg-[#202020]">
+              <div className="space-y-4">
+                <Form layout="vertical">
+                  <Form.Item label={<span className="text-white white-text">SMTP Server</span>}>
+                    <Input
+                      value={emailConfig.smtpServer}
+                      onChange={(e) =>
+                        setEmailConfig({
+                          ...emailConfig,
+                          smtpServer: e.target.value,
+                        })
+                      }
+                      className="!w-full md:!w-32 lg:!w-90 white-text"
+                      style={inputStyle}
+                      placeholder="smtp.example.com"
+                    />
+                  </Form.Item>
+                  <Form.Item label={<span className="text-white white-text">SMTP Port</span>}>
+                    <div className="white-text">
+                      <InputNumber
+                        value={emailConfig.smtpPort}
+                        onChange={(value) =>
+                          setEmailConfig({
+                            ...emailConfig,
+                            smtpPort: value || 587,
+                          })
+                        }
+                        style={inputStyle}
+                        placeholder="587"
+                      />
+                    </div>
+                  </Form.Item>
+                  <Form.Item label={<span className="text-white">Email Address (Username)</span>}>
+                    <Input
+                      value={emailConfig.smtpUser}
+                      onChange={(e) =>
+                        setEmailConfig({
+                          ...emailConfig,
+                          smtpUser: e.target.value,
+                        })
+                      }
+                      className="!w-full md:!w-32 lg:!w-90 white-text"
+                      style={inputStyle}
+                      placeholder="studio@example.com"
+                    />
+                  </Form.Item>
+                  <Form.Item label={<span className="text-white white-text">Password</span>}>
+                    <Input.Password
+                      value={emailConfig.smtpPass}
+                      onChange={(e) =>
+                        setEmailConfig({
+                          ...emailConfig,
+                          smtpPass: e.target.value,
+                        })
+                      }
+                      className="!w-full md:!w-32 lg:!w-90 white-text"
+                      style={inputStyle}
+                    />
+                  </Form.Item>
+                  <Form.Item label={<span className="text-white">Use SSL/TLS</span>}>
+                    <Switch
+                      checked={emailConfig.useSSL}
+                      onChange={(checked) =>
+                        setEmailConfig({
+                          ...emailConfig,
+                          useSSL: checked,
+                        })
+                      }
+                    />
+                  </Form.Item>
+                  <Form.Item label={<span className="text-white">Default Sender Name</span>}>
+                    <Input
+                      value={emailConfig.senderName}
+                      onChange={(e) =>
+                        setEmailConfig({
+                          ...emailConfig,
+                          senderName: e.target.value,
+                        })
+                      }
+                      className="!w-full md:!w-32 lg:!w-90 white-text"
+                      style={inputStyle}
+                      placeholder="Your Studio Name"
+                    />
+                  </Form.Item>
+                  <Button type="primary" style={buttonStyle} onClick={testEmailConnection}>
+                    Test Connection
+                  </Button>
+                </Form>
+              </div>
+            </Panel>
+{/* New Email Registration Section */}
+<Panel header="Email Registration" key="email-registration" className="bg-[#202020]">
+  <div className="space-y-4">
+    <Form layout="vertical">
+      <Form.Item label={<span className="text-white">Registration Email Subject</span>}>
+        <Input
+          placeholder="Welcome to {Studio_Name}!"
+          style={inputStyle}
+        />
+      </Form.Item>
+      
+      <Form.Item label={<span className="text-white">Registration Email Content</span>}>
+        <div className="mt-2">
+          <WysiwygEditor
+            placeholder="Dear {First_Name} {Last_Name},\n\nWelcome to {Studio_Name}! We're excited to have you on board.\n\nTo complete your registration, please click the link below:\n\n{Registration_Link}\n\nThis link will expire in 24 hours.\n\nBest regards,\nThe {Studio_Name} Team"
+          />
+        </div>
+        <div className="text-xs text-gray-400 mt-2">
+          <strong>Available variables:</strong> {"{Studio_Name}"}, {"{First_Name}"}, {"{Last_Name}"}, {"{Registration_Link}"}
+        </div>
+      </Form.Item>
+      
+      <Form.Item label={<span className="text-white">Registration Link Expiry (Hours)</span>}>
+        <InputNumber
+          min={1}
+          max={168}
+          defaultValue={24}
+          style={inputStyle}
+          placeholder="24"
+          className="white-text"
+        />
+        <div className="text-xs text-gray-400 mt-1">
+          Number of hours until the registration link expires (1-168 hours/7 days)
+        </div>
+      </Form.Item>
+      
+      <div className="flex gap-3">
+        <Button type="primary" style={saveButtonStyle}>
+          Save Registration Template
+        </Button>
+        <Button style={buttonStyle}>
+          Send Test Email
+        </Button>
       </div>
-    </Panel>
-  </Collapse>
-</TabPane>
+    </Form>
+  </div>
+</Panel>
+          </Collapse>
+        </TabPane>
 
         <TabPane tab="Changelog" key="7">
           <Collapse defaultActiveKey={["1"]} className="bg-[#181818] border-[#303030]">
@@ -1932,7 +1541,7 @@ const ConfigurationPage = () => {
                     <ColorPicker
                       value={newChangelog.color}
                       onChange={(c) => setNewChangelog({ ...newChangelog, color: c.toHexString() })}
-                      className="col-span-1 md:col-span-2"
+                      className="w-10"
                     />
                   </div>
                   <WysiwygEditor
@@ -1993,8 +1602,8 @@ const ConfigurationPage = () => {
         </TabPane>
       </Tabs>
 
-       {/* Permission Modal */}
-       <PermissionModal
+      {/* Permission Modal */}
+      <PermissionModal
         visible={isPermissionModalVisible}
         onClose={() => setIsPermissionModalVisible(false)}
         role={currentRole}
@@ -2061,8 +1670,8 @@ const ConfigurationPage = () => {
                 onClick={handleSaveAsTemplate}
                 disabled={!newTemplateName.trim()}
                 className={`px-4 py-2 text-sm rounded-md transition-colors w-full sm:w-auto order-1 sm:order-2 ${!newTemplateName.trim()
-                    ? "bg-gray-600 text-gray-400 cursor-not-allowed"
-                    : "bg-blue-600 hover:bg-blue-700 text-white"
+                  ? "bg-gray-600 text-gray-400 cursor-not-allowed"
+                  : "bg-blue-600 hover:bg-blue-700 text-white"
                   }`}
               >
                 Save Template
