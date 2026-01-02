@@ -65,48 +65,28 @@ const ContractDetailsModal = ({ isOpen, onClose, contract, onPause, onCancel }) 
           <div className="space-y-4 custom-scrollbar overflow-y-auto max-h-[70vh]">
             <div>
               <h3 className="text-white text-xl font-bold">Contract Details</h3>
-              <p className="text-gray-400 mt-1">{contract.id}</p>
-              <p className="text-gray-400 mt-1">
-                {contract.startDate} - {contract.endDate}
+              <p className="text-gray-200 mt-1 text-sm">Contract Number: <span className="text-gray-400">{contract.id}</span> </p>
+              <p className="text-gray-200 mt-1 text-sm">Contract Type: <span className="text-gray-400">{contract.contractType}</span></p>
+              <p className="text-gray-200 mt-1 text-sm">
+               Contract Period:  <span className="text-gray-400">{contract.startDate} - {contract.endDate}</span>
               </p>
-            </div>
-
-            <div className="flex gap-2">
-              <button
-                onClick={redirectToStudio}
-                className="py-1.5 px-5 bg-[#3F74FF] text-white text-sm rounded-xl flex items-center gap-2"
-              >
-                <User size={16} />
-                Go to Studio
-              </button>
             </div>
 
             <div className="bg-slate-500 h-[1px] w-full" />
 
             <div className="space-y-4">
-              <h3 className="text-white text-xl font-bold">Studio Details</h3>
+              <h3 className="text-white text-xl font-bold">Member</h3>
 
               <div className="space-y-3 text-sm">
-                <div>
-                  <p className="text-gray-400">Contract Type</p>
-                  <p className="text-white">{contract.contractType}</p>
-                </div>
 
-                <div>
-                  <p className="text-gray-400">Studio Name</p>
-                  <p className="text-white">{contract.studioName || "-"}</p>
+              <div>
+                  <p className="text-gray-400">Name</p>
+                  <p className="text-white">{contract.memberName || "-"}</p>
                 </div>
-
-                <div>
-                  <p className="text-gray-400">Studio Owner</p>
-                  <p className="text-white">{contract.studioOwnerName || "-"}</p>
-                </div>
-
                 <div>
                   <p className="text-gray-400">Email</p>
                   <p className="text-white">{contract.email || "-"}</p>
                 </div>
-
                 <div>
                   <p className="text-gray-400">Phone</p>
                   <p className="text-white">{contract.phone || "-"}</p>
@@ -121,6 +101,11 @@ const ContractDetailsModal = ({ isOpen, onClose, contract, onPause, onCancel }) 
                   <p className="text-gray-400">SEPA Mandate Number</p>
                   <p className="text-white">{contract.sepaMandate || "-"}</p>
                 </div>
+
+
+            
+           
+          
               </div>
             </div>
 

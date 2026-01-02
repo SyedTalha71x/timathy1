@@ -126,6 +126,7 @@ export const studioLeadData = {
       country: "USA",
       website: "https://example.com",
       leadId: "LEAD-001",
+      prospectCategory: "active", // Added
     },
     {
       id: "h2",
@@ -153,8 +154,8 @@ export const studioLeadData = {
       country: "USA",
       website: "https://sarahwilson.com",
       leadId: "LEAD-002",
+      prospectCategory: "passive", // Added
     },
-
   ],
   2: [
     {
@@ -183,6 +184,7 @@ export const studioLeadData = {
       country: "USA",
       website: "https://michaelbrown.fitness",
       leadId: "LEAD-003",
+      prospectCategory: "active", // Added
     },
     {
       id: "h4",
@@ -210,6 +212,7 @@ export const studioLeadData = {
       country: "USA",
       website: "https://emmadavis.com",
       leadId: "LEAD-004",
+      prospectCategory: "uninterested", // Added
     },
   ],
 }
@@ -220,6 +223,7 @@ export const studioContractsData = {
       id: "12321-1",
       studioName: "Pro Physio Studio",
       studioOwnerName: "John Doe",
+      memberName: "Jane Smith",
       contractType: "Premium",
       startDate: "2023-01-01",
       endDate: "2024-01-01",
@@ -238,6 +242,7 @@ export const studioContractsData = {
       id: "12321-2",
       studioName: "Power Fitness Gym",
       studioOwnerName: "Jane Smith",
+      memberName: "Jane Smith",
       contractType: "Basic",
       startDate: "2023-02-15",
       endDate: "2024-02-15",
@@ -3091,4 +3096,24 @@ export const studioContractHistoryData = {
       newValue: "Paused",
     },
   ],
+}
+
+export const studioLeadsRelatonData = {
+  h1: {
+    family: [
+      { name: "Anna Doe", relation: "Mother", id: 101, type: "member" },
+      { name: "Peter Doe", relation: "Father", id: 102, type: "lead" },
+    ],
+    friendship: [{ name: "Max Miller", relation: "Best Friend", id: 201, type: "member" }],
+    relationship: [],
+    work: [{ name: "Tom Wilson", relation: "Colleague", id: 401, type: "lead" }],
+    other: [],
+  },
+  h2: {
+    family: [],
+    friendship: [],
+    relationship: [{ name: "Marie Smith", relation: "Partner", id: 301, type: "member" }],
+    work: [],
+    other: [],
+  },
 }

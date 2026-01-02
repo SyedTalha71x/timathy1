@@ -122,11 +122,11 @@ const ContractsModal = ({
                     </span>
 
                     <span className="text-white font-medium">{contract.memberName}</span>
-                    <span className="text-sm text-gray-400">{contract.contractType || "Premium"}</span>
+                    <span className="text-sm text-gray-400">{contract.contractType}</span>
                     <span className="text-sm text-gray-400">
                       {contract.startDate} - {contract.endDate}
                     </span>
-                    <span className="text-sm text-gray-400">{contract.isDigital ? "Digital" : "Analog"}</span>
+                    {/* <span className="text-sm text-gray-400">{contract.isDigital ? "Digital" : "Analog"}</span> */}
                   </div>
 
                   <div className="flex items-center gap-1">

@@ -1,4 +1,3 @@
-/* eslint-disable no-unused-vars */
 ""
 
 import { X } from "lucide-react"

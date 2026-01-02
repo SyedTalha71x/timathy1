@@ -15,7 +15,7 @@ const StudioMembersModal = ({
     handleDocumentFromOverview,
     handleCalendarFromOverview,
     onCreateTempMember,
-    handleTrainingPlanFromOverview // Add this new prop
+    handleTrainingPlanFromOverview
 }) => {
     if (!isOpen || !studio) return null
 
@@ -23,18 +23,24 @@ const StudioMembersModal = ({
         <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
             <div className="bg-[#1C1C1C] rounded-xl w-full max-w-4xl my-8 relative">
                 <div className="p-6">
+                    {/* Header Section */}
                     <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-white open_sans_font_700 text-lg font-semibold">
-                            {studio.name} - Members ({studioMembers[studio.id]?.length || 0})
-                        </h2>
+                        <div className="flex flex-col md:block">
+                            <h2 className="text-white open_sans_font_700 text-lg font-semibold md:text-lg">
+                                {studio.name} - Members ({studioMembers[studio.id]?.length || 0})
+                            </h2>
+                            <p className="text-gray-400 text-sm mt-1 md:hidden">
+                                Studio Members
+                            </p>
+                        </div>
                         <button onClick={onClose} className="text-gray-400 hover:text-white">
                             <X size={20} className="cursor-pointer" />
                         </button>
                     </div>
 
-                    {/* Add Create Temporary Member button */}
-                    <div className="flex justify-between items-center mb-4">
-                        <div className="relative flex-1 mr-4">
+                    {/* Search and Create Button Section */}
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+                        <div className="relative flex-1 w-full">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
                             <input
                                 type="text"
@@ -47,50 +53,57 @@ const StudioMembersModal = ({
                         
                         <button
                             onClick={onCreateTempMember}
-                            className="bg-gray-700 px-4 py-2 rounded-lg text-white text-sm flex items-center gap-2 whitespace-nowrap cursor-pointer"
+                            className="bg-gray-700 px-4 py-2 rounded-lg text-white text-sm flex items-center gap-2 whitespace-nowrap cursor-pointer w-full sm:w-auto justify-center"
                         >
                             <Plus size={16} />
-                            Create Temporary Member
+                            <span className="hidden xs:inline">Create Temporary Member</span>
+                            <span className="xs:hidden">Temp Member</span>
                         </button>
                     </div>
 
+                    {/* Members List */}
                     <div className="space-y-3 max-h-[500px] overflow-y-auto custom-scrollbar">
                         {getFilteredMembers().map((member) => (
                             <div
                                 key={member.id}
-                                className="bg-[#161616] rounded-xl lg:p-4 p-3 flex justify-between flex-col md:flex-row gap-2 md:items-center items-start"
+                                className="bg-[#161616] rounded-xl lg:p-4 p-3 flex justify-between flex-col sm:flex-row gap-3 md:gap-2 md:items-center items-start"
                             >
-                                <div className="flex-1">
-                                    <div className="flex items-center gap-1">
-                                        <h3 className="font-medium text-white">{member.firstName}</h3>
-                                        <h3 className="font-medium text-white">{member.lastName}</h3>
-                                        {/* Add temporary member indicator */}
+                                {/* Member Info - Stacked on mobile */}
+                                <div className="flex-1 w-full">
+                                    <div className="flex items-center gap-1 mb-2 flex-wrap">
+                                        <h3 className="font-medium text-white text-sm md:text-base">{member.firstName}</h3>
+                                        <h3 className="font-medium text-white text-sm md:text-base">{member.lastName}</h3>
+                                        {/* Temporary member indicator */}
                                         {member.isTemporary && (
                                             <span className="ml-2 px-2 py-0.5 bg-yellow-900 text-yellow-300 text-xs rounded-full">
-                                                Temporary
+                                                Temp
                                             </span>
                                         )}
                                     </div>
-                                    <div className="text-sm text-gray-400 mt-2">
-                                        <p className="flex gap-1">
-                                            <span className="font-bold text-gray-200">Email:</span>
-                                            {member.email}
+                                    <div className="text-sm text-gray-400">
+                                        <p className="flex flex-col sm:flex-row sm:gap-1 mb-1 sm:mb-0">
+                                            <span className="font-bold text-gray-200 min-w-[45px]">Email:</span>
+                                            <span className="break-all sm:break-normal">{member.email}</span>
                                         </p>
-                                        <p className="flex gap-1">
-                                            <span className="font-bold text-gray-200">Phone:</span> {member.phone}
+                                        <p className="flex flex-col sm:flex-row sm:gap-1 mb-1 sm:mb-0">
+                                            <span className="font-bold text-gray-200 min-w-[45px]">Phone:</span>
+                                            <span>{member.phone}</span>
                                         </p>
-                                        <p className="flex gap-1">
-                                            <span className="font-bold text-gray-200">Joined:</span> {member.joinDate}
+                                        <p className="flex flex-col sm:flex-row sm:gap-1">
+                                            <span className="font-bold text-gray-200 min-w-[45px]">Joined:</span>
+                                            <span>{member.joinDate}</span>
                                         </p>
                                     </div>
                                 </div>
 
-                                <div className="flex gap-2 w-full md:w-auto justify-end flex-col">
-                                    <div className="grid grid-cols-2 gap-2"> {/* Changed from grid-cols-3 to grid-cols-4 */}
-                                        {/* Training Plan Button - Added as first icon */}
+                                {/* Action Buttons - Modified for mobile */}
+                                <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                                    {/* Icon Buttons Row */}
+                                    <div className="grid grid-cols-4 gap-2">
+                                        {/* Training Plan Button */}
                                         <button
                                             onClick={() => handleTrainingPlanFromOverview(member)}
-                                            className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                                            className="text-white bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
                                             title="Manage Training Plans"
                                         >
                                             <Dumbbell size={16} />
@@ -98,7 +111,7 @@ const StudioMembersModal = ({
 
                                         <button
                                             onClick={() => handleCalendarFromOverview(member)}
-                                            className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                                            className="text-white bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
                                             title="View Appointments"
                                         >
                                             <Calendar size={16} />
@@ -106,33 +119,38 @@ const StudioMembersModal = ({
 
                                         <button
                                             onClick={() => handleHistoryFromOverview(member)}
-                                            className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                                            className="text-white bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
                                             title="View History"
                                         >
                                             <History size={16} />
                                         </button>
                                         <button
                                             onClick={() => handleDocumentFromOverview(member)}
-                                            className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                                            className="text-white bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
                                             title="Document Management"
                                         >
                                             <FileText size={16} />
                                         </button>
                                     </div>
-                                    <button
-                                        onClick={() => onViewMember(member)}
-                                        className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-4 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
-                                    >
-                                        <Eye size={16} />
-                                        View Details
-                                    </button>
-                                    <button
-                                        onClick={() => onEditMember(member)}
-                                        className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-4 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
-                                    >
-                                        <Edit size={16} />
-                                        Edit
-                                    </button>
+                                    
+                                    {/* View and Edit Buttons - Horizontal on mobile */}
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => onViewMember(member)}
+                                            className="flex-1 text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-4 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
+                                        >
+                                            <Eye size={16} />
+                                            <span className="hidden xs:inline">View Details</span>
+                                            <span className="xs:hidden">View</span>
+                                        </button>
+                                        <button
+                                            onClick={() => onEditMember(member)}
+                                            className="flex-1 text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-4 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
+                                        >
+                                            <Edit size={16} />
+                                            Edit
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         ))}
