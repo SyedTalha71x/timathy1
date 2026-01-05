@@ -304,7 +304,7 @@ const Assessment = () => {
 
         {forms.length === 0 && (
           <div className="col-span-full text-center py-12 text-gray-400">
-            No forms created yet. Click on "Create Assessment" to get started.
+            No forms created yet. Click on "Create Medical History" to get started.
           </div>
         )}
       </div>
