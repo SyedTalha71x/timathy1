@@ -45,7 +45,7 @@ export default function LeadManagement() {
     { id: "active", title: "Active prospect", color: "#10b981" },
     { id: "passive", title: "Passive prospect", color: "#f59e0b" },
     { id: "uninterested", title: "Uninterested", color: "#ef4444" },
-    { id: "missed", title: "test Call", color: "#8b5cf6" },
+    { id: "missed", title: "Missed Call", color: "#8b5cf6" },
     { id: "trial", title: "Trial Training Arranged", color: "#3b82f6", isFixed: true },
   ])
 
