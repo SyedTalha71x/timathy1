@@ -1039,7 +1039,7 @@ export default function LeadManagement() {
               className="bg-[#FF843E] cursor-pointer text-white px-6 py-2.5 rounded-xl text-sm flex items-center gap-2"
             >
               <Plus size={18} />
-              <span className="open_sans_font">Create Lead 1</span>
+              <span className="open_sans_font">Create Lead</span>
             </button>
             <img
               onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
