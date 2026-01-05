@@ -812,7 +812,7 @@ export default function LeadManagement() {
             className="bg-orange-500 hover:bg-[#E64D2E] text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl flex items-center gap-2 flex-1 sm:flex-none justify-center"
           >
             <Plus size={14} className="sm:w-4 sm:h-4" />
-            <span className="inline">Create Lead1</span>
+            <span className="inline">Create Lead</span>
           </button>
           {isRightSidebarOpen ? (
             <div onClick={toggleRightSidebar} className="md:block hidden">
