@@ -698,7 +698,7 @@ export function MemberDocumentModal({ member, isOpen, onClose }) {
                   className="text-sm gap-2 px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors w-full sm:w-auto flex items-center justify-center"
                 >
                   <Plus className="w-4 h-4 mr-2" />
-                  Create Assessment
+                  Create Medical History
                 </button>
               )}
               <button
