@@ -60,7 +60,7 @@ const AssessmentSelectionModal = ({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
       <div className="bg-[#1C1C1C] rounded-xl p-6 w-full max-w-2xl border border-gray-700">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-white">Create Assessment</h2>
+          <h2 className="text-xl font-bold text-white">Create Medical History</h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-white text-lg"
