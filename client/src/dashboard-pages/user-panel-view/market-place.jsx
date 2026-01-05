@@ -20,7 +20,7 @@ import TrainingPlansModal from "../../components/myarea-components/TrainingPlanM
 const marketplaceProducts = [
   {
     id: 1,
-    name: "Mens Jordan Trainer TEST",
+    name: "Mens Jordan Trainer",
     brand: "JORDAN",
     articleNo: "456",
     price: "5,00 €",
