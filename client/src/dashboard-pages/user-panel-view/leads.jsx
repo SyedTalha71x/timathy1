@@ -31,11 +31,11 @@ import LeadHistoryModal from "../../components/user-panel-components/lead-user-p
 import TrialAppointmentModal from "../../components/user-panel-components/lead-user-panel-components/trial-appointment-modal"
 import EditTrialModal from "../../components/user-panel-components/lead-user-panel-components/edit-trial-modal"
 import DeleteConfirmationModal from "../../components/user-panel-components/lead-user-panel-components/delete-confirmation-modal"
-import { LeadSpecialNoteModal } from "../../components/user-panel-components/lead-user-panel-components/special-note-modal"
 import { LeadDocumentModal } from "../../components/user-panel-components/lead-user-panel-components/document-management-modal"
 import AssessmentFormModal from "../../components/user-panel-components/lead-user-panel-components/assessment-form-modal"
 import AssessmentSelectionModal from "../../components/user-panel-components/lead-user-panel-components/assessment-selection-modal"
 import ContractPromptModal from "../../components/user-panel-components/lead-user-panel-components/contract-prompt-modal"
+import { LeadSpecialNoteModal } from "../../components/user-panel-components/lead-user-panel-components/special-note-modal"
 
 // New DnD components
 import SortableColumn from "../../components/user-panel-components/lead-user-panel-components/sortable-column"
@@ -97,6 +97,11 @@ export default function LeadManagement() {
   const [selectedTrialAppointment, setSelectedTrialAppointment] = useState(null)
   const [appointmentToDelete, setAppointmentToDelete] = useState(null)
   const [showContractPromptModal, setShowContractPromptModal] = useState(false)
+  
+  // Lead Special Note Modal states
+  const [isLeadSpecialNoteModalOpen, setIsLeadSpecialNoteModalOpen] = useState(false)
+  const [selectedLeadForNote, setSelectedLeadForNote] = useState(null)
+  const [targetColumnForNote, setTargetColumnForNote] = useState(null)
 
   const [memberRelationsLead, setMemberRelationsLead] = useState(memberRelationsLeadNew)
   const [editingRelationsLead, setEditingRelationsLead] = useState(false)
@@ -122,13 +127,6 @@ export default function LeadManagement() {
     lead: null,
     sourceColumnId: "",
     targetColumnId: "",
-  })
-
-  const [specialNoteModal, setSpecialNoteModal] = useState({
-    isOpen: false,
-    lead: null,
-    targetColumnId: "",
-    onSave: null,
   })
 
   // Configure sensors for drag detection with mobile optimizations
@@ -311,29 +309,6 @@ export default function LeadManagement() {
     toast.success(`Lead moved to ${targetColumn?.title || targetColumnId}`)
   }
 
-  // Move lead with special note (from trial column)
-  const moveLeadWithNote = (lead, sourceColumnId, targetColumnId, specialNote) => {
-    const updatedLead = {
-      ...lead,
-      columnId: targetColumnId,
-      hasTrialTraining: false,
-      status: targetColumnId,
-      specialNote: {
-        text: specialNote.text || lead.specialNote?.text || "",
-        isImportant: specialNote.isImportant ?? lead.specialNote?.isImportant ?? false,
-        startDate: specialNote.startDate || lead.specialNote?.startDate || null,
-        endDate: specialNote.endDate || lead.specialNote?.endDate || null,
-      },
-    }
-
-    const newLeads = leads.map((l) => (l.id === lead.id ? updatedLead : l))
-    setLeads(newLeads)
-    updateLocalStorage(newLeads)
-
-    const targetColumn = columns.find((c) => c.id === targetColumnId)
-    toast.success(`Lead moved to ${targetColumn?.title || targetColumnId} with note`)
-  }
-
   // Update localStorage helper
   const updateLocalStorage = (updatedLeads) => {
     const localStorageLeads = updatedLeads.filter((l) => l.source === "localStorage")
@@ -353,25 +328,13 @@ export default function LeadManagement() {
     const { lead, targetColumnId } = dragConfirmation
     setDragConfirmation((prev) => ({ ...prev, isOpen: false }))
     
-    setSpecialNoteModal({
-      isOpen: true,
-      lead,
-      targetColumnId,
-      onSave: (specialNoteData) => {
-        moveLeadWithNote(lead, "trial", targetColumnId, specialNoteData)
-        setSpecialNoteModal((prev) => ({ ...prev, isOpen: false }))
-      },
-    })
+    // Open the special note modal for moving from trial
+    handleEditLeadNote(lead, targetColumnId)
   }
 
   // Cancel drag confirmation
   const handleCancelDragConfirmation = () => {
     setDragConfirmation((prev) => ({ ...prev, isOpen: false }))
-  }
-
-  // Cancel special note modal
-  const handleSpecialNoteCancel = () => {
-    setSpecialNoteModal((prev) => ({ ...prev, isOpen: false }))
   }
 
   // ============================================
@@ -462,6 +425,37 @@ export default function LeadManagement() {
     setIsDeleteConfirmationModalOpen(true)
   }
 
+  const handleEditLeadNote = (lead, targetColumnId = null) => {
+    setSelectedLeadForNote(lead)
+    setTargetColumnForNote(targetColumnId)
+    setIsLeadSpecialNoteModalOpen(true)
+  }
+
+  const handleSaveLeadSpecialNote = (leadId, updatedNote, targetColumnId) => {
+    const updatedLeads = leads.map((lead) =>
+      lead.id === leadId
+        ? {
+            ...lead,
+            specialNote: updatedNote,
+            // If targetColumnId is provided, also update the column
+            ...(targetColumnId ? { columnId: targetColumnId, status: targetColumnId } : {}),
+          }
+        : lead
+    )
+    setLeads(updatedLeads)
+    updateLocalStorage(updatedLeads)
+    setIsLeadSpecialNoteModalOpen(false)
+    setSelectedLeadForNote(null)
+    setTargetColumnForNote(null)
+    
+    if (targetColumnId) {
+      const targetColumn = columns.find((c) => c.id === targetColumnId)
+      toast.success(`Special note saved and lead moved to ${targetColumn?.title || targetColumnId}`)
+    } else {
+      toast.success("Special note saved successfully")
+    }
+  }
+
   const confirmDeleteLead = () => {
     const leadToDelete = leads.find((lead) => lead.id === leadToDeleteId)
     const updatedLeads = leads.filter((lead) => lead.id !== leadToDeleteId)
@@ -486,10 +480,17 @@ export default function LeadManagement() {
       surname: data.lastName,
       email: data.email,
       phoneNumber: data.phone,
+      gender: data.gender || "",
+      street: data.street || "",
+      zipCode: data.zipCode || "",
+      city: data.city || "",
+      country: data.country || "",
+      leadSource: data.source || "", // Lead source from form (Website, Google Ads, etc.)
+      details: data.details || "",
       trialPeriod: data.trialPeriod,
       hasTrialTraining: data.hasTrialTraining,
       avatar: data.avatar,
-      source: "localStorage",
+      source: "localStorage", // Internal source marker
       status: data.status || "passive",
       columnId: data.hasTrialTraining ? "trial" : data.status || "passive",
       createdAt: now,
@@ -511,6 +512,17 @@ export default function LeadManagement() {
   }
 
   const handleSaveEdit = (data) => {
+    // Check if there's a pending move from trial column
+    const pendingMoveStr = sessionStorage.getItem('pendingLeadMove')
+    let pendingMove = null
+    if (pendingMoveStr) {
+      try {
+        pendingMove = JSON.parse(pendingMoveStr)
+      } catch (e) {
+        console.error('Failed to parse pending move:', e)
+      }
+    }
+
     const updatedLeads = leads.map((lead) =>
       lead.id === data.id
         ? {
@@ -519,11 +531,18 @@ export default function LeadManagement() {
             surname: data.surname,
             email: data.email,
             phoneNumber: data.phoneNumber,
+            gender: data.gender || lead.gender || "",
+            street: data.street || lead.street || "",
+            zipCode: data.zipCode || lead.zipCode || "",
+            city: data.city || lead.city || "",
+            country: data.country || lead.country || "",
+            leadSource: data.source || lead.leadSource || "", // Lead source from form
+            details: data.details || lead.details || "",
             trialPeriod: data.trialPeriod,
-            hasTrialTraining: data.hasTrialTraining,
+            hasTrialTraining: pendingMove && pendingMove.leadId === lead.id ? false : data.hasTrialTraining,
             avatar: data.avatar,
-            status: data.status || lead.status,
-            columnId: data.hasTrialTraining ? "trial" : data.status || lead.columnId,
+            status: pendingMove && pendingMove.leadId === lead.id ? pendingMove.targetColumnId : data.status || lead.status,
+            columnId: pendingMove && pendingMove.leadId === lead.id ? pendingMove.targetColumnId : (data.hasTrialTraining ? "trial" : data.status || lead.columnId),
             specialNote: {
               text: data.specialNote?.text || "",
               isImportant: data.specialNote?.isImportant || false,
@@ -539,7 +558,15 @@ export default function LeadManagement() {
     )
     setLeads(updatedLeads)
     updateLocalStorage(updatedLeads)
-    toast.success("Lead has been updated")
+    
+    // Clear pending move and show appropriate toast
+    if (pendingMove && pendingMove.leadId === data.id) {
+      sessionStorage.removeItem('pendingLeadMove')
+      const targetColumn = columns.find((c) => c.id === pendingMove.targetColumnId)
+      toast.success(`Lead moved to ${targetColumn?.title || pendingMove.targetColumnId} with note`)
+    } else {
+      toast.success("Lead has been updated")
+    }
   }
 
   const handleEditColumn = (id, title, color) => {
@@ -903,7 +930,14 @@ export default function LeadManagement() {
       </DndContext>
 
       {/* All Modals (keeping existing) */}
-      <AddLeadModal isVisible={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSaveLead} />
+      <AddLeadModal 
+        isVisible={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        onSave={handleSaveLead}
+        columns={columns}
+        availableMembersLeads={availableMembersLeads}
+        relationOptions={relationOptions}
+      />
 
       <EditLeadModal
         isVisible={isEditModalOpenLead}
@@ -911,6 +945,8 @@ export default function LeadManagement() {
           setIsEditModalOpenLead(false)
           setSelectedLead(null)
           setSelectedEditTab("details")
+          // Clear any pending move if user closes without saving
+          sessionStorage.removeItem('pendingLeadMove')
         }}
         onSave={handleSaveEdit}
         leadData={selectedLead}
@@ -921,6 +957,7 @@ export default function LeadManagement() {
         newRelationLead={newRelationLead}
         setNewRelationLead={setNewRelationLead}
         availableMembersLeads={availableMembersLeads}
+        columns={columns}
         relationOptions={relationOptions}
         handleAddRelationLead={handleAddRelationLead}
         handleDeleteRelationLead={handleDeleteRelationLead}
@@ -936,6 +973,7 @@ export default function LeadManagement() {
         }}
         leadData={selectedLead}
         memberRelationsLead={memberRelationsLead}
+        columns={columns}
         onEditLead={handleEditLead}
         initialTab={selectedViewTab}
       />
@@ -1056,14 +1094,6 @@ export default function LeadManagement() {
         </div>
       )}
 
-      <LeadSpecialNoteModal
-        isOpen={specialNoteModal.isOpen}
-        onClose={handleSpecialNoteCancel}
-        lead={specialNoteModal.lead}
-        onSave={specialNoteModal.onSave}
-        targetColumnId={specialNoteModal.targetColumnId}
-      />
-
       <TrialAppointmentModal
         isOpen={isTrialAppointmentModalOpen}
         onClose={() => {
@@ -1134,6 +1164,18 @@ export default function LeadManagement() {
         onClose={handleContractPromptCancel}
         onConfirm={handleContractPromptConfirm}
         leadName={selectedLead ? `${selectedLead.firstName} ${selectedLead.surname}` : ""}
+      />
+
+      <LeadSpecialNoteModal
+        isOpen={isLeadSpecialNoteModalOpen}
+        onClose={() => {
+          setIsLeadSpecialNoteModalOpen(false)
+          setSelectedLeadForNote(null)
+          setTargetColumnForNote(null)
+        }}
+        lead={selectedLeadForNote}
+        onSave={handleSaveLeadSpecialNote}
+        targetColumnId={targetColumnForNote}
       />
 
       {/* Sidebar (keeping all existing sidebar code) */}

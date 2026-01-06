@@ -6,7 +6,6 @@ import { MdHistory } from "react-icons/md"
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import { createPortal } from "react-dom"
-import { SpecialNoteEditModal } from "../../myarea-components/SpecialNoteEditModal"
 
 const SortableLeadCard = ({
   lead,
@@ -21,7 +20,6 @@ const SortableLeadCard = ({
   setShowHistoryModalLead,
   setSelectedLead,
   onManageTrialAppointments,
-  onEditNote,
   onOpenDocuments,
   onCreateAssessment,
   isTrialColumn,
@@ -33,7 +31,7 @@ const SortableLeadCard = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [hoveredNoteId, setHoveredNoteId] = useState(null)
   const [hoverTimeout, setHoverTimeout] = useState(null)
-  const [showEditNoteModal, setShowEditNoteModal] = useState(false)
+  const [leaveTimeout, setLeaveTimeout] = useState(null)
 
   const noteRef = useRef(null)
   const menuRef = useRef(null)
@@ -80,6 +78,14 @@ const SortableLeadCard = ({
     }
   }, [isNoteOpen, isMenuOpen])
 
+  // Cleanup timeouts on unmount
+  useEffect(() => {
+    return () => {
+      if (hoverTimeout) clearTimeout(hoverTimeout)
+      if (leaveTimeout) clearTimeout(leaveTimeout)
+    }
+  }, [hoverTimeout, leaveTimeout])
+
   const formatDate = (timestamp) => {
     const date = new Date(timestamp)
     return date.toLocaleDateString("en-US", {
@@ -106,9 +112,15 @@ const SortableLeadCard = ({
 
   const handleNoteMouseEnter = (e) => {
     e.stopPropagation()
+    
+    // Clear any existing timeouts
     if (hoverTimeout) {
       clearTimeout(hoverTimeout)
       setHoverTimeout(null)
+    }
+    if (leaveTimeout) {
+      clearTimeout(leaveTimeout)
+      setLeaveTimeout(null)
     }
     
     const rect = e.currentTarget.getBoundingClientRect()
@@ -125,24 +137,47 @@ const SortableLeadCard = ({
 
   const handleNoteMouseLeave = (e) => {
     e.stopPropagation()
+    
+    // Clear enter timeout if still pending
     if (hoverTimeout) {
       clearTimeout(hoverTimeout)
       setHoverTimeout(null)
     }
-    setHoveredNoteId(null)
+    
+    // Add delay before hiding popup (allows moving to popup)
+    const timeout = setTimeout(() => {
+      setHoveredNoteId(null)
+    }, 200)
+    setLeaveTimeout(timeout)
+  }
+
+  const handlePopupMouseEnter = (e) => {
+    e.stopPropagation()
+    // Cancel any pending leave timeout when hovering over popup
+    if (leaveTimeout) {
+      clearTimeout(leaveTimeout)
+      setLeaveTimeout(null)
+    }
+  }
+
+  const handlePopupMouseLeave = (e) => {
+    e.stopPropagation()
+    // Hide popup when leaving the popup area
+    const timeout = setTimeout(() => {
+      setHoveredNoteId(null)
+    }, 100)
+    setLeaveTimeout(timeout)
   }
 
   const handleEditNote = (e) => {
     e.stopPropagation()
-    setShowEditNoteModal(true)
+    if (hoverTimeout) clearTimeout(hoverTimeout)
+    if (leaveTimeout) clearTimeout(leaveTimeout)
+    if (onEditLead) {
+      onEditLead(lead, "note")
+    }
     setIsNoteOpen(false)
     setHoveredNoteId(null)
-  }
-
-  const handleSaveNote = (leadId, updatedNote) => {
-    if (onEditNote) {
-      onEditNote(leadId, updatedNote)
-    }
   }
 
   const handleOpenDocuments = (e) => {
@@ -239,16 +274,8 @@ const SortableLeadCard = ({
                   top: notePosition.top,
                   left: notePosition.left,
                 }}
-                onMouseEnter={() => {
-                  if (hoveredNoteId === lead.id) {
-                    setHoveredNoteId(lead.id)
-                  }
-                }}
-                onMouseLeave={() => {
-                  if (hoveredNoteId === lead.id) {
-                    setHoveredNoteId(null)
-                  }
-                }}
+                onMouseEnter={handlePopupMouseEnter}
+                onMouseLeave={handlePopupMouseLeave}
               >
                 <div className="bg-gray-800 p-2 sm:p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
                   {lead.specialNote.isImportant ? (
@@ -272,6 +299,8 @@ const SortableLeadCard = ({
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
+                      if (hoverTimeout) clearTimeout(hoverTimeout)
+                      if (leaveTimeout) clearTimeout(leaveTimeout)
                       setIsNoteOpen(false)
                       setHoveredNoteId(null)
                     }}
@@ -467,16 +496,6 @@ const SortableLeadCard = ({
           </div>
         </div>,
         document.body
-      )}
-
-      {/* Edit Note Modal */}
-      {showEditNoteModal && (
-        <SpecialNoteEditModal
-          isOpen={showEditNoteModal}
-          onClose={() => setShowEditNoteModal(false)}
-          appointment={lead}
-          onSave={handleSaveNote}
-        />
       )}
     </>
   )

@@ -71,7 +71,7 @@ const AssessmentSelectionModal = ({
 
         <div className="mb-6">
           <p className="text-gray-300 mb-4">
-            Select an assessment form for {selectedLead?.firstName} {selectedLead?.surname}
+            Select a medical history form for {selectedLead?.firstName} {selectedLead?.surname}
           </p>
           
           <div className="space-y-3 max-h-60 overflow-y-auto">

@@ -9,7 +9,8 @@ const AddLeadModal = ({
   isVisible, 
   onClose, 
   onSave, 
-  availableMembersLeads = [], 
+  availableMembersLeads = [],
+  columns = [], // Added columns prop
   relationOptions = {
     family: ["Father", "Mother", "Brother", "Sister", "Son", "Daughter", "Spouse"],
     friendship: ["Best Friend", "Close Friend", "Friend", "Acquaintance"],
@@ -20,14 +21,14 @@ const AddLeadModal = ({
 }) => {
   const [activeTab, setActiveTab] = useState("details")
   const [editingRelations, setEditingRelations] = useState(false)
-  const [showCountryDropdown, setShowCountryDropdown] = useState(false)
   const {countries, loading} = useCountries();
+  
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
-    status: "passive",
+    status: "",
     hasTrialTraining: false,
     gender: "",
     note: "",
@@ -39,6 +40,7 @@ const AddLeadModal = ({
     zipCode: "",
     city: "",
     country: "",
+    details: "",
     relations: {
       family: [],
       friendship: [],
@@ -48,6 +50,14 @@ const AddLeadModal = ({
     },
   })
 
+  // New relation state
+  const [newRelation, setNewRelation] = useState({
+    name: "",
+    relation: "",
+    category: "family",
+    type: "manual",
+    selectedMemberId: null,
+  })
 
   const sourceOptions = [
     "Website",
@@ -61,6 +71,9 @@ const AddLeadModal = ({
     "Other",
   ]
 
+  // Get status options from columns (exclude trial column)
+  const statusOptions = columns.filter(col => col.id !== "trial")
+
   const handleSubmit = (e) => {
     e.preventDefault()
     e.stopPropagation()
@@ -70,7 +83,7 @@ const AddLeadModal = ({
       lastName: "",
       email: "",
       phone: "",
-      status: "passive",
+      status: "",
       hasTrialTraining: false,
       note: "",
       noteImportance: "unimportant",
@@ -82,6 +95,7 @@ const AddLeadModal = ({
       zipCode: "",
       city: "",
       country: "",
+      details: "",
       relations: {
         family: [],
         friendship: [],
@@ -156,16 +170,6 @@ const AddLeadModal = ({
     })
   }
 
-
-  // Handle country input change
-  const handleCountryChange = (value) => {
-    setFormData({
-      ...formData,
-      country: value
-    })
-    setShowCountryDropdown(true)
-  }
-
   // Handle tab clicks with event stopping
   const handleTabClick = (tabName, e) => {
     e.preventDefault()
@@ -193,15 +197,6 @@ const AddLeadModal = ({
       onClose()
     }
   }
-
-  // New relation state
-  const [newRelation, setNewRelation] = useState({
-    name: "",
-    relation: "",
-    category: "family",
-    type: "manual",
-    selectedMemberId: null,
-  })
 
   if (!isVisible) return null
 
@@ -351,27 +346,26 @@ const AddLeadModal = ({
                       className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
                     />
                   </div>
-                  <div className="relative">
-            <label className="text-sm text-gray-200 block mb-2">Country</label>
-            <select
-              name="country"
-              value={formData.country}
-              onChange={handleCountryChange}
-              className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
-              required
-            >
-              <option value="">Select a country</option>
-              {loading ? (
-                <option value="" disabled>Loading countries...</option>
-              ) : (
-                countries.map((country) => (
-                  <option key={country.code} value={country.name}>
-                    {country.name}
-                  </option>
-                ))
-              )}
-            </select>
-          </div>
+                  <div>
+                    <label className="text-sm text-gray-200 block mb-2">Country</label>
+                    <select
+                      name="country"
+                      value={formData.country}
+                      onChange={(e) => updateFormData("country", e.target.value)}
+                      className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                    >
+                      <option value="">Select a country</option>
+                      {loading ? (
+                        <option value="" disabled>Loading countries...</option>
+                      ) : (
+                        countries.map((country) => (
+                          <option key={country.code} value={country.name}>
+                            {country.name}
+                          </option>
+                        ))
+                      )}
+                    </select>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -396,16 +390,18 @@ const AddLeadModal = ({
                       value={formData.status}
                       onChange={(e) => updateFormData("status", e.target.value)}
                       className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                      required
                     >
-                      <option value="active">Active prospect</option>
-                      <option value="passive">Passive prospect</option>
-                      <option value="uninterested">Uninterested</option>
-                      <option value="missed">Missed Call</option>
+                      <option value="">Select Status</option>
+                      {statusOptions.map((column) => (
+                        <option key={column.id} value={column.id}>
+                          {column.title}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>
 
-                {/* Textarea matching other fields */}
                 <div>
                   <label className="text-sm text-gray-200 block mb-2">About</label>
                   <textarea

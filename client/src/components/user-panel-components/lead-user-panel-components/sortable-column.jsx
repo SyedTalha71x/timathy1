@@ -20,7 +20,6 @@ const SortableColumn = ({
   setShowHistoryModalLead,
   setSelectedLead,
   onManageTrialAppointments,
-  onEditNote,
   onOpenDocuments,
   onCreateAssessment,
 }) => {
@@ -121,7 +120,6 @@ const SortableColumn = ({
               setShowHistoryModalLead={setShowHistoryModalLead}
               setSelectedLead={setSelectedLead}
               onManageTrialAppointments={onManageTrialAppointments}
-              onEditNote={onEditNote}
               onOpenDocuments={onOpenDocuments}
               onCreateAssessment={onCreateAssessment}
               isTrialColumn={isTrialColumn}

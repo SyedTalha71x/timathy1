@@ -1,4 +1,3 @@
-
 /* eslint-disable react/prop-types */
 import { X, AlertTriangle, Info } from "lucide-react"
 import { useEffect, useState } from "react"
@@ -9,6 +8,7 @@ const ViewLeadDetailsModal = ({
   leadData,
   memberRelationsLead,
   onEditLead,
+  columns = [], // Add columns prop
   initialTab = "details",
 }) => {
   const [activeTab, setActiveTab] = useState(initialTab)
@@ -35,6 +35,12 @@ const ViewLeadDetailsModal = ({
   const handleEditNote = () => {
     onClose()
     onEditLead(leadData, "note")
+  }
+
+  // Get column title from columnId
+  const getColumnTitle = (columnId) => {
+    const column = columns.find(col => col.id === columnId)
+    return column ? column.title : columnId
   }
 
   const getSourceColor = (source) => {
@@ -96,57 +102,70 @@ const ViewLeadDetailsModal = ({
           {/* Tab Content */}
           {activeTab === "details" && (
             <div className="space-y-4 text-white">
-              <div className="flex items-center gap-4">
-                <div>
-                  <h3 className="text-xl font-semibold">
-                    {leadData.firstName} {leadData.surname}
-                  </h3>
-                </div>
-              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-gray-400">Email</p>
-                  <p>{leadData.email}</p>
+                  <p className="text-sm text-gray-400">First Name</p>
+                  <p>{leadData.firstName || "N/A"}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-400">Lead ID</p>
-                  <p>{leadData.leadId}</p>
+                  <p className="text-sm text-gray-400">Last Name</p>
+                  <p>{leadData.surname || "N/A"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-400">Email</p>
+                  <p>{leadData.email || "N/A"}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-400">Phone</p>
-                  <p>{leadData.phoneNumber}</p>
+                  <p>{leadData.phoneNumber || "N/A"}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-400">Gender</p>
-                  <p>{leadData.gender}</p>
+                  <p className="capitalize">{leadData.gender || "N/A"}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-400">Street & ZIP Code</p>
-                  <p>{leadData.address}</p>
+                  <p className="text-sm text-gray-400">Lead ID</p>
+                  <p>{leadData.id || "N/A"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-400">Street</p>
+                  <p>{leadData.street || "N/A"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-400">ZIP Code</p>
+                  <p>{leadData.zipCode || "N/A"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-400">City</p>
+                  <p>{leadData.city || "N/A"}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-400">Country</p>
-                  <p>{leadData.country}</p>
+                  <p>{leadData.country || "N/A"}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-400">Lead Source</p>
-                  <span className={`px-2 py-0.5 text-xs rounded-full ${getSourceColor(leadData.source)}`}>
-                    {leadData.source || "N/A"}
+                  <span className={`px-2 py-0.5 text-xs rounded-full ${getSourceColor(leadData.leadSource)}`}>
+                    {leadData.leadSource || "N/A"}
                   </span>
                 </div>
                 <div>
                   <p className="text-sm text-gray-400">Status</p>
-                  <p>{leadData.status}</p>
+                  <p>{getColumnTitle(leadData.columnId || leadData.status) || "N/A"}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-400">Created Date</p>
-                  <p>{leadData.createdAt ? new Date(leadData.createdAt).toLocaleDateString() : "Unknown"}</p>
+                  <p>{leadData.createdAt ? new Date(leadData.createdAt).toLocaleDateString() : "N/A"}</p>
                 </div>
               </div>
-              <div>
-                <p className="text-sm text-gray-400">About</p>
-                <p>{leadData.about}</p>
-              </div>
+              {leadData.details && (
+                <div>
+                  <p className="text-sm text-gray-400 mb-2">About</p>
+                  <div className="bg-[#141414] rounded-xl px-4 py-3 text-sm break-words overflow-wrap-anywhere">
+                    <p className="whitespace-pre-wrap">{leadData.details}</p>
+                  </div>
+                </div>
+              )}
               <div className="flex justify-end gap-4 mt-6">
                 <button
                   onClick={() => {
@@ -173,7 +192,7 @@ const ViewLeadDetailsModal = ({
                       <Info className="text-blue-500" size={20} />
                     )}
                     <p className="font-medium">
-                      {leadData.specialNote.isImportant ? "Important Note" : "Unimportant Note"}
+                      {leadData.specialNote.isImportant ? "Important Note" : "Note"}
                     </p>
                   </div>
                   <p className="text-sm leading-relaxed">{leadData.specialNote.text}</p>

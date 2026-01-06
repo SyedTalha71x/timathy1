@@ -76,18 +76,6 @@ export const LeadSpecialNoteModal = ({ isOpen, onClose, lead, onSave, targetColu
                         </button>
                     </div>
 
-                    {/* Lead Info */}
-                    {lead && (
-                        <div className="flex items-center gap-3 p-3 bg-black rounded-xl">
-                            <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                                <span className="text-sm font-semibold">{lead.firstName?.charAt(0).toUpperCase()}</span>
-                            </div>
-                            <div>
-                                <h3 className="font-semibold text-sm text-white">{`${lead.firstName} ${lead.surname}`}</h3>
-                                <p className="text-xs text-zinc-400">Moving to {targetColumnId}</p>
-                            </div>
-                        </div>
-                    )}
 
                     {/* Special Note Form */}
                     <div className="border border-slate-700 rounded-xl p-4">

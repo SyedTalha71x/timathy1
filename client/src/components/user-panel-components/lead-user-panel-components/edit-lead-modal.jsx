@@ -13,6 +13,7 @@ const EditLeadModal = ({
   memberRelationsLead,
   setMemberRelationsLead,
   availableMembersLeads = [],
+  columns = [], // Added columns prop
   relationOptions = {
     family: ["Father", "Mother", "Brother", "Sister", "Uncle", "Aunt", "Cousin", "Grandfather", "Grandmother"],
     friendship: ["Best Friend", "Close Friend", "Friend", "Acquaintance"],
@@ -20,20 +21,18 @@ const EditLeadModal = ({
     work: ["Colleague", "Boss", "Employee", "Business Partner", "Client"],
     other: ["Neighbor", "Doctor", "Lawyer", "Trainer", "Other"],
   },
-  initialTab = "details" // Add this prop
+  initialTab = "details"
 }) => {
-  const [activeTab, setActiveTab] = useState(initialTab) // Use initialTab
+  const [activeTab, setActiveTab] = useState(initialTab)
   const [editingRelationsLead, setEditingRelationsLead] = useState(false)
-  const [showCountryDropdown, setShowCountryDropdown] = useState(false)
   const {countries, loading} = useCountries();
-  
   
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
-    status: "passive",
+    status: "",
     hasTrialTraining: false,
     note: "",
     noteImportance: "unimportant",
@@ -48,11 +47,13 @@ const EditLeadModal = ({
     details: "",
   })
 
-  useEffect(() => {
-    if (isVisible) {
-      setActiveTab(initialTab)
-    }
-  }, [initialTab, isVisible])
+  const [newRelationLead, setNewRelationLead] = useState({
+    name: "",
+    relation: "",
+    category: "family",
+    type: "manual",
+    selectedMemberId: null,
+  })
 
   const sourceOptions = [
     "Website",
@@ -66,13 +67,8 @@ const EditLeadModal = ({
     "Other",
   ]
 
-  const [newRelationLead, setNewRelationLead] = useState({
-    name: "",
-    relation: "",
-    category: "family",
-    type: "manual",
-    selectedMemberId: null,
-  })
+  // Get status options from columns (exclude trial column)
+  const statusOptions = columns.filter(col => col.id !== "trial")
 
   // Default available members/leads if not provided
   const defaultAvailableMembers = [
@@ -87,19 +83,25 @@ const EditLeadModal = ({
   const membersLeads = availableMembersLeads.length > 0 ? availableMembersLeads : defaultAvailableMembers
 
   useEffect(() => {
+    if (isVisible) {
+      setActiveTab(initialTab)
+    }
+  }, [initialTab, isVisible])
+
+  useEffect(() => {
     if (leadData) {
       setFormData({
         firstName: leadData.firstName || "",
         lastName: leadData.surname || "",
         email: leadData.email || "",
         phone: leadData.phoneNumber || "",
-        status: leadData.status || "passive",
+        status: leadData.status || "",
         hasTrialTraining: leadData.hasTrialTraining || false,
         note: leadData.specialNote?.text || "",
         noteImportance: leadData.specialNote?.isImportant ? "important" : "unimportant",
         noteStartDate: leadData.specialNote?.startDate || "",
         noteEndDate: leadData.specialNote?.endDate || "",
-        source: leadData.source || "",
+        source: leadData.leadSource || "", // Use leadSource for form display
         gender: leadData.gender || "",
         street: leadData.street || "",
         zipCode: leadData.zipCode || "",
@@ -183,15 +185,6 @@ const EditLeadModal = ({
       ...formData,
       [field]: value
     })
-  }
-
-  // Handle country input change
-  const handleCountryChange = (value) => {
-    setFormData({
-      ...formData,
-      country: value
-    })
-    setShowCountryDropdown(true)
   }
 
   // Handle tab clicks with event stopping
@@ -370,27 +363,26 @@ const EditLeadModal = ({
                       className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
                     />
                   </div>
-                  <div className="relative">
-            <label className="text-sm text-gray-200 block mb-2">Country</label>
-            <select
-              name="country"
-              value={formData.country}
-              onChange={handleCountryChange}
-              className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
-              required
-            >
-              <option value="">Select a country</option>
-              {loading ? (
-                <option value="" disabled>Loading countries...</option>
-              ) : (
-                countries.map((country) => (
-                  <option key={country.code} value={country.name}>
-                    {country.name}
-                  </option>
-                ))
-              )}
-            </select>
-          </div>
+                  <div>
+                    <label className="text-sm text-gray-200 block mb-2">Country</label>
+                    <select
+                      name="country"
+                      value={formData.country}
+                      onChange={(e) => updateFormData("country", e.target.value)}
+                      className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                    >
+                      <option value="">Select a country</option>
+                      {loading ? (
+                        <option value="" disabled>Loading countries...</option>
+                      ) : (
+                        countries.map((country) => (
+                          <option key={country.code} value={country.name}>
+                            {country.name}
+                          </option>
+                        ))
+                      )}
+                    </select>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -415,11 +407,14 @@ const EditLeadModal = ({
                       value={formData.status}
                       onChange={(e) => updateFormData("status", e.target.value)}
                       className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                      required
                     >
-                      <option value="active">Active prospect</option>
-                      <option value="passive">Passive prospect</option>
-                      <option value="uninterested">Uninterested</option>
-                      <option value="missed">Missed Call</option>
+                      <option value="">Select Status</option>
+                      {statusOptions.map((column) => (
+                        <option key={column.id} value={column.id}>
+                          {column.title}
+                        </option>
+                      ))}
                     </select>
                   </div>
                 </div>
