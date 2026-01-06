@@ -52,19 +52,21 @@ const SortableColumn = ({
         className="p-2 sm:p-3 flex justify-between items-center" 
         style={{ backgroundColor: `${color}20` }}
       >
-        <div className="flex items-center justify-between w-full">
-          <div className="flex items-center">
+        <div className="flex items-center justify-between w-full min-w-0">
+          <div className="flex items-center min-w-0 flex-1 gap-2">
             <div 
-              className="w-2 h-2 sm:w-3 sm:h-3 rounded-full mr-2" 
+              className="w-2 h-2 sm:w-3 sm:h-3 rounded-full shrink-0" 
               style={{ backgroundColor: color }}
             />
-            <h3 className="font-medium text-white text-xs sm:text-sm">{title}</h3>
-            <span className="ml-2 text-xs text-gray-400 bg-gray-800 px-2 py-0.5 rounded-full">
+            <h3 className="font-medium text-white text-xs sm:text-sm truncate" title={title}>
+              {title}
+            </h3>
+            <span className="shrink-0 text-xs text-black font-medium bg-white px-2 py-0.5 rounded-full">
               {leads.length}
             </span>
           </div>
 
-          {isTrialColumn && <Lock size={12} className="text-gray-400 sm:w-3.5 sm:h-3.5" />}
+          {isTrialColumn && <Lock size={12} className="text-gray-400 sm:w-3.5 sm:h-3.5 shrink-0 ml-2" />}
         </div>
 
         {isEditable && (
@@ -99,7 +101,9 @@ const SortableColumn = ({
           lg:min-h-[700px]
           overflow-y-auto 
           max-h-[75vh]
+          overscroll-contain
         "
+        style={{ touchAction: 'pan-y' }}
       >
         <SortableContext items={leadIds} strategy={verticalListSortingStrategy}>
           {leads.map((lead, index) => (

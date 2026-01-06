@@ -200,24 +200,26 @@ const SortableLeadCard = ({
         ref={setNodeRef}
         style={style}
         className={`bg-[#1C1C1C] rounded-xl p-3 sm:p-4 mb-3 min-h-[120px] sm:min-h-[140px] ${
-          isDragging ? "ring-2 ring-blue-500/50" : ""
+          isDragging ? "ring-2 ring-blue-500/50 select-none" : ""
         }`}
         data-lead-id={lead.id}
       >
         {/* Drag Handle - the entire card header area */}
         <div 
-          className="flex items-center mb-2 sm:mb-3 relative cursor-grab active:cursor-grabbing"
+          className="flex items-center mb-2 sm:mb-3 relative cursor-grab active:cursor-grabbing select-none touch-none"
           {...attributes}
           {...listeners}
+          style={{ WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'none' }}
         >
           {hasValidNote && (
             <div
               className={`absolute -top-2 -left-2 ${
                 lead.specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
-              } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] z-10 cursor-pointer transition-all duration-200 hover:scale-110`}
+              } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] z-10 cursor-pointer transition-all duration-200 hover:scale-110 active:scale-95`}
               onClick={handleNoteClick}
               onMouseEnter={handleNoteMouseEnter}
               onMouseLeave={handleNoteMouseLeave}
+              onPointerDown={(e) => e.stopPropagation()}
             >
               {lead.specialNote.isImportant ? (
                 <AlertTriangle size={18} className="text-white" />
@@ -311,11 +313,12 @@ const SortableLeadCard = ({
       
             <div className="mt-2">
               <div
-                className="text-xs text-blue-400 flex items-center gap-1 cursor-pointer"
+                className="text-xs text-blue-400 flex items-center gap-1 cursor-pointer hover:text-blue-300 transition-colors active:scale-95"
                 onClick={(e) => {
                   e.stopPropagation()
                   onViewDetails(lead, "relations")
                 }}
+                onPointerDown={(e) => e.stopPropagation()}
               >
                 <Users size={12} /> Relations ({hasRelationsCount})
               </div>
@@ -323,13 +326,13 @@ const SortableLeadCard = ({
           </div>
           
           {/* Menu Button - excluded from drag */}
-          <div className="absolute top-0 right-0">
+          <div className="absolute top-0 right-0" onPointerDown={(e) => e.stopPropagation()}>
             <button
               onClick={(e) => {
                 e.stopPropagation()
                 setIsMenuOpen(!isMenuOpen)
               }}
-              className="p-1 rounded-md cursor-pointer bg-black text-white"
+              className="p-1 rounded-md cursor-pointer bg-black text-white active:scale-95 transition-transform"
             >
               <MoreVertical size={16} />
             </button>
@@ -387,13 +390,13 @@ const SortableLeadCard = ({
         </div>
         
         {/* Action Buttons - excluded from drag */}
-        <div className="flex justify-center">
+        <div className="flex justify-center" onPointerDown={(e) => e.stopPropagation()}>
           {isInTrialColumn ? (
             <div className="flex items-center w-full gap-2">
               {!hasAssessment ? (
                 <button
                   onClick={handleCreateAssessment}
-                  className="flex-1 bg-blue-500 hover:bg-blue-700 text-white text-xs rounded-xl px-4 py-2"
+                  className="flex-1 bg-blue-500 hover:bg-blue-700 text-white text-xs rounded-xl px-4 py-2 active:scale-95 transition-transform"
                 >
                   Create Medical History
                 </button>
@@ -403,7 +406,7 @@ const SortableLeadCard = ({
                     e.stopPropagation()
                     onCreateContract(lead)
                   }}
-                  className="flex-1 bg-orange-500 text-white text-xs rounded-xl px-4 py-2"
+                  className="flex-1 bg-orange-500 text-white text-xs rounded-xl px-4 py-2 active:scale-95 transition-transform"
                 >
                   Create Contract
                 </button>
@@ -413,7 +416,7 @@ const SortableLeadCard = ({
                   e.stopPropagation()
                   onManageTrialAppointments(lead)
                 }}
-                className="text-white bg-black cursor-pointer rounded-xl border border-slate-600 py-2 px-2 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                className="text-white bg-black cursor-pointer rounded-xl border border-slate-600 py-2 px-2 hover:border-slate-400 transition-colors text-sm flex items-center justify-center active:scale-95"
               >
                 <CalendarIcon size={16} />
               </button>
@@ -424,7 +427,7 @@ const SortableLeadCard = ({
                 e.stopPropagation()
                 onAddTrial(lead)
               }}
-              className="bg-[#3F74FF] hover:bg-[#3A6AE6] text-white text-xs rounded-xl px-4 py-2 w-full"
+              className="bg-[#3F74FF] hover:bg-[#3A6AE6] text-white text-xs rounded-xl px-4 py-2 w-full active:scale-95 transition-transform"
             >
               Add Trial Training
             </button>

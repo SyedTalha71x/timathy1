@@ -131,11 +131,13 @@ export default function LeadManagement() {
     onSave: null,
   })
 
-  // Configure sensors for drag detection
+  // Configure sensors for drag detection with mobile optimizations
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8, // 8px movement before drag starts
+        distance: 15, // Increased from 8px to reduce accidental drags
+        delay: 150, // Add 150ms delay for touch devices
+        tolerance: 5, // Allow 5px movement during delay
       },
     }),
     useSensor(KeyboardSensor, {
