@@ -474,13 +474,18 @@ export default function LeadManagement() {
 
   const handleSaveLead = (data) => {
     const now = new Date().toISOString()
+    // Get first non-trial column as default status
+    const defaultStatus = columns.find(col => col.id !== "trial")?.id || "active"
+    
     const newLead = {
       id: `l${Date.now()}`,
       firstName: data.firstName,
       surname: data.lastName,
       email: data.email,
       phoneNumber: data.phone,
+      telephoneNumber: data.telephoneNumber || "",
       gender: data.gender || "",
+      birthday: data.birthday || null,
       street: data.street || "",
       zipCode: data.zipCode || "",
       city: data.city || "",
@@ -491,8 +496,8 @@ export default function LeadManagement() {
       hasTrialTraining: data.hasTrialTraining,
       avatar: data.avatar,
       source: "localStorage", // Internal source marker
-      status: data.status || "passive",
-      columnId: data.hasTrialTraining ? "trial" : data.status || "passive",
+      status: data.status || defaultStatus,
+      columnId: data.hasTrialTraining ? "trial" : data.status || defaultStatus,
       createdAt: now,
       specialNote: {
         text: data.note || "",
@@ -502,7 +507,6 @@ export default function LeadManagement() {
       },
       company: data.company || "",
       interestedIn: data.interestedIn || "",
-      birthday: data.birthday || null,
       address: data.address || "",
     }
     const updatedLeads = [...leads, newLead]
@@ -531,6 +535,7 @@ export default function LeadManagement() {
             surname: data.surname,
             email: data.email,
             phoneNumber: data.phoneNumber,
+            telephoneNumber: data.telephoneNumber !== undefined ? data.telephoneNumber : (lead.telephoneNumber || ""),
             gender: data.gender || lead.gender || "",
             street: data.street || lead.street || "",
             zipCode: data.zipCode || lead.zipCode || "",
@@ -595,7 +600,8 @@ export default function LeadManagement() {
       return (
         fullName.includes(searchQuery.toLowerCase()) ||
         lead.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        lead.phoneNumber?.includes(searchQuery)
+        lead.phoneNumber?.includes(searchQuery) ||
+        lead.telephoneNumber?.includes(searchQuery)
       )
     })
   }, [leads, searchQuery])
@@ -860,10 +866,10 @@ export default function LeadManagement() {
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
         <input
           type="text"
-          placeholder="Search leads..."
+          placeholder="Search leads by name, email, mobile or telephone number..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-9 sm:pl-10"
+          className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-[#333333] focus:border-[#3F74FF] transition-colors"
         />
       </div>
 

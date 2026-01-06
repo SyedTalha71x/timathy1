@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { X, Users, Trash2, Plus } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import useCountries from "../../../hooks/useCountries"
 
 /* eslint-disable react/prop-types */
@@ -21,16 +21,23 @@ const AddLeadModal = ({
 }) => {
   const [activeTab, setActiveTab] = useState("details")
   const [editingRelations, setEditingRelations] = useState(false)
+  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false)
+  const [isSourceDropdownOpen, setIsSourceDropdownOpen] = useState(false)
   const {countries, loading} = useCountries();
   
-  const [formData, setFormData] = useState({
+  // Get first non-trial column as default status
+  const defaultStatus = columns.find(col => col.id !== "trial")?.id || ""
+  
+  const initialFormData = {
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
-    status: "",
+    telephoneNumber: "",
+    status: defaultStatus,
     hasTrialTraining: false,
     gender: "",
+    birthday: "",
     note: "",
     noteImportance: "unimportant",
     noteStartDate: "",
@@ -48,7 +55,9 @@ const AddLeadModal = ({
       work: [],
       other: [],
     },
-  })
+  }
+  
+  const [formData, setFormData] = useState(initialFormData)
 
   // New relation state
   const [newRelation, setNewRelation] = useState({
@@ -71,18 +80,49 @@ const AddLeadModal = ({
     "Other",
   ]
 
+  const getSourceColor = (source) => {
+    const sourceColors = {
+      Website: "bg-blue-600 text-blue-100",
+      "Google Ads": "bg-green-600 text-green-100",
+      "Social Media Ads": "bg-purple-600 text-purple-100",
+      "Email Campaign": "bg-orange-600 text-orange-100",
+      "Cold Call (Outbound)": "bg-red-600 text-red-100",
+      "Inbound Call": "bg-emerald-600 text-emerald-100",
+      Event: "bg-yellow-600 text-yellow-100",
+      "Offline Advertising": "bg-pink-600 text-pink-100",
+      Other: "bg-gray-600 text-gray-100",
+    }
+    return sourceColors[source] || "bg-gray-600 text-gray-100"
+  }
+
   // Get status options from columns (exclude trial column)
   const statusOptions = columns.filter(col => col.id !== "trial")
 
   const handleSubmit = (e) => {
     e.preventDefault()
     e.stopPropagation()
+    
+    // Validate required fields
+    if (!formData.firstName?.trim()) {
+      alert("Please enter a first name")
+      return
+    }
+    if (!formData.lastName?.trim()) {
+      alert("Please enter a last name")
+      return
+    }
+    if (!formData.email?.trim()) {
+      alert("Please enter an email address")
+      return
+    }
+    
     onSave(formData)
     setFormData({
       firstName: "",
       lastName: "",
       email: "",
       phone: "",
+      telephoneNumber: "",
       status: "",
       hasTrialTraining: false,
       note: "",
@@ -188,26 +228,55 @@ const AddLeadModal = ({
   const handleCloseClick = (e) => {
     e.preventDefault()
     e.stopPropagation()
+    // Reset form data when closing
+    setFormData({
+      firstName: "",
+      lastName: "",
+      email: "",
+      phone: "",
+      telephoneNumber: "",
+      status: defaultStatus,
+      hasTrialTraining: false,
+      gender: "",
+      birthday: "",
+      note: "",
+      noteImportance: "unimportant",
+      noteStartDate: "",
+      noteEndDate: "",
+      source: "",
+      street: "",
+      zipCode: "",
+      city: "",
+      country: "",
+      details: "",
+      relations: {
+        family: [],
+        friendship: [],
+        relationship: [],
+        work: [],
+        other: [],
+      },
+    })
+    setActiveTab("details")
+    setEditingRelations(false)
+    setNewRelation({
+      name: "",
+      relation: "",
+      category: "family",
+      type: "manual",
+      selectedMemberId: null,
+    })
     onClose()
-  }
-
-  // Handle backdrop click (only close if clicking on the backdrop itself)
-  const handleBackdropClick = (e) => {
-    if (e.target === e.currentTarget) {
-      onClose()
-    }
   }
 
   if (!isVisible) return null
 
   return (
     <div 
-      className="fixed inset-0 bg-black/50 flex p-2 justify-center items-center z-[1001]" 
-      onClick={handleBackdropClick}
+      className="fixed inset-0 bg-black/50 flex p-2 justify-center items-center z-[1001]"
     >
       <div 
-        className="bg-[#1C1C1C] p-6 rounded-xl w-full max-w-md" 
-        onClick={(e) => e.stopPropagation()}
+        className="bg-[#1C1C1C] p-6 rounded-xl w-full max-w-md"
       >
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl text-white font-bold">Create Lead</h2>
@@ -255,69 +324,119 @@ const AddLeadModal = ({
             {/* Details Tab */}
             {activeTab === "details" && (
               <>
-                <div className="grid grid-cols-2 gap-4">
+                {/* Personal Information */}
+                <div className="space-y-4">
+                  <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Personal Information</div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm text-gray-200 block mb-2">
+                        First Name<span className="text-red-500 ml-1">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.firstName}
+                        onChange={(e) => updateFormData("firstName", e.target.value)}
+                        className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm text-gray-200 block mb-2">
+                        Last Name<span className="text-red-500 ml-1">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.lastName}
+                        onChange={(e) => updateFormData("lastName", e.target.value)}
+                        className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm text-gray-200 block mb-2">Gender</label>
+                      <select
+                        name="gender"
+                        value={formData.gender || ""}
+                        onChange={(e) => updateFormData("gender", e.target.value)}
+                        className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                      >
+                        <option value="">Select Gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-sm text-gray-200 block mb-2">Birthday</label>
+                      <input
+                        type="date"
+                        value={formData.birthday}
+                        onChange={(e) => updateFormData("birthday", e.target.value)}
+                        className="w-full bg-[#141414] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Contact Information */}
+                <div className="space-y-4 pt-4 border-t border-gray-700">
+                  <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Contact Information</div>
+                  
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">First Name</label>
+                    <label className="text-sm text-gray-200 block mb-2">
+                      Email<span className="text-red-500 ml-1">*</span>
+                    </label>
                     <input
-                      type="text"
-                      value={formData.firstName}
-                      onChange={(e) => updateFormData("firstName", e.target.value)}
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => updateFormData("email", e.target.value)}
                       className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
                       required
                     />
                   </div>
-                  <div>
-                    <label className="text-sm text-gray-200 block mb-2">Last Name</label>
-                    <input
-                      type="text"
-                      value={formData.lastName}
-                      onChange={(e) => updateFormData("lastName", e.target.value)}
-                      className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                      required
-                    />
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm text-gray-200 block mb-2">Mobile Number</label>
+                      <input
+                        type="tel"
+                        value={formData.phone}
+                        onChange={(e) => {
+                          // Only allow numbers and + sign
+                          const sanitized = e.target.value.replace(/[^0-9+]/g, '')
+                          updateFormData("phone", sanitized)
+                        }}
+                        placeholder="+49 123 456789"
+                        className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm text-gray-200 block mb-2">Telephone Number</label>
+                      <input
+                        type="tel"
+                        value={formData.telephoneNumber}
+                        onChange={(e) => {
+                          // Only allow numbers and + sign
+                          const sanitized = e.target.value.replace(/[^0-9+]/g, '')
+                          updateFormData("telephoneNumber", sanitized)
+                        }}
+                        placeholder="030 12345678"
+                        className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <div>
-                  <label className="text-sm text-gray-200 block mb-2">Email</label>
-                  <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => updateFormData("email", e.target.value)}
-                    className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm text-gray-200 block mb-2">Phone</label>
-                  <input
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => updateFormData("phone", e.target.value)}
-                    className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm text-gray-200 block mb-2">Gender</label>
-                  <select
-                    name="gender"
-                    value={formData.gender || ""}
-                    onChange={(e) => updateFormData("gender", e.target.value)}
-                    className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                  >
-                    <option value="">Select Gender</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
+                {/* Address Information */}
+                <div className="space-y-4 pt-4 border-t border-gray-700">
+                  <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Address</div>
+                  
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">Street</label>
+                    <label className="text-sm text-gray-200 block mb-2">Street & Number</label>
                     <input
                       type="text"
                       value={formData.street}
@@ -325,27 +444,28 @@ const AddLeadModal = ({
                       className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
                     />
                   </div>
-                  <div>
-                    <label className="text-sm text-gray-200 block mb-2">ZIP Code</label>
-                    <input
-                      type="text"
-                      value={formData.zipCode}
-                      onChange={(e) => updateFormData("zipCode", e.target.value)}
-                      className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                    />
-                  </div>
-                </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm text-gray-200 block mb-2">City</label>
-                    <input
-                      type="text"
-                      value={formData.city}
-                      onChange={(e) => updateFormData("city", e.target.value)}
-                      className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                    />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm text-gray-200 block mb-2">ZIP Code</label>
+                      <input
+                        type="text"
+                        value={formData.zipCode}
+                        onChange={(e) => updateFormData("zipCode", e.target.value)}
+                        className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm text-gray-200 block mb-2">City</label>
+                      <input
+                        type="text"
+                        value={formData.city}
+                        onChange={(e) => updateFormData("city", e.target.value)}
+                        className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                      />
+                    </div>
                   </div>
+
                   <div>
                     <label className="text-sm text-gray-200 block mb-2">Country</label>
                     <select
@@ -368,48 +488,130 @@ const AddLeadModal = ({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm text-gray-200 block mb-2">Source</label>
-                    <select
-                      value={formData.source}
-                      onChange={(e) => updateFormData("source", e.target.value)}
-                      className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                    >
-                      <option value="">Select Source</option>
-                      {sourceOptions.map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-200 block mb-2">Status</label>
-                    <select
-                      value={formData.status}
-                      onChange={(e) => updateFormData("status", e.target.value)}
-                      className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                      required
-                    >
-                      <option value="">Select Status</option>
-                      {statusOptions.map((column) => (
-                        <option key={column.id} value={column.id}>
-                          {column.title}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
+                {/* Lead Information */}
+                <div className="space-y-4 pt-4 border-t border-gray-700">
+                  <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Lead Information</div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm text-gray-200 block mb-2">Source</label>
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() => setIsSourceDropdownOpen(!isSourceDropdownOpen)}
+                          className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white text-sm flex items-center justify-between"
+                        >
+                          {formData.source ? (
+                            <span className={`inline-block px-2 py-0.5 text-xs rounded-full ${getSourceColor(formData.source)}`}>
+                              {formData.source}
+                            </span>
+                          ) : (
+                            <span>Select Source</span>
+                          )}
+                          <svg
+                            className={`w-4 h-4 transition-transform ${isSourceDropdownOpen ? 'rotate-180' : ''}`}
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
 
-                <div>
-                  <label className="text-sm text-gray-200 block mb-2">About</label>
-                  <textarea
-                    value={formData.details}
-                    onChange={(e) => updateFormData("details", e.target.value)}
-                    className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm resize-none min-h-[100px]"
-                    placeholder="Enter more details..."
-                  />
+                        {isSourceDropdownOpen && (
+                          <>
+                            <div
+                              className="fixed inset-0 z-10"
+                              onClick={() => setIsSourceDropdownOpen(false)}
+                            />
+                            <div className="absolute z-20 w-full mt-1 bg-[#1C1C1C] border border-gray-700 rounded-xl shadow-lg max-h-60 overflow-auto">
+                              {sourceOptions.map(option => (
+                                <button
+                                  key={option}
+                                  type="button"
+                                  onClick={() => {
+                                    updateFormData("source", option)
+                                    setIsSourceDropdownOpen(false)
+                                  }}
+                                  className="w-full text-left px-4 py-3 hover:bg-gray-800 text-white text-sm transition-colors"
+                                >
+                                  <span className={`inline-block px-2 py-0.5 text-xs rounded-full ${getSourceColor(option)}`}>
+                                    {option}
+                                  </span>
+                                </button>
+                              ))}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-sm text-gray-200 block mb-2">Status</label>
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
+                          className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white text-sm flex items-center justify-between"
+                        >
+                          <div className="flex items-center gap-2">
+                            {formData.status && statusOptions.find(col => col.id === formData.status) && (
+                              <div
+                                className="w-3 h-3 rounded-full"
+                                style={{ backgroundColor: statusOptions.find(col => col.id === formData.status).color }}
+                              />
+                            )}
+                            <span>{statusOptions.find(col => col.id === formData.status)?.title || 'Select Status'}</span>
+                          </div>
+                          <svg
+                            className={`w-4 h-4 transition-transform ${isStatusDropdownOpen ? 'rotate-180' : ''}`}
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+
+                        {isStatusDropdownOpen && (
+                          <>
+                            <div
+                              className="fixed inset-0 z-10"
+                              onClick={() => setIsStatusDropdownOpen(false)}
+                            />
+                            <div className="absolute z-20 w-full mt-1 bg-[#1C1C1C] border border-gray-700 rounded-xl shadow-lg max-h-60 overflow-auto">
+                              {statusOptions.map(column => (
+                                <button
+                                  key={column.id}
+                                  type="button"
+                                  onClick={() => {
+                                    updateFormData("status", column.id)
+                                    setIsStatusDropdownOpen(false)
+                                  }}
+                                  className="w-full text-left px-4 py-3 hover:bg-gray-800 text-white text-sm flex items-center gap-3 transition-colors"
+                                >
+                                  <div
+                                    className="w-3 h-3 rounded-full shrink-0"
+                                    style={{ backgroundColor: column.color }}
+                                  />
+                                  <span>{column.title}</span>
+                                </button>
+                              ))}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm text-gray-200 block mb-2">About</label>
+                    <textarea
+                      value={formData.details}
+                      onChange={(e) => updateFormData("details", e.target.value)}
+                      className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm resize-none min-h-[100px]"
+                      placeholder="Enter more details..."
+                    />
+                  </div>
                 </div>
               </>
             )}

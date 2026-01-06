@@ -95,6 +95,13 @@ const SortableLeadCard = ({
     })
   }
 
+  const formatPhoneNumbers = (phoneNumber, telephoneNumber) => {
+    if (phoneNumber && telephoneNumber) {
+      return `${phoneNumber} / ${telephoneNumber}`
+    }
+    return phoneNumber || telephoneNumber || ""
+  }
+
   const hasValidNote = lead.specialNote && lead.specialNote.text && lead.specialNote.text.trim() !== ""
   const hasRelationsCount = Object.values(memberRelationsLead[lead.id] || {}).flat().length
   const isInTrialColumn = columnId === "trial"
@@ -221,7 +228,7 @@ const SortableLeadCard = ({
           
           <div className="flex-1 mt-6">
             <h4 className="font-medium text-white text-lg mb-1">{`${lead.firstName} ${lead.surname}`}</h4>
-            <p className="text-gray-400 text-sm">{lead.phoneNumber}</p>
+            <p className="text-gray-400 text-sm">{formatPhoneNumbers(lead.phoneNumber, lead.telephoneNumber)}</p>
             <p className="text-gray-400 text-sm">{lead.email}</p>
           </div>
         </div>
@@ -334,7 +341,7 @@ const SortableLeadCard = ({
           
           <div className="flex-1 mt-6">
             <h4 className="font-medium text-white text-lg mb-1">{`${lead.firstName} ${lead.surname}`}</h4>
-            <p className="text-gray-400 text-sm">{lead.phoneNumber}</p>
+            <p className="text-gray-400 text-sm">{formatPhoneNumbers(lead.phoneNumber, lead.telephoneNumber)}</p>
             <p className="text-gray-400 text-sm">{lead.email}</p>
             <p className="text-gray-500 text-xs">
               Created: {lead.createdAt ? formatDate(lead.createdAt) : "Unknown date"}
@@ -425,7 +432,7 @@ const SortableLeadCard = ({
               {!hasAssessment ? (
                 <button
                   onClick={handleCreateAssessment}
-                  className="flex-1 bg-blue-500 hover:bg-blue-700 text-white text-xs rounded-xl px-4 py-2 active:scale-95 transition-transform"
+                  className="flex-1 bg-gray-600 hover:bg-gray-700 text-white text-xs rounded-xl px-4 py-2 active:scale-95 transition-transform"
                 >
                   Create Medical History
                 </button>
