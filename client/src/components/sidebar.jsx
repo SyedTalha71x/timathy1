@@ -6,7 +6,6 @@ import { useLocation, useNavigate } from "react-router-dom"
 import { MdOutlineHelpCenter, MdOutlineMessage, MdOutlineSupportAgent, MdOutlineLocalActivity } from "react-icons/md"
 import { FaNotesMedical, FaPeopleLine } from "react-icons/fa6"
 import { FaCartPlus } from "react-icons/fa"
-
 import {
   Calendar,
   Home,
@@ -353,7 +352,7 @@ const Sidebar = () => {
       hasSubmenu: true,
       submenu: [
         { label: "Training", to: "/dashboard/training", icon: CgGym },
-        { label: "Assessment", to: "/dashboard/assessment", icon: CheckSquare },
+        { label: "Medical History", to: "/dashboard/assessment", icon: History },
       ],
     },
 
