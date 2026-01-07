@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { AlertTriangle, Calendar, CalendarIcon, Edit, FileText, Info, MoreVertical, Trash2, Users, X } from 'lucide-react'
+import { AlertTriangle, Calendar, CalendarIcon, Edit, FileText, Info, MoreVertical, Plus, Trash2, Users, X, StickyNote, Pencil } from 'lucide-react'
 import { useEffect, useRef, useState } from "react"
 import { MdHistory } from "react-icons/md"
 import { useSortable } from "@dnd-kit/sortable"
@@ -212,17 +212,25 @@ const SortableLeadCard = ({
         data-lead-id={lead.id}
       >
         <div className="flex items-center mb-2 sm:mb-3 relative">
-          {hasValidNote && (
+          {hasValidNote ? (
             <div
               className={`absolute -top-2 -left-2 ${
-                lead.specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
-              } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] z-10`}
+                lead.specialNote.isImportant 
+                  ? "bg-red-500" 
+                  : "bg-blue-500"
+              } rounded-full p-1 border-[2.5px] border-white shadow-lg z-10`}
             >
               {lead.specialNote.isImportant ? (
-                <AlertTriangle size={18} className="text-white" />
+                <AlertTriangle size={14} className="text-white" />
               ) : (
-                <Info size={18} className="text-white" />
+                <Info size={14} className="text-white" />
               )}
+            </div>
+          ) : (
+            <div
+              className="absolute -top-2 -left-2 bg-gray-500 rounded-full p-1 border-[2.5px] border-white shadow-lg z-10"
+            >
+              <StickyNote size={14} className="text-white" />
             </div>
           )}
           
@@ -253,21 +261,37 @@ const SortableLeadCard = ({
           {...listeners}
           style={{ WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'none' }}
         >
-          {hasValidNote && (
+          {hasValidNote ? (
             <div
               className={`absolute -top-2 -left-2 ${
-                lead.specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
-              } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] z-10 cursor-pointer transition-all duration-200 hover:scale-110 active:scale-95`}
+                lead.specialNote.isImportant 
+                  ? "bg-red-500 hover:bg-red-400" 
+                  : "bg-blue-500 hover:bg-blue-400"
+              } rounded-full p-1 border-[2.5px] border-white shadow-lg z-10 cursor-pointer transition-all duration-200 hover:scale-110 active:scale-95`}
               onClick={handleNoteClick}
               onMouseEnter={handleNoteMouseEnter}
               onMouseLeave={handleNoteMouseLeave}
               onPointerDown={(e) => e.stopPropagation()}
             >
               {lead.specialNote.isImportant ? (
-                <AlertTriangle size={18} className="text-white" />
+                <AlertTriangle size={14} className="text-white" />
               ) : (
-                <Info size={18} className="text-white" />
+                <Info size={14} className="text-white" />
               )}
+            </div>
+          ) : (
+            <div
+              className="absolute -top-2 -left-2 bg-gray-500 hover:bg-gray-400 rounded-full p-1 border-[2.5px] border-white shadow-lg z-10 cursor-pointer transition-all duration-200 hover:scale-110 active:scale-95"
+              onClick={(e) => {
+                e.stopPropagation()
+                if (onEditLead) {
+                  onEditLead(lead, "note")
+                }
+              }}
+              onPointerDown={(e) => e.stopPropagation()}
+              title="Add special note"
+            >
+              <StickyNote size={14} className="text-white" />
             </div>
           )}
           
@@ -285,11 +309,6 @@ const SortableLeadCard = ({
                 onMouseLeave={handlePopupMouseLeave}
               >
                 <div className="bg-gray-800 p-2 sm:p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
-                  {lead.specialNote.isImportant ? (
-                    <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
-                  ) : (
-                    <Info className="text-blue-500 shrink-0" size={18} />
-                  )}
                   <h4 className="text-white flex gap-1 items-center font-medium">
                     <div>Special Note</div>
                     <div className="text-sm text-gray-400">
@@ -432,9 +451,9 @@ const SortableLeadCard = ({
               {!hasAssessment ? (
                 <button
                   onClick={handleCreateAssessment}
-                  className="flex-1 bg-gray-600 hover:bg-gray-700 text-white text-xs rounded-xl px-4 py-2 active:scale-95 transition-transform"
+                  className="flex-1 bg-gray-600 hover:bg-gray-700 text-white text-xs rounded-xl px-4 py-2 active:scale-95 transition-transform flex items-center justify-center gap-1"
                 >
-                  Create Medical History
+                  <Pencil size={14} /> Fill Out Medical History
                 </button>
               ) : (
                 <button
@@ -442,9 +461,9 @@ const SortableLeadCard = ({
                     e.stopPropagation()
                     onCreateContract(lead)
                   }}
-                  className="flex-1 bg-orange-500 text-white text-xs rounded-xl px-4 py-2 active:scale-95 transition-transform"
+                  className="flex-1 bg-[#FF5733] hover:bg-[#E64D2E] text-white text-xs rounded-xl px-4 py-2 active:scale-95 transition-transform flex items-center justify-center gap-1"
                 >
-                  Create Contract
+                  <Plus size={14} /> Create Contract
                 </button>
               )}
               <button
@@ -463,9 +482,9 @@ const SortableLeadCard = ({
                 e.stopPropagation()
                 onAddTrial(lead)
               }}
-              className="bg-[#3F74FF] hover:bg-[#3A6AE6] text-white text-xs rounded-xl px-4 py-2 w-full active:scale-95 transition-transform"
+              className="bg-[#3F74FF] hover:bg-[#3A6AE6] text-white text-xs rounded-xl px-4 py-2 w-full active:scale-95 transition-transform flex items-center justify-center gap-1"
             >
-              Add Trial Training
+              <Plus size={14} /> Book Trial Training
             </button>
           )}
         </div>

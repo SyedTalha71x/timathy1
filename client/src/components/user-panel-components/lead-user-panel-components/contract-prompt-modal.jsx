@@ -40,7 +40,7 @@ const ContractPromptModal = ({
         <div className="space-y-3">
           <button
             onClick={onConfirm}
-            className="w-full py-3 text-sm bg-[#FF6B35] text-white rounded-lg hover:bg-[#E55A2B] transition-colors font-medium"
+            className="w-full py-3 text-sm bg-[#FF5733] text-white rounded-lg hover:bg-[#E64D2E] transition-colors font-medium"
           >
             Yes, Create Contract
           </button>

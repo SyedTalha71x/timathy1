@@ -1,12 +1,11 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable no-unused-vars */
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react/prop-types */
+/* eslint-disable no-unused-vars */
 import { X, FileText, Eye, ArrowLeft, BookOpen } from "lucide-react"
 import { useState, useEffect } from "react"
 import toast from "react-hot-toast"
 import { contractTypes, mediaTemplates } from "../../../utils/user-panel-states/contract-states"
-
 
 // Add print-specific styles
 const printStyles = `
@@ -30,11 +29,7 @@ const printStyles = `
 
 export function AddContractModal({ onClose, onSave, leadData = null }) {
   const [currentPage, setCurrentPage] = useState(0)
-  const [showLeadSelection, setShowLeadSelection] = useState(true)
-  const [showIntroductoryMaterials, setShowIntroductoryMaterials] = useState(false)
-  const [selectedTemplate, setSelectedTemplate] = useState(null)
-  const [currentMediaPage, setCurrentMediaPage] = useState(0)
-
+  const [showLeadSelection, setShowLeadSelection] = useState(false)
   const [contractData, setContractData] = useState({
     fullName: "",
     studioName: "",
@@ -47,7 +42,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
     leadId: "", // Initialize leadId as empty
     rateType: "",
     signedFile: null,
-    // Additional fields for the contract forms
+    // Additional fields for the contract form
     vorname: "",
     nachname: "",
     anrede: "",
@@ -84,7 +79,16 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
     duration: "1",
     isPermanent: false,
   })
+
+  const [contractStartDate, setContractStartDate] = useState(new Date().toISOString().split('T')[0])
+  const [trainingStartDate, setTrainingStartDate] = useState(new Date().toISOString().split('T')[0])
+  const [contractEndDate, setContractEndDate] = useState("")
+
+
   const [filteredLeads, setFilteredLeads] = useState([])
+  const [showIntroductoryMaterials, setShowIntroductoryMaterials] = useState(false)
+  const [selectedTemplate, setSelectedTemplate] = useState(null)
+  const [currentMediaPage, setCurrentMediaPage] = useState(0)
 
   // Sample leads for demonstration (used if no leadData is provided)
   const sampleLeads = [
@@ -122,10 +126,12 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
     if (!selectedContractType || discount.percentage <= 0) {
       return null
     }
+
     // Extract numeric value from cost string (e.g., "$29.99" -> 29.99)
     const originalPrice = Number.parseFloat(selectedContractType.cost.replace("$", ""))
     const discountAmount = (originalPrice * discount.percentage) / 100
     const finalPrice = originalPrice - discountAmount
+
     return {
       originalPrice,
       discountAmount,
@@ -133,6 +139,13 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
       currency: selectedContractType.cost.charAt(0), // Get currency symbol
     }
   }
+
+  useEffect(() => {
+    if (contractStartDate && selectedContractType) {
+      const endDate = calculateEndDate(contractStartDate, selectedContractType.duration)
+      setContractEndDate(endDate)
+    }
+  }, [contractStartDate, selectedContractType])
 
   // Filter leads based on search term
   useEffect(() => {
@@ -154,20 +167,18 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
     if (leadData) {
       setContractData((prevData) => ({
         ...prevData,
-        studioName: leadData.company || "",
-        studioOwnerName: `${leadData.name}` || "", // Use leadData.name directly
-        fullName: `${leadData.name}` || "", // Use leadData.name directly
-        email: leadData.email || "",
-        phone: leadData.phone || "",
         leadId: leadData.id || "",
-        rateType: leadData.interestedIn || "",
-        vorname: leadData.name.split(" ")[0] || "", // Extract first name
-        nachname: leadData.name.split(" ").slice(1).join(" ") || "", // Extract last name
+        studioName: leadData.company || "",
+        studioOwnerName: leadData.name || `${leadData.firstName || ""} ${leadData.surname || ""}`.trim(),
+        fullName: leadData.name || `${leadData.firstName || ""} ${leadData.surname || ""}`.trim(),
+        email: leadData.email || "",
+        phone: leadData.phoneNumber || leadData.phone || "",
+        vorname: leadData.firstName || (leadData.name ? leadData.name.split(" ")[0] : ""),
+        nachname: leadData.surname || (leadData.name ? leadData.name.split(" ").slice(1).join(" ") : ""),
         emailAdresse: leadData.email || "",
-        telefonnummer: leadData.phone || "",
+        telefonnummer: leadData.phoneNumber || leadData.phone || "",
+        rateType: leadData.interestedIn || "",
       }))
-      setSearchTerm(`${leadData.name}`)
-      setShowLeadSelection(false)
     }
   }, [leadData])
 
@@ -191,31 +202,6 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
       ...discount,
       [name]: type === "checkbox" ? checked : value,
     })
-  }
-
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0]
-    if (file) {
-      // Validate file type
-      const fileType = file.type
-      const validTypes = ["application/pdf", "image/jpeg", "image/jpg", "image/png"]
-      if (!validTypes.includes(fileType)) {
-        toast.error("Please upload a PDF or image file")
-        return
-      }
-      // Validate file size (max 10MB)
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error("File size should be less than 10MB")
-        return
-      }
-      toast.loading("Processing document...")
-      // Simulate processing delay
-      setTimeout(() => {
-        setContractData({ ...contractData, signedFile: file })
-        toast.dismiss()
-        toast.success("Signed contract uploaded successfully")
-      }, 1000)
-    }
   }
 
   const handleLeadSelect = (lead) => {
@@ -253,47 +239,71 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
     setShowSignatureOptions(true)
   }
 
+  const calculateEndDate = (startDate, durationString) => {
+    if (!startDate || !durationString) return ""
+
+    const start = new Date(startDate)
+    const end = new Date(start)
+
+    const monthsMatch = durationString.match(/(\d+)\s*months?/i)
+    const months = monthsMatch ? parseInt(monthsMatch[1], 10) : 12
+
+    end.setMonth(end.getMonth() + months)
+    return end.toISOString().split('T')[0]
+  }
+
   const handleSignatureOption = (withSignature) => {
     setShowSignatureOptions(false)
+    
+    const dataToSave = {
+      ...contractData,
+      contractStartDate,
+      contractEndDate,
+      trainingStartDate,
+      startDerMitgliedschaft: contractStartDate,
+      startDesTrainings: trainingStartDate,
+    }
+    
     if (withSignature) {
-      // Generate with signature
       toast.success("Contract generated with digital signature")
       onSave({
-        ...contractData,
+        ...dataToSave,
         isDigital: true,
         status: "Digital signed",
-        discount:
-          discount.percentage > 0
-            ? {
-              percentage: discount.percentage,
-              duration: discount.isPermanent ? "permanent" : discount.duration,
-            }
-            : null,
+        discount: discount.percentage > 0 ? {
+          percentage: discount.percentage,
+          duration: discount.isPermanent ? "permanent" : discount.duration,
+        } : null,
       })
     } else {
-      // Generate without signature
       setShowPrintPrompt(true)
     }
   }
 
   const handlePrintPrompt = (shouldPrint) => {
     setShowPrintPrompt(false)
+    
+    const dataToSave = {
+      ...contractData,
+      contractStartDate,
+      contractEndDate,
+      trainingStartDate,
+      startDerMitgliedschaft: contractStartDate,
+      startDesTrainings: trainingStartDate,
+    }
+    
     if (shouldPrint) {
-      // Print the contract
       window.print()
     }
-    // Save with analog signed status
+    
     onSave({
-      ...contractData,
+      ...dataToSave,
       isDigital: false,
       status: "Analog signed",
-      discount:
-        discount.percentage > 0
-          ? {
-            percentage: discount.percentage,
-            duration: discount.isPermanent ? "permanent" : discount.duration,
-          }
-          : null,
+      discount: discount.percentage > 0 ? {
+        percentage: discount.percentage,
+        duration: discount.isPermanent ? "permanent" : discount.duration,
+      } : null,
     })
   }
 
@@ -329,59 +339,8 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
   const priceCalculation = calculateFinalPrice()
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex open_sans_font items-center justify-center z-[1000]">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] font-sans">
       <style>{printStyles}</style>
-      {showSignatureOptions && (
-        <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-[1001]">
-          <div className="relative bg-[#181818] p-6 rounded-2xl max-w-md w-full">
-            {/* Close button */}
-            <button
-              onClick={() => setShowSignatureOptions(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-white"
-            >
-              <X size={20} />
-            </button>
-            <h3 className="text-white text-lg font-semibold mb-4">Generate Contract</h3>
-            <p className="text-gray-300 mb-6">How would you like to generate this contract?</p>
-            <div className="flex flex-col gap-3">
-              <button
-                onClick={() => handleSignatureOption(true)}
-                className="w-full px-4 text-sm py-3 bg-[#3F74FF] text-white rounded-xl hover:bg-[#3F74FF]/90"
-              >
-                With Digital Signature
-              </button>
-              <button
-                onClick={() => handleSignatureOption(false)}
-                className="w-full px-4 text-sm py-3 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#3a3a3a]"
-              >
-                Without Signature
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-      {showPrintPrompt && (
-        <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-[1001]">
-          <div className="bg-[#181818] p-6 rounded-2xl max-w-md w-full">
-            <h3 className="text-white text-lg font-semibold mb-4">Print Contract</h3>
-            <p className="text-gray-300 mb-6">Would you like to print this contract?</p>
-            <div className="flex flex-col gap-3">
-              <button
-                onClick={() => handlePrintPrompt(true)}
-                className="w-full px-4 py-3 text-sm bg-[#3F74FF] text-white rounded-xl hover:bg-[#3F74FF]/90"
-              >
-                Yes, Print Contract
-              </button>
-              <button
-                onClick={() => handlePrintPrompt(false)}
-                className="w-full px-4 py-3 text-sm bg-[#2F2F2F] text-white rounded-xl hover:bg-[#3a3a3a]"
-              >
-                No, Skip Printing
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {showIntroductoryMaterials && (
         <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-[1001]">
@@ -441,8 +400,8 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                         onClick={prevMediaPage}
                         disabled={currentMediaPage === 0}
                         className={`px-3 py-1 rounded text-sm ${currentMediaPage === 0
-                          ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                          : 'bg-gray-600 text-white hover:bg-gray-700'
+                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            : 'bg-gray-600 text-white hover:bg-gray-700'
                           }`}
                       >
                         Previous
@@ -451,8 +410,8 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                         onClick={nextMediaPage}
                         disabled={currentMediaPage === selectedTemplate.pages.length - 1}
                         className={`px-3 py-1 rounded text-sm ${currentMediaPage === selectedTemplate.pages.length - 1
-                          ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                          : 'bg-gray-600 text-white hover:bg-gray-700'
+                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            : 'bg-gray-600 text-white hover:bg-gray-700'
                           }`}
                       >
                         Next
@@ -514,12 +473,67 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
           </div>
         </div>
       )}
+
+      {showSignatureOptions && (
+        <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-[1001]">
+          <div className="relative bg-[#181818] p-6 rounded-2xl max-w-md w-full">
+            {/* Close button */}
+            <button
+              onClick={() => setShowSignatureOptions(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white"
+            >
+              <X size={20} />
+            </button>
+            <h3 className="text-white text-lg font-semibold mb-4">Generate Contract</h3>
+            <p className="text-gray-300 mb-6">How would you like to generate this contract?</p>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={() => handleSignatureOption(true)}
+                className="w-full px-4 text-sm py-3 bg-[#3F74FF] text-white rounded-xl hover:bg-[#3F74FF]/90"
+              >
+                With Digital Signature
+              </button>
+              <button
+                onClick={() => handleSignatureOption(false)}
+                className="w-full px-4 text-sm py-3 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#3a3a3a]"
+              >
+                Without Signature
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showPrintPrompt && (
+        <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-[1001]">
+          <div className="bg-[#181818] p-6 rounded-2xl max-w-md w-full">
+            <h3 className="text-white text-lg font-semibold mb-4">Print Contract</h3>
+            <p className="text-gray-300 mb-6">Would you like to print this contract?</p>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={() => handlePrintPrompt(true)}
+                className="w-full px-4 py-3 text-sm bg-[#3F74FF] text-white rounded-xl hover:bg-[#3F74FF]/90"
+              >
+                Yes, Print Contract
+              </button>
+              <button
+                onClick={() => handlePrintPrompt(false)}
+                className="w-full px-4 py-3 text-sm bg-[#2F2F2F] text-white rounded-xl hover:bg-[#3a3a3a]"
+              >
+                No, Skip Printing
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="bg-[#181818] p-3 w-full max-w-3xl mx-4 rounded-2xl">
         <div className="px-4 py-3 border-b border-gray-800 custom-scrollbar max-h-[10vh] sm:max-h-[80vh] overflow-y-auto">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
 
-              <h2 className="text-base open_sans_font_700 text-white">Add Contract</h2>
+              <h2 className="text-base font-bold text-white">Add Contract</h2>
+              {/* Introductory Materials Icon */}
               <button
                 type="button"
                 onClick={() => setShowIntroductoryMaterials(true)}
@@ -539,15 +553,6 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                   <span className="text-xs">Form View</span>
                 </button>
               )}
-              {!showLeadSelection && (
-                <button
-                  onClick={handleBackToLeadSelection}
-                  className="text-gray-400 hover:text-white transition-colors p-1.5 hover:bg-gray-800 rounded-xl flex items-center gap-1"
-                >
-                  <ArrowLeft size={16} />
-                  <span className="text-xs">Back to Lead Selection</span>
-                </button>
-              )}
               <button
                 onClick={onClose}
                 className="text-gray-400 hover:text-white transition-colors p-1.5 hover:bg-gray-800 rounded-xl"
@@ -557,77 +562,29 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
             </div>
           </div>
         </div>
-        <div className="px-4 py-3 open_sans_font max-h-[75vh] overflow-y-auto sm:max-h-none sm:overflow-visible">
-          {showLeadSelection ? (
-            <div className="space-y-6">
-              <div className="text-center mb-6">
-                <h3 className="text-white text-lg font-semibold mb-2">Select Lead</h3>
-                <p className="text-gray-400 text-sm">Search for an existing lead or proceed without selecting one</p>
-              </div>
-              <div className="space-y-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs text-gray-200 block pl-1">Lead</label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      placeholder="Search for lead..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
-                    />
-                    {filteredLeads.length > 0 && (
-                      <div className="absolute top-full left-0 right-0 bg-[#101010] mt-1 rounded-xl z-10 shadow-lg max-h-40 overflow-y-auto border border-gray-700">
-                        {filteredLeads.map((lead) => (
-                          <div
-                            key={lead.id}
-                            className="p-3 hover:bg-[#1a1a1a] text-white cursor-pointer border-b border-gray-800 last:border-b-0"
-                            onClick={() => handleLeadSelect(lead)}
-                          >
-                            <div className="font-medium">
-                              {lead.firstName} {lead.lastName}
-                            </div>
-                            <div className="text-sm text-gray-400">{lead.email}</div>
-                            <div className="text-xs text-gray-500">
-                              {lead.company} • Interested in: {lead.interestedIn}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-              <div className="text-center">
-                <button
-                  onClick={handleProceedWithoutLead}
-                  className="text-gray-400 hover:text-white text-sm underline transition-colors"
-                >
-                  Proceed without selecting a lead
-                </button>
-              </div>
-            </div>
-          ) : showFormView ? (
+        <div className="px-4 py-3 max-h-[75vh] overflow-y-auto sm:max-h-none sm:overflow-visible">
+          {showFormView ? (
             <div>
               <div className="space-y-4 mb-4">
-                {contractData.leadId && ( // Only render if a lead is selected
+                {(leadData || contractData.leadId) && (
                   <div className="bg-[#101010]/60 p-4 rounded-xl border border-gray-800">
                     <h4 className="text-white text-sm font-medium mb-2">Selected Lead</h4>
                     <div className="text-sm text-gray-300">
                       <p>
-                        <span className="text-gray-400">Name:</span> {contractData.fullName}
+                        <span className="text-gray-400">Name:</span> {contractData.fullName || leadData?.name || `${leadData?.firstName || ""} ${leadData?.surname || ""}`.trim()}
                       </p>
                     </div>
                   </div>
                 )}
                 <div className="space-y-1.5">
-                  <label className="text-xs text-gray-200 block pl-1">Rate Type</label>
+                  <label className="text-xs text-gray-200 block pl-1">Contract Type</label>
                   <select
                     className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200 appearance-none"
                     name="rateType"
                     value={contractData.rateType}
                     onChange={handleInputChange}
                   >
-                    <option value="">Select rate type</option>
+                    <option value="">Select contract type</option>
                     {contractTypes.map((type) => (
                       <option key={type.id} value={type.name}>
                         {type.name}
@@ -635,6 +592,41 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                     ))}
                   </select>
                 </div>
+
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <label className="text-xs text-gray-200 block pl-1">Contract Start Date</label>
+                      <input
+                        type="date"
+                        value={contractStartDate}
+                        onChange={(e) => setContractStartDate(e.target.value)}
+                        className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs text-gray-200 block pl-1">Training Start Date</label>
+                      <input
+                        type="date"
+                        value={trainingStartDate}
+                        onChange={(e) => setTrainingStartDate(e.target.value)}
+                        className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs text-gray-200 block pl-1">
+                      Contract End Date ({selectedContractType?.duration || '12 months'})
+                    </label>
+                    <input
+                      type="date"
+                      value={contractEndDate}
+                      readOnly
+                      className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-gray-400 outline-none cursor-not-allowed"
+                    />
+                  </div>
+                </div>
+
                 {selectedContractType && (
                   <div className="bg-[#101010]/60 p-4 rounded-xl border border-gray-800">
                     <h4 className="text-white text-sm font-medium mb-2">Contract Details</h4>
@@ -654,95 +646,108 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                     </div>
                   </div>
                 )}
-                <div className="bg-[#101010]/60 p-4 rounded-xl border border-gray-800">
-                  <h4 className="text-white text-sm font-medium mb-2">Discount</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-gray-400 text-xs mb-1">Percentage (%)</label>
-                      <input
-                        type="number"
-                        name="percentage"
-                        min="0"
-                        max="100"
-                        value={discount.percentage}
-                        onChange={handleDiscountChange}
-                        className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
-                      />
-                    </div>
-                    <div className={discount.isPermanent ? "opacity-50" : ""}>
-                      <label className="block text-gray-400 text-xs mb-1">Billing Periods</label>
-                      <input
-                        type="number"
-                        name="duration"
-                        min="1"
-                        value={discount.duration}
-                        onChange={handleDiscountChange}
-                        disabled={discount.isPermanent}
-                        className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
-                      />
-                    </div>
-                    <div>
-                      {/* Empty label to align vertically with other input labels */}
-                      <label className="block text-gray-400 mt-7 text-xs mb-1"></label>
-                      <label className="flex items-center space-x-2 cursor-pointer">
+
+                {/* Discount Section - Only show when rate type is selected */}
+                {contractData.rateType && (
+                  <div className="bg-[#101010]/60 p-4 rounded-xl border border-gray-800">
+                    <h4 className="text-white text-sm font-medium mb-2">Discount</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-gray-400 text-xs mb-1">Percentage (%)</label>
                         <input
-                          type="checkbox"
-                          name="isPermanent"
-                          checked={discount.isPermanent}
+                          type="number"
+                          name="percentage"
+                          min="0"
+                          max="100"
+                          value={discount.percentage}
                           onChange={handleDiscountChange}
-                          className="form-checkbox h-5 w-5 text-[#3F74FF] rounded border-gray-800 focus:ring-[#3F74FF]"
+                          className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
                         />
-                        <span className="text-gray-400 text-xs">Till End of Contract</span>
-                      </label>
-                    </div>
-                  </div>
-                  {/* Final Price Display */}
-                  {priceCalculation && (
-                    <div className="mt-4 pt-4 border-t border-gray-700">
-                      <h5 className="text-white text-sm font-medium mb-2">Price Calculation</h5>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Original Price:</span>
-                          <span className="text-white">
-                            {priceCalculation.currency}
-                            {priceCalculation.originalPrice.toFixed(2)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-400">Discount ({discount.percentage}%):</span>
-                          <span className="text-red-400">
-                            -{priceCalculation.currency}
-                            {priceCalculation.discountAmount.toFixed(2)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between border-t border-gray-700 pt-2">
-                          <span className="text-white font-medium">Final Price:</span>
-                          <span className="text-green-400 font-medium">
-                            {priceCalculation.currency}
-                            {priceCalculation.finalPrice.toFixed(2)}
-                          </span>
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {discount.isPermanent
-                            ? "Discount applies for the entire contract duration"
-                            : `Discount applies for ${discount.duration} billing period${discount.duration > 1 ? "s" : ""
-                            }`}
-                        </div>
+                      </div>
+                      <div className={discount.isPermanent ? "opacity-50" : ""}>
+                        <label className="block text-gray-400 text-xs mb-1">Billing Periods</label>
+                        <input
+                          type="number"
+                          name="duration"
+                          min="1"
+                          value={discount.duration}
+                          onChange={handleDiscountChange}
+                          disabled={discount.isPermanent}
+                          className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
+                        />
+                      </div>
+                      <div>
+                        {/* Empty label to align vertically with other input labels */}
+                        <label className="block text-gray-400 mt-7 text-xs mb-1"></label>
+                        <label className="flex items-center space-x-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            name="isPermanent"
+                            checked={discount.isPermanent}
+                            onChange={handleDiscountChange}
+                            className="form-checkbox h-5 w-5 text-[#3F74FF] rounded border-gray-800 focus:ring-[#3F74FF]"
+                          />
+                          <span className="text-gray-400 text-xs">Till End of Contract</span>
+                        </label>
                       </div>
                     </div>
-                  )}
-                </div>
+                    {/* Final Price Display */}
+                    {priceCalculation && (
+                      <div className="mt-4 pt-4 border-t border-gray-700">
+                        <h5 className="text-white text-sm font-medium mb-2">Price Calculation</h5>
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span className="text-gray-400">Original Price:</span>
+                            <span className="text-white">
+                              {priceCalculation.currency}
+                              {priceCalculation.originalPrice.toFixed(2)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-400">Discount ({discount.percentage}%):</span>
+                            <span className="text-red-400">
+                              -{priceCalculation.currency}
+                              {priceCalculation.discountAmount.toFixed(2)}
+                            </span>
+                          </div>
+                          <div className="flex justify-between border-t border-gray-700 pt-2">
+                            <span className="text-white font-medium">Final Price:</span>
+                            <span className="text-green-400 font-medium">
+                              {priceCalculation.currency}
+                              {priceCalculation.finalPrice.toFixed(2)}
+                            </span>
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {discount.isPermanent
+                              ? "Discount applies for the entire contract duration"
+                              : `Discount applies for ${discount.duration} billing period${discount.duration > 1 ? "s" : ""
+                              }`}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
-              <button
-                type="button"
-                onClick={toggleView}
-                className="w-full px-4 py-2 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors duration-200 flex items-center justify-center gap-2"
-              >
-                <Eye size={16} /> Fill out Contract
-              </button>
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={toggleView}
+                  disabled={!contractData.rateType}
+                  className={`w-full px-4 py-2 text-sm font-medium rounded-xl transition-colors duration-200 flex items-center justify-center gap-2 ${contractData.rateType
+                      ? "bg-[#3F74FF] text-white hover:bg-[#3F74FF]/90"
+                      : "bg-gray-600 text-gray-400 cursor-not-allowed"
+                    }`}
+                >
+                  <Eye size={16} /> Fill out Contract
+                </button>
+
+
+              </div>
             </div>
           ) : (
-            <div className="max-h-[70vh] overflow-y-auto custom-scrollbar">
+            <div className="max-h-[70vh] overflow-y-auto">
               {currentPage === 0 ? (
                 <div className="bg-white rounded-lg p-6 relative font-sans">
                   <div className="flex justify-between items-start mb-6">
@@ -1207,20 +1212,19 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                     >
                       Back
                     </button>
+                    <button
+                      type="button"
+                      onClick={handleGenerateContract}
+                      className="px-4 py-2 bg-[#3F74FF] text-white rounded-xl text-sm"
+                    >
+                      Generate Contract
+                    </button>
                   </div>
                 </div>
               )}
             </div>
           )}
-          <div className="pt-4 border-t border-gray-800 mt-4">
-            <button
-              type="button"
-              onClick={handleGenerateContract}
-              className="w-full px-4 py-2 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors duration-200 flex items-center justify-center gap-2"
-            >
-              <FileText size={16} /> Generate Contract
-            </button>
-          </div>
+          {/* Removed the Generate Contract button from the footer */}
         </div>
       </div>
     </div>

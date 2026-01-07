@@ -131,7 +131,8 @@ const SortableColumn = ({
         {leads.length === 0 && (
           <div 
             className={`
-              h-32 border-2 border-dashed rounded-xl 
+              h-full min-h-[200px] sm:min-h-[350px] lg:min-h-[650px]
+              border-2 border-dashed rounded-xl 
               flex items-center justify-center text-gray-500 text-sm
               transition-colors duration-200
               ${isOver ? "border-blue-500 bg-blue-500/10 text-blue-400" : "border-gray-700"}

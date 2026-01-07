@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import React, { useState, useRef, useEffect } from 'react';
+import { X } from 'lucide-react';
 
 const AssessmentFormModal = ({ 
   isOpen, 
@@ -222,7 +223,7 @@ const AssessmentFormModal = ({
               onClick={onClose}
               className="text-gray-400 hover:text-white text-lg"
             >
-              ✕
+              <X size={20} />
             </button>
           </div>
 
@@ -349,8 +350,7 @@ const AssessmentFormModal = ({
                 <button
                   onClick={handleCompleteAssessment}
                   disabled={!signature}
-                  className="px-4 py-2 bg-[#FF6B35] text-white rounded-lg hover:bg-[#E55A2B] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{ backgroundColor: '#FF6B35' }}
+                  className="px-4 py-2 bg-[#FF5733] text-white rounded-lg hover:bg-[#E64D2E] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Complete Assessment
                 </button>
@@ -381,8 +381,7 @@ const AssessmentFormModal = ({
             <div className="space-y-3">
               <button
                 onClick={handleProceedToContractClick}
-                className="w-full py-3 bg-[#FF6B35] text-white rounded-lg hover:bg-[#E55A2B] transition-colors font-medium"
-                style={{ backgroundColor: '#FF6B35' }}
+                className="w-full py-3 bg-[#FF5733] text-white rounded-lg hover:bg-[#E64D2E] transition-colors font-medium"
               >
                 Yes, Create Contract
               </button>

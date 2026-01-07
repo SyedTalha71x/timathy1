@@ -600,7 +600,7 @@ export function LeadDocumentModal({ lead, isOpen, onClose }) {
                 </div>
                 <button
                   onClick={addTag}
-                  className="bg-[#FF843E] text-white text-sm px-4 py-2 rounded-lg mt-2 hover:bg-[#FF843E]/90"
+                  className="bg-[#FF5733] text-white text-sm px-4 py-2 rounded-lg mt-2 hover:bg-[#E64D2E]"
                   disabled={!newTagName.trim()}
                 >
                   Add Tag
@@ -634,7 +634,7 @@ export function LeadDocumentModal({ lead, isOpen, onClose }) {
             <div className="flex justify-end">
               <button
                 onClick={() => setIsTagManagerOpen(false)}
-                className="bg-[#FF843E] text-white px-6 py-2 text-sm rounded-lg hover:bg-[#FF843E]/90"
+                className="bg-[#FF5733] text-white px-6 py-2 text-sm rounded-lg hover:bg-[#E64D2E]"
               >
                 Done
               </button>
@@ -699,7 +699,7 @@ export function LeadDocumentModal({ lead, isOpen, onClose }) {
                   className="text-sm gap-2 px-4 py-2 bg-gray-700 text-white rounded-xl hover:bg-gray-600 transition-colors w-full sm:w-auto flex items-center justify-center"
                 >
                   <Plus className="w-4 h-4 mr-2" />
-                  Create Medical History
+                  Fill Out Medical History
                 </button>
               )}
               <button
@@ -793,7 +793,7 @@ export function LeadDocumentModal({ lead, isOpen, onClose }) {
                 {activeSection === "general" ? (
                   <button
                     onClick={handleUploadClick}
-                    className="flex items-center gap-2 px-4 py-2 bg-[#F27A30] text-white rounded-xl hover:bg-[#e06b21] transition-colors mx-auto"
+                    className="flex items-center gap-2 px-4 py-2 bg-[#FF5733] text-white rounded-xl hover:bg-[#E64D2E] transition-colors mx-auto"
                   >
                     <Upload className="w-4 h-4" />
                     Upload First Document
@@ -804,7 +804,7 @@ export function LeadDocumentModal({ lead, isOpen, onClose }) {
                     className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors mx-auto"
                   >
                     <Plus className="w-4 h-4" />
-                    Create First Assessment
+                    Fill Out First Medical History
                   </button>
                 )}
               </div>
@@ -858,10 +858,10 @@ export function LeadDocumentModal({ lead, isOpen, onClose }) {
                               )}
                             </div>
                             <p className="text-xs text-gray-400">
-                              {doc.size} • Uploaded on {doc.uploadDate}
+                              {doc.size} â€¢ Uploaded on {doc.uploadDate}
                               {doc.section === "medicalHistory" && (
                                 <span className="ml-2">
-                                  • {Object.keys(doc.answers || {}).length} answers
+                                  â€¢ {Object.keys(doc.answers || {}).length} answers
                                 </span>
                               )}
                             </p>
@@ -908,7 +908,7 @@ export function LeadDocumentModal({ lead, isOpen, onClose }) {
                             <option value="">+ Tag</option>
                             {configuredTags.map((tag) => (
                               <option key={tag.id} value={tag.id} disabled={doc.tags?.includes(tag.id)}>
-                                {doc.tags?.includes(tag.id) ? `✓ ${tag.name}` : tag.name}
+                                {doc.tags?.includes(tag.id) ? `âœ“ ${tag.name}` : tag.name}
                               </option>
                             ))}
                           </select>
