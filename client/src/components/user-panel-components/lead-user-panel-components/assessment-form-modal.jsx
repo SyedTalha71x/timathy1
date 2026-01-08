@@ -350,7 +350,7 @@ const AssessmentFormModal = ({
                 <button
                   onClick={handleCompleteAssessment}
                   disabled={!signature}
-                  className="px-4 py-2 bg-[#FF5733] text-white rounded-lg hover:bg-[#E64D2E] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Complete Assessment
                 </button>
@@ -381,7 +381,7 @@ const AssessmentFormModal = ({
             <div className="space-y-3">
               <button
                 onClick={handleProceedToContractClick}
-                className="w-full py-3 bg-[#FF5733] text-white rounded-lg hover:bg-[#E64D2E] transition-colors font-medium"
+                className="w-full py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium"
               >
                 Yes, Create Contract
               </button>

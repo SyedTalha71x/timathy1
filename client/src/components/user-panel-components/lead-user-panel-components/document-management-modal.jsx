@@ -1,11 +1,11 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useState, useRef } from "react"
-import { X, Upload, Trash, Edit2, File, FileText, FilePlus, Eye, Download, Check, Plus, Tag, FileSignature } from "lucide-react"
+import { X, Upload, Trash, Edit2, File, FileText, FilePlus, Eye, Download, Check, Plus, Tag, FileSignature, Pencil, ClipboardList } from "lucide-react"
 import { toast } from "react-hot-toast"
 import { Printer } from "lucide-react"
 
-export function LeadDocumentModal({ lead, isOpen, onClose }) {
+export function LeadDocumentModal({ lead, isOpen, onClose, onCreateAssessment }) {
   const [documents, setDocuments] = useState(lead?.documents || [])
   const [isUploading, setIsUploading] = useState(false)
   const [editingDocId, setEditingDocId] = useState(null)
@@ -28,6 +28,7 @@ export function LeadDocumentModal({ lead, isOpen, onClose }) {
   const [showAssessmentForm, setShowAssessmentForm] = useState(false)
   const [editingAssessment, setEditingAssessment] = useState(null)
   const [showSignatureModal, setShowSignatureModal] = useState(false)
+  const [documentToDelete, setDocumentToDelete] = useState(null)
   const fileInputRef = useRef(null)
 
   // Sample documents for demonstration
@@ -64,8 +65,8 @@ export function LeadDocumentModal({ lead, isOpen, onClose }) {
     },
     {
       id: "doc-4",
-      name: "Follow-up Notes.assess",
-      type: "assess",
+      name: "Medical History Form",
+      type: "medicalHistory",
       size: "0.3 MB",
       uploadDate: "2024-01-25",
       category: "followup",
@@ -245,18 +246,30 @@ export function LeadDocumentModal({ lead, isOpen, onClose }) {
   }
 
   const handleDelete = (docId) => {
-    if (confirm("Are you sure you want to delete this document?")) {
-      setDocuments(displayDocuments.filter((doc) => doc.id !== docId))
+    const doc = displayDocuments.find(d => d.id === docId)
+    setDocumentToDelete(doc)
+  }
+
+  const confirmDelete = () => {
+    if (documentToDelete) {
+      setDocuments(displayDocuments.filter((doc) => doc.id !== documentToDelete.id))
       toast.success("Document deleted successfully")
+      setDocumentToDelete(null)
     }
   }
 
   const startEditing = (doc) => {
-    const nameParts = doc.name.split(".")
-    const extension = nameParts.pop()
-    const nameWithoutExtension = nameParts.join(".")
-    setEditingDocId(doc.id)
-    setNewDocName(nameWithoutExtension)
+    // For medical history documents, use the full name (no extension to remove)
+    if (doc.type === "medicalHistory" || doc.section === "medicalHistory") {
+      setEditingDocId(doc.id)
+      setNewDocName(doc.name)
+    } else {
+      const nameParts = doc.name.split(".")
+      const extension = nameParts.pop()
+      const nameWithoutExtension = nameParts.join(".")
+      setEditingDocId(doc.id)
+      setNewDocName(nameWithoutExtension)
+    }
   }
 
   const saveDocName = (docId) => {
@@ -266,8 +279,15 @@ export function LeadDocumentModal({ lead, isOpen, onClose }) {
     }
 
     const originalDoc = displayDocuments.find((doc) => doc.id === docId)
-    const originalExtension = originalDoc.name.split(".").pop()
-    const finalName = `${newDocName.trim()}.${originalExtension}`
+    
+    // Don't add extension for medical history documents
+    let finalName
+    if (originalDoc.type === "medicalHistory" || originalDoc.section === "medicalHistory") {
+      finalName = newDocName.trim()
+    } else {
+      const originalExtension = originalDoc.name.split(".").pop()
+      finalName = `${newDocName.trim()}.${originalExtension}`
+    }
 
     setDocuments(displayDocuments.map((doc) => (doc.id === docId ? { ...doc, name: finalName } : doc)))
     setEditingDocId(null)
@@ -279,7 +299,12 @@ export function LeadDocumentModal({ lead, isOpen, onClose }) {
     toast.success("Document category updated")
   }
 
-  const getDocumentIcon = (type) => {
+  const getDocumentIcon = (type, section) => {
+    // Medical History documents get a special white icon
+    if (section === "medicalHistory" || type === "medicalHistory") {
+      return <ClipboardList className="w-5 h-5 text-white" />
+    }
+
     if (!type) {
       return <File className="w-5 h-5 text-gray-400" />
     }
@@ -300,8 +325,6 @@ export function LeadDocumentModal({ lead, isOpen, onClose }) {
         return <File className="w-5 h-5 text-purple-500" />
       case "txt":
         return <FileText className="w-5 h-5 text-gray-500" />
-      case "assess":
-        return <FileText className="w-5 h-5 text-orange-500" />
       default:
         return <File className="w-5 h-5 text-gray-400" />
     }
@@ -354,7 +377,11 @@ export function LeadDocumentModal({ lead, isOpen, onClose }) {
 
   // Assessment functions
   const handleCreateAssessment = () => {
-    setShowAssessmentTemplates(true)
+    // Always use external assessment modal (same as main view)
+    onClose()
+    if (onCreateAssessment) {
+      onCreateAssessment(lead)
+    }
   }
 
   const handleSelectTemplate = (template) => {
@@ -376,8 +403,8 @@ export function LeadDocumentModal({ lead, isOpen, onClose }) {
 
     const newAssessment = {
       id: `doc-${Date.now()}`,
-      name: `${selectedTemplate.name}.assess`,
-      type: "assess",
+      name: selectedTemplate.name,
+      type: "medicalHistory",
       size: "0.2 MB",
       uploadDate: new Date().toISOString().split("T")[0],
       category: "medicalHistory",
@@ -466,79 +493,28 @@ export function LeadDocumentModal({ lead, isOpen, onClose }) {
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-60 p-2 sm:p-4">
-      {/* Assessment Templates Modal */}
-      {showAssessmentTemplates && (
-        <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-[70]">
-          <div className="bg-[#1C1C1C] rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden">
-            <div className="flex justify-between items-center p-4 border-b border-gray-800">
-              <h3 className="text-white text-lg font-medium">Select Assessment Template</h3>
-              <button onClick={() => setShowAssessmentTemplates(false)} className="text-gray-400 hover:text-white">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="p-4 overflow-y-auto max-h-[60vh]">
-              <div className="grid gap-3">
-                {assessmentTemplates.map(template => (
-                  <div key={template.id} className="bg-[#141414] p-4 rounded-xl hover:bg-[#1a1a1a] transition-colors cursor-pointer" onClick={() => handleSelectTemplate(template)}>
-                    <h4 className="text-white font-medium mb-2">{template.name}</h4>
-                    <p className="text-gray-400 text-sm">{template.description}</p>
-                    <div className="mt-2 text-xs text-gray-500">
-                      {template.questions.length} questions
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="p-4 border-t border-gray-800">
-              <button onClick={() => setShowAssessmentTemplates(false)} className="w-full px-4 py-2 bg-gray-700 text-white rounded-xl hover:bg-gray-600 transition-colors">
+
+      {/* Delete Confirmation Modal */}
+      {documentToDelete && (
+        <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-[80]">
+          <div className="bg-[#1C1C1C] rounded-2xl w-full max-w-md p-6 mx-4">
+            <h3 className="text-white text-lg font-semibold mb-4">Delete Document</h3>
+            <p className="text-gray-300 mb-6">
+              Are you sure you want to delete <span className="font-semibold text-white">{documentToDelete.name}</span>? This action cannot be undone.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setDocumentToDelete(null)}
+                className="px-4 py-2 bg-gray-600 text-white rounded-xl hover:bg-gray-700 transition-colors"
+              >
                 Cancel
               </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Assessment Form Modal */}
-      {showAssessmentForm && selectedTemplate && (
-        <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-[70]">
-          <div className="bg-[#1C1C1C] rounded-2xl w-full max-w-3xl max-h-[80vh] overflow-hidden flex flex-col">
-            <div className="flex justify-between items-center p-4 border-b border-gray-800">
-              <h3 className="text-white text-lg font-medium">{selectedTemplate.name}</h3>
-              <button onClick={() => {
-                setShowAssessmentForm(false)
-                setSelectedTemplate(null)
-                setAssessmentAnswers({})
-                setEditingAssessment(null)
-              }} className="text-gray-400 hover:text-white">
-                <X className="w-5 h-5" />
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors"
+              >
+                Delete
               </button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-4">
-              <div className="space-y-6">
-                {selectedTemplate.questions.map((question, index) => (
-                  <div key={question.id} className="bg-[#141414] p-4 rounded-xl">
-                    <h4 className="text-white font-medium mb-3">
-                      {index + 1}. {question.question}
-                    </h4>
-                    {renderQuestion(question)}
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="p-4 border-t border-gray-800">
-              <div className="flex gap-3">
-                <button onClick={() => {
-                  setShowAssessmentForm(false)
-                  setSelectedTemplate(null)
-                  setAssessmentAnswers({})
-                  setEditingAssessment(null)
-                }} className="flex-1 px-4 py-2 bg-gray-700 text-white rounded-xl hover:bg-gray-600 transition-colors">
-                  Cancel
-                </button>
-                <button onClick={editingAssessment ? () => setShowSignatureModal(true) : handleSaveAssessment} className="flex-1 px-4 py-2 bg-[#3F74FF] text-white rounded-xl hover:bg-[#2F64FF] transition-colors">
-                  {editingAssessment ? "Update Medical History" : "Save Medical History"}
-                </button>
-              </div>
             </div>
           </div>
         </div>
@@ -600,7 +576,7 @@ export function LeadDocumentModal({ lead, isOpen, onClose }) {
                 </div>
                 <button
                   onClick={addTag}
-                  className="bg-[#FF5733] text-white text-sm px-4 py-2 rounded-lg mt-2 hover:bg-[#E64D2E]"
+                  className="bg-orange-500 text-white text-sm px-4 py-2 rounded-lg mt-2 hover:bg-orange-600"
                   disabled={!newTagName.trim()}
                 >
                   Add Tag
@@ -634,7 +610,7 @@ export function LeadDocumentModal({ lead, isOpen, onClose }) {
             <div className="flex justify-end">
               <button
                 onClick={() => setIsTagManagerOpen(false)}
-                className="bg-[#FF5733] text-white px-6 py-2 text-sm rounded-lg hover:bg-[#E64D2E]"
+                className="bg-orange-500 text-white px-6 py-2 text-sm rounded-lg hover:bg-orange-600"
               >
                 Done
               </button>
@@ -658,7 +634,7 @@ export function LeadDocumentModal({ lead, isOpen, onClose }) {
                 <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-600">Document preview would appear here.</p>
                 <p className="text-gray-500 text-sm mt-2">
-                  {viewingDocument.type?.toUpperCase()} document â€¢ {viewingDocument.size}
+                  {viewingDocument.type?.toUpperCase()} document • {viewingDocument.size}
                 </p>
               </div>
             </div>
@@ -686,19 +662,12 @@ export function LeadDocumentModal({ lead, isOpen, onClose }) {
               </span>
             </p>
             <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-              <button
-                onClick={() => setIsTagManagerOpen(true)}
-                className="text-sm gap-2 px-4 py-2 bg-gray-700 text-white rounded-xl hover:bg-gray-600 transition-colors w-full sm:w-auto flex items-center justify-center"
-              >
-                <Tag className="w-4 h-4 mr-2" />
-                Tags
-              </button>
               {activeSection === "medicalHistory" && (
                 <button
                   onClick={handleCreateAssessment}
-                  className="text-sm gap-2 px-4 py-2 bg-gray-700 text-white rounded-xl hover:bg-gray-600 transition-colors w-full sm:w-auto flex items-center justify-center"
+                  className="text-sm gap-2 px-4 py-2 bg-gray-600 text-white rounded-xl hover:bg-gray-700 transition-colors w-full sm:w-auto flex items-center justify-center"
                 >
-                  <Plus className="w-4 h-4 mr-2" />
+                  <Pencil className="w-4 h-4 mr-2" />
                   Fill Out Medical History
                 </button>
               )}
@@ -793,7 +762,7 @@ export function LeadDocumentModal({ lead, isOpen, onClose }) {
                 {activeSection === "general" ? (
                   <button
                     onClick={handleUploadClick}
-                    className="flex items-center gap-2 px-4 py-2 bg-[#FF5733] text-white rounded-xl hover:bg-[#E64D2E] transition-colors mx-auto"
+                    className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-colors mx-auto"
                   >
                     <Upload className="w-4 h-4" />
                     Upload First Document
@@ -801,9 +770,9 @@ export function LeadDocumentModal({ lead, isOpen, onClose }) {
                 ) : (
                   <button
                     onClick={handleCreateAssessment}
-                    className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors mx-auto"
+                    className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-xl hover:bg-gray-700 transition-colors mx-auto"
                   >
-                    <Plus className="w-4 h-4" />
+                    <Pencil className="w-4 h-4" />
                     Fill Out First Medical History
                   </button>
                 )}
@@ -816,7 +785,7 @@ export function LeadDocumentModal({ lead, isOpen, onClose }) {
                   <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                     <div className="flex items-center gap-3 flex-1">
                       <div className="w-10 h-10 bg-[#2a2a2a] rounded-md flex items-center justify-center">
-                        {getDocumentIcon(doc.type)}
+                        {getDocumentIcon(doc.type, doc.section)}
                       </div>
                       <div className="flex-1 min-w-0">
                         {editingDocId === doc.id ? (
@@ -829,7 +798,9 @@ export function LeadDocumentModal({ lead, isOpen, onClose }) {
                                 className="bg-transparent border-none outline-none flex-1 w-full"
                                 autoFocus
                               />
-                              <span className="text-gray-500">.{doc.type}</span>
+                              {doc.type !== "medicalHistory" && doc.section !== "medicalHistory" && (
+                                <span className="text-gray-500">.{doc.type}</span>
+                              )}
                             </div>
                             <div className="flex gap-2 mt-2 sm:mt-0">
                               <button
@@ -858,10 +829,10 @@ export function LeadDocumentModal({ lead, isOpen, onClose }) {
                               )}
                             </div>
                             <p className="text-xs text-gray-400">
-                              {doc.size} â€¢ Uploaded on {doc.uploadDate}
+                              {doc.size} • Uploaded on {doc.uploadDate}
                               {doc.section === "medicalHistory" && (
                                 <span className="ml-2">
-                                  â€¢ {Object.keys(doc.answers || {}).length} answers
+                                  • {Object.keys(doc.answers || {}).length} answers
                                 </span>
                               )}
                             </p>
@@ -872,17 +843,24 @@ export function LeadDocumentModal({ lead, isOpen, onClose }) {
                                 {doc.tags.map(tagId => {
                                   const tag = configuredTags.find(t => t.id === tagId)
                                   return tag ? (
-                                    <button
+                                    <span
                                       key={tagId}
-                                      onClick={() => toggleDocumentTag(doc.id, tagId)}
-                                      className="px-2 py-0.5 rounded-md text-xs flex items-center gap-1 text-white hover:opacity-80 transition-opacity cursor-pointer"
+                                      className="px-2 py-0.5 rounded-md text-xs flex items-center gap-1 text-white"
                                       style={{ backgroundColor: tag.color }}
-                                      title="Click to remove tag"
                                     >
                                       <Tag size={10} />
                                       {tag.name}
-                                      <X size={10} className="ml-1" />
-                                    </button>
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          toggleDocumentTag(doc.id, tagId)
+                                        }}
+                                        className="ml-1 hover:bg-white/20 rounded-full p-0.5 transition-colors"
+                                        title="Remove tag"
+                                      >
+                                        <X size={10} />
+                                      </button>
+                                    </span>
                                   ) : null
                                 })}
                               </div>
@@ -892,9 +870,9 @@ export function LeadDocumentModal({ lead, isOpen, onClose }) {
                       </div>
                     </div>
                     {editingDocId !== doc.id && (
-                      <div className="flex gap-2 mt-3 sm:mt-0 justify-end">
-                        {/* Tag selector */}
-                        <div className="relative" title="Add tag to document">
+                      <div className="flex flex-wrap gap-2 mt-3 sm:mt-0 justify-end">
+                        {/* Tag selector - simpler button approach */}
+                        <div className="relative">
                           <select
                             onChange={(e) => {
                               if (e.target.value) {
@@ -903,12 +881,12 @@ export function LeadDocumentModal({ lead, isOpen, onClose }) {
                               }
                             }}
                             className="p-2 bg-[#2a2a2a] text-gray-300 rounded-md text-xs border border-gray-700 hover:bg-[#333] hover:border-[#3F74FF] transition-colors cursor-pointer"
-                            title="Add tag - click existing tags to remove them"
+                            title="Add tag"
                           >
                             <option value="">+ Tag</option>
-                            {configuredTags.map((tag) => (
-                              <option key={tag.id} value={tag.id} disabled={doc.tags?.includes(tag.id)}>
-                                {doc.tags?.includes(tag.id) ? `âœ“ ${tag.name}` : tag.name}
+                            {configuredTags.filter(tag => !doc.tags?.includes(tag.id)).map((tag) => (
+                              <option key={tag.id} value={tag.id}>
+                                {tag.name}
                               </option>
                             ))}
                           </select>

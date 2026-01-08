@@ -844,7 +844,7 @@ export default function LeadManagement() {
         <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
           <button
             onClick={() => setIsModalOpen(true)}
-            className="bg-orange-500 hover:bg-[#E64D2E] text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl flex items-center gap-2 flex-1 sm:flex-none justify-center"
+            className="bg-orange-500 hover:bg-orange-600 text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl flex items-center gap-2 flex-1 sm:flex-none justify-center"
           >
             <Plus size={14} className="sm:w-4 sm:h-4" />
             <span className="inline">Create Lead</span>
@@ -1363,7 +1363,7 @@ export default function LeadManagement() {
               </button>
               <button
                 onClick={() => handleCancelTaskWrapper(taskToCancel)}
-                className="px-4 py-2 bg-orange-600 text-white rounded-xl hover:bg-orange-700"
+                className="px-4 py-2 bg-orange-500 text-white rounded-xl hover:bg-orange-600"
               >
                 Cancel Task
               </button>

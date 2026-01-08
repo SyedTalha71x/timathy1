@@ -567,7 +567,11 @@ const ViewLeadDetailsModal = ({
 
           {activeTab === "note" && (
             <div className="space-y-4 text-white pb-16">
-              <h3 className="text-lg font-semibold mb-4">Special Note</h3>
+              {/* Lead Name Header */}
+              <div className="mb-2 pb-3 border-b border-slate-700">
+                <p className="text-xs text-gray-400 uppercase tracking-wider">Special Note for</p>
+                <p className="text-white font-semibold text-lg">{leadData.firstName} {leadData.surname}</p>
+              </div>
               {leadData.specialNote && leadData.specialNote.text ? (
                 <div className="border border-slate-700 rounded-xl p-4">
                   <div className="mb-4">
@@ -715,7 +719,7 @@ const ViewLeadDetailsModal = ({
                   onClose()
                   onEditLead(leadData)
                 }}
-                className="bg-[#FF5733] text-sm text-white px-4 py-2 rounded-xl hover:bg-[#E64D2E]"
+                className="bg-orange-500 text-sm text-white px-4 py-2 rounded-xl hover:bg-orange-600"
               >
                 Edit Lead
               </button>
@@ -723,7 +727,7 @@ const ViewLeadDetailsModal = ({
             {activeTab === "note" && (
               <button
                 onClick={handleEditNote}
-                className="bg-[#FF5733] text-sm text-white px-4 py-2 rounded-xl hover:bg-[#E64D2E]"
+                className="bg-orange-500 text-sm text-white px-4 py-2 rounded-xl hover:bg-orange-600"
               >
                 Edit Note
               </button>
@@ -731,7 +735,7 @@ const ViewLeadDetailsModal = ({
             {activeTab === "relations" && (
               <button
                 onClick={handleEditRelations}
-                className="bg-[#FF5733] text-sm text-white px-4 py-2 rounded-xl hover:bg-[#E64D2E]"
+                className="bg-orange-500 text-sm text-white px-4 py-2 rounded-xl hover:bg-orange-600"
               >
                 Edit Relations
               </button>

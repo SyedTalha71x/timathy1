@@ -468,7 +468,7 @@ const EditLeadModal = ({
                 <div className="space-y-4 pt-4 border-t border-gray-700">
                   <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Lead Information</div>
                   
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm text-gray-200 block mb-2">Source</label>
                       <div className="relative">
@@ -595,8 +595,12 @@ const EditLeadModal = ({
             {/* Special Note Tab */}
             {activeTab === "note" && (
               <div className="border border-slate-700 rounded-xl p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <label className="text-sm text-gray-200 font-medium">Special Note</label>
+                {/* Lead Name Header */}
+                <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-700">
+                  <div>
+                    <p className="text-xs text-gray-400 uppercase tracking-wider">Special Note for</p>
+                    <p className="text-white font-semibold text-lg">{leadData?.firstName} {leadData?.surname}</p>
+                  </div>
                   <div className="flex items-center">
                     <input
                       type="checkbox"
@@ -810,7 +814,7 @@ const EditLeadModal = ({
             </button>
             <button
               type="submit"
-              className="px-4 py-2 text-sm bg-[#FF5733] text-white rounded-xl hover:bg-[#E64D2E]"
+              className="px-4 py-2 text-sm bg-orange-500 text-white rounded-xl hover:bg-orange-600"
             >
               Save Changes
             </button>

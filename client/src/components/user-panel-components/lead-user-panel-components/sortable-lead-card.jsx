@@ -86,6 +86,24 @@ const SortableLeadCard = ({
     }
   }, [hoverTimeout, leaveTimeout])
 
+  // Close popup on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      if (isNoteOpen || hoveredNoteId === lead.id) {
+        setIsNoteOpen(false)
+        setHoveredNoteId(null)
+        if (hoverTimeout) clearTimeout(hoverTimeout)
+        if (leaveTimeout) clearTimeout(leaveTimeout)
+      }
+    }
+
+    // Listen to scroll on window and any scrollable parent
+    window.addEventListener('scroll', handleScroll, true)
+    return () => {
+      window.removeEventListener('scroll', handleScroll, true)
+    }
+  }, [isNoteOpen, hoveredNoteId, lead.id, hoverTimeout, leaveTimeout])
+
   const formatDate = (timestamp) => {
     const date = new Date(timestamp)
     return date.toLocaleDateString("en-US", {
@@ -111,8 +129,8 @@ const SortableLeadCard = ({
     e.stopPropagation()
     const rect = e.currentTarget.getBoundingClientRect()
     setNotePosition({
-      top: rect.bottom + window.scrollY + 8,
-      left: rect.left + window.scrollX,
+      top: rect.bottom + 8,
+      left: rect.left,
     })
     setIsNoteOpen(!isNoteOpen)
   }
@@ -132,8 +150,8 @@ const SortableLeadCard = ({
     
     const rect = e.currentTarget.getBoundingClientRect()
     setNotePosition({
-      top: rect.bottom + window.scrollY + 8,
-      left: rect.left + window.scrollX,
+      top: rect.bottom + 8,
+      left: rect.left,
     })
     
     const timeout = setTimeout(() => {
@@ -461,7 +479,7 @@ const SortableLeadCard = ({
                     e.stopPropagation()
                     onCreateContract(lead)
                   }}
-                  className="flex-1 bg-[#FF5733] hover:bg-[#E64D2E] text-white text-xs rounded-xl px-4 py-2 active:scale-95 transition-transform flex items-center justify-center gap-1"
+                  className="flex-1 bg-orange-500 hover:bg-orange-600 text-white text-xs rounded-xl px-4 py-2 active:scale-95 transition-transform flex items-center justify-center gap-1"
                 >
                   <Plus size={14} /> Create Contract
                 </button>
