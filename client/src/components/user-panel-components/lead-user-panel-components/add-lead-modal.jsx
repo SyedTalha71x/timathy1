@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { X, Users, Trash2, Plus } from "lucide-react"
 import { useState, useEffect } from "react"
+import toast from "react-hot-toast"
 import useCountries from "../../../hooks/useCountries"
 
 /* eslint-disable react/prop-types */
@@ -104,16 +105,50 @@ const AddLeadModal = ({
     
     // Validate required fields
     if (!formData.firstName?.trim()) {
-      alert("Please enter a first name")
+      toast.error("Please enter a first name")
       return
     }
     if (!formData.lastName?.trim()) {
-      alert("Please enter a last name")
+      toast.error("Please enter a last name")
       return
     }
     if (!formData.email?.trim()) {
-      alert("Please enter an email address")
+      toast.error("Please enter an email address")
       return
+    }
+    
+    // Validate special note dates
+    if (formData.noteStartDate && formData.noteEndDate) {
+      const startDate = new Date(formData.noteStartDate)
+      const endDate = new Date(formData.noteEndDate)
+      
+      if (endDate < startDate) {
+        toast.error("End date cannot be before start date")
+        return
+      }
+    }
+    
+    // Validate birthday (must be at least 10 years old)
+    if (formData.birthday) {
+      const birthDate = new Date(formData.birthday)
+      const today = new Date()
+      const age = today.getFullYear() - birthDate.getFullYear()
+      const monthDiff = today.getMonth() - birthDate.getMonth()
+      const dayDiff = today.getDate() - birthDate.getDate()
+      
+      // Calculate exact age
+      const exactAge = monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age
+      
+      if (exactAge < 10) {
+        toast.error("Invalid birth date")
+        return
+      }
+      
+      // Check if birthdate is in the future
+      if (birthDate > today) {
+        toast.error("Invalid birth date")
+        return
+      }
     }
     
     onSave(formData)
@@ -161,7 +196,7 @@ const AddLeadModal = ({
     e.preventDefault()
     e.stopPropagation()
     if (!newRelation.name || !newRelation.relation) {
-      alert("Please fill in all fields")
+      toast.error("Please fill in all fields")
       return
     }
 

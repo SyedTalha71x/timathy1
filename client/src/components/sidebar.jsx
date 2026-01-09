@@ -273,7 +273,7 @@ const Sidebar = () => {
       case 'member':
         return '👤'
       case 'contract':
-        return '📝'
+        return '📄'
       case 'payment':
         return '💳'
       case 'class':
@@ -381,6 +381,11 @@ const Sidebar = () => {
     },
     { icon: Settings, label: "Configuration", to: "/dashboard/configuration" },
   ]
+
+  // Helper function to check if any submenu item is active
+  const isSubmenuActive = (submenu) => {
+    return submenu?.some(subItem => location.pathname === subItem.to)
+  }
 
   const Modal = ({ isOpen, onClose, title, children }) => {
     if (!isOpen) return null
@@ -570,6 +575,8 @@ const Sidebar = () => {
           <nav className="flex-1 overflow-y-auto custom-scrollbar">
             <ul className="space-y-2 p-4">
               {menuItems.map((item) => {
+                const hasActiveSubmenu = isSubmenuActive(item.submenu)
+                
                 if (item.hasSubmenu) {
                   return (
                     <li key={item.label}>
@@ -581,12 +588,12 @@ const Sidebar = () => {
                           if (item.label === "Fitness Area") toggleFitnessHub();
                           if (item.label === "Support Area") toggleSupportArea();
                         }}
-                        className={`flex items-center gap-3 text-sm px-4 py-2 open_sans_font text-zinc-200 relative w-full ${isCollapsed ? "justify-center" : "text-left"
-                          } group transition-all duration-500 ${location.pathname.startsWith(item.to) && item.to !== "#"
+                        className={`flex items-center gap-3 text-sm px-4 py-2 open_sans_font relative w-full ${isCollapsed ? "justify-center" : "text-left"
+                          } group transition-all duration-500 ${hasActiveSubmenu
                             ? `text-white ${!isCollapsed &&
-                            "border-l-2 border-white pl-3"
+                            "border-l-2 border-orange-500 pl-3"
                             }`
-                            : `hover:text-white ${!isCollapsed &&
+                            : `text-zinc-200 hover:text-white ${!isCollapsed &&
                             "hover:border-l-2 hover:border-white hover:pl-3"
                             }`
                           }`}
@@ -594,12 +601,17 @@ const Sidebar = () => {
                         <div className="relative">
                           <item.icon
                             size={24}
-                            className={`cursor-pointer ${location.pathname.startsWith(item.to) && item.to !== "#"
+                            className={`cursor-pointer ${hasActiveSubmenu
                               ? "text-white"
                               : "text-zinc-400 group-hover:text-white"
                               }`}
                           />
-                          {item.label === "Communication" && unreadMessages > 0 && (
+                          {item.label === "Communication" && unreadMessages > 0 && !isCommunicationOpen && (
+                            <span className="absolute -top-1 -right-2 bg-orange-600 text-white text-[10px] px-1.5 py-0.5 rounded-full z-10">
+                              {unreadMessages}
+                            </span>
+                          )}
+                          {item.label === "Productivity Area" && unreadMessages > 0 && !isProductivityHubOpen && (
                             <span className="absolute -top-1 -right-2 bg-orange-600 text-white text-[10px] px-1.5 py-0.5 rounded-full z-10">
                               {unreadMessages}
                             </span>
@@ -629,47 +641,83 @@ const Sidebar = () => {
                         (item.label === "Productivity Area" && isProductivityHubOpen) ||
                         (item.label === "Fitness Area" && isFitnessHubOpen) ||
                         (item.label === "Support Area" && isSupportAreaOpen)) && (
-                          <ul className={`${isCollapsed ? 'ml-0' : 'ml-2'} mt-1 space-y-2`}>
-                            {item.submenu.map((subItem) => (
-                              <li key={subItem.label}>
-                                <button
-                                  onClick={() => handleNavigation(subItem.to)}
-                                  className={`flex items-center gap-3 text-sm px-4 py-2 open_sans_font text-zinc-200 relative w-full group transition-all duration-500 ${isCollapsed ? "justify-center" : "text-left"
-                                    } ${location.pathname === subItem.to
-                                      ? `text-white ${!isCollapsed && "border-l-2 border-white pl-3"}`
-                                      : `hover:text-white ${!isCollapsed && "hover:border-l-2 hover:border-white hover:pl-3"}`
-                                    }`}
-                                >
-                                  
-                                  <div className="relative flex items-center gap-3">
-              {/* Proper L-shape: Vertical line on left, Horizontal line at bottom */}
-              <div className="relative">
-                <div className={`w-5 h-5 flex items-center justify-center ${location.pathname === subItem.to ? "text-white" : "text-zinc-400 group-hover:text-white"}`}>
-                  {/* Left vertical line - full height */}
-                  <div className={`absolute left-0 top-0 w-0.5 h-full ${location.pathname === subItem.to ? "bg-white" : "bg-zinc-400 group-hover:bg-white"} rounded-full`}></div>
-                  {/* Bottom horizontal line - bottom se shuru */}
-                  <div className={`absolute left-0 bottom-0 w-2.5 h-0.5 ${location.pathname === subItem.to ? "bg-white" : "bg-zinc-400 group-hover:bg-white"} rounded-full`}></div>
-                </div>
-              </div>
-              
-              <subItem.icon
-                size={20}
-                className={`cursor-pointer ${location.pathname === subItem.to
-                  ? "text-white"
-                  : "text-zinc-400 group-hover:text-white"
-                  }`}
-              />
-              
-              {subItem.label === "Messenger" && (
-                <span className="absolute -top-1 -right-2 bg-orange-600 text-white text-[10px] px-1.5 py-0.5 rounded-full z-10">
-                  {unreadMessages}
-                </span>
-              )}
-            </div>
-                                  {!isCollapsed && <span>{subItem.label}</span>}
-                                </button>
-                              </li>
-                            ))}
+                          <ul className={`${isCollapsed ? 'ml-0' : 'ml-3'} mt-1 space-y-0 relative`}>
+                            {/* Vertical connecting line */}
+                            {!isCollapsed && (
+                              <div className="absolute left-2 top-0 bottom-4 w-px bg-zinc-600"></div>
+                            )}
+                            {item.submenu.map((subItem, index) => {
+                              const isActive = location.pathname === subItem.to
+                              const isLastItem = index === item.submenu.length - 1
+                              
+                              return (
+                                <li key={subItem.label} className="relative">
+                                  <button
+                                    onClick={() => handleNavigation(subItem.to)}
+                                    className={`flex items-center gap-3 text-sm px-4 py-2 open_sans_font relative w-full group transition-all duration-300 ${isCollapsed ? "justify-center" : "text-left"
+                                      } ${isActive
+                                        ? "text-white"
+                                        : "text-zinc-200 hover:text-white"
+                                      }`}
+                                  >
+                                    {!isCollapsed && (
+                                      <div className="relative flex items-center gap-3">
+                                        {/* Tree branch connector */}
+                                        <div className="relative w-4 h-5 flex items-center">
+                                          {/* Horizontal branch line */}
+                                          <div className={`absolute left-0 top-1/2 w-4 h-px ${isActive ? "bg-orange-500" : "bg-zinc-600 group-hover:bg-zinc-400"} transition-colors`}></div>
+                                          {/* Small dot at connection point */}
+                                          <div className={`absolute -left-[3px] top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full ${isActive ? "bg-orange-500" : "bg-zinc-600 group-hover:bg-zinc-400"} transition-colors`}></div>
+                                        </div>
+                                        
+                                        <subItem.icon
+                                          size={18}
+                                          className={`cursor-pointer transition-colors ${isActive
+                                            ? "text-white"
+                                            : "text-zinc-400 group-hover:text-white"
+                                            }`}
+                                        />
+                                        
+                                        {subItem.label === "Messenger" && unreadMessages > 0 && (
+                                          <span className="absolute -top-1 left-10 bg-orange-600 text-white text-[10px] px-1.5 py-0.5 rounded-full z-10">
+                                            {unreadMessages}
+                                          </span>
+                                        )}
+                                        {subItem.label === "Activity Monitor" && unreadMessages > 0 && (
+                                          <span className="absolute -top-1 left-10 bg-orange-600 text-white text-[10px] px-1.5 py-0.5 rounded-full z-10">
+                                            {unreadMessages}
+                                          </span>
+                                        )}
+                                      </div>
+                                    )}
+                                    
+                                    {isCollapsed && (
+                                      <div className="relative">
+                                        <subItem.icon
+                                          size={18}
+                                          className={`cursor-pointer ${isActive
+                                            ? "text-white"
+                                            : "text-zinc-400 group-hover:text-white"
+                                            }`}
+                                        />
+                                        {subItem.label === "Messenger" && unreadMessages > 0 && (
+                                          <span className="absolute -top-1 -right-2 bg-orange-600 text-white text-[10px] px-1.5 py-0.5 rounded-full z-10">
+                                            {unreadMessages}
+                                          </span>
+                                        )}
+                                        {subItem.label === "Activity Monitor" && unreadMessages > 0 && (
+                                          <span className="absolute -top-1 -right-2 bg-orange-600 text-white text-[10px] px-1.5 py-0.5 rounded-full z-10">
+                                            {unreadMessages}
+                                          </span>
+                                        )}
+                                      </div>
+                                    )}
+                                    
+                                    {!isCollapsed && <span className="transition-colors">{subItem.label}</span>}
+                                  </button>
+                                </li>
+                              )
+                            })}
                           </ul>
                         )}
                     </li>
@@ -680,10 +728,10 @@ const Sidebar = () => {
                   <li key={item.label}>
                     <button
                       onClick={() => handleNavigation(item.to)}
-                      className={`flex items-center gap-3 text-sm px-4 py-2 open_sans_font text-zinc-200 relative w-full ${isCollapsed ? "justify-center" : "text-left"
+                      className={`flex items-center gap-3 text-sm px-4 py-2 open_sans_font relative w-full ${isCollapsed ? "justify-center" : "text-left"
                         } group transition-all duration-500 ${location.pathname === item.to
-                          ? `text-white ${!isCollapsed && "border-l-2 border-white pl-3"}`
-                          : `hover:text-white ${!isCollapsed &&
+                          ? `text-white ${!isCollapsed && "border-l-2 border-orange-500 pl-3"}`
+                          : `text-zinc-200 hover:text-white ${!isCollapsed &&
                           "hover:border-l-2 hover:border-white hover:pl-3"
                           }`
                         }`}

@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { Trash2, X } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import toast from "react-hot-toast"
 import useCountries from "../../../hooks/useCountries"
 
@@ -28,6 +28,7 @@ const EditLeadModal = ({
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false)
   const [isSourceDropdownOpen, setIsSourceDropdownOpen] = useState(false)
   const {countries, loading} = useCountries();
+  const specialNoteTextareaRef = useRef(null)
   
   const [formData, setFormData] = useState({
     firstName: "",
@@ -133,6 +134,16 @@ const EditLeadModal = ({
     }
   }, [leadData])
 
+  // Auto-focus special note textarea when note tab is active
+  useEffect(() => {
+    if (isVisible && activeTab === "note" && specialNoteTextareaRef.current) {
+      // Small delay to ensure the modal and tab content are rendered
+      setTimeout(() => {
+        specialNoteTextareaRef.current?.focus()
+      }, 100)
+    }
+  }, [isVisible, activeTab])
+
   const handleAddRelationLead = (e) => {
     e.preventDefault()
     e.stopPropagation()
@@ -199,6 +210,40 @@ const EditLeadModal = ({
     if (!formData.email?.trim()) {
       toast.error("Please enter an email address")
       return
+    }
+    
+    // Validate special note dates
+    if (formData.noteStartDate && formData.noteEndDate) {
+      const startDate = new Date(formData.noteStartDate)
+      const endDate = new Date(formData.noteEndDate)
+      
+      if (endDate < startDate) {
+        toast.error("End date cannot be before start date")
+        return
+      }
+    }
+    
+    // Validate birthday (must be at least 10 years old)
+    if (formData.birthday) {
+      const birthDate = new Date(formData.birthday)
+      const today = new Date()
+      const age = today.getFullYear() - birthDate.getFullYear()
+      const monthDiff = today.getMonth() - birthDate.getMonth()
+      const dayDiff = today.getDate() - birthDate.getDate()
+      
+      // Calculate exact age
+      const exactAge = monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age
+      
+      if (exactAge < 10) {
+        toast.error("Invalid birth date")
+        return
+      }
+      
+      // Check if birthdate is in the future
+      if (birthDate > today) {
+        toast.error("Invalid birth date")
+        return
+      }
     }
     
     onSave({
@@ -617,6 +662,7 @@ const EditLeadModal = ({
                   </div>
                 </div>
                 <textarea
+                  ref={specialNoteTextareaRef}
                   value={formData.note}
                   onChange={(e) => updateFormData("note", e.target.value)}
                   className="w-full bg-[#101010] resize-none rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px] mb-4"

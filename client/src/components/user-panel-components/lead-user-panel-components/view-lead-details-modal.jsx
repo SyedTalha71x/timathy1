@@ -245,7 +245,7 @@ const ViewLeadDetailsModal = ({
         <div className="p-4 md:p-6 pt-4 md:pt-6 overflow-y-auto flex-1">
           {/* Tab Content */}
           {activeTab === "details" && (
-            <div className="space-y-4 text-white pb-16">
+            <div className="space-y-4 text-white">
               {/* Personal Information */}
               <div className="space-y-4">
                 <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Personal Information</div>
@@ -254,7 +254,7 @@ const ViewLeadDetailsModal = ({
                   <div>
                     <p className="text-sm text-gray-400">First Name</p>
                     <div className="flex items-center gap-3">
-                      <p>{leadData.firstName || "N/A"}</p>
+                      <p>{leadData.firstName || "-"}</p>
                       {leadData.firstName && (
                         <button
                           onClick={handleCopyFirstName}
@@ -273,7 +273,7 @@ const ViewLeadDetailsModal = ({
                   <div>
                     <p className="text-sm text-gray-400">Last Name</p>
                     <div className="flex items-center gap-3">
-                      <p>{leadData.surname || "N/A"}</p>
+                      <p>{leadData.surname || "-"}</p>
                       {leadData.surname && (
                         <button
                           onClick={handleCopyLastName}
@@ -294,7 +294,7 @@ const ViewLeadDetailsModal = ({
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-400">Gender</p>
-                    <p className="capitalize">{leadData.gender || "N/A"}</p>
+                    <p className="capitalize">{leadData.gender || "-"}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-400">Birthday</p>
@@ -311,7 +311,7 @@ const ViewLeadDetailsModal = ({
                               }
                               return `${birthDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} (Age: ${age})`
                             })()
-                          : "N/A"}
+                          : "-"}
                       </p>
                       {leadData.birthday && (
                         <button
@@ -338,7 +338,7 @@ const ViewLeadDetailsModal = ({
                 <div>
                   <p className="text-sm text-gray-400">Email</p>
                   <div className="flex items-center gap-3">
-                    <p>{leadData.email || "N/A"}</p>
+                    <p>{leadData.email || "-"}</p>
                     {leadData.email && (
                       <button
                         onClick={handleCopyEmail}
@@ -359,7 +359,7 @@ const ViewLeadDetailsModal = ({
                   <div>
                     <p className="text-sm text-gray-400">Mobile Number</p>
                     <div className="flex items-center gap-3">
-                      <p>{leadData.phoneNumber || "N/A"}</p>
+                      <p>{leadData.phoneNumber || "-"}</p>
                       {leadData.phoneNumber && (
                         <button
                           onClick={handleCopyPhone}
@@ -378,7 +378,7 @@ const ViewLeadDetailsModal = ({
                   <div>
                     <p className="text-sm text-gray-400">Telephone Number</p>
                     <div className="flex items-center gap-3">
-                      <p>{leadData.telephoneNumber || "N/A"}</p>
+                      <p>{leadData.telephoneNumber || "-"}</p>
                       {leadData.telephoneNumber && (
                         <button
                           onClick={handleCopyTelephone}
@@ -404,7 +404,7 @@ const ViewLeadDetailsModal = ({
                 <div>
                   <p className="text-sm text-gray-400">Street & Number</p>
                   <div className="flex items-center gap-3">
-                    <p>{leadData.street || "N/A"}</p>
+                    <p>{leadData.street || "-"}</p>
                     {leadData.street && (
                       <button
                         onClick={handleCopyStreet}
@@ -428,7 +428,7 @@ const ViewLeadDetailsModal = ({
                       <p>
                         {leadData.zipCode && leadData.city 
                           ? `${leadData.zipCode} ${leadData.city}` 
-                          : leadData.zipCode || leadData.city || "N/A"}
+                          : leadData.zipCode || leadData.city || "-"}
                       </p>
                       {(leadData.zipCode || leadData.city) && (
                         <button
@@ -448,7 +448,7 @@ const ViewLeadDetailsModal = ({
                   <div>
                     <p className="text-sm text-gray-400">Country</p>
                     <div className="flex items-center gap-3">
-                      <p>{leadData.country || "N/A"}</p>
+                      <p>{leadData.country || "-"}</p>
                       {leadData.country && (
                         <button
                           onClick={handleCopyCountry}
@@ -469,7 +469,7 @@ const ViewLeadDetailsModal = ({
                 <div>
                   <p className="text-sm text-gray-400">Lead ID</p>
                   <div className="flex items-center gap-3">
-                    <p>{leadData.id || "N/A"}</p>
+                    <p>{leadData.id || "-"}</p>
                     {leadData.id && (
                       <button
                         onClick={handleCopyLeadId}
@@ -499,7 +499,7 @@ const ViewLeadDetailsModal = ({
                         {leadData.leadSource}
                       </span>
                     ) : (
-                      <p>N/A</p>
+                      <p>-</p>
                     )}
                   </div>
                   <div>
@@ -515,7 +515,7 @@ const ViewLeadDetailsModal = ({
                           <span>{column.title}</span>
                         </div>
                       ) : (
-                        <p>N/A</p>
+                        <p>-</p>
                       )
                     })()}
                   </div>
@@ -545,21 +545,21 @@ const ViewLeadDetailsModal = ({
                 </div>
               )}
               
-              {/* Divider before Created Date */}
-              <div className="border-t border-gray-700 my-4"></div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-gray-400">Created Date</p>
-                  <p>
-                    {leadData.createdAt 
-                      ? new Date(leadData.createdAt).toLocaleDateString('en-US', { 
-                          month: 'short', 
-                          day: 'numeric', 
-                          year: 'numeric' 
-                        })
-                      : "N/A"}
-                  </p>
+              {/* Created Date */}
+              <div className="pt-4 border-t border-gray-700">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-400">Created Date</p>
+                    <p>
+                      {leadData.createdAt 
+                        ? new Date(leadData.createdAt).toLocaleDateString('en-US', { 
+                            month: 'short', 
+                            day: 'numeric', 
+                            year: 'numeric' 
+                          })
+                        : "-"}
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -579,7 +579,7 @@ const ViewLeadDetailsModal = ({
                       {leadData.specialNote.isImportant ? "Important Note" : "Note"}
                     </p>
                   </div>
-                  <p className="text-sm leading-relaxed">{leadData.specialNote.text}</p>
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">{leadData.specialNote.text}</p>
                   {leadData.specialNote.startDate && leadData.specialNote.endDate && (
                     <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
                       <p className="text-xs text-gray-300">

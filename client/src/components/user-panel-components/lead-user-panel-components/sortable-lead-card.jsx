@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { AlertTriangle, Calendar, CalendarIcon, Edit, FileText, Info, MoreVertical, Plus, Trash2, Users, X, StickyNote, Pencil } from 'lucide-react'
+import { AlertTriangle, Calendar, CalendarIcon, Edit, FileText, Info, MoreVertical, Plus, Trash2, Users, X, StickyNote, Pencil, ChevronDown, ChevronUp } from 'lucide-react'
 import { useEffect, useRef, useState } from "react"
 import { MdHistory } from "react-icons/md"
 import { useSortable } from "@dnd-kit/sortable"
@@ -23,11 +23,13 @@ const SortableLeadCard = ({
   onOpenDocuments,
   onCreateAssessment,
   isTrialColumn,
-  isDraggingOverlay = false, // New prop for drag overlay
+  isDraggingOverlay = false,
+  isCompactView = false,
+  expandedLeadId = null,
+  setExpandedLeadId = () => {},
 }) => {
   const [isNoteOpen, setIsNoteOpen] = useState(false)
   const [notePosition, setNotePosition] = useState({ top: 0, left: 0 })
-  const [leadToDelete, setLeadToDelete] = useState(null)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [hoveredNoteId, setHoveredNoteId] = useState(null)
   const [hoverTimeout, setHoverTimeout] = useState(null)
@@ -88,7 +90,12 @@ const SortableLeadCard = ({
 
   // Close popup on scroll
   useEffect(() => {
-    const handleScroll = () => {
+    const handleScroll = (event) => {
+      // Don't close if scrolling inside the popup itself
+      if (noteRef.current && noteRef.current.contains(event.target)) {
+        return
+      }
+      
       if (isNoteOpen || hoveredNoteId === lead.id) {
         setIsNoteOpen(false)
         setHoveredNoteId(null)
@@ -117,7 +124,7 @@ const SortableLeadCard = ({
     if (phoneNumber && telephoneNumber) {
       return `${phoneNumber} / ${telephoneNumber}`
     }
-    return phoneNumber || telephoneNumber || ""
+    return phoneNumber || telephoneNumber || "-"
   }
 
   const hasValidNote = lead.specialNote && lead.specialNote.text && lead.specialNote.text.trim() !== ""
@@ -128,9 +135,13 @@ const SortableLeadCard = ({
   const handleNoteClick = (e) => {
     e.stopPropagation()
     const rect = e.currentTarget.getBoundingClientRect()
+    const viewportHeight = window.innerHeight
+    const spaceBelow = viewportHeight - rect.bottom - 16 // 16px margin from bottom
+    
     setNotePosition({
       top: rect.bottom + 8,
       left: rect.left,
+      maxHeight: Math.min(spaceBelow, viewportHeight * 0.6), // Use available space or 60vh, whichever is smaller
     })
     setIsNoteOpen(!isNoteOpen)
   }
@@ -149,9 +160,13 @@ const SortableLeadCard = ({
     }
     
     const rect = e.currentTarget.getBoundingClientRect()
+    const viewportHeight = window.innerHeight
+    const spaceBelow = viewportHeight - rect.bottom - 16 // 16px margin from bottom
+    
     setNotePosition({
       top: rect.bottom + 8,
       left: rect.left,
+      maxHeight: Math.min(spaceBelow, viewportHeight * 0.6), // Use available space or 60vh, whichever is smaller
     })
     
     const timeout = setTimeout(() => {
@@ -169,10 +184,13 @@ const SortableLeadCard = ({
       setHoverTimeout(null)
     }
     
-    // Add delay before hiding popup (allows moving to popup)
+    // Don't hide if mouse is moving to popup (increased delay for popups above icon)
     const timeout = setTimeout(() => {
-      setHoveredNoteId(null)
-    }, 200)
+      // Only hide if not hovering over popup
+      if (!noteRef.current || !noteRef.current.matches(':hover')) {
+        setHoveredNoteId(null)
+      }
+    }, 300) // Increased from 200 to 300ms
     setLeaveTimeout(timeout)
   }
 
@@ -221,9 +239,47 @@ const SortableLeadCard = ({
   }
 
   const shouldShowNotePopover = isNoteOpen || hoveredNoteId === lead.id
+  
+  const isCompactCollapsed = isCompactView && expandedLeadId !== lead.id
 
   // If this is the drag overlay, render without sortable functionality
   if (isDraggingOverlay) {
+    if (isCompactCollapsed) {
+      return (
+        <div
+          className="bg-[#1C1C1C] rounded-xl p-3 shadow-2xl border-2 border-blue-500/50 rotate-2"
+          data-lead-id={lead.id}
+        >
+          <div className="flex items-center gap-3">
+            {/* Special Note Icon */}
+            {hasValidNote ? (
+              <div
+                className={`${
+                  lead.specialNote.isImportant 
+                    ? "bg-red-500" 
+                    : "bg-blue-500"
+                } rounded-full p-1 shadow-lg flex-shrink-0`}
+              >
+                {lead.specialNote.isImportant ? (
+                  <AlertTriangle size={12} className="text-white" />
+                ) : (
+                  <Info size={12} className="text-white" />
+                )}
+              </div>
+            ) : (
+              <div className="bg-transparent border border-dashed border-gray-400 rounded-full p-1 shadow-lg flex-shrink-0">
+                <StickyNote size={12} className="text-gray-400" />
+              </div>
+            )}
+            
+            <span className="text-white font-medium text-sm truncate">
+              {lead.firstName} {lead.surname}
+            </span>
+          </div>
+        </div>
+      )
+    }
+    
     return (
       <div
         className="bg-[#1C1C1C] rounded-xl p-3 sm:p-4 min-h-[120px] sm:min-h-[140px] shadow-2xl border-2 border-blue-500/50 rotate-2"
@@ -246,9 +302,9 @@ const SortableLeadCard = ({
             </div>
           ) : (
             <div
-              className="absolute -top-2 -left-2 bg-gray-500 rounded-full p-1 border-[2.5px] border-white shadow-lg z-10"
+              className="absolute -top-2 -left-2 bg-transparent border border-dashed border-gray-400 rounded-full p-1 shadow-lg z-10"
             >
-              <StickyNote size={14} className="text-white" />
+              <StickyNote size={14} className="text-gray-400" />
             </div>
           )}
           
@@ -264,15 +320,104 @@ const SortableLeadCard = ({
 
   return (
     <>
-      <div
-        ref={setNodeRef}
-        style={style}
-        className={`bg-[#1C1C1C] rounded-xl p-3 sm:p-4 mb-3 min-h-[120px] sm:min-h-[140px] ${
-          isDragging ? "ring-2 ring-blue-500/50 select-none" : ""
-        }`}
-        data-lead-id={lead.id}
-      >
-        {/* Drag Handle - the entire card header area */}
+      {isCompactCollapsed ? (
+        // COMPACT COLLAPSED VIEW
+        <div
+          ref={setNodeRef}
+          style={style}
+          className="bg-[#1C1C1C] rounded-xl p-3 mb-3 hover:bg-[#242424] transition-colors"
+          data-lead-id={lead.id}
+        >
+          <div className="flex items-center justify-between gap-3">
+            <div 
+              className="flex items-center gap-3 flex-1 min-w-0 cursor-grab active:cursor-grabbing"
+              {...attributes}
+              {...listeners}
+              style={{ WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'none' }}
+            >
+              {/* Special Note Icon - Inside card */}
+              {hasValidNote ? (
+                <div
+                  className={`${
+                    lead.specialNote.isImportant 
+                      ? "bg-red-500 hover:bg-red-400" 
+                      : "bg-blue-500 hover:bg-blue-400"
+                  } rounded-full p-1 shadow-lg cursor-pointer transition-all duration-200 hover:scale-110 active:scale-95 flex-shrink-0`}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleNoteClick(e)
+                  }}
+                  onMouseEnter={handleNoteMouseEnter}
+                  onMouseLeave={handleNoteMouseLeave}
+                  onPointerDown={(e) => e.stopPropagation()}
+                >
+                  {lead.specialNote.isImportant ? (
+                    <AlertTriangle size={12} className="text-white" />
+                  ) : (
+                    <Info size={12} className="text-white" />
+                  )}
+                </div>
+              ) : (
+                <div
+                  className="bg-transparent border border-dashed border-gray-400 hover:border-gray-300 rounded-full p-1 shadow-lg cursor-pointer transition-all duration-200 hover:scale-110 active:scale-95 flex-shrink-0"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    if (onEditLead) {
+                      onEditLead(lead, "note")
+                    }
+                  }}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  title="Add special note"
+                >
+                  <StickyNote size={12} className="text-gray-400" />
+                </div>
+              )}
+              
+              <div className="flex-1 min-w-0">
+                <span className="text-white font-medium text-sm truncate block">
+                  {lead.firstName} {lead.surname}
+                </span>
+              </div>
+            </div>
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                setExpandedLeadId(lead.id)
+              }}
+              className="p-1 bg-black rounded-lg border border-slate-600 hover:border-slate-400 transition-colors flex-shrink-0"
+              title="Expand"
+            >
+              <ChevronDown className="w-3 h-3 text-gray-400" />
+            </button>
+          </div>
+        </div>
+      ) : (
+        // DETAILED VIEW (normal full card)
+        <div
+          ref={setNodeRef}
+          style={style}
+          className={`bg-[#1C1C1C] rounded-xl p-3 sm:p-4 mb-3 min-h-[120px] sm:min-h-[140px] ${
+            isDragging ? "ring-2 ring-blue-500/50 select-none" : ""
+          }`}
+          data-lead-id={lead.id}
+        >
+          {/* Collapse button for expanded compact view */}
+          {isCompactView && expandedLeadId === lead.id && (
+            <div className="flex justify-end mb-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setExpandedLeadId(null)
+                }}
+                className="p-1 bg-black rounded-lg border border-slate-600 hover:border-slate-400 transition-colors"
+                title="Collapse"
+              >
+                <ChevronUp className="w-3 h-3 text-gray-400" />
+              </button>
+            </div>
+          )}
+          
+          {/* Drag Handle - the entire card header area */}
         <div 
           className="flex items-center mb-2 sm:mb-3 relative cursor-grab active:cursor-grabbing select-none touch-none"
           {...attributes}
@@ -299,7 +444,7 @@ const SortableLeadCard = ({
             </div>
           ) : (
             <div
-              className="absolute -top-2 -left-2 bg-gray-500 hover:bg-gray-400 rounded-full p-1 border-[2.5px] border-white shadow-lg z-10 cursor-pointer transition-all duration-200 hover:scale-110 active:scale-95"
+              className="absolute -top-2 -left-2 bg-transparent border border-dashed border-gray-400 hover:border-gray-300 rounded-full p-1 shadow-lg z-10 cursor-pointer transition-all duration-200 hover:scale-110 active:scale-95"
               onClick={(e) => {
                 e.stopPropagation()
                 if (onEditLead) {
@@ -309,72 +454,9 @@ const SortableLeadCard = ({
               onPointerDown={(e) => e.stopPropagation()}
               title="Add special note"
             >
-              <StickyNote size={14} className="text-white" />
+              <StickyNote size={14} className="text-gray-400" />
             </div>
           )}
-          
-          {/* Note Popover */}
-          {shouldShowNotePopover && hasValidNote &&
-            createPortal(
-              <div
-                ref={noteRef}
-                className="fixed w-64 sm:w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-[99999]"
-                style={{
-                  top: notePosition.top,
-                  left: notePosition.left,
-                }}
-                onMouseEnter={handlePopupMouseEnter}
-                onMouseLeave={handlePopupMouseLeave}
-              >
-                <div className="bg-gray-800 p-2 sm:p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
-                  <h4 className="text-white flex gap-1 items-center font-medium">
-                    <div>Special Note</div>
-                    <div className="text-sm text-gray-400">
-                      {lead.specialNote.isImportant ? "(Important)" : ""}
-                    </div>
-                  </h4>
-                  <button
-                    onClick={handleEditNote}
-                    className="ml-auto text-gray-400 hover:text-blue-400 transition-colors p-1"
-                    title="Edit note"
-                  >
-                    <Edit size={14} />
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      if (hoverTimeout) clearTimeout(hoverTimeout)
-                      if (leaveTimeout) clearTimeout(leaveTimeout)
-                      setIsNoteOpen(false)
-                      setHoveredNoteId(null)
-                    }}
-                    className="text-gray-400 hover:text-white transition-colors p-1"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-                <div className="p-3">
-                  <p className="text-white text-sm leading-relaxed">{lead.specialNote.text}</p>
-                  {lead.specialNote.startDate && lead.specialNote.endDate ? (
-                    <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
-                      <p className="text-xs text-gray-300 flex items-center gap-1.5">
-                        <Calendar size={12} /> Valid from{" "}
-                        {new Date(lead.specialNote.startDate).toLocaleDateString()} to{" "}
-                        {new Date(lead.specialNote.endDate).toLocaleDateString()}
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
-                      <p className="text-xs text-gray-300 flex items-center gap-1.5">
-                        <Calendar size={12} /> Always valid
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>,
-              document.body
-            )
-          }
           
           <div className="flex-1 mt-6">
             <h4 className="font-medium text-white text-lg mb-1">{`${lead.firstName} ${lead.surname}`}</h4>
@@ -450,7 +532,7 @@ const SortableLeadCard = ({
                 </button>
                 <button
                   onClick={() => {
-                    setLeadToDelete(lead)
+                    onDeleteLead(lead.id)
                     setIsMenuOpen(false)
                   }}
                   className="w-full text-left px-3 py-2 hover:bg-gray-800 text-red-500 text-sm flex items-center gap-2"
@@ -507,40 +589,100 @@ const SortableLeadCard = ({
           )}
         </div>
       </div>
-
-      {/* Delete Confirmation Modal */}
-      {leadToDelete && createPortal(
-        <div className="fixed inset-0 text-white bg-black/50 flex items-center justify-center z-[99999]">
-          <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
-            <h3 className="text-lg font-semibold mb-4">Delete Lead</h3>
-            <p className="text-gray-300 mb-6">
-              Are you sure you want to delete <span className="font-semibold">{leadToDelete.firstName} {leadToDelete.surname}</span>? This action cannot be undone.
-            </p>
-            <div className="flex gap-3 justify-end">
+      )}
+      
+      {/* Note Popover - Available in both compact and detailed views */}
+      {shouldShowNotePopover && hasValidNote &&
+        createPortal(
+          <div
+            ref={noteRef}
+            className="fixed w-64 sm:w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-[99999] flex flex-col"
+            style={{
+              top: notePosition.top,
+              left: notePosition.left,
+              maxHeight: notePosition.maxHeight || '60vh',
+            }}
+            onMouseEnter={handlePopupMouseEnter}
+            onMouseLeave={handlePopupMouseLeave}
+          >
+            {/* Header */}
+            <div className="bg-gray-800 p-2 sm:p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2 flex-shrink-0">
+              <h4 className="text-white flex gap-1 items-center font-medium">
+                <div>Special Note</div>
+                <div className="text-sm text-gray-400">
+                  {lead.specialNote.isImportant ? "(Important)" : ""}
+                </div>
+              </h4>
               <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setLeadToDelete(null)
-                }}
-                className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#2F2F2F]/90"
+                onClick={handleEditNote}
+                className="ml-auto text-gray-400 hover:text-blue-400 transition-colors p-1"
+                title="Edit note"
               >
-                Cancel
+                <Edit size={14} />
               </button>
               <button
                 onClick={(e) => {
                   e.stopPropagation()
-                  onDeleteLead(leadToDelete.id)
-                  setLeadToDelete(null)
+                  if (hoverTimeout) clearTimeout(hoverTimeout)
+                  if (leaveTimeout) clearTimeout(leaveTimeout)
+                  setIsNoteOpen(false)
+                  setHoveredNoteId(null)
                 }}
-                className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700"
+                className="text-gray-400 hover:text-white transition-colors p-1"
               >
-                Delete
+                <X size={16} />
               </button>
             </div>
-          </div>
-        </div>,
-        document.body
-      )}
+            
+            {/* Scrollable Content */}
+            <style>{`
+              .special-note-scrollable::-webkit-scrollbar {
+                width: 8px;
+              }
+              .special-note-scrollable::-webkit-scrollbar-track {
+                background: #1F2937;
+                border-radius: 4px;
+              }
+              .special-note-scrollable::-webkit-scrollbar-thumb {
+                background: #4B5563;
+                border-radius: 4px;
+              }
+              .special-note-scrollable::-webkit-scrollbar-thumb:hover {
+                background: #6B7280;
+              }
+            `}</style>
+            <div 
+              className="p-3 overflow-y-auto flex-1 min-h-0 special-note-scrollable"
+              style={{
+                scrollbarWidth: 'thin',
+                scrollbarColor: '#4B5563 #1F2937'
+              }}
+            >
+              <p className="text-white text-sm leading-relaxed whitespace-pre-wrap break-words">{lead.specialNote.text}</p>
+            </div>
+            
+            {/* Fixed Footer with Validity Info */}
+            <div className="p-3 pt-2 border-t border-gray-700 flex-shrink-0">
+              {lead.specialNote.startDate && lead.specialNote.endDate ? (
+                <div className="bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
+                  <p className="text-xs text-gray-300 flex items-center gap-1.5">
+                    <Calendar size={12} /> Valid from{" "}
+                    {new Date(lead.specialNote.startDate).toLocaleDateString()} to{" "}
+                    {new Date(lead.specialNote.endDate).toLocaleDateString()}
+                  </p>
+                </div>
+              ) : (
+                <div className="bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
+                  <p className="text-xs text-gray-300 flex items-center gap-1.5">
+                    <Calendar size={12} /> Always valid
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>,
+          document.body
+        )
+      }
     </>
   )
 }

@@ -9,7 +9,11 @@ const AssessmentFormModal = ({
   assessment, 
   selectedLead,
   onComplete,
-  onProceedToContract 
+  onProceedToContract,
+  fromDocumentManagement = false,
+  existingDocument = null, // Das komplette document object für Edit/View
+  isEditMode = false,
+  isViewMode = false
 }) => {
   const [answers, setAnswers] = useState({});
   const [currentSection, setCurrentSection] = useState(0);
@@ -43,9 +47,33 @@ const AssessmentFormModal = ({
     }
   ];
 
+  // Initialize answers and signature from existing document
+  useEffect(() => {
+    if (isOpen) {
+      if ((isEditMode || isViewMode) && existingDocument) {
+        // Lade aus dem bestehenden document
+        setAnswers(existingDocument.answers || {});
+        if (isViewMode && existingDocument.signature) {
+          setSignature(existingDocument.signature);
+          setIsSigned(true);
+        } else {
+          // Im Edit-Modus: Signatur ist leer
+          setSignature('');
+          setIsSigned(false);
+        }
+      } else {
+        // Im Create-Modus: Alles leer
+        setAnswers({});
+        setSignature('');
+        setIsSigned(false);
+      }
+      setCurrentSection(0);
+    }
+  }, [isOpen, isEditMode, isViewMode, existingDocument, selectedLead?.id]);
+
   // Initialize canvas for signature
   useEffect(() => {
-    if (isSigned && canvasRef.current) {
+    if (isSigned && canvasRef.current && !isViewMode) {
       const canvas = canvasRef.current;
       canvas.width = canvas.offsetWidth * 2;
       canvas.height = canvas.offsetHeight * 2;
@@ -58,10 +86,21 @@ const AssessmentFormModal = ({
       context.strokeStyle = "white";
       context.lineWidth = 2;
       contextRef.current = context;
+    } else if (isSigned && isViewMode && existingDocument?.signature && canvasRef.current) {
+      // Im View-Modus: Lade die bestehende Signatur
+      const canvas = canvasRef.current;
+      const context = canvas.getContext("2d");
+      const img = new Image();
+      img.onload = () => {
+        context.drawImage(img, 0, 0, canvas.width, canvas.height);
+      };
+      img.src = existingDocument.signature;
     }
-  }, [isSigned]);
+  }, [isSigned, isViewMode, existingDocument]);
 
   const startDrawing = (e) => {
+    if (isViewMode) return;
+    
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
     
@@ -74,7 +113,7 @@ const AssessmentFormModal = ({
   };
 
   const draw = (e) => {
-    if (!isDrawing) return;
+    if (!isDrawing || isViewMode) return;
     
     const canvas = canvasRef.current;
     const rect = canvas.getBoundingClientRect();
@@ -87,11 +126,10 @@ const AssessmentFormModal = ({
   };
 
   const stopDrawing = () => {
-    if (isDrawing) {
+    if (isDrawing && !isViewMode) {
       contextRef.current.closePath();
       setIsDrawing(false);
       
-      // Get signature as data URL
       const canvas = canvasRef.current;
       const signatureData = canvas.toDataURL();
       setSignature(signatureData);
@@ -99,6 +137,8 @@ const AssessmentFormModal = ({
   };
 
   const clearSignature = () => {
+    if (isViewMode) return;
+    
     const canvas = canvasRef.current;
     const context = canvas.getContext("2d");
     context.clearRect(0, 0, canvas.width, canvas.height);
@@ -106,6 +146,8 @@ const AssessmentFormModal = ({
   };
 
   const handleAnswerChange = (questionId, value) => {
+    if (isViewMode) return;
+    
     setAnswers(prev => ({
       ...prev,
       [questionId]: value
@@ -125,6 +167,7 @@ const AssessmentFormModal = ({
                 name={`question-${question.id}`}
                 checked={currentAnswer === 'yes'}
                 onChange={() => handleAnswerChange(question.id, 'yes')}
+                disabled={isViewMode}
                 className="w-4 h-4"
               />
               <span>Yes</span>
@@ -135,6 +178,7 @@ const AssessmentFormModal = ({
                 name={`question-${question.id}`}
                 checked={currentAnswer === 'no'}
                 onChange={() => handleAnswerChange(question.id, 'no')}
+                disabled={isViewMode}
                 className="w-4 h-4"
               />
               <span>No</span>
@@ -147,8 +191,9 @@ const AssessmentFormModal = ({
             type="text"
             value={currentAnswer || ''}
             onChange={(e) => handleAnswerChange(question.id, e.target.value)}
-            className="w-full bg-[#161616] border border-gray-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500 mt-3"
-            placeholder="Enter your answer..."
+            disabled={isViewMode}
+            className="w-full bg-[#161616] border border-gray-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500 mt-3 disabled:opacity-60 disabled:cursor-not-allowed"
+            placeholder={isViewMode ? "" : "Enter your answer..."}
           />
         );
       default:
@@ -174,19 +219,30 @@ const AssessmentFormModal = ({
       return;
     }
     
-    const assessmentData = {
-      leadId: selectedLead.id,
-      assessmentId: assessment.id,
+    // Erstelle das document object das gespeichert werden soll
+    const documentData = {
+      id: existingDocument?.id || `doc-${Date.now()}`, // Behalte ID bei Edit
+      name: `Medical History Form - ${assessment.title}`,
+      type: "medicalHistory",
+      size: "0.3 MB",
+      uploadDate: new Date().toISOString().split("T")[0],
+      category: "medicalHistory",
+      section: "medicalHistory",
+      templateId: assessment.id,
       answers,
       signature,
-      completedAt: new Date().toISOString()
+      signed: true,
+      tags: [],
+      isEdit: isEditMode
     };
     
-    // console.log('Assessment completed:', assessmentData);
+    onComplete(documentData);
     
-    onComplete(assessmentData);
-    
-    setShowContractPrompt(true);
+    if (fromDocumentManagement) {
+      onClose();
+    } else {
+      setShowContractPrompt(true);
+    }
   };
 
   const handleProceedToContractClick = () => {
@@ -209,15 +265,20 @@ const AssessmentFormModal = ({
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/50 flex items-start justify-center p-4 z-50 overflow-y-auto">
+      <div className="fixed inset-0 bg-black/50 flex items-start justify-center p-4 z-[70] overflow-y-auto">
         <div className="bg-[#1C1C1C] rounded-xl p-6 w-full max-w-4xl my-8 border border-gray-700 max-h-[90vh] overflow-y-auto">
           {/* Header */}
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h2 className="text-xl font-bold text-white">{assessment?.title}</h2>
+              <h2 className="text-xl font-bold text-white">
+                {isViewMode ? 'View Medical History' : isEditMode ? 'Edit Medical History' : assessment?.title}
+              </h2>
               <p className="text-gray-400 text-sm">
                 For: {selectedLead?.firstName} {selectedLead?.surname}
               </p>
+              {isViewMode && (
+                <p className="text-orange-400 text-xs mt-1">Read-only mode</p>
+              )}
             </div>
             <button
               onClick={onClose}
@@ -273,17 +334,26 @@ const AssessmentFormModal = ({
                 </button>
                 
                 {currentSection === sampleAssessmentSections.length - 1 ? (
-                  <button
-                    onClick={() => setIsSigned(true)}
-                    disabled={!allQuestionsAnswered()}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Complete & Sign
-                  </button>
+                  isViewMode ? (
+                    <button
+                      onClick={onClose}
+                      className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                    >
+                      Close
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setIsSigned(true)}
+                      disabled={!allQuestionsAnswered()}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Complete & Sign
+                    </button>
+                  )
                 ) : (
                   <button
                     onClick={handleNext}
-                    disabled={!allQuestionsAnswered()}
+                    disabled={!allQuestionsAnswered() && !isViewMode}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Next Section
@@ -294,39 +364,47 @@ const AssessmentFormModal = ({
           ) : (
             /* Signature Section */
             <div className="bg-[#161616] border border-gray-600 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-white mb-4">Signature Required</h3>
-              <p className="text-gray-300 mb-6">
-                Please draw your signature in the box below to complete the assessment.
-              </p>
+              <h3 className="text-lg font-semibold text-white mb-4">
+                {isViewMode ? 'Signature' : 'Signature Required'}
+              </h3>
+              {!isViewMode && (
+                <p className="text-gray-300 mb-6">
+                  Please draw your signature in the box below to complete the assessment.
+                </p>
+              )}
               
               <div className="mb-6">
                 <div className="flex justify-between items-center mb-3">
                   <label className="block text-sm font-medium text-gray-300">
-                    Draw your signature
+                    {isViewMode ? 'Signed signature' : 'Draw your signature'}
                   </label>
-                  <button
-                    onClick={clearSignature}
-                    className="text-sm text-gray-400 hover:text-white transition-colors"
-                  >
-                    Clear signature
-                  </button>
+                  {!isViewMode && (
+                    <button
+                      onClick={clearSignature}
+                      className="text-sm text-gray-400 hover:text-white transition-colors"
+                    >
+                      Clear signature
+                    </button>
+                  )}
                 </div>
                 
                 {/* Signature Canvas */}
                 <div className="bg-[#1C1C1C] border-2 border-gray-600 rounded-lg overflow-hidden">
                   <canvas
                     ref={canvasRef}
-                    className="w-full h-48 cursor-crosshair touch-none bg-transparent"
+                    className={`w-full h-48 ${isViewMode ? 'cursor-default' : 'cursor-crosshair'} touch-none bg-transparent`}
                     onMouseDown={startDrawing}
                     onMouseMove={draw}
                     onMouseUp={stopDrawing}
                     onMouseLeave={stopDrawing}
                     onTouchStart={(e) => {
+                      if (isViewMode) return;
                       e.preventDefault();
                       const touch = e.touches[0];
                       startDrawing(touch);
                     }}
                     onTouchMove={(e) => {
+                      if (isViewMode) return;
                       e.preventDefault();
                       const touch = e.touches[0];
                       draw(touch);
@@ -335,25 +413,38 @@ const AssessmentFormModal = ({
                   />
                 </div>
                 
-                <p className="text-gray-400 text-xs mt-2">
-                  Draw your signature using mouse/finger. On mobile, use your finger to sign.
-                </p>
+                {!isViewMode && (
+                  <p className="text-gray-400 text-xs mt-2">
+                    Draw your signature using mouse/finger. On mobile, use your finger to sign.
+                  </p>
+                )}
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3 justify-end">
-                <button
-                  onClick={() => setIsSigned(false)}
-                  className="px-4 py-2 text-gray-300 border border-gray-600 rounded-lg hover:bg-gray-700 transition-colors"
-                >
-                  Back to Questions
-                </button>
-                <button
-                  onClick={handleCompleteAssessment}
-                  disabled={!signature}
-                  className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Complete Assessment
-                </button>
+                {isViewMode ? (
+                  <button
+                    onClick={onClose}
+                    className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                  >
+                    Close
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => setIsSigned(false)}
+                      className="px-4 py-2 text-gray-300 border border-gray-600 rounded-lg hover:bg-gray-700 transition-colors"
+                    >
+                      Back to Questions
+                    </button>
+                    <button
+                      onClick={handleCompleteAssessment}
+                      disabled={!signature}
+                      className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isEditMode ? 'Update Assessment' : 'Complete Assessment'}
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           )}
@@ -362,7 +453,7 @@ const AssessmentFormModal = ({
 
       {/* Custom Contract Prompt Modal */}
       {showContractPrompt && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[60] p-4">
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[80] p-4">
           <div className="bg-[#1C1C1C] rounded-xl p-6 w-full max-w-md border border-gray-700">
             <div className="text-center mb-6">
               <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">

@@ -9,7 +9,8 @@ const AssessmentSelectionModal = ({
   onClose, 
   onSelectAssessment, 
   onProceedToContract,
-  selectedLead 
+  selectedLead,
+  fromDocumentManagement = false
 }) => {
   const [assessments, setAssessments] = useState([]);
   const [selectedAssessment, setSelectedAssessment] = useState(null);
@@ -58,7 +59,7 @@ const AssessmentSelectionModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[70]">
       <div className="bg-[#1C1C1C] rounded-xl p-6 w-full max-w-2xl border border-gray-700">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold text-white">Fill Out Medical History</h2>
@@ -101,12 +102,14 @@ const AssessmentSelectionModal = ({
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3 justify-end">
-          <button
-            onClick={onProceedToContract}
-            className="px-4 py-2 text-gray-300 border border-gray-600 rounded-lg hover:bg-gray-700 transition-colors"
-          >
-            Proceed to Contract
-          </button>
+          {!fromDocumentManagement && (
+            <button
+              onClick={onProceedToContract}
+              className="px-4 py-2 text-gray-300 border border-gray-600 rounded-lg hover:bg-gray-700 transition-colors"
+            >
+              Proceed to Contract
+            </button>
+          )}
           <button
             onClick={handleCreateAssessment}
             disabled={!selectedAssessment}
