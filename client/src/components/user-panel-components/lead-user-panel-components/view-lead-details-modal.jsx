@@ -1,6 +1,18 @@
 /* eslint-disable react/prop-types */
-import { X, Copy, Check } from "lucide-react"
+import { X, Copy, Check, ChevronDown, ChevronUp } from "lucide-react"
 import { useEffect, useState } from "react"
+
+// Note Status Options
+const NOTE_STATUSES = [
+  { id: "contact_attempt", label: "Contact Attempt" },
+  { id: "callback_requested", label: "Callback Requested" },
+  { id: "interest", label: "Interest" },
+  { id: "objection", label: "Objection" },
+  { id: "personal_info", label: "Personal Info" },
+  { id: "health", label: "Health" },
+  { id: "follow_up", label: "Follow-up" },
+  { id: "general", label: "General" },
+]
 
 const ViewLeadDetailsModal = ({
   isVisible,
@@ -12,6 +24,7 @@ const ViewLeadDetailsModal = ({
   initialTab = "details",
 }) => {
   const [activeTab, setActiveTab] = useState(initialTab)
+  const [expandedNoteId, setExpandedNoteId] = useState(null)
   const [copiedEmail, setCopiedEmail] = useState(false)
   const [copiedPhone, setCopiedPhone] = useState(false)
   const [copiedTelephone, setCopiedTelephone] = useState(false)
@@ -24,6 +37,41 @@ const ViewLeadDetailsModal = ({
   const [copiedCountry, setCopiedCountry] = useState(false)
   const [copiedDetails, setCopiedDetails] = useState(false)
   const [copiedBirthday, setCopiedBirthday] = useState(false)
+
+  const getStatusInfo = (statusId) => {
+    return NOTE_STATUSES.find(s => s.id === statusId) || NOTE_STATUSES.find(s => s.id === "general")
+  }
+  
+  const formatNoteDate = (dateString) => {
+    if (!dateString) return ""
+    return new Date(dateString).toLocaleDateString("de-DE", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    })
+  }
+  
+  // Get notes array (support both old and new format)
+  const getNotes = () => {
+    if (!leadData) return []
+    if (leadData.notes && Array.isArray(leadData.notes)) {
+      return leadData.notes
+    }
+    if (leadData.specialNote && leadData.specialNote.text) {
+      return [{
+        id: 1,
+        status: "general",
+        text: leadData.specialNote.text,
+        isImportant: leadData.specialNote.isImportant || false,
+        startDate: leadData.specialNote.startDate || "",
+        endDate: leadData.specialNote.endDate || "",
+        createdAt: leadData.createdAt || "",
+      }]
+    }
+    return []
+  }
 
   // IMPORTANT: Update tab whenever initialTab changes
   useEffect(() => {
@@ -226,7 +274,7 @@ const ViewLeadDetailsModal = ({
                 activeTab === "note" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400 hover:text-white"
               }`}
             >
-              Special Note
+              Special Notes
             </button>
             <button
               onClick={() => setActiveTab("relations")}
@@ -569,28 +617,94 @@ const ViewLeadDetailsModal = ({
             <div className="space-y-4 text-white pb-16">
               {/* Lead Name Header */}
               <div className="mb-2 pb-3 border-b border-slate-700">
-                <p className="text-xs text-gray-400 uppercase tracking-wider">Special Note for</p>
-                <p className="text-white font-semibold text-lg">{leadData.firstName} {leadData.surname}</p>
+                <p className="text-xs text-gray-400 uppercase tracking-wider">Special Notes for</p>
+                <p className="text-white font-medium">{leadData.firstName} {leadData.surname}</p>
               </div>
-              {leadData.specialNote && leadData.specialNote.text ? (
-                <div className="border border-slate-700 rounded-xl p-4">
-                  <div className="mb-4">
-                    <p className="font-medium">
-                      {leadData.specialNote.isImportant ? "Important Note" : "Note"}
-                    </p>
-                  </div>
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">{leadData.specialNote.text}</p>
-                  {leadData.specialNote.startDate && leadData.specialNote.endDate && (
-                    <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
-                      <p className="text-xs text-gray-300">
-                        Valid from {leadData.specialNote.startDate} to {leadData.specialNote.endDate}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="text-gray-400 text-center py-8">No special note for this lead.</div>
-              )}
+              
+              {/* Notes List */}
+              <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                {getNotes().length > 0 ? (
+                  [...getNotes()]
+                    .sort((a, b) => (b.isImportant ? 1 : 0) - (a.isImportant ? 1 : 0))
+                    .map((note) => {
+                    const statusInfo = getStatusInfo(note.status)
+                    const isExpanded = expandedNoteId === note.id
+                    
+                    return (
+                      <div
+                        key={note.id}
+                        className="bg-[#1a1a1a] rounded-lg overflow-hidden"
+                      >
+                        {/* Note Header */}
+                        <div 
+                          className="flex items-center justify-between p-3 cursor-pointer"
+                          onClick={() => setExpandedNoteId(isExpanded ? null : note.id)}
+                        >
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <span className="text-xs font-medium px-2 py-0.5 rounded bg-gray-700 text-gray-300">
+                              {statusInfo.label}
+                            </span>
+                            {note.isImportant && (
+                              <span className="text-xs font-medium px-2 py-0.5 rounded bg-gray-700 text-red-500">
+                                Important
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center">
+                            {isExpanded ? (
+                              <ChevronUp size={16} className="text-gray-400" />
+                            ) : (
+                              <ChevronDown size={16} className="text-gray-400" />
+                            )}
+                          </div>
+                        </div>
+                        
+                        {/* Preview & Valid Date (always visible when collapsed) */}
+                        {!isExpanded && (
+                          <div className="px-3 pb-2">
+                            <p className="text-gray-400 text-sm truncate">
+                              {note.text}
+                            </p>
+                            {(note.startDate || note.endDate) && (
+                              <p className="text-xs text-gray-600 mt-1">
+                                {note.startDate && note.endDate ? (
+                                  <>Valid: {note.startDate} - {note.endDate}</>
+                                ) : note.startDate ? (
+                                  <>Valid from: {note.startDate}</>
+                                ) : (
+                                  <>Valid until: {note.endDate}</>
+                                )}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                        
+                        {/* Note Content (expandable) */}
+                        {isExpanded && (
+                          <div className="px-3 pb-3 border-t border-gray-800">
+                            <p className="text-white text-sm mt-2 whitespace-pre-wrap break-words">
+                              {note.text}
+                            </p>
+                            {(note.startDate || note.endDate) && (
+                              <div className="mt-2 text-xs text-gray-500">
+                                {note.startDate && note.endDate ? (
+                                  <>Valid: {note.startDate} - {note.endDate}</>
+                                ) : note.startDate ? (
+                                  <>Valid from: {note.startDate}</>
+                                ) : (
+                                  <>Valid until: {note.endDate}</>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })
+                ) : (
+                  <div className="text-gray-400 text-center py-8">No special notes for this lead.</div>
+                )}
+              </div>
             </div>
           )}
 
@@ -639,15 +753,7 @@ const ViewLeadDetailsModal = ({
                                 >
                                   <div className="text-white text-sm font-medium">{relation.name}</div>
                                   <div className="text-gray-400 text-xs">({relation.relation})</div>
-                                  <div
-                                    className={`text-xs mt-1 px-1 py-0.5 rounded ${
-                                      relation.type === "member"
-                                        ? "bg-green-600 text-green-100"
-                                        : relation.type === "lead"
-                                          ? "bg-blue-600 text-blue-100"
-                                          : "bg-gray-600 text-gray-100"
-                                    }`}
-                                  >
+                                  <div className="bg-gray-700 text-gray-300 text-xs mt-1 px-1.5 py-0.5 rounded capitalize inline-block">
                                     {relation.type}
                                   </div>
                                 </div>
@@ -680,18 +786,10 @@ const ViewLeadDetailsModal = ({
                                     : ""
                                 }`}
                               >
-                                <div>
+                                <div className="flex items-center flex-wrap gap-1.5">
                                   <span className="text-white font-medium">{relation.name}</span>
-                                  <span className="text-gray-400 ml-2">- {relation.relation}</span>
-                                  <span
-                                    className={`ml-2 text-xs px-2 py-0.5 rounded ${
-                                      relation.type === "member"
-                                        ? "bg-green-600 text-green-100"
-                                        : relation.type === "lead"
-                                          ? "bg-blue-600 text-blue-100"
-                                          : "bg-gray-600 text-gray-100"
-                                    }`}
-                                  >
+                                  <span className="text-gray-400">- {relation.relation}</span>
+                                  <span className="bg-gray-700 text-gray-300 text-xs px-2 py-0.5 rounded capitalize">
                                     {relation.type}
                                   </span>
                                 </div>
@@ -727,9 +825,9 @@ const ViewLeadDetailsModal = ({
             {activeTab === "note" && (
               <button
                 onClick={handleEditNote}
-                className="bg-orange-500 text-sm text-white px-4 py-2 rounded-xl hover:bg-orange-600"
+                className="bg-orange-500 text-sm text-white px-4 py-2 rounded-xl"
               >
-                Edit Note
+                Edit Special Notes
               </button>
             )}
             {activeTab === "relations" && (

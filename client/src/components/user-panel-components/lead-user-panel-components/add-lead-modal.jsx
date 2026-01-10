@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
-import { X, Users, Trash2, Plus } from "lucide-react"
-import { useState, useEffect } from "react"
+import { X, Users, Trash2, Plus, Search } from "lucide-react"
+import { useState, useEffect, useRef } from "react"
 import toast from "react-hot-toast"
 import useCountries from "../../../hooks/useCountries"
 
@@ -13,11 +13,11 @@ const AddLeadModal = ({
   availableMembersLeads = [],
   columns = [], // Added columns prop
   relationOptions = {
-    family: ["Father", "Mother", "Brother", "Sister", "Son", "Daughter", "Spouse"],
-    friendship: ["Best Friend", "Close Friend", "Friend", "Acquaintance"],
-    relationship: ["Partner", "Boyfriend", "Girlfriend", "Ex-Partner"],
-    work: ["Colleague", "Boss", "Employee", "Business Partner", "Client"],
-    other: ["Neighbor", "Roommate", "Mentor", "Student", "Other"]
+    family: ["Father", "Mother", "Brother", "Sister", "Son", "Daughter", "Uncle", "Aunt", "Cousin", "Grandfather", "Grandmother", "Nephew", "Niece", "Stepfather", "Stepmother", "Father-in-law", "Mother-in-law", "Brother-in-law", "Sister-in-law"],
+    friendship: ["Best Friend", "Close Friend", "Friend", "Acquaintance", "Childhood Friend"],
+    relationship: ["Partner", "Spouse", "Fiancé/Fiancée", "Ex-Partner", "Boyfriend", "Girlfriend"],
+    work: ["Colleague", "Boss", "Manager", "Employee", "Business Partner", "Client", "Mentor", "Cofounder"],
+    other: ["Neighbor", "Doctor", "Trainer", "Coach", "Teacher", "Therapist", "Roommate"],
   }
 }) => {
   const [activeTab, setActiveTab] = useState("details")
@@ -64,10 +64,16 @@ const AddLeadModal = ({
   const [newRelation, setNewRelation] = useState({
     name: "",
     relation: "",
+    customRelation: "",
     category: "family",
     type: "manual",
     selectedMemberId: null,
   })
+
+  // Search state for member/lead search
+  const [personSearchQuery, setPersonSearchQuery] = useState("")
+  const [showPersonDropdown, setShowPersonDropdown] = useState(false)
+  const personSearchRef = useRef(null)
 
   const sourceOptions = [
     "Website",
@@ -206,7 +212,13 @@ const AddLeadModal = ({
   const addRelation = (e) => {
     e.preventDefault()
     e.stopPropagation()
-    if (!newRelation.name || !newRelation.relation) {
+    
+    // Determine the final relation value
+    const finalRelation = newRelation.relation === "custom" 
+      ? newRelation.customRelation 
+      : newRelation.relation
+    
+    if (!newRelation.name || !finalRelation) {
       toast.error("Please fill in all fields")
       return
     }
@@ -215,7 +227,7 @@ const AddLeadModal = ({
     const newRel = {
       id: relationId,
       name: newRelation.name,
-      relation: newRelation.relation,
+      relation: finalRelation,
       type: newRelation.type,
     }
 
@@ -230,10 +242,12 @@ const AddLeadModal = ({
     setNewRelation({
       name: "",
       relation: "",
+      customRelation: "",
       category: "family",
       type: "manual",
       selectedMemberId: null
     })
+    setPersonSearchQuery("")
   }
 
   // Remove relation
@@ -248,6 +262,20 @@ const AddLeadModal = ({
       }
     }))
   }
+
+  // Close person dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (personSearchRef.current && !personSearchRef.current.contains(event.target)) {
+        setShowPersonDropdown(false)
+      }
+    }
+    
+    if (showPersonDropdown) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showPersonDropdown])
 
   const updateFormData = (field, value) => {
     setFormData({
@@ -729,128 +757,226 @@ const AddLeadModal = ({
                     onClick={handleEditingRelationsToggle}
                     className="text-sm text-blue-400 hover:text-blue-300"
                   >
-                    {editingRelations ? "Done" : "Edit"}
+                    {editingRelations ? "Done" : "Add New"}
                   </button>
                 </div>
 
                 {editingRelations && (
-                  <div className="mb-4 p-3 bg-[#101010] rounded-xl">
-                    <div className="grid grid-cols-1 gap-2 mb-2">
-                      <select
-                        value={newRelation.type}
-                        onChange={(e) => {
-                          const type = e.target.value
-                          setNewRelation({
-                            ...newRelation,
-                            type,
-                            name: "",
-                            selectedMemberId: null
-                          })
-                        }}
-                        className="bg-[#222] text-white rounded px-3 py-2 text-sm"
-                      >
-                        <option value="manual">Manual Entry</option>
-                        <option value="member">Select Member</option>
-                        <option value="lead">Select Lead</option>
-                      </select>
+                  <div className="mb-4 p-4 bg-[#101010] rounded-xl space-y-3">
+                    {/* Step 1: Person Selection */}
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1.5">Person</label>
+                      <div className="flex gap-2 mb-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setNewRelation({ ...newRelation, type: "manual", name: "", selectedMemberId: null })
+                            setPersonSearchQuery("")
+                          }}
+                          className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium transition-colors ${
+                            newRelation.type === "manual" 
+                              ? "bg-blue-600 text-white" 
+                              : "bg-[#222] text-gray-400 hover:text-white"
+                          }`}
+                        >
+                          Manual Entry
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setNewRelation({ ...newRelation, type: "member", name: "", selectedMemberId: null })
+                            setPersonSearchQuery("")
+                          }}
+                          className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium transition-colors ${
+                            newRelation.type === "member" 
+                              ? "bg-blue-600 text-white" 
+                              : "bg-[#222] text-gray-400 hover:text-white"
+                          }`}
+                        >
+                          Member
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setNewRelation({ ...newRelation, type: "lead", name: "", selectedMemberId: null })
+                            setPersonSearchQuery("")
+                          }}
+                          className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium transition-colors ${
+                            newRelation.type === "lead" 
+                              ? "bg-blue-600 text-white" 
+                              : "bg-[#222] text-gray-400 hover:text-white"
+                          }`}
+                        >
+                          Lead
+                        </button>
+                      </div>
 
                       {newRelation.type === "manual" ? (
                         <input
                           type="text"
-                          placeholder="Name"
+                          placeholder="Enter name..."
                           value={newRelation.name}
                           onChange={(e) => setNewRelation({ ...newRelation, name: e.target.value })}
-                          className="bg-[#222] text-white rounded px-3 py-2 text-sm"
+                          className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500"
                         />
                       ) : (
-                        <select
-                          value={newRelation.selectedMemberId || ""}
-                          onChange={(e) => {
-                            const selectedId = e.target.value
-                            const selectedPerson = availableMembersLeads.find(
-                              (p) => p.id.toString() === selectedId,
-                            )
-                            setNewRelation({
-                              ...newRelation,
-                              selectedMemberId: selectedId,
-                              name: selectedPerson ? selectedPerson.name : "",
-                            })
-                          }}
-                          className="bg-[#222] text-white rounded px-3 py-2 text-sm"
-                        >
-                          <option value="">Select {newRelation.type}</option>
-                          {availableMembersLeads
-                            .filter((p) => p.type === newRelation.type)
-                            .map((person) => (
-                              <option key={person.id} value={person.id}>
-                                {person.name} ({person.type})
-                              </option>
-                            ))}
-                        </select>
+                        <div className="relative" ref={personSearchRef}>
+                          <div className="relative">
+                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                            <input
+                              type="text"
+                              placeholder={`Search ${newRelation.type}s...`}
+                              value={personSearchQuery}
+                              onChange={(e) => {
+                                setPersonSearchQuery(e.target.value)
+                                setShowPersonDropdown(true)
+                              }}
+                              onFocus={() => setShowPersonDropdown(true)}
+                              className="w-full bg-[#222] text-white rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500"
+                            />
+                          </div>
+                          {newRelation.name && (
+                            <div className="mt-2 flex items-center gap-2">
+                              <span className="text-xs text-gray-400">Selected:</span>
+                              <span className="bg-blue-600/20 text-blue-400 text-xs px-2 py-1 rounded-lg flex items-center gap-1">
+                                {newRelation.name}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setNewRelation({ ...newRelation, name: "", selectedMemberId: null })
+                                    setPersonSearchQuery("")
+                                  }}
+                                  className="hover:text-white"
+                                >
+                                  <X size={12} />
+                                </button>
+                              </span>
+                            </div>
+                          )}
+                          {showPersonDropdown && personSearchQuery && (
+                            <div className="absolute z-20 w-full mt-1 bg-[#1a1a1a] border border-gray-700 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                              {availableMembersLeads
+                                .filter((p) => 
+                                  p.type === newRelation.type && 
+                                  p.name.toLowerCase().includes(personSearchQuery.toLowerCase())
+                                )
+                                .map((person) => (
+                                  <button
+                                    key={person.id}
+                                    type="button"
+                                    onClick={() => {
+                                      setNewRelation({
+                                        ...newRelation,
+                                        selectedMemberId: person.id,
+                                        name: person.name,
+                                      })
+                                      setPersonSearchQuery("")
+                                      setShowPersonDropdown(false)
+                                    }}
+                                    className="w-full text-left px-3 py-2 text-sm text-white hover:bg-[#222] transition-colors"
+                                  >
+                                    {person.name}
+                                  </button>
+                                ))}
+                              {availableMembersLeads.filter((p) => 
+                                p.type === newRelation.type && 
+                                p.name.toLowerCase().includes(personSearchQuery.toLowerCase())
+                              ).length === 0 && (
+                                <div className="px-3 py-2 text-sm text-gray-500">No results found</div>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       )}
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 mb-2">
-                      <select
-                        value={newRelation.category}
-                        onChange={(e) => setNewRelation({
-                          ...newRelation,
-                          category: e.target.value,
-                          relation: ""
-                        })}
-                        className="bg-[#222] text-white rounded px-3 py-2 text-sm"
-                      >
-                        <option value="family">Family</option>
-                        <option value="friendship">Friendship</option>
-                        <option value="relationship">Relationship</option>
-                        <option value="work">Work</option>
-                        <option value="other">Other</option>
-                      </select>
+                    {/* Step 2: Category & Relation */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs text-gray-400 block mb-1.5">Category</label>
+                        <select
+                          value={newRelation.category}
+                          onChange={(e) => setNewRelation({
+                            ...newRelation,
+                            category: e.target.value,
+                            relation: "",
+                            customRelation: ""
+                          })}
+                          className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500"
+                        >
+                          <option value="family">Family</option>
+                          <option value="friendship">Friendship</option>
+                          <option value="relationship">Relationship</option>
+                          <option value="work">Work</option>
+                          <option value="other">Other</option>
+                        </select>
+                      </div>
 
-                      <select
-                        value={newRelation.relation}
-                        onChange={(e) => setNewRelation({ ...newRelation, relation: e.target.value })}
-                        className="bg-[#222] text-white rounded px-3 py-2 text-sm"
-                      >
-                        <option value="">Select Relation</option>
-                        {relationOptions[newRelation.category]?.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
+                      <div>
+                        <label className="text-xs text-gray-400 block mb-1.5">Relation Type</label>
+                        <select
+                          value={newRelation.relation}
+                          onChange={(e) => setNewRelation({ 
+                            ...newRelation, 
+                            relation: e.target.value,
+                            customRelation: e.target.value === "custom" ? newRelation.customRelation : ""
+                          })}
+                          className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500"
+                        >
+                          <option value="">Select...</option>
+                          {relationOptions[newRelation.category]?.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                          <option disabled>────────────</option>
+                          <option value="custom">Custom...</option>
+                        </select>
+                      </div>
                     </div>
+
+                    {/* Custom Relation Input */}
+                    {newRelation.relation === "custom" && (
+                      <div>
+                        <label className="text-xs text-gray-400 block mb-1.5">Custom Relation</label>
+                        <input
+                          type="text"
+                          placeholder="Enter custom relation..."
+                          value={newRelation.customRelation}
+                          onChange={(e) => setNewRelation({ ...newRelation, customRelation: e.target.value })}
+                          className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500"
+                        />
+                      </div>
+                    )}
 
                     <button
                       type="button"
                       onClick={addRelation}
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm w-full"
+                      disabled={!newRelation.name || (!newRelation.relation || (newRelation.relation === "custom" && !newRelation.customRelation))}
+                      className={`w-full py-2 rounded-lg text-sm font-medium transition-colors ${
+                        !newRelation.name || (!newRelation.relation || (newRelation.relation === "custom" && !newRelation.customRelation))
+                          ? "bg-blue-600/50 text-white/50 cursor-not-allowed"
+                          : "bg-blue-600 hover:bg-blue-700 text-white"
+                      }`}
                     >
                       Add Relation
                     </button>
                   </div>
                 )}
 
-                <div className="space-y-2 max-h-32 overflow-y-auto">
+                <div className="space-y-2 max-h-40 overflow-y-auto">
                   {Object.entries(formData.relations).map(([category, relations]) =>
                     relations.map((relation) => (
                       <div
                         key={relation.id}
-                        className="flex items-center justify-between bg-[#101010] rounded px-3 py-2"
+                        className="flex items-center justify-between bg-[#101010] rounded-lg px-3 py-2"
                       >
-                        <div className="text-sm">
-                          <span className="text-white">{relation.name}</span>
-                          <span className="text-gray-400 ml-2">({relation.relation})</span>
-                          <span className="text-blue-400 ml-2 capitalize">- {category}</span>
-                          <span
-                            className={`ml-2 text-xs px-2 py-0.5 rounded ${
-                              relation.type === "member"
-                                ? "bg-green-600 text-green-100"
-                                : relation.type === "lead"
-                                ? "bg-blue-600 text-blue-100"
-                                : "bg-gray-600 text-gray-100"
-                            }`}
-                          >
+                        <div className="text-sm flex items-center flex-wrap gap-1.5">
+                          <span className="text-white font-medium">{relation.name}</span>
+                          <span className="text-gray-400">({relation.relation})</span>
+                          <span className="text-gray-500">•</span>
+                          <span className="text-gray-400 capitalize">{category}</span>
+                          <span className="bg-gray-700 text-gray-300 text-xs px-2 py-0.5 rounded capitalize">
                             {relation.type}
                           </span>
                         </div>
@@ -858,7 +984,7 @@ const AddLeadModal = ({
                           <button
                             type="button"
                             onClick={(e) => removeRelation(category, relation.id, e)}
-                            className="text-red-400 hover:text-red-300"
+                            className="text-red-400 hover:text-red-300 ml-2"
                           >
                             <Trash2 size={14} />
                           </button>

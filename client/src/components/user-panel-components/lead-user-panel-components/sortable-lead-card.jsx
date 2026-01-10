@@ -7,6 +7,23 @@ import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 import { createPortal } from "react-dom"
 
+// Note Status Options
+const NOTE_STATUSES = [
+  { id: "contact_attempt", label: "Contact Attempt" },
+  { id: "callback_requested", label: "Callback Requested" },
+  { id: "interest", label: "Interest" },
+  { id: "objection", label: "Objection" },
+  { id: "personal_info", label: "Personal Info" },
+  { id: "health", label: "Health" },
+  { id: "follow_up", label: "Follow-up" },
+  { id: "general", label: "General" },
+]
+
+const getStatusLabel = (statusId) => {
+  const status = NOTE_STATUSES.find(s => s.id === statusId)
+  return status ? status.label : "General"
+}
+
 const SortableLeadCard = ({
   lead,
   onViewDetails,
@@ -127,10 +144,44 @@ const SortableLeadCard = ({
     return phoneNumber || telephoneNumber || "-"
   }
 
-  const hasValidNote = lead.specialNote && lead.specialNote.text && lead.specialNote.text.trim() !== ""
+  // Get notes array (support both old specialNote and new notes array)
+  const getNotes = () => {
+    if (lead.notes && Array.isArray(lead.notes) && lead.notes.length > 0) {
+      return lead.notes
+    }
+    if (lead.specialNote && lead.specialNote.text && lead.specialNote.text.trim() !== "") {
+      return [{
+        id: 1,
+        status: "general",
+        text: lead.specialNote.text,
+        isImportant: lead.specialNote.isImportant || false,
+        startDate: lead.specialNote.startDate || "",
+        endDate: lead.specialNote.endDate || "",
+        createdAt: lead.createdAt || "",
+      }]
+    }
+    return []
+  }
+  
+  const leadNotes = getNotes()
+  const hasValidNote = leadNotes.length > 0
+  const hasImportantNote = leadNotes.some(n => n.isImportant)
   const hasRelationsCount = Object.values(memberRelationsLead[lead.id] || {}).flat().length
   const isInTrialColumn = columnId === "trial"
   const hasAssessment = lead.hasAssessment || lead.assessmentCompletedAt
+  
+  // Check if lead has any trial appointments
+  const hasTrialAppointments = (() => {
+    const storedAppointments = localStorage.getItem("trialAppointments")
+    if (storedAppointments) {
+      const appointments = JSON.parse(storedAppointments)
+      return appointments.some(apt => apt.leadId === lead.id)
+    }
+    return false
+  })()
+  
+  // Show calendar icon if in trial column OR has trial appointments
+  const shouldShowCalendarIcon = isInTrialColumn || hasTrialAppointments
 
   const handleNoteClick = (e) => {
     e.stopPropagation()
@@ -255,19 +306,19 @@ const SortableLeadCard = ({
             {hasValidNote ? (
               <div
                 className={`${
-                  lead.specialNote.isImportant 
+                  hasImportantNote 
                     ? "bg-red-500" 
                     : "bg-blue-500"
-                } rounded-full p-1 shadow-lg flex-shrink-0`}
+                } rounded-full p-1 border-[2.5px] border-white shadow-lg flex-shrink-0`}
               >
-                {lead.specialNote.isImportant ? (
+                {hasImportantNote ? (
                   <AlertTriangle size={12} className="text-white" />
                 ) : (
                   <Info size={12} className="text-white" />
                 )}
               </div>
             ) : (
-              <div className="bg-transparent border border-dashed border-gray-400 rounded-full p-1 shadow-lg flex-shrink-0">
+              <div className="bg-transparent border-[2.5px] border-dashed border-gray-400 rounded-full p-1 shadow-lg flex-shrink-0">
                 <StickyNote size={12} className="text-gray-400" />
               </div>
             )}
@@ -289,12 +340,12 @@ const SortableLeadCard = ({
           {hasValidNote ? (
             <div
               className={`absolute -top-2 -left-2 ${
-                lead.specialNote.isImportant 
+                hasImportantNote 
                   ? "bg-red-500" 
                   : "bg-blue-500"
               } rounded-full p-1 border-[2.5px] border-white shadow-lg z-10`}
             >
-              {lead.specialNote.isImportant ? (
+              {hasImportantNote ? (
                 <AlertTriangle size={14} className="text-white" />
               ) : (
                 <Info size={14} className="text-white" />
@@ -339,10 +390,10 @@ const SortableLeadCard = ({
               {hasValidNote ? (
                 <div
                   className={`${
-                    lead.specialNote.isImportant 
+                    hasImportantNote 
                       ? "bg-red-500 hover:bg-red-400" 
                       : "bg-blue-500 hover:bg-blue-400"
-                  } rounded-full p-1 shadow-lg cursor-pointer transition-all duration-200 hover:scale-110 active:scale-95 flex-shrink-0`}
+                  } rounded-full p-1 border-[2.5px] border-white shadow-lg cursor-pointer transition-all duration-200 hover:scale-110 active:scale-95 flex-shrink-0`}
                   onClick={(e) => {
                     e.stopPropagation()
                     handleNoteClick(e)
@@ -351,7 +402,7 @@ const SortableLeadCard = ({
                   onMouseLeave={handleNoteMouseLeave}
                   onPointerDown={(e) => e.stopPropagation()}
                 >
-                  {lead.specialNote.isImportant ? (
+                  {hasImportantNote ? (
                     <AlertTriangle size={12} className="text-white" />
                   ) : (
                     <Info size={12} className="text-white" />
@@ -359,7 +410,7 @@ const SortableLeadCard = ({
                 </div>
               ) : (
                 <div
-                  className="bg-transparent border border-dashed border-gray-400 hover:border-gray-300 rounded-full p-1 shadow-lg cursor-pointer transition-all duration-200 hover:scale-110 active:scale-95 flex-shrink-0"
+                  className="bg-transparent border-[2.5px] border-dashed border-gray-400 hover:border-gray-300 rounded-full p-1 shadow-lg cursor-pointer transition-all duration-200 hover:scale-110 active:scale-95 flex-shrink-0"
                   onClick={(e) => {
                     e.stopPropagation()
                     if (onEditLead) {
@@ -427,7 +478,7 @@ const SortableLeadCard = ({
           {hasValidNote ? (
             <div
               className={`absolute -top-2 -left-2 ${
-                lead.specialNote.isImportant 
+                hasImportantNote 
                   ? "bg-red-500 hover:bg-red-400" 
                   : "bg-blue-500 hover:bg-blue-400"
               } rounded-full p-1 border-[2.5px] border-white shadow-lg z-10 cursor-pointer transition-all duration-200 hover:scale-110 active:scale-95`}
@@ -436,7 +487,7 @@ const SortableLeadCard = ({
               onMouseLeave={handleNoteMouseLeave}
               onPointerDown={(e) => e.stopPropagation()}
             >
-              {lead.specialNote.isImportant ? (
+              {hasImportantNote ? (
                 <AlertTriangle size={14} className="text-white" />
               ) : (
                 <Info size={14} className="text-white" />
@@ -576,7 +627,30 @@ const SortableLeadCard = ({
                 <CalendarIcon size={16} />
               </button>
             </div>
+          ) : hasTrialAppointments ? (
+            // Lead has trial appointments but is not in trial column - show both buttons
+            <div className="flex items-center w-full gap-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onAddTrial(lead)
+                }}
+                className="flex-1 bg-[#3F74FF] hover:bg-[#3A6AE6] text-white text-xs rounded-xl px-4 py-2 active:scale-95 transition-transform flex items-center justify-center gap-1"
+              >
+                <Plus size={14} /> Book Trial Training
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onManageTrialAppointments(lead)
+                }}
+                className="text-white bg-black cursor-pointer rounded-xl border border-slate-600 py-2 px-2 hover:border-slate-400 transition-colors text-sm flex items-center justify-center active:scale-95"
+              >
+                <CalendarIcon size={16} />
+              </button>
+            </div>
           ) : (
+            // No appointments and not in trial column - only show book button
             <button
               onClick={(e) => {
                 e.stopPropagation()
@@ -596,7 +670,7 @@ const SortableLeadCard = ({
         createPortal(
           <div
             ref={noteRef}
-            className="fixed w-64 sm:w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-[99999] flex flex-col"
+            className="fixed w-72 sm:w-80 bg-black/95 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-[99999] flex flex-col"
             style={{
               top: notePosition.top,
               left: notePosition.left,
@@ -607,16 +681,14 @@ const SortableLeadCard = ({
           >
             {/* Header */}
             <div className="bg-gray-800 p-2 sm:p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2 flex-shrink-0">
-              <h4 className="text-white flex gap-1 items-center font-medium">
-                <div>Special Note</div>
-                <div className="text-sm text-gray-400">
-                  {lead.specialNote.isImportant ? "(Important)" : ""}
-                </div>
+              <h4 className="text-white flex gap-2 items-center font-medium text-sm">
+                <span>Special Notes</span>
+                <span className="text-xs text-gray-500">({leadNotes.length})</span>
               </h4>
               <button
                 onClick={handleEditNote}
-                className="ml-auto text-gray-400 hover:text-blue-400 transition-colors p-1"
-                title="Edit note"
+                className="ml-auto text-gray-400 p-1"
+                title="Edit notes"
               >
                 <Edit size={14} />
               </button>
@@ -628,16 +700,16 @@ const SortableLeadCard = ({
                   setIsNoteOpen(false)
                   setHoveredNoteId(null)
                 }}
-                className="text-gray-400 hover:text-white transition-colors p-1"
+                className="text-gray-400 p-1"
               >
                 <X size={16} />
               </button>
             </div>
             
-            {/* Scrollable Content */}
+            {/* Scrollable Content - Notes List */}
             <style>{`
               .special-note-scrollable::-webkit-scrollbar {
-                width: 8px;
+                width: 6px;
               }
               .special-note-scrollable::-webkit-scrollbar-track {
                 background: #1F2937;
@@ -647,36 +719,53 @@ const SortableLeadCard = ({
                 background: #4B5563;
                 border-radius: 4px;
               }
-              .special-note-scrollable::-webkit-scrollbar-thumb:hover {
-                background: #6B7280;
-              }
             `}</style>
             <div 
-              className="p-3 overflow-y-auto flex-1 min-h-0 special-note-scrollable"
+              className="p-2 overflow-y-auto flex-1 min-h-0 special-note-scrollable space-y-2"
               style={{
                 scrollbarWidth: 'thin',
                 scrollbarColor: '#4B5563 #1F2937'
               }}
             >
-              <p className="text-white text-sm leading-relaxed whitespace-pre-wrap break-words">{lead.specialNote.text}</p>
-            </div>
-            
-            {/* Fixed Footer with Validity Info */}
-            <div className="p-3 pt-2 border-t border-gray-700 flex-shrink-0">
-              {lead.specialNote.startDate && lead.specialNote.endDate ? (
-                <div className="bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
-                  <p className="text-xs text-gray-300 flex items-center gap-1.5">
-                    <Calendar size={12} /> Valid from{" "}
-                    {new Date(lead.specialNote.startDate).toLocaleDateString()} to{" "}
-                    {new Date(lead.specialNote.endDate).toLocaleDateString()}
+              {[...leadNotes]
+                .sort((a, b) => (b.isImportant ? 1 : 0) - (a.isImportant ? 1 : 0))
+                .slice(0, 5)
+                .map((note, index) => (
+                <div key={note.id || index} className="bg-gray-800/50 rounded-lg p-2.5">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <span className="text-xs px-1.5 py-0.5 rounded bg-gray-700 text-gray-300">
+                      {getStatusLabel(note.status)}
+                    </span>
+                    {note.isImportant && (
+                      <span className="text-xs px-1.5 py-0.5 rounded bg-gray-700 text-red-500">
+                        Important
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-white text-xs leading-relaxed whitespace-pre-wrap">
+                    {note.text}
                   </p>
+                  {(note.startDate || note.endDate) && (
+                    <p className="text-gray-500 text-xs mt-1.5 flex items-center gap-1">
+                      <Calendar size={10} />
+                      {note.startDate && note.endDate ? (
+                        <>Valid: {note.startDate} - {note.endDate}</>
+                      ) : note.startDate ? (
+                        <>Valid from: {note.startDate}</>
+                      ) : (
+                        <>Valid until: {note.endDate}</>
+                      )}
+                    </p>
+                  )}
                 </div>
-              ) : (
-                <div className="bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
-                  <p className="text-xs text-gray-300 flex items-center gap-1.5">
-                    <Calendar size={12} /> Always valid
-                  </p>
-                </div>
+              ))}
+              {leadNotes.length > 5 && (
+                <button
+                  onClick={handleEditNote}
+                  className="w-full text-center text-xs text-blue-400 py-1"
+                >
+                  +{leadNotes.length - 5} more notes...
+                </button>
               )}
             </div>
           </div>,

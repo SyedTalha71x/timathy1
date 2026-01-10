@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import React from "react"
 import { useState, useEffect, useRef, useMemo, useCallback } from "react"
-import { Search, Plus } from "lucide-react"
+import { Search, Plus, X } from "lucide-react"
 import toast, { Toaster } from "react-hot-toast"
 import { useNavigate } from "react-router-dom"
 
@@ -42,7 +42,7 @@ import SortableColumn from "../../components/user-panel-components/lead-user-pan
 import SortableLeadCard from "../../components/user-panel-components/lead-user-panel-components/sortable-lead-card"
 
 // Data and hooks
-import { hardcodedLeads, memberRelationsLeadNew } from "../../utils/user-panel-states/lead-states"
+import { hardcodedLeads, memberRelationsLeadNew, availableTimeSlots } from "../../utils/user-panel-states/lead-states"
 import { useSidebarSystem } from "../../hooks/useSidebarSystem"
 import { trainingVideosData } from "../../utils/user-panel-states/training-states"
 
@@ -112,11 +112,13 @@ export default function LeadManagement() {
 
   // Trial states
   const [isTrialAppointmentModalOpen, setIsTrialAppointmentModalOpen] = useState(false)
+  const [trialAppointmentsRefreshKey, setTrialAppointmentsRefreshKey] = useState(0)
   const [isEditTrialModalOpen, setIsEditTrialModalOpen] = useState(false)
   const [isDeleteTrialConfirmationModalOpen, setIsDeleteTrialConfirmationModalOpen] = useState(false)
   const [selectedTrialAppointment, setSelectedTrialAppointment] = useState(null)
   const [appointmentToDelete, setAppointmentToDelete] = useState(null)
   const [showContractPromptModal, setShowContractPromptModal] = useState(false)
+  const [shouldMoveToTrialAfterBooking, setShouldMoveToTrialAfterBooking] = useState(false)
   
   // Lead Special Note Modal states
   const [isLeadSpecialNoteModalOpen, setIsLeadSpecialNoteModalOpen] = useState(false)
@@ -352,6 +354,40 @@ export default function LeadManagement() {
     setIsTrialModalOpen(true)
   }
 
+  // New handlers for trial drag with options
+  const handleConfirmToTrialWithBooking = () => {
+    const { lead } = dragConfirmation
+    setDragConfirmation((prev) => ({ ...prev, isOpen: false }))
+    
+    // Mark that we should move to trial after successful booking
+    setShouldMoveToTrialAfterBooking(true)
+    
+    // Open trial booking modal (don't move yet - move after successful booking)
+    setSelectedLead(lead)
+    setIsTrialModalOpen(true)
+  }
+
+  const handleConfirmToTrialWithoutBooking = () => {
+    const { lead } = dragConfirmation
+    setDragConfirmation((prev) => ({ ...prev, isOpen: false }))
+    
+    // Just move to trial column without booking
+    const newLeads = leads.map((l) => {
+      if (l.id === lead.id) {
+        return { ...l, columnId: "trial" }
+      }
+      return l
+    })
+    setLeads(newLeads)
+    
+    // Update localStorage
+    if (lead.source === "localStorage") {
+      updateLocalStorage(newLeads)
+    }
+    
+    toast.success(`${lead.firstName} moved to Trial Training Arranged`)
+  }
+
   // Handle drag confirmation (from trial)
   const handleConfirmFromTrial = () => {
     const { lead, targetColumnId } = dragConfirmation
@@ -459,7 +495,8 @@ export default function LeadManagement() {
 
   const handleCreateNewTrial = (lead) => {
     setSelectedLead(lead)
-    setIsTrialModalOpen(true)
+    setIsTrialAppointmentModalOpen(false) // Close the appointment overview modal
+    setIsTrialModalOpen(true) // Open the trial booking modal
   }
 
   const handleAddRelationLead = () => {
@@ -546,17 +583,33 @@ export default function LeadManagement() {
     setIsLeadSpecialNoteModalOpen(true)
   }
 
-  const handleSaveLeadSpecialNote = (leadId, updatedNote, targetColumnId) => {
-    const updatedLeads = leads.map((lead) =>
-      lead.id === leadId
-        ? {
-            ...lead,
-            specialNote: updatedNote,
-            // If targetColumnId is provided, also update the column
-            ...(targetColumnId ? { columnId: targetColumnId, status: targetColumnId } : {}),
-          }
-        : lead
-    )
+  const handleSaveLeadSpecialNote = (leadId, newNote, targetColumnId) => {
+    const updatedLeads = leads.map((lead) => {
+      if (lead.id === leadId) {
+        // Add new note to existing notes array
+        const existingNotes = lead.notes || []
+        const updatedNotes = [newNote, ...existingNotes]
+        
+        // Find the first important note or first note for backwards compatibility
+        const importantNote = updatedNotes.find(n => n.isImportant)
+        const primaryNote = importantNote || updatedNotes[0]
+        
+        return {
+          ...lead,
+          notes: updatedNotes,
+          // Keep specialNote for backwards compatibility
+          specialNote: primaryNote ? {
+            text: primaryNote.text,
+            isImportant: primaryNote.isImportant,
+            startDate: primaryNote.startDate || null,
+            endDate: primaryNote.endDate || null,
+          } : null,
+          // If targetColumnId is provided, also update the column
+          ...(targetColumnId ? { columnId: targetColumnId, status: targetColumnId } : {}),
+        }
+      }
+      return lead
+    })
     setLeads(updatedLeads)
     updateLocalStorage(updatedLeads)
     setIsLeadSpecialNoteModalOpen(false)
@@ -565,9 +618,9 @@ export default function LeadManagement() {
     
     if (targetColumnId) {
       const targetColumn = columns.find((c) => c.id === targetColumnId)
-      toast.success(`Special note saved and lead moved to ${targetColumn?.title || targetColumnId}`)
+      toast.success(`Special note added and lead moved to ${targetColumn?.title || targetColumnId}`)
     } else {
-      toast.success("Special note saved successfully")
+      toast.success("Special note added successfully")
     }
   }
 
@@ -663,6 +716,7 @@ export default function LeadManagement() {
             avatar: data.avatar,
             status: pendingMove && pendingMove.leadId === lead.id ? pendingMove.targetColumnId : data.status || lead.status,
             columnId: pendingMove && pendingMove.leadId === lead.id ? pendingMove.targetColumnId : (data.hasTrialTraining ? "trial" : data.status || lead.columnId),
+            notes: data.notes || lead.notes || [],
             specialNote: {
               text: data.specialNote?.text || "",
               isImportant: data.specialNote?.isImportant || false,
@@ -706,6 +760,54 @@ export default function LeadManagement() {
 
   const handleTrialModalClose = () => {
     setIsTrialModalOpen(false)
+    // Reset the flag if user closes without booking
+    setShouldMoveToTrialAfterBooking(false)
+  }
+
+  const handleSaveNewTrialTraining = (trialData) => {
+    // Save new trial appointment to localStorage
+    const storedAppointments = localStorage.getItem("trialAppointments")
+    let appointments = storedAppointments ? JSON.parse(storedAppointments) : []
+    
+    // Create new appointment with unique ID
+    const newAppointment = {
+      ...trialData,
+      id: Date.now(),
+      status: "scheduled",
+      isTrial: true,
+      isCancelled: false,
+      isPast: false,
+    }
+    
+    appointments.push(newAppointment)
+    localStorage.setItem("trialAppointments", JSON.stringify(appointments))
+    
+    // Always move lead to trial column when booking trial training (if not already there)
+    if (selectedLead && selectedLead.columnId !== "trial") {
+      const newLeads = leads.map((l) => {
+        if (l.id === selectedLead.id) {
+          return { ...l, columnId: "trial" }
+        }
+        return l
+      })
+      setLeads(newLeads)
+      
+      // Update localStorage
+      if (selectedLead.source === "localStorage") {
+        updateLocalStorage(newLeads)
+      }
+      
+      toast.success("Trial training booked and lead moved to Trial Training Arranged!")
+    } else {
+      toast.success("Trial training booked successfully!")
+    }
+    
+    // Reset flag if it was set
+    setShouldMoveToTrialAfterBooking(false)
+    setIsTrialModalOpen(false)
+    
+    // Trigger refresh of trial appointments list
+    setTrialAppointmentsRefreshKey(prev => prev + 1)
   }
 
   // Filter leads based on search
@@ -754,6 +856,9 @@ export default function LeadManagement() {
     toast.success("Trial appointment updated successfully!")
     setIsEditTrialModalOpen(false)
     setSelectedTrialAppointment(null)
+    
+    // Trigger refresh of trial appointments list
+    setTrialAppointmentsRefreshKey(prev => prev + 1)
   }
 
   const handleConfirmDelete = () => {
@@ -765,6 +870,9 @@ export default function LeadManagement() {
       toast.success("Trial appointment deleted successfully!")
       setIsDeleteTrialConfirmationModalOpen(false)
       setAppointmentToDelete(null)
+      
+      // Trigger refresh of trial appointments list
+      setTrialAppointmentsRefreshKey(prev => prev + 1)
     }
   }
 
@@ -781,7 +889,7 @@ export default function LeadManagement() {
   }
 
   const handleAssessmentComplete = (documentData) => {
-    // FÃƒÂ¼ge das document direkt zum lead.documents hinzu oder update es
+    // FÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼ge das document direkt zum lead.documents hinzu oder update es
     setLeads(prevLeads => 
       prevLeads.map(lead => {
         if (lead.id === selectedLead.id) {
@@ -797,7 +905,7 @@ export default function LeadManagement() {
               hasAssessment: true
             }
           } else {
-            // Neues document hinzufÃƒÂ¼gen
+            // Neues document hinzufÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼gen
             return {
               ...lead,
               documents: [...existingDocuments, documentData],
@@ -1083,7 +1191,7 @@ export default function LeadManagement() {
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 min-h-[600px]">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 h-[calc(100vh-220px)] min-h-[400px]">
           {columns.map((column) => (
             <SortableColumn
               key={column.id}
@@ -1153,7 +1261,6 @@ export default function LeadManagement() {
         onSave={handleSaveLead}
         columns={columns}
         availableMembersLeads={availableMembersLeads}
-        relationOptions={relationOptions}
       />
 
       <EditLeadModal
@@ -1175,7 +1282,6 @@ export default function LeadManagement() {
         setNewRelationLead={setNewRelationLead}
         availableMembersLeads={availableMembersLeads}
         columns={columns}
-        relationOptions={relationOptions}
         handleAddRelationLead={handleAddRelationLead}
         handleDeleteRelationLead={handleDeleteRelationLead}
         initialTab={selectedEditTab}
@@ -1199,33 +1305,13 @@ export default function LeadManagement() {
         isOpen={isTrialModalOpen}
         onClose={handleTrialModalClose}
         selectedLead={selectedLead}
+        handleSaveTrialTraining={handleSaveNewTrialTraining}
         trialTypes={[
           { name: "Cardio", duration: 30 },
           { name: "Strength", duration: 45 },
           { name: "Flexibility", duration: 60 },
         ]}
-        freeTimeSlots={[
-          { id: "slot1", date: "2025-09-08", time: "09:00" },
-          { id: "slot2", date: "2025-09-08", time: "10:30" },
-          { id: "slot3", date: "2025-09-08", time: "14:00" },
-          { id: "slot4", date: "2025-09-08", time: "16:00" },
-          { id: "slot5", date: "2025-09-09", time: "08:00" },
-          { id: "slot6", date: "2025-09-09", time: "11:00" },
-          { id: "slot7", date: "2025-09-09", time: "15:30" },
-          { id: "slot8", date: "2025-09-09", time: "17:00" },
-          { id: "slot9", date: "2025-09-10", time: "09:30" },
-          { id: "slot10", date: "2025-09-10", time: "12:00" },
-          { id: "slot11", date: "2025-09-10", time: "14:30" },
-          { id: "slot12", date: "2025-09-11", time: "10:00" },
-          { id: "slot13", date: "2025-09-11", time: "13:00" },
-          { id: "slot14", date: "2025-09-11", time: "16:30" },
-          { id: "slot15", date: "2025-09-12", time: "08:30" },
-          { id: "slot16", date: "2025-09-12", time: "11:30" },
-          { id: "slot17", date: "2025-09-12", time: "15:00" },
-          { id: "slot18", date: "2025-09-13", time: "09:00" },
-          { id: "slot19", date: "2025-09-13", time: "12:30" },
-          { id: "slot20", date: "2025-09-13", time: "14:00" },
-        ]}
+        freeTimeSlots={availableTimeSlots}
         availableMembersLeads={availableMembersLeads}
         relationOptions={{
           family: ["Father", "Mother", "Brother", "Sister", "Son", "Daughter", "Spouse"],
@@ -1243,7 +1329,14 @@ export default function LeadManagement() {
             setSelectedLead(null)
           }}
           onSave={(contractData) => {
-            toast.success("Contract created successfully!")
+            // Delete the lead after contract creation (lead becomes a member in backend)
+            const updatedLeads = leads.filter((lead) => lead.id !== selectedLead?.id)
+            setLeads(updatedLeads)
+            if (selectedLead?.source === "localStorage") {
+              updateLocalStorage(updatedLeads)
+            }
+            
+            toast.success("Contract created successfully! Lead has been converted to member.")
             setIsCreateContractModalOpen(false)
             setSelectedLead(null)
           }}
@@ -1294,28 +1387,54 @@ export default function LeadManagement() {
       {/* Drag Confirmation Dialog */}
       {dragConfirmation.isOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4">
-          <div className="bg-[#1C1C1C] w-[95%] sm:w-[90%] md:w-[400px] max-w-md rounded-xl p-4 sm:p-6">
-            <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">
-              {dragConfirmation.type === "toTrial" ? "Book Trial Training?" : "Move Lead from Trial Training?"}
-            </h3>
-            <p className="text-gray-300 mb-4 sm:mb-6 text-sm sm:text-base">
-              {dragConfirmation.type === "toTrial"
-                ? `Do you want to book a trial training for ${dragConfirmation.lead?.firstName} ${dragConfirmation.lead?.surname || ""}?`
-                : `Are you sure you want to move ${dragConfirmation.lead?.firstName} ${dragConfirmation.lead?.surname || ""} from Trial Training Arranged?`}
-            </p>
-            <div className="flex gap-2 sm:gap-3">
-              <button
+          <div className="bg-[#1C1C1C] w-[95%] sm:w-[90%] md:w-[400px] max-w-md rounded-xl overflow-hidden">
+            {/* Header with X button */}
+            <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-gray-800 flex justify-between items-center">
+              <h3 className="text-base sm:text-lg font-semibold text-white">
+                {dragConfirmation.type === "toTrial" ? "Move to Trial Training?" : "Move Lead from Trial Training?"}
+              </h3>
+              <button 
                 onClick={handleCancelDragConfirmation}
-                className="flex-1 px-3 sm:px-4 py-2 bg-gray-600 text-white text-sm sm:text-base rounded-lg hover:bg-gray-700 transition-colors"
+                className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg transition-colors"
               >
-                Cancel
+                <X size={20} />
               </button>
-              <button
-                onClick={dragConfirmation.type === "toTrial" ? handleConfirmToTrial : handleConfirmFromTrial}
-                className="flex-1 px-3 sm:px-4 py-2 bg-blue-600 text-white text-sm sm:text-base rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Yes
-              </button>
+            </div>
+            
+            {/* Content */}
+            <div className="px-4 sm:px-6 py-4 sm:py-6">
+              <p className="text-gray-300 mb-4 sm:mb-6 text-sm sm:text-base">
+                {dragConfirmation.type === "toTrial"
+                  ? `Moving ${dragConfirmation.lead?.firstName} ${dragConfirmation.lead?.surname || ""} to Trial Training Arranged.`
+                  : `Are you sure you want to move ${dragConfirmation.lead?.firstName} ${dragConfirmation.lead?.surname || ""} from Trial Training Arranged?`}
+              </p>
+              
+              {/* Buttons */}
+              <div className="flex flex-col gap-2 sm:gap-3">
+                {dragConfirmation.type === "toTrial" ? (
+                  <>
+                    <button
+                      onClick={handleConfirmToTrialWithBooking}
+                      className="w-full px-3 sm:px-4 py-2.5 bg-blue-600 text-white text-sm sm:text-base rounded-xl hover:bg-blue-700 transition-colors"
+                    >
+                      Yes, and Book Trial Training
+                    </button>
+                    <button
+                      onClick={handleConfirmToTrialWithoutBooking}
+                      className="w-full px-3 sm:px-4 py-2.5 bg-gray-600 text-white text-sm sm:text-base rounded-xl hover:bg-gray-700 transition-colors"
+                    >
+                      Yes, Without Booking
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={handleConfirmFromTrial}
+                    className="w-full px-3 sm:px-4 py-2.5 bg-blue-600 text-white text-sm sm:text-base rounded-xl hover:bg-blue-700 transition-colors"
+                  >
+                    Yes, Move Lead
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -1331,6 +1450,7 @@ export default function LeadManagement() {
         onEditTrial={handleEditTrialAppointment}
         onDeleteTrial={handleDeleteTrialAppointment}
         onCreateNewTrial={handleCreateNewTrial}
+        refreshKey={trialAppointmentsRefreshKey}
       />
 
       <EditTrialModal
@@ -1340,10 +1460,13 @@ export default function LeadManagement() {
           setSelectedTrialAppointment(null)
         }}
         appointment={selectedTrialAppointment}
-        trialTypes={[]}
-        freeTimeSlots={[]}
-        availableMembersLeads={[]}
-        onSave={handleSaveEditedTrial}
+        trialTypes={[
+          { name: "Cardio", duration: 30 },
+          { name: "Strength", duration: 45 },
+          { name: "Flexibility", duration: 60 },
+        ]}
+        freeTimeSlots={availableTimeSlots}
+        handleSaveTrialTraining={handleSaveEditedTrial}
       />
 
       <DeleteConfirmationModal

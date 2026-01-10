@@ -7,26 +7,6 @@ import { useState, useEffect } from "react"
 import toast from "react-hot-toast"
 import { contractTypes, mediaTemplates } from "../../../utils/user-panel-states/contract-states"
 
-// Add print-specific styles
-const printStyles = `
-  @media print {
-    body * {
-      visibility: hidden;
-    }
-    .bg-white, .bg-white * {
-      visibility: visible;
-    }
-    .bg-white {
-      position: absolute;
-      left: 0;
-      top: 0;
-      width: 100%;
-    }
-    button, .fixed {
-      display: none !important;
-    }
-  }`
-
 export function AddContractModal({ onClose, onSave, leadData = null }) {
   const [currentPage, setCurrentPage] = useState(0)
   const [showLeadSelection, setShowLeadSelection] = useState(false)
@@ -68,10 +48,14 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
     ort_datum_unterschrift: "",
     acceptTerms: true,
     acceptPrivacy: true,
+    // Fee adjustment fields
+    feeAdjustment1: "",
+    feeAdjustment2: "",
+    feeAdjustment3: "",
   })
   const [showFormView, setShowFormView] = useState(true)
   const [searchTerm, setSearchTerm] = useState("")
-  const [showSignatureOptions, setShowSignatureOptions] = useState(false)
+  const [showConfirmation, setShowConfirmation] = useState(false)
   const [showPrintPrompt, setShowPrintPrompt] = useState(false)
   const [selectedContractType, setSelectedContractType] = useState(null)
   const [discount, setDiscount] = useState({
@@ -236,48 +220,12 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
   }
 
   const handleGenerateContract = () => {
-    setShowSignatureOptions(true)
+    setShowConfirmation(true)
   }
 
-  const calculateEndDate = (startDate, durationString) => {
-    if (!startDate || !durationString) return ""
-
-    const start = new Date(startDate)
-    const end = new Date(start)
-
-    const monthsMatch = durationString.match(/(\d+)\s*months?/i)
-    const months = monthsMatch ? parseInt(monthsMatch[1], 10) : 12
-
-    end.setMonth(end.getMonth() + months)
-    return end.toISOString().split('T')[0]
-  }
-
-  const handleSignatureOption = (withSignature) => {
-    setShowSignatureOptions(false)
-    
-    const dataToSave = {
-      ...contractData,
-      contractStartDate,
-      contractEndDate,
-      trainingStartDate,
-      startDerMitgliedschaft: contractStartDate,
-      startDesTrainings: trainingStartDate,
-    }
-    
-    if (withSignature) {
-      toast.success("Contract generated with digital signature")
-      onSave({
-        ...dataToSave,
-        isDigital: true,
-        status: "Digital signed",
-        discount: discount.percentage > 0 ? {
-          percentage: discount.percentage,
-          duration: discount.isPermanent ? "permanent" : discount.duration,
-        } : null,
-      })
-    } else {
-      setShowPrintPrompt(true)
-    }
+  const handleConfirmGenerate = () => {
+    setShowConfirmation(false)
+    setShowPrintPrompt(true)
   }
 
   const handlePrintPrompt = (shouldPrint) => {
@@ -296,15 +244,28 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
       window.print()
     }
     
+    toast.success("Contract generated successfully")
     onSave({
       ...dataToSave,
-      isDigital: false,
-      status: "Analog signed",
+      status: "Generated",
       discount: discount.percentage > 0 ? {
         percentage: discount.percentage,
         duration: discount.isPermanent ? "permanent" : discount.duration,
       } : null,
     })
+  }
+
+  const calculateEndDate = (startDate, durationString) => {
+    if (!startDate || !durationString) return ""
+
+    const start = new Date(startDate)
+    const end = new Date(start)
+
+    const monthsMatch = durationString.match(/(\d+)\s*months?/i)
+    const months = monthsMatch ? parseInt(monthsMatch[1], 10) : 12
+
+    end.setMonth(end.getMonth() + months)
+    return end.toISOString().split('T')[0]
   }
 
   const toggleView = () => {
@@ -340,8 +301,6 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] font-sans">
-      <style>{printStyles}</style>
-
       {showIntroductoryMaterials && (
         <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-[1001]">
           <div className="relative bg-[#181818] p-6 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
@@ -474,30 +433,30 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
         </div>
       )}
 
-      {showSignatureOptions && (
+      {showConfirmation && (
         <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-[1001]">
           <div className="relative bg-[#181818] p-6 rounded-2xl max-w-md w-full">
             {/* Close button */}
             <button
-              onClick={() => setShowSignatureOptions(false)}
+              onClick={() => setShowConfirmation(false)}
               className="absolute top-4 right-4 text-gray-400 hover:text-white"
             >
               <X size={20} />
             </button>
             <h3 className="text-white text-lg font-semibold mb-4">Generate Contract</h3>
-            <p className="text-gray-300 mb-6">How would you like to generate this contract?</p>
-            <div className="flex flex-col gap-3">
+            <p className="text-gray-300 mb-6">Are you sure you want to generate this contract?</p>
+            <div className="flex gap-3 justify-end">
               <button
-                onClick={() => handleSignatureOption(true)}
-                className="w-full px-4 text-sm py-3 bg-[#3F74FF] text-white rounded-xl hover:bg-[#3F74FF]/90"
+                onClick={() => setShowConfirmation(false)}
+                className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#3a3a3a] text-sm"
               >
-                With Digital Signature
+                Cancel
               </button>
               <button
-                onClick={() => handleSignatureOption(false)}
-                className="w-full px-4 text-sm py-3 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#3a3a3a]"
+                onClick={handleConfirmGenerate}
+                className="px-4 py-2 bg-[#3F74FF] text-white rounded-xl hover:bg-[#3F74FF]/90 text-sm"
               >
-                Without Signature
+                Yes, Generate
               </button>
             </div>
           </div>
@@ -506,21 +465,21 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
 
       {showPrintPrompt && (
         <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-[1001]">
-          <div className="bg-[#181818] p-6 rounded-2xl max-w-md w-full">
+          <div className="relative bg-[#181818] p-6 rounded-2xl max-w-md w-full">
             <h3 className="text-white text-lg font-semibold mb-4">Print Contract</h3>
             <p className="text-gray-300 mb-6">Would you like to print this contract?</p>
-            <div className="flex flex-col gap-3">
-              <button
-                onClick={() => handlePrintPrompt(true)}
-                className="w-full px-4 py-3 text-sm bg-[#3F74FF] text-white rounded-xl hover:bg-[#3F74FF]/90"
-              >
-                Yes, Print Contract
-              </button>
+            <div className="flex gap-3 justify-end">
               <button
                 onClick={() => handlePrintPrompt(false)}
-                className="w-full px-4 py-3 text-sm bg-[#2F2F2F] text-white rounded-xl hover:bg-[#3a3a3a]"
+                className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#3a3a3a] text-sm"
               >
                 No, Skip Printing
+              </button>
+              <button
+                onClick={() => handlePrintPrompt(true)}
+                className="px-4 py-2 bg-[#3F74FF] text-white rounded-xl hover:bg-[#3F74FF]/90 text-sm"
+              >
+                Yes, Print Contract
               </button>
             </div>
           </div>
@@ -907,7 +866,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                           />
                         </div>
                         <div>
-                          <label className="block text-xs text-gray-600 mb-1">Price per Week (€)</label>
+                          <label className="block text-xs text-gray-600 mb-1">Price per Week (â‚¬)</label>
                           <input
                             type="text"
                             name="preisProWoche"
@@ -990,7 +949,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                       <p>The provider's terms and conditions apply, namely:</p>
                       <p className="mt-2">
                         After the minimum term expires, the contract will continue indefinitely at a price of
-                        €42.90/week, unless terminated in writing within the notice period of 1 month before the end of
+                        â‚¬42.90/week, unless terminated in writing within the notice period of 1 month before the end of
                         the minimum term & no individual conditions for the subsequent period are agreed in the
                         "Contract remarks" text field.
                       </p>
@@ -1001,9 +960,30 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                       FEE ADJUSTMENTS
                     </h2>
                     <div className="grid grid-cols-3 gap-2">
-                      <input type="text" className="w-full border border-gray-300 rounded p-2 text-black" />
-                      <input type="text" className="w-full border border-gray-300 rounded p-2 text-black" />
-                      <input type="text" className="w-full border border-gray-300 rounded p-2 text-black" />
+                      <input 
+                        type="text" 
+                        name="feeAdjustment1"
+                        value={contractData.feeAdjustment1}
+                        onChange={handleInputChange}
+                        placeholder="Adjustment 1"
+                        className="w-full border border-gray-300 rounded p-2 text-black" 
+                      />
+                      <input 
+                        type="text" 
+                        name="feeAdjustment2"
+                        value={contractData.feeAdjustment2}
+                        onChange={handleInputChange}
+                        placeholder="Adjustment 2"
+                        className="w-full border border-gray-300 rounded p-2 text-black" 
+                      />
+                      <input 
+                        type="text" 
+                        name="feeAdjustment3"
+                        value={contractData.feeAdjustment3}
+                        onChange={handleInputChange}
+                        placeholder="Adjustment 3"
+                        className="w-full border border-gray-300 rounded p-2 text-black" 
+                      />
                     </div>
                   </div>
                   {discount.percentage > 0 && (

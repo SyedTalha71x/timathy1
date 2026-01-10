@@ -1,9 +1,21 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { Trash2, X } from "lucide-react"
+import { Trash2, X, Search, Plus, ChevronDown, ChevronUp, Pencil } from "lucide-react"
 import { useEffect, useState, useRef } from "react"
 import toast from "react-hot-toast"
 import useCountries from "../../../hooks/useCountries"
+
+// Note Status Options
+const NOTE_STATUSES = [
+  { id: "contact_attempt", label: "Contact Attempt" },
+  { id: "callback_requested", label: "Callback Requested" },
+  { id: "interest", label: "Interest" },
+  { id: "objection", label: "Objection" },
+  { id: "personal_info", label: "Personal Info" },
+  { id: "health", label: "Health" },
+  { id: "follow_up", label: "Follow-up" },
+  { id: "general", label: "General" },
+]
 
 const EditLeadModal = ({
   isVisible,
@@ -15,11 +27,11 @@ const EditLeadModal = ({
   availableMembersLeads = [],
   columns = [], // Added columns prop
   relationOptions = {
-    family: ["Father", "Mother", "Brother", "Sister", "Uncle", "Aunt", "Cousin", "Grandfather", "Grandmother"],
-    friendship: ["Best Friend", "Close Friend", "Friend", "Acquaintance"],
-    relationship: ["Partner", "Spouse", "Ex-Partner", "Boyfriend", "Girlfriend"],
-    work: ["Colleague", "Boss", "Employee", "Business Partner", "Client"],
-    other: ["Neighbor", "Doctor", "Lawyer", "Trainer", "Other"],
+    family: ["Father", "Mother", "Brother", "Sister", "Son", "Daughter", "Uncle", "Aunt", "Cousin", "Grandfather", "Grandmother", "Nephew", "Niece", "Stepfather", "Stepmother", "Father-in-law", "Mother-in-law", "Brother-in-law", "Sister-in-law"],
+    friendship: ["Best Friend", "Close Friend", "Friend", "Acquaintance", "Childhood Friend"],
+    relationship: ["Partner", "Spouse", "Fiancé/Fiancée", "Ex-Partner", "Boyfriend", "Girlfriend"],
+    work: ["Colleague", "Boss", "Manager", "Employee", "Business Partner", "Client", "Mentor", "Cofounder"],
+    other: ["Neighbor", "Doctor", "Trainer", "Coach", "Teacher", "Therapist", "Roommate"],
   },
   initialTab = "details"
 }) => {
@@ -30,6 +42,22 @@ const EditLeadModal = ({
   const {countries, loading} = useCountries();
   const specialNoteTextareaRef = useRef(null)
   
+  // Local copy of relations for editing (only committed on save)
+  const [localRelations, setLocalRelations] = useState(null)
+  
+  // Local copy of notes for editing (only committed on save)
+  const [localNotes, setLocalNotes] = useState([])
+  const [isAddingNote, setIsAddingNote] = useState(false)
+  const [editingNoteId, setEditingNoteId] = useState(null)
+  const [expandedNoteId, setExpandedNoteId] = useState(null)
+  const [newNote, setNewNote] = useState({
+    status: "general",
+    text: "",
+    isImportant: false,
+    startDate: "",
+    endDate: "",
+  })
+  
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -38,12 +66,8 @@ const EditLeadModal = ({
     telephoneNumber: "",
     status: "",
     hasTrialTraining: false,
-    note: "",
-    noteImportance: "unimportant",
-    noteStartDate: "",
     gender: "",
     birthday: "",
-    noteEndDate: "",
     source: "",
     street: "",
     zipCode: "",
@@ -55,10 +79,16 @@ const EditLeadModal = ({
   const [newRelationLead, setNewRelationLead] = useState({
     name: "",
     relation: "",
+    customRelation: "",
     category: "family",
     type: "manual",
     selectedMemberId: null,
   })
+
+  // Search state for member/lead search
+  const [personSearchQuery, setPersonSearchQuery] = useState("")
+  const [showPersonDropdown, setShowPersonDropdown] = useState(false)
+  const personSearchRef = useRef(null)
 
   const sourceOptions = [
     "Website",
@@ -118,11 +148,7 @@ const EditLeadModal = ({
         telephoneNumber: leadData.telephoneNumber || "",
         status: leadData.status || "",
         hasTrialTraining: leadData.hasTrialTraining || false,
-        note: leadData.specialNote?.text || "",
-        noteImportance: leadData.specialNote?.isImportant ? "important" : "unimportant",
-        noteStartDate: leadData.specialNote?.startDate || "",
-        noteEndDate: leadData.specialNote?.endDate || "",
-        source: leadData.leadSource || "", // Use leadSource for form display
+        source: leadData.leadSource || "",
         gender: leadData.gender || "",
         birthday: leadData.birthday || "",
         street: leadData.street || "",
@@ -131,8 +157,50 @@ const EditLeadModal = ({
         country: leadData.country || "",
         details: leadData.details || "",
       })
+      
+      // Initialize local notes copy (deep clone)
+      // Support both old single note format and new array format
+      if (leadData.notes && Array.isArray(leadData.notes)) {
+        setLocalNotes(JSON.parse(JSON.stringify(leadData.notes)))
+      } else if (leadData.specialNote && leadData.specialNote.text) {
+        // Convert old single note to new format
+        setLocalNotes([{
+          id: Date.now(),
+          status: "general",
+          text: leadData.specialNote.text,
+          isImportant: leadData.specialNote.isImportant || false,
+          startDate: leadData.specialNote.startDate || "",
+          endDate: leadData.specialNote.endDate || "",
+          createdAt: leadData.createdAt || new Date().toISOString(),
+        }])
+      } else {
+        setLocalNotes([])
+      }
+      
+      // Reset note form
+      setIsAddingNote(false)
+      setNewNote({
+        status: "general",
+        text: "",
+        isImportant: false,
+        startDate: "",
+        endDate: "",
+      })
+      
+      // Initialize local relations copy (deep clone)
+      if (memberRelationsLead[leadData.id]) {
+        setLocalRelations(JSON.parse(JSON.stringify(memberRelationsLead[leadData.id])))
+      } else {
+        setLocalRelations({
+          family: [],
+          friendship: [],
+          relationship: [],
+          work: [],
+          other: [],
+        })
+      }
     }
-  }, [leadData])
+  }, [leadData, memberRelationsLead])
 
   // Auto-focus special note textarea when note tab is active
   useEffect(() => {
@@ -144,54 +212,178 @@ const EditLeadModal = ({
     }
   }, [isVisible, activeTab])
 
+  // Close person dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (personSearchRef.current && !personSearchRef.current.contains(event.target)) {
+        setShowPersonDropdown(false)
+      }
+    }
+    
+    if (showPersonDropdown) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showPersonDropdown])
+
+  // Note functions
+  const handleAddNote = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    if (!newNote.text.trim()) {
+      toast.error("Please enter note text")
+      return
+    }
+    
+    const note = {
+      id: Date.now(),
+      status: newNote.status,
+      text: newNote.text.trim(),
+      isImportant: newNote.isImportant,
+      startDate: newNote.startDate || "",
+      endDate: newNote.endDate || "",
+      createdAt: new Date().toISOString(),
+    }
+    
+    setLocalNotes(prev => [note, ...prev])
+    setNewNote({
+      status: "general",
+      text: "",
+      isImportant: false,
+      startDate: "",
+      endDate: "",
+    })
+    setIsAddingNote(false)
+    toast.success("Note added")
+  }
+  
+  const handleDeleteNote = (noteId, e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setLocalNotes(prev => prev.filter(n => n.id !== noteId))
+    toast.success("Note removed")
+  }
+  
+  const handleEditNoteClick = (note, e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setEditingNoteId(note.id)
+    setNewNote({
+      status: note.status,
+      text: note.text,
+      isImportant: note.isImportant,
+      startDate: note.startDate || "",
+      endDate: note.endDate || "",
+    })
+    setIsAddingNote(true)
+  }
+  
+  const handleUpdateNote = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    if (!newNote.text.trim()) {
+      toast.error("Please enter note text")
+      return
+    }
+    
+    setLocalNotes(prev => prev.map(n => 
+      n.id === editingNoteId 
+        ? {
+            ...n,
+            status: newNote.status,
+            text: newNote.text.trim(),
+            isImportant: newNote.isImportant,
+            startDate: newNote.startDate || "",
+            endDate: newNote.endDate || "",
+          }
+        : n
+    ))
+    
+    setNewNote({
+      status: "general",
+      text: "",
+      isImportant: false,
+      startDate: "",
+      endDate: "",
+    })
+    setEditingNoteId(null)
+    setIsAddingNote(false)
+    toast.success("Note updated")
+  }
+  
+  const getStatusInfo = (statusId) => {
+    return NOTE_STATUSES.find(s => s.id === statusId) || NOTE_STATUSES.find(s => s.id === "general")
+  }
+  
+  const formatNoteDate = (dateString) => {
+    if (!dateString) return ""
+    return new Date(dateString).toLocaleDateString("de-DE", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    })
+  }
+
   const handleAddRelationLead = (e) => {
     e.preventDefault()
     e.stopPropagation()
-    if (!newRelationLead.name || !newRelationLead.relation) {
+    
+    // Determine the final relation value
+    const finalRelation = newRelationLead.relation === "custom" 
+      ? newRelationLead.customRelation 
+      : newRelationLead.relation
+    
+    if (!newRelationLead.name || !finalRelation) {
       toast.error("Please fill in all fields")
       return
     }
 
     const relationId = Date.now()
-    const updatedRelations = { ...memberRelationsLead }
     
-    if (!updatedRelations[leadData.id]) {
-      updatedRelations[leadData.id] = {
-        family: [],
-        friendship: [],
-        relationship: [],
-        work: [],
-        other: [],
+    // Update local relations copy (not global state)
+    setLocalRelations(prev => {
+      const updated = { ...prev }
+      if (!updated[newRelationLead.category]) {
+        updated[newRelationLead.category] = []
       }
-    }
-
-    updatedRelations[leadData.id][newRelationLead.category].push({
-      id: relationId,
-      name: newRelationLead.name,
-      relation: newRelationLead.relation,
-      type: newRelationLead.type,
+      updated[newRelationLead.category] = [
+        ...updated[newRelationLead.category],
+        {
+          id: relationId,
+          name: newRelationLead.name,
+          relation: finalRelation,
+          type: newRelationLead.type,
+        }
+      ]
+      return updated
     })
 
-    setMemberRelationsLead(updatedRelations)
     setNewRelationLead({
       name: "",
       relation: "",
+      customRelation: "",
       category: "family",
       type: "manual",
       selectedMemberId: null
     })
-    toast.success("Relation added successfully")
+    setPersonSearchQuery("")
+    toast.success("Relation added")
   }
 
   const handleDeleteRelationLead = (category, relationId, e) => {
     e.preventDefault()
     e.stopPropagation()
-    const updatedRelations = { ...memberRelationsLead }
-    updatedRelations[leadData.id][category] = updatedRelations[leadData.id][category].filter(
-      (rel) => rel.id !== relationId,
-    )
-    setMemberRelationsLead(updatedRelations)
-    toast.success("Relation deleted successfully")
+    
+    // Update local relations copy (not global state)
+    setLocalRelations(prev => ({
+      ...prev,
+      [category]: prev[category].filter((rel) => rel.id !== relationId)
+    }))
+    toast.success("Relation removed")
   }
 
   // Email validation function
@@ -223,17 +415,6 @@ const EditLeadModal = ({
       return
     }
     
-    // Validate special note dates
-    if (formData.noteStartDate && formData.noteEndDate) {
-      const startDate = new Date(formData.noteStartDate)
-      const endDate = new Date(formData.noteEndDate)
-      
-      if (endDate < startDate) {
-        toast.error("End date cannot be before start date")
-        return
-      }
-    }
-    
     // Validate birthday (must be at least 10 years old)
     if (formData.birthday) {
       const birthDate = new Date(formData.birthday)
@@ -257,18 +438,32 @@ const EditLeadModal = ({
       }
     }
     
+    // Commit local relations to global state on save
+    if (localRelations && leadData?.id) {
+      const updatedRelations = { ...memberRelationsLead }
+      updatedRelations[leadData.id] = localRelations
+      setMemberRelationsLead(updatedRelations)
+    }
+    
+    // Build specialNote from first important note or first note for backwards compatibility
+    const importantNote = localNotes.find(n => n.isImportant)
+    const firstNote = localNotes[0]
+    const primaryNote = importantNote || firstNote
+    
     onSave({
       ...formData,
       id: leadData.id,
       surname: formData.lastName,
       phoneNumber: formData.phone,
       telephoneNumber: formData.telephoneNumber,
-      specialNote: {
-        text: formData.note,
-        isImportant: formData.noteImportance === "important",
-        startDate: formData.noteStartDate,
-        endDate: formData.noteEndDate,
-      },
+      notes: localNotes,
+      // Keep specialNote for backwards compatibility
+      specialNote: primaryNote ? {
+        text: primaryNote.text,
+        isImportant: primaryNote.isImportant,
+        startDate: primaryNote.startDate,
+        endDate: primaryNote.endDate,
+      } : null,
     })
     onClose()
   }
@@ -337,7 +532,7 @@ const EditLeadModal = ({
                 : "text-gray-400 hover:text-white"
             }`}
           >
-            Special Note
+            Special Notes
           </button>
           <button 
             onClick={(e) => handleTabClick("relations", e)}
@@ -648,63 +843,242 @@ const EditLeadModal = ({
               </>
             )}
 
-            {/* Special Note Tab */}
+            {/* Notes Tab */}
             {activeTab === "note" && (
               <div className="border border-slate-700 rounded-xl p-4">
                 {/* Lead Name Header */}
                 <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-700">
                   <div>
-                    <p className="text-xs text-gray-400 uppercase tracking-wider">Special Note for</p>
-                    <p className="text-white font-semibold text-lg">{leadData?.firstName} {leadData?.surname}</p>
+                    <p className="text-xs text-gray-400 uppercase tracking-wider">Special Notes for</p>
+                    <p className="text-white font-medium">{leadData?.firstName} {leadData?.surname}</p>
                   </div>
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="noteImportance"
-                      checked={formData.noteImportance === "important"}
-                      onChange={(e) => {
-                        updateFormData("noteImportance", e.target.checked ? "important" : "unimportant")
-                      }}
-                      className="mr-2 h-4 w-4 accent-[#FF843E]"
-                    />
-                    <label htmlFor="noteImportance" className="text-sm text-gray-200">
-                      Important
-                    </label>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (isAddingNote) {
+                        setEditingNoteId(null)
+                        setNewNote({
+                          status: "general",
+                          text: "",
+                          isImportant: false,
+                          startDate: "",
+                          endDate: "",
+                        })
+                      }
+                      setIsAddingNote(!isAddingNote)
+                    }}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium ${
+                      isAddingNote 
+                        ? "bg-gray-600 text-white" 
+                        : "bg-blue-600 text-white"
+                    }`}
+                  >
+                    {isAddingNote ? (
+                      <>Cancel</>
+                    ) : (
+                      <><Plus size={14} /> Add Note</>
+                    )}
+                  </button>
                 </div>
-                <textarea
-                  ref={specialNoteTextareaRef}
-                  value={formData.note}
-                  onChange={(e) => updateFormData("note", e.target.value)}
-                  className="w-full bg-[#101010] resize-none rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px] mb-4"
-                  placeholder="Enter special note..."
-                />
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm text-gray-200 block mb-2">Start Date</label>
-                    <input
-                      type="date"
-                      value={formData.noteStartDate}
-                      onChange={(e) => updateFormData("noteStartDate", e.target.value)}
-                      className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
-                    />
+                
+                {/* Add/Edit Note Form */}
+                {isAddingNote && (
+                  <div className="mb-4 p-4 bg-[#101010] rounded-xl space-y-3">
+                    {/* Status Selection */}
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1.5">Status</label>
+                      <select
+                        value={newNote.status}
+                        onChange={(e) => setNewNote({ ...newNote, status: e.target.value })}
+                        className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500"
+                      >
+                        {NOTE_STATUSES.map((status) => (
+                          <option key={status.id} value={status.id}>
+                            {status.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    {/* Note Text */}
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1.5">Note</label>
+                      <textarea
+                        ref={specialNoteTextareaRef}
+                        value={newNote.text}
+                        onChange={(e) => setNewNote({ ...newNote, text: e.target.value })}
+                        className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500 resize-none min-h-[80px]"
+                        placeholder="Enter note..."
+                      />
+                    </div>
+                    
+                    {/* Important Checkbox */}
+                    <div className="flex items-center gap-4">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={newNote.isImportant}
+                          onChange={(e) => setNewNote({ ...newNote, isImportant: e.target.checked })}
+                          className="h-4 w-4 accent-blue-500"
+                        />
+                        <span className="text-sm text-gray-300">Important</span>
+                      </label>
+                    </div>
+                    
+                    {/* Optional Date Range */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs text-gray-400 block mb-1.5">Valid From (optional)</label>
+                        <input
+                          type="date"
+                          value={newNote.startDate}
+                          onChange={(e) => setNewNote({ ...newNote, startDate: e.target.value })}
+                          className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500 white-calendar-icon"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-400 block mb-1.5">Valid Until (optional)</label>
+                        <input
+                          type="date"
+                          value={newNote.endDate}
+                          onChange={(e) => setNewNote({ ...newNote, endDate: e.target.value })}
+                          className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500 white-calendar-icon"
+                        />
+                      </div>
+                    </div>
+                    
+                    <button
+                      type="button"
+                      onClick={editingNoteId ? handleUpdateNote : handleAddNote}
+                      disabled={!newNote.text.trim()}
+                      className={`w-full py-2 rounded-lg text-sm font-medium ${
+                        !newNote.text.trim()
+                          ? "bg-blue-600/50 text-white/50 cursor-not-allowed"
+                          : "bg-blue-600 text-white"
+                      }`}
+                    >
+                      {editingNoteId ? "Update Note" : "Add Note"}
+                    </button>
                   </div>
-                  <div>
-                    <label className="text-sm text-gray-200 block mb-2">End Date</label>
-                    <input
-                      type="date"
-                      value={formData.noteEndDate}
-                      onChange={(e) => updateFormData("noteEndDate", e.target.value)}
-                      className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
-                    />
-                  </div>
+                )}
+                
+                {/* Notes List - hidden when adding/editing */}
+                {!isAddingNote && (
+                <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                  {localNotes.length > 0 ? (
+                    [...localNotes]
+                      .sort((a, b) => (b.isImportant ? 1 : 0) - (a.isImportant ? 1 : 0))
+                      .map((note) => {
+                      const statusInfo = getStatusInfo(note.status)
+                      const isExpanded = expandedNoteId === note.id
+                      
+                      return (
+                        <div
+                          key={note.id}
+                          className="bg-[#101010] rounded-lg overflow-hidden"
+                        >
+                          {/* Note Header */}
+                          <div 
+                            className="flex items-center justify-between p-3 cursor-pointer"
+                            onClick={() => setExpandedNoteId(isExpanded ? null : note.id)}
+                          >
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              <span className="text-xs font-medium px-2 py-0.5 rounded bg-gray-700 text-gray-300">
+                                {statusInfo.label}
+                              </span>
+                              {note.isImportant && (
+                                <span className="text-xs font-medium px-2 py-0.5 rounded bg-gray-700 text-red-500">
+                                  Important
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleEditNoteClick(note, e)
+                                }}
+                                className="text-gray-500 hover:text-blue-400 p-1"
+                              >
+                                <Pencil size={14} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => handleDeleteNote(note.id, e)}
+                                className="text-gray-500 hover:text-red-400 p-1"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                              {isExpanded ? (
+                                <ChevronUp size={16} className="text-gray-400" />
+                              ) : (
+                                <ChevronDown size={16} className="text-gray-400" />
+                              )}
+                            </div>
+                          </div>
+                          
+                          {/* Preview & Valid Date (always visible when collapsed) */}
+                          {!isExpanded && (
+                            <div className="px-3 pb-2">
+                              <p className="text-gray-400 text-sm truncate">
+                                {note.text}
+                              </p>
+                              {(note.startDate || note.endDate) && (
+                                <p className="text-xs text-gray-600 mt-1">
+                                  {note.startDate && note.endDate ? (
+                                    <>Valid: {note.startDate} - {note.endDate}</>
+                                  ) : note.startDate ? (
+                                    <>Valid from: {note.startDate}</>
+                                  ) : (
+                                    <>Valid until: {note.endDate}</>
+                                  )}
+                                </p>
+                              )}
+                            </div>
+                          )}
+                          
+                          {/* Note Content (expandable) */}
+                          {isExpanded && (
+                            <div className="px-3 pb-3 border-t border-gray-800">
+                              <p className="text-white text-sm mt-2 whitespace-pre-wrap break-words">
+                                {note.text}
+                              </p>
+                              {(note.startDate || note.endDate) && (
+                                <div className="mt-2 text-xs text-gray-500">
+                                  {note.startDate && note.endDate ? (
+                                    <>Valid: {note.startDate} - {note.endDate}</>
+                                  ) : note.startDate ? (
+                                    <>Valid from: {note.startDate}</>
+                                  ) : (
+                                    <>Valid until: {note.endDate}</>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })
+                  ) : (
+                    <div className="text-gray-500 text-sm text-center py-8">
+                      No special notes yet. Click "Add Note" to create one.
+                    </div>
+                  )}
                 </div>
+                )}
               </div>
             )}
 
             {/* Relations Tab */}
             {activeTab === "relations" && (
               <div className="border border-slate-700 rounded-xl p-4">
+                {/* Lead Name Header */}
+                <div className="mb-4 pb-3 border-b border-slate-700">
+                  <p className="text-xs text-gray-400 uppercase tracking-wider">Relations for</p>
+                  <p className="text-white font-medium">{leadData?.firstName} {leadData?.surname}</p>
+                </div>
+                
                 <div className="flex items-center justify-between mb-4">
                   <label className="text-sm text-gray-200 font-medium">Relations</label>
                   <button
@@ -712,127 +1086,227 @@ const EditLeadModal = ({
                     onClick={handleEditingRelationsToggle}
                     className="text-sm text-blue-400 hover:text-blue-300"
                   >
-                    {editingRelationsLead ? "Done" : "Edit"}
+                    {editingRelationsLead ? "Done" : "Add New"}
                   </button>
                 </div>
 
                 {editingRelationsLead && (
-                  <div className="mb-4 p-3 bg-[#101010] rounded-xl">
-                    <div className="grid grid-cols-1 gap-2 mb-2">
-                      <select
-                        value={newRelationLead.type}
-                        onChange={(e) => {
-                          const type = e.target.value
-                          setNewRelationLead({
-                            ...newRelationLead,
-                            type,
-                            name: "",
-                            selectedMemberId: null
-                          })
-                        }}
-                        className="bg-[#222] text-white rounded px-3 py-2 text-sm"
-                      >
-                        <option value="manual">Manual Entry</option>
-                        <option value="member">Select Member</option>
-                        <option value="lead">Select Lead</option>
-                      </select>
+                  <div className="mb-4 p-4 bg-[#101010] rounded-xl space-y-3">
+                    {/* Step 1: Person Selection */}
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1.5">Person</label>
+                      <div className="flex gap-2 mb-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setNewRelationLead({ ...newRelationLead, type: "manual", name: "", selectedMemberId: null })
+                            setPersonSearchQuery("")
+                          }}
+                          className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium transition-colors ${
+                            newRelationLead.type === "manual" 
+                              ? "bg-blue-600 text-white" 
+                              : "bg-[#222] text-gray-400 hover:text-white"
+                          }`}
+                        >
+                          Manual Entry
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setNewRelationLead({ ...newRelationLead, type: "member", name: "", selectedMemberId: null })
+                            setPersonSearchQuery("")
+                          }}
+                          className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium transition-colors ${
+                            newRelationLead.type === "member" 
+                              ? "bg-blue-600 text-white" 
+                              : "bg-[#222] text-gray-400 hover:text-white"
+                          }`}
+                        >
+                          Member
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setNewRelationLead({ ...newRelationLead, type: "lead", name: "", selectedMemberId: null })
+                            setPersonSearchQuery("")
+                          }}
+                          className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-medium transition-colors ${
+                            newRelationLead.type === "lead" 
+                              ? "bg-blue-600 text-white" 
+                              : "bg-[#222] text-gray-400 hover:text-white"
+                          }`}
+                        >
+                          Lead
+                        </button>
+                      </div>
 
                       {newRelationLead.type === "manual" ? (
                         <input
                           type="text"
-                          placeholder="Name"
+                          placeholder="Enter name..."
                           value={newRelationLead.name}
                           onChange={(e) => setNewRelationLead({ ...newRelationLead, name: e.target.value })}
-                          className="bg-[#222] text-white rounded px-3 py-2 text-sm"
+                          className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500"
                         />
                       ) : (
-                        <select
-                          value={newRelationLead.selectedMemberId || ""}
-                          onChange={(e) => {
-                            const selectedId = e.target.value
-                            const selectedPerson = membersLeads.find((p) => p.id.toString() === selectedId)
-                            setNewRelationLead({
-                              ...newRelationLead,
-                              selectedMemberId: selectedId,
-                              name: selectedPerson ? selectedPerson.name : "",
-                            })
-                          }}
-                          className="bg-[#222] text-white rounded px-3 py-2 text-sm"
-                        >
-                          <option value="">Select {newRelationLead.type}</option>
-                          {membersLeads
-                            .filter((p) => p.type === newRelationLead.type)
-                            .map((person) => (
-                              <option key={person.id} value={person.id}>
-                                {person.name} ({person.type})
-                              </option>
-                            ))}
-                        </select>
+                        <div className="relative" ref={personSearchRef}>
+                          <div className="relative">
+                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                            <input
+                              type="text"
+                              placeholder={`Search ${newRelationLead.type}s...`}
+                              value={personSearchQuery}
+                              onChange={(e) => {
+                                setPersonSearchQuery(e.target.value)
+                                setShowPersonDropdown(true)
+                              }}
+                              onFocus={() => setShowPersonDropdown(true)}
+                              className="w-full bg-[#222] text-white rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500"
+                            />
+                          </div>
+                          {newRelationLead.name && (
+                            <div className="mt-2 flex items-center gap-2">
+                              <span className="text-xs text-gray-400">Selected:</span>
+                              <span className="bg-blue-600/20 text-blue-400 text-xs px-2 py-1 rounded-lg flex items-center gap-1">
+                                {newRelationLead.name}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setNewRelationLead({ ...newRelationLead, name: "", selectedMemberId: null })
+                                    setPersonSearchQuery("")
+                                  }}
+                                  className="hover:text-white"
+                                >
+                                  <X size={12} />
+                                </button>
+                              </span>
+                            </div>
+                          )}
+                          {showPersonDropdown && personSearchQuery && (
+                            <div className="absolute z-20 w-full mt-1 bg-[#1a1a1a] border border-gray-700 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                              {membersLeads
+                                .filter((p) => 
+                                  p.type === newRelationLead.type && 
+                                  p.name.toLowerCase().includes(personSearchQuery.toLowerCase())
+                                )
+                                .map((person) => (
+                                  <button
+                                    key={person.id}
+                                    type="button"
+                                    onClick={() => {
+                                      setNewRelationLead({
+                                        ...newRelationLead,
+                                        selectedMemberId: person.id,
+                                        name: person.name,
+                                      })
+                                      setPersonSearchQuery("")
+                                      setShowPersonDropdown(false)
+                                    }}
+                                    className="w-full text-left px-3 py-2 text-sm text-white hover:bg-[#222] transition-colors"
+                                  >
+                                    {person.name}
+                                  </button>
+                                ))}
+                              {membersLeads.filter((p) => 
+                                p.type === newRelationLead.type && 
+                                p.name.toLowerCase().includes(personSearchQuery.toLowerCase())
+                              ).length === 0 && (
+                                <div className="px-3 py-2 text-sm text-gray-500">No results found</div>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       )}
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 mb-2">
-                      <select
-                        value={newRelationLead.category}
-                        onChange={(e) => setNewRelationLead({
-                          ...newRelationLead,
-                          category: e.target.value,
-                          relation: ""
-                        })}
-                        className="bg-[#222] text-white rounded px-3 py-2 text-sm"
-                      >
-                        <option value="family">Family</option>
-                        <option value="friendship">Friendship</option>
-                        <option value="relationship">Relationship</option>
-                        <option value="work">Work</option>
-                        <option value="other">Other</option>
-                      </select>
+                    {/* Step 2: Category & Relation */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs text-gray-400 block mb-1.5">Category</label>
+                        <select
+                          value={newRelationLead.category}
+                          onChange={(e) => setNewRelationLead({
+                            ...newRelationLead,
+                            category: e.target.value,
+                            relation: "",
+                            customRelation: ""
+                          })}
+                          className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500"
+                        >
+                          <option value="family">Family</option>
+                          <option value="friendship">Friendship</option>
+                          <option value="relationship">Relationship</option>
+                          <option value="work">Work</option>
+                          <option value="other">Other</option>
+                        </select>
+                      </div>
 
-                      <select
-                        value={newRelationLead.relation}
-                        onChange={(e) => setNewRelationLead({ ...newRelationLead, relation: e.target.value })}
-                        className="bg-[#222] text-white rounded px-3 py-2 text-sm"
-                      >
-                        <option value="">Select Relation</option>
-                        {relationOptions[newRelationLead.category]?.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
+                      <div>
+                        <label className="text-xs text-gray-400 block mb-1.5">Relation Type</label>
+                        <select
+                          value={newRelationLead.relation}
+                          onChange={(e) => setNewRelationLead({ 
+                            ...newRelationLead, 
+                            relation: e.target.value,
+                            customRelation: e.target.value === "custom" ? newRelationLead.customRelation : ""
+                          })}
+                          className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500"
+                        >
+                          <option value="">Select...</option>
+                          {relationOptions[newRelationLead.category]?.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                          <option disabled>────────────</option>
+                          <option value="custom">Custom...</option>
+                        </select>
+                      </div>
                     </div>
+
+                    {/* Custom Relation Input */}
+                    {newRelationLead.relation === "custom" && (
+                      <div>
+                        <label className="text-xs text-gray-400 block mb-1.5">Custom Relation</label>
+                        <input
+                          type="text"
+                          placeholder="Enter custom relation..."
+                          value={newRelationLead.customRelation}
+                          onChange={(e) => setNewRelationLead({ ...newRelationLead, customRelation: e.target.value })}
+                          className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500"
+                        />
+                      </div>
+                    )}
 
                     <button
                       type="button"
                       onClick={handleAddRelationLead}
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm w-full"
+                      disabled={!newRelationLead.name || (!newRelationLead.relation || (newRelationLead.relation === "custom" && !newRelationLead.customRelation))}
+                      className={`w-full py-2 rounded-lg text-sm font-medium transition-colors ${
+                        !newRelationLead.name || (!newRelationLead.relation || (newRelationLead.relation === "custom" && !newRelationLead.customRelation))
+                          ? "bg-blue-600/50 text-white/50 cursor-not-allowed"
+                          : "bg-blue-600 hover:bg-blue-700 text-white"
+                      }`}
                     >
                       Add Relation
                     </button>
                   </div>
                 )}
 
-                <div className="space-y-2 max-h-32 overflow-y-auto">
-                  {leadData && memberRelationsLead[leadData.id] && 
-                    Object.entries(memberRelationsLead[leadData.id]).map(([category, relations]) =>
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {leadData && localRelations && 
+                    Object.entries(localRelations).map(([category, relations]) =>
                       relations.map((relation) => (
                         <div 
                           key={relation.id} 
-                          className="flex items-center justify-between bg-[#101010] rounded px-3 py-2"
+                          className="flex items-center justify-between bg-[#101010] rounded-lg px-3 py-2"
                         >
-                          <div className="text-sm">
-                            <span className="text-white">{relation.name}</span>
-                            <span className="text-gray-400 ml-2">({relation.relation})</span>
-                            <span className="text-blue-400 ml-2 capitalize">- {category}</span>
-                            <span
-                              className={`ml-2 text-xs px-2 py-0.5 rounded ${
-                                relation.type === "member"
-                                  ? "bg-green-600 text-green-100"
-                                  : relation.type === "lead"
-                                  ? "bg-blue-600 text-blue-100"
-                                  : "bg-gray-600 text-gray-100"
-                              }`}
-                            >
+                          <div className="text-sm flex items-center flex-wrap gap-1.5">
+                            <span className="text-white font-medium">{relation.name}</span>
+                            <span className="text-gray-400">({relation.relation})</span>
+                            <span className="text-gray-500">•</span>
+                            <span className="text-gray-400 capitalize">{category}</span>
+                            <span className="bg-gray-700 text-gray-300 text-xs px-2 py-0.5 rounded capitalize">
                               {relation.type}
                             </span>
                           </div>
@@ -840,7 +1314,7 @@ const EditLeadModal = ({
                             <button
                               type="button"
                               onClick={(e) => handleDeleteRelationLead(category, relation.id, e)}
-                              className="text-red-400 hover:text-red-300"
+                              className="text-red-400 hover:text-red-300 ml-2"
                             >
                               <Trash2 size={14} />
                             </button>
@@ -849,8 +1323,8 @@ const EditLeadModal = ({
                       )),
                     )}
 
-                  {(!memberRelationsLead[leadData?.id] || 
-                    Object.values(memberRelationsLead[leadData?.id] || {}).every(arr => arr.length === 0)) && (
+                  {(!localRelations || 
+                    Object.values(localRelations || {}).every(arr => arr.length === 0)) && (
                     <div className="text-gray-500 text-sm text-center py-4">
                       No relations added yet
                     </div>

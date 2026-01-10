@@ -206,10 +206,7 @@ const SortableColumn = ({
       <div
         className="
           p-2 sm:p-3 flex-1 custom-scrollbar
-          min-h-[250px] sm:min-h-[400px] 
-          lg:min-h-[700px]
           overflow-y-auto 
-          max-h-[75vh]
           overscroll-contain
         "
         style={{ touchAction: 'pan-y' }}
@@ -244,7 +241,7 @@ const SortableColumn = ({
         {leads.length === 0 && (
           <div 
             className={`
-              h-full min-h-[200px] sm:min-h-[350px] lg:min-h-[650px]
+              h-full min-h-[200px]
               border-2 border-dashed rounded-xl 
               flex items-center justify-center text-gray-500 text-sm
               transition-colors duration-200

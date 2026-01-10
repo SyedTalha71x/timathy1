@@ -184,9 +184,9 @@ const TrialTrainingModal = ({
                   ))
                 ) : (
                   <>
-                    <option value="cardio">Cardio (30 minutes)</option>
-                    <option value="strength">Strength (45 minutes)</option>
-                    <option value="flexibility">Flexibility (60 minutes)</option>
+                    <option value="Cardio">Cardio (30 minutes)</option>
+                    <option value="Strength">Strength (45 minutes)</option>
+                    <option value="Flexibility">Flexibility (60 minutes)</option>
                   </>
                 )}
               </select>
