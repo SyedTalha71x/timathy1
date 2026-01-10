@@ -1,10 +1,22 @@
 /* eslint-disable no-unused-vars */
-import { X, Users, Trash2, Plus, Search } from "lucide-react"
+import { X, Users, Trash2, Plus, Search, ChevronDown, ChevronUp, Pencil } from "lucide-react"
 import { useState, useEffect, useRef } from "react"
 import toast from "react-hot-toast"
 import useCountries from "../../../hooks/useCountries"
 
 /* eslint-disable react/prop-types */
+
+// Note Status Options
+const NOTE_STATUSES = [
+  { id: "contact_attempt", label: "Contact Attempt" },
+  { id: "callback_requested", label: "Callback Requested" },
+  { id: "interest", label: "Interest" },
+  { id: "objection", label: "Objection" },
+  { id: "personal_info", label: "Personal Info" },
+  { id: "health", label: "Health" },
+  { id: "follow_up", label: "Follow-up" },
+  { id: "general", label: "General" },
+]
 
 const AddLeadModal = ({ 
   isVisible, 
@@ -26,6 +38,19 @@ const AddLeadModal = ({
   const [isSourceDropdownOpen, setIsSourceDropdownOpen] = useState(false)
   const {countries, loading} = useCountries();
   
+  // Note management state
+  const [localNotes, setLocalNotes] = useState([])
+  const [isAddingNote, setIsAddingNote] = useState(false)
+  const [editingNoteId, setEditingNoteId] = useState(null)
+  const [expandedNoteId, setExpandedNoteId] = useState(null)
+  const [newNote, setNewNote] = useState({
+    status: "general",
+    text: "",
+    isImportant: false,
+    startDate: "",
+    endDate: "",
+  })
+  
   // Get first non-trial column as default status
   const defaultStatus = columns.find(col => col.id !== "trial")?.id || ""
   
@@ -39,10 +64,6 @@ const AddLeadModal = ({
     hasTrialTraining: false,
     gender: "",
     birthday: "",
-    note: "",
-    noteImportance: "unimportant",
-    noteStartDate: "",
-    noteEndDate: "",
     source: "",
     street: "",
     zipCode: "",
@@ -105,6 +126,97 @@ const AddLeadModal = ({
   // Get status options from columns (exclude trial column)
   const statusOptions = columns.filter(col => col.id !== "trial")
 
+  // Note functions
+  const handleAddNote = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    if (!newNote.text.trim()) {
+      toast.error("Please enter note text")
+      return
+    }
+    
+    const note = {
+      id: Date.now(),
+      status: newNote.status,
+      text: newNote.text.trim(),
+      isImportant: newNote.isImportant,
+      startDate: newNote.startDate || "",
+      endDate: newNote.endDate || "",
+      createdAt: new Date().toISOString(),
+    }
+    
+    setLocalNotes(prev => [note, ...prev])
+    setNewNote({
+      status: "general",
+      text: "",
+      isImportant: false,
+      startDate: "",
+      endDate: "",
+    })
+    setIsAddingNote(false)
+    toast.success("Note added")
+  }
+  
+  const handleDeleteNote = (noteId, e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setLocalNotes(prev => prev.filter(n => n.id !== noteId))
+    toast.success("Note removed")
+  }
+  
+  const handleEditNoteClick = (note, e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setEditingNoteId(note.id)
+    setNewNote({
+      status: note.status,
+      text: note.text,
+      isImportant: note.isImportant,
+      startDate: note.startDate || "",
+      endDate: note.endDate || "",
+    })
+    setIsAddingNote(true)
+  }
+  
+  const handleUpdateNote = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    if (!newNote.text.trim()) {
+      toast.error("Please enter note text")
+      return
+    }
+    
+    setLocalNotes(prev => prev.map(n => 
+      n.id === editingNoteId 
+        ? {
+            ...n,
+            status: newNote.status,
+            text: newNote.text.trim(),
+            isImportant: newNote.isImportant,
+            startDate: newNote.startDate || "",
+            endDate: newNote.endDate || "",
+          }
+        : n
+    ))
+    
+    setNewNote({
+      status: "general",
+      text: "",
+      isImportant: false,
+      startDate: "",
+      endDate: "",
+    })
+    setEditingNoteId(null)
+    setIsAddingNote(false)
+    toast.success("Note updated")
+  }
+  
+  const getStatusInfo = (statusId) => {
+    return NOTE_STATUSES.find(s => s.id === statusId) || NOTE_STATUSES.find(s => s.id === "general")
+  }
+
   // Email validation function
   const isValidEmail = (email) => {
     if (!email || !email.trim()) return false
@@ -134,17 +246,6 @@ const AddLeadModal = ({
       return
     }
     
-    // Validate special note dates
-    if (formData.noteStartDate && formData.noteEndDate) {
-      const startDate = new Date(formData.noteStartDate)
-      const endDate = new Date(formData.noteEndDate)
-      
-      if (endDate < startDate) {
-        toast.error("End date cannot be before start date")
-        return
-      }
-    }
-    
     // Validate birthday (must be at least 10 years old)
     if (formData.birthday) {
       const birthDate = new Date(formData.birthday)
@@ -168,20 +269,34 @@ const AddLeadModal = ({
       }
     }
     
-    onSave(formData)
+    // Build specialNote from first important note or first note for backwards compatibility
+    const importantNote = localNotes.find(n => n.isImportant)
+    const firstNote = localNotes[0]
+    const primaryNote = importantNote || firstNote
+    
+    onSave({
+      ...formData,
+      notes: localNotes,
+      // Keep specialNote for backwards compatibility
+      specialNote: primaryNote ? {
+        text: primaryNote.text,
+        isImportant: primaryNote.isImportant,
+        startDate: primaryNote.startDate,
+        endDate: primaryNote.endDate,
+      } : null,
+    })
+    
+    // Reset form
     setFormData({
       firstName: "",
       lastName: "",
       email: "",
       phone: "",
       telephoneNumber: "",
-      status: "",
+      status: defaultStatus,
       hasTrialTraining: false,
-      note: "",
-      noteImportance: "unimportant",
-      noteStartDate: "",
-      noteEndDate: "",
       gender: "",
+      birthday: "",
       source: "",
       street: "",
       zipCode: "",
@@ -196,6 +311,7 @@ const AddLeadModal = ({
         other: [],
       },
     })
+    setLocalNotes([])
     setActiveTab("details")
     setEditingRelations(false)
     setNewRelation({
@@ -248,6 +364,7 @@ const AddLeadModal = ({
       selectedMemberId: null
     })
     setPersonSearchQuery("")
+    toast.success("Relation added")
   }
 
   // Remove relation
@@ -261,6 +378,7 @@ const AddLeadModal = ({
         [category]: prev.relations[category].filter(rel => rel.id !== relationId)
       }
     }))
+    toast.success("Relation removed")
   }
 
   // Close person dropdown when clicking outside
@@ -313,10 +431,6 @@ const AddLeadModal = ({
       hasTrialTraining: false,
       gender: "",
       birthday: "",
-      note: "",
-      noteImportance: "unimportant",
-      noteStartDate: "",
-      noteEndDate: "",
       source: "",
       street: "",
       zipCode: "",
@@ -331,8 +445,18 @@ const AddLeadModal = ({
         other: [],
       },
     })
+    setLocalNotes([])
     setActiveTab("details")
     setEditingRelations(false)
+    setIsAddingNote(false)
+    setEditingNoteId(null)
+    setNewNote({
+      status: "general",
+      text: "",
+      isImportant: false,
+      startDate: "",
+      endDate: "",
+    })
     setNewRelation({
       name: "",
       relation: "",
@@ -379,7 +503,7 @@ const AddLeadModal = ({
                 : "text-gray-400 hover:text-white"
             }`}
           >
-            Special Note
+            Special Notes
           </button>
           <button 
             onClick={(e) => handleTabClick("relations", e)}
@@ -690,66 +814,249 @@ const AddLeadModal = ({
               </>
             )}
 
-            {/* Special Note Tab */}
+            {/* Notes Tab */}
             {activeTab === "note" && (
               <div className="border border-slate-700 rounded-xl p-4">
-                {/* Lead Name Header - shows dynamically from form fields */}
+                {/* Lead Name Header */}
                 <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-700">
                   <div>
-                    <p className="text-xs text-gray-400 uppercase tracking-wider">Special Note for</p>
-                    <p className="text-white font-semibold text-lg">
+                    <p className="text-xs text-gray-400 uppercase tracking-wider">Special Notes for</p>
+                    <p className="text-white font-medium">
                       {formData.firstName || formData.lastName 
                         ? `${formData.firstName || ''} ${formData.lastName || ''}`.trim() 
                         : <span className="text-gray-500 italic">New Lead</span>}
                     </p>
                   </div>
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="noteImportance"
-                      checked={formData.noteImportance === "important"}
-                      onChange={(e) => {
-                        updateFormData("noteImportance", e.target.checked ? "important" : "unimportant")
-                      }}
-                      className="mr-2 h-4 w-4 accent-[#FF843E]"
-                    />
-                    <label htmlFor="noteImportance" className="text-sm text-gray-200">
-                      Important
-                    </label>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (isAddingNote) {
+                        setEditingNoteId(null)
+                        setNewNote({
+                          status: "general",
+                          text: "",
+                          isImportant: false,
+                          startDate: "",
+                          endDate: "",
+                        })
+                      }
+                      setIsAddingNote(!isAddingNote)
+                    }}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium ${
+                      isAddingNote 
+                        ? "bg-gray-600 text-white" 
+                        : "bg-blue-600 text-white"
+                    }`}
+                  >
+                    {isAddingNote ? (
+                      <>Cancel</>
+                    ) : (
+                      <><Plus size={14} /> Add Note</>
+                    )}
+                  </button>
                 </div>
-                <textarea
-                  value={formData.note}
-                  onChange={(e) => updateFormData("note", e.target.value)}
-                  className="w-full bg-[#101010] resize-none rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px] mb-4"
-                  placeholder="Enter special note..."
-                />
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm text-gray-200 block mb-2">Start Date</label>
-                    <input
-                      type="date"
-                      value={formData.noteStartDate}
-                      onChange={(e) => updateFormData("noteStartDate", e.target.value)}
-                      className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
-                    />
+                
+                {/* Add/Edit Note Form */}
+                {isAddingNote && (
+                  <div className="mb-4 p-4 bg-[#101010] rounded-xl space-y-3">
+                    {/* Status Selection */}
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1.5">Status</label>
+                      <select
+                        value={newNote.status}
+                        onChange={(e) => setNewNote({ ...newNote, status: e.target.value })}
+                        className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500"
+                      >
+                        {NOTE_STATUSES.map((status) => (
+                          <option key={status.id} value={status.id}>
+                            {status.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    {/* Note Text */}
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1.5">Note</label>
+                      <textarea
+                        value={newNote.text}
+                        onChange={(e) => setNewNote({ ...newNote, text: e.target.value })}
+                        className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500 resize-none min-h-[80px]"
+                        placeholder="Enter note..."
+                      />
+                    </div>
+                    
+                    {/* Important Checkbox */}
+                    <div className="flex items-center gap-4">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={newNote.isImportant}
+                          onChange={(e) => setNewNote({ ...newNote, isImportant: e.target.checked })}
+                          className="h-4 w-4 accent-blue-500"
+                        />
+                        <span className="text-sm text-gray-300">Important</span>
+                      </label>
+                    </div>
+                    
+                    {/* Optional Date Range */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs text-gray-400 block mb-1.5">Valid From (optional)</label>
+                        <input
+                          type="date"
+                          value={newNote.startDate}
+                          onChange={(e) => setNewNote({ ...newNote, startDate: e.target.value })}
+                          className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500 white-calendar-icon"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-400 block mb-1.5">Valid Until (optional)</label>
+                        <input
+                          type="date"
+                          value={newNote.endDate}
+                          onChange={(e) => setNewNote({ ...newNote, endDate: e.target.value })}
+                          className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500 white-calendar-icon"
+                        />
+                      </div>
+                    </div>
+                    
+                    <button
+                      type="button"
+                      onClick={editingNoteId ? handleUpdateNote : handleAddNote}
+                      disabled={!newNote.text.trim()}
+                      className={`w-full py-2 rounded-lg text-sm font-medium ${
+                        !newNote.text.trim()
+                          ? "bg-blue-600/50 text-white/50 cursor-not-allowed"
+                          : "bg-blue-600 text-white"
+                      }`}
+                    >
+                      {editingNoteId ? "Update Note" : "Add Note"}
+                    </button>
                   </div>
-                  <div>
-                    <label className="text-sm text-gray-200 block mb-2">End Date</label>
-                    <input
-                      type="date"
-                      value={formData.noteEndDate}
-                      onChange={(e) => updateFormData("noteEndDate", e.target.value)}
-                      className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
-                    />
-                  </div>
+                )}
+                
+                {/* Notes List - hidden when adding/editing */}
+                {!isAddingNote && (
+                <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                  {localNotes.length > 0 ? (
+                    [...localNotes]
+                      .sort((a, b) => (b.isImportant ? 1 : 0) - (a.isImportant ? 1 : 0))
+                      .map((note) => {
+                      const statusInfo = getStatusInfo(note.status)
+                      const isExpanded = expandedNoteId === note.id
+                      
+                      return (
+                        <div
+                          key={note.id}
+                          className="bg-[#101010] rounded-lg overflow-hidden"
+                        >
+                          {/* Note Header */}
+                          <div 
+                            className="flex items-center justify-between p-3 cursor-pointer"
+                            onClick={() => setExpandedNoteId(isExpanded ? null : note.id)}
+                          >
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              <span className="text-xs font-medium px-2 py-0.5 rounded bg-gray-700 text-gray-300">
+                                {statusInfo.label}
+                              </span>
+                              {note.isImportant && (
+                                <span className="text-xs font-medium px-2 py-0.5 rounded bg-gray-700 text-red-500">
+                                  Important
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleEditNoteClick(note, e)
+                                }}
+                                className="text-gray-500 hover:text-blue-400 p-1"
+                              >
+                                <Pencil size={14} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={(e) => handleDeleteNote(note.id, e)}
+                                className="text-gray-500 hover:text-red-400 p-1"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                              {isExpanded ? (
+                                <ChevronUp size={16} className="text-gray-400" />
+                              ) : (
+                                <ChevronDown size={16} className="text-gray-400" />
+                              )}
+                            </div>
+                          </div>
+                          
+                          {/* Preview & Valid Date (always visible when collapsed) */}
+                          {!isExpanded && (
+                            <div className="px-3 pb-2">
+                              <p className="text-gray-400 text-sm truncate">
+                                {note.text}
+                              </p>
+                              {(note.startDate || note.endDate) && (
+                                <p className="text-xs text-gray-600 mt-1">
+                                  {note.startDate && note.endDate ? (
+                                    <>Valid: {note.startDate} - {note.endDate}</>
+                                  ) : note.startDate ? (
+                                    <>Valid from: {note.startDate}</>
+                                  ) : (
+                                    <>Valid until: {note.endDate}</>
+                                  )}
+                                </p>
+                              )}
+                            </div>
+                          )}
+                          
+                          {/* Note Content (expandable) */}
+                          {isExpanded && (
+                            <div className="px-3 pb-3 border-t border-gray-800">
+                              <p className="text-white text-sm mt-2 whitespace-pre-wrap break-words">
+                                {note.text}
+                              </p>
+                              {(note.startDate || note.endDate) && (
+                                <div className="mt-2 text-xs text-gray-500">
+                                  {note.startDate && note.endDate ? (
+                                    <>Valid: {note.startDate} - {note.endDate}</>
+                                  ) : note.startDate ? (
+                                    <>Valid from: {note.startDate}</>
+                                  ) : (
+                                    <>Valid until: {note.endDate}</>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })
+                  ) : (
+                    <div className="text-gray-500 text-sm text-center py-8">
+                      No special notes yet. Click "Add Note" to create one.
+                    </div>
+                  )}
                 </div>
+                )}
               </div>
             )}
 
             {/* Relations Tab */}
             {activeTab === "relations" && (
               <div className="border border-slate-700 rounded-xl p-4">
+                {/* Lead Name Header */}
+                <div className="mb-4 pb-3 border-b border-slate-700">
+                  <p className="text-xs text-gray-400 uppercase tracking-wider">Relations for</p>
+                  <p className="text-white font-medium">
+                    {formData.firstName || formData.lastName 
+                      ? `${formData.firstName || ''} ${formData.lastName || ''}`.trim() 
+                      : <span className="text-gray-500 italic">New Lead</span>}
+                  </p>
+                </div>
+                
                 <div className="flex items-center justify-between mb-4">
                   <label className="text-sm text-gray-200 font-medium">Relations</label>
                   <button
