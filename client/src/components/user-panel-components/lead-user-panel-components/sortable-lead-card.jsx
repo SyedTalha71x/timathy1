@@ -105,26 +105,29 @@ const SortableLeadCard = ({
     }
   }, [hoverTimeout, leaveTimeout])
 
-  // Close popup on scroll
+  // Close popup on scroll - only listen when popup is actually open
   useEffect(() => {
+    // Only add listener if popup is open
+    if (!isNoteOpen && hoveredNoteId !== lead.id) {
+      return
+    }
+
     const handleScroll = (event) => {
       // Don't close if scrolling inside the popup itself
       if (noteRef.current && noteRef.current.contains(event.target)) {
         return
       }
       
-      if (isNoteOpen || hoveredNoteId === lead.id) {
-        setIsNoteOpen(false)
-        setHoveredNoteId(null)
-        if (hoverTimeout) clearTimeout(hoverTimeout)
-        if (leaveTimeout) clearTimeout(leaveTimeout)
-      }
+      setIsNoteOpen(false)
+      setHoveredNoteId(null)
+      if (hoverTimeout) clearTimeout(hoverTimeout)
+      if (leaveTimeout) clearTimeout(leaveTimeout)
     }
 
     // Listen to scroll on window and any scrollable parent
-    window.addEventListener('scroll', handleScroll, true)
+    window.addEventListener('scroll', handleScroll, { capture: true, passive: true })
     return () => {
-      window.removeEventListener('scroll', handleScroll, true)
+      window.removeEventListener('scroll', handleScroll, { capture: true, passive: true })
     }
   }, [isNoteOpen, hoveredNoteId, lead.id, hoverTimeout, leaveTimeout])
 
