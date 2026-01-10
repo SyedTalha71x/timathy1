@@ -387,7 +387,7 @@ const SortableLeadCard = ({
               className="flex items-center gap-3 flex-1 min-w-0 cursor-grab active:cursor-grabbing"
               {...attributes}
               {...listeners}
-              style={{ WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'pan-y' }}
+              style={{ WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'manipulation' }}
             >
               {/* Special Note Icon - Inside card */}
               {hasValidNote ? (
@@ -473,10 +473,10 @@ const SortableLeadCard = ({
           
           {/* Drag Handle - the entire card header area */}
         <div 
-          className="flex items-center mb-2 sm:mb-3 relative cursor-grab active:cursor-grabbing select-none touch-pan-y"
+          className="flex items-center mb-2 sm:mb-3 relative cursor-grab active:cursor-grabbing select-none"
           {...attributes}
           {...listeners}
-          style={{ WebkitUserSelect: 'none', userSelect: 'none' }}
+          style={{ WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'manipulation' }}
         >
           {hasValidNote ? (
             <div

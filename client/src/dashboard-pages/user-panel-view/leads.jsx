@@ -161,8 +161,8 @@ export default function LeadManagement() {
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 300, // For touch: require 300ms hold before drag starts
-        tolerance: 8, // Allow 8px movement during delay (for scrolling)
+        delay: 200, // For touch: require 200ms hold before drag starts
+        tolerance: 50, // Allow 50px movement during delay - this prevents scroll hijacking
       },
     }),
     useSensor(KeyboardSensor, {
@@ -894,7 +894,7 @@ export default function LeadManagement() {
   }
 
   const handleAssessmentComplete = (documentData) => {
-    // FÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼ge das document direkt zum lead.documents hinzu oder update es
+    // FÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¼ge das document direkt zum lead.documents hinzu oder update es
     setLeads(prevLeads => 
       prevLeads.map(lead => {
         if (lead.id === selectedLead.id) {
@@ -910,7 +910,7 @@ export default function LeadManagement() {
               hasAssessment: true
             }
           } else {
-            // Neues document hinzufÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼gen
+            // Neues document hinzufÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¼gen
             return {
               ...lead,
               documents: [...existingDocuments, documentData],
