@@ -12,7 +12,6 @@ import {
   closestCorners,
   KeyboardSensor,
   PointerSensor,
-  TouchSensor,
   useSensor,
   useSensors,
   pointerWithin,
@@ -156,13 +155,9 @@ export default function LeadManagement() {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 10, // For mouse: require 10px movement
-      },
-    }),
-    useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 200, // For touch: require 200ms hold before drag starts
-        tolerance: 50, // Allow 50px movement during delay - this prevents scroll hijacking
+        distance: 15, // Increased from 8px to reduce accidental drags
+        delay: 150, // Add 150ms delay for touch devices
+        tolerance: 5, // Allow 5px movement during delay
       },
     }),
     useSensor(KeyboardSensor, {

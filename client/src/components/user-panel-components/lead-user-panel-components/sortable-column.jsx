@@ -209,10 +209,7 @@ const SortableColumn = ({
           overflow-y-auto 
           overscroll-contain
         "
-        style={{ 
-          touchAction: 'pan-y',
-          WebkitOverflowScrolling: 'touch'
-        }}
+        style={{ touchAction: 'pan-y' }}
       >
         <SortableContext items={leadIds} strategy={verticalListSortingStrategy}>
           {leads.map((lead, index) => (
