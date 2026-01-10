@@ -194,6 +194,13 @@ const EditLeadModal = ({
     toast.success("Relation deleted successfully")
   }
 
+  // Email validation function
+  const isValidEmail = (email) => {
+    if (!email || !email.trim()) return false
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    return emailRegex.test(email.trim())
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault()
     e.stopPropagation()
@@ -209,6 +216,10 @@ const EditLeadModal = ({
     }
     if (!formData.email?.trim()) {
       toast.error("Please enter an email address")
+      return
+    }
+    if (!isValidEmail(formData.email)) {
+      toast.error("Please enter a valid email address")
       return
     }
     
@@ -860,7 +871,12 @@ const EditLeadModal = ({
             </button>
             <button
               type="submit"
-              className="px-4 py-2 text-sm bg-orange-500 text-white rounded-xl hover:bg-orange-600"
+              disabled={!formData.firstName?.trim() || !formData.lastName?.trim() || !isValidEmail(formData.email)}
+              className={`px-4 py-2 text-sm text-white rounded-xl transition-colors ${
+                !formData.firstName?.trim() || !formData.lastName?.trim() || !isValidEmail(formData.email)
+                  ? "bg-orange-500/50 cursor-not-allowed opacity-50"
+                  : "bg-orange-500 hover:bg-orange-600"
+              }`}
             >
               Save Changes
             </button>

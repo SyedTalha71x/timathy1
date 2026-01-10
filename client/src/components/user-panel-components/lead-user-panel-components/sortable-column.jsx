@@ -166,8 +166,15 @@ const SortableColumn = ({
             )}
           </div>
 
-          {/* Lock Icon (for trial column) */}
-          {isTrialColumn && <Lock size={12} className="text-gray-400 sm:w-3.5 sm:h-3.5 shrink-0" />}
+          {/* Lock Icon Button (for trial column) */}
+          {isTrialColumn && (
+            <button
+              className="text-gray-400 hover:text-white p-1 hover:bg-gray-800 rounded-lg"
+              title="This column cannot be edited or deleted"
+            >
+              <Lock size={14} className="sm:w-3.5 sm:h-3.5 shrink-0" />
+            </button>
+          )}
 
           {/* Edit Column Button */}
           {isEditable && (

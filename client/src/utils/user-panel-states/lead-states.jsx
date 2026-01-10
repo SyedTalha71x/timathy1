@@ -110,6 +110,27 @@ export const hardcodedLeads = [
       country: "USA",
       leadId: "LEAD-004",
     },
+    {
+      id: "h4",
+      firstName: "Justin",
+      surname: "Test",
+      email: "justintest@beispiel.com",
+      phoneNumber: "+1555666777",
+      trialPeriod: "Trial Period",
+      hasTrialTraining: false,
+      avatar: Avatar,
+      source: "Website",
+      status: "uninterested",
+      gender: "female",
+      createdAt: "2025-02-01T11:20:00Z",
+      columnId: "uninterested",
+      company: "Active Life", // Added for contract pre-selection
+      interestedIn: "Basic", // Added for contract pre-selection
+      birthday: "1992-07-18", // Added for ViewLeadDetailsModal
+      address: "101 Elm St, Smalltown, USA", // Added for ViewLeadDetailsModal
+      country: "USA",
+      leadId: "LEAD-004",
+    },
   ]
 
   export const memberRelationsLeadNew = {
