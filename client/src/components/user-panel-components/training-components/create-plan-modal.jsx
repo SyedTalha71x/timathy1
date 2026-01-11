@@ -24,7 +24,7 @@ const CreatePlanModal = ({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-2 sm:p-4">
       <div className="bg-[#1C1C1C] rounded-xl w-full max-w-7xl max-h-[95vh] sm:max-h-[90vh] flex flex-col">
         {/* Sticky Header */}
-        <div className="sticky top-0 z-10 bg-[#1C1C1C] p-4 sm:p-6 pb-4 border-b border-gray-700 rounded-t-xl">
+        <div className="sticky top-0 z-30 bg-[#1C1C1C] p-4 sm:p-6 pb-4 border-b border-gray-700 rounded-t-xl shadow-lg">
           <div className="flex items-center justify-between">
             <h2 className="text-lg sm:text-xl font-bold text-white">Create Training Plan</h2>
             <button
@@ -216,7 +216,7 @@ const CreatePlanModal = ({
         </div>
 
         {/* Sticky Footer */}
-        <div className="sticky bottom-0 z-10 bg-[#1C1C1C] p-4 sm:p-6 pt-4 border-t border-gray-700 rounded-b-xl">
+        <div className="sticky bottom-0 z-30 bg-[#1C1C1C] p-4 sm:p-6 pt-4 border-t border-gray-700 rounded-b-xl shadow-2xl">
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <button
               onClick={() => {
