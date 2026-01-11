@@ -40,7 +40,7 @@ const CreatePlanModal = ({
         </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 pt-4">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 pt-4 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
             {/* Plan Details */}
             <div className="space-y-4 sm:space-y-6">
@@ -216,7 +216,7 @@ const CreatePlanModal = ({
         </div>
 
         {/* Sticky Footer */}
-        <div className="sticky bottom-0 z-30 bg-[#1C1C1C] p-4 sm:p-6 pt-4 border-t border-gray-700 rounded-b-xl shadow-2xl">
+        <div className="sticky bottom-0 z-40 bg-[#1C1C1C] p-4 sm:p-6 pt-4 border-t border-gray-700 rounded-b-xl shadow-2xl">
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <button
               onClick={() => {

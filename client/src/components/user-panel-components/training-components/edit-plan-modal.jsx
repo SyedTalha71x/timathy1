@@ -217,7 +217,7 @@ const EditPlanModal = ({
         </div>
 
         {/* Sticky Footer */}
-        <div className="sticky bottom-0 z-30 bg-[#1C1C1C] p-4 sm:p-6 pt-4 border-t border-gray-700 rounded-b-xl shadow-2xl">
+        <div className="sticky bottom-0 z-40 bg-[#1C1C1C] p-4 sm:p-6 pt-4 border-t border-gray-700 rounded-b-xl shadow-2xl">
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <button
               onClick={() => {
