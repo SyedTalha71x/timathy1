@@ -195,17 +195,17 @@ const Dashboardlayout = () => {
   const getActivityIcon = (type) => {
     switch (type) {
       case 'appointment':
-        return '📅'
+        return 'ðŸ“…'
       case 'member':
-        return '👤'
+        return 'ðŸ‘¤'
       case 'contract':
-        return '📝'
+        return 'ðŸ“'
       case 'payment':
-        return '💳'
+        return 'ðŸ’³'
       case 'class':
-        return '🏋️'
+        return 'ðŸ‹ï¸'
       default:
-        return '📋'
+        return 'ðŸ“‹'
     }
   }
 
@@ -260,7 +260,7 @@ const Dashboardlayout = () => {
                     {/* Activity Log Icon */}
                     <button
                       onClick={handleActivityLogClick}
-                      className="p-2 px-3 rounded-xl text-gray-400 bg-[#161616] cursor-pointer flex items-center gap-1"
+                      className="p-2 px-3 rounded-xl text-gray-400 bg-[#161616] hover:bg-[#252525] transition-colors cursor-pointer flex items-center gap-1"
                       aria-label="Activity Log"
                     >
                       <History size={20} />
@@ -274,7 +274,7 @@ const Dashboardlayout = () => {
                 <div className="relative mr-2" ref={languageDropdownRef}>
                   <button
                     onClick={toggleLanguageDropdown}
-                    className="p-2 px-3 rounded-xl text-gray-400 bg-[#161616] cursor-pointer flex items-center gap-1"
+                    className="p-2 px-3 rounded-xl text-gray-400 bg-[#161616] hover:bg-[#252525] transition-colors cursor-pointer flex items-center gap-1"
                     aria-label="Language Selection"
                   >
                     <Globe size={20} />
@@ -300,14 +300,12 @@ const Dashboardlayout = () => {
 
                 {/* Profile Dropdown */}
                 <div className="relative" ref={profileDropdownRef}>
-                  <div className="flex items-center">
-
-                  <div onClick={toggleDropdownMain} className="flex items-center gap-1 cursor-pointer">
-                    <img src="/gray-avatar-fotor-20250912192528.png" alt="Profile" className="w-9 h-9 rounded-lg" />
-                  </div>
-                  <div className="flex ml-2 items-center gap-1">
-                    <h2 className="font-semibold text-white text-md leading-tight">{fullName}</h2>
-                  </div>
+                  <div 
+                    onClick={toggleDropdownMain} 
+                    className="flex items-center gap-2 p-2 px-3 rounded-xl bg-[#161616] hover:bg-[#252525] transition-colors cursor-pointer"
+                  >
+                    <img src="/gray-avatar-fotor-20250912192528.png" alt="Profile" className="w-7 h-7 rounded-lg" />
+                    <h2 className="font-semibold text-white text-sm leading-tight">{fullName}</h2>
                   </div>
                   {isDropdownOpen && (
                     <div className="absolute right-0 top-12 w-48 bg-[#222222]/50 backdrop-blur-3xl rounded-lg shadow-lg z-[90]">
@@ -543,7 +541,7 @@ const Dashboardlayout = () => {
             <p className="text-sm text-zinc-400 mb-3">Released on December 15, 2024</p>
             <div className="space-y-2">
               <div>
-                <h4 className="font-medium text-white mb-2">🎉 New Features</h4>
+                <h4 className="font-medium text-white mb-2">ðŸŽ‰ New Features</h4>
                 <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
                   <li>Enhanced member analytics dashboard</li>
                   <li>Real-time class capacity tracking</li>
@@ -552,7 +550,7 @@ const Dashboardlayout = () => {
                 </ul>
               </div>
               <div>
-                <h4 className="font-medium text-white mb-2">🔧 Improvements</h4>
+                <h4 className="font-medium text-white mb-2">ðŸ”§ Improvements</h4>
                 <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
                   <li>Faster loading times for member profiles</li>
                   <li>Improved search functionality</li>
@@ -560,7 +558,7 @@ const Dashboardlayout = () => {
                 </ul>
               </div>
               <div>
-                <h4 className="font-medium text-white mb-2">🐛 Bug Fixes</h4>
+                <h4 className="font-medium text-white mb-2">ðŸ› Bug Fixes</h4>
                 <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
                   <li>Fixed calendar sync issues</li>
                   <li>Resolved payment processing errors</li>
@@ -575,7 +573,7 @@ const Dashboardlayout = () => {
             <p className="text-sm text-zinc-400 mb-3">Released on November 28, 2024</p>
             <div className="space-y-2">
               <div>
-                <h4 className="font-medium text-white mb-2">🔧 Improvements</h4>
+                <h4 className="font-medium text-white mb-2">ðŸ”§ Improvements</h4>
                 <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
                   <li>Enhanced security measures</li>
                   <li>Improved data backup system</li>
@@ -583,7 +581,7 @@ const Dashboardlayout = () => {
                 </ul>
               </div>
               <div>
-                <h4 className="font-medium text-white mb-2">🐛 Bug Fixes</h4>
+                <h4 className="font-medium text-white mb-2">ðŸ› Bug Fixes</h4>
                 <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
                   <li>Fixed trainer schedule conflicts</li>
                   <li>Resolved email notification delays</li>
@@ -597,7 +595,7 @@ const Dashboardlayout = () => {
             <p className="text-sm text-zinc-400 mb-3">Released on October 15, 2024</p>
             <div className="space-y-2">
               <div>
-                <h4 className="font-medium text-white mb-2">🎉 Major Release</h4>
+                <h4 className="font-medium text-white mb-2">ðŸŽ‰ Major Release</h4>
                 <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
                   <li>Complete UI/UX redesign</li>
                   <li>New member management system</li>
@@ -607,7 +605,7 @@ const Dashboardlayout = () => {
                 </ul>
               </div>
               <div>
-                <h4 className="font-medium text-white mb-2">🔧 Performance</h4>
+                <h4 className="font-medium text-white mb-2">ðŸ”§ Performance</h4>
                 <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
                   <li>50% faster page load times</li>
                   <li>Improved database optimization</li>
@@ -622,7 +620,7 @@ const Dashboardlayout = () => {
             <p className="text-sm text-zinc-400 mb-3">Released on September 20, 2024</p>
             <div className="space-y-2">
               <div>
-                <h4 className="font-medium text-white mb-2">🐛 Critical Fixes</h4>
+                <h4 className="font-medium text-white mb-2">ðŸ› Critical Fixes</h4>
                 <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
                   <li>Fixed critical security vulnerability</li>
                   <li>Resolved data synchronization issues</li>

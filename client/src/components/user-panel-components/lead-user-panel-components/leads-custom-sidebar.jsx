@@ -296,7 +296,7 @@ const SidebarWidgetSelectionModal = ({ isOpen, onClose, onSelectWidget, canAddWi
       id: "communications",
       name: "Communications",
       description: "View recent messages and communications",
-      icon: "💬",
+      icon: "ðŸ’¬",
     },
     {
       id: "todo",
@@ -308,13 +308,13 @@ const SidebarWidgetSelectionModal = ({ isOpen, onClose, onSelectWidget, canAddWi
       id: "birthday",
       name: "Birthdays",
       description: "Upcoming member birthdays",
-      icon: "🎂",
+      icon: "ðŸŽ‚",
     },
     {
       id: "websiteLinks",
       name: "Website Links",
       description: "Quick access to important websites",
-      icon: "🔗",
+      icon: "ðŸ”—",
     },
   ]
 

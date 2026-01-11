@@ -1,6 +1,18 @@
 /* eslint-disable react/prop-types */
-import { X, AlertTriangle, Info, Copy, Check } from "lucide-react"
+import { X, Copy, Check, ChevronDown, ChevronUp } from "lucide-react"
 import { useEffect, useState } from "react"
+
+// Note Status Options
+const NOTE_STATUSES = [
+  { id: "contact_attempt", label: "Contact Attempt" },
+  { id: "callback_requested", label: "Callback Requested" },
+  { id: "interest", label: "Interest" },
+  { id: "objection", label: "Objection" },
+  { id: "personal_info", label: "Personal Info" },
+  { id: "health", label: "Health" },
+  { id: "follow_up", label: "Follow-up" },
+  { id: "general", label: "General" },
+]
 
 const ViewLeadDetailsModal = ({
   isVisible,
@@ -12,6 +24,7 @@ const ViewLeadDetailsModal = ({
   initialTab = "details",
 }) => {
   const [activeTab, setActiveTab] = useState(initialTab)
+  const [expandedNoteId, setExpandedNoteId] = useState(null)
   const [copiedEmail, setCopiedEmail] = useState(false)
   const [copiedPhone, setCopiedPhone] = useState(false)
   const [copiedTelephone, setCopiedTelephone] = useState(false)
@@ -24,6 +37,41 @@ const ViewLeadDetailsModal = ({
   const [copiedCountry, setCopiedCountry] = useState(false)
   const [copiedDetails, setCopiedDetails] = useState(false)
   const [copiedBirthday, setCopiedBirthday] = useState(false)
+
+  const getStatusInfo = (statusId) => {
+    return NOTE_STATUSES.find(s => s.id === statusId) || NOTE_STATUSES.find(s => s.id === "general")
+  }
+  
+  const formatNoteDate = (dateString) => {
+    if (!dateString) return ""
+    return new Date(dateString).toLocaleDateString("de-DE", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    })
+  }
+  
+  // Get notes array (support both old and new format)
+  const getNotes = () => {
+    if (!leadData) return []
+    if (leadData.notes && Array.isArray(leadData.notes)) {
+      return leadData.notes
+    }
+    if (leadData.specialNote && leadData.specialNote.text) {
+      return [{
+        id: 1,
+        status: "general",
+        text: leadData.specialNote.text,
+        isImportant: leadData.specialNote.isImportant || false,
+        startDate: leadData.specialNote.startDate || "",
+        endDate: leadData.specialNote.endDate || "",
+        createdAt: leadData.createdAt || "",
+      }]
+    }
+    return []
+  }
 
   // IMPORTANT: Update tab whenever initialTab changes
   useEffect(() => {
@@ -199,18 +247,19 @@ const ViewLeadDetailsModal = ({
   }
 
   return (
-    <div className="fixed inset-0 w-full h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
-      <div className="bg-[#1C1C1C] rounded-xl w-full max-w-4xl my-8 relative">
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
+    <div className="fixed inset-0 w-full h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000]">
+      <div className="bg-[#1C1C1C] rounded-xl w-full max-w-4xl max-h-[90vh] md:max-h-[85vh] my-2 md:my-8 relative flex flex-col">
+        {/* Sticky Header */}
+        <div className="p-4 md:p-6 pb-0 flex-shrink-0">
+          <div className="flex justify-between items-center mb-4 md:mb-6">
             <h2 className="text-white text-lg font-semibold">Lead Details</h2>
             <button onClick={onClose} className="text-gray-400 hover:text-white">
               <X size={20} className="cursor-pointer" />
             </button>
           </div>
 
-          {/* Tab Navigation - DAS HABEN SIE VERGESSEN! */}
-          <div className="flex border-b border-gray-700 mb-6">
+          {/* Tab Navigation */}
+          <div className="flex border-b border-gray-700">
             <button
               onClick={() => setActiveTab("details")}
               className={`px-4 py-2 text-sm font-medium ${
@@ -225,7 +274,7 @@ const ViewLeadDetailsModal = ({
                 activeTab === "note" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400 hover:text-white"
               }`}
             >
-              Special Note
+              Special Notes
             </button>
             <button
               onClick={() => setActiveTab("relations")}
@@ -238,7 +287,10 @@ const ViewLeadDetailsModal = ({
               Relations
             </button>
           </div>
+        </div>
 
+        {/* Scrollable Content */}
+        <div className="p-4 md:p-6 pt-4 md:pt-6 overflow-y-auto flex-1">
           {/* Tab Content */}
           {activeTab === "details" && (
             <div className="space-y-4 text-white">
@@ -249,8 +301,8 @@ const ViewLeadDetailsModal = ({
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-400">First Name</p>
-                    <div className="flex items-center gap-2">
-                      <p className="flex-1">{leadData.firstName || "N/A"}</p>
+                    <div className="flex items-center gap-3">
+                      <p>{leadData.firstName || "-"}</p>
                       {leadData.firstName && (
                         <button
                           onClick={handleCopyFirstName}
@@ -268,8 +320,8 @@ const ViewLeadDetailsModal = ({
                   </div>
                   <div>
                     <p className="text-sm text-gray-400">Last Name</p>
-                    <div className="flex items-center gap-2">
-                      <p className="flex-1">{leadData.surname || "N/A"}</p>
+                    <div className="flex items-center gap-3">
+                      <p>{leadData.surname || "-"}</p>
                       {leadData.surname && (
                         <button
                           onClick={handleCopyLastName}
@@ -290,12 +342,12 @@ const ViewLeadDetailsModal = ({
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-400">Gender</p>
-                    <p className="capitalize">{leadData.gender || "N/A"}</p>
+                    <p className="capitalize">{leadData.gender || "-"}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-400">Birthday</p>
-                    <div className="flex items-center gap-2">
-                      <p className="flex-1">
+                    <div className="flex items-center gap-3">
+                      <p>
                         {leadData.birthday 
                           ? (() => {
                               const birthDate = new Date(leadData.birthday)
@@ -307,7 +359,7 @@ const ViewLeadDetailsModal = ({
                               }
                               return `${birthDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} (Age: ${age})`
                             })()
-                          : "N/A"}
+                          : "-"}
                       </p>
                       {leadData.birthday && (
                         <button
@@ -333,8 +385,8 @@ const ViewLeadDetailsModal = ({
                 
                 <div>
                   <p className="text-sm text-gray-400">Email</p>
-                  <div className="flex items-center gap-2">
-                    <p className="flex-1">{leadData.email || "N/A"}</p>
+                  <div className="flex items-center gap-3">
+                    <p>{leadData.email || "-"}</p>
                     {leadData.email && (
                       <button
                         onClick={handleCopyEmail}
@@ -354,8 +406,8 @@ const ViewLeadDetailsModal = ({
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-400">Mobile Number</p>
-                    <div className="flex items-center gap-2">
-                      <p className="flex-1">{leadData.phoneNumber || "N/A"}</p>
+                    <div className="flex items-center gap-3">
+                      <p>{leadData.phoneNumber || "-"}</p>
                       {leadData.phoneNumber && (
                         <button
                           onClick={handleCopyPhone}
@@ -373,8 +425,8 @@ const ViewLeadDetailsModal = ({
                   </div>
                   <div>
                     <p className="text-sm text-gray-400">Telephone Number</p>
-                    <div className="flex items-center gap-2">
-                      <p className="flex-1">{leadData.telephoneNumber || "N/A"}</p>
+                    <div className="flex items-center gap-3">
+                      <p>{leadData.telephoneNumber || "-"}</p>
                       {leadData.telephoneNumber && (
                         <button
                           onClick={handleCopyTelephone}
@@ -399,8 +451,8 @@ const ViewLeadDetailsModal = ({
                 
                 <div>
                   <p className="text-sm text-gray-400">Street & Number</p>
-                  <div className="flex items-center gap-2">
-                    <p className="flex-1">{leadData.street || "N/A"}</p>
+                  <div className="flex items-center gap-3">
+                    <p>{leadData.street || "-"}</p>
                     {leadData.street && (
                       <button
                         onClick={handleCopyStreet}
@@ -420,11 +472,11 @@ const ViewLeadDetailsModal = ({
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-400">ZIP Code & City</p>
-                    <div className="flex items-center gap-2">
-                      <p className="flex-1">
+                    <div className="flex items-center gap-3">
+                      <p>
                         {leadData.zipCode && leadData.city 
                           ? `${leadData.zipCode} ${leadData.city}` 
-                          : leadData.zipCode || leadData.city || "N/A"}
+                          : leadData.zipCode || leadData.city || "-"}
                       </p>
                       {(leadData.zipCode || leadData.city) && (
                         <button
@@ -443,8 +495,8 @@ const ViewLeadDetailsModal = ({
                   </div>
                   <div>
                     <p className="text-sm text-gray-400">Country</p>
-                    <div className="flex items-center gap-2">
-                      <p className="flex-1">{leadData.country || "N/A"}</p>
+                    <div className="flex items-center gap-3">
+                      <p>{leadData.country || "-"}</p>
                       {leadData.country && (
                         <button
                           onClick={handleCopyCountry}
@@ -464,8 +516,8 @@ const ViewLeadDetailsModal = ({
 
                 <div>
                   <p className="text-sm text-gray-400">Lead ID</p>
-                  <div className="flex items-center gap-2">
-                    <p className="flex-1">{leadData.id || "N/A"}</p>
+                  <div className="flex items-center gap-3">
+                    <p>{leadData.id || "-"}</p>
                     {leadData.id && (
                       <button
                         onClick={handleCopyLeadId}
@@ -495,7 +547,7 @@ const ViewLeadDetailsModal = ({
                         {leadData.leadSource}
                       </span>
                     ) : (
-                      <p>N/A</p>
+                      <p>-</p>
                     )}
                   </div>
                   <div>
@@ -503,7 +555,7 @@ const ViewLeadDetailsModal = ({
                     {(() => {
                       const column = getColumnWithColor(leadData.columnId || leadData.status)
                       return column ? (
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-3">
                           <div
                             className="w-3 h-3 rounded-full"
                             style={{ backgroundColor: column.color }}
@@ -511,7 +563,7 @@ const ViewLeadDetailsModal = ({
                           <span>{column.title}</span>
                         </div>
                       ) : (
-                        <p>N/A</p>
+                        <p>-</p>
                       )
                     })()}
                   </div>
@@ -541,79 +593,124 @@ const ViewLeadDetailsModal = ({
                 </div>
               )}
               
-              {/* Divider before Created Date */}
-              <div className="border-t border-gray-700 my-4"></div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-gray-400">Created Date</p>
-                  <p>
-                    {leadData.createdAt 
-                      ? new Date(leadData.createdAt).toLocaleDateString('en-US', { 
-                          month: 'short', 
-                          day: 'numeric', 
-                          year: 'numeric' 
-                        })
-                      : "N/A"}
-                  </p>
+              {/* Created Date */}
+              <div className="pt-4 border-t border-gray-700">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-400">Created Date</p>
+                    <p>
+                      {leadData.createdAt 
+                        ? new Date(leadData.createdAt).toLocaleDateString('en-US', { 
+                            month: 'short', 
+                            day: 'numeric', 
+                            year: 'numeric' 
+                          })
+                        : "-"}
+                    </p>
+                  </div>
                 </div>
-              </div>
-              
-              <div className="flex justify-end gap-4 mt-6">
-                <button
-                  onClick={() => {
-                    onClose()
-                    onEditLead(leadData)
-                  }}
-                  className="bg-[#FF843E] text-sm text-white px-4 py-2 rounded-xl hover:bg-[#FF843E]/90"
-                >
-                  Edit Lead
-                </button>
               </div>
             </div>
           )}
 
           {activeTab === "note" && (
-            <div className="space-y-4 text-white">
-              <h3 className="text-lg font-semibold mb-4">Special Note</h3>
-              {leadData.specialNote && leadData.specialNote.text ? (
-                <div className="border border-slate-700 rounded-xl p-4">
-                  <div className="flex items-center gap-2 mb-4">
-                    {leadData.specialNote.isImportant ? (
-                      <AlertTriangle className="text-yellow-500" size={20} />
-                    ) : (
-                      <Info className="text-blue-500" size={20} />
-                    )}
-                    <p className="font-medium">
-                      {leadData.specialNote.isImportant ? "Important Note" : "Note"}
-                    </p>
-                  </div>
-                  <p className="text-sm leading-relaxed">{leadData.specialNote.text}</p>
-                  {leadData.specialNote.startDate && leadData.specialNote.endDate && (
-                    <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
-                      <p className="text-xs text-gray-300">
-                        Valid from {leadData.specialNote.startDate} to {leadData.specialNote.endDate}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="text-gray-400 text-center py-8">No special note for this lead.</div>
-              )}
-              <div className="flex justify-end mt-6">
-                <button
-                  onClick={handleEditNote}
-                  className="bg-[#FF843E] text-sm text-white px-4 py-2 rounded-xl hover:bg-[#FF843E]/90"
-                >
-                  Edit Note
-                </button>
+            <div className="space-y-4 text-white pb-16">
+              {/* Lead Name Header */}
+              <div className="mb-2 pb-3 border-b border-slate-700">
+                <p className="text-xs text-gray-400 uppercase tracking-wider">Special Notes for</p>
+                <p className="text-white font-medium">{leadData.firstName} {leadData.surname}</p>
+              </div>
+              
+              {/* Notes List */}
+              <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                {getNotes().length > 0 ? (
+                  [...getNotes()]
+                    .sort((a, b) => (b.isImportant ? 1 : 0) - (a.isImportant ? 1 : 0))
+                    .map((note) => {
+                    const statusInfo = getStatusInfo(note.status)
+                    const isExpanded = expandedNoteId === note.id
+                    
+                    return (
+                      <div
+                        key={note.id}
+                        className="bg-[#1a1a1a] rounded-lg overflow-hidden"
+                      >
+                        {/* Note Header */}
+                        <div 
+                          className="flex items-center justify-between p-3 cursor-pointer"
+                          onClick={() => setExpandedNoteId(isExpanded ? null : note.id)}
+                        >
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <span className="text-xs font-medium px-2 py-0.5 rounded bg-gray-700 text-gray-300">
+                              {statusInfo.label}
+                            </span>
+                            {note.isImportant && (
+                              <span className="text-xs font-medium px-2 py-0.5 rounded bg-gray-700 text-red-500">
+                                Important
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center">
+                            {isExpanded ? (
+                              <ChevronUp size={16} className="text-gray-400" />
+                            ) : (
+                              <ChevronDown size={16} className="text-gray-400" />
+                            )}
+                          </div>
+                        </div>
+                        
+                        {/* Preview & Valid Date (always visible when collapsed) */}
+                        {!isExpanded && (
+                          <div className="px-3 pb-2">
+                            <p className="text-gray-400 text-sm truncate">
+                              {note.text}
+                            </p>
+                            {(note.startDate || note.endDate) && (
+                              <p className="text-xs text-gray-600 mt-1">
+                                {note.startDate && note.endDate ? (
+                                  <>Valid: {note.startDate} - {note.endDate}</>
+                                ) : note.startDate ? (
+                                  <>Valid from: {note.startDate}</>
+                                ) : (
+                                  <>Valid until: {note.endDate}</>
+                                )}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                        
+                        {/* Note Content (expandable) */}
+                        {isExpanded && (
+                          <div className="px-3 pb-3 border-t border-gray-800">
+                            <p className="text-white text-sm mt-2 whitespace-pre-wrap break-words">
+                              {note.text}
+                            </p>
+                            {(note.startDate || note.endDate) && (
+                              <div className="mt-2 text-xs text-gray-500">
+                                {note.startDate && note.endDate ? (
+                                  <>Valid: {note.startDate} - {note.endDate}</>
+                                ) : note.startDate ? (
+                                  <>Valid from: {note.startDate}</>
+                                ) : (
+                                  <>Valid until: {note.endDate}</>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })
+                ) : (
+                  <div className="text-gray-400 text-center py-8">No special notes for this lead.</div>
+                )}
               </div>
             </div>
           )}
 
           {activeTab === "relations" && (
             <>
-              <div className="space-y-6 max-h-[60vh] overflow-y-auto">
+              <div className="space-y-6 max-h-[60vh] overflow-y-auto pb-16">
                 {/* Relations Tree Visualization */}
                 <div className="bg-[#161616] rounded-xl p-6">
                   <h3 className="text-lg font-semibold text-white mb-4 text-center">Relationship Tree</h3>
@@ -656,15 +753,7 @@ const ViewLeadDetailsModal = ({
                                 >
                                   <div className="text-white text-sm font-medium">{relation.name}</div>
                                   <div className="text-gray-400 text-xs">({relation.relation})</div>
-                                  <div
-                                    className={`text-xs mt-1 px-1 py-0.5 rounded ${
-                                      relation.type === "member"
-                                        ? "bg-green-600 text-green-100"
-                                        : relation.type === "lead"
-                                          ? "bg-blue-600 text-blue-100"
-                                          : "bg-gray-600 text-gray-100"
-                                    }`}
-                                  >
+                                  <div className="bg-gray-700 text-gray-300 text-xs mt-1 px-1.5 py-0.5 rounded capitalize inline-block">
                                     {relation.type}
                                   </div>
                                 </div>
@@ -697,18 +786,10 @@ const ViewLeadDetailsModal = ({
                                     : ""
                                 }`}
                               >
-                                <div>
+                                <div className="flex items-center flex-wrap gap-1.5">
                                   <span className="text-white font-medium">{relation.name}</span>
-                                  <span className="text-gray-400 ml-2">- {relation.relation}</span>
-                                  <span
-                                    className={`ml-2 text-xs px-2 py-0.5 rounded ${
-                                      relation.type === "member"
-                                        ? "bg-green-600 text-green-100"
-                                        : relation.type === "lead"
-                                          ? "bg-blue-600 text-blue-100"
-                                          : "bg-gray-600 text-gray-100"
-                                    }`}
-                                  >
+                                  <span className="text-gray-400">- {relation.relation}</span>
+                                  <span className="bg-gray-700 text-gray-300 text-xs px-2 py-0.5 rounded capitalize">
                                     {relation.type}
                                   </span>
                                 </div>
@@ -723,16 +804,41 @@ const ViewLeadDetailsModal = ({
                   </div>
                 </div>
               </div>
-              <div className="flex-shrink-0 bg-[#1C1C1C] p-4 md:p-6 border-t border-gray-700 mt-6">
-                <button
-                  onClick={handleEditRelations}
-                  className="w-full bg-[#FF843E] text-sm text-white px-4 py-2 rounded-xl hover:bg-[#FF843E]/90"
-                >
-                  Edit Relations
-                </button>
-              </div>
             </>
           )}
+        </div>
+
+        {/* Sticky Footer with Edit Buttons */}
+        <div className="flex-shrink-0 bg-[#1C1C1C] px-4 md:px-6 py-4 border-t border-gray-700">
+          <div className="flex justify-end">
+            {activeTab === "details" && (
+              <button
+                onClick={() => {
+                  onClose()
+                  onEditLead(leadData)
+                }}
+                className="bg-orange-500 text-sm text-white px-4 py-2 rounded-xl hover:bg-orange-600"
+              >
+                Edit Lead
+              </button>
+            )}
+            {activeTab === "note" && (
+              <button
+                onClick={handleEditNote}
+                className="bg-orange-500 text-sm text-white px-4 py-2 rounded-xl"
+              >
+                Edit Special Notes
+              </button>
+            )}
+            {activeTab === "relations" && (
+              <button
+                onClick={handleEditRelations}
+                className="bg-orange-500 text-sm text-white px-4 py-2 rounded-xl hover:bg-orange-600"
+              >
+                Edit Relations
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -66,7 +66,7 @@ const EditColumnModal = ({ isVisible, onClose, column, onSave }) => {
             >
               Cancel
             </button>
-            <button type="submit" className="px-4 py-2 text-sm bg-[#FF5733] text-white rounded-xl hover:bg-[#E64D2E]">
+            <button type="submit" className="px-4 py-2 text-sm bg-orange-500 text-white rounded-xl hover:bg-orange-600">
               Save Changes
             </button>
           </div>
