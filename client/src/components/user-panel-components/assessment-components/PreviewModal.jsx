@@ -265,10 +265,10 @@ const PreviewModal = ({ showPreviewModal, setShowPreviewModal, previewForm }) =>
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-start justify-center p-4 z-50 overflow-y-auto">
-      <div className="bg-[#1C1C1C] rounded-xl p-6 w-full max-w-4xl my-8 border border-gray-700 max-h-[90vh] overflow-y-auto">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+      <div className="bg-[#1C1C1C] rounded-xl w-full max-w-4xl border border-gray-700 flex flex-col max-h-[90vh]">
+        {/* Fixed Header */}
+        <div className="flex-shrink-0 flex justify-between items-center p-6 border-b border-gray-700">
           <div>
             <h2 className="text-xl font-bold text-white">
               {previewForm.title}
@@ -279,94 +279,98 @@ const PreviewModal = ({ showPreviewModal, setShowPreviewModal, previewForm }) =>
           </div>
           <button
             onClick={() => setShowPreviewModal(false)}
-            className="text-gray-400 hover:text-white text-lg"
+            className="text-gray-400 hover:text-white text-lg p-2 hover:bg-gray-800 rounded-lg transition-colors"
           >
             <X size={20} />
           </button>
         </div>
 
-        {/* Form Sections */}
-        <div className="space-y-6">
-          {previewForm.sections.map((section) => (
-            <div key={section.id} className="bg-[#161616] border border-gray-600 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-white mb-4 border-b border-gray-600 pb-2">
-                {section.name}
-              </h3>
-              
-              <div className="space-y-6">
-                {/* Support both old structure (questions) and new structure (items) */}
-                {(section.items || section.questions || []).map((item) => {
-                  // Text block rendering
-                  if (item.itemType === 'textBlock') {
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-6">
+          {/* Form Sections */}
+          <div className="space-y-6">
+            {previewForm.sections.map((section) => (
+              <div key={section.id} className="bg-[#161616] border border-gray-600 rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-white mb-4 border-b border-gray-600 pb-2">
+                  {section.name}
+                </h3>
+                
+                <div className="space-y-6">
+                  {/* Support both old structure (questions) and new structure (items) */}
+                  {(section.items || section.questions || []).map((item) => {
+                    // Text block rendering
+                    if (item.itemType === 'textBlock') {
+                      return (
+                        <div key={item.id} className="p-4 bg-[#1C1C1C] rounded-lg">
+                          <p className="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">
+                            {item.text}
+                          </p>
+                        </div>
+                      );
+                    }
+                    
+                    // Variable field rendering
+                    if (item.itemType === 'variableField') {
+                      return (
+                        <div key={item.id} className="p-4 bg-[#1C1C1C] rounded-lg">
+                          <p className="font-medium text-white mb-1">
+                            {item.number}. {item.text || 'Untitled Variable Field'}
+                            {item.required !== false && <span className="text-red-500 ml-1">*</span>}
+                          </p>
+                          {item.variable ? (
+                            renderVariableInput(item)
+                          ) : (
+                            <div className="mt-3 text-sm text-gray-500 italic">
+                              No variable selected
+                            </div>
+                          )}
+                        </div>
+                      );
+                    }
+                    
+                    // Question rendering (default)
                     return (
                       <div key={item.id} className="p-4 bg-[#1C1C1C] rounded-lg">
-                        <p className="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">
-                          {item.text}
-                        </p>
-                      </div>
-                    );
-                  }
-                  
-                  // Variable field rendering
-                  if (item.itemType === 'variableField') {
-                    return (
-                      <div key={item.id} className="p-4 bg-[#1C1C1C] rounded-lg">
-                        <p className="font-medium text-white mb-1">
-                          {item.number}. {item.text || 'Untitled Variable Field'}
+                        <p className="font-medium text-white mb-3">
+                          {item.number}. {item.text}
                           {item.required !== false && <span className="text-red-500 ml-1">*</span>}
                         </p>
-                        {item.variable ? (
-                          renderVariableInput(item)
-                        ) : (
-                          <div className="mt-3 text-sm text-gray-500 italic">
-                            No variable selected
-                          </div>
-                        )}
+                        {renderQuestionInput(item)}
                       </div>
                     );
-                  }
-                  
-                  // Question rendering (default)
-                  return (
-                    <div key={item.id} className="p-4 bg-[#1C1C1C] rounded-lg">
-                      <p className="font-medium text-white mb-3">
-                        {item.number}. {item.text}
-                        {item.required !== false && <span className="text-red-500 ml-1">*</span>}
-                      </p>
-                      {renderQuestionInput(item)}
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Signature Section */}
+          <div className="mt-6 bg-[#161616] border border-gray-600 rounded-lg p-6">
+            <div className="mb-4">
+              {/* Signature Canvas - Smaller */}
+              <div className="bg-[#1C1C1C] border-2 border-gray-600 rounded-lg overflow-hidden p-8">
+                <div className="w-full h-32 flex flex-col justify-end">
+                  <div className="w-full border-b-2 border-gray-600"></div>
+                  {/* Date and Location under signature line */}
+                  {getDateAndLocation() && (
+                    <div className="text-sm text-gray-400 mt-2">
+                      {getDateAndLocation()}
                     </div>
-                  );
-                })}
+                  )}
+                </div>
               </div>
             </div>
-          ))}
+          </div>
         </div>
 
-        {/* Signature Section */}
-        <div className="mt-6 bg-[#161616] border border-gray-600 rounded-lg p-6">
-          <div className="mb-4">
-            {/* Signature Canvas - Smaller */}
-            <div className="bg-[#1C1C1C] border-2 border-gray-600 rounded-lg overflow-hidden p-8">
-              <div className="w-full h-32 flex flex-col justify-end">
-                <div className="w-full border-b-2 border-gray-600"></div>
-                {/* Date and Location under signature line */}
-                {getDateAndLocation() && (
-                  <div className="text-sm text-gray-400 mt-2">
-                    {getDateAndLocation()}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="flex justify-end mt-6">
-            <button
-              onClick={() => setShowPreviewModal(false)}
-              className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-            >
-              Close Preview
-            </button>
-          </div>
+        {/* Fixed Footer */}
+        <div className="flex-shrink-0 flex justify-end p-6 border-t border-gray-700">
+          <button
+            onClick={() => setShowPreviewModal(false)}
+            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+          >
+            Close Preview
+          </button>
         </div>
       </div>
     </div>

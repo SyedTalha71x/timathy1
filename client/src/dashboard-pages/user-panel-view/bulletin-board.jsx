@@ -550,7 +550,7 @@ const BulletinBoard = () => {
                         <span className="text-xs text-gray-400">Status:</span>
                         <button
                           onClick={() => handleStatusToggle(post.id)}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${post.status === "Active" ? "bg-emerald-500" : "bg-gray-600"
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${post.status === "Active" ? "bg-blue-600" : "bg-gray-600"
                             }`}
                         >
                           <span

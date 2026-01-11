@@ -1,6 +1,9 @@
 /* eslint-disable react-refresh/only-export-components */
 /* eslint-disable react/prop-types */
 import { FaCalendarAlt, FaDollarSign, FaUserPlus, FaUsers } from "react-icons/fa";
+import { useEffect, useRef } from "react";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 
 export const appointmentsData = {
   totals: {
@@ -27,6 +30,7 @@ export const appointmentsData = {
     { time: "6:00 PM", count: 1 },
   ],
 }
+
 export const tabs = [
   { name: "Appointments", icon: FaCalendarAlt },
   { name: "Members", icon: FaUsers },
@@ -284,6 +288,7 @@ export const getMemberActivityChartConfig = () => ({
   ],
 });
 
+// Fixed Members by Type Chart Config
 export const getMembersByTypeChartConfig = () => ({
   options: {
     chart: {
@@ -297,6 +302,7 @@ export const getMembersByTypeChartConfig = () => ({
     legend: {
       labels: { colors: "#9CA3AF" },
       position: "bottom",
+      horizontalAlign: "center",
     },
     plotOptions: {
       pie: {
@@ -304,9 +310,22 @@ export const getMembersByTypeChartConfig = () => ({
           size: "65%",
           labels: {
             show: true,
+            name: {
+              show: true,
+              fontSize: '16px',
+              color: '#9CA3AF',
+            },
+            value: {
+              show: true,
+              fontSize: '24px',
+              color: '#fff',
+              formatter: (val) => val,
+            },
             total: {
               show: true,
-              label: "Total Members",
+              showAlways: true,
+              label: "Total",
+              fontSize: '14px',
               color: "#9CA3AF",
               formatter: () => membersData.totalMembers.toString(),
             },
@@ -316,13 +335,41 @@ export const getMembersByTypeChartConfig = () => ({
     },
     dataLabels: {
       enabled: true,
+      formatter: (val, opts) => {
+        return opts.w.config.series[opts.seriesIndex];
+      },
       style: {
+        fontSize: '14px',
         colors: ["#fff"],
       },
+      dropShadow: {
+        enabled: false,
+      },
+    },
+    stroke: {
+      show: true,
+      width: 2,
+      colors: ['#2F2F2F'],
     },
     tooltip: {
       theme: "dark",
+      y: {
+        formatter: (value) => `${value} members`,
+      },
     },
+    responsive: [
+      {
+        breakpoint: 480,
+        options: {
+          chart: {
+            width: 300,
+          },
+          legend: {
+            position: "bottom",
+          },
+        },
+      },
+    ],
   },
   series: membersData.membersByType.map((item) => item.count),
 });
@@ -559,117 +606,216 @@ export const getMostFrequentlySoldChartConfig = () => ({
   ],
 });
 
+// Lead Origin Map Data - Stuttgart and surrounding areas
 export const leadOriginMapData = {
-  // Sample data for lead origins by area
+  // Studio location (Stuttgart city center)
+  studioLocation: {
+    lat: 48.7758,
+    lng: 9.1829,
+    name: "Your Studio",
+    address: "Stuttgart Mitte"
+  },
+  // Regions around Stuttgart with lead counts
   regions: [
-    { name: "North", leads: 150, color: "#FF6B35", intensity: 0.9 },
-    { name: "South", leads: 85, color: "#FFA726", intensity: 0.6 },
-    { name: "East", leads: 120, color: "#FF8A65", intensity: 0.8 },
-    { name: "West", leads: 65, color: "#FFB74D", intensity: 0.5 },
-    { name: "Central", leads: 200, color: "#FF5722", intensity: 1.0 },
-    { name: "Northwest", leads: 45, color: "#FFCC80", intensity: 0.4 },
-    { name: "Southeast", leads: 95, color: "#FF9800", intensity: 0.7 },
+    { name: "Stuttgart-Mitte", lat: 48.7758, lng: 9.1829, leads: 85 },
+    { name: "Stuttgart-West", lat: 48.7731, lng: 9.1577, leads: 42 },
+    { name: "Stuttgart-Ost", lat: 48.7856, lng: 9.2108, leads: 38 },
+    { name: "Stuttgart-Süd", lat: 48.7544, lng: 9.1694, leads: 35 },
+    { name: "Stuttgart-Nord", lat: 48.7958, lng: 9.1794, leads: 28 },
+    { name: "Bad Cannstatt", lat: 48.8044, lng: 9.2194, leads: 45 },
+    { name: "Vaihingen", lat: 48.7294, lng: 9.1094, leads: 32 },
+    { name: "Feuerbach", lat: 48.8108, lng: 9.1544, leads: 25 },
+    { name: "Degerloch", lat: 48.7458, lng: 9.1708, leads: 22 },
+    { name: "Zuffenhausen", lat: 48.8294, lng: 9.1708, leads: 18 },
+    { name: "Esslingen", lat: 48.7406, lng: 9.3108, leads: 28 },
+    { name: "Ludwigsburg", lat: 48.8975, lng: 9.1922, leads: 22 },
+    { name: "Böblingen", lat: 48.6856, lng: 9.0144, leads: 15 },
+    { name: "Fellbach", lat: 48.8108, lng: 9.2756, leads: 20 },
+    { name: "Sindelfingen", lat: 48.7131, lng: 9.0028, leads: 12 },
+    { name: "Waiblingen", lat: 48.8306, lng: 9.3169, leads: 18 },
   ],
-  totalLeads: 760
-}
+  totalLeads: 485
+};
 
-export const LeadOriginMap = ({ data, height = 400 }) => {
+// Helper function to get color based on lead count
+const getHeatColor = (count, maxCount) => {
+  const intensity = count / maxCount;
+  if (intensity > 0.7) return { fill: '#f97316', border: '#ea580c', opacity: 0.7 }; // Orange - high
+  if (intensity > 0.4) return { fill: '#fb923c', border: '#f97316', opacity: 0.6 }; // Light orange - medium
+  if (intensity > 0.2) return { fill: '#fdba74', border: '#fb923c', opacity: 0.5 }; // Lighter orange - low-medium
+  return { fill: '#fed7aa', border: '#fdba74', opacity: 0.4 }; // Very light - low
+};
+
+// Helper function to get radius based on count
+const getRadius = (count, maxCount) => {
+  const minRadius = 400;
+  const maxRadius = 1500;
+  const intensity = count / maxCount;
+  return minRadius + (maxRadius - minRadius) * intensity;
+};
+
+// Lead Origin Map Component using Leaflet
+export const LeadOriginMap = ({ data, height = 450 }) => {
+  const mapRef = useRef(null);
+  const mapInstanceRef = useRef(null);
+
+  useEffect(() => {
+    // Only initialize once
+    if (mapInstanceRef.current) return;
+
+    // Check if container exists
+    if (!mapRef.current) return;
+
+    // Find max lead count for scaling
+    const maxLeads = Math.max(...data.regions.map(r => r.leads));
+
+    // Initialize map centered on Stuttgart
+    const map = L.map(mapRef.current, {
+      center: [data.studioLocation.lat, data.studioLocation.lng],
+      zoom: 11,
+      zoomControl: true,
+      scrollWheelZoom: true,
+    });
+
+    mapInstanceRef.current = map;
+
+    // Add dark tile layer (CartoDB Dark Matter)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains: 'abcd',
+      maxZoom: 19
+    }).addTo(map);
+
+    // Add studio marker
+    const studioIcon = L.divIcon({
+      className: 'custom-studio-marker',
+      html: `
+        <div style="
+          background: #3b82f6;
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          border: 3px solid #fff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 4px 12px rgba(59, 130, 246, 0.5);
+        ">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+        </div>
+      `,
+      iconSize: [36, 36],
+      iconAnchor: [18, 18],
+    });
+
+    L.marker([data.studioLocation.lat, data.studioLocation.lng], { icon: studioIcon })
+      .addTo(map)
+      .bindPopup(`
+        <div style="text-align: center; padding: 8px;">
+          <strong style="font-size: 14px;">${data.studioLocation.name}</strong><br/>
+          <span style="color: #666; font-size: 12px;">${data.studioLocation.address}</span>
+        </div>
+      `);
+
+    // Add distance circles (5km, 10km, 15km)
+    const distanceCircles = [
+      { radius: 5000, label: '5 km' },
+      { radius: 10000, label: '10 km' },
+      { radius: 15000, label: '15 km' },
+    ];
+
+    distanceCircles.forEach(({ radius, label }) => {
+      L.circle([data.studioLocation.lat, data.studioLocation.lng], {
+        radius: radius,
+        color: '#4b5563',
+        weight: 1,
+        fillColor: 'transparent',
+        fillOpacity: 0,
+        dashArray: '5, 5',
+      }).addTo(map);
+    });
+
+    // Add region circles (heatmap style)
+    data.regions.forEach((region) => {
+      const color = getHeatColor(region.leads, maxLeads);
+      const radius = getRadius(region.leads, maxLeads);
+
+      L.circle([region.lat, region.lng], {
+        radius: radius,
+        color: color.border,
+        weight: 2,
+        fillColor: color.fill,
+        fillOpacity: color.opacity,
+      })
+        .addTo(map)
+        .bindPopup(`
+          <div style="min-width: 120px; padding: 8px;">
+            <strong style="font-size: 14px; color: #333;">${region.name}</strong>
+            <hr style="margin: 8px 0; border-color: #eee;"/>
+            <div style="display: flex; justify-content: space-between; margin: 4px 0;">
+              <span style="color: #666;">Leads:</span>
+              <strong style="color: #f97316;">${region.leads}</strong>
+            </div>
+          </div>
+        `);
+    });
+
+    // Cleanup on unmount
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, [data]);
+
   return (
     <div className="bg-[#2F2F2F] rounded-xl p-6">
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
         <h3 className="text-lg font-semibold text-white">Lead Origin</h3>
         <div className="text-sm text-gray-400">
           Total: <span className="font-bold text-orange-400">{data.totalLeads}</span> leads
         </div>
       </div>
       
-      <div className="relative" style={{ height: `${height}px` }}>
-        {/* Simplified SVG map visualization */}
-        <svg width="100%" height="100%" viewBox="0 0 800 400" className="rounded-lg">
-          {/* Map background */}
-          <rect width="800" height="400" fill="#1E1E1E" rx="8" />
-          
-          {/* Region areas with intensity-based colors */}
-          {/* North region */}
-          <path 
-            d="M200,50 Q400,30 600,50 L550,150 Q400,180 250,150 Z"
-            fill={`rgba(255, 107, 53, ${data.regions[0].intensity})`}
-            stroke="#fff"
-            strokeWidth="1"
-            className="hover:opacity-90 cursor-pointer transition-opacity"
-          />
-          
-          {/* Central region */}
-          <path 
-            d="M250,150 L550,150 Q600,250 550,350 Q400,380 250,350 Q200,250 250,150"
-            fill={`rgba(255, 87, 34, ${data.regions[4].intensity})`}
-            stroke="#fff"
-            strokeWidth="1"
-            className="hover:opacity-90 cursor-pointer transition-opacity"
-          />
-          
-          {/* South region */}
-          <path 
-            d="M250,350 Q400,380 550,350 L600,380 Q400,400 200,380 L250,350"
-            fill={`rgba(255, 167, 38, ${data.regions[1].intensity})`}
-            stroke="#fff"
-            strokeWidth="1"
-            className="hover:opacity-90 cursor-pointer transition-opacity"
-          />
-          
-          {/* East region */}
-          <path 
-            d="M550,150 L650,100 Q750,200 650,300 L550,350 L550,150"
-            fill={`rgba(255, 138, 101, ${data.regions[2].intensity})`}
-            stroke="#fff"
-            strokeWidth="1"
-            className="hover:opacity-90 cursor-pointer transition-opacity"
-          />
-          
-          {/* West region */}
-          <path 
-            d="M150,100 Q200,50 250,150 L250,350 L150,300 Q50,200 150,100"
-            fill={`rgba(255, 183, 77, ${data.regions[3].intensity})`}
-            stroke="#fff"
-            strokeWidth="1"
-            className="hover:opacity-90 cursor-pointer transition-opacity"
-          />
-          
-          {/* Region labels */}
-          <text x="400" y="80" fill="white" textAnchor="middle" fontSize="14" fontWeight="bold">North</text>
-          <text x="400" y="250" fill="white" textAnchor="middle" fontSize="14" fontWeight="bold">Central</text>
-          <text x="400" y="370" fill="white" textAnchor="middle" fontSize="14" fontWeight="bold">South</text>
-          <text x="600" y="220" fill="white" textAnchor="middle" fontSize="14" fontWeight="bold">East</text>
-          <text x="200" y="220" fill="white" textAnchor="middle" fontSize="14" fontWeight="bold">West</text>
-        </svg>
-      </div>
+      {/* Map Container */}
+      <div 
+        ref={mapRef} 
+        style={{ height: `${height}px`, width: '100%' }}
+        className="rounded-xl overflow-hidden"
+      />
       
       {/* Legend */}
-      <div className="mt-4 flex flex-wrap items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <div className="text-sm text-gray-400">Intensity:</div>
-          <div className="flex items-center space-x-2">
-            <div className="w-4 h-4 bg-gray-700"></div>
-            <span className="text-xs text-gray-400">Low</span>
-            <div className="w-4 h-4 bg-orange-400"></div>
-            <span className="text-xs text-gray-400">High</span>
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded-full bg-blue-500 border-2 border-white"></div>
+            <span className="text-xs text-gray-400">Studio</span>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-gray-400">
+            <span>Density:</span>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 rounded-full bg-orange-200 opacity-60"></div>
+              <span>Low</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 rounded-full bg-orange-400 opacity-70"></div>
+              <span>Medium</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 rounded-full bg-orange-500 opacity-80"></div>
+              <span>High</span>
+            </div>
           </div>
         </div>
         
-        {/* Region list with counts */}
-        <div className="flex flex-wrap gap-2 mt-2">
-          {data.regions.map((region, index) => (
-            <div key={index} className="flex items-center space-x-1">
-              <div 
-                className="w-3 h-3 rounded-full" 
-                style={{ backgroundColor: region.color }}
-              ></div>
-              <span className="text-xs text-gray-300">{region.name}:</span>
-              <span className="text-xs font-bold text-white">{region.leads}</span>
-            </div>
-          ))}
+        <div className="text-xs text-gray-500">
+          Click on areas to see details
         </div>
       </div>
     </div>
-  )
-}
+  );
+};

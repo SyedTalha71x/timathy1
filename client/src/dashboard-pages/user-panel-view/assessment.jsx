@@ -623,31 +623,25 @@ const Assessment = () => {
                     Created: {formatDate(form.createdAt)}
                   </div>
 
-                  {/* Toggle switch for active/inactive - repositioned */}
+                  {/* Toggle switch for active/inactive - bulletin board style */}
                   <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-700">
-                    <span className="text-sm text-gray-400">Status</span>
                     <div className="flex items-center gap-2">
-                      <span
-                        className={`text-xs px-2 py-1 rounded-full ${
-                          form.active
-                            ? 'bg-green-900 text-green-300'
-                            : 'bg-gray-700 text-gray-300'
-                        }`}
-                      >
-                        {form.active ? 'Active' : 'Inactive'}
-                      </span>
+                      <span className="text-xs text-gray-400">Status:</span>
                       <button
                         onClick={(e) => toggleFormActive(form.id, e)}
-                        className={`relative inline-flex h-5 w-9 md:h-6 md:w-11 items-center rounded-full transition-colors ${
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                           form.active ? 'bg-blue-600' : 'bg-gray-600'
                         }`}
                       >
                         <span
-                          className={`inline-block h-3 w-3 md:h-4 md:w-4 transform rounded-full bg-white transition-transform ${
-                            form.active ? 'translate-x-4 md:translate-x-6' : 'translate-x-1'
+                          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            form.active ? 'translate-x-6' : 'translate-x-1'
                           }`}
                         />
                       </button>
+                      <span className="text-xs font-medium text-gray-300 min-w-[50px]">
+                        {form.active ? 'Active' : 'Inactive'}
+                      </span>
                     </div>
                   </div>
                 </div>

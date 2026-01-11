@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
-import { useState } from "react"
-import { ChevronDown, ChevronUp, ExternalLink } from "lucide-react"
+import { useState, useRef, useEffect } from "react"
+import { ChevronDown, ChevronUp, ExternalLink, Search, ArrowUpDown, ArrowUp, ArrowDown, Info, Heart } from "lucide-react"
 import { IoIosMenu } from "react-icons/io"
 import { useNavigate } from "react-router-dom"
 
@@ -43,6 +43,147 @@ const marketplaceProducts = [
   // Add more products with pinned and infoText fields as needed
 ];
 
+// Info Tooltip Component with hover and click support
+const InfoTooltip = ({ product }) => {
+  const [isVisible, setIsVisible] = useState(false);
+  const [isLocked, setIsLocked] = useState(false);
+  const containerRef = useRef(null);
+  const isHoveringRef = useRef(false);
+  const hideTimeoutRef = useRef(null);
+
+  // Handle scroll to dismiss locked tooltip
+  useEffect(() => {
+    const handleScroll = () => {
+      if (isLocked) {
+        setIsLocked(false);
+        setIsVisible(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, true);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll, true);
+    };
+  }, [isLocked]);
+
+  // Handle click outside to close
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isLocked && 
+          containerRef.current && 
+          !containerRef.current.contains(event.target)) {
+        setIsLocked(false);
+        setIsVisible(false);
+      }
+    };
+
+    if (isLocked) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isLocked]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (hideTimeoutRef.current) {
+        clearTimeout(hideTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleMouseEnter = () => {
+    isHoveringRef.current = true;
+    if (hideTimeoutRef.current) {
+      clearTimeout(hideTimeoutRef.current);
+    }
+    if (!isLocked) {
+      setIsVisible(true);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    isHoveringRef.current = false;
+    if (!isLocked) {
+      // Small delay to allow moving to tooltip
+      hideTimeoutRef.current = setTimeout(() => {
+        if (!isLocked && !isHoveringRef.current) {
+          setIsVisible(false);
+        }
+      }, 150);
+    }
+  };
+
+  const handleClick = (e) => {
+    e.stopPropagation();
+    if (isLocked) {
+      setIsLocked(false);
+      setIsVisible(false);
+    } else {
+      setIsLocked(true);
+      setIsVisible(true);
+    }
+  };
+
+  return (
+    <div 
+      className="relative" 
+      ref={containerRef}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
+      <button
+        onClick={handleClick}
+        className={`${isLocked ? 'bg-blue-700' : 'bg-blue-600 hover:bg-blue-700'} text-white p-2 rounded-full transition-colors`}
+        aria-label="Show product information"
+      >
+        <Info size={16} />
+      </button>
+      
+      {isVisible && product.infoText && (
+        <div 
+          className="absolute top-full right-0 mt-2 w-64 bg-[#1C1C1C] border border-gray-700 rounded-xl shadow-lg z-50 p-3"
+        >
+          <div className="absolute -top-1.5 right-4 w-3 h-3 bg-[#1C1C1C] border-l border-t border-gray-700 rotate-45"></div>
+          <p className="text-gray-300 text-sm leading-relaxed">{product.infoText}</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Affiliate Link Button with disclosure tooltip
+const AffiliateLinkButton = ({ link }) => {
+  const [showDisclosure, setShowDisclosure] = useState(false);
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => window.open(link, "_blank")}
+        onMouseEnter={() => setShowDisclosure(true)}
+        onMouseLeave={() => setShowDisclosure(false)}
+        className="bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-full transition-colors"
+        aria-label="Open product link (affiliate)"
+      >
+        <ExternalLink size={16} />
+      </button>
+      
+      {showDisclosure && (
+        <div className="absolute top-full right-0 mt-2 w-48 bg-[#1C1C1C] border border-gray-700 rounded-xl shadow-lg z-50 p-2">
+          <div className="absolute -top-1.5 right-4 w-3 h-3 bg-[#1C1C1C] border-l border-t border-gray-700 rotate-45"></div>
+          <p className="text-gray-400 text-xs leading-relaxed">
+            <span className="text-orange-500 font-medium">Affiliate Link</span> – We may earn a small commission on purchases.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+};
+
 
 export default function MarketplacePage() {
   const sidebarSystem = useSidebarSystem();
@@ -54,38 +195,102 @@ export default function MarketplacePage() {
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [productForInfo, setProductForInfo] = useState(null);
 
+  const [sortBy, setSortBy] = useState("name");
+  const [sortDirection, setSortDirection] = useState("asc");
+  const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const sortDropdownRef = useRef(null);
 
-  const [sortDirection, setSortDirection] = useState("asc") // new state
-
-  const [sortBy, setSortBy] = useState("name-asc");
-
-
-  const [sortConfig, setSortConfig] = useState({
-    field: "name",
-    direction: "asc" // "asc" or "desc"
+  // Favorites state
+  const [favorites, setFavorites] = useState(() => {
+    const saved = localStorage.getItem('marketplaceFavorites');
+    return saved ? JSON.parse(saved) : [];
   });
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+
+  // Save favorites to localStorage
+  useEffect(() => {
+    localStorage.setItem('marketplaceFavorites', JSON.stringify(favorites));
+  }, [favorites]);
+
+  const toggleFavorite = (productId) => {
+    setFavorites(prev => {
+      if (prev.includes(productId)) {
+        return prev.filter(id => id !== productId);
+      } else {
+        return [...prev, productId];
+      }
+    });
+  };
+
+  const isFavorite = (productId) => favorites.includes(productId);
+
+  // Sort options matching assessment style
+  const sortOptions = [
+    { value: "name", label: "Name" },
+    { value: "price", label: "Price" },
+    { value: "brand", label: "Brand" },
+    { value: "articleNo", label: "Article No." },
+  ];
+
+  // Get current sort label
+  const currentSortLabel = sortOptions.find(opt => opt.value === sortBy)?.label || "Sort";
+
+  // Get sort icon based on current sort direction
+  const getSortIcon = () => {
+    if (sortDirection === 'asc') return <ArrowUp size={14} />;
+    if (sortDirection === 'desc') return <ArrowDown size={14} />;
+    return <ArrowUpDown size={14} />;
+  };
+
+  // Handle sort option click - don't close dropdown to allow toggling direction
+  const handleSortOptionClick = (value) => {
+    if (value === sortBy) {
+      // Toggle direction if same field
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(value);
+      setSortDirection('asc');
+    }
+    // Don't close dropdown - let user click outside or toggle direction
+  };
+
+  // Close sort dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target)) {
+        setShowSortDropdown(false);
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
 
 
   const getFilteredProducts = () => {
-    return marketplaceProducts.filter(
+    let products = marketplaceProducts.filter(
       (product) =>
         product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         product.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
         product.articleNo.toLowerCase().includes(searchQuery.toLowerCase()),
-    )
+    );
+    
+    // Filter by favorites if enabled
+    if (showFavoritesOnly) {
+      products = products.filter(product => favorites.includes(product.id));
+    }
+    
+    return products;
   }
 
 
 
-  const sortProducts = (products, sortValue) => {
-    const [field, direction] = sortValue.split("-");
-
+  const sortProducts = (products) => {
     return [...products].sort((a, b) => {
-      let aValue = a[field];
-      let bValue = b[field];
+      let aValue = a[sortBy];
+      let bValue = b[sortBy];
 
       // Special handling for price
-      if (field === "price") {
+      if (sortBy === "price") {
         const parsePrice = (priceStr) =>
           parseFloat(priceStr.replace("€", "").replace(",", ".").trim());
         aValue = parsePrice(aValue);
@@ -97,7 +302,7 @@ export default function MarketplacePage() {
       }
 
       // Handle comparison based on direction
-      if (direction === "asc") {
+      if (sortDirection === "asc") {
         if (aValue < bValue) return -1;
         if (aValue > bValue) return 1;
       } else {
@@ -110,22 +315,7 @@ export default function MarketplacePage() {
 
 
   const filtered = getFilteredProducts();
-  const sortedProducts = sortProducts(filtered, sortBy);
-
-  const handleSortFieldChange = (field) => {
-    setSortConfig(prev => ({
-      field,
-      direction: prev.field === field ? prev.direction : "asc"
-    }))
-  }
-
-  // Add this function to toggle sort direction:
-  const toggleSortDirection = () => {
-    setSortConfig(prev => ({
-      ...prev,
-      direction: prev.direction === "asc" ? "desc" : "asc"
-    }))
-  }
+  const sortedProducts = sortProducts(filtered);
 
   const openInfoModal = (product) => {
     setProductForInfo(product);
@@ -321,7 +511,7 @@ export default function MarketplacePage() {
     setMemberTrainingPlans, availableTrainingPlans, setAvailableTrainingPlans
   } = sidebarSystem;
 
- 
+
   // Wrapper functions to pass local state to hook functions
   const handleTaskCompleteWrapper = (taskId) => {
     handleTaskComplete(taskId, todos, setTodos);
@@ -358,6 +548,7 @@ export default function MarketplacePage() {
   const handleDeleteAppointmentWrapper = (id) => {
     handleDeleteAppointment(id, appointments, setAppointments);
   };
+
 
   return (
     <>
@@ -398,15 +589,14 @@ export default function MarketplacePage() {
       min-h-screen rounded-3xl bg-[#1C1C1C] text-white lg:p-3 md:p-3 sm:p-2 p-1
       transition-all duration-500 ease-in-out flex-1
       ${isRightSidebarOpen
-          ? 'lg:mr-86 mr-0' // Adjust right margin when sidebar is open on larger screens
-          : 'mr-0' // No margin when closed
+          ? 'lg:mr-86 mr-0'
+          : 'mr-0'
         }
     `}>
         <div className="md:p-6 p-3">
-          <div className="flex justify-between items-center w-full">
+          <div className="flex justify-between items-center w-full mb-6">
 
-            <h1 className="text-white oxanium_font text-xl mb-5 md:text-2xl">Marketplace</h1>
-            <div></div>
+            <h1 className="text-white oxanium_font text-xl md:text-2xl">Marketplace</h1>
 
             {isRightSidebarOpen ? (<div onClick={toggleRightSidebar} className=" ">
               <img src='/expand-sidebar mirrored.svg' className="h-5 w-5 cursor-pointer" alt="" />
@@ -417,39 +607,92 @@ export default function MarketplacePage() {
             )}
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-2 mb-8">
-            <div className="relative flex-1">
-              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
+          {/* Search Bar - matching assessment.jsx style */}
+          <div className="mb-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
               <input
-                type="search"
+                type="text"
                 placeholder="Search by name, brand or article number..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-[#181818] text-white rounded-xl px-10 py-2 w-full text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-[#333333] focus:border-[#3F74FF] transition-colors"
               />
             </div>
+          </div>
 
-            {/* Single Sort Dropdown */}
-            <div className="flex items-center gap-2">
-              <label htmlFor="sort" className="text-sm whitespace-nowrap">Sort by:</label>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="md:w-auto w-full cursor-pointer px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-[#000000] min-w-[200px]"
+          {/* Filter and Sort Controls - matching assessment.jsx style */}
+          <div className="flex flex-wrap gap-2 sm:gap-3 mb-6">
+            {/* All / Favorites filter */}
+            <button
+              onClick={() => setShowFavoritesOnly(false)}
+              className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${
+                !showFavoritesOnly
+                  ? "bg-blue-600 text-white"
+                  : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+              }`}
+            >
+              All
+            </button>
+            <button
+              onClick={() => setShowFavoritesOnly(true)}
+              className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors flex items-center gap-2 ${
+                showFavoritesOnly
+                  ? "bg-orange-500 text-white"
+                  : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+              }`}
+            >
+              <Heart size={14} className={showFavoritesOnly ? "fill-white" : ""} />
+              Favorites ({favorites.length})
+            </button>
+
+            {/* Sort dropdown */}
+            <div className="ml-auto relative" ref={sortDropdownRef}>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowSortDropdown(!showSortDropdown);
+                }}
+                className="px-3 sm:px-4 py-2 bg-[#2F2F2F] text-gray-300 rounded-xl text-xs sm:text-sm hover:bg-[#3F3F3F] transition-colors flex items-center gap-2"
               >
-                <option value="name-asc">Name (A-Z)</option>
-                <option value="name-desc">Name (Z-A)</option>
-                <option value="price-asc">Price (Low to High)</option>
-                <option value="price-desc">Price (High to Low)</option>
-                <option value="brand-asc">Brand (A-Z)</option>
-                <option value="brand-desc">Brand (Z-A)</option>
-                <option value="articleNo-asc">Article No. (Ascending)</option>
-                <option value="articleNo-desc">Article No. (Descending)</option>
-              </select>
+                {getSortIcon()}
+                <span>{currentSortLabel}</span>
+              </button>
+
+              {/* Sort Dropdown */}
+              {showSortDropdown && (
+                <div className="absolute top-full right-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[180px]">
+                  <div className="py-1">
+                    <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">
+                      Sort by
+                    </div>
+                    {sortOptions.map((option) => (
+                      <button
+                        key={option.value}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSortOptionClick(option.value);
+                        }}
+                        className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${
+                          sortBy === option.value 
+                            ? 'text-white bg-gray-800/50' 
+                            : 'text-gray-300'
+                        }`}
+                      >
+                        <span>{option.label}</span>
+                        {sortBy === option.value && (
+                          <span className="text-gray-400">
+                            {sortDirection === 'asc' 
+                              ? <ArrowUp size={14} /> 
+                              : <ArrowDown size={14} />
+                            }
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -466,27 +709,29 @@ export default function MarketplacePage() {
                     className="object-cover w-full h-full"
                   />
 
+                  {/* Favorite button - top left */}
+                  <button
+                    onClick={() => toggleFavorite(product.id)}
+                    className={`absolute top-3 left-3 p-2 rounded-full transition-colors ${
+                      isFavorite(product.id)
+                        ? 'bg-orange-500 hover:bg-orange-600'
+                        : 'bg-black/50 hover:bg-black/70'
+                    }`}
+                    aria-label={isFavorite(product.id) ? "Remove from favorites" : "Add to favorites"}
+                  >
+                    <Heart 
+                      size={16} 
+                      className={isFavorite(product.id) ? "fill-white text-white" : "text-white"} 
+                    />
+                  </button>
+
                   {/* Top-right action buttons */}
                   <div className="absolute top-3 right-3 flex gap-2">
-                    {/* Info Icon Button */}
-                    <button
-                      onClick={() => openInfoModal(product)}
-                      className="bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-full transition-colors"
-                      aria-label="Show product information"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </button>
+                    {/* Info Tooltip Component */}
+                    <InfoTooltip product={product} />
 
-                    {/* External Link Button */}
-                    <button
-                      onClick={() => window.open(product.link, "_blank")}
-                      className="bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-full transition-colors"
-                      aria-label="Open product link"
-                    >
-                      <ExternalLink size={16} />
-                    </button>
+                    {/* Affiliate Link Button with disclosure */}
+                    <AffiliateLinkButton link={product.link} />
                   </div>
                 </div>
 
@@ -500,9 +745,14 @@ export default function MarketplacePage() {
             ))}
           </div>
 
-          {getFilteredProducts().length === 0 && (
+          {sortedProducts.length === 0 && (
             <div className="text-center py-12">
-              <p className="text-gray-400 text-lg">No products found matching your search.</p>
+              <p className="text-gray-400 text-lg">
+                {showFavoritesOnly 
+                  ? "No favorites yet. Click the heart icon to add products to your favorites."
+                  : "No products found matching your search."
+                }
+              </p>
             </div>
           )}
         </div>
@@ -512,7 +762,7 @@ export default function MarketplacePage() {
 
       {isInfoModalOpen && productForInfo && (
         <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-[#1C1C1C] rounded-lg w-full max-w-md mx-auto">
+          <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md mx-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold text-white">Product Information</h2>
@@ -555,7 +805,7 @@ export default function MarketplacePage() {
 
                 <button
                   onClick={closeInfoModal}
-                  className="flex-1 bg-gray-600 text-sm hover:bg-gray-700 text-white py-3 px-4 rounded-lg font-medium transition-colors duration-200"
+                  className="flex-1 bg-gray-600 text-sm hover:bg-gray-700 text-white py-3 px-4 rounded-xl font-medium transition-colors duration-200"
                 >
                   Close
                 </button>
@@ -629,11 +879,11 @@ export default function MarketplacePage() {
           setIsTrainingPlanModalOpen(false)
           setSelectedUserForTrainingPlan(null)
         }}
-        selectedMember={selectedUserForTrainingPlan} // Make sure this is passed correctly
+        selectedMember={selectedUserForTrainingPlan}
         memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
         availableTrainingPlans={availableTrainingPlans}
-        onAssignPlan={handleAssignTrainingPlan} // Make sure this function is passed
-        onRemovePlan={handleRemoveTrainingPlan} // Make sure this function is passed
+        onAssignPlan={handleAssignTrainingPlan}
+        onRemovePlan={handleRemoveTrainingPlan}
       />
 
       <AppointmentActionModalV2

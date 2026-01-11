@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import {
   Play,
   Pause,
@@ -40,6 +40,86 @@ import EditPlanModal from "../../components/user-panel-components/training-compo
 import VideoModal from "../../components/user-panel-components/training-components/video-modal"
 import AddToPlanModal from "../../components/user-panel-components/training-components/add-to-plan-modal"
 
+// Responsive Tag List Component - dynamically calculates how many tags fit
+const ResponsiveTagList = ({ tags }) => {
+  const containerRef = useRef(null);
+  const [visibleCount, setVisibleCount] = useState(tags.length);
+
+  const calculateVisibleTags = useCallback(() => {
+    if (!containerRef.current) return;
+
+    const container = containerRef.current;
+    const containerWidth = container.offsetWidth;
+    
+    // Approximate tag width calculation (padding + text)
+    // px-2 = 8px each side = 16px, py-1 = 4px each side = 8px
+    // text-xs ≈ 12px font, average char width ≈ 7px
+    // gap-1 = 4px
+    const getTagWidth = (text) => {
+      return text.length * 7 + 16 + 4; // chars * avgCharWidth + padding + gap
+    };
+    
+    // "+X" badge width (approximately 24-32px)
+    const badgeWidth = 32;
+    
+    let totalWidth = 0;
+    let count = 0;
+    
+    for (let i = 0; i < tags.length; i++) {
+      const tagWidth = getTagWidth(tags[i]);
+      const remainingTags = tags.length - (i + 1);
+      const needsBadge = remainingTags > 0;
+      const requiredWidth = tagWidth + (needsBadge ? badgeWidth : 0);
+      
+      if (totalWidth + requiredWidth <= containerWidth) {
+        totalWidth += tagWidth;
+        count++;
+      } else {
+        // Check if we can fit this tag without the badge (if it's the last one)
+        if (remainingTags === 0 && totalWidth + tagWidth <= containerWidth) {
+          count++;
+        }
+        break;
+      }
+    }
+    
+    // Ensure at least 1 tag is shown
+    setVisibleCount(Math.max(1, count));
+  }, [tags]);
+
+  useEffect(() => {
+    calculateVisibleTags();
+    
+    const resizeObserver = new ResizeObserver(() => {
+      calculateVisibleTags();
+    });
+    
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
+    
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [calculateVisibleTags]);
+
+  const visibleTags = tags.slice(0, visibleCount);
+  const remainingCount = tags.length - visibleCount;
+
+  return (
+    <div ref={containerRef} className="flex flex-wrap gap-1 mt-2">
+      {visibleTags.map((muscle, index) => (
+        <span key={index} className="bg-[#2F2F2F] text-gray-300 px-2 py-1 rounded text-xs whitespace-nowrap">
+          {muscle}
+        </span>
+      ))}
+      {remainingCount > 0 && (
+        <span className="text-gray-500 text-xs flex items-center">+{remainingCount}</span>
+      )}
+    </div>
+  );
+};
+
 export default function Training() {
   const [activeTab, setActiveTab] = useState("videos")
   const [selectedCategories, setSelectedCategories] = useState([])
@@ -51,7 +131,7 @@ export default function Training() {
   const [isEditPlanModalOpen, setIsEditPlanModalOpen] = useState(false)
   const [isAddToPlanModalOpen, setIsAddToPlanModalOpen] = useState(false)
   const [selectedPlan, setSelectedPlan] = useState(null)
-  const [selectedStaffMember, setSelectedStaffMember] = useState("own")
+  const [selectedStaffMember, setSelectedStaffMember] = useState("all") // Changed default to "all"
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false)
   const [isStaffDropdownOpen, setIsStaffDropdownOpen] = useState(false)
   const [isAssignPlanModalOpen, setIsAssignPlanModalOpen] = useState(false)
@@ -551,6 +631,13 @@ export default function Training() {
     handleDeleteAppointment(id, appointments, setAppointments);
   };
 
+  // Helper function to get display name for staff dropdown
+  const getStaffDisplayName = (staffId) => {
+    if (staffId === "all") return "All Staff Plans"
+    const member = staffMembers.find((s) => s.id === staffId)
+    return member?.name || staffId
+  }
+
   return (
     <>
       <style>
@@ -615,7 +702,7 @@ export default function Training() {
             <div className="flex bg-[#000000] rounded-xl border border-slate-300/30 p-1">
               <button
                 onClick={() => setActiveTab("videos")}
-                className={`flex-1 px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm transition-colors ${activeTab === "videos" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"
+                className={`flex-1 px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm transition-colors ${activeTab === "videos" ? "bg-orange-500 text-white" : "text-gray-400 hover:text-white"
                   }`}
               >
                 <Play size={14} className="inline mr-1 sm:mr-2" />
@@ -623,7 +710,7 @@ export default function Training() {
               </button>
               <button
                 onClick={() => setActiveTab("plans")}
-                className={`flex-1 px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm transition-colors ${activeTab === "plans" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"
+                className={`flex-1 px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm transition-colors ${activeTab === "plans" ? "bg-orange-500 text-white" : "text-gray-400 hover:text-white"
                   }`}
               >
                 <Target size={14} className="inline mr-1 sm:mr-2" />
@@ -637,13 +724,13 @@ export default function Training() {
               {/* Search and Filter */}
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 sm:mb-8">
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
                   <input
                     type="text"
-                    placeholder="Search training videos"
+                    placeholder="Search training videos..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-[#161616] pl-10 pr-4 py-2.5 sm:py-2 text-sm rounded-xl text-white placeholder-gray-500 border border-gray-700 outline-none"
+                    className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-[#333333] focus:border-[#3F74FF] transition-colors [&::placeholder]:text-ellipsis [&::placeholder]:overflow-hidden"
                   />
                 </div>
 
@@ -679,7 +766,7 @@ export default function Training() {
                   >
                     {category.name}
                     {/* {selectedCategories.includes(category.id) && (
-                      <span className="ml-1">✓</span>
+                      <span className="ml-1">âœ"</span>
                     )} */}
                   </button>
                 ))}
@@ -717,16 +804,7 @@ export default function Training() {
                   <div className="p-3 sm:p-4">
                     <h3 className="font-semibold text-white mb-2 line-clamp-2 text-sm sm:text-base">{video.title}</h3>
                     <p className="text-gray-400 text-xs sm:text-sm mb-3 line-clamp-2">{video.description}</p>
-                    <div className="flex flex-wrap gap-1 mt-2">
-                      {video.targetMuscles.slice(0, 2).map((muscle, index) => (
-                        <span key={index} className="bg-[#2F2F2F] text-gray-300 px-2 py-1 rounded text-xs">
-                          {muscle}
-                        </span>
-                      ))}
-                      {video.targetMuscles.length > 2 && (
-                        <span className="text-gray-500 text-xs">+{video.targetMuscles.length - 2}</span>
-                      )}
-                    </div>
+                    <ResponsiveTagList tags={video.targetMuscles} />
                   </div>
                 </div>
               ))}
@@ -755,15 +833,29 @@ export default function Training() {
                       className="flex text-white items-center gap-2 px-3 sm:px-4 py-2 text-sm bg-[#161616] rounded-xl border border-gray-700 hover:border-gray-600 transition-colors w-full sm:w-auto justify-between sm:justify-start"
                     >
                       <Users size={16} />
-                      <span className="truncate">{staffMembers.find((s) => s.id === selectedStaffMember)?.name}</span>
+                      <span className="truncate">{getStaffDisplayName(selectedStaffMember)}</span>
                       <ChevronDown
                         size={16}
                         className={`transform transition-transform ${isStaffDropdownOpen ? "rotate-180" : ""}`}
                       />
                     </button>
                     {isStaffDropdownOpen && (
-                      <div className="absolute left-0 mt-2 w-full sm:w-64 bg-[#2F2F2F] rounded-xl shadow-lg z-50 border border-gray-700">
-                        {staffMembers.map((member) => (
+                      <div className="absolute left-0 mt-2 w-full sm:w-64 bg-[#2F2F2F] rounded-xl shadow-lg z-50 border border-gray-700 overflow-hidden">
+                        {/* All Staff Plans option with divider */}
+                        <button
+                          onClick={() => {
+                            setSelectedStaffMember("all")
+                            setIsStaffDropdownOpen(false)
+                          }}
+                          className={`w-full px-4 py-3 text-left hover:bg-[#3F3F3F] transition-colors flex items-center gap-3 ${selectedStaffMember === "all" ? "bg-[#3F3F3F]" : ""
+                            }`}
+                        >
+                          <span className="text-white">All Staff Plans</span>
+                        </button>
+                        {/* Divider */}
+                        <div className="border-t border-gray-600 my-1"></div>
+                        {/* Other staff members */}
+                        {staffMembers.filter(member => member.id !== "all").map((member) => (
                           <button
                             key={member.id}
                             onClick={() => {
@@ -782,7 +874,7 @@ export default function Training() {
                 </div>
                 <button
                   onClick={() => setIsCreatePlanModalOpen(true)}
-                  className="flex items-center gap-2 px-4 sm:px-6 py-2 cursor-pointer text-sm bg-blue-600 hover:bg-blue-700 rounded-xl text-white font-medium transition-colors justify-center sm:justify-start"
+                  className="flex items-center gap-2 px-4 sm:px-6 py-2 cursor-pointer text-sm bg-orange-500 hover:bg-orange-600 rounded-xl text-white font-medium transition-colors justify-center sm:justify-start"
                 >
                   <Plus size={18} />
                   Create Plan
