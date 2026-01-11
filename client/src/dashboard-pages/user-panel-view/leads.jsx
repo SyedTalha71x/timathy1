@@ -889,7 +889,7 @@ export default function LeadManagement() {
   }
 
   const handleAssessmentComplete = (documentData) => {
-    // FÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¼ge das document direkt zum lead.documents hinzu oder update es
+    // FÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¼ge das document direkt zum lead.documents hinzu oder update es
     setLeads(prevLeads => 
       prevLeads.map(lead => {
         if (lead.id === selectedLead.id) {
@@ -905,7 +905,7 @@ export default function LeadManagement() {
               hasAssessment: true
             }
           } else {
-            // Neues document hinzufÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¼gen
+            // Neues document hinzufÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¼gen
             return {
               ...lead,
               documents: [...existingDocuments, documentData],
@@ -1111,60 +1111,50 @@ export default function LeadManagement() {
       />
 
       {/* Header */}
-      <div className="flex md:flex-row flex-col gap-2 justify-between sm:items-center items-start mb-4 sm:mb-6">
-        <div className="gap-2 w-full sm:w-auto flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <h1 className="text-xl sm:text-2xl text-white font-bold">Leads</h1>
-            
-            {/* Compact/Detailed View Toggle */}
-            <div className="flex items-center gap-2 bg-black rounded-xl p-1">
-              <span className="text-xs text-gray-400 px-2">View</span>
-              <button
-                onClick={() => setIsCompactView(!isCompactView)}
-                className="p-2 rounded-lg transition-colors flex items-center gap-1 text-[#FF843E]"
-                title={isCompactView ? "Compact View (Click for Detailed)" : "Detailed View (Click for Compact)"}
-              >
-                <div className="flex flex-col gap-0.5">
-                  <div className="flex gap-0.5">
-                    <div className={`w-1.5 h-1.5 rounded-full ${!isCompactView ? 'bg-current' : 'bg-gray-500'}`}></div>
-                    <div className={`w-1.5 h-1.5 rounded-full ${!isCompactView ? 'bg-current' : 'bg-gray-500'}`}></div>
-                  </div>
-                  <div className="flex gap-0.5">
-                    <div className={`w-1.5 h-1.5 rounded-full ${isCompactView ? 'bg-current' : 'bg-gray-500'}`}></div>
-                    <div className={`w-1.5 h-1.5 rounded-full ${isCompactView ? 'bg-current' : 'bg-gray-500'}`}></div>
-                  </div>
-                </div>
-                <span className="text-xs ml-1 hidden sm:inline">
-                  {isCompactView ? "Compact" : "Detailed"}
-                </span>
-              </button>
-            </div>
-          </div>
+      <div className="flex items-center justify-between mb-4 sm:mb-6">
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl sm:text-2xl text-white font-bold">Leads</h1>
           
-          {isRightSidebarOpen ? (
-            <div onClick={toggleRightSidebar} className="md:hidden block">
-              <img src="/expand-sidebar mirrored.svg" className="h-5 w-5 cursor-pointer" alt="" />
-            </div>
-          ) : (
-            <div onClick={toggleRightSidebar} className="md:hidden block">
-              <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
-            </div>
-          )}
+          {/* Compact/Detailed View Toggle */}
+          <div className="flex items-center gap-2 bg-black rounded-xl p-1">
+            <span className="text-xs text-gray-400 px-2 hidden sm:inline">View</span>
+            <button
+              onClick={() => setIsCompactView(!isCompactView)}
+              className="p-2 rounded-lg transition-colors flex items-center gap-1 text-[#FF843E]"
+              title={isCompactView ? "Compact View (Click for Detailed)" : "Detailed View (Click for Compact)"}
+            >
+              <div className="flex flex-col gap-0.5">
+                <div className="flex gap-0.5">
+                  <div className={`w-1.5 h-1.5 rounded-full ${!isCompactView ? 'bg-current' : 'bg-gray-500'}`}></div>
+                  <div className={`w-1.5 h-1.5 rounded-full ${!isCompactView ? 'bg-current' : 'bg-gray-500'}`}></div>
+                </div>
+                <div className="flex gap-0.5">
+                  <div className={`w-1.5 h-1.5 rounded-full ${isCompactView ? 'bg-current' : 'bg-gray-500'}`}></div>
+                  <div className={`w-1.5 h-1.5 rounded-full ${isCompactView ? 'bg-current' : 'bg-gray-500'}`}></div>
+                </div>
+              </div>
+              <span className="text-xs ml-1 hidden sm:inline">
+                {isCompactView ? "Compact" : "Detailed"}
+              </span>
+            </button>
+          </div>
         </div>
-        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+        
+        {/* Create Lead + Sidebar Toggle - always together on the right */}
+        <div className="flex items-center gap-2">
           <button
             onClick={() => setIsModalOpen(true)}
-            className="bg-orange-500 hover:bg-orange-600 text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl flex items-center gap-2 flex-1 sm:flex-none justify-center"
+            className="bg-orange-500 hover:bg-orange-600 text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl flex items-center gap-2 justify-center"
           >
             <Plus size={14} className="sm:w-4 sm:h-4" />
-            <span className="inline">Create Lead</span>
+            <span className="hidden sm:inline">Create Lead</span>
           </button>
           {isRightSidebarOpen ? (
-            <div onClick={toggleRightSidebar} className="md:block hidden">
+            <div onClick={toggleRightSidebar}>
               <img src="/expand-sidebar mirrored.svg" className="h-5 w-5 cursor-pointer" alt="" />
             </div>
           ) : (
-            <div onClick={toggleRightSidebar} className="md:block hidden">
+            <div onClick={toggleRightSidebar}>
               <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
             </div>
           )}

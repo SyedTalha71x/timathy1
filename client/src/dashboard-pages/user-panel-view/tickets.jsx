@@ -174,36 +174,41 @@ const Tickets = () => {
 
   return (
     <div className="flex flex-col h-screen rounded-3xl bg-[#1C1C1C] text-white overflow-hidden">
-      <div className="flex-shrink-0 pt-8 sm:pt-12 lg:pt-16 pb-6 sm:pb-8 px-4 sm:px-8">
-        <h1 className="text-2xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-white text-center mb-8 sm:mb-12 lg:mb-16">
-          Contact us for a fast Response
+      <div className="flex-shrink-0 pt-6 sm:pt-8 pb-6 sm:pb-8 px-4 sm:px-8">
+        {/* Large centered title */}
+        <h1 className="text-2xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-white text-center mb-4 sm:mb-6">
+          Tickets
         </h1>
 
-        {/* Search and New Ticket Button - Styled like leads.jsx */}
-        <div className="w-full max-w-7xl mx-auto flex flex-col sm:flex-row items-center gap-3 sm:gap-4 mb-6 sm:mb-8 px-2">
-          {/* Search bar - Identical to leads.jsx */}
-          <div className="relative w-full sm:flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-            <input
-              type="text"
-              placeholder="Search Tickets..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-[#333333] focus:border-[#3F74FF] transition-colors"
-            />
-          </div>
+        {/* Subtitle */}
+        <p className="text-lg sm:text-xl text-gray-300 text-center mb-6 sm:mb-8">
+          Contact us for a fast Response
+        </p>
 
-          {/* Create Ticket Button - Styled like Create Lead button (orange) */}
-          <button
-            onClick={handleNewTicketClick}
-            className="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl flex items-center gap-2 justify-center transition-colors"
-          >
-            <Plus size={14} className="sm:w-4 sm:h-4" />
-            <span>Create Ticket</span>
-          </button>
+        {/* Search Bar with Create Button */}
+        <div className="w-full max-w-7xl mx-auto mb-4 sm:mb-6 px-2">
+          <div className="flex gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+              <input
+                type="text"
+                placeholder="Search Tickets..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-[#333333] focus:border-[#3F74FF] transition-colors"
+              />
+            </div>
+            <button
+              onClick={handleNewTicketClick}
+              className="bg-orange-500 hover:bg-orange-600 text-sm text-white px-3 sm:px-4 py-2 rounded-xl flex items-center gap-2 justify-center transition-colors flex-shrink-0"
+            >
+              <Plus size={14} />
+              <span className="hidden sm:inline">Create Ticket</span>
+            </button>
+          </div>
         </div>
 
-        {/* Filters */}
+        {/* Filters - Left aligned */}
         <div className="w-full max-w-7xl mx-auto px-2">
           <div className="flex flex-wrap gap-2">
             {["All", "Open", "Awaiting your reply", "Closed"].map((filter) => (

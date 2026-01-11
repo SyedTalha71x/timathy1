@@ -852,7 +852,29 @@ export const LeadOriginMap = ({ data, height = 450 }) => {
   }, [data]);
 
   return (
-    <div className="bg-[#2F2F2F] rounded-xl p-6">
+    <div className="bg-[#2F2F2F] rounded-xl p-4 sm:p-6 overflow-hidden relative z-0">
+      {/* CSS to override Leaflet z-index */}
+      <style>{`
+        .leaflet-pane,
+        .leaflet-top,
+        .leaflet-bottom,
+        .leaflet-control {
+          z-index: 1 !important;
+        }
+        .leaflet-tile-pane {
+          z-index: 1 !important;
+        }
+        .leaflet-overlay-pane {
+          z-index: 2 !important;
+        }
+        .leaflet-marker-pane {
+          z-index: 3 !important;
+        }
+        .leaflet-popup-pane {
+          z-index: 4 !important;
+        }
+      `}</style>
+      
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
         <h3 className="text-lg font-semibold text-white">Lead Origin</h3>
         <div className="text-sm text-gray-400">
@@ -860,21 +882,23 @@ export const LeadOriginMap = ({ data, height = 450 }) => {
         </div>
       </div>
       
-      {/* Map Container */}
-      <div 
-        ref={mapRef} 
-        style={{ height: `${height}px`, width: '100%' }}
-        className="rounded-xl overflow-hidden"
-      />
+      {/* Map Container - z-index lower than sidebar */}
+      <div className="w-full overflow-hidden rounded-xl relative" style={{ zIndex: 1 }}>
+        <div 
+          ref={mapRef} 
+          style={{ height: `${height}px`, width: '100%', minWidth: '280px', position: 'relative', zIndex: 1 }}
+          className="rounded-xl"
+        />
+      </div>
       
-      {/* Legend */}
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
+      {/* Legend - Mobile Responsive */}
+      <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+        <div className="flex flex-wrap items-center gap-3 sm:gap-4">
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 rounded-full bg-blue-500 border-2 border-white"></div>
             <span className="text-xs text-gray-400">Studio</span>
           </div>
-          <div className="flex items-center gap-2 text-xs text-gray-400">
+          <div className="flex flex-wrap items-center gap-2 text-xs text-gray-400">
             <span>Density:</span>
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 rounded-full bg-orange-200 opacity-60"></div>
@@ -882,7 +906,7 @@ export const LeadOriginMap = ({ data, height = 450 }) => {
             </div>
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 rounded-full bg-orange-400 opacity-70"></div>
-              <span>Medium</span>
+              <span>Med</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-3 h-3 rounded-full bg-orange-500 opacity-80"></div>

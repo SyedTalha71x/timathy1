@@ -117,13 +117,16 @@ const HelpCenter = () => {
     return (
       <div className="w-full">
         {/* Header Section */}
-        <div className="pt-8 sm:pt-12 lg:pt-16 pb-6 sm:pb-8 px-4 sm:px-8">
-          <h1 className="text-2xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-white text-center mb-8 sm:mb-12 lg:mb-16">
+        <div className="pt-6 sm:pt-8 pb-6 sm:pb-8 px-4 sm:px-8">
+          <h1 className="text-2xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-white text-center mb-4 sm:mb-6">
             Help Center
           </h1>
 
           {/* Search Bar - Styled like leads.jsx */}
           <div className="relative w-full max-w-7xl mx-auto mb-6 sm:mb-8 px-2">
+            <h2 className="text-lg sm:text-xl text-gray-300 text-center mb-4">
+              How can we help you?
+            </h2>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
               <input
@@ -243,6 +246,16 @@ const HelpCenter = () => {
                   </button>
                 ))}
               </div>
+            </div>
+
+            {/* Footer - Contact Section */}
+            <div className="mt-12 pt-8 border-t border-gray-700">
+              <p className="text-center text-gray-400 text-sm sm:text-base">
+                Not finding what you are looking for?
+              </p>
+              <p className="text-center text-gray-500 text-sm mt-1">
+                Chat with us or send us an email.
+              </p>
             </div>
           </div>
         </div>
