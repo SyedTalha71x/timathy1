@@ -1,10 +1,12 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import React, { useState } from "react"
-import { Search, ChevronRight, ArrowLeft } from "react-feather"
+import { Search, ChevronRight, ArrowLeft, Clock, ThumbsUp, ThumbsDown, MessageCircle } from "lucide-react"
+import { useNavigate } from "react-router-dom"
 import { categories } from "../../utils/user-panel-states/help-center-states"
 
 const HelpCenter = () => {
+  const navigate = useNavigate()
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState(null)
   const [selectedTopic, setSelectedTopic] = useState(null)
@@ -94,6 +96,7 @@ const HelpCenter = () => {
           category={category}
           categoryTopics={categoryTopics}
           onSelectTopic={handleSelectTopic}
+          onNavigateToTickets={() => navigate('/dashboard/tickets')}
         />
       )
     }
@@ -119,31 +122,38 @@ const HelpCenter = () => {
             Help Center
           </h1>
 
+          {/* Search Bar - Styled like leads.jsx */}
           <div className="relative w-full max-w-7xl mx-auto mb-6 sm:mb-8 px-2">
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
               <input
-                type="search"
+                type="text"
                 placeholder="Search our help center..."
                 value={searchQuery}
                 onChange={handleSearchChange}
                 onFocus={handleSearchFocus}
-                className="h-11 bg-[#181818] text-white rounded-xl pl-12 pr-4 w-full text-sm outline-none border border-[#333333] focus:border-[#3F74FF] leading-none"
+                className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-[#333333] focus:border-[#3F74FF] transition-colors"
               />
             </div>
 
             {showSearchResults && filteredTopics.length > 0 && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-[#2A2A2A] border border-gray-600 rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto">
+              <div className="absolute top-full left-2 right-2 mt-2 bg-[#1C1C1C] border border-[#333333] rounded-xl shadow-lg z-50 max-h-64 overflow-y-auto">
                 {filteredTopics.map((topic) => (
                   <button
                     key={topic.id}
                     onClick={() => handleSelectTopic(topic)}
-                    className="w-full text-left px-4 py-3 hover:bg-[#3A3A3A] border-b border-gray-600 last:border-b-0 transition-colors"
+                    className="w-full text-left px-4 py-3 hover:bg-[#2A2A2A] border-b border-[#333333] last:border-b-0 transition-colors first:rounded-t-xl last:rounded-b-xl"
                   >
                     <p className="font-medium text-white text-sm">{topic.title}</p>
                     <p className="text-gray-400 text-xs mt-1">{topic.category}</p>
                   </button>
                 ))}
+              </div>
+            )}
+
+            {showSearchResults && searchQuery.trim() && filteredTopics.length === 0 && (
+              <div className="absolute top-full left-2 right-2 mt-2 bg-[#1C1C1C] border border-[#333333] rounded-xl shadow-lg z-50 p-4">
+                <p className="text-gray-400 text-sm text-center">No results found for "{searchQuery}"</p>
               </div>
             )}
           </div>
@@ -171,7 +181,8 @@ const HelpCenter = () => {
         {/* Main Content */}
         <div className="flex-1 flex flex-col px-4 sm:px-8 pb-8">
           <div className="w-full max-w-7xl mx-auto flex flex-col space-y-12">
-            {/* Featured Section */}
+
+            {/* Featured Section - Minimalist */}
             <div className="mb-12 sm:mb-16">
               <div className="flex items-center gap-2 mb-6 sm:mb-8">
                 <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white">
@@ -179,23 +190,25 @@ const HelpCenter = () => {
                 </h2>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                 {featuredArticles.map((article) => (
                   <button
                     key={article.id}
                     onClick={() => handleSelectTopic(article)}
-                    className="text-left bg-[#161616] p-5 sm:p-6 rounded-lg border border-gray-700 hover:bg-[#1F1F1F] hover:border-gray-600 transition-all group"
+                    className="text-left bg-[#161616] p-4 rounded-lg border border-gray-700 hover:bg-[#1F1F1F] hover:border-blue-500/50 transition-all group"
                   >
                     <div className="flex justify-between items-start gap-3">
                       <div className="flex-1 min-w-0">
-                        <span className="inline-block bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded mb-3">
-                          {article.category}
-                        </span>
-                        <h3 className="font-semibold text-white group-hover:text-blue-400 transition-colors line-clamp-3 text-sm sm:text-base">
+                        <h3 className="font-medium text-white group-hover:text-blue-400 transition-colors line-clamp-2 text-sm">
                           {article.title}
                         </h3>
+                        <div className="flex items-center gap-2 mt-2 text-gray-500 text-xs">
+                          <span>{article.category}</span>
+                          <span>•</span>
+                          <span>3 min read</span>
+                        </div>
                       </div>
-                      <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0 mt-1 group-hover:text-blue-400 transition-colors" />
+                      <ChevronRight className="w-4 h-4 text-gray-500 flex-shrink-0 mt-0.5 group-hover:text-blue-400 transition-colors" />
                     </div>
                   </button>
                 ))}
@@ -213,14 +226,17 @@ const HelpCenter = () => {
                   <button
                     key={category.id}
                     onClick={() => setSelectedCategory(category.id)}
-                    className="text-left bg-[#161616] p-6 sm:p-7 rounded-lg border border-gray-700 hover:bg-[#1F1F1F] hover:border-gray-600 transition-all group"
+                    className="text-left bg-[#161616] p-6 sm:p-7 rounded-xl border border-gray-700 hover:bg-[#1F1F1F] hover:border-blue-500/50 transition-all group"
                   >
                     <div className="flex justify-between items-start gap-4">
                       <div className="flex-1 min-w-0">
-                        <span className="inline-block bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded mb-3 whitespace-nowrap">
+                        {/* Orange Tag */}
+                        <span className="inline-block bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded mb-3 whitespace-nowrap">
                           {category.name}
                         </span>
                         <p className="text-gray-400 text-sm sm:text-base leading-relaxed">{category.description}</p>
+                        {/* Article count */}
+                        <p className="text-gray-500 text-xs mt-3">{category.topics?.length || 0} articles</p>
                       </div>
                       <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0 mt-1 group-hover:text-blue-400 transition-colors" />
                     </div>
@@ -259,7 +275,8 @@ const CategoryView = ({ category, categories, onSelectCategory, onSelectTopic, o
           
           <div className="flex items-center gap-3 mb-2">
             <span className="text-lg text-gray-300">Articles on:</span>
-            <span className="inline-block bg-blue-600 text-white text-xs sm:text-sm font-bold px-3 py-1 rounded">
+            {/* Orange Tag */}
+            <span className="inline-block bg-orange-500 text-white text-xs sm:text-sm font-bold px-3 py-1 rounded">
               {category.name}
             </span>
           </div>
@@ -298,7 +315,7 @@ const CategoryView = ({ category, categories, onSelectCategory, onSelectTopic, o
                   onClick={() => onSelectTopic(topic)}
                   onMouseEnter={() => setHoveredTopicId(topic.id)}
                   onMouseLeave={() => setHoveredTopicId(null)}
-                  className="w-full text-left bg-[#161616] p-4 sm:p-5 rounded-lg border border-gray-700 hover:bg-[#1F1F1F] hover:border-gray-600 transition-all group"
+                  className="w-full text-left bg-[#161616] p-4 sm:p-5 rounded-xl border border-gray-700 hover:bg-[#1F1F1F] hover:border-blue-500/50 transition-all group"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
@@ -306,6 +323,11 @@ const CategoryView = ({ category, categories, onSelectCategory, onSelectTopic, o
                         {topic.title}
                       </h4>
                       <p className="text-gray-400 text-xs sm:text-sm mt-2 line-clamp-2">{topic.content}</p>
+                      {/* Reading time */}
+                      <div className="flex items-center gap-1 mt-3 text-gray-500 text-xs">
+                        <Clock size={12} />
+                        <span>3 min read</span>
+                      </div>
                     </div>
                     <ChevronRight
                       className={`w-5 h-5 text-gray-400 flex-shrink-0 transition-transform group-hover:text-blue-400 ${
@@ -324,10 +346,15 @@ const CategoryView = ({ category, categories, onSelectCategory, onSelectTopic, o
 }
 
 // Topic View Component
-const TopicView = ({ topic, onBack, category, categoryTopics, onSelectTopic }) => {
+const TopicView = ({ topic, onBack, category, categoryTopics, onSelectTopic, onNavigateToTickets }) => {
+  const [feedback, setFeedback] = useState(null) // 'helpful' | 'not-helpful' | null
   const currentIndex = categoryTopics.findIndex((t) => t.id === topic.id)
   const previousTopic = currentIndex > 0 ? categoryTopics[currentIndex - 1] : null
   const nextTopic = currentIndex < categoryTopics.length - 1 ? categoryTopics[currentIndex + 1] : null
+
+  const handleFeedback = (type) => {
+    setFeedback(type)
+  }
 
   return (
     <>
@@ -343,7 +370,8 @@ const TopicView = ({ topic, onBack, category, categoryTopics, onSelectTopic }) =
           
           <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3">
             <span className="text-gray-400 text-sm">Articles on:</span>
-            <span className="inline-block bg-blue-600 text-white text-xs sm:text-sm font-bold px-3 py-1 rounded">
+            {/* Orange Tag */}
+            <span className="inline-block bg-orange-500 text-white text-xs sm:text-sm font-bold px-3 py-1 rounded">
               {topic.category}
             </span>
           </div>
@@ -353,12 +381,16 @@ const TopicView = ({ topic, onBack, category, categoryTopics, onSelectTopic }) =
       <div className="flex-1 flex flex-col px-4 sm:px-8 pb-8">
         <div className="w-full max-w-7xl mx-auto space-y-8">
           {/* Article Content */}
-          <div className="bg-[#161616] rounded-lg p-6 sm:p-8 lg:p-10 border border-gray-700">
+          <div className="bg-[#161616] rounded-xl p-6 sm:p-8 lg:p-10 border border-gray-700">
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4 sm:mb-6">
               {topic.title}
             </h1>
 
             <div className="flex flex-wrap items-center gap-4 mb-8 sm:mb-10 pb-8 sm:pb-10 border-b border-gray-700 text-sm text-gray-400">
+              <div className="flex items-center gap-2">
+                <Clock size={14} />
+                <span>3 min read</span>
+              </div>
               <div>
                 <span className="font-medium">Last updated:</span> {topic.updatedDate}
               </div>
@@ -376,35 +408,89 @@ const TopicView = ({ topic, onBack, category, categoryTopics, onSelectTopic }) =
                 customer support team through the chat option.
               </p>
             </div>
+
+            {/* Feedback Section with Navigation */}
+            <div className="mt-10 pt-8 border-t border-gray-700">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
+                {/* Left: Feedback */}
+                <div>
+                  <p className="text-gray-300 text-sm mb-4">Was this article helpful?</p>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => handleFeedback('helpful')}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        feedback === 'helpful'
+                          ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                          : 'bg-[#2A2A2A] text-gray-300 hover:bg-[#3A3A3A] border border-transparent'
+                      }`}
+                    >
+                      <ThumbsUp size={16} />
+                      Yes
+                    </button>
+                    <button
+                      onClick={() => handleFeedback('not-helpful')}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        feedback === 'not-helpful'
+                          ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                          : 'bg-[#2A2A2A] text-gray-300 hover:bg-[#3A3A3A] border border-transparent'
+                      }`}
+                    >
+                      <ThumbsDown size={16} />
+                      No
+                    </button>
+                  </div>
+                  {feedback && (
+                    <p className="text-gray-500 text-xs mt-3">
+                      {feedback === 'helpful' 
+                        ? 'Thanks for your feedback!' 
+                        : 'Sorry to hear that. Consider contacting support for more help.'}
+                    </p>
+                  )}
+                </div>
+
+                {/* Right: Navigation */}
+                <div className="flex items-center gap-3">
+                  {previousTopic && (
+                    <button
+                      onClick={() => onSelectTopic(previousTopic)}
+                      className="flex items-center gap-2 px-4 py-2.5 bg-[#2A2A2A] hover:bg-[#3A3A3A] rounded-xl text-gray-300 hover:text-white transition-colors text-sm"
+                    >
+                      <ArrowLeft size={16} />
+                      Previous
+                    </button>
+                  )}
+                  {nextTopic && (
+                    <button
+                      onClick={() => onSelectTopic(nextTopic)}
+                      className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 rounded-xl text-white transition-colors text-sm"
+                    >
+                      Next
+                      <ChevronRight size={16} />
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Navigation Buttons */}
-          {(previousTopic || nextTopic) && (
-            <div className="grid sm:grid-cols-2 gap-4 mt-8 sm:mt-12">
-              {previousTopic && (
-                <button
-                  onClick={() => onSelectTopic(previousTopic)}
-                  className="text-left bg-[#161616] p-5 sm:p-6 rounded-lg border border-gray-700 hover:bg-[#1F1F1F] hover:border-gray-600 transition-all group"
-                >
-                  <p className="text-gray-400 text-xs sm:text-sm mb-2">Previous</p>
-                  <p className="font-semibold text-white group-hover:text-blue-400 line-clamp-2 text-sm sm:text-base">
-                    {previousTopic.title}
-                  </p>
-                </button>
-              )}
-              {nextTopic && (
-                <button
-                  onClick={() => onSelectTopic(nextTopic)}
-                  className="text-left bg-[#161616] p-5 sm:p-6 rounded-lg border border-gray-700 hover:bg-[#1F1F1F] hover:border-gray-600 transition-all group sm:col-start-2"
-                >
-                  <p className="text-gray-400 text-xs sm:text-sm mb-2">Next</p>
-                  <p className="font-semibold text-white group-hover:text-blue-400 line-clamp-2 text-sm sm:text-base">
-                    {nextTopic.title}
-                  </p>
-                </button>
-              )}
+          {/* Still need help - New Section */}
+          <div className="bg-gradient-to-r from-blue-500/20 to-blue-600/10 border border-blue-600/30 rounded-xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                <MessageCircle className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="text-white font-semibold">Still need help?</h3>
+                <p className="text-gray-400 text-sm">Our support team is ready to assist you</p>
+              </div>
             </div>
-          )}
+            <button 
+              onClick={onNavigateToTickets}
+              className="w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-colors"
+            >
+              Contact Support
+            </button>
+          </div>
         </div>
       </div>
     </>
