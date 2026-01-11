@@ -467,7 +467,7 @@ const CreateFormModal = ({
                 type="text"
                 value={option.text}
                 onChange={(e) => updateMultipleChoiceOption(sectionId, item.id, option.id, e.target.value)}
-                className="flex-1 bg-[#161616] border border-gray-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+                className="flex-1 min-w-0 bg-[#161616] border border-gray-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
                 placeholder={`Option ${index + 1}`}
               />
               <button
@@ -497,32 +497,38 @@ const CreateFormModal = ({
 
     return (
       <div className="mt-1">
-        {item.variableType === 'select' && (
-          <select 
-            disabled 
-            className="w-full bg-[#161616] border border-gray-600 rounded-lg px-4 py-3 text-gray-400 text-base"
-          >
-            <option>Select {availableVariables.find(v => v.value === item.variable)?.label}...</option>
-            {item.variableOptions?.map(opt => (
-              <option key={opt.value}>{opt.label}</option>
-            ))}
-          </select>
-        )}
-        {item.variableType === 'date' && (
-          <input 
-            type="date" 
-            disabled 
-            className="w-full bg-[#161616] border border-gray-600 rounded-lg px-4 py-3 text-gray-400 text-base"
-          />
-        )}
-        {item.variableType === 'text' && (
-          <input 
-            type="text" 
-            disabled 
-            placeholder={`Enter ${availableVariables.find(v => v.value === item.variable)?.label}...`}
-            className="w-full bg-[#161616] border border-gray-600 rounded-lg px-4 py-3 text-gray-400 text-base"
-          />
-        )}
+        <div className="flex items-start gap-2">
+          {item.variableType === 'select' && (
+            <select 
+              disabled 
+              className="flex-1 min-w-0 bg-[#161616] border border-gray-600 rounded-lg px-4 py-3 text-gray-400 text-base"
+            >
+              <option>Select {availableVariables.find(v => v.value === item.variable)?.label}...</option>
+              {item.variableOptions?.map(opt => (
+                <option key={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          )}
+          {item.variableType === 'date' && (
+            <input 
+              type="date" 
+              disabled 
+              className="flex-1 min-w-0 bg-[#161616] border border-gray-600 rounded-lg px-4 py-3 text-gray-400 text-base"
+            />
+          )}
+          {item.variableType === 'text' && (
+            <input 
+              type="text" 
+              disabled 
+              placeholder={`Enter ${availableVariables.find(v => v.value === item.variable)?.label}...`}
+              className="flex-1 min-w-0 bg-[#161616] border border-gray-600 rounded-lg px-4 py-3 text-gray-400 text-base"
+            />
+          )}
+          {/* Invisible spacer to match delete button width */}
+          <div className="p-2 flex-shrink-0 invisible" aria-hidden="true">
+            <Trash2 size={18} />
+          </div>
+        </div>
       </div>
     );
   };
@@ -552,12 +558,12 @@ const CreateFormModal = ({
                         setIsEditingTitle(false);
                       }
                     }}
-                    className="text-lg sm:text-xl font-bold bg-[#161616] border border-gray-600 rounded-lg px-3 py-1 text-white focus:outline-none focus:border-blue-500"
+                    className="text-lg sm:text-xl font-bold bg-[#161616] border border-gray-600 rounded-lg px-3 py-1 text-white focus:outline-none focus:border-blue-500 w-full max-w-[200px] sm:max-w-[400px]"
                     autoFocus
                   />
                 ) : (
                   <>
-                    <h2 className="text-lg sm:text-xl font-bold truncate max-w-[300px] sm:max-w-[400px]" title={formTitle || 'Untitled Form'}>
+                    <h2 className="text-lg sm:text-xl font-bold truncate max-w-[180px] sm:max-w-[400px]" title={formTitle || 'Untitled Form'}>
                       {formTitle || 'Untitled Form'}
                     </h2>
                     <button
@@ -632,46 +638,48 @@ const CreateFormModal = ({
                     key={section.id}
                     className="bg-[#161616] border border-gray-700 rounded-lg p-4"
                   >
-                    <div className="flex items-center gap-2 mb-4">
-                      {/* Move buttons */}
-                      <div className="flex flex-col gap-1">
-                        <button
-                          onClick={() => moveSectionUp(sectionIndex)}
-                          disabled={sectionIndex === 0}
-                          className={`p-1 rounded transition-colors ${
-                            sectionIndex === 0 
-                              ? 'text-gray-600 cursor-not-allowed' 
-                              : 'text-gray-400 hover:text-white hover:bg-[#1C1C1C]'
-                          }`}
-                          title="Move section up"
-                        >
-                          <ArrowUp size={16} />
-                        </button>
-                        <button
-                          onClick={() => moveSectionDown(sectionIndex)}
-                          disabled={sectionIndex === sections.length - 1}
-                          className={`p-1 rounded transition-colors ${
-                            sectionIndex === sections.length - 1 
-                              ? 'text-gray-600 cursor-not-allowed' 
-                              : 'text-gray-400 hover:text-white hover:bg-[#1C1C1C]'
-                          }`}
-                          title="Move section down"
-                        >
-                          <ArrowDown size={16} />
-                        </button>
-                      </div>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-4">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        {/* Move buttons */}
+                        <div className="flex flex-col gap-1 flex-shrink-0">
+                          <button
+                            onClick={() => moveSectionUp(sectionIndex)}
+                            disabled={sectionIndex === 0}
+                            className={`p-1 rounded transition-colors ${
+                              sectionIndex === 0 
+                                ? 'text-gray-600 cursor-not-allowed' 
+                                : 'text-gray-400 hover:text-white hover:bg-[#1C1C1C]'
+                            }`}
+                            title="Move section up"
+                          >
+                            <ArrowUp size={16} />
+                          </button>
+                          <button
+                            onClick={() => moveSectionDown(sectionIndex)}
+                            disabled={sectionIndex === sections.length - 1}
+                            className={`p-1 rounded transition-colors ${
+                              sectionIndex === sections.length - 1 
+                                ? 'text-gray-600 cursor-not-allowed' 
+                                : 'text-gray-400 hover:text-white hover:bg-[#1C1C1C]'
+                            }`}
+                            title="Move section down"
+                          >
+                            <ArrowDown size={16} />
+                          </button>
+                        </div>
 
-                      <input
-                        ref={sectionIndex === sections.length - 1 ? newSectionTitleRef : null}
-                        type="text"
-                        value={section.name}
-                        onChange={(e) => updateSectionName(section.id, e.target.value)}
-                        className="bg-transparent text-white font-medium flex-1 focus:outline-none focus:border-b border-gray-600 text-base px-2 py-2"
-                        placeholder="Section name"
-                      />
+                        <input
+                          ref={sectionIndex === sections.length - 1 ? newSectionTitleRef : null}
+                          type="text"
+                          value={section.name}
+                          onChange={(e) => updateSectionName(section.id, e.target.value)}
+                          className="bg-transparent text-white font-medium flex-1 min-w-0 focus:outline-none focus:border-b border-gray-600 text-base px-2 py-2"
+                          placeholder="Section name"
+                        />
+                      </div>
                       <button
                         onClick={() => deleteSection(section.id)}
-                        className="text-red-500 hover:text-red-400 text-sm px-3 py-2 rounded transition-colors"
+                        className="text-red-500 hover:text-red-400 text-sm px-3 py-2 rounded transition-colors flex-shrink-0 self-end sm:self-auto"
                       >
                         Delete Section
                       </button>
@@ -683,9 +691,9 @@ const CreateFormModal = ({
                           key={item.id}
                           className="flex flex-col gap-3 p-4 bg-[#1C1C1C] rounded-lg"
                         >
-                          <div className="flex gap-2">
+                          <div className="flex flex-col sm:flex-row gap-2">
                             {/* Move buttons for items */}
-                            <div className="flex flex-col gap-1 mt-2">
+                            <div className="flex sm:flex-col gap-1 sm:mt-2 order-2 sm:order-1">
                               <button
                                 onClick={() => moveItemUp(section.id, itemIndex)}
                                 disabled={itemIndex === 0}
@@ -713,58 +721,24 @@ const CreateFormModal = ({
                             </div>
 
                             {(item.itemType === 'question' || item.itemType === 'variableField') && (
-                              <span className="text-gray-400 text-sm mt-3 flex-shrink-0 min-w-[24px]">
+                              <span className="text-gray-400 text-sm sm:mt-3 flex-shrink-0 min-w-[24px] order-1 sm:order-2">
                                 {item.number}.
                               </span>
                             )}
                             
-                            <div className="flex-1 space-y-3">
-                              {/* Variable Selector - Above the question field for variableField */}
-                              {item.itemType === 'variableField' && (
-                                <div className="relative">
-                                  <button
-                                    onClick={() => setShowVariableDropdown(showVariableDropdown === item.id ? null : item.id)}
-                                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors border ${
-                                      item.variable 
-                                        ? 'bg-[#252525] border-gray-500 text-white' 
-                                        : 'bg-[#161616] border-gray-600 text-gray-400 hover:border-gray-500'
-                                    }`}
-                                  >
-                                    <Link size={14} />
-                                    {item.variable 
-                                      ? `${availableVariables.find(v => v.value === item.variable)?.label} (${getVariableTypeLabel(item.variableType)})`
-                                      : 'Select Variable...'
-                                    }
-                                  </button>
-                                  
-                                  {showVariableDropdown === item.id && (
-                                    <div className="absolute z-50 mt-1 bg-[#1C1C1C] border border-gray-600 rounded-lg shadow-lg py-1 min-w-[240px] max-h-[300px] overflow-y-auto">
-                                      {availableVariables.map(variable => (
-                                        <button
-                                          key={variable.value}
-                                          onClick={() => selectVariable(section.id, item.id, variable.value)}
-                                          className={`w-full text-left px-4 py-2.5 text-sm hover:bg-[#161616] transition-colors flex items-center justify-between ${
-                                            item.variable === variable.value ? 'bg-[#161616] text-white' : 'text-gray-300'
-                                          }`}
-                                        >
-                                          <span>{variable.label}</span>
-                                          <span className="text-xs text-gray-500">
-                                            {getVariableTypeLabel(variable.type)}
-                                          </span>
-                                        </button>
-                                      ))}
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-
+                            {/* Invisible spacer for text blocks to align with numbered items */}
+                            {item.itemType === 'textBlock' && (
+                              <span className="hidden sm:block flex-shrink-0 min-w-[24px] order-2" aria-hidden="true" />
+                            )}
+                            
+                            <div className="flex-1 space-y-3 min-w-0 order-3">
                               {/* Content Input */}
                               <div className="flex items-start gap-2">
                                 {item.itemType === 'textBlock' ? (
                                   <textarea
                                     value={item.text}
                                     onChange={(e) => updateItem(section.id, item.id, 'text', e.target.value)}
-                                    className="flex-1 bg-[#161616] border border-gray-600 rounded-lg px-4 py-3 text-white text-base focus:outline-none focus:border-blue-500 resize-none"
+                                    className="flex-1 min-w-0 bg-[#161616] border border-gray-600 rounded-lg px-4 py-3 text-white text-base focus:outline-none focus:border-blue-500 resize-none"
                                     rows="3"
                                     placeholder="Enter text content..."
                                   />
@@ -775,7 +749,7 @@ const CreateFormModal = ({
                                     onChange={(e) =>
                                       updateItem(section.id, item.id, 'text', e.target.value)
                                     }
-                                    className="flex-1 bg-[#161616] border border-gray-600 rounded-lg px-4 py-3 text-white text-base focus:outline-none focus:border-blue-500"
+                                    className="flex-1 min-w-0 bg-[#161616] border border-gray-600 rounded-lg px-4 py-3 text-white text-base focus:outline-none focus:border-blue-500"
                                     placeholder={item.itemType === 'variableField' ? "Question/Label text..." : "Question text..."}
                                   />
                                 )}
@@ -819,9 +793,46 @@ const CreateFormModal = ({
                                 </div>
                               )}
 
-                              {/* Required checkbox for variable fields */}
+                              {/* Variable Selector and Required checkbox for variable fields */}
                               {item.itemType === 'variableField' && (
                                 <div className="flex gap-3 flex-wrap items-center">
+                                  <div className="relative">
+                                    <button
+                                      onClick={() => setShowVariableDropdown(showVariableDropdown === item.id ? null : item.id)}
+                                      className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors border max-w-full ${
+                                        item.variable 
+                                          ? 'bg-[#252525] border-gray-500 text-white' 
+                                          : 'bg-[#161616] border-gray-600 text-gray-400 hover:border-gray-500'
+                                      }`}
+                                    >
+                                      <Link size={14} className="flex-shrink-0" />
+                                      <span className="truncate">
+                                        {item.variable 
+                                          ? `${availableVariables.find(v => v.value === item.variable)?.label} (${getVariableTypeLabel(item.variableType)})`
+                                          : 'Select Variable...'
+                                        }
+                                      </span>
+                                    </button>
+                                    
+                                    {showVariableDropdown === item.id && (
+                                      <div className="absolute z-50 mt-1 bg-[#1C1C1C] border border-gray-600 rounded-lg shadow-lg py-1 w-full sm:w-auto sm:min-w-[240px] max-w-[calc(100vw-3rem)] max-h-[300px] overflow-y-auto">
+                                        {availableVariables.map(variable => (
+                                          <button
+                                            key={variable.value}
+                                            onClick={() => selectVariable(section.id, item.id, variable.value)}
+                                            className={`w-full text-left px-4 py-2.5 text-sm hover:bg-[#161616] transition-colors flex items-center justify-between ${
+                                              item.variable === variable.value ? 'bg-[#161616] text-white' : 'text-gray-300'
+                                            }`}
+                                          >
+                                            <span>{variable.label}</span>
+                                            <span className="text-xs text-gray-500">
+                                              {getVariableTypeLabel(variable.type)}
+                                            </span>
+                                          </button>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
                                   <label className="flex items-center gap-2 cursor-pointer">
                                     <input
                                       type="checkbox"
@@ -842,10 +853,10 @@ const CreateFormModal = ({
                       ))}
                     </div>
 
-                    <div className="flex gap-2 mt-4 flex-wrap">
+                    <div className="flex flex-col sm:flex-row gap-2 mt-4 sm:flex-wrap">
                       <button
                         onClick={() => addQuestion(section.id)}
-                        className="text-blue-400 hover:text-blue-300 text-sm px-3 py-2 rounded hover:bg-blue-500/10 transition-colors"
+                        className="text-blue-400 hover:text-blue-300 text-sm px-3 py-2 rounded hover:bg-blue-500/10 transition-colors text-left"
                       >
                         + Add Question
                       </button>
@@ -858,7 +869,7 @@ const CreateFormModal = ({
                       </button>
                       <button
                         onClick={() => addTextBlock(section.id)}
-                        className="text-gray-400 hover:text-gray-300 text-sm px-3 py-2 rounded hover:bg-gray-500/10 transition-colors"
+                        className="text-gray-400 hover:text-gray-300 text-sm px-3 py-2 rounded hover:bg-gray-500/10 transition-colors text-left"
                       >
                         + Add Text Block
                       </button>
