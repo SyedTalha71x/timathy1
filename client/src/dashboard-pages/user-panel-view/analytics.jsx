@@ -775,56 +775,54 @@ export default function AnalyticsDashboard() {
           {/* ============================== */}
           {/* HEADER */}
           {/* ============================== */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <h1 className="text-white oxanium_font text-xl md:text-2xl">Analytics</h1>
-            
-            <div className="flex items-center gap-2 sm:gap-3">
-              {/* Time Period Dropdown */}
-              <div className="relative" ref={timePeriodRef}>
-                <button
-                  onClick={() => setIsTimePeriodDropdownOpen(!isTimePeriodDropdownOpen)}
-                  className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-xl text-sm text-white transition-colors"
-                >
-                  <Calendar size={16} className="text-gray-400" />
-                  <span className="hidden sm:inline">
-                    {timePeriodOptions.find(o => o.value === selectedTimePeriod)?.label}
-                  </span>
-                  <span className="sm:hidden">
-                    {timePeriodOptions.find(o => o.value === selectedTimePeriod)?.label.split(' ').slice(-1)}
-                  </span>
-                  <ChevronDown size={16} className={`text-gray-400 transition-transform ${isTimePeriodDropdownOpen ? 'rotate-180' : ''}`} />
-                </button>
-                
-                {isTimePeriodDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-[#2F2F2F] rounded-xl shadow-lg border border-gray-700 z-50 overflow-hidden">
-                    {timePeriodOptions.map((option) => (
-                      <button
-                        key={option.value}
-                        onClick={() => {
-                          setSelectedTimePeriod(option.value)
-                          setIsTimePeriodDropdownOpen(false)
-                        }}
-                        className={`w-full px-4 py-2.5 text-left text-sm hover:bg-[#3F3F3F] transition-colors ${
-                          selectedTimePeriod === option.value 
-                            ? 'bg-blue-600/20 text-blue-400' 
-                            : 'text-white'
-                        }`}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+          <div className="flex sm:items-center justify-between mb-6 sm:mb-8 gap-4">
+            <div>
+              <h1 className="text-white oxanium_font text-xl md:text-2xl">Analytics</h1>
+            </div>
 
-              {/* Sidebar Toggle */}
-              {isRightSidebarOpen ? (
-                <div onClick={toggleRightSidebar} className="cursor-pointer p-2 hover:bg-[#2F2F2F] rounded-lg transition-colors">
-                  <img src='/expand-sidebar mirrored.svg' className="h-5 w-5" alt="" />
-                </div>
-              ) : (
-                <div onClick={toggleRightSidebar} className="cursor-pointer p-2 hover:bg-[#2F2F2F] rounded-lg transition-colors">
-                  <img src="/icon.svg" className="h-5 w-5" alt="" />
+            {isRightSidebarOpen ? (
+              <div onClick={toggleRightSidebar} className=" ">
+                <img src='/expand-sidebar mirrored.svg' className="h-5 w-5 cursor-pointer" alt="" />
+              </div>
+            ) : (
+              <div onClick={toggleRightSidebar} className=" ">
+                <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
+              </div>
+            )}
+          </div>
+
+          {/* Time Period Filter */}
+          <div className="flex items-center gap-3">
+            <div className="relative" ref={timePeriodRef}>
+              <button
+                onClick={() => setIsTimePeriodDropdownOpen(!isTimePeriodDropdownOpen)}
+                className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-xl text-sm text-white transition-colors"
+              >
+                <Calendar size={16} className="text-gray-400" />
+                <span>
+                  {timePeriodOptions.find(o => o.value === selectedTimePeriod)?.label}
+                </span>
+                <ChevronDown size={16} className={`text-gray-400 transition-transform ${isTimePeriodDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+              
+              {isTimePeriodDropdownOpen && (
+                <div className="absolute left-0 mt-2 w-48 bg-[#2F2F2F] rounded-xl shadow-lg border border-gray-700 z-50 overflow-hidden">
+                  {timePeriodOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => {
+                        setSelectedTimePeriod(option.value)
+                        setIsTimePeriodDropdownOpen(false)
+                      }}
+                      className={`w-full px-4 py-2.5 text-left text-sm hover:bg-[#3F3F3F] transition-colors ${
+                        selectedTimePeriod === option.value 
+                          ? 'bg-blue-600/20 text-blue-400' 
+                          : 'text-white'
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
                 </div>
               )}
             </div>

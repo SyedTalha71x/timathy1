@@ -8,6 +8,17 @@ import CreateFormModal from '../../components/user-panel-components/assessment-c
 import PreviewModal from '../../components/user-panel-components/assessment-components/PreviewModal';
 import DeleteModal from '../../components/user-panel-components/assessment-components/DeleteModal';
 
+// Sidebar imports
+import toast, { Toaster } from "react-hot-toast";
+import { useSidebarSystem } from "../../hooks/useSidebarSystem";
+import Sidebar from "../../components/central-sidebar";
+import NotifyMemberModal from "../../components/myarea-components/NotifyMemberModal";
+import { WidgetSelectionModal } from "../../components/widget-selection-modal";
+import EditTaskModal from "../../components/user-panel-components/task-components/edit-task-modal";
+import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal";
+import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal";
+import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal";
+
 // Sortable Form Card Component
 const SortableFormCard = ({ form, children, isDragDisabled }) => {
   const {
@@ -77,6 +88,112 @@ const Assessment = () => {
   const [sortDirection, setSortDirection] = useState('desc'); // 'asc', 'desc'
   const [showSortDropdown, setShowSortDropdown] = useState(false);
   const sortDropdownRef = useRef(null);
+
+  // Sidebar system hook
+  const sidebarSystem = useSidebarSystem();
+  const {
+    isRightSidebarOpen,
+    isSidebarEditing,
+    isRightWidgetModalOpen,
+    openDropdownIndex,
+    selectedMemberType,
+    isChartDropdownOpen,
+    isWidgetModalOpen,
+    editingTask,
+    todoFilter,
+    isEditTaskModalOpen,
+    isTodoFilterDropdownOpen,
+    taskToCancel,
+    taskToDelete,
+    activeNoteId,
+    isSpecialNoteModalOpen,
+    selectedAppointmentForNote,
+    isTrainingPlanModalOpen,
+    selectedUserForTrainingPlan,
+    selectedAppointment,
+    isEditAppointmentModalOpen,
+    showAppointmentOptionsModal,
+    freeAppointments,
+    isNotifyMemberOpen,
+    notifyAction,
+    rightSidebarWidgets,
+    setIsRightWidgetModalOpen,
+    setSelectedMemberType,
+    setIsChartDropdownOpen,
+    setIsWidgetModalOpen,
+    setEditingTask,
+    setTodoFilter,
+    setIsEditTaskModalOpen,
+    setIsTodoFilterDropdownOpen,
+    setTaskToCancel,
+    setTaskToDelete,
+    setActiveNoteId,
+    setIsSpecialNoteModalOpen,
+    setSelectedAppointmentForNote,
+    setIsTrainingPlanModalOpen,
+    setSelectedUserForTrainingPlan,
+    setSelectedAppointment,
+    setIsEditAppointmentModalOpen,
+    setShowAppointmentOptionsModal,
+    setIsNotifyMemberOpen,
+    setNotifyAction,
+    toggleRightSidebar,
+    closeSidebar,
+    toggleSidebarEditing,
+    toggleDropdown: toggleSidebarDropdown,
+    redirectToCommunication,
+    moveRightSidebarWidget,
+    removeRightSidebarWidget,
+    getWidgetPlacementStatus,
+    handleAddRightSidebarWidget,
+    handleTaskComplete,
+    handleEditTask,
+    handleUpdateTask,
+    handleCancelTask,
+    handleDeleteTask,
+    isBirthdayToday,
+    handleSendBirthdayMessage,
+    handleEditNote,
+    handleDumbbellClick,
+    handleCheckIn,
+    handleAppointmentOptionsModal,
+    handleSaveSpecialNote,
+    isEventInPast,
+    handleCancelAppointment,
+    actuallyHandleCancelAppointment,
+    handleDeleteAppointment,
+    handleViewMemberDetails,
+    handleNotifyMember,
+    truncateUrl,
+    renderSpecialNoteIcon,
+    customLinks,
+    communications,
+    todos,
+    setTodos,
+    expiringContracts,
+    birthdays,
+    notifications,
+    appointments,
+    setAppointments,
+    memberTypes,
+    todoFilterOptions,
+    appointmentTypes,
+    handleAssignTrainingPlan,
+    handleRemoveTrainingPlan,
+    memberTrainingPlans,
+    availableTrainingPlans,
+  } = sidebarSystem;
+
+  // Wrapper functions for sidebar
+  const handleTaskCompleteWrapper = (taskId) => handleTaskComplete(taskId, todos, setTodos);
+  const handleUpdateTaskWrapper = (updatedTask) => handleUpdateTask(updatedTask, setTodos);
+  const handleCancelTaskWrapper = (taskId) => handleCancelTask(taskId, setTodos);
+  const handleDeleteTaskWrapper = (taskId) => handleDeleteTask(taskId, setTodos);
+  const handleEditNoteWrapper = (appointmentId, currentNote) => handleEditNote(appointmentId, currentNote, appointments);
+  const handleCheckInWrapper = (appointmentId) => handleCheckIn(appointmentId, appointments, setAppointments);
+  const handleSaveSpecialNoteWrapper = (appointmentId, updatedNote) => handleSaveSpecialNote(appointmentId, updatedNote, setAppointments);
+  const actuallyHandleCancelAppointmentWrapper = (shouldNotify) => actuallyHandleCancelAppointment(shouldNotify, appointments, setAppointments);
+  const handleDeleteAppointmentWrapper = (id) => handleDeleteAppointment(id, appointments, setAppointments);
 
   // DnD sensors
   const sensors = useSensors(
@@ -438,19 +555,44 @@ const Assessment = () => {
   };
 
   return (
-    <div className="min-h-screen rounded-3xl bg-[#1C1C1C] text-white md:p-6 p-3">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-bold mb-2">Medical History</h1>
+    <>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 2000,
+          style: {
+            background: "#333",
+            color: "#fff",
+          },
+        }}
+      />
+      <div className={`min-h-screen rounded-3xl bg-[#1C1C1C] text-white md:p-6 p-3 transition-all duration-500 ease-in-out flex-1 ${isRightSidebarOpen ? 'lg:mr-86 mr-0' : 'mr-0'}`}>
+        {/* Header */}
+        <div className="flex sm:items-center justify-between mb-6 sm:mb-8 gap-4">
+          <div>
+            <h1 className="text-white oxanium_font text-xl md:text-2xl">Medical History</h1>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleCreateForm}
+              className="bg-orange-500 hover:bg-orange-600 text-sm gap-2 text-white px-4 md:px-6 py-3 rounded-xl font-medium transition-colors flex justify-center items-center"
+            >
+              <span><Plus size={20}/></span>
+              <span className='hidden sm:inline'>Create Medical History</span>
+            </button>
+
+            {isRightSidebarOpen ? (
+              <div onClick={toggleRightSidebar} className=" ">
+                <img src='/expand-sidebar mirrored.svg' className="h-5 w-5 cursor-pointer" alt="" />
+              </div>
+            ) : (
+              <div onClick={toggleRightSidebar} className=" ">
+                <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
+              </div>
+            )}
+          </div>
         </div>
-        <button
-          onClick={handleCreateForm}
-          className="bg-orange-500 hover:bg-orange-600 text-sm gap-2 text-white px-4 md:px-6 py-3 rounded-xl font-medium transition-colors flex justify-center items-center"
-        >
-          <span><Plus size={20}/></span>
-          <span className='hidden sm:inline'>Create Medical History</span>
-        </button>
-      </div>
 
       {/* Search Bar */}
       <div className="mb-4">
@@ -689,6 +831,197 @@ const Assessment = () => {
         handleDeleteCancel={handleDeleteCancel}
       />
     </div>
+
+    {/* Sidebar */}
+    <Sidebar
+      isRightSidebarOpen={isRightSidebarOpen}
+      toggleRightSidebar={toggleRightSidebar}
+      isSidebarEditing={isSidebarEditing}
+      toggleSidebarEditing={toggleSidebarEditing}
+      rightSidebarWidgets={rightSidebarWidgets}
+      moveRightSidebarWidget={moveRightSidebarWidget}
+      removeRightSidebarWidget={removeRightSidebarWidget}
+      setIsRightWidgetModalOpen={setIsRightWidgetModalOpen}
+      communications={communications}
+      redirectToCommunication={redirectToCommunication}
+      todos={todos}
+      handleTaskComplete={handleTaskCompleteWrapper}
+      todoFilter={todoFilter}
+      setTodoFilter={setTodoFilter}
+      todoFilterOptions={todoFilterOptions}
+      isTodoFilterDropdownOpen={isTodoFilterDropdownOpen}
+      setIsTodoFilterDropdownOpen={setIsTodoFilterDropdownOpen}
+      openDropdownIndex={openDropdownIndex}
+      toggleDropdown={toggleSidebarDropdown}
+      handleEditTask={handleEditTask}
+      setTaskToCancel={setTaskToCancel}
+      setTaskToDelete={setTaskToDelete}
+      birthdays={birthdays}
+      isBirthdayToday={isBirthdayToday}
+      handleSendBirthdayMessage={handleSendBirthdayMessage}
+      customLinks={customLinks}
+      truncateUrl={truncateUrl}
+      appointments={appointments}
+      renderSpecialNoteIcon={renderSpecialNoteIcon}
+      handleDumbbellClick={handleDumbbellClick}
+      handleCheckIn={handleCheckInWrapper}
+      handleAppointmentOptionsModal={handleAppointmentOptionsModal}
+      selectedMemberType={selectedMemberType}
+      setSelectedMemberType={setSelectedMemberType}
+      memberTypes={memberTypes}
+      isChartDropdownOpen={isChartDropdownOpen}
+      setIsChartDropdownOpen={setIsChartDropdownOpen}
+      expiringContracts={expiringContracts}
+      getWidgetPlacementStatus={getWidgetPlacementStatus}
+      onClose={toggleRightSidebar}
+      hasUnreadNotifications={2}
+      setIsWidgetModalOpen={setIsWidgetModalOpen}
+      handleEditNote={handleEditNoteWrapper}
+      activeNoteId={activeNoteId}
+      setActiveNoteId={setActiveNoteId}
+      isSpecialNoteModalOpen={isSpecialNoteModalOpen}
+      setIsSpecialNoteModalOpen={setIsSpecialNoteModalOpen}
+      selectedAppointmentForNote={selectedAppointmentForNote}
+      setSelectedAppointmentForNote={setSelectedAppointmentForNote}
+      handleSaveSpecialNote={handleSaveSpecialNoteWrapper}
+      onSaveSpecialNote={handleSaveSpecialNoteWrapper}
+      notifications={notifications}
+      setTodos={setTodos}
+    />
+
+    {/* Sidebar Modals */}
+    <TrainingPlansModal
+      isOpen={isTrainingPlanModalOpen}
+      onClose={() => {
+        setIsTrainingPlanModalOpen(false);
+        setSelectedUserForTrainingPlan(null);
+      }}
+      selectedMember={selectedUserForTrainingPlan}
+      memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
+      availableTrainingPlans={availableTrainingPlans}
+      onAssignPlan={handleAssignTrainingPlan}
+      onRemovePlan={handleRemoveTrainingPlan}
+    />
+
+    <AppointmentActionModalV2
+      isOpen={showAppointmentOptionsModal}
+      onClose={() => {
+        setShowAppointmentOptionsModal(false);
+        setSelectedAppointment(null);
+      }}
+      appointment={selectedAppointment}
+      isEventInPast={isEventInPast}
+      onEdit={() => {
+        setShowAppointmentOptionsModal(false);
+        setIsEditAppointmentModalOpen(true);
+      }}
+      onCancel={handleCancelAppointment}
+      onViewMember={handleViewMemberDetails}
+    />
+
+    <NotifyMemberModal
+      isOpen={isNotifyMemberOpen}
+      onClose={() => setIsNotifyMemberOpen(false)}
+      notifyAction={notifyAction}
+      actuallyHandleCancelAppointment={actuallyHandleCancelAppointmentWrapper}
+      handleNotifyMember={handleNotifyMember}
+    />
+
+    {isEditAppointmentModalOpen && selectedAppointment && (
+      <EditAppointmentModalV2
+        selectedAppointment={selectedAppointment}
+        setSelectedAppointment={setSelectedAppointment}
+        appointmentTypes={appointmentTypes}
+        freeAppointments={freeAppointments}
+        handleAppointmentChange={(changes) => {
+          setSelectedAppointment({ ...selectedAppointment, ...changes });
+        }}
+        appointments={appointments}
+        setAppointments={setAppointments}
+        setIsNotifyMemberOpen={setIsNotifyMemberOpen}
+        setNotifyAction={setNotifyAction}
+        onDelete={handleDeleteAppointmentWrapper}
+        onClose={() => {
+          setIsEditAppointmentModalOpen(false);
+          setSelectedAppointment(null);
+        }}
+      />
+    )}
+
+    <WidgetSelectionModal
+      isOpen={isRightWidgetModalOpen}
+      onClose={() => setIsRightWidgetModalOpen(false)}
+      onSelectWidget={handleAddRightSidebarWidget}
+      getWidgetStatus={(widgetType) => getWidgetPlacementStatus(widgetType, "sidebar")}
+      widgetArea="sidebar"
+    />
+
+    {isRightSidebarOpen && (
+      <div
+        className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+        onClick={closeSidebar}
+      />
+    )}
+
+    {isEditTaskModalOpen && editingTask && (
+      <EditTaskModal
+        task={editingTask}
+        onClose={() => {
+          setIsEditTaskModalOpen(false);
+          setEditingTask(null);
+        }}
+        onUpdateTask={handleUpdateTaskWrapper}
+      />
+    )}
+
+    {taskToDelete && (
+      <div className="fixed inset-0 text-white bg-black/50 flex items-center justify-center z-50">
+        <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
+          <h3 className="text-lg font-semibold mb-4">Delete Task</h3>
+          <p className="text-gray-300 mb-6">
+            Are you sure you want to delete this task? This action cannot be undone.
+          </p>
+          <div className="flex gap-3 justify-end">
+            <button
+              onClick={() => setTaskToDelete(null)}
+              className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#2F2F2F]/90"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => handleDeleteTaskWrapper(taskToDelete)}
+              className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700"
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {taskToCancel && (
+      <div className="fixed inset-0 bg-black/50 text-white flex items-center justify-center z-50">
+        <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
+          <h3 className="text-lg font-semibold mb-4">Cancel Task</h3>
+          <p className="text-gray-300 mb-6">Are you sure you want to cancel this task?</p>
+          <div className="flex gap-3 justify-end">
+            <button
+              onClick={() => setTaskToCancel(null)}
+              className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#2F2F2F]/90"
+            >
+              No
+            </button>
+            <button
+              onClick={() => handleCancelTaskWrapper(taskToCancel)}
+              className="px-4 py-2 bg-orange-600 text-white rounded-xl hover:bg-orange-700"
+            >
+              Cancel Task
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+  </>
   );
 };
 
