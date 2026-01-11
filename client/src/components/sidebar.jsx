@@ -366,16 +366,20 @@ const Sidebar = () => {
       label: "Support Area",
       to: "#",
       hasSubmenu: true,
+      hasNotification: true,
+      notificationCount: 3,
       submenu: [
-        { 
-          label: "Tickets", 
-          to: "/dashboard/tickets", 
-          icon: MdOutlineLocalActivity 
-        },
         { 
           label: "Help Center", 
           to: "/dashboard/help-center", 
           icon: MdOutlineHelpCenter 
+        },
+        { 
+          label: "Tickets", 
+          to: "/dashboard/tickets", 
+          icon: MdOutlineLocalActivity,
+          hasNotification: true,
+          notificationCount: 3
         },
       ],
     },
@@ -616,6 +620,11 @@ const Sidebar = () => {
                               {unreadMessages}
                             </span>
                           )}
+                          {item.label === "Support Area" && item.notificationCount > 0 && !isSupportAreaOpen && (
+                            <span className="absolute -top-1 -right-2 bg-orange-600 text-white text-[10px] px-1.5 py-0.5 rounded-full z-10">
+                              {item.notificationCount}
+                            </span>
+                          )}
                         </div>
                         {!isCollapsed && (
                           <div className="flex items-center justify-between w-full">
@@ -688,6 +697,11 @@ const Sidebar = () => {
                                             {unreadMessages}
                                           </span>
                                         )}
+                                        {subItem.label === "Tickets" && subItem.notificationCount > 0 && (
+                                          <span className="absolute -top-1 left-10 bg-orange-600 text-white text-[10px] px-1.5 py-0.5 rounded-full z-10">
+                                            {subItem.notificationCount}
+                                          </span>
+                                        )}
                                       </div>
                                     )}
                                     
@@ -708,6 +722,11 @@ const Sidebar = () => {
                                         {subItem.label === "Activity Monitor" && unreadMessages > 0 && (
                                           <span className="absolute -top-1 -right-2 bg-orange-600 text-white text-[10px] px-1.5 py-0.5 rounded-full z-10">
                                             {unreadMessages}
+                                          </span>
+                                        )}
+                                        {subItem.label === "Tickets" && subItem.notificationCount > 0 && (
+                                          <span className="absolute -top-1 -right-2 bg-orange-600 text-white text-[10px] px-1.5 py-0.5 rounded-full z-10">
+                                            {subItem.notificationCount}
                                           </span>
                                         )}
                                       </div>

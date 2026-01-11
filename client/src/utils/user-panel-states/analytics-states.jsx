@@ -93,6 +93,7 @@ export const getMonthlyBreakdownChartConfig = () => ({
       height: 350,
       toolbar: { show: false },
       background: "transparent",
+      fontFamily: 'inherit',
     },
     colors: ["#10B981", "#3B82F6", "#EF4444", "#F59E0B", "#8B5CF6"],
     stroke: {
@@ -129,6 +130,7 @@ export const getMonthlyBreakdownChartConfig = () => ({
       labels: { colors: "#9CA3AF" },
       position: "top",
       horizontalAlign: "center",
+      fontSize: '12px',
     },
     tooltip: {
       theme: "dark",
@@ -136,6 +138,16 @@ export const getMonthlyBreakdownChartConfig = () => ({
         formatter: (value) => value.toString(),
       },
     },
+    responsive: [
+      {
+        breakpoint: 640,
+        options: {
+          chart: { height: 280 },
+          legend: { fontSize: '10px', position: 'bottom' },
+          stroke: { width: 2 },
+        },
+      },
+    ],
   },
   series: [
     {
@@ -168,6 +180,7 @@ export const getPopularTimesChartConfig = () => ({
       height: 350,
       toolbar: { show: false },
       background: "transparent",
+      fontFamily: 'inherit',
     },
     colors: ["#10B981"],
     plotOptions: {
@@ -213,6 +226,16 @@ export const getPopularTimesChartConfig = () => ({
         formatter: (value) => `${value} bookings`,
       },
     },
+    responsive: [
+      {
+        breakpoint: 640,
+        options: {
+          chart: { height: 280 },
+          plotOptions: { bar: { columnWidth: "70%", borderRadius: 4 } },
+          xaxis: { labels: { rotate: -60, style: { fontSize: '10px' } } },
+        },
+      },
+    ],
   },
   series: [
     {
@@ -229,6 +252,7 @@ export const getMemberActivityChartConfig = () => ({
       height: 350,
       toolbar: { show: false },
       background: "transparent",
+      fontFamily: 'inherit',
     },
     colors: ["#10B981", "#3B82F6", "#EF4444", "#F59E0B"],
     stroke: {
@@ -263,10 +287,21 @@ export const getMemberActivityChartConfig = () => ({
       labels: { colors: "#9CA3AF" },
       position: "top",
       horizontalAlign: "center",
+      fontSize: '12px',
     },
     tooltip: {
       theme: "dark",
     },
+    responsive: [
+      {
+        breakpoint: 640,
+        options: {
+          chart: { height: 280 },
+          legend: { fontSize: '10px', position: 'bottom' },
+          stroke: { width: 2 },
+        },
+      },
+    ],
   },
   series: [
     {
@@ -381,6 +416,7 @@ export const getLeadsChartConfig = () => ({
       height: 350,
       toolbar: { show: false },
       background: "transparent",
+      fontFamily: 'inherit',
     },
     colors: ["#3B82F6", "#10B981"],
     plotOptions: {
@@ -420,10 +456,21 @@ export const getLeadsChartConfig = () => ({
       labels: { colors: "#9CA3AF" },
       position: "top",
       horizontalAlign: "center",
+      fontSize: '12px',
     },
     tooltip: {
       theme: "dark",
     },
+    responsive: [
+      {
+        breakpoint: 640,
+        options: {
+          chart: { height: 280 },
+          legend: { fontSize: '10px', position: 'bottom' },
+          plotOptions: { bar: { columnWidth: "70%", borderRadius: 4 } },
+        },
+      },
+    ],
   },
   series: [
     {
@@ -444,6 +491,7 @@ export const getConversionRateChartConfig = () => ({
       height: 350,
       toolbar: { show: false },
       background: "transparent",
+      fontFamily: 'inherit',
     },
     colors: ["#10B981"],
     stroke: {
@@ -482,6 +530,15 @@ export const getConversionRateChartConfig = () => ({
         formatter: (value) => `${value}%`,
       },
     },
+    responsive: [
+      {
+        breakpoint: 640,
+        options: {
+          chart: { height: 280 },
+          stroke: { width: 2 },
+        },
+      },
+    ],
   },
   series: [
     {
@@ -498,6 +555,7 @@ export const getTopServicesByRevenueChartConfig = () => ({
       height: 350,
       toolbar: { show: false },
       background: "transparent",
+      fontFamily: 'inherit',
     },
     colors: ["#10B981"],
     plotOptions: {
@@ -539,6 +597,16 @@ export const getTopServicesByRevenueChartConfig = () => ({
         formatter: (value) => `$${value}`,
       },
     },
+    responsive: [
+      {
+        breakpoint: 640,
+        options: {
+          chart: { height: 280 },
+          plotOptions: { bar: { borderRadius: 4 } },
+          yaxis: { labels: { style: { fontSize: '10px' } } },
+        },
+      },
+    ],
   },
   series: [
     {
@@ -555,6 +623,7 @@ export const getMostFrequentlySoldChartConfig = () => ({
       height: 350,
       toolbar: { show: false },
       background: "transparent",
+      fontFamily: 'inherit',
     },
     colors: ["#3B82F6"],
     plotOptions: {
@@ -597,6 +666,16 @@ export const getMostFrequentlySoldChartConfig = () => ({
         formatter: (value) => `${value} sold`,
       },
     },
+    responsive: [
+      {
+        breakpoint: 640,
+        options: {
+          chart: { height: 280 },
+          plotOptions: { bar: { columnWidth: "70%", borderRadius: 4 } },
+          xaxis: { labels: { rotate: -60, style: { fontSize: '8px' } } },
+        },
+      },
+    ],
   },
   series: [
     {

@@ -1,11 +1,10 @@
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react/prop-types */
 import { useState } from "react"
-import { Search } from "react-feather"
+import { Search, Plus } from "lucide-react"
 import TicketView from "../../components/user-panel-components/tickets-components/TicketView"
 import NewTicketModal from "../../components/user-panel-components/tickets-components/NewTicketModal"
 import { sampleTickets } from "../../utils/user-panel-states/help-center-states"
-import { Plus } from "lucide-react"
 
 const Tickets = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -16,27 +15,34 @@ const Tickets = () => {
   const [selectedFilters, setSelectedFilters] = useState(["All"])
 
   const handleNewTicketClick = () => setIsModalOpen(true)
-  const handleCloseModal = () => setIsModalOpen(false)
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+  }
 
-  const handleSubmitTicket = (ticketName, additionalDescription, uploadedImages) => {
-    const currentDate = new Date().toLocaleDateString("en-GB")
+  // FIXED: Now accepts ticketData object from NewTicketModal
+  const handleSubmitTicket = (ticketData) => {
+    const now = new Date()
+    const currentDate = now.toLocaleDateString("en-GB")
+    const currentTime = now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })
+    const timestamp = `${currentDate}, ${currentTime}`
 
     const newTicket = {
       id: tickets.length + 1,
-      subject: ticketName, // Sirf title: "Training – Training Materials Problem"
+      subject: ticketData.ticketName,
       status: "Open",
       date: currentDate,
-      createdAt: currentDate,
-      updatedAt: currentDate,
-      requesterName: "John Doe", // Auto-filled
-      requesterEmail: "john.doe@example.com", // Auto-filled
+      createdAt: timestamp,
+      updatedAt: timestamp,
+      studioName: ticketData.studioName,
+      studioEmail: ticketData.studioEmail,
+      requesterName: ticketData.requesterName,
       messages: [
         {
           id: 1,
           sender: "user",
-          content: additionalDescription, // HTML content: "<p><strong><em>kaskjdjksadknsajsndkasndksadnk</em></strong></p>"
-          timestamp: currentDate,
-          images: uploadedImages,
+          content: ticketData.additionalDescription,
+          timestamp: timestamp,
+          images: ticketData.uploadedImages,
         },
       ],
     }
@@ -53,16 +59,20 @@ const Tickets = () => {
   }
 
   const handleUpdateTicket = (updatedTicket) => {
+    const now = new Date()
+    const currentDate = now.toLocaleDateString("en-GB")
+    const currentTime = now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })
+    const timestamp = `${currentDate}, ${currentTime}`
+
     const updatedTickets = tickets.map((ticket) =>
       ticket.id === updatedTicket.id
-        ? { ...updatedTicket, updatedAt: new Date().toLocaleDateString("en-GB") }
+        ? { ...updatedTicket, updatedAt: timestamp }
         : ticket
     )
     setTickets(updatedTickets)
     setSelectedTicket(updatedTicket)
   }
 
-  // Status colors with different colors for each status
   const getStatusColor = (status) => {
     switch (status) {
       case "Open":
@@ -82,7 +92,6 @@ const Tickets = () => {
     }
   }
 
-  // Filter handling functions
   const handleFilterClick = (filter) => {
     if (filter === "All") {
       setSelectedFilters(["All"])
@@ -97,12 +106,11 @@ const Tickets = () => {
     }
   }
 
-  // Filter tickets based on selected filters
   const filteredTickets = tickets.filter((ticket) => {
     const matchesSearch =
       ticket.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      ticket.requesterName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      ticket.requesterEmail?.toLowerCase().includes(searchQuery.toLowerCase())
+      ticket.studioName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      ticket.studioEmail?.toLowerCase().includes(searchQuery.toLowerCase())
 
     const matchesFilter =
       selectedFilters.includes("All") ||
@@ -111,7 +119,6 @@ const Tickets = () => {
     return matchesSearch && matchesFilter
   })
 
-  // Close confirmation modal
   const ConfirmCloseModal = ({ isOpen, onClose, onConfirm, ticket }) => {
     if (!isOpen) return null
 
@@ -147,10 +154,15 @@ const Tickets = () => {
 
   const confirmCloseTicket = () => {
     if (closeConfirmModal) {
+      const now = new Date()
+      const currentDate = now.toLocaleDateString("en-GB")
+      const currentTime = now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" })
+      const timestamp = `${currentDate}, ${currentTime}`
+
       const updatedTicket = {
         ...closeConfirmModal,
         status: "Closed",
-        updatedAt: new Date().toLocaleDateString("en-GB")
+        updatedAt: timestamp
       }
       handleUpdateTicket(updatedTicket)
       setCloseConfirmModal(null)
@@ -161,34 +173,37 @@ const Tickets = () => {
   }
 
   return (
-    <div className="flex flex-col min-h-screen rounded-3xl bg-[#1C1C1C] text-white">
+    <div className="flex flex-col h-screen rounded-3xl bg-[#1C1C1C] text-white overflow-hidden">
       <div className="flex-shrink-0 pt-8 sm:pt-12 lg:pt-16 pb-6 sm:pb-8 px-4 sm:px-8">
         <h1 className="text-2xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-white text-center mb-8 sm:mb-12 lg:mb-16">
           Contact us for a fast Response
         </h1>
 
+        {/* Search and New Ticket Button - Styled like leads.jsx */}
         <div className="w-full max-w-7xl mx-auto flex flex-col sm:flex-row items-center gap-3 sm:gap-4 mb-6 sm:mb-8 px-2">
+          {/* Search bar - Identical to leads.jsx */}
           <div className="relative w-full sm:flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
             <input
-              type="search"
-              placeholder="Search Tickets...."
+              type="text"
+              placeholder="Search Tickets..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-11 bg-[#181818] text-white rounded-xl pl-12 pr-4 w-full text-sm outline-none border border-[#333333] focus:border-[#3F74FF] leading-none"
+              className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-[#333333] focus:border-[#3F74FF] transition-colors"
             />
           </div>
 
+          {/* Create Ticket Button - Styled like Create Lead button (orange) */}
           <button
             onClick={handleNewTicketClick}
-            className="w-full sm:w-auto px-4 flex justify-center items-center gap-2 sm:px-6 py-2 sm:py-3 bg-blue-600 text-white text-sm rounded-xl hover:bg-blue-700 transition-colors duration-200 whitespace-nowrap"
+            className="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl flex items-center gap-2 justify-center transition-colors"
           >
-            <Plus size={16} />
-            New ticket
+            <Plus size={14} className="sm:w-4 sm:h-4" />
+            <span>Create Ticket</span>
           </button>
         </div>
 
-        {/* Filters - Above the tickets */}
+        {/* Filters */}
         <div className="w-full max-w-7xl mx-auto px-2">
           <div className="flex flex-wrap gap-2">
             {["All", "Open", "Awaiting your reply", "Closed"].map((filter) => (
@@ -201,16 +216,17 @@ const Tickets = () => {
                   }`}
               >
                 {filter}
-
               </button>
             ))}
           </div>
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col px-4 sm:px-8 pb-8">
-        <div className="w-full max-w-7xl mx-auto flex flex-col">
-          <div className="overflow-y-auto custom-scrollbar space-y-2 sm:space-y-2 px-2" style={{ maxHeight: "calc(3 * 240px)" }}>
+      <div className="flex-1 min-h-0 flex flex-col px-4 sm:px-8 pb-8">
+        <div className="w-full max-w-7xl mx-auto flex flex-col flex-1 min-h-0">
+          <div 
+            className="flex-1 min-h-0 overflow-y-auto custom-scrollbar space-y-2 sm:space-y-2 px-2 overscroll-contain pb-4"
+          >
             {filteredTickets.map((ticket) => (
               <div
                 key={ticket.id}
@@ -218,19 +234,14 @@ const Tickets = () => {
                 className="bg-[#161616] rounded-lg p-3 sm:p-4 lg:p-5 cursor-pointer transition-colors hover:bg-[#1F1F1F]"
               >
                 <div className="flex justify-between items-start mb-2 min-w-0">
-
-                  {/* FIXED TITLE */}
+                  {/* Ticket Title */}
                   <h3 className="text-white font-medium text-sm md:text-base flex-1 min-w-0 line-clamp-2 pr-2">
                     {ticket.subject}
                   </h3>
-
-                  {/* DATE */}
-                  <span className="text-xs sm:text-sm text-gray-300 whitespace-nowrap">
-                    {ticket.date}
-                  </span>
                 </div>
 
-                <div className="flex items-center gap-4 mb-2 text-xs text-gray-400 flex-wrap">
+                {/* Timestamps with time */}
+                <div className="flex items-center gap-4 text-xs text-gray-400 flex-wrap mb-2">
                   <div className="flex items-center gap-1">
                     <span>Created:</span>
                     <span className="text-gray-300">{ticket.createdAt || ticket.date}</span>
@@ -241,24 +252,21 @@ const Tickets = () => {
                   </div>
                 </div>
 
-                <div className="flex justify-between items-center">
-                  <span
-                    className={`inline-flex items-center px-2 sm:px-2.5 py-1 rounded-lg text-xs font-medium ${getStatusColor(ticket.status)}`}
-                  >
-                    {ticket.status}
-                  </span>
-                </div>
-
-                {(ticket.requesterName || ticket.requesterEmail) && (
-                  <div className="mt-2 text-xs text-gray-400">
-                    {ticket.requesterName && <span>By: {ticket.requesterName}</span>}
-                    {ticket.requesterEmail && <span> ({ticket.requesterEmail})</span>}
-                  </div>
-                )}
+                {/* Status Badge - Below timestamps */}
+                <span
+                  className={`inline-flex items-center px-2 sm:px-2.5 py-1 rounded-lg text-xs font-medium ${getStatusColor(ticket.status)}`}
+                >
+                  {ticket.status}
+                </span>
               </div>
             ))}
-          </div>
 
+            {filteredTickets.length === 0 && (
+              <div className="text-center py-12 text-gray-400">
+                <p>No tickets found</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
