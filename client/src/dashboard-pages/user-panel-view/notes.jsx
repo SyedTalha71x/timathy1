@@ -179,15 +179,6 @@ const SortableNoteCard = ({ note, children, isDragDisabled, viewMode }) => {
           <GripVertical size={16} />
         </div>
       )}
-      {!isDragDisabled && note.isPinned && viewMode === 'grid' && (
-        <div className="absolute top-10 left-3 z-10 w-6 flex items-center justify-center">
-          <Pin
-            size={14}
-            className="text-orange-400 fill-orange-400"
-            aria-label="Note is pinned"
-          />
-        </div>
-      )}
       {children}
     </div>
   )
@@ -992,7 +983,7 @@ export default function NotesApp() {
               
               {/* Personal Tooltip */}
               {showPersonalTooltip && (
-                <div className="absolute left-0 top-full mt-2 w-56 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-xl p-3 z-50">
+                <div className="absolute left-0 md:left-0 top-full mt-2 w-48 md:w-56 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-xl p-3 z-50">
                   <div className="text-sm">
                     <p className="text-white font-medium mb-1.5">Private to you</p>
                     <p className="text-gray-300 text-xs leading-relaxed">
@@ -1000,7 +991,7 @@ export default function NotesApp() {
                     </p>
                   </div>
                   {/* Arrow */}
-                  <div className="absolute -top-1 left-6 w-2 h-2 bg-[#2a2a2a] border-l border-t border-gray-700 transform rotate-45"></div>
+                  <div className="absolute -top-1 left-6 md:left-6 w-2 h-2 bg-[#2a2a2a] border-l border-t border-gray-700 transform rotate-45"></div>
                 </div>
               )}
             </div>
@@ -1020,7 +1011,7 @@ export default function NotesApp() {
               
               {/* Studio Tooltip */}
               {showStudioTooltip && (
-                <div className="absolute left-0 top-full mt-2 w-56 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-xl p-3 z-50">
+                <div className="absolute -left-20 md:left-0 top-full mt-2 w-48 md:w-56 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-xl p-3 z-50">
                   <div className="text-sm">
                     <p className="text-white font-medium mb-1.5">Shared with everyone</p>
                     <p className="text-gray-300 text-xs leading-relaxed">
@@ -1028,7 +1019,7 @@ export default function NotesApp() {
                     </p>
                   </div>
                   {/* Arrow */}
-                  <div className="absolute -top-1 left-6 w-2 h-2 bg-[#2a2a2a] border-l border-t border-gray-700 transform rotate-45"></div>
+                  <div className="absolute -top-1 left-[5.5rem] md:left-6 w-2 h-2 bg-[#2a2a2a] border-l border-t border-gray-700 transform rotate-45"></div>
                 </div>
               )}
             </div>
@@ -1187,8 +1178,8 @@ export default function NotesApp() {
                       <div>
                         {/* Grid Card - Always on Mobile, on Desktop only if viewMode is grid */}
                         <div className={`bg-[#1A1A1A] rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-800 hover:border-gray-700 h-64 relative select-none ${!isDragDisabled ? 'pl-10' : ''} ${viewMode === 'list' ? 'flex md:hidden' : 'flex'} flex-col`}>
-                          {/* Pin Icon - Top Left (below Grip when drag enabled) */}
-                          {note.isPinned && (
+                          {/* Pin Icon - Only in Grid View, Top Left (below Grip when drag enabled) */}
+                          {note.isPinned && viewMode === 'grid' && (
                             <div className={`absolute z-10 ${!isDragDisabled ? 'top-10 left-3' : 'top-3 left-3'}`}>
                               <Pin
                                 size={14}
@@ -1277,7 +1268,7 @@ export default function NotesApp() {
 
                             {/* Tags - moved before footer, max 2 lines */}
                             {note.tags && note.tags.length > 0 && (
-                              <div className="flex flex-wrap gap-1 mb-2 overflow-hidden" style={{
+                              <div className="flex flex-wrap gap-2 mb-2 overflow-hidden" style={{
                                 maxHeight: '3.5rem',
                                 display: '-webkit-box',
                                 WebkitLineClamp: 2,
