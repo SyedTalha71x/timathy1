@@ -842,9 +842,13 @@ export default function NotesApp() {
           .scrollbar-hide {
             -ms-overflow-style: none;
             scrollbar-width: none;
+            cursor: grab;
           }
           .scrollbar-hide::-webkit-scrollbar {
             display: none;
+          }
+          .scrollbar-hide:active {
+            cursor: grabbing;
           }
         `}
       </style>
@@ -1288,7 +1292,7 @@ export default function NotesApp() {
 
                             {/* Tags - Single line with horizontal scroll */}
                             {note.tags && note.tags.length > 0 && (
-                              <div className="mb-2 relative flex-shrink-0">
+                              <div className="mb-2 flex-shrink-0" style={{ minHeight: '28px' }}>
                                 <div 
                                   className="overflow-x-auto scrollbar-hide"
                                   style={{
@@ -1297,7 +1301,44 @@ export default function NotesApp() {
                                     gap: '8px',
                                     scrollbarWidth: 'none',
                                     msOverflowStyle: 'none',
-                                    WebkitOverflowScrolling: 'touch'
+                                    WebkitOverflowScrolling: 'touch',
+                                    touchAction: 'pan-x',
+                                    maxWidth: '100%'
+                                  }}
+                                  onWheel={(e) => {
+                                    // Horizontal scroll mit Mousewheel auf Desktop
+                                    e.preventDefault()
+                                    e.currentTarget.scrollLeft += e.deltaY
+                                  }}
+                                  onMouseDown={(e) => {
+                                    const el = e.currentTarget
+                                    el.style.cursor = 'grabbing'
+                                    el.style.userSelect = 'none'
+                                    
+                                    const startX = e.pageX - el.offsetLeft
+                                    const scrollLeft = el.scrollLeft
+                                    
+                                    const onMouseMove = (e) => {
+                                      const x = e.pageX - el.offsetLeft
+                                      const walk = (x - startX) * 2
+                                      el.scrollLeft = scrollLeft - walk
+                                    }
+                                    
+                                    const onMouseUp = () => {
+                                      el.style.cursor = 'grab'
+                                      el.style.userSelect = 'auto'
+                                      document.removeEventListener('mousemove', onMouseMove)
+                                      document.removeEventListener('mouseup', onMouseUp)
+                                    }
+                                    
+                                    document.addEventListener('mousemove', onMouseMove)
+                                    document.addEventListener('mouseup', onMouseUp)
+                                  }}
+                                  onTouchStart={(e) => {
+                                    e.currentTarget.style.cursor = 'grabbing'
+                                  }}
+                                  onTouchEnd={(e) => {
+                                    e.currentTarget.style.cursor = 'grab'
                                   }}
                                 >
                                   {note.tags.map(tagId => {
@@ -1310,7 +1351,9 @@ export default function NotesApp() {
                                           backgroundColor: tag.color,
                                           gap: '4px',
                                           flexShrink: 0,
-                                          whiteSpace: 'nowrap'
+                                          whiteSpace: 'nowrap',
+                                          minWidth: 'fit-content',
+                                          pointerEvents: 'none'
                                         }}
                                       >
                                         <Tag size={10} />
@@ -1387,7 +1430,7 @@ export default function NotesApp() {
                               {note.content}
                             </p>
                             {note.tags && note.tags.length > 0 && (
-                              <div className="relative">
+                              <div style={{ minHeight: '28px' }}>
                                 <div 
                                   className="overflow-x-auto scrollbar-hide"
                                   style={{
@@ -1396,7 +1439,44 @@ export default function NotesApp() {
                                     gap: '8px',
                                     scrollbarWidth: 'none',
                                     msOverflowStyle: 'none',
-                                    WebkitOverflowScrolling: 'touch'
+                                    WebkitOverflowScrolling: 'touch',
+                                    touchAction: 'pan-x',
+                                    maxWidth: '100%'
+                                  }}
+                                  onWheel={(e) => {
+                                    // Horizontal scroll mit Mousewheel auf Desktop
+                                    e.preventDefault()
+                                    e.currentTarget.scrollLeft += e.deltaY
+                                  }}
+                                  onMouseDown={(e) => {
+                                    const el = e.currentTarget
+                                    el.style.cursor = 'grabbing'
+                                    el.style.userSelect = 'none'
+                                    
+                                    const startX = e.pageX - el.offsetLeft
+                                    const scrollLeft = el.scrollLeft
+                                    
+                                    const onMouseMove = (e) => {
+                                      const x = e.pageX - el.offsetLeft
+                                      const walk = (x - startX) * 2
+                                      el.scrollLeft = scrollLeft - walk
+                                    }
+                                    
+                                    const onMouseUp = () => {
+                                      el.style.cursor = 'grab'
+                                      el.style.userSelect = 'auto'
+                                      document.removeEventListener('mousemove', onMouseMove)
+                                      document.removeEventListener('mouseup', onMouseUp)
+                                    }
+                                    
+                                    document.addEventListener('mousemove', onMouseMove)
+                                    document.addEventListener('mouseup', onMouseUp)
+                                  }}
+                                  onTouchStart={(e) => {
+                                    e.currentTarget.style.cursor = 'grabbing'
+                                  }}
+                                  onTouchEnd={(e) => {
+                                    e.currentTarget.style.cursor = 'grab'
                                   }}
                                 >
                                   {note.tags.map(tagId => {
@@ -1409,7 +1489,9 @@ export default function NotesApp() {
                                           backgroundColor: tag.color,
                                           gap: '4px',
                                           flexShrink: 0,
-                                          whiteSpace: 'nowrap'
+                                          whiteSpace: 'nowrap',
+                                          minWidth: 'fit-content',
+                                          pointerEvents: 'none'
                                         }}
                                       >
                                         <Tag size={10} />
