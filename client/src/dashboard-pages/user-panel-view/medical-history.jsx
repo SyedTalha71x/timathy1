@@ -304,6 +304,9 @@ const Assessment = () => {
       // Ignore if user is typing in an input
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
       
+      // Ignore if Ctrl/Cmd is pressed (for Ctrl+C copy, etc.)
+      if (e.ctrlKey || e.metaKey) return;
+      
       // C key - Create Medical History
       if (e.key === 'c' || e.key === 'C') {
         e.preventDefault();

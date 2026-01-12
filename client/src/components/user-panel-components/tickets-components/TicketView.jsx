@@ -101,11 +101,41 @@ const TicketView = ({ ticket, onClose, onUpdateTicket }) => {
     const [replyText, setReplyText] = useState("")
     const [uploadedImages, setUploadedImages] = useState([])
     const [showCloseConfirm, setShowCloseConfirm] = useState(false)
+    const [viewingImage, setViewingImage] = useState(null) // { image, images, index }
     const fileInputRef = useRef(null)
     const messagesEndRef = useRef(null)
     const messagesContainerRef = useRef(null)
   
     const isTicketClosed = ticket.status === "Closed"
+
+    // Lightbox keyboard navigation
+    useEffect(() => {
+      const handleKeyDown = (event) => {
+        if (!viewingImage) return
+        
+        if (event.key === 'Escape') {
+          setViewingImage(null)
+        } else if (event.key === 'ArrowLeft') {
+          // Previous image
+          const newIndex = viewingImage.index > 0 ? viewingImage.index - 1 : viewingImage.images.length - 1
+          setViewingImage({
+            ...viewingImage,
+            image: viewingImage.images[newIndex],
+            index: newIndex
+          })
+        } else if (event.key === 'ArrowRight') {
+          // Next image
+          const newIndex = viewingImage.index < viewingImage.images.length - 1 ? viewingImage.index + 1 : 0
+          setViewingImage({
+            ...viewingImage,
+            image: viewingImage.images[newIndex],
+            index: newIndex
+          })
+        }
+      }
+      document.addEventListener('keydown', handleKeyDown)
+      return () => document.removeEventListener('keydown', handleKeyDown)
+    }, [viewingImage])
 
     // Auto-scroll to bottom when messages change
     const scrollToBottom = () => {
@@ -197,33 +227,27 @@ const TicketView = ({ ticket, onClose, onUpdateTicket }) => {
       if (!message.images || message.images.length === 0) return null
 
       return (
-        <div className="mt-3 p-3 bg-[#252525] rounded-lg border border-gray-700">
-          <div className="flex items-center gap-2 text-gray-400 text-xs mb-2">
-            <Paperclip size={14} />
-            <span>{message.images.length} Attachment{message.images.length > 1 ? 's' : ''}</span>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {message.images.map((img, idx) => (
-              <a 
-                key={idx} 
-                href={img} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="block group"
-              >
-                <div className="relative">
-                  <img 
-                    src={img || "/placeholder.svg"} 
-                    alt={`Attachment ${idx + 1}`} 
-                    className="w-24 h-24 object-cover rounded-lg border border-gray-600 group-hover:border-blue-500 transition-colors" 
-                  />
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                    <span className="text-white text-xs">View</span>
-                  </div>
-                </div>
-              </a>
-            ))}
-          </div>
+        <div className="mt-3 grid grid-cols-4 gap-2 max-w-md">
+          {message.images.map((img, idx) => (
+            <div
+              key={idx}
+              className="block group relative cursor-pointer"
+              onClick={() => setViewingImage({
+                image: { url: img, name: `Attachment ${idx + 1}` },
+                images: message.images.map((url, i) => ({ url, name: `Attachment ${i + 1}` })),
+                index: idx
+              })}
+            >
+              <img 
+                src={img || "/placeholder.svg"} 
+                alt={`Attachment ${idx + 1}`} 
+                className="w-full h-16 object-cover rounded-lg border border-gray-700 group-hover:border-blue-500 transition-colors" 
+              />
+              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                <span className="text-white text-xs font-medium">View</span>
+              </div>
+            </div>
+          ))}
         </div>
       )
     }
@@ -274,8 +298,10 @@ const TicketView = ({ ticket, onClose, onUpdateTicket }) => {
           <div className="bg-[#2A2A2A] rounded-lg sm:rounded-xl w-full max-w-5xl h-[95vh] sm:h-[90vh] flex flex-col max-h-screen">
             <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-600 flex-shrink-0">
               <div className="flex items-center gap-3 min-w-0">
-                <h2 className="text-base sm:text-lg font-semibold text-white truncate">{ticket.subject}</h2>
-                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                <h2 className="text-base sm:text-lg font-semibold text-white truncate">
+                  {ticket.subject} <span className="text-blue-400">#{ticket.id}</span>
+                </h2>
+                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium flex-shrink-0 ${
                   ticket.status === "Open" ? "bg-green-500 text-white" :
                   ticket.status === "In Progress" ? "bg-blue-500 text-white" :
                   ticket.status === "Awaiting your reply" ? "bg-yellow-500 text-white" :
@@ -356,15 +382,35 @@ const TicketView = ({ ticket, onClose, onUpdateTicket }) => {
                       </button>
                       
                       {uploadedImages.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mt-2">
+                        <div className="mt-3 grid grid-cols-3 gap-2">
                           {uploadedImages.map((img, idx) => (
-                            <div key={idx} className="relative">
-                              <img src={img || "/placeholder.svg"} alt="Preview" className="w-20 h-20 object-cover rounded border border-gray-600" />
-                              <button
-                                onClick={() => removeImage(idx)}
-                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+                            <div key={idx} className="relative group">
+                              <div 
+                                className="cursor-pointer"
+                                onClick={() => setViewingImage({
+                                  image: { url: img, name: `Preview ${idx + 1}` },
+                                  images: uploadedImages.map((url, i) => ({ url, name: `Preview ${i + 1}` })),
+                                  index: idx
+                                })}
                               >
-                                ×
+                                <img 
+                                  src={img || "/placeholder.svg"} 
+                                  alt={`Preview ${idx + 1}`}
+                                  className="w-full h-20 object-cover rounded-lg border border-gray-700"
+                                />
+                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                                  <span className="text-white text-xs font-medium bg-gray-800 px-3 py-1 rounded">View</span>
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  removeImage(idx)
+                                }}
+                                className="absolute top-1 right-1 bg-red-600 hover:bg-red-700 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                              >
+                                <X size={12} />
                               </button>
                             </div>
                           ))}
@@ -402,6 +448,90 @@ const TicketView = ({ ticket, onClose, onUpdateTicket }) => {
             </div>
           </div>
         </div>
+
+        {/* Image Lightbox Modal */}
+        {viewingImage && viewingImage.image && (
+          <div 
+            className="fixed inset-0 bg-black/95 flex items-center justify-center z-[100] p-4"
+            onClick={() => setViewingImage(null)}
+          >
+            {/* Close Button */}
+            <button
+              onClick={() => setViewingImage(null)}
+              className="absolute top-4 right-4 text-white hover:text-gray-300 p-2 rounded-lg hover:bg-white/10 transition-colors z-10"
+              aria-label="Close image"
+            >
+              <X size={32} />
+            </button>
+
+            {/* Previous Button */}
+            {viewingImage.images.length > 1 && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  const newIndex = viewingImage.index > 0 ? viewingImage.index - 1 : viewingImage.images.length - 1
+                  setViewingImage({
+                    ...viewingImage,
+                    image: viewingImage.images[newIndex],
+                    index: newIndex
+                  })
+                }}
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 p-3 rounded-lg hover:bg-white/10 transition-colors z-10"
+                aria-label="Previous image"
+              >
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+            )}
+
+            {/* Next Button */}
+            {viewingImage.images.length > 1 && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  const newIndex = viewingImage.index < viewingImage.images.length - 1 ? viewingImage.index + 1 : 0
+                  setViewingImage({
+                    ...viewingImage,
+                    image: viewingImage.images[newIndex],
+                    index: newIndex
+                  })
+                }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 p-3 rounded-lg hover:bg-white/10 transition-colors z-10"
+                aria-label="Next image"
+              >
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            )}
+
+            {/* Image Container */}
+            <div 
+              className="max-w-[90vw] max-h-[90vh] flex flex-col gap-3"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Filename above image */}
+              <div className="bg-black/60 rounded-lg px-4 py-3 backdrop-blur-sm">
+                <p className="text-white text-sm font-medium text-center">
+                  {viewingImage.image.name}
+                  {viewingImage.images.length > 1 && (
+                    <span className="text-gray-400 ml-2">
+                      ({viewingImage.index + 1}/{viewingImage.images.length})
+                    </span>
+                  )}
+                </p>
+              </div>
+              
+              {/* Image */}
+              <img 
+                src={viewingImage.image.url} 
+                alt={viewingImage.image.name}
+                className="max-w-full max-h-[calc(90vh-80px)] object-contain rounded-lg"
+              />
+            </div>
+          </div>
+        )}
 
         {/* Close Confirmation Modal */}
         <CloseConfirmationModal />

@@ -1,6 +1,6 @@
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react/prop-types */
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Search, Plus } from "lucide-react"
 import TicketView from "../../components/user-panel-components/tickets-components/TicketView"
 import NewTicketModal from "../../components/user-panel-components/tickets-components/NewTicketModal"
@@ -18,6 +18,38 @@ const Tickets = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false)
   }
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      // Ignore if user is typing in an input
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      
+      // Ignore if Ctrl/Cmd is pressed (for Ctrl+C copy, etc.)
+      if (e.ctrlKey || e.metaKey) return;
+      
+      // C key - Create Ticket
+      if (e.key === 'c' || e.key === 'C') {
+        e.preventDefault();
+        handleNewTicketClick();
+      }
+      
+      // ESC key - Close open modals/views
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        if (closeConfirmModal) {
+          setCloseConfirmModal(null);
+        } else if (selectedTicket) {
+          setSelectedTicket(null);
+        } else if (isModalOpen) {
+          setIsModalOpen(false);
+        }
+      }
+    };
+    
+    document.addEventListener('keydown', handleKeyPress);
+    return () => document.removeEventListener('keydown', handleKeyPress);
+  }, [isModalOpen, selectedTicket, closeConfirmModal]);
 
   // FIXED: Now accepts ticketData object from NewTicketModal
   const handleSubmitTicket = (ticketData) => {
@@ -198,13 +230,27 @@ const Tickets = () => {
                 className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-[#333333] focus:border-[#3F74FF] transition-colors"
               />
             </div>
-            <button
-              onClick={handleNewTicketClick}
-              className="bg-orange-500 hover:bg-orange-600 text-sm text-white px-3 sm:px-4 py-2 rounded-xl flex items-center gap-2 justify-center transition-colors flex-shrink-0"
-            >
-              <Plus size={14} />
-              <span className="hidden sm:inline">Create Ticket</span>
-            </button>
+            
+            {/* Desktop Create Button with Tooltip */}
+            <div className="hidden md:block relative group flex-shrink-0">
+              <button
+                onClick={handleNewTicketClick}
+                className="bg-orange-500 hover:bg-orange-600 text-sm text-white px-3 sm:px-4 py-2 rounded-xl flex items-center gap-2 justify-center transition-colors"
+              >
+                <Plus size={14} />
+                <span className="hidden sm:inline">Create Ticket</span>
+              </button>
+              
+              {/* Tooltip - YouTube Style */}
+              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                <span className="font-medium">Create Ticket</span>
+                <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
+                  C
+                </span>
+                {/* Arrow pointing up */}
+                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -239,9 +285,9 @@ const Tickets = () => {
                 className="bg-[#161616] rounded-lg p-3 sm:p-4 lg:p-5 cursor-pointer transition-colors hover:bg-[#1F1F1F]"
               >
                 <div className="flex justify-between items-start mb-2 min-w-0">
-                  {/* Ticket Title */}
+                  {/* Ticket Title with Number */}
                   <h3 className="text-white font-medium text-sm md:text-base flex-1 min-w-0 line-clamp-2 pr-2">
-                    {ticket.subject}
+                    {ticket.subject} <span className="text-blue-400 font-semibold">#{ticket.id}</span>
                   </h3>
                 </div>
 
@@ -292,6 +338,15 @@ const Tickets = () => {
         onConfirm={confirmCloseTicket}
         ticket={closeConfirmModal}
       />
+      
+      {/* Floating Action Button - Mobile Only */}
+      <button
+        onClick={handleNewTicketClick}
+        className="md:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-40"
+        aria-label="Create Ticket"
+      >
+        <Plus size={22} />
+      </button>
     </div>
   )
 }

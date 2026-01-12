@@ -174,7 +174,7 @@ const SortableNoteCard = ({ note, children, isDragDisabled, viewMode }) => {
         <div 
           {...attributes} 
           {...listeners}
-          className={`absolute top-3 left-3 md:top-3 md:left-3 ${viewMode === 'list' ? 'md:top-1/2 md:-translate-y-1/2 md:left-2' : ''} cursor-grab active:cursor-grabbing text-gray-500 hover:text-gray-300 p-1 rounded transition-colors z-10 w-6 flex items-center justify-center`}
+          className={`absolute top-3 left-3 md:top-3 md:left-3 ${viewMode === 'list' ? 'md:top-1/2 md:-translate-y-2 md:left-2' : ''} cursor-grab active:cursor-grabbing text-gray-500 hover:text-gray-300 p-1 rounded transition-colors z-10 w-6 flex items-center justify-center`}
         >
           <GripVertical size={16} />
         </div>
@@ -321,6 +321,19 @@ export default function NotesApp() {
       // Don't trigger other shortcuts when typing
       if (isTyping) return
 
+      // Ignore if Ctrl/Cmd is pressed (for Ctrl+C copy, Ctrl+V paste, etc.)
+      if (event.ctrlKey || event.metaKey) {
+        // Allow Ctrl+F for search
+        if (event.key === 'f') {
+          event.preventDefault()
+          const searchInput = document.querySelector('input[type="text"][placeholder*="Search"]')
+          if (searchInput) {
+            searchInput.focus()
+          }
+        }
+        return
+      }
+
       // C - Create new note
       if (event.key === 'c' || event.key === 'C') {
         event.preventDefault()
@@ -333,19 +346,16 @@ export default function NotesApp() {
         setIsTagManagerOpen(true)
       }
 
-      // Cmd/Ctrl + F - Focus search
-      if ((event.metaKey || event.ctrlKey) && event.key === 'f') {
+      // V - Toggle view mode
+      if (event.key === 'v' || event.key === 'V') {
         event.preventDefault()
-        const searchInput = document.querySelector('input[type="text"][placeholder*="Search"]')
-        if (searchInput) {
-          searchInput.focus()
-        }
+        setViewMode(prev => prev === 'grid' ? 'list' : 'grid')
       }
     }
 
     document.addEventListener('keydown', handleGlobalKeyboard)
     return () => document.removeEventListener('keydown', handleGlobalKeyboard)
-  }, [isCreateModalOpen, editingNote, viewingNote, deleteConfirm, isTagManagerOpen, dropdownOpen, showSortDropdown])
+  }, [isCreateModalOpen, editingNote, viewingNote, deleteConfirm, isTagManagerOpen, dropdownOpen, showSortDropdown, viewMode])
 
   const createNote = (noteData) => {
     const note = {
@@ -922,48 +932,90 @@ export default function NotesApp() {
               {/* View Toggle - Desktop Only */}
               <div className="hidden md:flex items-center gap-2 bg-black rounded-xl p-1">
                 <span className="text-xs text-gray-400 px-2">View</span>
-                <button
-                  onClick={toggleViewMode}
-                  className={`p-2 rounded-lg transition-colors ${
-                    viewMode === "grid"
-                      ? "bg-[#FF843E] text-white"
-                      : "text-gray-400 hover:text-white"
-                  }`}
-                  title="Grid View"
-                >
-                  <Grid3x3 size={16} />
-                </button>
-                <button
-                  onClick={toggleViewMode}
-                  className={`p-2 rounded-lg transition-colors ${
-                    viewMode === "list"
-                      ? "bg-[#FF843E] text-white"
-                      : "text-gray-400 hover:text-white"
-                  }`}
-                  title="List View"
-                >
-                  <List size={16} />
-                </button>
+                <div className="relative group">
+                  <button
+                    onClick={toggleViewMode}
+                    className={`p-2 rounded-lg transition-colors ${
+                      viewMode === "grid"
+                        ? "bg-[#FF843E] text-white"
+                        : "text-gray-400 hover:text-white"
+                    }`}
+                  >
+                    <Grid3x3 size={16} />
+                  </button>
+                  {/* Tooltip */}
+                  <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                    <span className="font-medium">Grid View</span>
+                    <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
+                      V
+                    </span>
+                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                  </div>
+                </div>
+                <div className="relative group">
+                  <button
+                    onClick={toggleViewMode}
+                    className={`p-2 rounded-lg transition-colors ${
+                      viewMode === "list"
+                        ? "bg-[#FF843E] text-white"
+                        : "text-gray-400 hover:text-white"
+                    }`}
+                  >
+                    <List size={16} />
+                  </button>
+                  {/* Tooltip */}
+                  <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                    <span className="font-medium">List View</span>
+                    <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
+                      V
+                    </span>
+                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                  </div>
+                </div>
               </div>
             </div>
 
             {/* Actions */}
             <div className="flex items-center gap-2">
-              <button
-                onClick={() => setIsTagManagerOpen(true)}
-                className="bg-[#2a2a2a] hover:bg-[#333] text-white text-xs sm:text-sm px-3 sm:px-4 py-2 rounded-xl flex items-center gap-2 justify-center border border-gray-700 transition-colors"
-              >
-                <Tag size={14} className="sm:w-4 sm:h-4" />
-                <span className="hidden sm:inline">Tags</span>
-              </button>
+              {/* Tags Button with Tooltip */}
+              <div className="relative group">
+                <button
+                  onClick={() => setIsTagManagerOpen(true)}
+                  className="bg-[#2a2a2a] hover:bg-[#333] text-white text-xs sm:text-sm px-3 sm:px-4 py-2 rounded-xl flex items-center gap-2 justify-center border border-gray-700 transition-colors"
+                >
+                  <Tag size={14} className="sm:w-4 sm:h-4" />
+                  <span className="hidden sm:inline">Tags</span>
+                </button>
+                
+                {/* Tooltip */}
+                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                  <span className="font-medium">Manage Tags</span>
+                  <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
+                    T
+                  </span>
+                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                </div>
+              </div>
               
-              <button
-                onClick={() => setIsCreateModalOpen(true)}
-                className="hidden md:flex bg-orange-500 hover:bg-orange-600 text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors"
-              >
-                <Plus size={14} className="sm:w-4 sm:h-4" />
-                <span className="hidden sm:inline">Create Note</span>
-              </button>
+              {/* Create Note Button with Tooltip - Desktop Only */}
+              <div className="hidden md:block relative group">
+                <button
+                  onClick={() => setIsCreateModalOpen(true)}
+                  className="flex bg-orange-500 hover:bg-orange-600 text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors"
+                >
+                  <Plus size={14} className="sm:w-4 sm:h-4" />
+                  <span className="hidden sm:inline">Create Note</span>
+                </button>
+                
+                {/* Tooltip */}
+                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                  <span className="font-medium">Create Note</span>
+                  <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
+                    C
+                  </span>
+                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                </div>
+              </div>
               
               {isRightSidebarOpen ? (
                 <div onClick={toggleRightSidebar}>
@@ -980,59 +1032,79 @@ export default function NotesApp() {
           {/* Tabs */}
           <div className="flex border-b border-gray-700 mb-6">
             {/* Personal Notes Tab */}
-            <div className="relative" ref={personalTooltipRef}>
+            <div className="relative flex items-center">
               <button
                 onClick={() => setActiveTab("personal")}
-                onMouseEnter={() => setShowPersonalTooltip(true)}
-                onMouseLeave={() => setShowPersonalTooltip(false)}
-                className={`px-4 py-2 text-sm font-medium transition-colors flex items-center gap-1.5 ${activeTab === "personal" ? "text-orange-400 border-b-2 border-orange-400" : "text-gray-400 hover:text-white"
+                className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === "personal" ? "text-orange-400 border-b-2 border-orange-400" : "text-gray-400 hover:text-white"
                   }`}
               >
                 Personal Notes
-                <Info size={16} className="opacity-60" />
               </button>
               
-              {/* Personal Tooltip */}
-              {showPersonalTooltip && (
-                <div className="absolute left-0 md:left-0 top-full mt-2 w-48 md:w-56 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-xl p-3 z-50">
-                  <div className="text-sm">
-                    <p className="text-white font-medium mb-1.5">Private to you</p>
-                    <p className="text-gray-300 text-xs leading-relaxed">
-                      Only you can see and edit these notes. Perfect for personal tasks and private information.
-                    </p>
+              {/* Info Icon with Tooltip */}
+              <div 
+                className="relative group -ml-1 flex items-center"
+                ref={personalTooltipRef}
+              >
+                <Info 
+                  size={16} 
+                  className="opacity-60 text-gray-400 cursor-help"
+                  onMouseEnter={() => setShowPersonalTooltip(true)}
+                  onMouseLeave={() => setShowPersonalTooltip(false)}
+                />
+                
+                {/* Personal Tooltip */}
+                {showPersonalTooltip && (
+                  <div className="absolute left-0 md:left-0 top-full mt-2 w-48 md:w-56 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-xl p-3 z-50">
+                    <div className="text-sm">
+                      <p className="text-white font-medium mb-1.5">Private to you</p>
+                      <p className="text-gray-300 text-xs leading-relaxed">
+                        Only you can see and edit these notes. Perfect for personal tasks and private information.
+                      </p>
+                    </div>
+                    {/* Arrow */}
+                    <div className="absolute -top-1 left-2 w-2 h-2 bg-[#2a2a2a] border-l border-t border-gray-700 transform rotate-45"></div>
                   </div>
-                  {/* Arrow */}
-                  <div className="absolute -top-1 left-6 md:left-6 w-2 h-2 bg-[#2a2a2a] border-l border-t border-gray-700 transform rotate-45"></div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
 
             {/* Studio Notes Tab */}
-            <div className="relative" ref={studioTooltipRef}>
+            <div className="relative flex items-center">
               <button
                 onClick={() => setActiveTab("studio")}
-                onMouseEnter={() => setShowStudioTooltip(true)}
-                onMouseLeave={() => setShowStudioTooltip(false)}
-                className={`px-4 py-2 text-sm font-medium transition-colors flex items-center gap-1.5 ${activeTab === "studio" ? "text-orange-400 border-b-2 border-orange-400" : "text-gray-400 hover:text-white"
+                className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === "studio" ? "text-orange-400 border-b-2 border-orange-400" : "text-gray-400 hover:text-white"
                   }`}
               >
                 Studio Notes
-                <Info size={16} className="opacity-60" />
               </button>
               
-              {/* Studio Tooltip */}
-              {showStudioTooltip && (
-                <div className="absolute -left-20 md:left-0 top-full mt-2 w-48 md:w-56 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-xl p-3 z-50">
-                  <div className="text-sm">
-                    <p className="text-white font-medium mb-1.5">Shared with everyone</p>
-                    <p className="text-gray-300 text-xs leading-relaxed">
-                      All team members can see and edit these notes. Great for collaboration and shared information.
-                    </p>
+              {/* Info Icon with Tooltip */}
+              <div 
+                className="relative group -ml-1 flex items-center"
+                ref={studioTooltipRef}
+              >
+                <Info 
+                  size={16} 
+                  className="opacity-60 text-gray-400 cursor-help"
+                  onMouseEnter={() => setShowStudioTooltip(true)}
+                  onMouseLeave={() => setShowStudioTooltip(false)}
+                />
+                
+                {/* Studio Tooltip */}
+                {showStudioTooltip && (
+                  <div className="absolute right-0 md:left-0 top-full mt-2 w-48 md:w-56 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-xl p-3 z-50">
+                    <div className="text-sm">
+                      <p className="text-white font-medium mb-1.5">Shared with everyone</p>
+                      <p className="text-gray-300 text-xs leading-relaxed">
+                        All team members can see and edit these notes. Great for collaboration and shared information.
+                      </p>
+                    </div>
+                    {/* Arrow */}
+                    <div className="absolute -top-1 right-2 md:left-2 w-2 h-2 bg-[#2a2a2a] border-l border-t border-gray-700 transform rotate-45"></div>
                   </div>
-                  {/* Arrow */}
-                  <div className="absolute -top-1 left-[5.5rem] md:left-6 w-2 h-2 bg-[#2a2a2a] border-l border-t border-gray-700 transform rotate-45"></div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
 
@@ -1191,9 +1263,9 @@ export default function NotesApp() {
                         <div className={`bg-[#1A1A1A] rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-800 hover:border-gray-700 h-64 relative select-none ${viewMode === 'list' ? 'flex md:hidden' : 'flex'} flex-col`} style={{
                           paddingLeft: !isDragDisabled ? '2.5rem' : undefined
                         }}>
-                          {/* Pin Icon - Always on Mobile (< 768px), Desktop only in Grid View */}
+                          {/* Pin Icon - Mobile Grid View */}
                           {note.isPinned && (
-                            <div className={`absolute z-10 md:hidden ${!isDragDisabled ? 'top-10 left-3' : 'top-3 left-3'}`}>
+                            <div className="absolute top-10 left-4 z-10 md:hidden">
                               <Pin
                                 size={14}
                                 className="text-orange-400 fill-orange-400"
@@ -1201,9 +1273,9 @@ export default function NotesApp() {
                               />
                             </div>
                           )}
-                          {/* Pin Icon - Desktop Grid View only */}
+                          {/* Pin Icon - Desktop Grid View */}
                           {note.isPinned && viewMode === 'grid' && (
-                            <div className={`hidden md:block absolute z-10 ${!isDragDisabled ? 'top-10 left-3' : 'top-3 left-3'}`}>
+                            <div className="hidden md:block absolute top-10 left-4 z-10">
                               <Pin
                                 size={14}
                                 className="text-orange-400 fill-orange-400"
@@ -1410,17 +1482,17 @@ export default function NotesApp() {
                         </div>
                       
                       {/* List View Card - Hidden on Mobile, Desktop only in List Mode */}
-                      <div className={`bg-[#1A1A1A] rounded-xl border border-gray-800 hover:border-gray-700 transition-all duration-200 p-4 h-32 gap-4 select-none ${!isDragDisabled ? 'pl-10' : ''} ${viewMode === 'list' ? 'hidden md:flex' : 'hidden'} items-start`}>
-                          {/* Pin Icon Container - always rendered for consistent spacing */}
-                          <div className="flex-shrink-0 pt-1 w-[14px]">
-                            {note.isPinned && (
+                      <div className={`bg-[#1A1A1A] rounded-xl border border-gray-800 hover:border-gray-700 transition-all duration-200 p-4 h-32 gap-4 select-none ${!isDragDisabled ? 'pl-10' : ''} ${viewMode === 'list' ? 'hidden md:flex' : 'hidden'} items-center relative`}>
+                          {/* Pin Icon - Adjusted position */}
+                          {note.isPinned && (
+                            <div className="absolute left-4 top-1/2 -translate-y-6 z-10">
                               <Pin
                                 size={14}
                                 className="text-orange-400 fill-orange-400"
                                 aria-label="Note is pinned"
                               />
-                            )}
-                          </div>
+                            </div>
+                          )}
 
                           <div className="flex-1 min-w-0">
                             <h3 className="text-base font-semibold text-white mb-1 line-clamp-2">

@@ -551,6 +551,26 @@ export default function LeadManagement() {
     setLeads(combinedLeads)
   }, [])
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      // Ignore if user is typing in an input
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      
+      // Ignore if Ctrl/Cmd is pressed (for Ctrl+C copy, etc.)
+      if (e.ctrlKey || e.metaKey) return;
+      
+      // C key - Create Lead
+      if (e.key === 'c' || e.key === 'C') {
+        e.preventDefault();
+        setIsModalOpen(true);
+      }
+    };
+    
+    document.addEventListener('keydown', handleKeyPress);
+    return () => document.removeEventListener('keydown', handleKeyPress);
+  }, []);
+
   const handleViewLeadDetails = (lead, tab = "details") => {
     setSelectedLead(lead)
     setSelectedViewTab(tab)
@@ -1199,13 +1219,26 @@ export default function LeadManagement() {
         
         {/* Create Lead + Sidebar Toggle - always together on the right */}
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="hidden md:flex bg-orange-500 hover:bg-orange-600 text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center"
-          >
-            <Plus size={14} className="sm:w-4 sm:h-4" />
-            <span className="hidden sm:inline">Create Lead</span>
-          </button>
+          {/* Create Lead Button with Tooltip */}
+          <div className="hidden md:block relative group">
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="flex bg-orange-500 hover:bg-orange-600 text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors"
+            >
+              <Plus size={14} className="sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Create Lead</span>
+            </button>
+            
+            {/* Tooltip */}
+            <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+              <span className="font-medium">Create Lead</span>
+              <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
+                C
+              </span>
+              <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+            </div>
+          </div>
+          
           {isRightSidebarOpen ? (
             <div onClick={toggleRightSidebar}>
               <img src="/expand-sidebar mirrored.svg" className="h-5 w-5 cursor-pointer" alt="" />
