@@ -174,7 +174,7 @@ const SortableNoteCard = ({ note, children, isDragDisabled, viewMode }) => {
         <div 
           {...attributes} 
           {...listeners}
-          className={`absolute ${viewMode === 'grid' ? 'top-3 left-3' : 'top-1/2 -translate-y-1/2 left-2'} cursor-grab active:cursor-grabbing text-gray-500 hover:text-gray-300 p-1 rounded transition-colors z-10 w-6 flex items-center justify-center`}
+          className={`absolute top-3 left-3 md:top-3 md:left-3 ${viewMode === 'list' ? 'md:top-1/2 md:-translate-y-1/2 md:left-2' : ''} cursor-grab active:cursor-grabbing text-gray-500 hover:text-gray-300 p-1 rounded transition-colors z-10 w-6 flex items-center justify-center`}
         >
           <GripVertical size={16} />
         </div>
@@ -1177,10 +1177,22 @@ export default function NotesApp() {
                     >
                       <div>
                         {/* Grid Card - Always on Mobile, on Desktop only if viewMode is grid */}
-                        <div className={`bg-[#1A1A1A] rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-800 hover:border-gray-700 h-64 relative select-none ${!isDragDisabled ? 'pl-10' : ''} ${viewMode === 'list' ? 'flex md:hidden' : 'flex'} flex-col`}>
-                          {/* Pin Icon - Only in Grid View, Top Left (below Grip when drag enabled) */}
+                        <div className={`bg-[#1A1A1A] rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-800 hover:border-gray-700 h-64 relative select-none ${viewMode === 'list' ? 'flex md:hidden' : 'flex'} flex-col`} style={{
+                          paddingLeft: !isDragDisabled ? '2.5rem' : undefined
+                        }}>
+                          {/* Pin Icon - Always on Mobile (< 768px), Desktop only in Grid View */}
+                          {note.isPinned && (
+                            <div className={`absolute z-10 md:hidden ${!isDragDisabled ? 'top-10 left-3' : 'top-3 left-3'}`}>
+                              <Pin
+                                size={14}
+                                className="text-orange-400 fill-orange-400"
+                                aria-label="Note is pinned"
+                              />
+                            </div>
+                          )}
+                          {/* Pin Icon - Desktop Grid View only */}
                           {note.isPinned && viewMode === 'grid' && (
-                            <div className={`absolute z-10 ${!isDragDisabled ? 'top-10 left-3' : 'top-3 left-3'}`}>
+                            <div className={`hidden md:block absolute z-10 ${!isDragDisabled ? 'top-10 left-3' : 'top-3 left-3'}`}>
                               <Pin
                                 size={14}
                                 className="text-orange-400 fill-orange-400"
@@ -1268,19 +1280,23 @@ export default function NotesApp() {
 
                             {/* Tags - moved before footer, max 2 lines */}
                             {note.tags && note.tags.length > 0 && (
-                              <div className="flex flex-wrap gap-2 mb-2 overflow-hidden" style={{
+                              <div className="mb-2 overflow-hidden" style={{
                                 maxHeight: '3.5rem',
-                                display: '-webkit-box',
-                                WebkitLineClamp: 2,
-                                WebkitBoxOrient: 'horizontal'
+                                display: 'flex',
+                                flexWrap: 'wrap',
+                                gap: '8px'
                               }}>
                                 {note.tags.map(tagId => {
                                   const tag = availableTags.find(t => t.id === tagId)
                                   return tag ? (
                                     <span
                                       key={tagId}
-                                      className="text-xs px-2 py-1 rounded-md flex items-center gap-1 text-white flex-shrink-0"
-                                      style={{ backgroundColor: tag.color }}
+                                      className="text-xs px-2 py-1 rounded-md flex items-center text-white"
+                                      style={{ 
+                                        backgroundColor: tag.color,
+                                        gap: '4px',
+                                        flexShrink: 0
+                                      }}
                                     >
                                       <Tag size={10} />
                                       {tag.label}
