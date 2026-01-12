@@ -60,7 +60,29 @@ function CreateNoteModal({ isOpen, onClose, onSave, availableTags = [] }) {
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="Create Note">
+    <Modal 
+      isOpen={isOpen} 
+      onClose={handleClose} 
+      title="Create Note"
+      footer={
+        <div className="flex gap-3">
+          <button
+            onClick={handleClose}
+            className="flex-1 bg-gray-600 cursor-pointer text-sm hover:bg-gray-700 text-white px-6 py-3 rounded-xl font-medium transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={!newNote.content.trim()}
+            className="flex-1 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-500/50 disabled:cursor-not-allowed cursor-pointer text-sm text-white px-6 py-3 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+          >
+            <Plus size={16} />
+            Create Note
+          </button>
+        </div>
+      }
+    >
       <div className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-2">Title</label>
@@ -157,23 +179,6 @@ function CreateNoteModal({ isOpen, onClose, onSave, availableTags = [] }) {
               ))}
             </div>
           )}
-        </div>
-
-        <div className="flex gap-3 pt-4">
-          <button
-            onClick={handleClose}
-            className="flex-1 bg-gray-600 cursor-pointer text-sm hover:bg-gray-700 text-white px-6 py-3 rounded-xl font-medium transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={!newNote.content.trim()}
-            className="flex-1 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-500/50 disabled:cursor-not-allowed cursor-pointer text-sm text-white px-6 py-3 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
-          >
-            <Plus size={16} />
-            Create Note
-          </button>
         </div>
       </div>
     </Modal>

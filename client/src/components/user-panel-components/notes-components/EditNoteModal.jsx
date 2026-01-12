@@ -65,7 +65,27 @@ function EditNoteModal({ isOpen, onClose, note, onSave, availableTags = [] }) {
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Edit Note">
+    <Modal 
+      isOpen={isOpen} 
+      onClose={onClose} 
+      title="Edit Note"
+      footer={
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 bg-gray-600 text-sm cursor-pointer hover:bg-gray-700 text-white px-6 py-3 rounded-xl font-medium transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            className="flex-1 bg-orange-500 hover:bg-orange-600 text-sm cursor-pointer text-white px-6 py-3 rounded-xl font-medium transition-colors"
+          >
+            Save Changes
+          </button>
+        </div>
+      }
+    >
       <div className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-2">Title</label>
@@ -162,21 +182,6 @@ function EditNoteModal({ isOpen, onClose, note, onSave, availableTags = [] }) {
               ))}
             </div>
           )}
-        </div>
-
-        <div className="flex gap-3 pt-4">
-          <button
-            onClick={onClose}
-            className="flex-1 bg-gray-600 text-sm cursor-pointer hover:bg-gray-700 text-white px-6 py-3 rounded-xl font-medium transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSave}
-            className="flex-1 bg-orange-500 hover:bg-orange-600 text-sm cursor-pointer text-white px-6 py-3 rounded-xl font-medium transition-colors"
-          >
-            Save Changes
-          </button>
         </div>
       </div>
     </Modal>

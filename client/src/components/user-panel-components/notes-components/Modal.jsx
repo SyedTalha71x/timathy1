@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-function Modal({ isOpen, onClose, children, title }) {
+function Modal({ isOpen, onClose, children, title, footer }) {
   if (!isOpen) return null
 
   return (
@@ -14,6 +14,11 @@ function Modal({ isOpen, onClose, children, title }) {
           </button>
         </div>
         <div className="p-6 overflow-y-auto flex-1">{children}</div>
+        {footer && (
+          <div className="p-6 pt-4 border-t border-gray-700 flex-shrink-0">
+            {footer}
+          </div>
+        )}
       </div>
     </div>
   )

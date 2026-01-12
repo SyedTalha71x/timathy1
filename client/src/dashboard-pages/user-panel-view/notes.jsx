@@ -1478,8 +1478,8 @@ export default function NotesApp() {
         {/* Tag Manager Modal */}
         {isTagManagerOpen && (
           <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[80] p-4">
-            <div className="bg-[#1C1C1C] rounded-2xl w-full max-w-md p-6 max-h-[80vh] overflow-y-auto">
-              <div className="flex justify-between items-center mb-4">
+            <div className="bg-[#1C1C1C] rounded-2xl w-full max-w-md max-h-[80vh] flex flex-col">
+              <div className="flex justify-between items-center mb-4 p-6 pb-0 overflow-visible">
                 <div className="flex items-center gap-2">
                   <h3 className="text-white text-lg font-semibold">Manage Tags</h3>
                   {/* Info Tooltip */}
@@ -1499,7 +1499,7 @@ export default function NotesApp() {
                     
                     {/* Tooltip */}
                     {showTagInfoTooltip && (
-                      <div className="absolute left-0 top-8 w-64 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-xl p-3 z-[90]">
+                      <div className="absolute left-0 top-8 w-64 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-xl p-3 z-[100]">
                         <div className="text-sm">
                           <p className="text-blue-300 font-medium mb-2">Tags are shared across all notes</p>
                           <p className="text-gray-300 text-xs leading-relaxed">
@@ -1520,61 +1520,64 @@ export default function NotesApp() {
                 </button>
               </div>
 
-              <div className="mb-6">
-                <h4 className="text-white text-sm font-medium mb-3">Create New Tag</h4>
-                <div className="flex gap-2 mb-2">
-                  <input
-                    type="text"
-                    value={newTagName}
-                    onChange={(e) => setNewTagName(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && addTag()}
-                    placeholder="Tag name"
-                    className="flex-1 bg-[#2a2a2a] text-white rounded-lg px-3 py-2 text-sm border border-gray-700 focus:border-orange-500 outline-none"
-                  />
-                  <input
-                    type="color"
-                    value={newTagColor}
-                    onChange={(e) => setNewTagColor(e.target.value)}
-                    className="w-12 h-10 bg-[#2a2a2a] rounded-lg border border-gray-700 cursor-pointer"
-                  />
+              {/* Scrollable Content */}
+              <div className="overflow-y-auto px-6 pb-6">
+                <div className="mb-6">
+                  <h4 className="text-white text-sm font-medium mb-3">Create New Tag</h4>
+                  <div className="flex gap-2 mb-2">
+                    <input
+                      type="text"
+                      value={newTagName}
+                      onChange={(e) => setNewTagName(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && addTag()}
+                      placeholder="Tag name"
+                      className="flex-1 bg-[#2a2a2a] text-white rounded-lg px-3 py-2 text-sm border border-gray-700 focus:border-orange-500 outline-none"
+                    />
+                    <input
+                      type="color"
+                      value={newTagColor}
+                      onChange={(e) => setNewTagColor(e.target.value)}
+                      className="w-12 h-10 bg-[#2a2a2a] rounded-lg border border-gray-700 cursor-pointer"
+                    />
+                  </div>
+                  <button
+                    onClick={addTag}
+                    className="w-full py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm flex items-center justify-center gap-2"
+                  >
+                    <Plus size={16} />
+                    Add Tag
+                  </button>
                 </div>
-                <button
-                  onClick={addTag}
-                  className="w-full py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm flex items-center justify-center gap-2"
-                >
-                  <Plus size={16} />
-                  Add Tag
-                </button>
-              </div>
 
-              <div>
-                <h4 className="text-white text-sm font-medium mb-3">Existing Tags</h4>
-                <div className="space-y-2">
-                  {availableTags.map((tag) => (
-                    <div
-                      key={tag.id}
-                      className="flex items-center justify-between bg-[#2a2a2a] p-3 rounded-lg"
-                    >
-                      <div 
-                        className="px-3 py-1.5 rounded-md text-sm flex items-center gap-2 text-white"
-                        style={{ backgroundColor: tag.color }}
+                <div>
+                  <h4 className="text-white text-sm font-medium mb-3">Existing Tags</h4>
+                  <div className="space-y-2">
+                    {availableTags.map((tag) => (
+                      <div
+                        key={tag.id}
+                        className="flex items-center justify-between bg-[#2a2a2a] p-3 rounded-lg"
                       >
-                        <Tag size={14} />
-                        {tag.label}
+                        <div 
+                          className="px-3 py-1.5 rounded-md text-sm flex items-center gap-2 text-white"
+                          style={{ backgroundColor: tag.color }}
+                        >
+                          <Tag size={14} />
+                          {tag.label}
+                        </div>
+                        <button
+                          onClick={() => deleteTag(tag.id)}
+                          className="text-red-500 hover:text-red-400 p-2"
+                        >
+                          <Trash2 size={16} />
+                        </button>
                       </div>
-                      <button
-                        onClick={() => deleteTag(tag.id)}
-                        className="text-red-500 hover:text-red-400 p-2"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  ))}
-                  {availableTags.length === 0 && (
-                    <p className="text-gray-400 text-sm text-center py-4">
-                      No tags created yet
-                    </p>
-                  )}
+                    ))}
+                    {availableTags.length === 0 && (
+                      <p className="text-gray-400 text-sm text-center py-4">
+                        No tags created yet
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -1977,10 +1980,10 @@ export default function NotesApp() {
       {/* Floating Action Button - Mobile Only */}
       <button
         onClick={() => setIsCreateModalOpen(true)}
-        className="md:hidden fixed bottom-6 right-6 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-50"
+        className="md:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-3 rounded-xl shadow-lg transition-all active:scale-95 z-50"
         aria-label="Create Note"
       >
-        <Plus size={24} />
+        <Plus size={20} />
       </button>
     </>
   )
