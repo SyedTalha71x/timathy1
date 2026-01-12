@@ -884,6 +884,7 @@ export default function NotesApp() {
                   className="px-3 py-2 bg-[#2F2F2F] text-gray-300 rounded-xl text-xs hover:bg-[#3F3F3F] transition-colors flex items-center gap-2"
                 >
                   {getSortIcon()}
+                  <span>{currentSortLabel}</span>
                 </button>
                 
                 {showSortDropdown && (
@@ -1172,8 +1173,9 @@ export default function NotesApp() {
             >
               <SortableContext items={noteIds} strategy={rectSortingStrategy}>
                 <div className={
-                  // Mobile: Always Grid | Desktop: Grid or List based on viewMode
-                  `grid grid-cols-1 sm:grid-cols-2 ${isRightSidebarOpen ? "lg:grid-cols-3" : "lg:grid-cols-4"} gap-6 md:${viewMode === 'list' ? '!grid-cols-1 !gap-3' : ''}`
+                  viewMode === 'grid'
+                    ? `grid grid-cols-1 sm:grid-cols-2 ${isRightSidebarOpen ? "lg:grid-cols-3" : "lg:grid-cols-4"} gap-6`
+                    : `grid grid-cols-1 sm:grid-cols-2 ${isRightSidebarOpen ? "lg:grid-cols-3" : "lg:grid-cols-4"} gap-6 md:!grid-cols-1 md:!gap-3`
                 }>
                   {currentNotes.map((note) => (
                     <SortableNoteCard 
@@ -1184,7 +1186,7 @@ export default function NotesApp() {
                     >
                       <div>
                         {/* Grid Card - Always on Mobile, on Desktop only if viewMode is grid */}
-                        <div className={`bg-[#1A1A1A] rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-800 hover:border-gray-700 h-64 flex flex-col relative ${!isDragDisabled ? 'pl-10' : ''} ${viewMode === 'list' ? 'md:hidden' : ''}`}>
+                        <div className={`bg-[#1A1A1A] rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-800 hover:border-gray-700 h-64 relative ${!isDragDisabled ? 'pl-10' : ''} ${viewMode === 'list' ? 'flex md:hidden' : 'flex'} flex-col`}>
                           <div className="p-6 flex flex-col h-full">
                             <div className="flex justify-between items-start mb-4">
                               <h3 className="text-lg font-semibold text-white line-clamp-2 flex-1 mr-2">
@@ -1325,8 +1327,8 @@ export default function NotesApp() {
                           </div>
                         </div>
                       
-                      {/* List View Card - Hidden on Mobile, Desktop only */}
-                      <div className={`hidden bg-[#1A1A1A] rounded-xl border border-gray-800 hover:border-gray-700 transition-all duration-200 p-4 h-32 items-start gap-4 ${!isDragDisabled ? 'pl-10' : ''} ${viewMode === 'list' ? 'md:flex' : ''}`}>
+                      {/* List View Card - Hidden on Mobile, Desktop only in List Mode */}
+                      <div className={`bg-[#1A1A1A] rounded-xl border border-gray-800 hover:border-gray-700 transition-all duration-200 p-4 h-32 gap-4 ${!isDragDisabled ? 'pl-10' : ''} ${viewMode === 'list' ? 'hidden md:flex' : 'hidden'} items-start`}>
                           {/* Pin Icon Container - always rendered for consistent spacing */}
                           <div className="flex-shrink-0 pt-1 w-[14px]">
                             {note.isPinned && (
@@ -1497,7 +1499,7 @@ export default function NotesApp() {
                     
                     {/* Tooltip */}
                     {showTagInfoTooltip && (
-                      <div className="absolute left-0 top-8 w-64 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-xl p-3 z-50">
+                      <div className="absolute left-0 top-8 w-64 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-xl p-3 z-[90]">
                         <div className="text-sm">
                           <p className="text-blue-300 font-medium mb-2">Tags are shared across all notes</p>
                           <p className="text-gray-300 text-xs leading-relaxed">
