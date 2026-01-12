@@ -1,5 +1,5 @@
 /* eslint-disable react/no-unescaped-entities */
-import { Plus, Eye, Search, ArrowUpDown, ArrowUp, ArrowDown, GripVertical, Edit, Copy, Trash2 } from 'lucide-react';
+import { Plus, Eye, Search, ArrowUpDown, ArrowUp, ArrowDown, GripVertical, Edit, Copy, Trash2, Grid3x3, List } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
@@ -87,6 +87,7 @@ const Assessment = () => {
   const [sortBy, setSortBy] = useState('date'); // 'date', 'name', 'questions', 'sections', 'custom'
   const [sortDirection, setSortDirection] = useState('desc'); // 'asc', 'desc'
   const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
   const sortDropdownRef = useRef(null);
 
   // Sidebar system hook
@@ -214,6 +215,7 @@ const Assessment = () => {
       title: "Consultation Protocol - Prospects",
       active: true,
       createdAt: Date.now() - 86400000,
+      updatedAt: Date.now() - 86400000,
       signatureSettings: {
         showDate: true,
         showLocation: true,
@@ -296,6 +298,29 @@ const Assessment = () => {
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      // Ignore if user is typing in an input
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      
+      // C key - Create Medical History
+      if (e.key === 'c' || e.key === 'C') {
+        e.preventDefault();
+        handleCreateForm();
+      }
+      
+      // V key - Toggle view mode
+      if (e.key === 'v' || e.key === 'V') {
+        e.preventDefault();
+        setViewMode(prev => prev === 'grid' ? 'list' : 'grid');
+      }
+    };
+    
+    document.addEventListener('keydown', handleKeyPress);
+    return () => document.removeEventListener('keydown', handleKeyPress);
+  }, []);
+
   // Form creation handler
   const handleCreateForm = () => {
     setEditingForm(null);
@@ -350,6 +375,7 @@ const Assessment = () => {
       title: formTitle,
       active: editingForm ? editingForm.active : true,
       createdAt: editingForm ? editingForm.createdAt : Date.now(),
+      updatedAt: Date.now(),
       signatureSettings: signatureSettings,
       sections: sections
     };
@@ -390,6 +416,7 @@ const Assessment = () => {
       id: Date.now(),
       title: `${form.title} (Copy)`,
       createdAt: Date.now(),
+      updatedAt: Date.now(),
       sections: form.sections.map(section => ({
         ...section,
         id: Date.now() + Math.random() * 1000,
@@ -407,7 +434,7 @@ const Assessment = () => {
   const toggleFormActive = (formId, e) => {
     if (e) e.stopPropagation();
     setForms(forms.map(f => 
-      f.id === formId ? { ...f, active: !f.active } : f
+      f.id === formId ? { ...f, active: !f.active, updatedAt: Date.now() } : f
     ));
   };
 
@@ -456,7 +483,7 @@ const Assessment = () => {
 
   // Sort options
   const sortOptions = [
-    { value: 'date', label: 'Creation Date' },
+    { value: 'date', label: 'Date' },
     { value: 'name', label: 'Name' },
     { value: 'questions', label: 'Questions' },
     { value: 'sections', label: 'Sections' },
@@ -478,7 +505,7 @@ const Assessment = () => {
   };
 
   // Get current sort label
-  const currentSortLabel = sortOptions.find(opt => opt.value === sortBy)?.label || 'Creation Date';
+  const currentSortLabel = sortOptions.find(opt => opt.value === sortBy)?.label || 'Date';
 
   // Get sort icon based on current state
   const getSortIcon = () => {
@@ -520,7 +547,10 @@ const Assessment = () => {
         
         switch (sortBy) {
           case 'date':
-            comparison = (a.createdAt || 0) - (b.createdAt || 0);
+            // Sort by updatedAt if it exists and differs from createdAt, otherwise use createdAt
+            const aDate = (a.updatedAt && a.updatedAt !== a.createdAt) ? a.updatedAt : a.createdAt;
+            const bDate = (b.updatedAt && b.updatedAt !== b.createdAt) ? b.updatedAt : b.createdAt;
+            comparison = (aDate || 0) - (bDate || 0);
             break;
           case 'name':
             comparison = a.title.localeCompare(b.title);
@@ -554,6 +584,14 @@ const Assessment = () => {
     return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
   };
 
+  const formatDateTime = (timestamp) => {
+    if (!timestamp) return 'N/A';
+    const date = new Date(timestamp);
+    const dateStr = date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const timeStr = date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+    return `${dateStr} ${timeStr}`;
+  };
+
   return (
     <>
       <Toaster
@@ -569,18 +607,126 @@ const Assessment = () => {
       <div className={`min-h-screen rounded-3xl bg-[#1C1C1C] text-white md:p-6 p-3 transition-all duration-500 ease-in-out flex-1 ${isRightSidebarOpen ? 'lg:mr-86 mr-0' : 'mr-0'}`}>
         {/* Header */}
         <div className="flex sm:items-center justify-between mb-6 sm:mb-8 gap-4">
-          <div>
+          <div className="flex items-center gap-3">
             <h1 className="text-white oxanium_font text-xl md:text-2xl">Medical History</h1>
+            
+            {/* Sort Button - Mobile: next to title */}
+            <div className="md:hidden relative" ref={sortDropdownRef}>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowSortDropdown(!showSortDropdown);
+                }}
+                className="px-3 py-2 bg-[#2F2F2F] text-gray-300 rounded-xl text-xs hover:bg-[#3F3F3F] transition-colors flex items-center gap-2"
+              >
+                {getSortIcon()}
+                <span>{currentSortLabel}</span>
+              </button>
+
+              {/* Sort Dropdown */}
+              {showSortDropdown && (
+                <div className="absolute left-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[180px]">
+                  <div className="py-1">
+                    <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">
+                      Sort by
+                    </div>
+                    {sortOptions.map((option) => (
+                      <button
+                        key={option.value}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSortOptionClick(option.value);
+                        }}
+                        className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${
+                          sortBy === option.value 
+                            ? 'text-white bg-gray-800/50' 
+                            : 'text-gray-300'
+                        }`}
+                      >
+                        <span>{option.label}</span>
+                        {sortBy === option.value && option.value !== 'custom' && (
+                          <span className="text-gray-400">
+                            {sortDirection === 'asc' 
+                              ? <ArrowUp size={14} /> 
+                              : <ArrowDown size={14} />
+                            }
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {/* View Toggle - Desktop only */}
+            <div className="hidden md:flex items-center gap-2 bg-black rounded-xl p-1">
+              <div className="relative group">
+                <button
+                  onClick={() => setViewMode('grid')}
+                  className={`p-2 rounded-lg transition-colors ${
+                    viewMode === 'grid'
+                      ? 'bg-orange-500 text-white'
+                      : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  <Grid3x3 size={16} />
+                </button>
+                
+                {/* Tooltip */}
+                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                  <span className="font-medium">Grid View</span>
+                  <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
+                    V
+                  </span>
+                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                </div>
+              </div>
+              
+              <div className="relative group">
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`p-2 rounded-lg transition-colors ${
+                    viewMode === 'list'
+                      ? 'bg-orange-500 text-white'
+                      : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  <List size={16} />
+                </button>
+                
+                {/* Tooltip */}
+                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                  <span className="font-medium">List View</span>
+                  <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
+                    V
+                  </span>
+                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              onClick={handleCreateForm}
-              className="bg-orange-500 hover:bg-orange-600 text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl flex items-center gap-2 justify-center transition-colors"
-            >
-              <Plus size={14} className="sm:w-4 sm:h-4" />
-              <span className='hidden sm:inline'>Create Medical History</span>
-            </button>
+            <div className="hidden md:block relative group">
+              <button
+                onClick={handleCreateForm}
+                className="flex bg-orange-500 hover:bg-orange-600 text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors"
+              >
+                <Plus size={14} className="sm:w-4 sm:h-4" />
+                <span className='hidden sm:inline'>Create Medical History</span>
+              </button>
+              
+              {/* Tooltip - YouTube Style like Contract Builder */}
+              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                <span className="font-medium">Create Medical History</span>
+                <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
+                  C
+                </span>
+                {/* Arrow pointing up */}
+                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+              </div>
+            </div>
 
             {isRightSidebarOpen ? (
               <div onClick={toggleRightSidebar}>
@@ -641,8 +787,8 @@ const Assessment = () => {
           Inactive
         </button>
         
-        {/* Sort Controls */}
-        <div className="ml-auto relative" ref={sortDropdownRef}>
+        {/* Sort Controls - Desktop only, moved to filter pills area */}
+        <div className="hidden md:block ml-auto relative" ref={sortDropdownRef}>
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -698,17 +844,22 @@ const Assessment = () => {
         onDragEnd={handleDragEnd}
       >
         <SortableContext items={formIds} strategy={rectSortingStrategy}>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+          <div className={viewMode === 'grid' 
+            ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6' 
+            : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:!grid-cols-1 md:!gap-3'
+          }>
             {filteredForms.map((form) => (
               <SortableFormCard key={form.id} form={form} isDragDisabled={isDragDisabled}>
-                <div
-                  className={`bg-[#161616] rounded-lg p-4 md:p-6 border border-gray-700 relative ${!isDragDisabled ? 'pl-10 md:pl-12' : ''}`}
-                >
+                {/* Grid Card - Always on Mobile, on Desktop only if viewMode is grid */}
+                <div className={`${viewMode === 'list' ? 'flex md:hidden' : 'flex'} flex-col`}>
+                  <div
+                    className={`bg-[#1A1A1A] rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-800 hover:border-gray-700 p-4 md:p-6 relative ${!isDragDisabled ? 'pl-10 md:pl-12' : ''}`}
+                  >
                   {/* Three dots dropdown */}
                   <div className="absolute top-3 right-3 md:top-4 md:right-4">
                     <button
                       onClick={(e) => toggleDropdown(form.id, e)}
-                      className="text-gray-400 hover:text-white p-1 rounded transition-colors"
+                      className="text-gray-400 hover:text-orange-400 p-2 rounded-lg hover:bg-gray-800 transition-colors"
                     >
                       <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
@@ -742,7 +893,7 @@ const Assessment = () => {
                   {/* Eye icon for quick preview */}
                   <button
                     onClick={() => handlePreviewForm(form)}
-                    className="absolute top-3 right-10 md:top-4 md:right-12 text-gray-400 hover:text-white p-1 rounded transition-colors"
+                    className="absolute top-3 right-10 md:top-4 md:right-12 text-gray-400 hover:text-orange-400 p-2 rounded-lg hover:bg-gray-800 transition-colors"
                     title="Preview Form"
                   >
                     <Eye size={18} />
@@ -760,9 +911,16 @@ const Assessment = () => {
                     }, 0)} Questions
                   </div>
 
-                  {/* Created Date */}
-                  <div className="text-xs text-gray-500 mb-4">
-                    Created: {formatDate(form.createdAt)}
+                  {/* Dates */}
+                  <div className="flex flex-col gap-0.5 mb-4">
+                    <p className="text-[11px] text-gray-500">
+                      Created: {formatDateTime(form.createdAt)}
+                    </p>
+                    {form.updatedAt && form.updatedAt !== form.createdAt && (
+                      <p className="text-[11px] text-gray-500">
+                        Updated: {formatDateTime(form.updatedAt)}
+                      </p>
+                    )}
                   </div>
 
                   {/* Toggle switch for active/inactive - bulletin board style */}
@@ -784,6 +942,103 @@ const Assessment = () => {
                       <span className="text-xs font-medium text-gray-300 min-w-[50px]">
                         {form.active ? 'Active' : 'Inactive'}
                       </span>
+                    </div>
+                  </div>
+                </div>
+                </div>
+                
+                {/* List Card - Desktop only, hidden on mobile */}
+                <div className={`${viewMode === 'list' ? 'hidden md:flex' : 'hidden'} items-start`}>
+                  <div
+                    className={`bg-[#1A1A1A] rounded-xl border border-gray-800 hover:border-gray-700 transition-all duration-200 p-4 w-full relative ${!isDragDisabled ? 'pl-10 md:pl-12' : ''}`}
+                  >
+                    {/* Icons Container - Right side, vertically centered */}
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                      {/* Status Toggle */}
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-400">Status:</span>
+                        <button
+                          onClick={(e) => toggleFormActive(form.id, e)}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                            form.active ? 'bg-blue-600' : 'bg-gray-600'
+                          }`}
+                        >
+                          <span
+                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                              form.active ? 'translate-x-6' : 'translate-x-1'
+                            }`}
+                          />
+                        </button>
+                        <span className="text-xs font-medium text-gray-300 min-w-[50px]">
+                          {form.active ? 'Active' : 'Inactive'}
+                        </span>
+                      </div>
+
+                      {/* Eye icon */}
+                      <button
+                        onClick={() => handlePreviewForm(form)}
+                        className="text-gray-400 hover:text-orange-400 p-2 rounded-lg hover:bg-gray-800 transition-colors"
+                        title="Preview Form"
+                      >
+                        <Eye size={18} />
+                      </button>
+
+                      {/* Three dots dropdown */}
+                      <div className="relative">
+                        <button
+                          onClick={(e) => toggleDropdown(form.id, e)}
+                          className="text-gray-400 hover:text-orange-400 p-2 rounded-lg hover:bg-gray-800 transition-colors"
+                        >
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
+                          </svg>
+                        </button>
+
+                        {dropdownOpen === form.id && (
+                          <div className="absolute right-0 top-8 bg-[#1C1C1C] border border-gray-700 rounded-lg shadow-lg py-1 z-10 min-w-[140px]">
+                            <button
+                              onClick={() => handleEditForm(form)}
+                              className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2 transition-colors"
+                            >
+                              <Edit size={14} /> Edit
+                            </button>
+                            <button
+                              onClick={() => handleDuplicateForm(form)}
+                              className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2 transition-colors"
+                            >
+                              <Copy size={14} /> Duplicate
+                            </button>
+                            <button
+                              onClick={() => handleDeleteClick(form)}
+                              className="w-full text-left px-3 py-2 hover:bg-gray-800 text-red-500 text-sm flex items-center gap-2 transition-colors"
+                            >
+                              <Trash2 size={14} /> Delete
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Content - Left side */}
+                    <div className="pr-96">
+                      <h3 className="text-base font-semibold text-white mb-1 line-clamp-1">{form.title}</h3>
+                      <div className="text-xs text-gray-400 mb-2">
+                        {form.sections.length} Sections • {form.sections.reduce((acc, section) => {
+                          const items = section.items || section.questions || [];
+                          const questionCount = items.filter(item => !item.itemType || item.itemType === 'question' || item.itemType === 'variableField').length;
+                          return acc + questionCount;
+                        }, 0)} Questions
+                      </div>
+                      <div className="flex flex-col gap-0.5">
+                        <p className="text-[11px] text-gray-500">
+                          Created: {formatDateTime(form.createdAt)}
+                        </p>
+                        {form.updatedAt && form.updatedAt !== form.createdAt && (
+                          <p className="text-[11px] text-gray-500">
+                            Updated: {formatDateTime(form.updatedAt)}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1021,6 +1276,15 @@ const Assessment = () => {
         </div>
       </div>
     )}
+    
+    {/* Floating Action Button - Mobile Only */}
+    <button
+      onClick={handleCreateForm}
+      className="md:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-40"
+      aria-label="Create Medical History"
+    >
+      <Plus size={22} />
+    </button>
   </>
   );
 };

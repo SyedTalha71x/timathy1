@@ -1201,7 +1201,7 @@ export default function LeadManagement() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsModalOpen(true)}
-            className="bg-orange-500 hover:bg-orange-600 text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl flex items-center gap-2 justify-center"
+            className="hidden md:flex bg-orange-500 hover:bg-orange-600 text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center"
           >
             <Plus size={14} className="sm:w-4 sm:h-4" />
             <span className="hidden sm:inline">Create Lead</span>
@@ -1792,6 +1792,15 @@ export default function LeadManagement() {
           </div>
         </div>
       )}
+
+      {/* Floating Action Button - Mobile Only */}
+      <button
+        onClick={() => setIsModalOpen(true)}
+        className="md:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-40"
+        aria-label="Create Lead"
+      >
+        <Plus size={22} />
+      </button>
     </div>
   )
 }
