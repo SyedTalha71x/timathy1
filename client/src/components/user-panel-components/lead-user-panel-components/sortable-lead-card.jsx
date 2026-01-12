@@ -171,7 +171,14 @@ const SortableLeadCard = ({
   const hasImportantNote = leadNotes.some(n => n.isImportant)
   const hasRelationsCount = Object.values(memberRelationsLead[lead.id] || {}).flat().length
   const isInTrialColumn = columnId === "trial"
-  const hasAssessment = lead.hasAssessment || lead.assessmentCompletedAt
+  
+  // Check if lead has medical history/assessment
+  const hasMedicalHistory = lead.documents?.some(doc => 
+    doc.type === "medicalHistory" || 
+    doc.category === "medicalHistory" ||
+    doc.section === "medicalHistory"
+  )
+  const hasAssessment = lead.hasAssessment || lead.assessmentCompletedAt || hasMedicalHistory
   
   // Check if lead has any trial appointments
   const hasTrialAppointments = (() => {

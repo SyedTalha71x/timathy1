@@ -2,7 +2,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { X, Pencil } from 'lucide-react';
 
 const AssessmentSelectionModal = ({ 
   isOpen, 
@@ -102,7 +102,7 @@ const AssessmentSelectionModal = ({
           {!fromDocumentManagement && (
             <button
               onClick={onProceedToContract}
-              className="px-4 py-2 text-gray-300 border border-gray-600 rounded-lg hover:bg-gray-700 transition-colors"
+              className="px-4 py-3 text-sm text-white bg-black rounded-xl border border-slate-600 hover:border-slate-400 active:scale-95 transition-all"
             >
               Proceed to Contract
             </button>
@@ -110,8 +110,9 @@ const AssessmentSelectionModal = ({
           <button
             onClick={handleCreateAssessment}
             disabled={!selectedAssessment}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-3 text-sm bg-gray-600 hover:bg-gray-700 text-white rounded-xl active:scale-95 transition-transform font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
+            <Pencil className="w-4 h-4" />
             Fill Out Medical History
           </button>
         </div>

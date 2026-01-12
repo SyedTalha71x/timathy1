@@ -4,9 +4,9 @@ import { useState, useEffect, useRef } from 'react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import CreateFormModal from '../../components/user-panel-components/assessment-components/CreateFormModal';
-import PreviewModal from '../../components/user-panel-components/assessment-components/PreviewModal';
-import DeleteModal from '../../components/user-panel-components/assessment-components/DeleteModal';
+import CreateFormModal from '../../components/user-panel-components/medical-history-components/CreateFormModal';
+import PreviewModal from '../../components/user-panel-components/medical-history-components/PreviewModal';
+import DeleteModal from '../../components/user-panel-components/medical-history-components/DeleteModal';
 
 // Sidebar imports
 import toast, { Toaster } from "react-hot-toast";

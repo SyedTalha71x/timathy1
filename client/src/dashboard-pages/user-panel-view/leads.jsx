@@ -32,9 +32,10 @@ import TrialAppointmentModal from "../../components/user-panel-components/lead-u
 import EditTrialModal from "../../components/user-panel-components/lead-user-panel-components/edit-trial-modal"
 import DeleteConfirmationModal from "../../components/user-panel-components/lead-user-panel-components/delete-confirmation-modal"
 import { LeadDocumentModal } from "../../components/user-panel-components/lead-user-panel-components/document-management-modal"
-import AssessmentFormModal from "../../components/user-panel-components/lead-user-panel-components/assessment-form-modal"
-import AssessmentSelectionModal from "../../components/user-panel-components/lead-user-panel-components/assessment-selection-modal"
+import AssessmentFormModal from "../../components/user-panel-components/lead-user-panel-components/medical-history-form-modal"
+import AssessmentSelectionModal from "../../components/user-panel-components/lead-user-panel-components/medical-history-selection-modal"
 import ContractPromptModal from "../../components/user-panel-components/lead-user-panel-components/contract-prompt-modal"
+import MedicalHistoryPromptModal from "../../components/user-panel-components/lead-user-panel-components/medical-history-prompt-modal"
 import { LeadSpecialNoteModal } from "../../components/user-panel-components/lead-user-panel-components/special-note-modal"
 
 // New DnD components
@@ -118,6 +119,7 @@ export default function LeadManagement() {
   const [selectedTrialAppointment, setSelectedTrialAppointment] = useState(null)
   const [appointmentToDelete, setAppointmentToDelete] = useState(null)
   const [showContractPromptModal, setShowContractPromptModal] = useState(false)
+  const [showMedicalHistoryPromptModal, setShowMedicalHistoryPromptModal] = useState(false)
   const [shouldMoveToTrialAfterBooking, setShouldMoveToTrialAfterBooking] = useState(false)
   
   // Lead Special Note Modal states
@@ -764,6 +766,16 @@ export default function LeadManagement() {
     setShouldMoveToTrialAfterBooking(false)
   }
 
+  // Helper function to check if lead has medical history
+  const leadHasMedicalHistory = (lead) => {
+    if (!lead || !lead.documents) return false
+    return lead.documents.some(doc => 
+      doc.type === "medicalHistory" || 
+      doc.category === "medicalHistory" ||
+      doc.section === "medicalHistory"
+    )
+  }
+
   const handleSaveNewTrialTraining = (trialData) => {
     // Save new trial appointment to localStorage
     const storedAppointments = localStorage.getItem("trialAppointments")
@@ -808,6 +820,12 @@ export default function LeadManagement() {
     
     // Trigger refresh of trial appointments list
     setTrialAppointmentsRefreshKey(prev => prev + 1)
+    
+    // NEU: Ã–ffne das Medical History Prompt Modal nach erfolgreichem Booking
+    // ABER NUR wenn der Lead noch KEINE Medical History hat
+    if (selectedLead && !leadHasMedicalHistory(selectedLead)) {
+      setShowMedicalHistoryPromptModal(true)
+    }
   }
 
   // Filter leads based on search
@@ -879,6 +897,12 @@ export default function LeadManagement() {
   const handleCreateAssessmentClick = (lead, fromDocManagement = false) => {
     setSelectedLead(lead)
     setAssessmentFromDocumentManagement(fromDocManagement)
+    
+    // Close document management modal if coming from there
+    if (fromDocManagement) {
+      setIsDocumentModalOpen(false)
+    }
+    
     setIsAssessmentSelectionModalOpen(true)
   }
 
@@ -889,7 +913,7 @@ export default function LeadManagement() {
   }
 
   const handleAssessmentComplete = (documentData) => {
-    // FÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¼ge das document direkt zum lead.documents hinzu oder update es
+    // FÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¼ge das document direkt zum lead.documents hinzu oder update es
     setLeads(prevLeads => 
       prevLeads.map(lead => {
         if (lead.id === selectedLead.id) {
@@ -905,7 +929,7 @@ export default function LeadManagement() {
               hasAssessment: true
             }
           } else {
-            // Neues document hinzufÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¼gen
+            // Neues document hinzufÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â‚¬Å¾Ã‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¾Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Â¦Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€¦Ã‚Â¡ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¼gen
             return {
               ...lead,
               documents: [...existingDocuments, documentData],
@@ -925,6 +949,23 @@ export default function LeadManagement() {
     
     // Only show contract prompt if NOT from document management
     if (assessmentFromDocumentManagement) {
+      // Update selectedLeadForDocuments with the new document
+      if (selectedLeadForDocuments && selectedLeadForDocuments.id === selectedLead.id) {
+        const existingDocuments = selectedLeadForDocuments.documents || []
+        let updatedDocuments
+        if (documentData.isEdit) {
+          updatedDocuments = existingDocuments.map(doc => 
+            doc.id === documentData.id ? documentData : doc
+          )
+        } else {
+          updatedDocuments = [...existingDocuments, documentData]
+        }
+        setSelectedLeadForDocuments({
+          ...selectedLeadForDocuments,
+          documents: updatedDocuments,
+          hasAssessment: true
+        })
+      }
       // Reopen document management modal
       setIsDocumentModalOpen(true)
       setAssessmentFromDocumentManagement(false)
@@ -969,6 +1010,22 @@ export default function LeadManagement() {
 
   const handleContractPromptCancel = () => {
     setShowContractPromptModal(false)
+  }
+
+  const handleMedicalHistoryPromptConfirm = () => {
+    setShowMedicalHistoryPromptModal(false)
+    // Set a default medical history assessment
+    setSelectedAssessment({ 
+      id: 'medical-history-default', 
+      title: 'Medical History Assessment' 
+    })
+    setIsAssessmentFormModalOpen(true)
+    // selectedLead ist bereits gesetzt vom Trial Booking
+  }
+
+  const handleMedicalHistoryPromptCancel = () => {
+    setShowMedicalHistoryPromptModal(false)
+    setSelectedLead(null)
   }
 
   const handleProceedToContract = () => {
@@ -1526,6 +1583,13 @@ export default function LeadManagement() {
         isOpen={showContractPromptModal}
         onClose={handleContractPromptCancel}
         onConfirm={handleContractPromptConfirm}
+        leadName={selectedLead ? `${selectedLead.firstName} ${selectedLead.surname}` : ""}
+      />
+
+      <MedicalHistoryPromptModal
+        isOpen={showMedicalHistoryPromptModal}
+        onClose={handleMedicalHistoryPromptCancel}
+        onConfirm={handleMedicalHistoryPromptConfirm}
         leadName={selectedLead ? `${selectedLead.firstName} ${selectedLead.surname}` : ""}
       />
 

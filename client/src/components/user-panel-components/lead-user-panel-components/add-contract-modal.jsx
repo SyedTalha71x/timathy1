@@ -2,7 +2,7 @@
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
-import { X, FileText, Eye, ArrowLeft, BookOpen } from "lucide-react"
+import { X, Pencil, ArrowLeft, BookOpen,} from "lucide-react"
 import { useState, useEffect } from "react"
 import toast from "react-hot-toast"
 import { contractTypes, mediaTemplates } from "../../../utils/user-panel-states/contract-states"
@@ -695,11 +695,12 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                   onClick={toggleView}
                   disabled={!contractData.rateType}
                   className={`w-full px-4 py-2 text-sm font-medium rounded-xl transition-colors duration-200 flex items-center justify-center gap-2 ${contractData.rateType
-                      ? "bg-[#3F74FF] text-white hover:bg-[#3F74FF]/90"
+                      ? "bg-orange-500 text-white hover:bg-orange-600"
                       : "bg-gray-600 text-gray-400 cursor-not-allowed"
                     }`}
                 >
-                  <Eye size={16} /> Fill out Contract
+                  <Pencil className="w-4 h-4" />
+                  Fill out Contract
                 </button>
 
 
@@ -866,7 +867,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                           />
                         </div>
                         <div>
-                          <label className="block text-xs text-gray-600 mb-1">Price per Week (â‚¬)</label>
+                          <label className="block text-xs text-gray-600 mb-1">Price per Week (Ã¢â€šÂ¬)</label>
                           <input
                             type="text"
                             name="preisProWoche"
@@ -949,7 +950,7 @@ export function AddContractModal({ onClose, onSave, leadData = null }) {
                       <p>The provider's terms and conditions apply, namely:</p>
                       <p className="mt-2">
                         After the minimum term expires, the contract will continue indefinitely at a price of
-                        â‚¬42.90/week, unless terminated in writing within the notice period of 1 month before the end of
+                        Ã¢â€šÂ¬42.90/week, unless terminated in writing within the notice period of 1 month before the end of
                         the minimum term & no individual conditions for the subsequent period are agreed in the
                         "Contract remarks" text field.
                       </p>

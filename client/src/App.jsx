@@ -30,7 +30,7 @@ import MarketPlace from './dashboard-pages/user-panel-view/market-place'
 import NotesApp from "./dashboard-pages/user-panel-view/notes";
 import BulletinBoard from './dashboard-pages/user-panel-view/bulletin-board'
 import MembersCheckIn from './dashboard-pages/user-panel-view/members-checkin'
-import Assessment from "./dashboard-pages/user-panel-view/assessment";
+import Assessment from "./dashboard-pages/user-panel-view/medical-history";
 import MemberDetailPage from "./dashboard-pages/user-panel-view/member-detail";
 import HelpCenter from "./dashboard-pages/user-panel-view/help-center";
 

@@ -420,13 +420,13 @@ const AssessmentFormModal = ({
     
     const documentData = {
       id: existingDocument?.id || `doc-${Date.now()}`,
-      name: `Medical History Form - ${assessment.title}`,
+      name: `Medical History Form - ${assessment?.title || 'Assessment'}`,
       type: "medicalHistory",
       size: "0.3 MB",
       uploadDate: new Date().toISOString().split("T")[0],
       category: "medicalHistory",
       section: "medicalHistory",
-      templateId: assessment.id,
+      templateId: assessment?.id || 'default',
       answers,
       signature,
       signed: true,
@@ -435,12 +435,7 @@ const AssessmentFormModal = ({
     };
     
     onComplete(documentData);
-    
-    if (fromDocumentManagement) {
-      onClose();
-    } else {
-      setShowContractPrompt(true);
-    }
+    onClose();
   };
 
   const handleProceedToContractClick = () => {
@@ -573,7 +568,7 @@ const AssessmentFormModal = ({
                 </h3>
                 {!isViewMode && (
                   <p className="text-gray-300 mb-6">
-                    Please draw your signature in the box below to complete the assessment.
+                    Please draw your signature in the box below to complete the medical history form.
                   </p>
                 )}
                 
@@ -688,7 +683,7 @@ const AssessmentFormModal = ({
                       disabled={!signature}
                       className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {isEditMode ? 'Update Assessment' : 'Complete Assessment'}
+                      {isEditMode ? 'Update Medical History' : 'Complete Medical History'}
                     </button>
                   </>
                 )}
