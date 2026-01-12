@@ -839,6 +839,13 @@ export default function NotesApp() {
           .animate-wobble {
             animation: wobble 0.5s ease-in-out infinite;
           }
+          .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+          }
+          .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+          }
         `}
       </style>
       <Toaster
@@ -1202,7 +1209,7 @@ export default function NotesApp() {
                           )}
                           
                           <div className="p-6 flex flex-col h-full">
-                            <div className="flex justify-between items-start mb-4">
+                            <div className="flex justify-between items-start mb-4 flex-shrink-0">
                               <h3 className="text-lg font-semibold text-white line-clamp-2 flex-1 mr-2">
                                 {note.title}
                               </h3>
@@ -1266,47 +1273,56 @@ export default function NotesApp() {
                               </div>
                             </div>
 
-                            <p className="text-gray-300 text-sm leading-relaxed mb-3 overflow-hidden break-words" style={{
+                            <p className="text-gray-300 text-sm leading-relaxed mb-3 overflow-hidden break-words flex-shrink-0" style={{
                               display: '-webkit-box',
                               WebkitLineClamp: 2,
                               WebkitBoxOrient: 'vertical',
-                              wordBreak: 'break-word'
+                              wordBreak: 'break-word',
+                              maxHeight: '2.8rem'
                             }}>
                               {note.content}
                             </p>
 
                             {/* Spacer to push tags and footer down */}
-                            <div className="flex-1 min-h-0"></div>
+                            <div className="flex-1" style={{ minHeight: '0.5rem' }}></div>
 
-                            {/* Tags - moved before footer, max 2 lines */}
+                            {/* Tags - Single line with horizontal scroll */}
                             {note.tags && note.tags.length > 0 && (
-                              <div className="mb-2 overflow-hidden" style={{
-                                maxHeight: '3.5rem',
-                                display: 'flex',
-                                flexWrap: 'wrap',
-                                gap: '8px'
-                              }}>
-                                {note.tags.map(tagId => {
-                                  const tag = availableTags.find(t => t.id === tagId)
-                                  return tag ? (
-                                    <span
-                                      key={tagId}
-                                      className="text-xs px-2 py-1 rounded-md flex items-center text-white"
-                                      style={{ 
-                                        backgroundColor: tag.color,
-                                        gap: '4px',
-                                        flexShrink: 0
-                                      }}
-                                    >
-                                      <Tag size={10} />
-                                      {tag.label}
-                                    </span>
-                                  ) : null
-                                })}
+                              <div className="mb-2 relative flex-shrink-0">
+                                <div 
+                                  className="overflow-x-auto scrollbar-hide"
+                                  style={{
+                                    display: 'flex',
+                                    flexWrap: 'nowrap',
+                                    gap: '8px',
+                                    scrollbarWidth: 'none',
+                                    msOverflowStyle: 'none',
+                                    WebkitOverflowScrolling: 'touch'
+                                  }}
+                                >
+                                  {note.tags.map(tagId => {
+                                    const tag = availableTags.find(t => t.id === tagId)
+                                    return tag ? (
+                                      <span
+                                        key={tagId}
+                                        className="text-xs px-2 py-1 rounded-md flex items-center text-white"
+                                        style={{ 
+                                          backgroundColor: tag.color,
+                                          gap: '4px',
+                                          flexShrink: 0,
+                                          whiteSpace: 'nowrap'
+                                        }}
+                                      >
+                                        <Tag size={10} />
+                                        {tag.label}
+                                      </span>
+                                    ) : null
+                                  })}
+                                </div>
                               </div>
                             )}
 
-                            <div className="flex items-end justify-between pt-2 border-t border-gray-800/50">
+                            <div className="flex items-end justify-between pt-2 border-t border-gray-800/50 flex-shrink-0">
                               <div className="flex items-end gap-3">
                                 <div className="flex flex-col">
                                   <p className="text-[11px] text-gray-500">
@@ -1371,20 +1387,37 @@ export default function NotesApp() {
                               {note.content}
                             </p>
                             {note.tags && note.tags.length > 0 && (
-                              <div className="flex flex-wrap gap-1">
-                                {note.tags.map(tagId => {
-                                  const tag = availableTags.find(t => t.id === tagId)
-                                  return tag ? (
-                                    <span
-                                      key={tagId}
-                                      className="text-xs px-2 py-1 rounded-md flex items-center gap-1 text-white"
-                                      style={{ backgroundColor: tag.color }}
-                                    >
-                                      <Tag size={10} />
-                                      {tag.label}
-                                    </span>
-                                  ) : null
-                                })}
+                              <div className="relative">
+                                <div 
+                                  className="overflow-x-auto scrollbar-hide"
+                                  style={{
+                                    display: 'flex',
+                                    flexWrap: 'nowrap',
+                                    gap: '8px',
+                                    scrollbarWidth: 'none',
+                                    msOverflowStyle: 'none',
+                                    WebkitOverflowScrolling: 'touch'
+                                  }}
+                                >
+                                  {note.tags.map(tagId => {
+                                    const tag = availableTags.find(t => t.id === tagId)
+                                    return tag ? (
+                                      <span
+                                        key={tagId}
+                                        className="text-xs px-2 py-1 rounded-md flex items-center text-white"
+                                        style={{ 
+                                          backgroundColor: tag.color,
+                                          gap: '4px',
+                                          flexShrink: 0,
+                                          whiteSpace: 'nowrap'
+                                        }}
+                                      >
+                                        <Tag size={10} />
+                                        {tag.label}
+                                      </span>
+                                    ) : null
+                                  })}
+                                </div>
                               </div>
                             )}
                           </div>
