@@ -1040,7 +1040,7 @@ export default function NotesApp() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
               <input
                 type="text"
-                placeholder="Search notes..."
+                placeholder="Search notes by title or content..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-[#333333] focus:border-[#3F74FF] transition-colors"
@@ -1187,6 +1187,17 @@ export default function NotesApp() {
                       <div>
                         {/* Grid Card - Always on Mobile, on Desktop only if viewMode is grid */}
                         <div className={`bg-[#1A1A1A] rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-800 hover:border-gray-700 h-64 relative select-none ${!isDragDisabled ? 'pl-10' : ''} ${viewMode === 'list' ? 'flex md:hidden' : 'flex'} flex-col`}>
+                          {/* Pin Icon - Top Left (below Grip when drag enabled) */}
+                          {note.isPinned && (
+                            <div className={`absolute z-10 ${!isDragDisabled ? 'top-10 left-3' : 'top-3 left-3'}`}>
+                              <Pin
+                                size={14}
+                                className="text-orange-400 fill-orange-400"
+                                aria-label="Note is pinned"
+                              />
+                            </div>
+                          )}
+                          
                           <div className="p-6 flex flex-col h-full">
                             <div className="flex justify-between items-start mb-4">
                               <h3 className="text-lg font-semibold text-white line-clamp-2 flex-1 mr-2">
@@ -1262,17 +1273,22 @@ export default function NotesApp() {
                             </p>
 
                             {/* Spacer to push tags and footer down */}
-                            <div className="flex-1"></div>
+                            <div className="flex-1 min-h-0"></div>
 
-                            {/* Tags - moved before footer */}
+                            {/* Tags - moved before footer, max 2 lines */}
                             {note.tags && note.tags.length > 0 && (
-                              <div className="flex flex-wrap gap-1 mb-2">
+                              <div className="flex flex-wrap gap-1 mb-2 overflow-hidden" style={{
+                                maxHeight: '3.5rem',
+                                display: '-webkit-box',
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: 'horizontal'
+                              }}>
                                 {note.tags.map(tagId => {
                                   const tag = availableTags.find(t => t.id === tagId)
                                   return tag ? (
                                     <span
                                       key={tagId}
-                                      className="text-xs px-2 py-1 rounded-md flex items-center gap-1 text-white"
+                                      className="text-xs px-2 py-1 rounded-md flex items-center gap-1 text-white flex-shrink-0"
                                       style={{ backgroundColor: tag.color }}
                                     >
                                       <Tag size={10} />
@@ -1499,15 +1515,15 @@ export default function NotesApp() {
                     
                     {/* Tooltip */}
                     {showTagInfoTooltip && (
-                      <div className="absolute left-0 top-8 w-64 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-xl p-3 z-[100]">
+                      <div className="absolute -left-20 md:left-0 top-8 w-56 md:w-64 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-xl p-3 z-[100]">
                         <div className="text-sm">
                           <p className="text-blue-300 font-medium mb-2">Tags are shared across all notes</p>
                           <p className="text-gray-300 text-xs leading-relaxed">
                             All tags are visible to everyone and can be used in both Personal and Studio Notes. When you move a note between tabs, its tags stay intact.
                           </p>
                         </div>
-                        {/* Arrow */}
-                        <div className="absolute -top-1 left-4 w-2 h-2 bg-[#2a2a2a] border-l border-t border-gray-700 transform rotate-45"></div>
+                        {/* Arrow - responsive position */}
+                        <div className="absolute -top-1 left-[5.5rem] md:left-4 w-2 h-2 bg-[#2a2a2a] border-l border-t border-gray-700 transform rotate-45"></div>
                       </div>
                     )}
                   </div>
@@ -1980,10 +1996,10 @@ export default function NotesApp() {
       {/* Floating Action Button - Mobile Only */}
       <button
         onClick={() => setIsCreateModalOpen(true)}
-        className="md:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-3 rounded-xl shadow-lg transition-all active:scale-95 z-50"
+        className="md:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-40"
         aria-label="Create Note"
       >
-        <Plus size={20} />
+        <Plus size={22} />
       </button>
     </>
   )
