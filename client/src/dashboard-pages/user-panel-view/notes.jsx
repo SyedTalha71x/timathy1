@@ -957,7 +957,7 @@ export default function NotesApp() {
               
               <button
                 onClick={() => setIsCreateModalOpen(true)}
-                className="bg-orange-500 hover:bg-orange-600 text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl flex items-center gap-2 justify-center transition-colors"
+                className="hidden md:flex bg-orange-500 hover:bg-orange-600 text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors"
               >
                 <Plus size={14} className="sm:w-4 sm:h-4" />
                 <span className="hidden sm:inline">Create Note</span>
@@ -1186,7 +1186,7 @@ export default function NotesApp() {
                     >
                       <div>
                         {/* Grid Card - Always on Mobile, on Desktop only if viewMode is grid */}
-                        <div className={`bg-[#1A1A1A] rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-800 hover:border-gray-700 h-64 relative ${!isDragDisabled ? 'pl-10' : ''} ${viewMode === 'list' ? 'flex md:hidden' : 'flex'} flex-col`}>
+                        <div className={`bg-[#1A1A1A] rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-800 hover:border-gray-700 h-64 relative select-none ${!isDragDisabled ? 'pl-10' : ''} ${viewMode === 'list' ? 'flex md:hidden' : 'flex'} flex-col`}>
                           <div className="p-6 flex flex-col h-full">
                             <div className="flex justify-between items-start mb-4">
                               <h3 className="text-lg font-semibold text-white line-clamp-2 flex-1 mr-2">
@@ -1328,7 +1328,7 @@ export default function NotesApp() {
                         </div>
                       
                       {/* List View Card - Hidden on Mobile, Desktop only in List Mode */}
-                      <div className={`bg-[#1A1A1A] rounded-xl border border-gray-800 hover:border-gray-700 transition-all duration-200 p-4 h-32 gap-4 ${!isDragDisabled ? 'pl-10' : ''} ${viewMode === 'list' ? 'hidden md:flex' : 'hidden'} items-start`}>
+                      <div className={`bg-[#1A1A1A] rounded-xl border border-gray-800 hover:border-gray-700 transition-all duration-200 p-4 h-32 gap-4 select-none ${!isDragDisabled ? 'pl-10' : ''} ${viewMode === 'list' ? 'hidden md:flex' : 'hidden'} items-start`}>
                           {/* Pin Icon Container - always rendered for consistent spacing */}
                           <div className="flex-shrink-0 pt-1 w-[14px]">
                             {note.isPinned && (
@@ -1973,6 +1973,15 @@ export default function NotesApp() {
           </div>
         </div>
       )}
+
+      {/* Floating Action Button - Mobile Only */}
+      <button
+        onClick={() => setIsCreateModalOpen(true)}
+        className="md:hidden fixed bottom-6 right-6 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-50"
+        aria-label="Create Note"
+      >
+        <Plus size={24} />
+      </button>
     </>
   )
 }
