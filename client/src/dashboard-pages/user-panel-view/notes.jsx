@@ -317,10 +317,10 @@ export default function NotesApp() {
   // Close dropdowns on click outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target)) {
-        setShowSortDropdown(false)
-      }
-      if (desktopSortDropdownRef.current && !desktopSortDropdownRef.current.contains(event.target)) {
+      // Only close sort dropdown if click is outside BOTH mobile and desktop refs
+      const isInsideMobileSort = sortDropdownRef.current && sortDropdownRef.current.contains(event.target)
+      const isInsideDesktopSort = desktopSortDropdownRef.current && desktopSortDropdownRef.current.contains(event.target)
+      if (!isInsideMobileSort && !isInsideDesktopSort) {
         setShowSortDropdown(false)
       }
       if (personalTooltipRef.current && !personalTooltipRef.current.contains(event.target)) {
@@ -757,7 +757,7 @@ export default function NotesApp() {
         {/* Main Content Area: Sidebar + Content */}
         <div className="flex-1 flex flex-col md:flex-row gap-4 md:gap-6 min-h-0 overflow-hidden">
           {/* Left Sidebar - Notes List */}
-          <div className="w-full md:w-80 flex flex-col bg-[#161616] rounded-xl border border-gray-800 h-[calc(100vh-140px)] md:max-h-[calc(100vh-200px)]">
+          <div className="w-full md:w-[22rem] flex flex-col bg-[#161616] rounded-xl border border-gray-800 h-[calc(100vh-140px)] md:max-h-[calc(100vh-200px)]">
             {/* Desktop: Buttons Row + Search Row */}
             {/* Mobile: Single Row with Search + Icon Buttons */}
             
@@ -765,7 +765,7 @@ export default function NotesApp() {
             <div className="hidden md:flex p-3 border-b border-gray-800 gap-2">
               <button
                 onClick={handleCreateNote}
-                className="bg-orange-500 hover:bg-orange-600 text-sm text-white px-3 py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-colors font-medium"
+                className="bg-orange-500 hover:bg-orange-600 text-sm text-white px-3 py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-colors font-medium whitespace-nowrap flex-shrink-0"
                 title="Create Note (C)"
               >
                 <Plus size={16} />
@@ -818,7 +818,7 @@ export default function NotesApp() {
               {/* Tags Button - Desktop */}
               <button
                 onClick={() => setShowTagsModal(true)}
-                className="bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300 text-sm px-3 py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-colors font-medium"
+                className="bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300 text-sm px-3 py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-colors font-medium flex-shrink-0"
                 title="Manage Tags (T)"
               >
                 <Tag size={16} />
