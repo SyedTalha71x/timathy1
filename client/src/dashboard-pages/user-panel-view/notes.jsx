@@ -262,7 +262,7 @@ const SortableNoteItem = ({ note, isSelected, onClick, availableTags, onPin }) =
 
 export default function NotesApp() {
   const sidebarSystem = useSidebarSystem()
-  const [activeTab, setActiveTab] = useState("personal")
+  const [activeTab, setActiveTab] = useState("studio")
   const [notes, setNotes] = useState(DEMO_NOTES)
   const [selectedNote, setSelectedNote] = useState(null)
   const [deleteConfirm, setDeleteConfirm] = useState(null)
@@ -289,6 +289,7 @@ export default function NotesApp() {
   const [showMobileActionsMenu, setShowMobileActionsMenu] = useState(false)
   
   const sortDropdownRef = useRef(null)
+  const desktopSortDropdownRef = useRef(null)
   const fileInputRef = useRef(null)
   const autoSaveTimeoutRef = useRef(null)
   const mobileActionsMenuRef = useRef(null)
@@ -317,6 +318,9 @@ export default function NotesApp() {
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target)) {
+        setShowSortDropdown(false)
+      }
+      if (desktopSortDropdownRef.current && !desktopSortDropdownRef.current.contains(event.target)) {
         setShowSortDropdown(false)
       }
       if (personalTooltipRef.current && !personalTooltipRef.current.contains(event.target)) {
@@ -443,9 +447,14 @@ export default function NotesApp() {
   const sortOptions = [
     { value: 'date', label: 'Date' }, // Merged: uses most recent of created/updated
     { value: 'title', label: 'Title' },
-    { value: 'custom', label: 'Custom Order' },
+    { value: 'custom', label: 'Custom' },
   ]
   const currentSortLabel = sortOptions.find(opt => opt.value === sortBy)?.label || 'Date'
+
+  // Toggle sort direction
+  const toggleSortDirection = () => {
+    setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+  }
 
   // Get sort icon based on current state
   const getSortIcon = () => {
@@ -461,16 +470,14 @@ export default function NotesApp() {
   const handleSortOptionClick = (newSortBy) => {
     if (newSortBy === 'custom') {
       setSortBy('custom')
-      setShowSortDropdown(false) // Only close for custom
+      setShowSortDropdown(false)
     } else if (sortBy === newSortBy) {
-      // If same option clicked, toggle direction (dropdown stays open)
-      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')
+      // If same option clicked, toggle direction
+      toggleSortDirection()
     } else {
-      // New option → Set to desc (default), dropdown stays open
       setSortBy(newSortBy)
-      setSortDirection('desc')
+      setSortDirection('desc') // Default to descending for new sort
     }
-    // Note: Dropdown stays open except for custom order
   }
 
   // Tag Management Functions
@@ -564,7 +571,9 @@ export default function NotesApp() {
       [activeTab]: [duplicated, ...prev[activeTab]],
     }))
 
-    setSelectedNote(duplicated)
+    // On mobile: go back to list; on desktop: select the duplicate
+    const isMobile = window.innerWidth < 768
+    setSelectedNote(isMobile ? null : duplicated)
     toast.success('Note duplicated!')
   }
 
@@ -598,6 +607,14 @@ export default function NotesApp() {
     }))
 
     setActiveTab(targetTab)
+    
+    // On mobile: go back to list; on desktop: keep the note selected in new tab
+    const isMobile = window.innerWidth < 768
+    if (isMobile) {
+      setSelectedNote(null)
+    }
+    // On desktop: selectedNote stays the same (note is still selected in new tab)
+    
     toast.success(`Note moved to ${targetTab === 'personal' ? 'Personal' : 'Studio'} Notes!`)
   }
 
@@ -752,13 +769,16 @@ export default function NotesApp() {
                 title="Create Note (C)"
               >
                 <Plus size={16} />
-                <span className="hidden min-[400px]:inline">New</span>
+                <span className="hidden min-[400px]:inline">Create Note</span>
               </button>
               
               {/* Sort Dropdown - Desktop */}
-              <div className="relative flex-1 max-w-[180px]" ref={sortDropdownRef}>
+              <div className="relative flex-1 max-w-[180px]" ref={desktopSortDropdownRef}>
                 <button
-                  onClick={() => setShowSortDropdown(!showSortDropdown)}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setShowSortDropdown(!showSortDropdown)
+                  }}
                   className="w-full px-3 py-2.5 bg-[#2F2F2F] text-gray-300 rounded-xl text-sm hover:bg-[#3F3F3F] transition-colors flex items-center justify-between gap-2"
                 >
                   <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -774,7 +794,10 @@ export default function NotesApp() {
                       {sortOptions.map((option) => (
                         <button
                           key={option.value}
-                          onClick={() => handleSortOptionClick(option.value)}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleSortOptionClick(option.value)
+                          }}
                           className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${
                             sortBy === option.value ? 'text-white bg-gray-800/50' : 'text-gray-300'
                           }`}
@@ -820,8 +843,11 @@ export default function NotesApp() {
               {/* Mobile Only: Sort Icon Button */}
               <div className="md:hidden relative" ref={sortDropdownRef}>
                 <button
-                  onClick={() => setShowSortDropdown(!showSortDropdown)}
-                  className="p-2.5 bg-[#2F2F2F] text-gray-300 rounded-lg hover:bg-[#3F3F3F] transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setShowSortDropdown(!showSortDropdown)
+                  }}
+                  className="w-10 h-10 flex items-center justify-center bg-[#2F2F2F] text-gray-300 rounded-lg hover:bg-[#3F3F3F] transition-colors"
                   title="Sort"
                 >
                   {getSortIcon()}
@@ -834,7 +860,10 @@ export default function NotesApp() {
                       {sortOptions.map((option) => (
                         <button
                           key={option.value}
-                          onClick={() => handleSortOptionClick(option.value)}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleSortOptionClick(option.value)
+                          }}
                           className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${
                             sortBy === option.value ? 'text-white bg-gray-800/50' : 'text-gray-300'
                           }`}
@@ -855,7 +884,7 @@ export default function NotesApp() {
               {/* Mobile Only: Tags Icon Button */}
               <button
                 onClick={() => setShowTagsModal(true)}
-                className="md:hidden p-2.5 bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300 rounded-lg transition-colors"
+                className="md:hidden w-10 h-10 flex items-center justify-center bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300 rounded-lg transition-colors"
                 title="Manage Tags (T)"
               >
                 <Tag size={16} />
@@ -864,49 +893,6 @@ export default function NotesApp() {
             
             {/* Tabs */}
             <div className="flex border-b border-gray-800">
-              {/* Personal Notes Tab */}
-              <div className="relative flex-1">
-                <button
-                  onClick={() => {
-                    setActiveTab("personal")
-                    setSelectedNote(null)
-                  }}
-                  className={`w-full px-4 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-1.5 ${
-                    activeTab === "personal"
-                      ? "text-orange-400 border-b-2 border-orange-400"
-                      : "text-gray-400 hover:text-white"
-                  }`}
-                >
-                  <span>Personal Notes</span>
-                  <div className="relative group" ref={personalTooltipRef}>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setShowPersonalTooltip(!showPersonalTooltip)
-                      }}
-                      onMouseEnter={() => setShowPersonalTooltip(true)}
-                      onMouseLeave={() => setShowPersonalTooltip(false)}
-                      className="p-1 touch-manipulation"
-                      aria-label="Personal Notes Information"
-                    >
-                      <Info size={12} className="opacity-60 text-gray-400" />
-                    </button>
-                    
-                    {showPersonalTooltip && (
-                      <div className="absolute left-0 top-full mt-2 w-56 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-xl p-3 z-50">
-                        <div className="text-sm">
-                          <p className="text-white font-medium mb-1.5">Private to you</p>
-                          <p className="text-gray-300 text-xs leading-relaxed">
-                            Only you can see and edit these notes.
-                          </p>
-                        </div>
-                        <div className="absolute -top-1 left-2 w-2 h-2 bg-[#2a2a2a] border-l border-t border-gray-700 transform rotate-45"></div>
-                      </div>
-                    )}
-                  </div>
-                </button>
-              </div>
-
               {/* Studio Notes Tab */}
               <div className="relative flex-1">
                 <button
@@ -936,11 +922,54 @@ export default function NotesApp() {
                     </button>
                     
                     {showStudioTooltip && (
-                      <div className="absolute right-0 top-full mt-2 w-56 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-xl p-3 z-50">
+                      <div className="absolute left-0 top-full mt-2 w-56 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-xl p-3 z-50">
                         <div className="text-sm">
                           <p className="text-white font-medium mb-1.5">Shared with everyone</p>
                           <p className="text-gray-300 text-xs leading-relaxed">
                             All team members can see and edit these notes.
+                          </p>
+                        </div>
+                        <div className="absolute -top-1 left-2 w-2 h-2 bg-[#2a2a2a] border-l border-t border-gray-700 transform rotate-45"></div>
+                      </div>
+                    )}
+                  </div>
+                </button>
+              </div>
+
+              {/* Personal Notes Tab */}
+              <div className="relative flex-1">
+                <button
+                  onClick={() => {
+                    setActiveTab("personal")
+                    setSelectedNote(null)
+                  }}
+                  className={`w-full px-4 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-1.5 ${
+                    activeTab === "personal"
+                      ? "text-orange-400 border-b-2 border-orange-400"
+                      : "text-gray-400 hover:text-white"
+                  }`}
+                >
+                  <span>Personal Notes</span>
+                  <div className="relative group" ref={personalTooltipRef}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setShowPersonalTooltip(!showPersonalTooltip)
+                      }}
+                      onMouseEnter={() => setShowPersonalTooltip(true)}
+                      onMouseLeave={() => setShowPersonalTooltip(false)}
+                      className="p-1 touch-manipulation"
+                      aria-label="Personal Notes Information"
+                    >
+                      <Info size={12} className="opacity-60 text-gray-400" />
+                    </button>
+                    
+                    {showPersonalTooltip && (
+                      <div className="absolute right-0 top-full mt-2 w-56 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-xl p-3 z-50">
+                        <div className="text-sm">
+                          <p className="text-white font-medium mb-1.5">Private to you</p>
+                          <p className="text-gray-300 text-xs leading-relaxed">
+                            Only you can see and edit these notes.
                           </p>
                         </div>
                         <div className="absolute -top-1 right-2 w-2 h-2 bg-[#2a2a2a] border-l border-t border-gray-700 transform rotate-45"></div>
@@ -1228,7 +1257,7 @@ export default function NotesApp() {
       {selectedNote && (
         <div className="md:hidden fixed inset-0 bg-[#1C1C1C] z-[60] flex flex-col">
           {/* Mobile Header with Back Button */}
-          <div className="flex items-center gap-3 p-4 border-b border-gray-800">
+          <div className="flex items-center justify-between p-4 border-b border-gray-800">
             <button
               onClick={() => setSelectedNote(null)}
               className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg transition-colors"
@@ -1238,9 +1267,88 @@ export default function NotesApp() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <h2 className="text-lg font-semibold text-white flex-1 truncate">
-              {selectedNote.title || 'Untitled'}
-            </h2>
+            
+            {/* Right side: Pin + 3-Dot Menu */}
+            <div className="flex items-center gap-3">
+              {selectedNote.isPinned && (
+                <Pin size={20} className="text-orange-400 fill-orange-400" />
+              )}
+              
+              {/* 3-Dot Actions Menu */}
+              <div className="relative" ref={mobileActionsMenuRef}>
+                <button
+                  onClick={() => setShowMobileActionsMenu(!showMobileActionsMenu)}
+                  className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg transition-colors"
+                  aria-label="More actions"
+                >
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
+                  </svg>
+                </button>
+
+                {/* Dropdown Menu */}
+                {showMobileActionsMenu && (
+                  <div className="absolute top-full right-0 mt-2 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg min-w-[180px] z-50">
+                    <div className="py-1">
+                      <button
+                        onClick={() => {
+                          togglePin(selectedNote.id)
+                          setShowMobileActionsMenu(false)
+                        }}
+                        className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-gray-300"
+                      >
+                        {selectedNote.isPinned ? (
+                          <>
+                            <PinOff size={16} />
+                            <span>Unpin Note</span>
+                          </>
+                        ) : (
+                          <>
+                            <Pin size={16} />
+                            <span>Pin Note</span>
+                          </>
+                        )}
+                      </button>
+                      
+                      <button
+                        onClick={() => {
+                          duplicateNote()
+                          setShowMobileActionsMenu(false)
+                        }}
+                        className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-gray-300"
+                      >
+                        <Copy size={16} />
+                        <span>Duplicate</span>
+                      </button>
+                      
+                      <button
+                        onClick={() => {
+                          moveNoteToOtherTab()
+                          setShowMobileActionsMenu(false)
+                        }}
+                        className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-gray-300"
+                      >
+                        <ArrowRightLeft size={16} />
+                        <span>Move to {activeTab === 'personal' ? 'Studio' : 'Personal'}</span>
+                      </button>
+                      
+                      <div className="border-t border-gray-700 my-1"></div>
+                      
+                      <button
+                        onClick={() => {
+                          setDeleteConfirm(selectedNote)
+                          setShowMobileActionsMenu(false)
+                        }}
+                        className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-red-500"
+                      >
+                        <Trash2 size={16} />
+                        <span>Delete</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Note Content - Scrollable */}
@@ -1347,86 +1455,11 @@ export default function NotesApp() {
             />
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="flex-1 bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300 px-4 py-3 rounded-xl text-sm transition-colors flex items-center justify-center gap-2"
+              className="w-full bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300 px-4 py-3 rounded-xl text-sm transition-colors flex items-center justify-center gap-2"
             >
               <Paperclip size={16} />
               Add Images
             </button>
-            
-            {/* 3-Dot Actions Menu */}
-            <div className="relative" ref={mobileActionsMenuRef}>
-              <button
-                onClick={() => setShowMobileActionsMenu(!showMobileActionsMenu)}
-                className="bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300 px-4 py-3 rounded-xl transition-colors"
-                aria-label="More actions"
-              >
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
-                </svg>
-              </button>
-
-              {/* Dropdown Menu */}
-              {showMobileActionsMenu && (
-                <div className="absolute bottom-full right-0 mb-2 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg min-w-[180px] z-50">
-                  <div className="py-1">
-                    <button
-                      onClick={() => {
-                        togglePin(selectedNote.id)
-                        setShowMobileActionsMenu(false)
-                      }}
-                      className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-gray-300"
-                    >
-                      {selectedNote.isPinned ? (
-                        <>
-                          <PinOff size={16} />
-                          <span>Unpin Note</span>
-                        </>
-                      ) : (
-                        <>
-                          <Pin size={16} />
-                          <span>Pin Note</span>
-                        </>
-                      )}
-                    </button>
-                    
-                    <button
-                      onClick={() => {
-                        duplicateNote()
-                        setShowMobileActionsMenu(false)
-                      }}
-                      className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-gray-300"
-                    >
-                      <Copy size={16} />
-                      <span>Duplicate</span>
-                    </button>
-                    
-                    <button
-                      onClick={() => {
-                        moveNoteToOtherTab()
-                        setShowMobileActionsMenu(false)
-                      }}
-                      className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-gray-300"
-                    >
-                      <ArrowRightLeft size={16} />
-                      <span>Move to {activeTab === 'personal' ? 'Studio' : 'Personal'}</span>
-                    </button>
-                    
-                    <div className="border-t border-gray-700 my-1"></div>
-                    
-                    <button
-                      onClick={() => {
-                        setDeleteConfirm(selectedNote)
-                        setShowMobileActionsMenu(false)
-                      }}
-                      className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-red-500"
-                    >
-                      <Trash2 size={16} />
-                      <span>Delete</span>
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
           </div>
         </div>
       )}
