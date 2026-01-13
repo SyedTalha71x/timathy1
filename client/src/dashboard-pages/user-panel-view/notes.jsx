@@ -131,6 +131,14 @@ const WysiwygEditor = ({ value, initialValue, onChange, placeholder, className =
         -webkit-box-orient: vertical;
         overflow: hidden;
       }
+      /* Drag handle pulse animation on touch */
+      @keyframes dragPulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.4); }
+        50% { box-shadow: 0 0 0 8px rgba(249, 115, 22, 0); }
+      }
+      .drag-handle-active {
+        animation: dragPulse 0.6s ease-out;
+      }
       .notes-editor-wrapper {
         border-radius: 12px;
         overflow: hidden;
@@ -450,7 +458,10 @@ const SortableNoteItem = ({ note, isSelected, onClick, availableTags, onPin }) =
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
+    opacity: isDragging ? 0.6 : 1,
+    scale: isDragging ? 1.02 : 1,
+    zIndex: isDragging ? 50 : 'auto',
+    boxShadow: isDragging ? '0 8px 24px rgba(249, 115, 22, 0.3)' : 'none',
   }
 
   const stripText = stripHtmlTags(note.content)
@@ -459,21 +470,22 @@ const SortableNoteItem = ({ note, isSelected, onClick, availableTags, onPin }) =
     <div
       ref={setNodeRef}
       style={style}
-      className={`group relative cursor-pointer transition-colors select-none border-b border-gray-800 ${
+      className={`group relative cursor-pointer transition-all duration-150 select-none border-b border-gray-800 ${
         isSelected 
           ? 'bg-gray-800/80' 
           : 'hover:bg-gray-800/50 active:bg-gray-800/70'
-      }`}
+      } ${isDragging ? 'rounded-xl border border-orange-500/50 bg-gray-800/90' : ''}`}
       onClick={onClick}
     >
       <div className="flex items-start gap-2 p-3 overflow-hidden">
-        {/* Drag Handle */}
+        {/* Drag Handle - larger on mobile with visual feedback */}
         <div
           {...attributes}
           {...listeners}
-          className="cursor-grab active:cursor-grabbing text-gray-500 hover:text-gray-300 mt-1 flex-shrink-0 touch-none"
+          className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-white active:text-orange-400 mt-0.5 flex-shrink-0 touch-none p-2 -m-2 md:p-1 md:-m-1 rounded-lg hover:bg-gray-700/50 active:bg-orange-500/30 active:scale-125 transition-all duration-100"
+          style={{ WebkitTapHighlightColor: 'transparent' }}
         >
-          <GripVertical size={14} />
+          <GripVertical className="w-5 h-5 md:w-3.5 md:h-3.5" />
         </div>
 
         {/* Note Content - constrained width */}
@@ -577,8 +589,8 @@ export default function NotesApp() {
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 200,
-        tolerance: 5,
+        delay: 100,
+        tolerance: 8,
       },
     }),
     useSensor(KeyboardSensor, {
