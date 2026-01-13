@@ -99,7 +99,10 @@ export default function LeadManagement() {
   const [leadToDelete, setLeadToDelete] = useState(null)
   const [selectedEditTab, setSelectedEditTab] = useState("details")
   const [selectedViewTab, setSelectedViewTab] = useState("details")
-  const [isCompactView, setIsCompactView] = useState(false)
+  const [isCompactView, setIsCompactView] = useState(() => {
+    // On mobile: start with compact view, on desktop: start with detailed view
+    return typeof window !== 'undefined' ? window.innerWidth < 768 : false
+  })
   const [expandedLeadId, setExpandedLeadId] = useState(null)
 
   // Assessment states
@@ -570,6 +573,20 @@ export default function LeadManagement() {
     document.addEventListener('keydown', handleKeyPress);
     return () => document.removeEventListener('keydown', handleKeyPress);
   }, []);
+
+  // Enforce compact view on mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      const isMobile = window.innerWidth < 768; // md breakpoint
+      if (isMobile && !isCompactView) {
+        setIsCompactView(true);
+      }
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, [isCompactView]);
 
   const handleViewLeadDetails = (lead, tab = "details") => {
     setSelectedLead(lead)
