@@ -131,14 +131,6 @@ const WysiwygEditor = ({ value, initialValue, onChange, placeholder, className =
         -webkit-box-orient: vertical;
         overflow: hidden;
       }
-      /* Drag handle pulse animation on touch */
-      @keyframes dragPulse {
-        0%, 100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.4); }
-        50% { box-shadow: 0 0 0 8px rgba(249, 115, 22, 0); }
-      }
-      .drag-handle-active {
-        animation: dragPulse 0.6s ease-out;
-      }
       .notes-editor-wrapper {
         border-radius: 12px;
         overflow: hidden;
@@ -274,7 +266,7 @@ const WysiwygEditor = ({ value, initialValue, onChange, placeholder, className =
       }
       @media (max-width: 767px) {
         .mobile-note-scroll {
-          scroll-behavior: smooth;
+          scroll-behavior: auto;
         }
         .mobile-editor-container {
           position: relative;
@@ -457,11 +449,11 @@ const SortableNoteItem = ({ note, isSelected, onClick, availableTags, onPin }) =
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.6 : 1,
-    scale: isDragging ? 1.02 : 1,
+    transition: isDragging ? 'none' : transition,
+    opacity: isDragging ? 0.85 : 1,
     zIndex: isDragging ? 50 : 'auto',
     boxShadow: isDragging ? '0 8px 24px rgba(249, 115, 22, 0.3)' : 'none',
+    willChange: isDragging ? 'transform' : 'auto',
   }
 
   const stripText = stripHtmlTags(note.content)
@@ -470,7 +462,7 @@ const SortableNoteItem = ({ note, isSelected, onClick, availableTags, onPin }) =
     <div
       ref={setNodeRef}
       style={style}
-      className={`group relative cursor-pointer transition-all duration-150 select-none border-b border-gray-800 ${
+      className={`group relative cursor-pointer select-none border-b border-gray-800 ${
         isSelected 
           ? 'bg-gray-800/80' 
           : 'hover:bg-gray-800/50 active:bg-gray-800/70'
@@ -478,11 +470,11 @@ const SortableNoteItem = ({ note, isSelected, onClick, availableTags, onPin }) =
       onClick={onClick}
     >
       <div className="flex items-start gap-2 p-3 overflow-hidden">
-        {/* Drag Handle - larger on mobile with visual feedback */}
+        {/* Drag Handle - larger on mobile, instant feedback */}
         <div
           {...attributes}
           {...listeners}
-          className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-white active:text-orange-400 mt-0.5 flex-shrink-0 touch-none p-2 -m-2 md:p-1 md:-m-1 rounded-lg hover:bg-gray-700/50 active:bg-orange-500/30 active:scale-125 transition-all duration-100"
+          className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-white active:text-orange-400 mt-0.5 flex-shrink-0 touch-none p-2 -m-2 md:p-1 md:-m-1 rounded-lg active:bg-orange-500/30"
           style={{ WebkitTapHighlightColor: 'transparent' }}
         >
           <GripVertical className="w-5 h-5 md:w-3.5 md:h-3.5" />
@@ -580,17 +572,17 @@ export default function NotesApp() {
 
   const trainingVideos = trainingVideosData
 
-  // DnD sensors - include TouchSensor for mobile
+  // DnD sensors - optimized for responsive mobile dragging
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8,
+        distance: 5,
       },
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 100,
-        tolerance: 8,
+        delay: 0,
+        tolerance: 5,
       },
     }),
     useSensor(KeyboardSensor, {
