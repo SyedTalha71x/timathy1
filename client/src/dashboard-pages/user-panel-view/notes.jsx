@@ -169,15 +169,17 @@ const WysiwygEditor = ({ value, initialValue, onChange, placeholder, className =
         line-height: 1.4;
         padding-bottom: 100px !important;
       }
-      .notes-editor-wrapper .ql-editor p {
-        margin-bottom: 0;
+      .notes-editor-wrapper .ql-editor p,
+      .notes-editor-wrapper .ql-editor div {
+        margin: 0 !important;
+        padding: 0 !important;
       }
-      .notes-editor-wrapper .ql-editor p:last-child {
-        margin-bottom: 0;
+      .notes-editor-wrapper .ql-editor p + p,
+      .notes-editor-wrapper .ql-editor div + div {
+        margin: 0 !important;
       }
-      /* Add slight spacing only between paragraphs, not within */
-      .notes-editor-wrapper .ql-editor p + p {
-        margin-top: 0.3em;
+      .notes-editor-wrapper .ql-editor br {
+        line-height: inherit;
       }
       .notes-editor-wrapper .ql-toolbar.ql-snow {
         border: none !important;
@@ -282,17 +284,24 @@ const WysiwygEditor = ({ value, initialValue, onChange, placeholder, className =
           background-color: #161616 !important;
           border-bottom: 1px solid #404040 !important;
           border-radius: 0 !important;
-          overflow: visible !important;
+          overflow-x: auto !important;
+          overflow-y: visible !important;
           position: sticky;
           top: 0;
           z-index: 99999;
+          -webkit-overflow-scrolling: touch;
           scrollbar-width: none;
           -ms-overflow-style: none;
           align-items: center;
+          min-height: 48px;
         }
         /* Wrapper for horizontal scrolling without clipping dropdowns */
         .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow > .ql-formats:first-child {
           margin-left: 0;
+        }
+        /* When picker is expanded, ensure it's visible */
+        .mobile-editor-container .notes-editor-wrapper .ql-snow .ql-picker.ql-expanded {
+          overflow: visible !important;
         }
         .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow::-webkit-scrollbar {
           display: none;
@@ -349,22 +358,21 @@ const WysiwygEditor = ({ value, initialValue, onChange, placeholder, className =
           padding: 16px !important;
           min-height: 200px !important;
         }
-        /* Dropdown styling - ABSOLUTE position for iOS Safari compatibility */
+        /* Dropdown styling - FIXED position for iOS Safari */
         .mobile-editor-container .notes-editor-wrapper .ql-snow .ql-picker-options {
-          position: absolute !important;
+          position: fixed !important;
           background-color: #1f1f1f !important;
           border: 1px solid #404040 !important;
           border-radius: 8px !important;
           box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6) !important;
-          z-index: 999999 !important;
+          z-index: 9999999 !important;
           max-height: 200px !important;
           overflow-y: auto !important;
           min-width: 140px !important;
-          left: 0 !important;
-          right: auto !important;
-          top: 100% !important;
-          margin-top: 4px !important;
-          width: max-content !important;
+          left: 16px !important;
+          right: 16px !important;
+          top: 120px !important;
+          width: auto !important;
         }
         /* Ensure expanded picker is visible on iOS */
         .mobile-editor-container .notes-editor-wrapper .ql-snow .ql-picker.ql-expanded .ql-picker-options {
@@ -378,10 +386,10 @@ const WysiwygEditor = ({ value, initialValue, onChange, placeholder, className =
           min-width: 176px !important;
           max-width: 200px !important;
           padding: 8px !important;
-          left: auto !important;
-          right: 0 !important;
-          top: 100% !important;
-          margin-top: 4px !important;
+          left: 50% !important;
+          right: auto !important;
+          margin-left: -100px !important;
+          top: 120px !important;
         }
         /* Ensure picker parent has relative positioning */
         .mobile-editor-container .notes-editor-wrapper .ql-snow .ql-picker {
@@ -391,7 +399,7 @@ const WysiwygEditor = ({ value, initialValue, onChange, placeholder, className =
         .mobile-editor-container .notes-editor-wrapper .ql-snow .ql-tooltip {
           background-color: #1f1f1f !important;
           border: 1px solid #404040 !important;
-          z-index: 999999 !important;
+          z-index: 9999999 !important;
           position: fixed !important;
           left: 16px !important;
           right: 16px !important;
