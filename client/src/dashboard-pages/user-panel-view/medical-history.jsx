@@ -854,7 +854,7 @@ const Assessment = () => {
             {filteredForms.map((form) => (
               <SortableFormCard key={form.id} form={form} isDragDisabled={isDragDisabled}>
                 {/* Grid Card - Always on Mobile, on Desktop only if viewMode is grid */}
-                <div className={`${viewMode === 'list' ? 'flex md:hidden' : 'flex'} flex-col`}>
+                <div className={`${viewMode === 'list' ? 'flex md:hidden' : 'flex'} flex-col select-none`}>
                   <div
                     className={`bg-[#1A1A1A] rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-800 hover:border-gray-700 p-4 md:p-6 relative ${!isDragDisabled ? 'pl-10 md:pl-12' : ''}`}
                   >
@@ -951,7 +951,7 @@ const Assessment = () => {
                 </div>
                 
                 {/* List Card - Desktop only, hidden on mobile */}
-                <div className={`${viewMode === 'list' ? 'hidden md:flex' : 'hidden'} items-start`}>
+                <div className={`${viewMode === 'list' ? 'hidden md:flex' : 'hidden'} items-start select-none`}>
                   <div
                     className={`bg-[#1A1A1A] rounded-xl border border-gray-800 hover:border-gray-700 transition-all duration-200 p-4 w-full relative ${!isDragDisabled ? 'pl-10 md:pl-12' : ''}`}
                   >
@@ -1283,7 +1283,9 @@ const Assessment = () => {
     {/* Floating Action Button - Mobile Only */}
     <button
       onClick={handleCreateForm}
-      className="md:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-40"
+      className={`md:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-40 ${
+        isRightSidebarOpen ? 'opacity-50' : ''
+      }`}
       aria-label="Create Medical History"
     >
       <Plus size={22} />

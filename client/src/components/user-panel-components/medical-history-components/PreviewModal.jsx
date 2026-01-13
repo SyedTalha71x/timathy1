@@ -265,7 +265,7 @@ const PreviewModal = ({ showPreviewModal, setShowPreviewModal, previewForm }) =>
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 select-none">
       <div className="bg-[#1C1C1C] rounded-xl w-full max-w-4xl border border-gray-700 flex flex-col max-h-[90vh]">
         {/* Fixed Header */}
         <div className="flex-shrink-0 flex justify-between items-center p-6 border-b border-gray-700">
