@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { useState, useRef, useEffect } from "react"
 import { Search, Plus, X, GripVertical, Edit, Copy, Trash2, ArrowUpDown, ArrowUp, ArrowDown, Paperclip, Tag, Pin, PinOff, ArrowRightLeft, Info } from "lucide-react"
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import ReactQuill from "react-quill"
@@ -278,76 +278,69 @@ const WysiwygEditor = ({ value, initialValue, onChange, placeholder, className =
         }
         .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow {
           display: flex;
-          flex-wrap: nowrap !important;
+          flex-wrap: wrap !important;
           padding: 8px 12px !important;
-          gap: 2px;
+          gap: 4px;
           background-color: #161616 !important;
           border-bottom: 1px solid #404040 !important;
           border-radius: 0 !important;
-          overflow-x: auto !important;
-          overflow-y: visible !important;
-          position: sticky;
-          top: 0;
+          overflow: visible !important;
+          position: relative;
           z-index: 99999;
-          -webkit-overflow-scrolling: touch;
-          scrollbar-width: none;
-          -ms-overflow-style: none;
           align-items: center;
-          min-height: 48px;
-        }
-        /* Wrapper for horizontal scrolling without clipping dropdowns */
-        .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow > .ql-formats:first-child {
-          margin-left: 0;
         }
         /* When picker is expanded, ensure it's visible */
         .mobile-editor-container .notes-editor-wrapper .ql-snow .ql-picker.ql-expanded {
           overflow: visible !important;
+          z-index: 999999 !important;
         }
         .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow::-webkit-scrollbar {
           display: none;
         }
         .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow .ql-formats {
           display: flex;
-          flex-shrink: 0;
-          margin-right: 6px !important;
+          flex-wrap: wrap;
+          margin-right: 8px !important;
+          margin-bottom: 4px !important;
           align-items: center;
           gap: 2px;
           overflow: visible !important;
+          position: relative;
         }
         /* Uniform button size */
         .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow button {
-          width: 32px !important;
-          height: 32px !important;
-          padding: 6px !important;
+          width: 28px !important;
+          height: 28px !important;
+          padding: 4px !important;
           flex-shrink: 0;
           display: flex !important;
           align-items: center !important;
           justify-content: center !important;
         }
         .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow button svg {
-          width: 16px !important;
-          height: 16px !important;
+          width: 14px !important;
+          height: 14px !important;
         }
         /* Uniform picker size */
         .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow .ql-picker {
-          height: 32px !important;
+          height: 28px !important;
           flex-shrink: 0;
         }
         .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow .ql-picker-label {
-          padding: 6px 8px !important;
-          height: 32px !important;
+          padding: 4px 6px !important;
+          height: 28px !important;
           display: flex !important;
           align-items: center !important;
         }
         .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow .ql-picker-label svg {
-          width: 16px !important;
-          height: 16px !important;
+          width: 14px !important;
+          height: 14px !important;
         }
         /* Color picker buttons uniform */
         .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow .ql-color-picker .ql-picker-label,
         .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow .ql-background .ql-picker-label {
-          width: 32px !important;
-          padding: 6px !important;
+          width: 28px !important;
+          padding: 4px !important;
           justify-content: center !important;
         }
         .mobile-editor-container .notes-editor-wrapper .ql-container.ql-snow {
@@ -358,9 +351,9 @@ const WysiwygEditor = ({ value, initialValue, onChange, placeholder, className =
           padding: 16px !important;
           min-height: 200px !important;
         }
-        /* Dropdown styling - FIXED position for iOS Safari */
+        /* Dropdown styling - ABSOLUTE position relative to picker */
         .mobile-editor-container .notes-editor-wrapper .ql-snow .ql-picker-options {
-          position: fixed !important;
+          position: absolute !important;
           background-color: #1f1f1f !important;
           border: 1px solid #404040 !important;
           border-radius: 8px !important;
@@ -368,10 +361,11 @@ const WysiwygEditor = ({ value, initialValue, onChange, placeholder, className =
           z-index: 9999999 !important;
           max-height: 200px !important;
           overflow-y: auto !important;
-          min-width: 140px !important;
-          left: 16px !important;
-          right: 16px !important;
-          top: 120px !important;
+          min-width: 120px !important;
+          left: 0 !important;
+          right: auto !important;
+          top: 100% !important;
+          margin-top: 4px !important;
           width: auto !important;
         }
         /* Ensure expanded picker is visible on iOS */
@@ -383,17 +377,18 @@ const WysiwygEditor = ({ value, initialValue, onChange, placeholder, className =
         /* Color picker specific */
         .mobile-editor-container .notes-editor-wrapper .ql-snow .ql-color-picker .ql-picker-options,
         .mobile-editor-container .notes-editor-wrapper .ql-snow .ql-background .ql-picker-options {
-          min-width: 176px !important;
-          max-width: 200px !important;
-          padding: 8px !important;
-          left: 50% !important;
-          right: auto !important;
-          margin-left: -100px !important;
-          top: 120px !important;
+          min-width: 152px !important;
+          width: 152px !important;
+          padding: 5px !important;
+          left: auto !important;
+          right: 0 !important;
+          top: 100% !important;
+          margin-top: 4px !important;
         }
         /* Ensure picker parent has relative positioning */
         .mobile-editor-container .notes-editor-wrapper .ql-snow .ql-picker {
           position: relative !important;
+          overflow: visible !important;
         }
         /* Link tooltip styling */
         .mobile-editor-container .notes-editor-wrapper .ql-snow .ql-tooltip {
@@ -476,7 +471,7 @@ const SortableNoteItem = ({ note, isSelected, onClick, availableTags, onPin }) =
         <div
           {...attributes}
           {...listeners}
-          className="cursor-grab active:cursor-grabbing text-gray-500 hover:text-gray-300 mt-1 flex-shrink-0"
+          className="cursor-grab active:cursor-grabbing text-gray-500 hover:text-gray-300 mt-1 flex-shrink-0 touch-none"
         >
           <GripVertical size={14} />
         </div>
@@ -573,11 +568,17 @@ export default function NotesApp() {
 
   const trainingVideos = trainingVideosData
 
-  // DnD sensors
+  // DnD sensors - include TouchSensor for mobile
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
         distance: 8,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 200,
+        tolerance: 5,
       },
     }),
     useSensor(KeyboardSensor, {
