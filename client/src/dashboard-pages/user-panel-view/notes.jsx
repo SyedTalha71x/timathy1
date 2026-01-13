@@ -166,7 +166,7 @@ const WysiwygEditor = ({ value, initialValue, onChange, placeholder, className =
         background-color: #1f1f1f !important;
         min-height: 300px;
         font-size: 15px;
-        line-height: 1.6;
+        line-height: 1.4;
         padding-bottom: 100px !important;
       }
       .notes-editor-wrapper .ql-editor p {
@@ -261,6 +261,8 @@ const WysiwygEditor = ({ value, initialValue, onChange, placeholder, className =
       @media (max-width: 767px) {
         .mobile-note-scroll {
           scroll-behavior: smooth;
+          /* iOS fix: prevent clipping of fixed positioned children */
+          -webkit-overflow-scrolling: auto;
         }
         .mobile-editor-container {
           position: relative;
@@ -348,14 +350,20 @@ const WysiwygEditor = ({ value, initialValue, onChange, placeholder, className =
           border: 1px solid #404040 !important;
           border-radius: 8px !important;
           box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6) !important;
-          z-index: 99999 !important;
+          z-index: 999999 !important;
           max-height: 200px !important;
           overflow-y: auto !important;
           min-width: 140px !important;
           left: 16px !important;
           right: 16px !important;
-          top: 180px !important;
+          top: 200px !important;
           width: auto !important;
+        }
+        /* Ensure expanded picker is visible on iOS */
+        .mobile-editor-container .notes-editor-wrapper .ql-snow .ql-picker.ql-expanded .ql-picker-options {
+          display: block !important;
+          visibility: visible !important;
+          opacity: 1 !important;
         }
         /* Color picker specific */
         .mobile-editor-container .notes-editor-wrapper .ql-snow .ql-color-picker .ql-picker-options,
@@ -365,18 +373,19 @@ const WysiwygEditor = ({ value, initialValue, onChange, placeholder, className =
           padding: 8px !important;
           left: 50% !important;
           right: auto !important;
-          transform: translateX(-50%) !important;
+          margin-left: -88px !important;
+          top: 200px !important;
         }
         /* Link tooltip styling */
         .mobile-editor-container .notes-editor-wrapper .ql-snow .ql-tooltip {
           background-color: #1f1f1f !important;
           border: 1px solid #404040 !important;
-          z-index: 99999 !important;
+          z-index: 999999 !important;
           position: fixed !important;
           left: 16px !important;
           right: 16px !important;
           top: 50% !important;
-          transform: translateY(-50%) !important;
+          margin-top: -50px !important;
           width: auto !important;
           padding: 12px !important;
           border-radius: 8px !important;
@@ -813,17 +822,25 @@ export default function NotesApp() {
     
     setSelectedNote(note)
     
-    // Focus title input after a short delay to allow render
-    // Longer delay for mobile overlay to fully render
-    setTimeout(() => {
+    // Focus title input after render - iOS needs longer delay and special handling
+    const focusTitleInput = () => {
       const titleInputs = document.querySelectorAll('[data-title-input]')
       // Focus the visible one (last one in the DOM for mobile overlay)
       const visibleInput = Array.from(titleInputs).find(input => {
         const rect = input.getBoundingClientRect()
         return rect.width > 0 && rect.height > 0
       })
-      if (visibleInput) visibleInput.focus()
-    }, 150)
+      if (visibleInput) {
+        visibleInput.focus()
+        // iOS sometimes needs selection to trigger keyboard
+        visibleInput.setSelectionRange(0, 0)
+      }
+    }
+    
+    // Use multiple attempts for iOS reliability
+    setTimeout(focusTitleInput, 100)
+    setTimeout(focusTitleInput, 300)
+    setTimeout(focusTitleInput, 500)
   }
 
   // Delete note
@@ -1110,7 +1127,7 @@ export default function NotesApp() {
 
   return (
     <>
-      <div className={`min-h-screen rounded-3xl bg-[#1C1C1C] text-white p-3 md:p-6 flex flex-col transition-all duration-500 ease-in-out flex-1 ${isRightSidebarOpen ? 'lg:mr-86 mr-0' : 'mr-0'}`}>
+      <div className="min-h-screen rounded-3xl bg-[#1C1C1C] text-white p-3 md:p-6 flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between mb-4 md:mb-6">
           <div className="flex items-center gap-2">
