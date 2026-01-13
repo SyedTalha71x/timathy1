@@ -342,7 +342,7 @@ const Tickets = () => {
       {/* Floating Action Button - Mobile Only */}
       <button
         onClick={handleNewTicketClick}
-        className="md:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-40"
+        className="md:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
         aria-label="Create Ticket"
       >
         <Plus size={22} />

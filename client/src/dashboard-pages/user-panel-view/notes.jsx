@@ -1046,12 +1046,21 @@ export default function NotesApp() {
                 className="relative group -ml-1 flex items-center"
                 ref={personalTooltipRef}
               >
-                <Info 
-                  size={16} 
-                  className="opacity-60 text-gray-400 cursor-help"
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setShowPersonalTooltip(!showPersonalTooltip)
+                  }}
                   onMouseEnter={() => setShowPersonalTooltip(true)}
                   onMouseLeave={() => setShowPersonalTooltip(false)}
-                />
+                  className="p-2 -m-2 touch-manipulation"
+                  aria-label="Personal Notes Information"
+                >
+                  <Info 
+                    size={16} 
+                    className="opacity-60 text-gray-400"
+                  />
+                </button>
                 
                 {/* Personal Tooltip */}
                 {showPersonalTooltip && (
@@ -1084,12 +1093,21 @@ export default function NotesApp() {
                 className="relative group -ml-1 flex items-center"
                 ref={studioTooltipRef}
               >
-                <Info 
-                  size={16} 
-                  className="opacity-60 text-gray-400 cursor-help"
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setShowStudioTooltip(!showStudioTooltip)
+                  }}
                   onMouseEnter={() => setShowStudioTooltip(true)}
                   onMouseLeave={() => setShowStudioTooltip(false)}
-                />
+                  className="p-2 -m-2 touch-manipulation"
+                  aria-label="Studio Notes Information"
+                >
+                  <Info 
+                    size={16} 
+                    className="opacity-60 text-gray-400"
+                  />
+                </button>
                 
                 {/* Studio Tooltip */}
                 {showStudioTooltip && (
@@ -2190,7 +2208,7 @@ export default function NotesApp() {
       {/* Floating Action Button - Mobile Only */}
       <button
         onClick={() => setIsCreateModalOpen(true)}
-        className="md:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-40"
+        className="md:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
         aria-label="Create Note"
       >
         <Plus size={22} />
