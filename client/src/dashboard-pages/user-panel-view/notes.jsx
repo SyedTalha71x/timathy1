@@ -417,6 +417,7 @@ export default function NotesApp() {
   const [viewingImage, setViewingImage] = useState(null)
   const [showMobileActionsMenu, setShowMobileActionsMenu] = useState(false)
   const [showAllAttachments, setShowAllAttachments] = useState(false)
+  const [showAllTags, setShowAllTags] = useState(false)
   
   const sortDropdownRef = useRef(null)
   const desktopSortDropdownRef = useRef(null)
@@ -479,6 +480,7 @@ export default function NotesApp() {
         setEditedAttachments(selectedNote.attachments || [])
         setHasUnsavedChanges(false)
         setShowAllAttachments(false) // Reset attachments view
+        setShowAllTags(false) // Reset tags view
         loadedNoteIdRef.current = selectedNote.id
       }
     } else {
@@ -488,6 +490,7 @@ export default function NotesApp() {
       setEditedAttachments([])
       setHasUnsavedChanges(false)
       setShowAllAttachments(false)
+      setShowAllTags(false)
       loadedNoteIdRef.current = null
     }
   }, [selectedNote])
@@ -710,10 +713,16 @@ export default function NotesApp() {
     setSelectedNote(note)
     
     // Focus title input after a short delay to allow render
+    // Longer delay for mobile overlay to fully render
     setTimeout(() => {
-      const titleInput = document.querySelector('[data-title-input]')
-      if (titleInput) titleInput.focus()
-    }, 100)
+      const titleInputs = document.querySelectorAll('[data-title-input]')
+      // Focus the visible one (last one in the DOM for mobile overlay)
+      const visibleInput = Array.from(titleInputs).find(input => {
+        const rect = input.getBoundingClientRect()
+        return rect.width > 0 && rect.height > 0
+      })
+      if (visibleInput) visibleInput.focus()
+    }, 150)
   }
 
   // Delete note
@@ -1138,7 +1147,7 @@ export default function NotesApp() {
                   placeholder="Search..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-[#0a0a0a] outline-none text-sm text-white rounded-lg px-3 py-2 pl-8 border border-[#333333] focus:border-[#3F74FF] transition-colors"
+                  className="w-full bg-[#0a0a0a] outline-none text-sm text-white rounded-lg px-3 py-2 pl-8 border border-[#333333] focus:border-orange-500 transition-colors"
                 />
               </div>
               
@@ -1273,7 +1282,7 @@ export default function NotesApp() {
                           setHasUnsavedChanges(true)
                         }}
                         placeholder="Untitled"
-                        className="w-full bg-transparent text-xl md:text-2xl font-bold text-white outline-none border-none hover:border-b-2 hover:border-gray-600 transition-all pb-1"
+                        className="w-full bg-transparent text-xl md:text-2xl font-bold text-white outline-none border-b-2 border-transparent hover:border-gray-600 focus:border-blue-500 transition-all pb-1"
                       />
                       <div className="flex flex-wrap gap-3 mt-2 text-[10px] md:text-xs text-gray-500">
                         <span>Created: {formatDateTime(selectedNote.createdAt)}</span>
@@ -1318,20 +1327,32 @@ export default function NotesApp() {
                   </div>
 
                   {/* Tags */}
-                  <div className="flex flex-wrap gap-2">
-                    {availableTags.map(tag => (
+                  <div>
+                    <div className="flex flex-wrap gap-2">
+                      {(showAllTags ? availableTags : availableTags.slice(0, 6)).map(tag => (
+                        <button
+                          key={tag.id}
+                          onClick={() => toggleTag(tag.id)}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
+                            editedTags.includes(tag.id) ? "text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                          }`}
+                          style={{ backgroundColor: editedTags.includes(tag.id) ? tag.color : undefined }}
+                        >
+                          <Tag size={10} />
+                          {tag.label}
+                        </button>
+                      ))}
+                    </div>
+                    {availableTags.length > 6 && (
                       <button
-                        key={tag.id}
-                        onClick={() => toggleTag(tag.id)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
-                          editedTags.includes(tag.id) ? "text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
-                        }`}
-                        style={{ backgroundColor: editedTags.includes(tag.id) ? tag.color : undefined }}
+                        onClick={() => setShowAllTags(!showAllTags)}
+                        className="mt-2 text-sm text-orange-400 hover:text-orange-300 transition-colors"
                       >
-                        <Tag size={10} />
-                        {tag.label}
+                        {showAllTags 
+                          ? 'Show less' 
+                          : `Show ${availableTags.length - 6} more`}
                       </button>
-                    ))}
+                    )}
                   </div>
                 </div>
 
@@ -1534,7 +1555,13 @@ export default function NotesApp() {
             {/* Right side: Pin + 3-Dot Menu */}
             <div className="flex items-center gap-3">
               {selectedNote.isPinned && (
-                <Pin size={20} className="text-orange-400 fill-orange-400" />
+                <button
+                  onClick={() => togglePin(selectedNote.id)}
+                  className="text-orange-400 p-1 hover:bg-gray-800 rounded-lg transition-colors"
+                  aria-label="Unpin note"
+                >
+                  <Pin size={20} className="fill-orange-400" />
+                </button>
               )}
               
               {/* 3-Dot Actions Menu */}
@@ -1627,7 +1654,7 @@ export default function NotesApp() {
                   setHasUnsavedChanges(true)
                 }}
                 placeholder="Untitled"
-                className="w-full bg-transparent text-xl font-bold text-white outline-none border-none"
+                className="w-full bg-transparent text-xl font-bold text-white outline-none border-b-2 border-transparent hover:border-gray-600 focus:border-blue-500 transition-all pb-1"
               />
               <div className="flex flex-wrap gap-3 mt-2 text-xs text-gray-500">
                 <span>Created: {formatDateTime(selectedNote.createdAt)}</span>
@@ -1640,7 +1667,7 @@ export default function NotesApp() {
             {/* Tags */}
             <div className="p-4 border-b border-gray-800">
               <div className="flex flex-wrap gap-2">
-                {availableTags.map(tag => (
+                {(showAllTags ? availableTags : availableTags.slice(0, 4)).map(tag => (
                   <button
                     key={tag.id}
                     onClick={() => toggleTag(tag.id)}
@@ -1654,6 +1681,16 @@ export default function NotesApp() {
                   </button>
                 ))}
               </div>
+              {availableTags.length > 4 && (
+                <button
+                  onClick={() => setShowAllTags(!showAllTags)}
+                  className="mt-2 text-sm text-orange-400 hover:text-orange-300 transition-colors"
+                >
+                  {showAllTags 
+                    ? 'Show less' 
+                    : `Show ${availableTags.length - 4} more`}
+                </button>
+              )}
             </div>
 
             {/* Editor */}
