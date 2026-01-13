@@ -170,10 +170,14 @@ const WysiwygEditor = ({ value, initialValue, onChange, placeholder, className =
         padding-bottom: 100px !important;
       }
       .notes-editor-wrapper .ql-editor p {
-        margin-bottom: 0.5em;
+        margin-bottom: 0;
       }
       .notes-editor-wrapper .ql-editor p:last-child {
         margin-bottom: 0;
+      }
+      /* Add slight spacing only between paragraphs, not within */
+      .notes-editor-wrapper .ql-editor p + p {
+        margin-top: 0.3em;
       }
       .notes-editor-wrapper .ql-toolbar.ql-snow {
         border: none !important;
@@ -261,12 +265,10 @@ const WysiwygEditor = ({ value, initialValue, onChange, placeholder, className =
       @media (max-width: 767px) {
         .mobile-note-scroll {
           scroll-behavior: smooth;
-          /* iOS fix: prevent clipping of fixed positioned children */
-          -webkit-overflow-scrolling: auto;
         }
         .mobile-editor-container {
           position: relative;
-          z-index: 50;
+          z-index: 9999;
         }
         .mobile-editor-container .notes-editor-wrapper {
           border: none !important;
@@ -280,14 +282,17 @@ const WysiwygEditor = ({ value, initialValue, onChange, placeholder, className =
           background-color: #161616 !important;
           border-bottom: 1px solid #404040 !important;
           border-radius: 0 !important;
-          overflow-x: auto !important;
-          overflow-y: visible !important;
-          position: relative;
-          z-index: 100;
-          -webkit-overflow-scrolling: touch;
+          overflow: visible !important;
+          position: sticky;
+          top: 0;
+          z-index: 99999;
           scrollbar-width: none;
           -ms-overflow-style: none;
           align-items: center;
+        }
+        /* Wrapper for horizontal scrolling without clipping dropdowns */
+        .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow > .ql-formats:first-child {
+          margin-left: 0;
         }
         .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow::-webkit-scrollbar {
           display: none;
@@ -298,6 +303,7 @@ const WysiwygEditor = ({ value, initialValue, onChange, placeholder, className =
           margin-right: 6px !important;
           align-items: center;
           gap: 2px;
+          overflow: visible !important;
         }
         /* Uniform button size */
         .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow button {
@@ -343,9 +349,9 @@ const WysiwygEditor = ({ value, initialValue, onChange, placeholder, className =
           padding: 16px !important;
           min-height: 200px !important;
         }
-        /* Dropdown styling - FIXED position to escape overflow */
+        /* Dropdown styling - ABSOLUTE position for iOS Safari compatibility */
         .mobile-editor-container .notes-editor-wrapper .ql-snow .ql-picker-options {
-          position: fixed !important;
+          position: absolute !important;
           background-color: #1f1f1f !important;
           border: 1px solid #404040 !important;
           border-radius: 8px !important;
@@ -354,10 +360,11 @@ const WysiwygEditor = ({ value, initialValue, onChange, placeholder, className =
           max-height: 200px !important;
           overflow-y: auto !important;
           min-width: 140px !important;
-          left: 16px !important;
-          right: 16px !important;
-          top: 200px !important;
-          width: auto !important;
+          left: 0 !important;
+          right: auto !important;
+          top: 100% !important;
+          margin-top: 4px !important;
+          width: max-content !important;
         }
         /* Ensure expanded picker is visible on iOS */
         .mobile-editor-container .notes-editor-wrapper .ql-snow .ql-picker.ql-expanded .ql-picker-options {
@@ -371,10 +378,14 @@ const WysiwygEditor = ({ value, initialValue, onChange, placeholder, className =
           min-width: 176px !important;
           max-width: 200px !important;
           padding: 8px !important;
-          left: 50% !important;
-          right: auto !important;
-          margin-left: -88px !important;
-          top: 200px !important;
+          left: auto !important;
+          right: 0 !important;
+          top: 100% !important;
+          margin-top: 4px !important;
+        }
+        /* Ensure picker parent has relative positioning */
+        .mobile-editor-container .notes-editor-wrapper .ql-snow .ql-picker {
+          position: relative !important;
         }
         /* Link tooltip styling */
         .mobile-editor-container .notes-editor-wrapper .ql-snow .ql-tooltip {
@@ -1127,7 +1138,7 @@ export default function NotesApp() {
 
   return (
     <>
-      <div className="min-h-screen rounded-3xl bg-[#1C1C1C] text-white p-3 md:p-6 flex flex-col">
+      <div className={`min-h-screen rounded-3xl bg-[#1C1C1C] text-white p-3 md:p-6 flex flex-col transition-all duration-500 ease-in-out flex-1 ${isRightSidebarOpen ? 'lg:mr-86 mr-0' : 'mr-0'}`}>
         {/* Header */}
         <div className="flex items-center justify-between mb-4 md:mb-6">
           <div className="flex items-center gap-2">
