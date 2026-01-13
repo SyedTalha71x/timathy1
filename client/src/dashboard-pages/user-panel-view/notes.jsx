@@ -124,6 +124,13 @@ const WysiwygEditor = ({ value, initialValue, onChange, placeholder, className =
   useEffect(() => {
     const style = document.createElement('style')
     style.textContent = `
+      /* Line clamp utility for sidebar */
+      .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
       .notes-editor-wrapper {
         border-radius: 12px;
         overflow: hidden;
@@ -254,39 +261,35 @@ const WysiwygEditor = ({ value, initialValue, onChange, placeholder, className =
       @media (max-width: 767px) {
         .mobile-note-scroll {
           scroll-behavior: smooth;
+          /* Allow positioned elements to escape */
+          contain: none !important;
         }
         .mobile-editor-container {
           position: relative;
+          z-index: 50;
         }
         .mobile-editor-container .notes-editor-wrapper {
-          overflow: visible !important;
           border: none !important;
           border-radius: 0 !important;
+          overflow: visible !important;
         }
         .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow {
-          position: sticky;
-          top: 0;
-          z-index: 10;
           display: flex;
-          flex-wrap: nowrap;
-          overflow-x: auto;
-          overflow-y: hidden;
-          padding: 8px 16px !important;
-          gap: 2px;
-          -webkit-overflow-scrolling: touch;
-          scrollbar-width: none;
-          -ms-overflow-style: none;
+          flex-wrap: wrap;
+          padding: 8px 12px !important;
+          gap: 4px;
           background-color: #161616 !important;
           border-bottom: 1px solid #404040 !important;
           border-radius: 0 !important;
-        }
-        .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow::-webkit-scrollbar {
-          display: none;
+          overflow: visible !important;
+          position: relative;
+          z-index: 100;
         }
         .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow .ql-formats {
           display: flex;
           flex-shrink: 0;
           margin-right: 8px !important;
+          overflow: visible !important;
         }
         .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow button {
           width: 32px !important;
@@ -295,6 +298,7 @@ const WysiwygEditor = ({ value, initialValue, onChange, placeholder, className =
         }
         .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow .ql-picker {
           height: 32px !important;
+          overflow: visible !important;
         }
         .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow .ql-picker-label {
           padding: 4px 6px !important;
@@ -307,16 +311,41 @@ const WysiwygEditor = ({ value, initialValue, onChange, placeholder, className =
           padding: 16px !important;
           min-height: 200px !important;
         }
-        /* Mobile popup fix - high z-index for dropdowns */
+        /* Dropdown styling */
+        .mobile-editor-container .notes-editor-wrapper .ql-snow .ql-picker.ql-expanded {
+          overflow: visible !important;
+          z-index: 9999 !important;
+        }
         .mobile-editor-container .notes-editor-wrapper .ql-snow .ql-picker-options {
-          z-index: 9999 !important;
-          position: fixed !important;
+          background-color: #1f1f1f !important;
+          border: 1px solid #404040 !important;
+          border-radius: 8px !important;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6) !important;
+          z-index: 99999 !important;
+          max-height: 250px !important;
+          overflow-y: auto !important;
         }
+        /* Link tooltip styling */
         .mobile-editor-container .notes-editor-wrapper .ql-snow .ql-tooltip {
-          z-index: 9999 !important;
+          background-color: #1f1f1f !important;
+          border: 1px solid #404040 !important;
+          z-index: 99999 !important;
+          left: 16px !important;
+          right: 16px !important;
+          width: auto !important;
+          padding: 12px !important;
+          border-radius: 8px !important;
         }
-        .mobile-editor-container .notes-editor-wrapper .ql-snow .ql-expanded .ql-picker-options {
-          z-index: 9999 !important;
+        .mobile-editor-container .notes-editor-wrapper .ql-snow .ql-tooltip input[type="text"] {
+          width: 100% !important;
+          background-color: #161616 !important;
+          border: 1px solid #404040 !important;
+          border-radius: 6px !important;
+          padding: 8px !important;
+          color: white !important;
+        }
+        .mobile-editor-container .notes-editor-wrapper .ql-snow .ql-tooltip a {
+          color: #f97316 !important;
         }
       }
     `
@@ -357,7 +386,6 @@ const SortableNoteItem = ({ note, isSelected, onClick, availableTags, onPin }) =
   }
 
   const stripText = stripHtmlTags(note.content)
-  const preview = stripText.length > 60 ? stripText.substring(0, 60) + '...' : stripText
 
   return (
     <div
@@ -370,7 +398,7 @@ const SortableNoteItem = ({ note, isSelected, onClick, availableTags, onPin }) =
       }`}
       onClick={onClick}
     >
-      <div className="flex items-start gap-2 p-3">
+      <div className="flex items-start gap-2 p-3 overflow-hidden">
         {/* Drag Handle */}
         <div
           {...attributes}
@@ -380,9 +408,9 @@ const SortableNoteItem = ({ note, isSelected, onClick, availableTags, onPin }) =
           <GripVertical size={14} />
         </div>
 
-        {/* Note Content */}
+        {/* Note Content - constrained width */}
         <div className="flex-1 min-w-0 overflow-hidden">
-          <div className="flex items-start justify-between gap-2 mb-1 min-w-0">
+          <div className="flex items-start justify-between gap-2 mb-1">
             <h4 className={`text-sm font-medium truncate ${note.title ? 'text-white' : 'text-gray-500 italic'}`}>
               {note.title || 'Untitled'}
             </h4>
@@ -391,14 +419,23 @@ const SortableNoteItem = ({ note, isSelected, onClick, availableTags, onPin }) =
             )}
           </div>
           
-          <p className="text-xs text-gray-400 line-clamp-2 mb-2">
-            {preview}
+          <p 
+            className="text-xs text-gray-400 mb-2"
+            style={{
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              wordBreak: 'break-word'
+            }}
+          >
+            {stripText || 'No content'}
           </p>
 
           {/* Tags */}
           {note.tags && note.tags.length > 0 && (
             <div className="flex flex-wrap gap-1">
-              {note.tags.slice(0, 2).map(tagId => {
+              {note.tags.slice(0, 4).map(tagId => {
                 const tag = availableTags.find(t => t.id === tagId)
                 return tag ? (
                   <span
@@ -410,8 +447,8 @@ const SortableNoteItem = ({ note, isSelected, onClick, availableTags, onPin }) =
                   </span>
                 ) : null
               })}
-              {note.tags.length > 2 && (
-                <span className="text-[10px] text-gray-500">+{note.tags.length - 2}</span>
+              {note.tags.length > 4 && (
+                <span className="text-[10px] text-gray-500">+{note.tags.length - 4}</span>
               )}
             </div>
           )}
@@ -1166,7 +1203,7 @@ export default function NotesApp() {
                   placeholder="Search..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-[#0a0a0a] outline-none text-sm text-white rounded-lg px-3 py-2 pl-8 border border-[#333333] focus:border-orange-500 transition-colors"
+                  className="w-full bg-[#0a0a0a] outline-none text-sm text-white rounded-lg px-3 py-2 pl-8 border border-[#333333] focus:border-blue-500 transition-colors selection:bg-blue-500 selection:text-white"
                 />
               </div>
               
@@ -1180,7 +1217,7 @@ export default function NotesApp() {
                   className="w-10 h-10 flex items-center justify-center bg-[#2F2F2F] text-gray-300 rounded-lg hover:bg-[#3F3F3F] transition-colors"
                   title="Sort"
                 >
-                  {getSortIcon()}
+                  <ArrowUpDown size={14} />
                 </button>
 
                 {showSortDropdown && (
