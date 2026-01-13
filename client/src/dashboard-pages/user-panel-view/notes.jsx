@@ -66,11 +66,14 @@ const DEMO_NOTES = {
 }
 
 // Helper function to strip HTML tags for preview
+// Helper function to strip HTML tags and normalize whitespace for preview
 const stripHtmlTags = (html) => {
   if (!html) return ''
   const tmp = document.createElement('div')
   tmp.innerHTML = html
-  return tmp.textContent || tmp.innerText || ''
+  // Get text content and normalize whitespace (replace multiple spaces/newlines with single space)
+  const text = tmp.textContent || tmp.innerText || ''
+  return text.replace(/\s+/g, ' ').trim()
 }
 
 // Quill editor configuration - defined OUTSIDE component to prevent re-creation on renders
@@ -127,6 +130,10 @@ const WysiwygEditor = ({ value, initialValue, onChange, placeholder, className =
         border: 1px solid #404040;
         display: flex;
         flex-direction: column;
+        transition: border-color 0.2s ease;
+      }
+      .notes-editor-wrapper:focus-within {
+        border-color: #3b82f6;
       }
       .notes-editor-wrapper.full-height {
         height: 100%;
@@ -164,10 +171,86 @@ const WysiwygEditor = ({ value, initialValue, onChange, placeholder, className =
       .notes-editor-wrapper .ql-toolbar.ql-snow {
         border: none !important;
         border-bottom: 1px solid #404040 !important;
-        background-color: #2a2a2a !important;
+        background-color: #161616 !important;
         flex-shrink: 0;
       }
-      /* Mobile: Sticky toolbar with horizontal scroll */
+      .notes-editor-wrapper .ql-container.ql-snow {
+        border: none !important;
+        background-color: #1f1f1f !important;
+      }
+      /* White icons for toolbar */
+      .notes-editor-wrapper .ql-snow .ql-stroke {
+        stroke: #ffffff !important;
+      }
+      .notes-editor-wrapper .ql-snow .ql-fill {
+        fill: #ffffff !important;
+      }
+      .notes-editor-wrapper .ql-snow .ql-picker-label {
+        color: #ffffff !important;
+      }
+      .notes-editor-wrapper .ql-snow .ql-picker-label .ql-stroke {
+        stroke: #ffffff !important;
+      }
+      /* Dropdown styles */
+      .notes-editor-wrapper .ql-snow .ql-picker-options {
+        background-color: #1f1f1f !important;
+        border-color: #404040 !important;
+        z-index: 100 !important;
+      }
+      .notes-editor-wrapper .ql-snow .ql-picker-item {
+        color: #e5e7eb !important;
+      }
+      /* Tooltip/popup styles with high z-index */
+      .notes-editor-wrapper .ql-snow .ql-tooltip {
+        background-color: #1f1f1f !important;
+        border-color: #404040 !important;
+        color: #e5e7eb !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+        z-index: 100 !important;
+      }
+      .notes-editor-wrapper .ql-snow .ql-tooltip input[type="text"] {
+        color: #e5e7eb !important;
+        background-color: #161616 !important;
+        border: 1px solid #404040 !important;
+        padding: 6px 10px !important;
+        border-radius: 6px !important;
+      }
+      .notes-editor-wrapper .ql-snow .ql-tooltip input[type="text"]::placeholder {
+        color: #6b7280 !important;
+      }
+      .notes-editor-wrapper .ql-snow .ql-tooltip a.ql-action,
+      .notes-editor-wrapper .ql-snow .ql-tooltip a.ql-remove {
+        color: #f97316 !important;
+      }
+      /* Hover/active states - orange accent */
+      .notes-editor-wrapper .ql-snow.ql-toolbar button:hover .ql-stroke,
+      .notes-editor-wrapper .ql-snow .ql-toolbar button:hover .ql-stroke,
+      .notes-editor-wrapper .ql-snow.ql-toolbar button.ql-active .ql-stroke,
+      .notes-editor-wrapper .ql-snow .ql-toolbar button.ql-active .ql-stroke {
+        stroke: #f97316 !important;
+      }
+      .notes-editor-wrapper .ql-snow.ql-toolbar button:hover .ql-fill,
+      .notes-editor-wrapper .ql-snow .ql-toolbar button:hover .ql-fill,
+      .notes-editor-wrapper .ql-snow.ql-toolbar button.ql-active .ql-fill,
+      .notes-editor-wrapper .ql-snow .ql-toolbar button.ql-active .ql-fill {
+        fill: #f97316 !important;
+      }
+      .notes-editor-wrapper .ql-snow.ql-toolbar .ql-picker-label:hover,
+      .notes-editor-wrapper .ql-snow .ql-toolbar .ql-picker-label:hover,
+      .notes-editor-wrapper .ql-snow.ql-toolbar .ql-picker-label.ql-active,
+      .notes-editor-wrapper .ql-snow .ql-toolbar .ql-picker-label.ql-active {
+        color: #f97316 !important;
+      }
+      .notes-editor-wrapper .ql-snow.ql-toolbar .ql-picker-label:hover .ql-stroke,
+      .notes-editor-wrapper .ql-snow .ql-toolbar .ql-picker-label:hover .ql-stroke {
+        stroke: #f97316 !important;
+      }
+      /* Color picker popup fix */
+      .notes-editor-wrapper .ql-snow .ql-color-picker .ql-picker-options,
+      .notes-editor-wrapper .ql-snow .ql-background .ql-picker-options {
+        padding: 3px 5px !important;
+        width: 152px !important;
+      }
       @media (max-width: 767px) {
         .mobile-note-scroll {
           scroll-behavior: smooth;
@@ -193,7 +276,7 @@ const WysiwygEditor = ({ value, initialValue, onChange, placeholder, className =
           -webkit-overflow-scrolling: touch;
           scrollbar-width: none;
           -ms-overflow-style: none;
-          background-color: #1C1C1C !important;
+          background-color: #161616 !important;
           border-bottom: 1px solid #404040 !important;
           border-radius: 0 !important;
         }
@@ -224,68 +307,17 @@ const WysiwygEditor = ({ value, initialValue, onChange, placeholder, className =
           padding: 16px !important;
           min-height: 200px !important;
         }
-      }
-      .notes-editor-wrapper .ql-container.ql-snow {
-        border: none !important;
-        background-color: #1f1f1f !important;
-      }
-      .notes-editor-wrapper .ql-snow .ql-stroke {
-        stroke: #9ca3af !important;
-      }
-      .notes-editor-wrapper .ql-snow .ql-fill {
-        fill: #9ca3af !important;
-      }
-      .notes-editor-wrapper .ql-snow .ql-picker-label {
-        color: #9ca3af !important;
-      }
-      .notes-editor-wrapper .ql-snow .ql-picker-options {
-        background-color: #2a2a2a !important;
-        border-color: #404040 !important;
-      }
-      .notes-editor-wrapper .ql-snow .ql-picker-item {
-        color: #e5e7eb !important;
-      }
-      .notes-editor-wrapper .ql-snow .ql-tooltip {
-        background-color: #2a2a2a !important;
-        border-color: #404040 !important;
-        color: #e5e7eb !important;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
-      }
-      .notes-editor-wrapper .ql-snow .ql-tooltip input[type="text"] {
-        color: #e5e7eb !important;
-        background-color: #1f1f1f !important;
-        border: 1px solid #404040 !important;
-        padding: 6px 10px !important;
-        border-radius: 6px !important;
-      }
-      .notes-editor-wrapper .ql-snow .ql-tooltip input[type="text"]::placeholder {
-        color: #6b7280 !important;
-      }
-      .notes-editor-wrapper .ql-snow .ql-tooltip a.ql-action,
-      .notes-editor-wrapper .ql-snow .ql-tooltip a.ql-remove {
-        color: #f97316 !important;
-      }
-      .notes-editor-wrapper .ql-snow.ql-toolbar button:hover .ql-stroke,
-      .notes-editor-wrapper .ql-snow .ql-toolbar button:hover .ql-stroke,
-      .notes-editor-wrapper .ql-snow.ql-toolbar button.ql-active .ql-stroke,
-      .notes-editor-wrapper .ql-snow .ql-toolbar button.ql-active .ql-stroke {
-        stroke: #f97316 !important;
-      }
-      .notes-editor-wrapper .ql-snow.ql-toolbar button:hover .ql-fill,
-      .notes-editor-wrapper .ql-snow .ql-toolbar button:hover .ql-fill,
-      .notes-editor-wrapper .ql-snow.ql-toolbar button.ql-active .ql-fill,
-      .notes-editor-wrapper .ql-snow .ql-toolbar button.ql-active .ql-fill {
-        fill: #f97316 !important;
-      }
-      .notes-editor-wrapper .ql-snow.ql-toolbar .ql-picker-label:hover,
-      .notes-editor-wrapper .ql-snow .ql-toolbar .ql-picker-label:hover,
-      .notes-editor-wrapper .ql-snow.ql-toolbar .ql-picker-label.ql-active,
-      .notes-editor-wrapper .ql-snow .ql-toolbar .ql-picker-label.ql-active {
-        color: #f97316 !important;
-      }
-      .notes-editor-wrapper .ql-snow.ql-toolbar .ql-picker-label:hover .ql-stroke,
-      .notes-editor-wrapper .ql-snow .ql-toolbar .ql-picker-label:hover .ql-stroke {
-        stroke: #f97316 !important;
+        /* Mobile popup fix - high z-index for dropdowns */
+        .mobile-editor-container .notes-editor-wrapper .ql-snow .ql-picker-options {
+          z-index: 9999 !important;
+          position: fixed !important;
+        }
+        .mobile-editor-container .notes-editor-wrapper .ql-snow .ql-tooltip {
+          z-index: 9999 !important;
+        }
+        .mobile-editor-container .notes-editor-wrapper .ql-snow .ql-expanded .ql-picker-options {
+          z-index: 9999 !important;
+        }
       }
     `
     document.head.appendChild(style)
@@ -495,25 +527,12 @@ export default function NotesApp() {
     }
   }, [selectedNote])
 
-  // Auto-save functionality - Real-time (300ms debounce)
+  // Auto-save functionality - Instant updates for responsive sidebar
   useEffect(() => {
     if (!selectedNote || !hasUnsavedChanges) return
 
-    // Clear existing timeout
-    if (autoSaveTimeoutRef.current) {
-      clearTimeout(autoSaveTimeoutRef.current)
-    }
-
-    // Set new timeout for auto-save (300ms for real-time feel)
-    autoSaveTimeoutRef.current = setTimeout(() => {
-      saveCurrentNote()
-    }, 300)
-
-    return () => {
-      if (autoSaveTimeoutRef.current) {
-        clearTimeout(autoSaveTimeoutRef.current)
-      }
-    }
+    // Save immediately for instant sidebar updates
+    saveCurrentNote()
   }, [editedTitle, editedContent, editedTags, editedAttachments, hasUnsavedChanges])
 
   // Keyboard shortcuts - only active when NOT in any editable area
@@ -1282,7 +1301,7 @@ export default function NotesApp() {
                           setHasUnsavedChanges(true)
                         }}
                         placeholder="Untitled"
-                        className="w-full bg-transparent text-xl md:text-2xl font-bold text-white outline-none border-b-2 border-transparent hover:border-gray-600 focus:border-blue-500 transition-all pb-1"
+                        className="w-full bg-transparent text-xl md:text-2xl font-bold text-white outline-none border-b-2 border-transparent hover:border-gray-600 focus:border-blue-500 transition-all pb-1 truncate"
                       />
                       <div className="flex flex-wrap gap-3 mt-2 text-[10px] md:text-xs text-gray-500">
                         <span>Created: {formatDateTime(selectedNote.createdAt)}</span>
