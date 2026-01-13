@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { useState, useRef, useEffect, useMemo } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Search, Plus, X, GripVertical, Edit, Copy, Trash2, ArrowUpDown, ArrowUp, ArrowDown, Paperclip, Tag, Pin, PinOff, ArrowRightLeft, Info } from "lucide-react"
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
@@ -73,138 +73,160 @@ const stripHtmlTags = (html) => {
   return tmp.textContent || tmp.innerText || ''
 }
 
-// WysiwygEditor component
-const WysiwygEditor = ({ value, onChange, placeholder, className = "" }) => {
-  // CRITICAL: modules must be memoized to prevent ReactQuill from losing focus/breaking on re-render
-  const modules = useMemo(() => ({
-    toolbar: [
-      [{ 'header': [1, 2, 3, false] }],
-      ['bold', 'italic', 'underline', 'strike'],
-      [{ 'color': [] }, { 'background': [] }],
-      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-      [{ 'align': [] }],
-      ['link'],
-      ['clean']
-    ],
-  }), [])
+// Quill editor configuration - defined OUTSIDE component to prevent re-creation on renders
+// This is CRITICAL: ReactQuill compares modules/formats by reference, new objects cause reinitialization
+const QUILL_MODULES = {
+  toolbar: [
+    [{ 'header': [1, 2, 3, false] }],
+    ['bold', 'italic', 'underline', 'strike'],
+    [{ 'color': [] }, { 'background': [] }],
+    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+    [{ 'align': [] }],
+    ['link'],
+    ['clean']
+  ],
+}
 
-  const formats = useMemo(() => [
-    'header',
-    'bold', 'italic', 'underline', 'strike',
-    'color', 'background',
-    'list', 'bullet',
-    'align',
-    'link'
-  ], [])
+const QUILL_FORMATS = [
+  'header',
+  'bold', 'italic', 'underline', 'strike',
+  'color', 'background',
+  'list', 'bullet',
+  'align',
+  'link'
+]
+
+// WysiwygEditor component - uses internal state to prevent cursor jumping
+const WysiwygEditor = ({ value, initialValue, onChange, placeholder, className = "", noteId }) => {
+  const quillRef = useRef(null)
+  // Use initialValue for first render (from selectedNote.content), fallback to value
+  const [internalValue, setInternalValue] = useState(initialValue ?? value)
+  const currentNoteIdRef = useRef(noteId)
+  
+  // Only sync when switching to a DIFFERENT note (handled by key prop remounting)
+  // This effect handles edge cases where value might update after mount
+  useEffect(() => {
+    if (noteId !== currentNoteIdRef.current) {
+      setInternalValue(initialValue ?? value)
+      currentNoteIdRef.current = noteId
+    }
+  }, [noteId, value, initialValue])
+  
+  // Handle internal changes
+  const handleChange = (newValue) => {
+    setInternalValue(newValue)
+    onChange(newValue)
+  }
 
   useEffect(() => {
     const style = document.createElement('style')
     style.textContent = `
-      .quill-wrapper {
+      .notes-editor-wrapper {
         border-radius: 12px;
         overflow: hidden;
         border: 1px solid #404040;
         display: flex;
         flex-direction: column;
       }
-      .quill-wrapper.full-height {
+      .notes-editor-wrapper.full-height {
         height: 100%;
       }
-      .quill-wrapper.full-height .quill {
+      .notes-editor-wrapper.full-height .quill {
         display: flex;
         flex-direction: column;
         height: 100%;
       }
-      .quill-wrapper.full-height .ql-container {
+      .notes-editor-wrapper.full-height .ql-container {
         flex: 1;
         overflow: auto;
       }
-      .quill-wrapper.full-height .ql-editor {
+      .notes-editor-wrapper.full-height .ql-editor {
         min-height: 100% !important;
       }
-      .ql-editor.ql-blank::before {
+      .notes-editor-wrapper .ql-editor.ql-blank::before {
         color: #9ca3af !important;
         opacity: 0.7 !important;
       }
-      .ql-editor {
+      .notes-editor-wrapper .ql-editor {
         color: #e5e7eb !important;
         background-color: #1f1f1f !important;
         min-height: 300px;
         font-size: 15px;
         line-height: 1.6;
+        padding-bottom: 100px !important;
       }
-      .ql-editor p {
+      .notes-editor-wrapper .ql-editor p {
         margin-bottom: 0.5em;
       }
-      .ql-editor p:last-child {
+      .notes-editor-wrapper .ql-editor p:last-child {
         margin-bottom: 0;
       }
-      .ql-toolbar.ql-snow {
+      .notes-editor-wrapper .ql-toolbar.ql-snow {
         border: none !important;
         border-bottom: 1px solid #404040 !important;
         background-color: #2a2a2a !important;
         flex-shrink: 0;
       }
-      .ql-container.ql-snow {
+      .notes-editor-wrapper .ql-container.ql-snow {
         border: none !important;
         background-color: #1f1f1f !important;
       }
-      .ql-snow .ql-stroke {
+      .notes-editor-wrapper .ql-snow .ql-stroke {
         stroke: #9ca3af !important;
       }
-      .ql-snow .ql-fill {
+      .notes-editor-wrapper .ql-snow .ql-fill {
         fill: #9ca3af !important;
       }
-      .ql-snow .ql-picker-label {
+      .notes-editor-wrapper .ql-snow .ql-picker-label {
         color: #9ca3af !important;
       }
-      .ql-snow .ql-picker-options {
+      .notes-editor-wrapper .ql-snow .ql-picker-options {
         background-color: #2a2a2a !important;
         border-color: #404040 !important;
       }
-      .ql-snow .ql-picker-item {
+      .notes-editor-wrapper .ql-snow .ql-picker-item {
         color: #e5e7eb !important;
       }
-      .ql-snow .ql-tooltip {
+      .notes-editor-wrapper .ql-snow .ql-tooltip {
         background-color: #2a2a2a !important;
         border-color: #404040 !important;
         color: #e5e7eb !important;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
       }
-      .ql-snow .ql-tooltip input[type="text"] {
+      .notes-editor-wrapper .ql-snow .ql-tooltip input[type="text"] {
         color: #e5e7eb !important;
         background-color: #1f1f1f !important;
         border: 1px solid #404040 !important;
         padding: 6px 10px !important;
         border-radius: 6px !important;
       }
-      .ql-snow .ql-tooltip input[type="text"]::placeholder {
+      .notes-editor-wrapper .ql-snow .ql-tooltip input[type="text"]::placeholder {
         color: #6b7280 !important;
       }
-      .ql-snow .ql-tooltip a.ql-action,
-      .ql-snow .ql-tooltip a.ql-remove {
+      .notes-editor-wrapper .ql-snow .ql-tooltip a.ql-action,
+      .notes-editor-wrapper .ql-snow .ql-tooltip a.ql-remove {
         color: #f97316 !important;
       }
-      .ql-snow.ql-toolbar button:hover .ql-stroke,
-      .ql-snow .ql-toolbar button:hover .ql-stroke,
-      .ql-snow.ql-toolbar button.ql-active .ql-stroke,
-      .ql-snow .ql-toolbar button.ql-active .ql-stroke {
+      .notes-editor-wrapper .ql-snow.ql-toolbar button:hover .ql-stroke,
+      .notes-editor-wrapper .ql-snow .ql-toolbar button:hover .ql-stroke,
+      .notes-editor-wrapper .ql-snow.ql-toolbar button.ql-active .ql-stroke,
+      .notes-editor-wrapper .ql-snow .ql-toolbar button.ql-active .ql-stroke {
         stroke: #f97316 !important;
       }
-      .ql-snow.ql-toolbar button:hover .ql-fill,
-      .ql-snow .ql-toolbar button:hover .ql-fill,
-      .ql-snow.ql-toolbar button.ql-active .ql-fill,
-      .ql-snow .ql-toolbar button.ql-active .ql-fill {
+      .notes-editor-wrapper .ql-snow.ql-toolbar button:hover .ql-fill,
+      .notes-editor-wrapper .ql-snow .ql-toolbar button:hover .ql-fill,
+      .notes-editor-wrapper .ql-snow.ql-toolbar button.ql-active .ql-fill,
+      .notes-editor-wrapper .ql-snow .ql-toolbar button.ql-active .ql-fill {
         fill: #f97316 !important;
       }
-      .ql-snow.ql-toolbar .ql-picker-label:hover,
-      .ql-snow .ql-toolbar .ql-picker-label:hover,
-      .ql-snow.ql-toolbar .ql-picker-label.ql-active,
-      .ql-snow .ql-toolbar .ql-picker-label.ql-active {
+      .notes-editor-wrapper .ql-snow.ql-toolbar .ql-picker-label:hover,
+      .notes-editor-wrapper .ql-snow .ql-toolbar .ql-picker-label:hover,
+      .notes-editor-wrapper .ql-snow.ql-toolbar .ql-picker-label.ql-active,
+      .notes-editor-wrapper .ql-snow .ql-toolbar .ql-picker-label.ql-active {
         color: #f97316 !important;
       }
-      .ql-snow.ql-toolbar .ql-picker-label:hover .ql-stroke,
-      .ql-snow .ql-toolbar .ql-picker-label:hover .ql-stroke {
+      .notes-editor-wrapper .ql-snow.ql-toolbar .ql-picker-label:hover .ql-stroke,
+      .notes-editor-wrapper .ql-snow .ql-toolbar .ql-picker-label:hover .ql-stroke {
         stroke: #f97316 !important;
       }
     `
@@ -213,12 +235,13 @@ const WysiwygEditor = ({ value, onChange, placeholder, className = "" }) => {
   }, [])
 
   return (
-    <div className={`quill-wrapper ${className}`}>
+    <div className={`notes-editor-wrapper ${className}`}>
       <ReactQuill
-        value={value}
-        onChange={onChange}
-        modules={modules}
-        formats={formats}
+        ref={quillRef}
+        value={internalValue}
+        onChange={handleChange}
+        modules={QUILL_MODULES}
+        formats={QUILL_FORMATS}
         placeholder={placeholder}
         theme="snow"
       />
@@ -252,8 +275,8 @@ const SortableNoteItem = ({ note, isSelected, onClick, availableTags, onPin }) =
       style={style}
       className={`group relative cursor-pointer transition-colors select-none border-b border-gray-800 ${
         isSelected 
-          ? 'bg-gray-800/80 border-l-4 border-l-orange-500' 
-          : 'hover:bg-gray-800/50 active:bg-gray-800/70 border-l-4 border-l-transparent'
+          ? 'bg-gray-800/80' 
+          : 'hover:bg-gray-800/50 active:bg-gray-800/70'
       }`}
       onClick={onClick}
     >
@@ -268,13 +291,13 @@ const SortableNoteItem = ({ note, isSelected, onClick, availableTags, onPin }) =
         </div>
 
         {/* Note Content */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between gap-2 mb-1">
-            <h4 className={`text-sm font-medium truncate flex-1 ${note.title ? 'text-white' : 'text-gray-500 italic'}`}>
+        <div className="flex-1 min-w-0 overflow-hidden">
+          <div className="flex items-start justify-between gap-2 mb-1 min-w-0">
+            <h4 className={`text-sm font-medium truncate ${note.title ? 'text-white' : 'text-gray-500 italic'}`}>
               {note.title || 'Untitled'}
             </h4>
             {note.isPinned && (
-              <Pin size={12} className="text-orange-400 fill-orange-400 flex-shrink-0 mt-1" />
+              <Pin size={12} className="text-orange-400 fill-orange-400 flex-shrink-0 mt-0.5" />
             )}
           </div>
           
@@ -342,10 +365,8 @@ export default function NotesApp() {
   const autoSaveTimeoutRef = useRef(null)
   const mobileActionsMenuRef = useRef(null)
 
-  // Sidebar tooltip refs
-  const [showPersonalTooltip, setShowPersonalTooltip] = useState(false)
+  // Sidebar tooltip ref (combined info tooltip uses studioTooltipRef)
   const [showStudioTooltip, setShowStudioTooltip] = useState(false)
-  const personalTooltipRef = useRef(null)
   const studioTooltipRef = useRef(null)
 
   const trainingVideos = trainingVideosData
@@ -371,9 +392,6 @@ export default function NotesApp() {
       if (!isInsideMobileSort && !isInsideDesktopSort) {
         setShowSortDropdown(false)
       }
-      if (personalTooltipRef.current && !personalTooltipRef.current.contains(event.target)) {
-        setShowPersonalTooltip(false)
-      }
       if (studioTooltipRef.current && !studioTooltipRef.current.contains(event.target)) {
         setShowStudioTooltip(false)
       }
@@ -388,20 +406,28 @@ export default function NotesApp() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  // Load selected note data into editing state
+  // Track the currently loaded note ID to prevent unnecessary resets
+  const loadedNoteIdRef = useRef(null)
+
+  // Load selected note data into editing state - only when selecting a DIFFERENT note
   useEffect(() => {
     if (selectedNote) {
-      setEditedTitle(selectedNote.title || '')
-      setEditedContent(selectedNote.content || '')
-      setEditedTags(selectedNote.tags || [])
-      setEditedAttachments(selectedNote.attachments || [])
-      setHasUnsavedChanges(false)
+      // Only reset content if we're loading a different note
+      if (loadedNoteIdRef.current !== selectedNote.id) {
+        setEditedTitle(selectedNote.title || '')
+        setEditedContent(selectedNote.content || '')
+        setEditedTags(selectedNote.tags || [])
+        setEditedAttachments(selectedNote.attachments || [])
+        setHasUnsavedChanges(false)
+        loadedNoteIdRef.current = selectedNote.id
+      }
     } else {
       setEditedTitle('')
       setEditedContent('')
       setEditedTags([])
       setEditedAttachments([])
       setHasUnsavedChanges(false)
+      loadedNoteIdRef.current = null
     }
   }, [selectedNote])
 
@@ -426,45 +452,70 @@ export default function NotesApp() {
     }
   }, [editedTitle, editedContent, editedTags, editedAttachments, hasUnsavedChanges])
 
-  // Keyboard shortcuts
+  // Keyboard shortcuts - only active when NOT in any editable area
   useEffect(() => {
     const handleKeyPress = (e) => {
-      const target = e.target
+      // NEVER intercept Enter key - always let it through for editors
+      if (e.key === 'Enter') {
+        return
+      }
       
-      // Check if user is typing in any editable area
-      // Using isContentEditable property for reliable detection of contenteditable elements (like Quill)
-      const isInEditableArea = 
+      // Use both event.target AND document.activeElement for reliable detection
+      const target = e.target
+      const activeEl = document.activeElement
+      
+      // Check if user is typing in ANY editable area
+      // Check both target and activeElement to catch all cases
+      const isTargetEditable = 
         target.tagName === 'INPUT' || 
         target.tagName === 'TEXTAREA' ||
-        target.isContentEditable ||
-        (target.closest && (
-          target.closest('[contenteditable="true"]') ||
-          target.closest('.ql-editor') ||
-          target.closest('.quill-wrapper')
-        ))
+        target.isContentEditable === true ||
+        target.closest?.('[contenteditable="true"]') ||
+        target.closest?.('.ql-editor') ||
+        target.closest?.('.ql-container') ||
+        target.closest?.('.notes-editor-wrapper')
       
-      // Handle Escape globally (works in all contexts)
+      const isActiveElementEditable =
+        activeEl?.tagName === 'INPUT' ||
+        activeEl?.tagName === 'TEXTAREA' ||
+        activeEl?.isContentEditable === true ||
+        activeEl?.closest?.('[contenteditable="true"]') ||
+        activeEl?.closest?.('.ql-editor') ||
+        activeEl?.closest?.('.ql-container') ||
+        activeEl?.closest?.('.notes-editor-wrapper')
+      
+      const isInEditableArea = isTargetEditable || isActiveElementEditable
+      
+      // If in editable area, only handle Escape, let everything else through
+      if (isInEditableArea) {
+        if (e.key === 'Escape') {
+          // Blur the editor on Escape
+          activeEl?.blur?.()
+        }
+        // Don't handle any other keys
+        return
+      }
+
+      // From here on, we're NOT in an editable area
+      
+      // Handle Escape for modals
       if (e.key === 'Escape') {
         if (deleteConfirm) setDeleteConfirm(null)
         else if (showTagsModal) setShowTagsModal(false)
         else if (selectedNote) setSelectedNote(null)
         return
       }
-
-      // Don't handle keyboard shortcuts when in editable areas
-      // This allows Enter, all letters, and other keys to work normally in text fields
-      if (isInEditableArea) return
       
       // Don't handle if modifier keys are pressed
-      if (e.ctrlKey || e.metaKey) return
+      if (e.ctrlKey || e.metaKey || e.altKey) return
 
-      // C - Create new note
+      // C - Create new note (only when not typing)
       if (e.key === 'c' || e.key === 'C') {
         e.preventDefault()
         handleCreateNote()
       }
 
-      // T - Manage tags
+      // T - Manage tags (only when not typing)
       if (e.key === 't' || e.key === 'T') {
         e.preventDefault()
         setShowTagsModal(true)
@@ -891,7 +942,44 @@ export default function NotesApp() {
       <div className="min-h-screen rounded-3xl bg-[#1C1C1C] text-white p-3 md:p-6 flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between mb-4 md:mb-6">
-          <h1 className="text-xl md:text-2xl font-bold text-white">Notes</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl md:text-2xl font-bold text-white">Notes</h1>
+            {/* Combined Info Tooltip */}
+            <div className="relative" ref={studioTooltipRef}>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setShowStudioTooltip(!showStudioTooltip)
+                }}
+                onMouseEnter={() => setShowStudioTooltip(true)}
+                onMouseLeave={() => setShowStudioTooltip(false)}
+                className="text-gray-400 hover:text-gray-300 transition-colors p-1"
+                aria-label="Notes Information"
+              >
+                <Info size={16} />
+              </button>
+              
+              {showStudioTooltip && (
+                <div className="absolute left-0 top-full mt-2 w-64 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-xl p-4 z-50">
+                  <div className="text-sm space-y-3">
+                    <div>
+                      <p className="text-orange-400 font-medium mb-1">Studio Notes</p>
+                      <p className="text-gray-300 text-xs leading-relaxed">
+                        Shared with everyone. All team members can see and edit these notes.
+                      </p>
+                    </div>
+                    <div className="border-t border-gray-700 pt-3">
+                      <p className="text-blue-400 font-medium mb-1">Personal Notes</p>
+                      <p className="text-gray-300 text-xs leading-relaxed">
+                        Private to you. Only you can see and edit these notes.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="absolute -top-1 left-3 w-2 h-2 bg-[#2a2a2a] border-l border-t border-gray-700 transform rotate-45"></div>
+                </div>
+              )}
+            </div>
+          </div>
           
           <div className="flex items-center gap-2">
             {/* Sidebar Toggle */}
@@ -1047,90 +1135,34 @@ export default function NotesApp() {
             {/* Tabs */}
             <div className="flex border-b border-gray-800">
               {/* Studio Notes Tab */}
-              <div className="relative flex-1">
-                <button
-                  onClick={() => {
-                    setActiveTab("studio")
-                    setSelectedNote(null)
-                  }}
-                  className={`w-full px-4 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-1.5 ${
-                    activeTab === "studio"
-                      ? "text-orange-400 border-b-2 border-orange-400"
-                      : "text-gray-400 hover:text-white"
-                  }`}
-                >
-                  <span>Studio Notes</span>
-                  <div className="relative group" ref={studioTooltipRef}>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setShowStudioTooltip(!showStudioTooltip)
-                      }}
-                      onMouseEnter={() => setShowStudioTooltip(true)}
-                      onMouseLeave={() => setShowStudioTooltip(false)}
-                      className="p-1 touch-manipulation"
-                      aria-label="Studio Notes Information"
-                    >
-                      <Info size={12} className="opacity-60 text-gray-400" />
-                    </button>
-                    
-                    {showStudioTooltip && (
-                      <div className="absolute left-0 top-full mt-2 w-56 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-xl p-3 z-50">
-                        <div className="text-sm">
-                          <p className="text-white font-medium mb-1.5">Shared with everyone</p>
-                          <p className="text-gray-300 text-xs leading-relaxed">
-                            All team members can see and edit these notes.
-                          </p>
-                        </div>
-                        <div className="absolute -top-1 left-2 w-2 h-2 bg-[#2a2a2a] border-l border-t border-gray-700 transform rotate-45"></div>
-                      </div>
-                    )}
-                  </div>
-                </button>
-              </div>
+              <button
+                onClick={() => {
+                  setActiveTab("studio")
+                  setSelectedNote(null)
+                }}
+                className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+                  activeTab === "studio"
+                    ? "text-white border-b-2 border-orange-400"
+                    : "text-gray-400 hover:text-white"
+                }`}
+              >
+                Studio Notes
+              </button>
 
               {/* Personal Notes Tab */}
-              <div className="relative flex-1">
-                <button
-                  onClick={() => {
-                    setActiveTab("personal")
-                    setSelectedNote(null)
-                  }}
-                  className={`w-full px-4 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-1.5 ${
-                    activeTab === "personal"
-                      ? "text-orange-400 border-b-2 border-orange-400"
-                      : "text-gray-400 hover:text-white"
-                  }`}
-                >
-                  <span>Personal Notes</span>
-                  <div className="relative group" ref={personalTooltipRef}>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setShowPersonalTooltip(!showPersonalTooltip)
-                      }}
-                      onMouseEnter={() => setShowPersonalTooltip(true)}
-                      onMouseLeave={() => setShowPersonalTooltip(false)}
-                      className="p-1 touch-manipulation"
-                      aria-label="Personal Notes Information"
-                    >
-                      <Info size={12} className="opacity-60 text-gray-400" />
-                    </button>
-                    
-                    {showPersonalTooltip && (
-                      <div className="absolute right-0 top-full mt-2 w-56 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-xl p-3 z-50">
-                        <div className="text-sm">
-                          <p className="text-white font-medium mb-1.5">Private to you</p>
-                          <p className="text-gray-300 text-xs leading-relaxed">
-                            Only you can see and edit these notes.
-                          </p>
-                        </div>
-                        <div className="absolute -top-1 right-2 w-2 h-2 bg-[#2a2a2a] border-l border-t border-gray-700 transform rotate-45"></div>
-                      </div>
-                    )}
-                  </div>
-                </button>
-              </div>
+              <button
+                onClick={() => {
+                  setActiveTab("personal")
+                  setSelectedNote(null)
+                }}
+                className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+                  activeTab === "personal"
+                    ? "text-white border-b-2 border-orange-400"
+                    : "text-gray-400 hover:text-white"
+                }`}
+              >
+                Personal Notes
+              </button>
             </div>
 
             {/* Notes List with DnD */}
@@ -1245,6 +1277,9 @@ export default function NotesApp() {
                 {/* Note Content - Fills available space */}
                 <div className="flex-1 overflow-hidden p-6 flex flex-col">
                   <WysiwygEditor
+                    key={`editor-${selectedNote.id}`}
+                    noteId={selectedNote.id}
+                    initialValue={selectedNote.content}
                     value={editedContent}
                     onChange={(value) => {
                       setEditedContent(value)
@@ -1551,6 +1586,9 @@ export default function NotesApp() {
             {/* Editor */}
             <div className="p-4">
               <WysiwygEditor
+                key={`editor-mobile-${selectedNote.id}`}
+                noteId={selectedNote.id}
+                initialValue={selectedNote.content}
                 value={editedContent}
                 onChange={(value) => {
                   setEditedContent(value)
