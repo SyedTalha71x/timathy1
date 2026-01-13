@@ -261,8 +261,6 @@ const WysiwygEditor = ({ value, initialValue, onChange, placeholder, className =
       @media (max-width: 767px) {
         .mobile-note-scroll {
           scroll-behavior: smooth;
-          /* Allow positioned elements to escape */
-          contain: none !important;
         }
         .mobile-editor-container {
           position: relative;
@@ -271,37 +269,69 @@ const WysiwygEditor = ({ value, initialValue, onChange, placeholder, className =
         .mobile-editor-container .notes-editor-wrapper {
           border: none !important;
           border-radius: 0 !important;
-          overflow: visible !important;
         }
         .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow {
           display: flex;
-          flex-wrap: wrap;
+          flex-wrap: nowrap !important;
           padding: 8px 12px !important;
-          gap: 4px;
+          gap: 2px;
           background-color: #161616 !important;
           border-bottom: 1px solid #404040 !important;
           border-radius: 0 !important;
-          overflow: visible !important;
+          overflow-x: auto !important;
+          overflow-y: visible !important;
           position: relative;
           z-index: 100;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+          align-items: center;
+        }
+        .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow::-webkit-scrollbar {
+          display: none;
         }
         .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow .ql-formats {
           display: flex;
           flex-shrink: 0;
-          margin-right: 8px !important;
-          overflow: visible !important;
+          margin-right: 6px !important;
+          align-items: center;
+          gap: 2px;
         }
+        /* Uniform button size */
         .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow button {
           width: 32px !important;
           height: 32px !important;
           padding: 6px !important;
+          flex-shrink: 0;
+          display: flex !important;
+          align-items: center !important;
+          justify-content: center !important;
         }
+        .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow button svg {
+          width: 16px !important;
+          height: 16px !important;
+        }
+        /* Uniform picker size */
         .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow .ql-picker {
           height: 32px !important;
-          overflow: visible !important;
+          flex-shrink: 0;
         }
         .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow .ql-picker-label {
-          padding: 4px 6px !important;
+          padding: 6px 8px !important;
+          height: 32px !important;
+          display: flex !important;
+          align-items: center !important;
+        }
+        .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow .ql-picker-label svg {
+          width: 16px !important;
+          height: 16px !important;
+        }
+        /* Color picker buttons uniform */
+        .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow .ql-color-picker .ql-picker-label,
+        .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow .ql-background .ql-picker-label {
+          width: 32px !important;
+          padding: 6px !important;
+          justify-content: center !important;
         }
         .mobile-editor-container .notes-editor-wrapper .ql-container.ql-snow {
           border: none !important;
@@ -311,27 +341,42 @@ const WysiwygEditor = ({ value, initialValue, onChange, placeholder, className =
           padding: 16px !important;
           min-height: 200px !important;
         }
-        /* Dropdown styling */
-        .mobile-editor-container .notes-editor-wrapper .ql-snow .ql-picker.ql-expanded {
-          overflow: visible !important;
-          z-index: 9999 !important;
-        }
+        /* Dropdown styling - FIXED position to escape overflow */
         .mobile-editor-container .notes-editor-wrapper .ql-snow .ql-picker-options {
+          position: fixed !important;
           background-color: #1f1f1f !important;
           border: 1px solid #404040 !important;
           border-radius: 8px !important;
           box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6) !important;
           z-index: 99999 !important;
-          max-height: 250px !important;
+          max-height: 200px !important;
           overflow-y: auto !important;
+          min-width: 140px !important;
+          left: 16px !important;
+          right: 16px !important;
+          top: 180px !important;
+          width: auto !important;
+        }
+        /* Color picker specific */
+        .mobile-editor-container .notes-editor-wrapper .ql-snow .ql-color-picker .ql-picker-options,
+        .mobile-editor-container .notes-editor-wrapper .ql-snow .ql-background .ql-picker-options {
+          min-width: 176px !important;
+          max-width: 200px !important;
+          padding: 8px !important;
+          left: 50% !important;
+          right: auto !important;
+          transform: translateX(-50%) !important;
         }
         /* Link tooltip styling */
         .mobile-editor-container .notes-editor-wrapper .ql-snow .ql-tooltip {
           background-color: #1f1f1f !important;
           border: 1px solid #404040 !important;
           z-index: 99999 !important;
+          position: fixed !important;
           left: 16px !important;
           right: 16px !important;
+          top: 50% !important;
+          transform: translateY(-50%) !important;
           width: auto !important;
           padding: 12px !important;
           border-radius: 8px !important;
@@ -1065,7 +1110,7 @@ export default function NotesApp() {
 
   return (
     <>
-      <div className="min-h-screen rounded-3xl bg-[#1C1C1C] text-white p-3 md:p-6 flex flex-col">
+      <div className={`min-h-screen rounded-3xl bg-[#1C1C1C] text-white p-3 md:p-6 flex flex-col transition-all duration-500 ease-in-out flex-1 ${isRightSidebarOpen ? 'lg:mr-86 mr-0' : 'mr-0'}`}>
         {/* Header */}
         <div className="flex items-center justify-between mb-4 md:mb-6">
           <div className="flex items-center gap-2">
@@ -1129,15 +1174,25 @@ export default function NotesApp() {
             {/* Mobile: Single Row with Search + Icon Buttons */}
             
             {/* Desktop Only: Create + Sort + Tags Buttons Row */}
-            <div className="hidden md:flex p-3 border-b border-gray-800 gap-2">
-              <button
-                onClick={handleCreateNote}
-                className="bg-orange-500 hover:bg-orange-600 text-sm text-white px-3 py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-colors font-medium whitespace-nowrap flex-shrink-0"
-                title="Create Note (C)"
-              >
-                <Plus size={16} />
-                <span className="hidden min-[400px]:inline">Create Note</span>
-              </button>
+            <div className="hidden md:flex p-3 gap-2">
+              <div className="relative group">
+                <button
+                  onClick={handleCreateNote}
+                  className="bg-orange-500 hover:bg-orange-600 text-sm text-white px-3 py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-colors font-medium whitespace-nowrap flex-shrink-0"
+                >
+                  <Plus size={16} />
+                  <span className="hidden min-[400px]:inline">Create Note</span>
+                </button>
+                
+                {/* Tooltip */}
+                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                  <span className="font-medium">Create Note</span>
+                  <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
+                    C
+                  </span>
+                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                </div>
+              </div>
               
               {/* Sort Dropdown - Desktop */}
               <div className="relative flex-1 max-w-[180px]" ref={desktopSortDropdownRef}>
@@ -1183,18 +1238,28 @@ export default function NotesApp() {
               </div>
               
               {/* Tags Button - Desktop */}
-              <button
-                onClick={() => setShowTagsModal(true)}
-                className="bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300 text-sm px-3 py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-colors font-medium flex-shrink-0"
-                title="Manage Tags (T)"
-              >
-                <Tag size={16} />
-                <span className="hidden sm:inline">Tags</span>
-              </button>
+              <div className="relative group">
+                <button
+                  onClick={() => setShowTagsModal(true)}
+                  className="bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300 text-sm px-3 py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-colors font-medium flex-shrink-0"
+                >
+                  <Tag size={16} />
+                  <span className="hidden sm:inline">Tags</span>
+                </button>
+                
+                {/* Tooltip */}
+                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                  <span className="font-medium">Manage Tags</span>
+                  <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
+                    T
+                  </span>
+                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                </div>
+              </div>
             </div>
 
             {/* Search Bar + Icon Buttons */}
-            <div className="p-2 md:px-3 md:pb-3 border-b md:border-b-0 border-gray-800 flex gap-2">
+            <div className="p-2 md:px-3 md:py-3 border-b md:border-b-0 border-gray-800 flex gap-2">
               {/* Search Bar */}
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={14} />
@@ -1259,14 +1324,14 @@ export default function NotesApp() {
             </div>
             
             {/* Tabs */}
-            <div className="flex border-b border-gray-800">
+            <div className="flex border-b border-gray-800 mt-1">
               {/* Studio Notes Tab */}
               <button
                 onClick={() => {
                   setActiveTab("studio")
                   setSelectedNote(null)
                 }}
-                className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+                className={`flex-1 px-4 py-4 text-base font-medium transition-colors ${
                   activeTab === "studio"
                     ? "text-white border-b-2 border-orange-400"
                     : "text-gray-400 hover:text-white"
@@ -1281,7 +1346,7 @@ export default function NotesApp() {
                   setActiveTab("personal")
                   setSelectedNote(null)
                 }}
-                className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+                className={`flex-1 px-4 py-4 text-base font-medium transition-colors ${
                   activeTab === "personal"
                     ? "text-white border-b-2 border-orange-400"
                     : "text-gray-400 hover:text-white"
