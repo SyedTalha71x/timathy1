@@ -97,7 +97,7 @@ const QUILL_FORMATS = [
 ]
 
 // WysiwygEditor component - uses internal state to prevent cursor jumping
-const WysiwygEditor = ({ value, initialValue, onChange, placeholder, className = "", noteId }) => {
+const WysiwygEditor = ({ value, initialValue, onChange, placeholder, className = "", noteId, isMobile = false }) => {
   const quillRef = useRef(null)
   // Use initialValue for first render (from selectedNote.content), fallback to value
   const [internalValue, setInternalValue] = useState(initialValue ?? value)
@@ -166,6 +166,64 @@ const WysiwygEditor = ({ value, initialValue, onChange, placeholder, className =
         border-bottom: 1px solid #404040 !important;
         background-color: #2a2a2a !important;
         flex-shrink: 0;
+      }
+      /* Mobile: Sticky toolbar with horizontal scroll */
+      @media (max-width: 767px) {
+        .mobile-note-scroll {
+          scroll-behavior: smooth;
+        }
+        .mobile-editor-container {
+          position: relative;
+        }
+        .mobile-editor-container .notes-editor-wrapper {
+          overflow: visible !important;
+          border: none !important;
+          border-radius: 0 !important;
+        }
+        .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow {
+          position: sticky;
+          top: 0;
+          z-index: 10;
+          display: flex;
+          flex-wrap: nowrap;
+          overflow-x: auto;
+          overflow-y: hidden;
+          padding: 8px 16px !important;
+          gap: 2px;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+          background-color: #1C1C1C !important;
+          border-bottom: 1px solid #404040 !important;
+          border-radius: 0 !important;
+        }
+        .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow::-webkit-scrollbar {
+          display: none;
+        }
+        .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow .ql-formats {
+          display: flex;
+          flex-shrink: 0;
+          margin-right: 8px !important;
+        }
+        .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow button {
+          width: 32px !important;
+          height: 32px !important;
+          padding: 6px !important;
+        }
+        .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow .ql-picker {
+          height: 32px !important;
+        }
+        .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow .ql-picker-label {
+          padding: 4px 6px !important;
+        }
+        .mobile-editor-container .notes-editor-wrapper .ql-container.ql-snow {
+          border: none !important;
+          border-radius: 0 !important;
+        }
+        .mobile-editor-container .notes-editor-wrapper .ql-editor {
+          padding: 16px !important;
+          min-height: 200px !important;
+        }
       }
       .notes-editor-wrapper .ql-container.ql-snow {
         border: none !important;
@@ -358,6 +416,7 @@ export default function NotesApp() {
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [viewingImage, setViewingImage] = useState(null)
   const [showMobileActionsMenu, setShowMobileActionsMenu] = useState(false)
+  const [showAllAttachments, setShowAllAttachments] = useState(false)
   
   const sortDropdownRef = useRef(null)
   const desktopSortDropdownRef = useRef(null)
@@ -419,6 +478,7 @@ export default function NotesApp() {
         setEditedTags(selectedNote.tags || [])
         setEditedAttachments(selectedNote.attachments || [])
         setHasUnsavedChanges(false)
+        setShowAllAttachments(false) // Reset attachments view
         loadedNoteIdRef.current = selectedNote.id
       }
     } else {
@@ -427,6 +487,7 @@ export default function NotesApp() {
       setEditedTags([])
       setEditedAttachments([])
       setHasUnsavedChanges(false)
+      setShowAllAttachments(false)
       loadedNoteIdRef.current = null
     }
   }, [selectedNote])
@@ -1317,30 +1378,42 @@ export default function NotesApp() {
                   </div>
 
                   {editedAttachments.length > 0 && (
-                    <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
-                      {editedAttachments.map((attachment, index) => (
-                        <div key={index} className="relative group">
-                          <div
-                            className="cursor-pointer"
-                            onClick={() => setViewingImage({ image: attachment, images: editedAttachments, index })}
-                          >
-                            <img
-                              src={attachment.url}
-                              alt={attachment.name}
-                              className="w-full h-14 md:h-16 object-cover rounded-lg border border-gray-700"
-                            />
-                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                              <span className="text-white text-xs font-medium bg-gray-800 px-3 py-1 rounded">View</span>
+                    <div>
+                      <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
+                        {(showAllAttachments ? editedAttachments : editedAttachments.slice(0, 5)).map((attachment, index) => (
+                          <div key={index} className="relative group">
+                            <div
+                              className="cursor-pointer"
+                              onClick={() => setViewingImage({ image: attachment, images: editedAttachments, index })}
+                            >
+                              <img
+                                src={attachment.url}
+                                alt={attachment.name}
+                                className="w-full h-14 md:h-16 object-cover rounded-lg border border-gray-700"
+                              />
+                              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                                <span className="text-white text-xs font-medium bg-gray-800 px-3 py-1 rounded">View</span>
+                              </div>
                             </div>
+                            <button
+                              onClick={() => removeAttachment(index)}
+                              className="absolute top-1 right-1 bg-red-600 hover:bg-red-700 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <X size={12} />
+                            </button>
                           </div>
-                          <button
-                            onClick={() => removeAttachment(index)}
-                            className="absolute top-1 right-1 bg-red-600 hover:bg-red-700 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <X size={12} />
-                          </button>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
+                      {editedAttachments.length > 5 && (
+                        <button
+                          onClick={() => setShowAllAttachments(!showAllAttachments)}
+                          className="mt-2 text-sm text-orange-400 hover:text-orange-300 transition-colors"
+                        >
+                          {showAllAttachments 
+                            ? 'Show less' 
+                            : `Show ${editedAttachments.length - 5} more`}
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
@@ -1447,7 +1520,7 @@ export default function NotesApp() {
       {selectedNote && (
         <div className="md:hidden fixed inset-0 bg-[#1C1C1C] z-[60] flex flex-col">
           {/* Mobile Header with Back Button */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-800">
+          <div className="flex items-center justify-between p-4 border-b border-gray-800 flex-shrink-0">
             <button
               onClick={() => setSelectedNote(null)}
               className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg transition-colors"
@@ -1542,7 +1615,7 @@ export default function NotesApp() {
           </div>
 
           {/* Note Content - Scrollable */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto mobile-note-scroll">
             {/* Title Input */}
             <div className="p-4 border-b border-gray-800">
               <input
@@ -1584,7 +1657,7 @@ export default function NotesApp() {
             </div>
 
             {/* Editor */}
-            <div className="p-4">
+            <div className="mobile-editor-container">
               <WysiwygEditor
                 key={`editor-mobile-${selectedNote.id}`}
                 noteId={selectedNote.id}
@@ -1595,6 +1668,7 @@ export default function NotesApp() {
                   setHasUnsavedChanges(true)
                 }}
                 placeholder="Start writing..."
+                isMobile={true}
               />
             </div>
 
@@ -1606,7 +1680,7 @@ export default function NotesApp() {
                   Attachments ({editedAttachments.length})
                 </h4>
                 <div className="grid grid-cols-3 gap-2">
-                  {editedAttachments.map((attachment, index) => (
+                  {(showAllAttachments ? editedAttachments : editedAttachments.slice(0, 3)).map((attachment, index) => (
                     <div key={index} className="relative group">
                       <div
                         className="cursor-pointer"
@@ -1633,12 +1707,22 @@ export default function NotesApp() {
                     </div>
                   ))}
                 </div>
+                {editedAttachments.length > 3 && (
+                  <button
+                    onClick={() => setShowAllAttachments(!showAllAttachments)}
+                    className="mt-2 text-sm text-orange-400 hover:text-orange-300 transition-colors"
+                  >
+                    {showAllAttachments 
+                      ? 'Show less' 
+                      : `Show ${editedAttachments.length - 3} more`}
+                  </button>
+                )}
               </div>
             )}
           </div>
 
           {/* Mobile Action Bar */}
-          <div className="border-t border-gray-800 p-4 flex gap-2">
+          <div className="border-t border-gray-800 p-4 flex gap-2 flex-shrink-0">
             <input
               ref={fileInputRef}
               type="file"
