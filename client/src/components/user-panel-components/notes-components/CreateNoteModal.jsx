@@ -1,7 +1,97 @@
 /* eslint-disable react/prop-types */
 import { useState, useRef, useEffect } from "react"
 import { Tag, X, Paperclip, Plus } from "lucide-react"
+import ReactQuill from "react-quill"
 import Modal from "./Modal"
+
+const WysiwygEditor = ({ value, onChange, placeholder }) => {
+  const modules = {
+    toolbar: [
+      [{ 'header': [1, 2, 3, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+      [{ 'align': [] }],
+      ['link'],
+      ['clean']
+    ],
+  }
+
+  const formats = [
+    'header',
+    'bold', 'italic', 'underline', 'strike',
+    'list', 'bullet',
+    'align',
+    'link'
+  ]
+
+  // Consistent styling with TicketView
+  useEffect(() => {
+    const style = document.createElement('style')
+    style.textContent = `
+      .ql-editor.ql-blank::before {
+        color: #ffffff !important;
+        opacity: 0.7 !important;
+      }
+      .ql-editor {
+        color: #ffffff !important;
+        min-height: 120px;
+        max-height: 200px;
+        overflow-y: auto;
+      }
+      .ql-toolbar {
+        border-color: #303030 !important;
+        background-color: #151515 !important;
+        position: relative;
+        z-index: 10;
+      }
+      .ql-container {
+        border-color: #303030 !important;
+        background-color: #101010 !important;
+      }
+      .ql-snow .ql-stroke {
+        stroke: #ffffff !important;
+      }
+      .ql-snow .ql-fill {
+        fill: #ffffff !important;
+      }
+      .ql-snow .ql-picker-label {
+        color: #ffffff !important;
+      }
+      .ql-snow .ql-picker-options {
+        background-color: #151515 !important;
+        border-color: #303030 !important;
+      }
+      .ql-snow .ql-picker-item {
+        color: #ffffff !important;
+      }
+      .ql-snow .ql-tooltip {
+        background-color: #151515 !important;
+        border-color: #303030 !important;
+        color: #ffffff !important;
+        z-index: 20;
+      }
+      .ql-snow .ql-tooltip input[type="text"] {
+        color: #000000 !important;
+      }
+    `
+    document.head.appendChild(style)
+
+    return () => {
+      document.head.removeChild(style)
+    }
+  }, [])
+
+  return (
+    <ReactQuill
+      value={value}
+      onChange={onChange}
+      modules={modules}
+      formats={formats}
+      placeholder={placeholder}
+      theme="snow"
+    />
+  )
+}
 
 function CreateNoteModal({ isOpen, onClose, onSave, availableTags = [] }) {
   const [newNote, setNewNote] = useState({ 
@@ -126,11 +216,9 @@ function CreateNoteModal({ isOpen, onClose, onSave, availableTags = [] }) {
 
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-2">Content</label>
-          <textarea
+          <WysiwygEditor
             value={newNote.content}
-            onChange={(e) => setNewNote((prev) => ({ ...prev, content: e.target.value }))}
-            rows={8}
-            className="w-full bg-[#181818] border outline-none border-slate-300/10 text-white rounded-xl px-4 py-2 text-sm resize-none"
+            onChange={(value) => setNewNote((prev) => ({ ...prev, content: value }))}
             placeholder="Write your note here..."
           />
         </div>

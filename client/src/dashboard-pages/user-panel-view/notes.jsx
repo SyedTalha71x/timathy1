@@ -1,11 +1,11 @@
 /* eslint-disable no-unused-vars */
 import { useState, useRef, useEffect } from "react"
-import { Search, Plus, X, GripVertical, Edit, Copy, Trash2, ArrowUpDown, ArrowUp, ArrowDown, Grid3x3, List, Paperclip, Tag, Pin, PinOff, ArrowRightLeft, Info } from "lucide-react"
+import { Search, Plus, X, GripVertical, Edit, Copy, Trash2, ArrowUpDown, ArrowUp, ArrowDown, Paperclip, Tag, Pin, PinOff, ArrowRightLeft, Info } from "lucide-react"
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
-import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy, useSortable } from '@dnd-kit/sortable'
+import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import CreateNoteModal from "../../components/user-panel-components/notes-components/CreateNoteModal"
-import EditNoteModal from "../../components/user-panel-components/notes-components/EditNoteModal"
+import ReactQuill from "react-quill"
+import "react-quill/dist/quill.snow.css"
 import DeleteConfirmModal from "../../components/user-panel-components/notes-components/DeleteConfirmModal"
 import { Toaster } from "react-hot-toast"
 import toast from "react-hot-toast"
@@ -35,7 +35,7 @@ const DEMO_NOTES = {
     {
       id: 1,
       title: "Quarterly Review Meeting Notes",
-      content: "Discussed Q4 goals and performance metrics. Team showed 15% improvement in customer satisfaction. Need to focus on reducing response time in support tickets.",
+      content: "<p>Discussed Q4 goals and performance metrics. Team showed 15% improvement in customer satisfaction.</p><p><strong>Action items:</strong></p><ul><li>Reduce response time in support tickets</li><li>Schedule follow-up meeting</li></ul>",
       tags: ['meeting', 'urgent'],
       attachments: [],
       isPinned: true,
@@ -45,110 +45,141 @@ const DEMO_NOTES = {
     {
       id: 2,
       title: "New Member Orientation Checklist",
-      content: "1. Welcome package preparation\n2. Training schedule setup\n3. Facility tour arrangement\n4. Equipment assignment\n5. Introduction to team members",
+      content: "<ol><li>Welcome package preparation</li><li>Training schedule setup</li><li>Facility tour arrangement</li><li>Equipment assignment</li><li>Introduction to team members</li></ol>",
       tags: ['member', 'todo'],
       attachments: [],
       isPinned: false,
-      createdAt: "2025-11-28T09:15:00",
-      updatedAt: "2025-11-28T09:15:00"
-    },
-    {
-      id: 3,
-      title: "Innovative Class Ideas for Spring",
-      content: "Brainstorming session results:\n- Morning yoga fusion classes\n- High-intensity interval training bootcamp\n- Mindfulness and meditation sessions\n- Outdoor training programs\n- Virtual reality fitness experiences",
-      tags: ['ideas', 'training'],
-      attachments: [],
-      isPinned: false,
-      createdAt: "2025-10-05T16:20:00",
-      updatedAt: "2025-12-10T11:30:00"
-    },
-    {
-      id: 4,
-      title: "Equipment Maintenance Schedule",
-      content: "Monthly maintenance tasks completed. All treadmills serviced, weights checked, and cardio machines calibrated. Next maintenance due in 4 weeks.",
-      tags: ['todo'],
-      attachments: [],
-      isPinned: false,
-      createdAt: "2025-09-18T13:00:00",
-      updatedAt: "2025-09-18T13:00:00"
-    },
-    {
-      id: 5,
-      title: "Staff Training Workshop - Customer Service Excellence",
-      content: "Workshop covered conflict resolution, communication techniques, and member retention strategies. Very productive session with excellent team engagement and feedback.",
-      tags: ['training', 'meeting'],
-      attachments: [],
-      isPinned: true,
-      createdAt: "2025-08-22T14:30:00",
-      updatedAt: "2025-08-25T10:00:00"
-    },
-    {
-      id: 6,
-      title: "Budget Planning for Next Year",
-      content: "Review financial projections, allocate resources for equipment upgrades, marketing campaigns, and staff development programs. Priority areas identified.",
-      tags: ['urgent', 'meeting'],
-      attachments: [],
-      isPinned: false,
-      createdAt: "2025-07-30T15:45:00",
-      updatedAt: "2025-07-30T15:45:00"
+      createdAt: "2025-12-10T09:15:00",
+      updatedAt: "2025-12-10T09:15:00"
     },
   ],
   studio: [
     {
-      id: 201,
-      title: "Studio Class Schedule Update",
-      content: "New yoga and pilates classes added for morning sessions. Updated schedule starts next Monday. Need to notify all members via email and app notifications.",
-      tags: ['meeting', 'urgent'],
-      attachments: [],
-      isPinned: true,
-      createdAt: "2025-12-10T08:30:00",
-      updatedAt: "2025-12-18T16:20:00"
-    },
-    {
-      id: 202,
-      title: "Studio Equipment Order",
-      content: "Ordered new yoga mats (50), resistance bands (30), and foam rollers (25). Expected delivery in 2 weeks. Total budget: $2,500. Store in equipment room upon arrival.",
-      tags: ['todo'],
-      attachments: [],
-      isPinned: false,
-      createdAt: "2025-11-15T14:00:00",
-      updatedAt: "2025-11-15T14:00:00"
-    },
-    {
-      id: 203,
-      title: "Instructor Training - New Techniques",
-      content: "All studio instructors completed advanced training in functional movement and injury prevention. Certificates issued. Next training session scheduled for Q2 2026.",
+      id: 3,
+      title: "Equipment Maintenance Schedule",
+      content: "<h3>Weekly Maintenance</h3><ul><li>Check treadmill belts</li><li>Clean all surfaces</li><li>Test emergency stop buttons</li></ul><h3>Monthly Maintenance</h3><ul><li>Deep clean all equipment</li><li>Inspect cables and pulleys</li><li>Update maintenance log</li></ul>",
       tags: ['training'],
       attachments: [],
       isPinned: true,
-      createdAt: "2025-10-28T10:15:00",
-      updatedAt: "2025-10-30T09:00:00"
+      createdAt: "2025-12-01T08:00:00",
+      updatedAt: "2025-12-18T16:30:00"
     },
-    {
-      id: 204,
-      title: "Studio Cleaning Protocol",
-      content: "Enhanced cleaning procedures implemented. Deep clean every evening, equipment sanitization after each class, air filtration system upgraded. Member feedback very positive.",
-      tags: ['todo'],
-      attachments: [],
-      isPinned: false,
-      createdAt: "2025-09-05T11:45:00",
-      updatedAt: "2025-09-05T11:45:00"
-    },
-    {
-      id: 205,
-      title: "Member Feedback - Studio Classes",
-      content: "Collected feedback from 150+ members. 92% satisfaction rate. Top requests: more evening classes, longer weekend sessions, and specialized workshops. Action plan created.",
-      tags: ['member', 'ideas'],
-      attachments: [],
-      isPinned: false,
-      createdAt: "2025-08-12T15:30:00",
-      updatedAt: "2025-08-20T10:00:00"
-    },
-  ]
+  ],
 }
 
-// Sortable Note Card Component
-const SortableNoteCard = ({ note, children, isDragDisabled, viewMode }) => {
+// Helper function to strip HTML tags for preview
+const stripHtmlTags = (html) => {
+  if (!html) return ''
+  const tmp = document.createElement('div')
+  tmp.innerHTML = html
+  return tmp.textContent || tmp.innerText || ''
+}
+
+// WysiwygEditor component
+const WysiwygEditor = ({ value, onChange, placeholder }) => {
+  const modules = {
+    toolbar: [
+      [{ 'header': [1, 2, 3, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+      [{ 'align': [] }],
+      ['link'],
+      ['clean']
+    ],
+  }
+
+  const formats = [
+    'header',
+    'bold', 'italic', 'underline', 'strike',
+    'list', 'bullet',
+    'align',
+    'link'
+  ]
+
+  useEffect(() => {
+    const style = document.createElement('style')
+    style.textContent = `
+      .ql-editor.ql-blank::before {
+        color: #9ca3af !important;
+        opacity: 0.7 !important;
+      }
+      .ql-editor {
+        color: #ffffff !important;
+        min-height: 200px;
+        font-size: 15px;
+        line-height: 1.6;
+      }
+      .ql-toolbar {
+        border-color: #303030 !important;
+        background-color: #151515 !important;
+        border-radius: 12px 12px 0 0;
+      }
+      .ql-container {
+        border-color: #303030 !important;
+        background-color: #101010 !important;
+        border-radius: 0 0 12px 12px;
+      }
+      .ql-snow .ql-stroke {
+        stroke: #ffffff !important;
+      }
+      .ql-snow .ql-fill {
+        fill: #ffffff !important;
+      }
+      .ql-snow .ql-picker-label {
+        color: #ffffff !important;
+      }
+      .ql-snow .ql-picker-options {
+        background-color: #151515 !important;
+        border-color: #303030 !important;
+      }
+      .ql-snow .ql-picker-item {
+        color: #ffffff !important;
+      }
+      .ql-snow .ql-tooltip {
+        background-color: #151515 !important;
+        border-color: #303030 !important;
+        color: #ffffff !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+      }
+      .ql-snow .ql-tooltip input[type="text"] {
+        color: #ffffff !important;
+        background-color: #1f1f1f !important;
+        border: 1px solid #404040 !important;
+        padding: 6px 10px !important;
+        border-radius: 6px !important;
+      }
+      .ql-snow .ql-tooltip input[type="text"]::placeholder {
+        color: #9ca3af !important;
+      }
+      .ql-snow .ql-tooltip a.ql-action,
+      .ql-snow .ql-tooltip a.ql-remove {
+        color: #ffffff !important;
+      }
+      .ql-snow .ql-tooltip a.ql-action::after {
+        border-right-color: #ffffff !important;
+      }
+      .ql-snow .ql-tooltip.ql-editing a.ql-action::after {
+        border-right-color: #ffffff !important;
+      }
+    `
+    document.head.appendChild(style)
+    return () => document.head.removeChild(style)
+  }, [])
+
+  return (
+    <ReactQuill
+      value={value}
+      onChange={onChange}
+      modules={modules}
+      formats={formats}
+      placeholder={placeholder}
+      theme="snow"
+    />
+  )
+}
+
+// Sortable Note Item in Sidebar
+const SortableNoteItem = ({ note, isSelected, onClick, availableTags, onPin }) => {
   const {
     attributes,
     listeners,
@@ -156,30 +187,75 @@ const SortableNoteCard = ({ note, children, isDragDisabled, viewMode }) => {
     transform,
     transition,
     isDragging,
-  } = useSortable({ 
-    id: note.id,
-    disabled: isDragDisabled 
-  })
+  } = useSortable({ id: note.id })
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
-    zIndex: isDragging ? 1000 : 1,
   }
 
+  const stripText = stripHtmlTags(note.content)
+  const preview = stripText.length > 60 ? stripText.substring(0, 60) + '...' : stripText
+
   return (
-    <div ref={setNodeRef} style={style} className="relative">
-      {!isDragDisabled && (
-        <div 
-          {...attributes} 
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`group relative cursor-pointer transition-colors select-none ${
+        isSelected 
+          ? 'bg-gray-800/80 border-l-4 border-gray-600' 
+          : 'hover:bg-gray-800/50 border-l-4 border-transparent'
+      }`}
+      onClick={onClick}
+    >
+      <div className="flex items-start gap-2 p-3">
+        {/* Drag Handle */}
+        <div
+          {...attributes}
           {...listeners}
-          className={`absolute top-3 left-3 md:top-3 md:left-3 ${viewMode === 'list' ? 'md:top-1/2 md:-translate-y-2 md:left-2' : ''} cursor-grab active:cursor-grabbing text-gray-500 hover:text-gray-300 p-1 rounded transition-colors z-10 w-6 flex items-center justify-center`}
+          className="cursor-grab active:cursor-grabbing text-gray-500 hover:text-gray-300 mt-1 flex-shrink-0"
         >
-          <GripVertical size={16} />
+          <GripVertical size={14} />
         </div>
-      )}
-      {children}
+
+        {/* Note Content */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2 mb-1">
+            <h4 className="text-sm font-medium text-white truncate flex-1">
+              {note.title || 'Untitled'}
+            </h4>
+            {note.isPinned && (
+              <Pin size={12} className="text-orange-400 fill-orange-400 flex-shrink-0 mt-1" />
+            )}
+          </div>
+          
+          <p className="text-xs text-gray-400 line-clamp-2 mb-2">
+            {preview}
+          </p>
+
+          {/* Tags */}
+          {note.tags && note.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {note.tags.slice(0, 2).map(tagId => {
+                const tag = availableTags.find(t => t.id === tagId)
+                return tag ? (
+                  <span
+                    key={tagId}
+                    className="text-[10px] px-1.5 py-0.5 rounded text-white"
+                    style={{ backgroundColor: tag.color }}
+                  >
+                    {tag.label}
+                  </span>
+                ) : null
+              })}
+              {note.tags.length > 2 && (
+                <span className="text-[10px] text-gray-500">+{note.tags.length - 2}</span>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   )
 }
@@ -188,35 +264,44 @@ export default function NotesApp() {
   const sidebarSystem = useSidebarSystem()
   const [activeTab, setActiveTab] = useState("personal")
   const [notes, setNotes] = useState(DEMO_NOTES)
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
-  const [editingNote, setEditingNote] = useState(null)
-  const [viewingNote, setViewingNote] = useState(null)
+  const [selectedNote, setSelectedNote] = useState(null)
   const [deleteConfirm, setDeleteConfirm] = useState(null)
-  
-  // New feature states
   const [searchQuery, setSearchQuery] = useState("")
-  const [viewMode, setViewMode] = useState("list") // 'grid' or 'list' - default is list
-  const [sortBy, setSortBy] = useState('date') // 'date', 'name', 'custom'
-  const [sortDirection, setSortDirection] = useState('asc') // 'asc' = Pfeil nach oben, aber neueste zuerst
+  const [sortBy, setSortBy] = useState('date') // Changed from 'updated' to 'date'
+  const [sortDirection, setSortDirection] = useState('desc')
   const [showSortDropdown, setShowSortDropdown] = useState(false)
-  const [selectedTags, setSelectedTags] = useState([]) // Filter by tags
-  const [dropdownOpen, setDropdownOpen] = useState(null)
-  const [isTagManagerOpen, setIsTagManagerOpen] = useState(false)
-  const [availableTags, setAvailableTags] = useState(AVAILABLE_TAGS)
+  const [availableTags, setAvailableTags] = useState(AVAILABLE_TAGS) // Now has setter
+  const [showTagsModal, setShowTagsModal] = useState(false)
+  
+  // Tag management states
   const [newTagName, setNewTagName] = useState("")
   const [newTagColor, setNewTagColor] = useState("#FF843E")
-  const [viewingImage, setViewingImage] = useState(null) // { image, images, index }
   const [showTagInfoTooltip, setShowTagInfoTooltip] = useState(false)
+  const tagInfoTooltipRef = useRef(null)
+  
+  // Editing state
+  const [editedTitle, setEditedTitle] = useState("")
+  const [editedContent, setEditedContent] = useState("")
+  const [editedTags, setEditedTags] = useState([])
+  const [editedAttachments, setEditedAttachments] = useState([])
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  const [viewingImage, setViewingImage] = useState(null)
+  const [showMobileActionsMenu, setShowMobileActionsMenu] = useState(false)
+  
+  const sortDropdownRef = useRef(null)
+  const fileInputRef = useRef(null)
+  const autoSaveTimeoutRef = useRef(null)
+  const mobileActionsMenuRef = useRef(null)
+
+  // Sidebar tooltip refs
   const [showPersonalTooltip, setShowPersonalTooltip] = useState(false)
   const [showStudioTooltip, setShowStudioTooltip] = useState(false)
-  const sortDropdownRef = useRef(null)
-  const tagInfoTooltipRef = useRef(null)
   const personalTooltipRef = useRef(null)
   const studioTooltipRef = useRef(null)
 
   const trainingVideos = trainingVideosData
 
-  // Drag & Drop sensors
+  // DnD sensors
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -228,15 +313,11 @@ export default function NotesApp() {
     })
   )
 
-  // Close dropdowns when clicking outside
+  // Close dropdowns on click outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      setDropdownOpen(null)
       if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target)) {
         setShowSortDropdown(false)
-      }
-      if (tagInfoTooltipRef.current && !tagInfoTooltipRef.current.contains(event.target)) {
-        setShowTagInfoTooltip(false)
       }
       if (personalTooltipRef.current && !personalTooltipRef.current.contains(event.target)) {
         setShowPersonalTooltip(false)
@@ -244,201 +325,155 @@ export default function NotesApp() {
       if (studioTooltipRef.current && !studioTooltipRef.current.contains(event.target)) {
         setShowStudioTooltip(false)
       }
+      if (tagInfoTooltipRef.current && !tagInfoTooltipRef.current.contains(event.target)) {
+        setShowTagInfoTooltip(false)
+      }
+      if (mobileActionsMenuRef.current && !mobileActionsMenuRef.current.contains(event.target)) {
+        setShowMobileActionsMenu(false)
+      }
     }
-    
-    const handleScroll = () => {
-      setShowTagInfoTooltip(false)
-      setShowPersonalTooltip(false)
-      setShowStudioTooltip(false)
-    }
-    
-    document.addEventListener('click', handleClickOutside)
-    document.addEventListener('scroll', handleScroll, true) // true = capture phase (catches all scrolls)
-    
-    return () => {
-      document.removeEventListener('click', handleClickOutside)
-      document.removeEventListener('scroll', handleScroll, true)
-    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  // Close lightbox with ESC key and navigate with arrow keys
+  // Load selected note data into editing state
   useEffect(() => {
-    const handleKeyDown = (event) => {
-      if (!viewingImage) return
-      
-      if (event.key === 'Escape') {
-        setViewingImage(null)
-      } else if (event.key === 'ArrowLeft') {
-        // Previous image
-        const newIndex = viewingImage.index > 0 ? viewingImage.index - 1 : viewingImage.images.length - 1
-        setViewingImage({
-          ...viewingImage,
-          image: viewingImage.images[newIndex],
-          index: newIndex
-        })
-      } else if (event.key === 'ArrowRight') {
-        // Next image
-        const newIndex = viewingImage.index < viewingImage.images.length - 1 ? viewingImage.index + 1 : 0
-        setViewingImage({
-          ...viewingImage,
-          image: viewingImage.images[newIndex],
-          index: newIndex
-        })
+    if (selectedNote) {
+      setEditedTitle(selectedNote.title || '')
+      setEditedContent(selectedNote.content || '')
+      setEditedTags(selectedNote.tags || [])
+      setEditedAttachments(selectedNote.attachments || [])
+      setHasUnsavedChanges(false)
+    } else {
+      setEditedTitle('')
+      setEditedContent('')
+      setEditedTags([])
+      setEditedAttachments([])
+      setHasUnsavedChanges(false)
+    }
+  }, [selectedNote])
+
+  // Auto-save functionality - Real-time (300ms debounce)
+  useEffect(() => {
+    if (!selectedNote || !hasUnsavedChanges) return
+
+    // Clear existing timeout
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current)
+    }
+
+    // Set new timeout for auto-save (300ms for real-time feel)
+    autoSaveTimeoutRef.current = setTimeout(() => {
+      saveCurrentNote()
+    }, 300)
+
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current)
       }
     }
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [viewingImage])
+  }, [editedTitle, editedContent, editedTags, editedAttachments, hasUnsavedChanges])
 
-  // Global keyboard shortcuts
+  // Keyboard shortcuts
   useEffect(() => {
-    const handleGlobalKeyboard = (event) => {
-      // Don't trigger shortcuts when typing in inputs/textareas
-      const isTyping = event.target.tagName === 'INPUT' || 
-                       event.target.tagName === 'TEXTAREA' || 
-                       event.target.isContentEditable
+    const handleKeyPress = (e) => {
+      const isTyping = e.target.tagName === 'INPUT' || 
+                       e.target.tagName === 'TEXTAREA' || 
+                       e.target.isContentEditable
 
-      // Esc - Close modals and dropdowns
-      if (event.key === 'Escape') {
-        if (isCreateModalOpen) {
-          setIsCreateModalOpen(false)
-        } else if (editingNote) {
-          setEditingNote(null)
-        } else if (viewingNote) {
-          setViewingNote(null)
-        } else if (deleteConfirm) {
-          setDeleteConfirm(null)
-        } else if (isTagManagerOpen) {
-          setIsTagManagerOpen(false)
-        } else if (dropdownOpen) {
-          setDropdownOpen(null)
-        } else if (showSortDropdown) {
-          setShowSortDropdown(false)
-        }
+      if (e.key === 'Escape') {
+        if (deleteConfirm) setDeleteConfirm(null)
+        else if (showTagsModal) setShowTagsModal(false)
+        else if (selectedNote) setSelectedNote(null)
         return
       }
 
-      // Don't trigger other shortcuts when typing
       if (isTyping) return
-
-      // Ignore if Ctrl/Cmd is pressed (for Ctrl+C copy, Ctrl+V paste, etc.)
-      if (event.ctrlKey || event.metaKey) {
-        // Allow Ctrl+F for search
-        if (event.key === 'f') {
-          event.preventDefault()
-          const searchInput = document.querySelector('input[type="text"][placeholder*="Search"]')
-          if (searchInput) {
-            searchInput.focus()
-          }
-        }
-        return
-      }
+      if (e.ctrlKey || e.metaKey) return
 
       // C - Create new note
-      if (event.key === 'c' || event.key === 'C') {
-        event.preventDefault()
-        setIsCreateModalOpen(true)
+      if (e.key === 'c' || e.key === 'C') {
+        e.preventDefault()
+        handleCreateNote()
       }
 
-      // T - Open Tag Manager
-      if (event.key === 't' || event.key === 'T') {
-        event.preventDefault()
-        setIsTagManagerOpen(true)
+      // T - Manage tags
+      if (e.key === 't' || e.key === 'T') {
+        e.preventDefault()
+        setShowTagsModal(true)
       }
 
-      // V - Toggle view mode
-      if (event.key === 'v' || event.key === 'V') {
-        event.preventDefault()
-        setViewMode(prev => prev === 'grid' ? 'list' : 'grid')
+      // Delete/Entf - Delete selected note
+      if ((e.key === 'Delete' || e.key === 'Entf') && selectedNote) {
+        e.preventDefault()
+        setDeleteConfirm(selectedNote)
       }
     }
 
-    document.addEventListener('keydown', handleGlobalKeyboard)
-    return () => document.removeEventListener('keydown', handleGlobalKeyboard)
-  }, [isCreateModalOpen, editingNote, viewingNote, deleteConfirm, isTagManagerOpen, dropdownOpen, showSortDropdown, viewMode])
+    document.addEventListener('keydown', handleKeyPress)
+    return () => document.removeEventListener('keydown', handleKeyPress)
+  }, [deleteConfirm, selectedNote, showTagsModal])
 
-  const createNote = (noteData) => {
-    const note = {
-      id: Date.now(),
-      title: noteData.title,
-      content: noteData.content,
-      tags: noteData.tags || [],
-      attachments: noteData.attachments || [],
-      isPinned: false,
-      createdAt: new Date().toISOString(),
+  // Save current note (silently in background)
+  const saveCurrentNote = () => {
+    if (!selectedNote) return
+
+    const updatedNote = {
+      ...selectedNote,
+      title: editedTitle || 'Untitled',
+      content: editedContent,
+      tags: editedTags,
+      attachments: editedAttachments,
       updatedAt: new Date().toISOString(),
     }
 
-    setNotes((prev) => ({
+    setNotes(prev => ({
       ...prev,
-      [activeTab]: [...prev[activeTab], note],
-    }))
-    toast.success("Note created successfully!")
-  }
-
-  const updateNote = (id, updatedNote) => {
-    setNotes((prev) => ({
-      ...prev,
-      [activeTab]: prev[activeTab].map((note) =>
-        note.id === id ? { ...note, ...updatedNote, updatedAt: new Date().toISOString() } : note,
+      [activeTab]: prev[activeTab].map(note =>
+        note.id === selectedNote.id ? updatedNote : note
       ),
     }))
-    toast.success("Note updated successfully!")
+
+    setSelectedNote(updatedNote)
+    setHasUnsavedChanges(false)
+    // No toast notification - silent auto-save
   }
 
-  const deleteNote = (id) => {
-    setNotes((prev) => ({
-      ...prev,
-      [activeTab]: prev[activeTab].filter((note) => note.id !== id),
-    }))
-    setDeleteConfirm(null)
-    toast.success("Note deleted successfully!")
-  }
+  // Get current sort label
+  const sortOptions = [
+    { value: 'date', label: 'Date' }, // Merged: uses most recent of created/updated
+    { value: 'title', label: 'Title' },
+    { value: 'custom', label: 'Custom Order' },
+  ]
+  const currentSortLabel = sortOptions.find(opt => opt.value === sortBy)?.label || 'Date'
 
-  const duplicateNote = (note) => {
-    const duplicatedNote = {
-      ...note,
-      id: Date.now(),
-      title: `${note.title} (Copy)`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+  // Get sort icon based on current state
+  const getSortIcon = () => {
+    if (sortBy === 'custom') {
+      return <ArrowUpDown size={14} className="text-gray-400" />
     }
-    setNotes((prev) => ({
-      ...prev,
-      [activeTab]: [...prev[activeTab], duplicatedNote],
-    }))
-    setDropdownOpen(null)
-    toast.success("Note duplicated successfully!")
+    return sortDirection === 'asc' 
+      ? <ArrowUp size={14} className="text-white" />
+      : <ArrowDown size={14} className="text-white" />
   }
 
-  const togglePinNote = (id) => {
-    setNotes((prev) => ({
-      ...prev,
-      [activeTab]: prev[activeTab].map((note) =>
-        note.id === id ? { ...note, isPinned: !note.isPinned } : note
-      ),
-    }))
+  // Handle sort option click (dropdown stays open for direction toggle)
+  const handleSortOptionClick = (newSortBy) => {
+    if (newSortBy === 'custom') {
+      setSortBy('custom')
+      setShowSortDropdown(false) // Only close for custom
+    } else if (sortBy === newSortBy) {
+      // If same option clicked, toggle direction (dropdown stays open)
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')
+    } else {
+      // New option → Set to desc (default), dropdown stays open
+      setSortBy(newSortBy)
+      setSortDirection('desc')
+    }
+    // Note: Dropdown stays open except for custom order
   }
 
-  const moveNoteToTab = (note) => {
-    const targetTab = activeTab === 'personal' ? 'studio' : 'personal'
-    
-    // Remove from current tab
-    setNotes((prev) => ({
-      ...prev,
-      [activeTab]: prev[activeTab].filter((n) => n.id !== note.id),
-    }))
-    
-    // Add to target tab
-    setNotes((prev) => ({
-      ...prev,
-      [targetTab]: [...prev[targetTab], note],
-    }))
-    
-    setDropdownOpen(null)
-    toast.success(`Note moved to ${targetTab === 'personal' ? 'Personal' : 'Studio'} Notes!`)
-  }
-
+  // Tag Management Functions
   const addTag = () => {
     if (!newTagName.trim()) {
       toast.error("Please enter a tag name")
@@ -459,1541 +494,717 @@ export default function NotesApp() {
 
   const deleteTag = (tagId) => {
     // Remove tag from all notes
-    setNotes((prev) => ({
-      personal: prev.personal.map(note => ({
-        ...note,
-        tags: note.tags?.filter(t => t !== tagId) || []
-      })),
-      studio: prev.studio.map(note => ({
-        ...note,
-        tags: note.tags?.filter(t => t !== tagId) || []
-      }))
-    }))
+    setNotes((prev) => {
+      const updatedNotes = {}
+      Object.keys(prev).forEach(tab => {
+        updatedNotes[tab] = prev[tab].map(note => ({
+          ...note,
+          tags: note.tags?.filter(t => t !== tagId) || []
+        }))
+      })
+      return updatedNotes
+    })
     
     // Remove from available tags
     setAvailableTags(availableTags.filter(tag => tag.id !== tagId))
     
-    // Remove from selected tags filter
-    setSelectedTags(selectedTags.filter(t => t !== tagId))
-    
     toast.success("Tag deleted successfully")
   }
 
-  const toggleViewMode = () => {
-    setViewMode(viewMode === "grid" ? "list" : "grid")
+  // Create new note directly
+  const handleCreateNote = () => {
+    const note = {
+      id: Date.now(),
+      title: 'Untitled',
+      content: '',
+      tags: [],
+      attachments: [],
+      isPinned: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+
+    setNotes(prev => ({
+      ...prev,
+      [activeTab]: [note, ...prev[activeTab]],
+    }))
+    
+    setSelectedNote(note)
+    toast.success('Note created!')
   }
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    })
+  // Delete note
+  const deleteNote = (noteId) => {
+    setNotes(prev => ({
+      ...prev,
+      [activeTab]: prev[activeTab].filter(note => note.id !== noteId),
+    }))
+    
+    if (selectedNote?.id === noteId) {
+      setSelectedNote(null)
+    }
+    
+    toast.success('Note deleted!')
   }
 
-  const formatDateTime = (dateString) => {
-    const date = new Date(dateString)
-    return date.toLocaleString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    })
+  // Duplicate note
+  const duplicateNote = () => {
+    if (!selectedNote) return
+
+    const duplicated = {
+      ...selectedNote,
+      id: Date.now(),
+      title: `${selectedNote.title} (Copy)`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+
+    setNotes(prev => ({
+      ...prev,
+      [activeTab]: [duplicated, ...prev[activeTab]],
+    }))
+
+    setSelectedNote(duplicated)
+    toast.success('Note duplicated!')
   }
 
-  const toggleDropdown = (noteId, e) => {
-    if (e) e.stopPropagation()
-    setDropdownOpen(dropdownOpen === noteId ? null : noteId)
+  // Toggle pin
+  const togglePin = (noteId) => {
+    setNotes(prev => ({
+      ...prev,
+      [activeTab]: prev[activeTab].map(note =>
+        note.id === noteId ? { ...note, isPinned: !note.isPinned } : note
+      ),
+    }))
+
+    if (selectedNote?.id === noteId) {
+      setSelectedNote(prev => ({ ...prev, isPinned: !prev.isPinned }))
+    }
+
+    toast.success('Note pinned!')
   }
 
-  const toggleSortDirection = () => {
-    setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+  // Move note to other tab
+  const moveNoteToOtherTab = () => {
+    if (!selectedNote) return
+
+    const targetTab = activeTab === 'personal' ? 'studio' : 'personal'
+    const noteToMove = { ...selectedNote }
+
+    setNotes(prev => ({
+      ...prev,
+      [activeTab]: prev[activeTab].filter(note => note.id !== selectedNote.id),
+      [targetTab]: [noteToMove, ...prev[targetTab]],
+    }))
+
+    setActiveTab(targetTab)
+    toast.success(`Note moved to ${targetTab === 'personal' ? 'Personal' : 'Studio'} Notes!`)
   }
 
-  // Handle drag end for reordering
+  // Handle file upload
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files)
+    const newAttachments = files.map(file => ({
+      name: file.name,
+      url: URL.createObjectURL(file),
+      file: file
+    }))
+    
+    setEditedAttachments(prev => [...prev, ...newAttachments])
+    setHasUnsavedChanges(true)
+  }
+
+  // Remove attachment
+  const removeAttachment = (index) => {
+    setEditedAttachments(prev => prev.filter((_, i) => i !== index))
+    setHasUnsavedChanges(true)
+  }
+
+  // Toggle tag
+  const toggleTag = (tagId) => {
+    setEditedTags(prev =>
+      prev.includes(tagId)
+        ? prev.filter(t => t !== tagId)
+        : [...prev, tagId]
+    )
+    setHasUnsavedChanges(true)
+  }
+
+  // Handle drag end
   const handleDragEnd = (event) => {
     const { active, over } = event
-    
-    if (active.id !== over?.id) {
-      // If currently sorted by something other than custom, 
-      // we need to first apply that sort order to the notes array
-      if (sortBy !== 'custom') {
-        // Get the currently displayed order (filtered and sorted)
-        const currentOrder = getFilteredAndSortedNotes()
-        
-        // Find indices in the current displayed order
-        const oldIndex = currentOrder.findIndex((item) => item.id === active.id)
-        const newIndex = currentOrder.findIndex((item) => item.id === over.id)
-        
-        // Create new order based on displayed order with the drag applied
-        const newOrder = arrayMove(currentOrder, oldIndex, newIndex)
-        
-        // Update notes to match this new order (keeping any filtered-out items at the end)
-        const currentNotes = notes[activeTab]
-        const filteredOutNotes = currentNotes.filter(n => !currentOrder.find(cn => cn.id === n.id))
-        
-        setNotes((prev) => ({
-          ...prev,
-          [activeTab]: [...newOrder, ...filteredOutNotes],
-        }))
-        setSortBy('custom')
-      } else {
-        const currentNotes = notes[activeTab]
-        const oldIndex = currentNotes.findIndex((note) => note.id === active.id)
-        const newIndex = currentNotes.findIndex((note) => note.id === over.id)
-        
-        setNotes((prev) => ({
-          ...prev,
-          [activeTab]: arrayMove(currentNotes, oldIndex, newIndex),
-        }))
+    if (!over || active.id === over.id) return
+
+    // Switch to custom sorting when manually reordering
+    setSortBy('custom')
+
+    setNotes(prev => {
+      const oldIndex = prev[activeTab].findIndex(note => note.id === active.id)
+      const newIndex = prev[activeTab].findIndex(note => note.id === over.id)
+      
+      return {
+        ...prev,
+        [activeTab]: arrayMove(prev[activeTab], oldIndex, newIndex),
       }
-    }
+    })
   }
 
-  // Sort options
-  const sortOptions = [
-    { value: 'date', label: 'Date' },
-    { value: 'name', label: 'Name' },
-    { value: 'custom', label: 'Custom Order' }
-  ]
+  // Get current notes (filtered, sorted)
+  const getCurrentNotes = () => {
+    let currentNotes = notes[activeTab] || []
 
-  const handleSortOptionClick = (newSortBy) => {
-    if (newSortBy === 'custom') {
-      setSortBy('custom')
-      setShowSortDropdown(false)
-    } else if (sortBy === newSortBy) {
-      toggleSortDirection()
-    } else {
-      setSortBy(newSortBy)
-      setSortDirection('asc') // asc = newest first for dates
+    // Filter by search
+    if (searchQuery) {
+      currentNotes = currentNotes.filter(note =>
+        note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        stripHtmlTags(note.content).toLowerCase().includes(searchQuery.toLowerCase())
+      )
     }
-  }
 
-  const currentSortLabel = sortOptions.find(opt => opt.value === sortBy)?.label || 'Date'
+    // Sort
+    currentNotes = [...currentNotes].sort((a, b) => {
+      // Pinned notes always first
+      if (a.isPinned !== b.isPinned) {
+        return a.isPinned ? -1 : 1
+      }
 
-  const getSortIcon = () => {
-    if (sortBy === 'custom') {
-      return <ArrowUpDown size={14} className="text-gray-400" />
-    }
-    return sortDirection === 'asc' 
-      ? <ArrowUp size={14} className="text-white" />
-      : <ArrowDown size={14} className="text-white" />
-  }
+      let comparison = 0
+      switch (sortBy) {
+        case 'date':
+          // Use the most recent date (either updated or created)
+          const aDate = new Date(a.updatedAt || a.createdAt)
+          const bDate = new Date(b.updatedAt || b.createdAt)
+          comparison = bDate - aDate
+          break
+        case 'title':
+          comparison = a.title.localeCompare(b.title)
+          break
+        case 'custom':
+          return 0
+        default:
+          comparison = 0
+      }
 
-  // Filter and sort notes
-  const getFilteredAndSortedNotes = () => {
-    let filtered = notes[activeTab].filter(note => {
-      const matchesSearch = note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           note.content.toLowerCase().includes(searchQuery.toLowerCase())
-      
-      const matchesTags = selectedTags.length === 0 || 
-                         selectedTags.some(tag => note.tags?.includes(tag))
-      
-      return matchesSearch && matchesTags
+      return sortDirection === 'asc' ? -comparison : comparison
     })
 
-    // Separate pinned and unpinned notes
-    const pinnedNotes = filtered.filter(note => note.isPinned)
-    const unpinnedNotes = filtered.filter(note => !note.isPinned)
-
-    // Sort unpinned notes
-    if (sortBy !== 'custom') {
-      unpinnedNotes.sort((a, b) => {
-        let comparison = 0
-        
-        switch (sortBy) {
-          case 'date':
-            // Use the maximum of createdAt and updatedAt for each note
-            // This ensures both new notes AND edited notes appear first
-            const aDate = Math.max(new Date(a.createdAt), new Date(a.updatedAt))
-            const bDate = Math.max(new Date(b.createdAt), new Date(b.updatedAt))
-            comparison = aDate - bDate
-            // For dates: 'asc' means newest first (inverted logic)
-            return sortDirection === 'asc' ? -comparison : comparison
-          case 'name':
-            comparison = a.title.localeCompare(b.title)
-            // For names: 'asc' means A-Z (normal logic)
-            return sortDirection === 'asc' ? comparison : -comparison
-          default:
-            return 0
-        }
-      })
-    }
-
-    // Return pinned notes first, then sorted unpinned notes
-    return [...pinnedNotes, ...unpinnedNotes]
+    return currentNotes
   }
 
-  const currentNotes = getFilteredAndSortedNotes()
+  const currentNotes = getCurrentNotes()
   const noteIds = currentNotes.map(note => note.id)
-  const isDragDisabled = searchQuery !== '' || selectedTags.length > 0
 
+  // Format date
+  const formatDateTime = (dateString) => {
+    if (!dateString) return ''
+    const date = new Date(dateString)
+    return date.toLocaleString('en-GB', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+  }
+
+  // Sidebar system destructuring
   const {
     isRightSidebarOpen,
-    isSidebarEditing,
-    isRightWidgetModalOpen,
-    openDropdownIndex,
-    selectedMemberType,
-    isChartDropdownOpen,
-    isWidgetModalOpen,
-    editingTask,
-    todoFilter,
-    isEditTaskModalOpen,
-    isTodoFilterDropdownOpen,
-    taskToCancel,
-    taskToDelete,
-    isBirthdayMessageModalOpen,
-    selectedBirthdayPerson,
-    birthdayMessage,
-    activeNoteId,
-    isSpecialNoteModalOpen,
-    selectedAppointmentForNote,
-    isTrainingPlanModalOpen,
-    selectedUserForTrainingPlan,
-    selectedAppointment,
-    isEditAppointmentModalOpen,
-    showAppointmentOptionsModal,
-    showAppointmentModal,
-    freeAppointments,
-    selectedMember,
-    isMemberOverviewModalOpen,
-    isMemberDetailsModalOpen,
-    activeMemberDetailsTab,
-    isEditModalOpen,
-    editModalTab,
-    isNotifyMemberOpen,
-    notifyAction,
-    showHistoryModal,
-    historyTab,
-    memberHistory,
-    currentBillingPeriod,
-    tempContingent,
-    selectedBillingPeriod,
-    showAddBillingPeriodModal,
-    newBillingPeriod,
-    showContingentModal,
-    editingRelations,
-    newRelation,
-    editForm,
-    widgets,
-    rightSidebarWidgets,
-    notePopoverRef,
-    setIsRightSidebarOpen,
-    setIsSidebarEditing,
-    setIsRightWidgetModalOpen,
-    setOpenDropdownIndex,
-    setSelectedMemberType,
-    setIsChartDropdownOpen,
-    setIsWidgetModalOpen,
-    setEditingTask,
-    setTodoFilter,
-    setIsEditTaskModalOpen,
-    setIsTodoFilterDropdownOpen,
-    setTaskToCancel,
-    setTaskToDelete,
-    setIsBirthdayMessageModalOpen,
-    setSelectedBirthdayPerson,
-    setBirthdayMessage,
-    setActiveNoteId,
-    setIsSpecialNoteModalOpen,
-    setSelectedAppointmentForNote,
-    setIsTrainingPlanModalOpen,
-    setSelectedUserForTrainingPlan,
-    setSelectedAppointment,
-    setIsEditAppointmentModalOpen,
-    setShowAppointmentOptionsModal,
-    setShowAppointmentModal,
-    setFreeAppointments,
-    setSelectedMember,
-    setIsMemberOverviewModalOpen,
-    setIsMemberDetailsModalOpen,
-    setActiveMemberDetailsTab,
-    setIsEditModalOpen,
-    setEditModalTab,
-    setIsNotifyMemberOpen,
-    setNotifyAction,
-    setShowHistoryModal,
-    setHistoryTab,
-    setMemberHistory,
-    setCurrentBillingPeriod,
-    setTempContingent,
-    setSelectedBillingPeriod,
-    setShowAddBillingPeriodModal,
-    setNewBillingPeriod,
-    setShowContingentModal,
-    setEditingRelations,
-    setNewRelation,
-    setEditForm,
-    setWidgets,
-    setRightSidebarWidgets,
     toggleRightSidebar,
-    closeSidebar,
-    toggleSidebarEditing,
-    toggleDropdown: sidebarToggleDropdown,
-    redirectToCommunication,
-    moveRightSidebarWidget,
-    removeRightSidebarWidget,
-    getWidgetPlacementStatus,
-    handleAddRightSidebarWidget,
-    handleTaskComplete,
-    handleEditTask,
-    handleUpdateTask,
-    handleCancelTask,
-    handleDeleteTask,
-    isBirthdayToday,
-    handleSendBirthdayMessage,
-    handleEditNote,
-    handleDumbbellClick,
-    handleCheckIn,
-    handleAppointmentOptionsModal,
-    handleSaveSpecialNote,
-    isEventInPast,
-    handleCancelAppointment,
-    actuallyHandleCancelAppointment,
-    handleDeleteAppointment,
-    handleEditAppointment,
-    handleCreateNewAppointment,
-    handleViewMemberDetails,
-    handleNotifyMember,
-    calculateAge,
-    isContractExpiringSoon,
-    redirectToContract,
-    handleCalendarFromOverview,
-    handleHistoryFromOverview,
-    handleCommunicationFromOverview,
-    handleViewDetailedInfo,
-    handleEditFromOverview,
-    getMemberAppointments,
-    handleManageContingent,
-    getBillingPeriods,
-    handleAddBillingPeriod,
-    handleSaveContingent,
-    handleInputChange,
-    handleEditSubmit,
-    handleAddRelation,
-    handleDeleteRelation,
-    handleArchiveMember,
-    handleUnarchiveMember,
-    truncateUrl,
-    renderSpecialNoteIcon,
-    customLinks, setCustomLinks, communications, setCommunications,
-    todos, setTodos, expiringContracts, setExpiringContracts,
-    birthdays, setBirthdays, notifications, setNotifications,
-    appointments, setAppointments,
-    memberContingentData, setMemberContingentData,
-    memberRelations, setMemberRelations,
-    memberTypes,
-    availableMembersLeads,
-    mockTrainingPlans,
-    mockVideos,
-    todoFilterOptions,
-    relationOptions,
-    appointmentTypes,
-    handleAssignTrainingPlan,
-    handleRemoveTrainingPlan,
-    memberTrainingPlans,
-    setMemberTrainingPlans, availableTrainingPlans, setAvailableTrainingPlans
+    // ... rest of sidebar props
   } = sidebarSystem
-
-  const handleTaskCompleteWrapper = (taskId) => {
-    handleTaskComplete(taskId, todos, setTodos)
-  }
-
-  const handleUpdateTaskWrapper = (updatedTask) => {
-    handleUpdateTask(updatedTask, setTodos)
-  }
-
-  const handleCancelTaskWrapper = (taskId) => {
-    handleCancelTask(taskId, setTodos)
-  }
-
-  const handleDeleteTaskWrapper = (taskId) => {
-    handleDeleteTask(taskId, setTodos)
-  }
-
-  const handleEditNoteWrapper = (appointmentId, currentNote) => {
-    handleEditNote(appointmentId, currentNote, appointments)
-  }
-
-  const handleCheckInWrapper = (appointmentId) => {
-    handleCheckIn(appointmentId, appointments, setAppointments)
-  }
-
-  const handleSaveSpecialNoteWrapper = (appointmentId, updatedNote) => {
-    handleSaveSpecialNote(appointmentId, updatedNote, setAppointments)
-  }
-
-  const actuallyHandleCancelAppointmentWrapper = (shouldNotify) => {
-    actuallyHandleCancelAppointment(shouldNotify, appointments, setAppointments)
-  }
-
-  const handleDeleteAppointmentWrapper = (id) => {
-    handleDeleteAppointment(id, appointments, setAppointments)
-  }
 
   return (
     <>
-      <style>
-        {`
-          @keyframes wobble {
-            0%, 100% { transform: rotate(0deg); }
-            15% { transform: rotate(-1deg); }
-            30% { transform: rotate(1deg); }
-            45% { transform: rotate(-1deg); }
-            60% { transform: rotate(1deg); }
-            75% { transform: rotate(-1deg); }
-            90% { transform: rotate(1deg); }
-          }
-          .animate-wobble {
-            animation: wobble 0.5s ease-in-out infinite;
-          }
-          .scrollbar-hide {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-            cursor: grab;
-          }
-          .scrollbar-hide::-webkit-scrollbar {
-            display: none;
-          }
-          .scrollbar-hide:active {
-            cursor: grabbing;
-          }
-        `}
-      </style>
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 2000,
-          style: {
-            background: "#333",
-            color: "#fff",
-          },
-        }}
-      />
-      <div className={`
-    min-h-screen rounded-3xl bg-[#1C1C1C] text-white md:p-6 p-3
-    transition-all duration-500 ease-in-out flex-1
-    ${isRightSidebarOpen
-          ? 'lg:mr-86 mr-0'
-          : 'mr-0'
-        }
-  `}>
-        <div className=" ">
-          {/* Header */}
-          <div className="flex sm:items-center justify-between mb-6 sm:mb-8 gap-4">
-            <div className="flex items-center gap-3">
-              <h1 className="text-white oxanium_font text-xl md:text-2xl">Notes</h1>
-              
-              {/* Sort Button - Mobile Only */}
-              <div className="md:hidden relative" ref={sortDropdownRef}>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setShowSortDropdown(!showSortDropdown)
-                  }}
-                  className="px-3 py-2 bg-[#2F2F2F] text-gray-300 rounded-xl text-xs hover:bg-[#3F3F3F] transition-colors flex items-center gap-2"
-                >
-                  {getSortIcon()}
-                  <span>{currentSortLabel}</span>
-                </button>
-                
-                {showSortDropdown && (
-                  <div className="absolute top-full left-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[180px]">
-                    {sortOptions.map((option) => (
-                      <button
-                        key={option.value}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleSortOptionClick(option.value)
-                        }}
-                        className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${
-                          sortBy === option.value 
-                            ? 'text-white bg-gray-800/50' 
-                            : 'text-gray-300'
-                        }`}
-                      >
-                        <span>{option.label}</span>
-                        {sortBy === option.value && option.value !== 'custom' && (
-                          <span className="text-gray-400">
-                            {sortDirection === 'asc' 
-                              ? <ArrowUp size={14} /> 
-                              : <ArrowDown size={14} />
-                            }
-                          </span>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                )}
+      <Toaster position="top-right" toastOptions={{ duration: 2000, style: { background: "#333", color: "#fff" } }} />
+      
+      <div className="min-h-screen rounded-3xl bg-[#1C1C1C] text-white p-3 md:p-6 flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4 md:mb-6">
+          <h1 className="text-xl md:text-2xl font-bold text-white">Notes</h1>
+          
+          <div className="flex items-center gap-2">
+            {/* Sidebar Toggle */}
+            {isRightSidebarOpen ? (
+              <div onClick={toggleRightSidebar}>
+                <img src="/expand-sidebar mirrored.svg" className="h-5 w-5 cursor-pointer" alt="" />
               </div>
-              
-              {/* View Toggle - Desktop Only */}
-              <div className="hidden md:flex items-center gap-2 bg-black rounded-xl p-1">
-                <span className="text-xs text-gray-400 px-2">View</span>
-                <div className="relative group">
-                  <button
-                    onClick={toggleViewMode}
-                    className={`p-2 rounded-lg transition-colors ${
-                      viewMode === "grid"
-                        ? "bg-[#FF843E] text-white"
-                        : "text-gray-400 hover:text-white"
-                    }`}
-                  >
-                    <Grid3x3 size={16} />
-                  </button>
-                  {/* Tooltip */}
-                  <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                    <span className="font-medium">Grid View</span>
-                    <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
-                      V
-                    </span>
-                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
-                  </div>
-                </div>
-                <div className="relative group">
-                  <button
-                    onClick={toggleViewMode}
-                    className={`p-2 rounded-lg transition-colors ${
-                      viewMode === "list"
-                        ? "bg-[#FF843E] text-white"
-                        : "text-gray-400 hover:text-white"
-                    }`}
-                  >
-                    <List size={16} />
-                  </button>
-                  {/* Tooltip */}
-                  <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                    <span className="font-medium">List View</span>
-                    <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
-                      V
-                    </span>
-                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
-                  </div>
-                </div>
+            ) : (
+              <div onClick={toggleRightSidebar}>
+                <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
               </div>
-            </div>
-
-            {/* Actions */}
-            <div className="flex items-center gap-2">
-              {/* Tags Button with Tooltip */}
-              <div className="relative group">
-                <button
-                  onClick={() => setIsTagManagerOpen(true)}
-                  className="bg-[#2a2a2a] hover:bg-[#333] text-white text-xs sm:text-sm px-3 sm:px-4 py-2 rounded-xl flex items-center gap-2 justify-center border border-gray-700 transition-colors"
-                >
-                  <Tag size={14} className="sm:w-4 sm:h-4" />
-                  <span className="hidden sm:inline">Tags</span>
-                </button>
-                
-                {/* Tooltip */}
-                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                  <span className="font-medium">Manage Tags</span>
-                  <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
-                    T
-                  </span>
-                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
-                </div>
-              </div>
-              
-              {/* Create Note Button with Tooltip - Desktop Only */}
-              <div className="hidden md:block relative group">
-                <button
-                  onClick={() => setIsCreateModalOpen(true)}
-                  className="flex bg-orange-500 hover:bg-orange-600 text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors"
-                >
-                  <Plus size={14} className="sm:w-4 sm:h-4" />
-                  <span className="hidden sm:inline">Create Note</span>
-                </button>
-                
-                {/* Tooltip */}
-                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                  <span className="font-medium">Create Note</span>
-                  <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
-                    C
-                  </span>
-                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
-                </div>
-              </div>
-              
-              {isRightSidebarOpen ? (
-                <div onClick={toggleRightSidebar}>
-                  <img src='/expand-sidebar mirrored.svg' className="h-5 w-5 cursor-pointer" alt="" />
-                </div>
-              ) : (
-                <div onClick={toggleRightSidebar}>
-                  <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
-                </div>
-              )}
-            </div>
+            )}
           </div>
-
-          {/* Tabs */}
-          <div className="flex border-b border-gray-700 mb-6">
-            {/* Personal Notes Tab */}
-            <div className="relative flex items-center">
-              <button
-                onClick={() => setActiveTab("personal")}
-                className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === "personal" ? "text-orange-400 border-b-2 border-orange-400" : "text-gray-400 hover:text-white"
-                  }`}
-              >
-                Personal Notes
-              </button>
-              
-              {/* Info Icon with Tooltip */}
-              <div 
-                className="relative group -ml-1 flex items-center"
-                ref={personalTooltipRef}
-              >
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setShowPersonalTooltip(!showPersonalTooltip)
-                  }}
-                  onMouseEnter={() => setShowPersonalTooltip(true)}
-                  onMouseLeave={() => setShowPersonalTooltip(false)}
-                  className="p-2 -m-2 touch-manipulation"
-                  aria-label="Personal Notes Information"
-                >
-                  <Info 
-                    size={16} 
-                    className="opacity-60 text-gray-400"
-                  />
-                </button>
-                
-                {/* Personal Tooltip */}
-                {showPersonalTooltip && (
-                  <div className="absolute left-0 md:left-0 top-full mt-2 w-48 md:w-56 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-xl p-3 z-50">
-                    <div className="text-sm">
-                      <p className="text-white font-medium mb-1.5">Private to you</p>
-                      <p className="text-gray-300 text-xs leading-relaxed">
-                        Only you can see and edit these notes. Perfect for personal tasks and private information.
-                      </p>
-                    </div>
-                    {/* Arrow */}
-                    <div className="absolute -top-1 left-2 w-2 h-2 bg-[#2a2a2a] border-l border-t border-gray-700 transform rotate-45"></div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Studio Notes Tab */}
-            <div className="relative flex items-center">
-              <button
-                onClick={() => setActiveTab("studio")}
-                className={`px-4 py-2 text-sm font-medium transition-colors ${activeTab === "studio" ? "text-orange-400 border-b-2 border-orange-400" : "text-gray-400 hover:text-white"
-                  }`}
-              >
-                Studio Notes
-              </button>
-              
-              {/* Info Icon with Tooltip */}
-              <div 
-                className="relative group -ml-1 flex items-center"
-                ref={studioTooltipRef}
-              >
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setShowStudioTooltip(!showStudioTooltip)
-                  }}
-                  onMouseEnter={() => setShowStudioTooltip(true)}
-                  onMouseLeave={() => setShowStudioTooltip(false)}
-                  className="p-2 -m-2 touch-manipulation"
-                  aria-label="Studio Notes Information"
-                >
-                  <Info 
-                    size={16} 
-                    className="opacity-60 text-gray-400"
-                  />
-                </button>
-                
-                {/* Studio Tooltip */}
-                {showStudioTooltip && (
-                  <div className="absolute right-0 md:left-0 top-full mt-2 w-48 md:w-56 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-xl p-3 z-50">
-                    <div className="text-sm">
-                      <p className="text-white font-medium mb-1.5">Shared with everyone</p>
-                      <p className="text-gray-300 text-xs leading-relaxed">
-                        All team members can see and edit these notes. Great for collaboration and shared information.
-                      </p>
-                    </div>
-                    {/* Arrow */}
-                    <div className="absolute -top-1 right-2 md:left-2 w-2 h-2 bg-[#2a2a2a] border-l border-t border-gray-700 transform rotate-45"></div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Search Bar */}
-          <div className="mb-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-              <input
-                type="text"
-                placeholder="Search notes by title or content..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-[#333333] focus:border-[#3F74FF] transition-colors"
-              />
-            </div>
-          </div>
-
-          {/* Filter Pills and Sort */}
-          <div className="flex flex-wrap gap-2 sm:gap-3 mb-6 items-center">
-            {/* Tag Filter Pills */}
-            {availableTags.map(tag => (
-              <button
-                key={tag.id}
-                onClick={() => {
-                  setSelectedTags(prev => 
-                    prev.includes(tag.id) 
-                      ? prev.filter(t => t !== tag.id)
-                      : [...prev, tag.id]
-                  )
-                }}
-                className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-1.5 ${
-                  selectedTags.includes(tag.id)
-                    ? "text-white"
-                    : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
-                }`}
-                style={{
-                  backgroundColor: selectedTags.includes(tag.id) ? tag.color : undefined
-                }}
-              >
-                <Tag size={12} />
-                {tag.label}
-              </button>
-            ))}
-
-            {/* Sort Controls - Desktop Only */}
-            <div className="hidden md:block ml-auto relative">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setShowSortDropdown(!showSortDropdown)
-                }}
-                className="px-3 sm:px-4 py-2 bg-[#2F2F2F] text-gray-300 rounded-xl text-xs sm:text-sm hover:bg-[#3F3F3F] transition-colors flex items-center gap-2"
-              >
-                {getSortIcon()}
-                <span>{currentSortLabel}</span>
-              </button>
-
-              {showSortDropdown && (
-                <div className="absolute top-full right-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[180px]">
-                  <div className="py-1">
-                    <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">
-                      Sort by
-                    </div>
-                    {sortOptions.map((option) => (
-                      <button
-                        key={option.value}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleSortOptionClick(option.value)
-                        }}
-                        className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${
-                          sortBy === option.value 
-                            ? 'text-white bg-gray-800/50' 
-                            : 'text-gray-300'
-                        }`}
-                      >
-                        <span>{option.label}</span>
-                        {sortBy === option.value && option.value !== 'custom' && (
-                          <span className="text-gray-400">
-                            {sortDirection === 'asc' 
-                              ? <ArrowUp size={14} /> 
-                              : <ArrowDown size={14} />
-                            }
-                          </span>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Notes Grid/List */}
-          {currentNotes.length === 0 ? (
-            <div className="text-center py-20">
-              <div className="text-gray-600 mb-6">
-                {searchQuery || selectedTags.length > 0 ? (
-                  <Search className="w-16 h-16 mx-auto" strokeWidth={1.5} />
-                ) : (
-                  <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1.5}
-                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                    />
-                  </svg>
-                )}
-              </div>
-              <h3 className="text-xl font-semibold text-white mb-2">
-                {searchQuery || selectedTags.length > 0 ? "No notes found" : "No notes yet"}
-              </h3>
-              <p className="text-gray-400 mb-8 text-sm">
-                {searchQuery || selectedTags.length > 0 
-                  ? "Try adjusting your search or filters"
-                  : `Create your first ${activeTab === 'personal' ? 'personal' : 'studio'} note to get started`
-                }
-              </p>
-              {!searchQuery && selectedTags.length === 0 && (
-                <div className="space-y-4">
-                  <button
-                    onClick={() => setIsCreateModalOpen(true)}
-                    className="bg-orange-500 hover:bg-orange-600 text-sm cursor-pointer text-white px-6 py-3 rounded-xl font-medium transition-colors inline-flex items-center gap-2"
-                  >
-                    <Plus size={18} />
-                    Create Note
-                  </button>
-                  <p className="text-gray-500 text-xs">
-                    or press <kbd className="px-2 py-1 bg-gray-800 border border-gray-700 rounded text-gray-300 font-mono text-xs">C</kbd> to create a note
-                  </p>
-                </div>
-              )}
-            </div>
-          ) : (
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
-            >
-              <SortableContext items={noteIds} strategy={rectSortingStrategy}>
-                <div className={
-                  viewMode === 'grid'
-                    ? `grid grid-cols-1 sm:grid-cols-2 ${isRightSidebarOpen ? "lg:grid-cols-3" : "lg:grid-cols-4"} gap-6`
-                    : `grid grid-cols-1 sm:grid-cols-2 ${isRightSidebarOpen ? "lg:grid-cols-3" : "lg:grid-cols-4"} gap-6 md:!grid-cols-1 md:!gap-3`
-                }>
-                  {currentNotes.map((note) => (
-                    <SortableNoteCard 
-                      key={note.id} 
-                      note={note} 
-                      isDragDisabled={isDragDisabled}
-                      viewMode={viewMode}
-                    >
-                      <div>
-                        {/* Grid Card - Always on Mobile, on Desktop only if viewMode is grid */}
-                        <div className={`bg-[#1A1A1A] rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-800 hover:border-gray-700 h-64 relative select-none ${viewMode === 'list' ? 'flex md:hidden' : 'flex'} flex-col`} style={{
-                          paddingLeft: !isDragDisabled ? '2.5rem' : undefined
-                        }}>
-                          {/* Pin Icon - Mobile Grid View */}
-                          {note.isPinned && (
-                            <div className="absolute top-10 left-4 z-10 md:hidden">
-                              <Pin
-                                size={14}
-                                className="text-orange-400 fill-orange-400"
-                                aria-label="Note is pinned"
-                              />
-                            </div>
-                          )}
-                          {/* Pin Icon - Desktop Grid View */}
-                          {note.isPinned && viewMode === 'grid' && (
-                            <div className="hidden md:block absolute top-10 left-4 z-10">
-                              <Pin
-                                size={14}
-                                className="text-orange-400 fill-orange-400"
-                                aria-label="Note is pinned"
-                              />
-                            </div>
-                          )}
-                          
-                          <div className="p-6 flex flex-col h-full">
-                            <div className="flex justify-between items-start mb-4 flex-shrink-0">
-                              <h3 className="text-lg font-semibold text-white line-clamp-2 flex-1 mr-2">
-                                {note.title}
-                              </h3>
-                              
-                              {/* Dropdown Menu */}
-                              <div className="relative flex-shrink-0">
-                                <button
-                                  onClick={(e) => toggleDropdown(note.id, e)}
-                                  className="text-gray-400 hover:text-orange-400 p-2 rounded-lg hover:bg-gray-800 transition-colors"
-                                >
-                                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
-                                  </svg>
-                                </button>
-
-                                {dropdownOpen === note.id && (
-                                  <div className="absolute right-0 top-8 bg-[#1C1C1C] border border-gray-700 rounded-lg shadow-lg py-1 z-50 min-w-[140px]">
-                                    <button
-                                      onClick={() => {
-                                        setEditingNote(note)
-                                        setDropdownOpen(null)
-                                      }}
-                                      className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2 transition-colors"
-                                    >
-                                      <Edit size={14} /> Edit
-                                    </button>
-                                    <button
-                                      onClick={() => duplicateNote(note)}
-                                      className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2 transition-colors"
-                                    >
-                                      <Copy size={14} /> Duplicate
-                                    </button>
-                                    <button
-                                      onClick={() => {
-                                        togglePinNote(note.id)
-                                        setDropdownOpen(null)
-                                      }}
-                                      className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2 transition-colors"
-                                    >
-                                      {note.isPinned ? <PinOff size={14} /> : <Pin size={14} />}
-                                      {note.isPinned ? 'Unpin' : 'Pin'}
-                                    </button>
-                                    <button
-                                      onClick={() => moveNoteToTab(note)}
-                                      className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2 transition-colors"
-                                    >
-                                      <ArrowRightLeft size={14} />
-                                      Move to {activeTab === 'personal' ? 'Studio' : 'Personal'} Notes
-                                    </button>
-                                    <button
-                                      onClick={() => {
-                                        setDeleteConfirm(note)
-                                        setDropdownOpen(null)
-                                      }}
-                                      className="w-full text-left px-3 py-2 hover:bg-gray-800 text-red-500 text-sm flex items-center gap-2 transition-colors"
-                                    >
-                                      <Trash2 size={14} /> Delete
-                                    </button>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-
-                            <p className="text-gray-300 text-sm leading-relaxed mb-3 overflow-hidden break-words flex-shrink-0" style={{
-                              display: '-webkit-box',
-                              WebkitLineClamp: 2,
-                              WebkitBoxOrient: 'vertical',
-                              wordBreak: 'break-word',
-                              maxHeight: '2.8rem'
-                            }}>
-                              {note.content}
-                            </p>
-
-                            {/* Spacer to push tags and footer down */}
-                            <div className="flex-1" style={{ minHeight: '0.5rem' }}></div>
-
-                            {/* Tags - Single line with horizontal scroll */}
-                            {note.tags && note.tags.length > 0 && (
-                              <div className="mb-2 flex-shrink-0" style={{ minHeight: '28px' }}>
-                                <div 
-                                  className="overflow-x-auto scrollbar-hide"
-                                  style={{
-                                    display: 'flex',
-                                    flexWrap: 'nowrap',
-                                    gap: '8px',
-                                    scrollbarWidth: 'none',
-                                    msOverflowStyle: 'none',
-                                    WebkitOverflowScrolling: 'touch',
-                                    touchAction: 'pan-x',
-                                    maxWidth: '100%'
-                                  }}
-                                  onWheel={(e) => {
-                                    // Horizontal scroll mit Mousewheel auf Desktop
-                                    e.preventDefault()
-                                    e.currentTarget.scrollLeft += e.deltaY
-                                  }}
-                                  onMouseDown={(e) => {
-                                    const el = e.currentTarget
-                                    el.style.cursor = 'grabbing'
-                                    el.style.userSelect = 'none'
-                                    
-                                    const startX = e.pageX - el.offsetLeft
-                                    const scrollLeft = el.scrollLeft
-                                    
-                                    const onMouseMove = (e) => {
-                                      const x = e.pageX - el.offsetLeft
-                                      const walk = (x - startX) * 2
-                                      el.scrollLeft = scrollLeft - walk
-                                    }
-                                    
-                                    const onMouseUp = () => {
-                                      el.style.cursor = 'grab'
-                                      el.style.userSelect = 'auto'
-                                      document.removeEventListener('mousemove', onMouseMove)
-                                      document.removeEventListener('mouseup', onMouseUp)
-                                    }
-                                    
-                                    document.addEventListener('mousemove', onMouseMove)
-                                    document.addEventListener('mouseup', onMouseUp)
-                                  }}
-                                  onTouchStart={(e) => {
-                                    e.currentTarget.style.cursor = 'grabbing'
-                                  }}
-                                  onTouchEnd={(e) => {
-                                    e.currentTarget.style.cursor = 'grab'
-                                  }}
-                                >
-                                  {note.tags.map(tagId => {
-                                    const tag = availableTags.find(t => t.id === tagId)
-                                    return tag ? (
-                                      <span
-                                        key={tagId}
-                                        className="text-xs px-2 py-1 rounded-md flex items-center text-white"
-                                        style={{ 
-                                          backgroundColor: tag.color,
-                                          gap: '4px',
-                                          flexShrink: 0,
-                                          whiteSpace: 'nowrap',
-                                          minWidth: 'fit-content',
-                                          pointerEvents: 'none'
-                                        }}
-                                      >
-                                        <Tag size={10} />
-                                        {tag.label}
-                                      </span>
-                                    ) : null
-                                  })}
-                                </div>
-                              </div>
-                            )}
-
-                            <div className="flex items-end justify-between pt-2 border-t border-gray-800/50 flex-shrink-0">
-                              <div className="flex items-end gap-3">
-                                <div className="flex flex-col">
-                                  <p className="text-[11px] text-gray-500">
-                                    Created: {formatDateTime(note.createdAt)}
-                                  </p>
-                                  {note.updatedAt !== note.createdAt && (
-                                    <p className="text-[11px] text-gray-500 mt-0.5">
-                                      Updated: {formatDateTime(note.updatedAt)}
-                                    </p>
-                                  )}
-                                </div>
-                                {note.attachments && note.attachments.length > 0 && (
-                                  <div className="flex items-center gap-1 text-[11px] text-gray-400 pb-0.5">
-                                    <Paperclip size={12} />
-                                    <span>{note.attachments.length}</span>
-                                  </div>
-                                )}
-                              </div>
-
-                              <button
-                                onClick={() => setViewingNote(note)}
-                                className="text-gray-400 hover:text-orange-400 p-2 rounded-lg hover:bg-gray-800 transition-colors flex-shrink-0"
-                                title="View note"
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                                  />
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                                  />
-                                </svg>
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      
-                      {/* List View Card - Hidden on Mobile, Desktop only in List Mode */}
-                      <div className={`bg-[#1A1A1A] rounded-xl border border-gray-800 hover:border-gray-700 transition-all duration-200 p-4 h-32 gap-4 select-none ${!isDragDisabled ? 'pl-10' : ''} ${viewMode === 'list' ? 'hidden md:flex' : 'hidden'} items-center relative`}>
-                          {/* Pin Icon - Adjusted position */}
-                          {note.isPinned && (
-                            <div className="absolute left-4 top-1/2 -translate-y-6 z-10">
-                              <Pin
-                                size={14}
-                                className="text-orange-400 fill-orange-400"
-                                aria-label="Note is pinned"
-                              />
-                            </div>
-                          )}
-
-                          <div className="flex-1 min-w-0">
-                            <h3 className="text-base font-semibold text-white mb-1 line-clamp-2">
-                              {note.title}
-                            </h3>
-                            <p className="text-sm text-gray-400 line-clamp-2 mb-2">
-                              {note.content}
-                            </p>
-                            {note.tags && note.tags.length > 0 && (
-                              <div style={{ minHeight: '28px' }}>
-                                <div 
-                                  className="overflow-x-auto scrollbar-hide"
-                                  style={{
-                                    display: 'flex',
-                                    flexWrap: 'nowrap',
-                                    gap: '8px',
-                                    scrollbarWidth: 'none',
-                                    msOverflowStyle: 'none',
-                                    WebkitOverflowScrolling: 'touch',
-                                    touchAction: 'pan-x',
-                                    maxWidth: '100%'
-                                  }}
-                                  onWheel={(e) => {
-                                    // Horizontal scroll mit Mousewheel auf Desktop
-                                    e.preventDefault()
-                                    e.currentTarget.scrollLeft += e.deltaY
-                                  }}
-                                  onMouseDown={(e) => {
-                                    const el = e.currentTarget
-                                    el.style.cursor = 'grabbing'
-                                    el.style.userSelect = 'none'
-                                    
-                                    const startX = e.pageX - el.offsetLeft
-                                    const scrollLeft = el.scrollLeft
-                                    
-                                    const onMouseMove = (e) => {
-                                      const x = e.pageX - el.offsetLeft
-                                      const walk = (x - startX) * 2
-                                      el.scrollLeft = scrollLeft - walk
-                                    }
-                                    
-                                    const onMouseUp = () => {
-                                      el.style.cursor = 'grab'
-                                      el.style.userSelect = 'auto'
-                                      document.removeEventListener('mousemove', onMouseMove)
-                                      document.removeEventListener('mouseup', onMouseUp)
-                                    }
-                                    
-                                    document.addEventListener('mousemove', onMouseMove)
-                                    document.addEventListener('mouseup', onMouseUp)
-                                  }}
-                                  onTouchStart={(e) => {
-                                    e.currentTarget.style.cursor = 'grabbing'
-                                  }}
-                                  onTouchEnd={(e) => {
-                                    e.currentTarget.style.cursor = 'grab'
-                                  }}
-                                >
-                                  {note.tags.map(tagId => {
-                                    const tag = availableTags.find(t => t.id === tagId)
-                                    return tag ? (
-                                      <span
-                                        key={tagId}
-                                        className="text-xs px-2 py-1 rounded-md flex items-center text-white"
-                                        style={{ 
-                                          backgroundColor: tag.color,
-                                          gap: '4px',
-                                          flexShrink: 0,
-                                          whiteSpace: 'nowrap',
-                                          minWidth: 'fit-content',
-                                          pointerEvents: 'none'
-                                        }}
-                                      >
-                                        <Tag size={10} />
-                                        {tag.label}
-                                      </span>
-                                    ) : null
-                                  })}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-
-                          <div className="flex items-start gap-3 flex-shrink-0">
-                            <div className="text-right pt-1 min-h-[44px] flex flex-col justify-end">
-                              <p className="text-[11px] text-gray-500 whitespace-nowrap">
-                                Created: {formatDateTime(note.createdAt)}
-                              </p>
-                              {note.updatedAt !== note.createdAt && (
-                                <p className="text-[11px] text-gray-500 mt-0.5 whitespace-nowrap">
-                                  Updated: {formatDateTime(note.updatedAt)}
-                                </p>
-                              )}
-                              {note.attachments && note.attachments.length > 0 && (
-                                <div className="flex items-center gap-1 mt-1 text-[11px] text-gray-400 justify-end">
-                                  <Paperclip size={12} />
-                                  <span>{note.attachments.length}</span>
-                                </div>
-                              )}
-                            </div>
-
-                            <div className="flex items-start gap-1 pt-1">
-                              <button
-                                onClick={() => setViewingNote(note)}
-                                className="text-gray-400 hover:text-orange-400 p-2 rounded-lg hover:bg-gray-800 transition-colors"
-                                title="View note"
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                                  />
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                                  />
-                                </svg>
-                              </button>
-
-                              {/* Dropdown Menu */}
-                              <div className="relative">
-                                <button
-                                  onClick={(e) => toggleDropdown(note.id, e)}
-                                  className="text-gray-400 hover:text-orange-400 p-2 rounded-lg hover:bg-gray-800 transition-colors"
-                                >
-                                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                    <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
-                                  </svg>
-                                </button>
-
-                                {dropdownOpen === note.id && (
-                                  <div className="absolute right-0 bottom-full mb-1 bg-[#1C1C1C] border border-gray-700 rounded-lg shadow-lg py-1 z-50 min-w-[140px]">
-                                    <button
-                                      onClick={() => {
-                                        setEditingNote(note)
-                                        setDropdownOpen(null)
-                                      }}
-                                      className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2 transition-colors"
-                                    >
-                                      <Edit size={14} /> Edit
-                                    </button>
-                                    <button
-                                      onClick={() => duplicateNote(note)}
-                                      className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2 transition-colors"
-                                    >
-                                      <Copy size={14} /> Duplicate
-                                    </button>
-                                    <button
-                                      onClick={() => {
-                                        togglePinNote(note.id)
-                                        setDropdownOpen(null)
-                                      }}
-                                      className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2 transition-colors"
-                                    >
-                                      {note.isPinned ? <PinOff size={14} /> : <Pin size={14} />}
-                                      {note.isPinned ? 'Unpin' : 'Pin'}
-                                    </button>
-                                    <button
-                                      onClick={() => moveNoteToTab(note)}
-                                      className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2 transition-colors"
-                                    >
-                                      <ArrowRightLeft size={14} />
-                                      Move to {activeTab === 'personal' ? 'Studio' : 'Personal'} Notes
-                                    </button>
-                                    <button
-                                      onClick={() => {
-                                        setDeleteConfirm(note)
-                                        setDropdownOpen(null)
-                                      }}
-                                      className="w-full text-left px-3 py-2 hover:bg-gray-800 text-red-500 text-sm flex items-center gap-2 transition-colors"
-                                    >
-                                      <Trash2 size={14} /> Delete
-                                    </button>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </SortableNoteCard>
-                  ))}
-                </div>
-              </SortableContext>
-            </DndContext>
-          )}
         </div>
 
-        {/* Tag Manager Modal */}
-        {isTagManagerOpen && (
-          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[80] p-4">
-            <div className="bg-[#1C1C1C] rounded-2xl w-full max-w-md max-h-[80vh] flex flex-col">
-              <div className="flex justify-between items-center mb-4 p-6 pb-0 overflow-visible">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-white text-lg font-semibold">Manage Tags</h3>
-                  {/* Info Tooltip */}
-                  <div className="relative" ref={tagInfoTooltipRef}>
+        {/* Main Content Area: Sidebar + Content */}
+        <div className="flex-1 flex flex-col md:flex-row gap-4 md:gap-6 min-h-0 overflow-hidden">
+          {/* Left Sidebar - Notes List */}
+          <div className="w-full md:w-80 flex flex-col bg-[#161616] rounded-xl border border-gray-800 h-[calc(100vh-140px)] md:max-h-[calc(100vh-200px)]">
+            {/* Desktop: Buttons Row + Search Row */}
+            {/* Mobile: Single Row with Search + Icon Buttons */}
+            
+            {/* Desktop Only: Create + Sort + Tags Buttons Row */}
+            <div className="hidden md:flex p-3 border-b border-gray-800 gap-2">
+              <button
+                onClick={handleCreateNote}
+                className="bg-orange-500 hover:bg-orange-600 text-sm text-white px-3 py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-colors font-medium"
+                title="Create Note (C)"
+              >
+                <Plus size={16} />
+                <span className="hidden min-[400px]:inline">New</span>
+              </button>
+              
+              {/* Sort Dropdown - Desktop */}
+              <div className="relative flex-1 max-w-[180px]" ref={sortDropdownRef}>
+                <button
+                  onClick={() => setShowSortDropdown(!showSortDropdown)}
+                  className="w-full px-3 py-2.5 bg-[#2F2F2F] text-gray-300 rounded-xl text-sm hover:bg-[#3F3F3F] transition-colors flex items-center justify-between gap-2"
+                >
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    {getSortIcon()}
+                    <span className="truncate text-xs sm:text-sm">{currentSortLabel}</span>
+                  </div>
+                </button>
+
+                {showSortDropdown && (
+                  <div className="absolute left-0 top-full mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-full w-max">
+                    <div className="py-1">
+                      <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">Sort by</div>
+                      {sortOptions.map((option) => (
+                        <button
+                          key={option.value}
+                          onClick={() => handleSortOptionClick(option.value)}
+                          className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${
+                            sortBy === option.value ? 'text-white bg-gray-800/50' : 'text-gray-300'
+                          }`}
+                        >
+                          <span>{option.label}</span>
+                          {sortBy === option.value && option.value !== 'custom' && (
+                            <span className="text-gray-400 ml-3">
+                              {sortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
+                            </span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              {/* Tags Button - Desktop */}
+              <button
+                onClick={() => setShowTagsModal(true)}
+                className="bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300 text-sm px-3 py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-colors font-medium"
+                title="Manage Tags (T)"
+              >
+                <Tag size={16} />
+                <span className="hidden sm:inline">Tags</span>
+              </button>
+            </div>
+
+            {/* Search Bar + Icon Buttons */}
+            <div className="p-2 md:px-3 md:pb-3 border-b md:border-b-0 border-gray-800 flex gap-2">
+              {/* Search Bar */}
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={14} />
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-[#0a0a0a] outline-none text-sm text-white rounded-lg px-3 py-2 pl-8 border border-[#333333] focus:border-[#3F74FF] transition-colors"
+                />
+              </div>
+              
+              {/* Mobile Only: Sort Icon Button */}
+              <div className="md:hidden relative" ref={sortDropdownRef}>
+                <button
+                  onClick={() => setShowSortDropdown(!showSortDropdown)}
+                  className="p-2.5 bg-[#2F2F2F] text-gray-300 rounded-lg hover:bg-[#3F3F3F] transition-colors"
+                  title="Sort"
+                >
+                  {getSortIcon()}
+                </button>
+
+                {showSortDropdown && (
+                  <div className="absolute right-0 top-full mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[180px]">
+                    <div className="py-1">
+                      <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">Sort by</div>
+                      {sortOptions.map((option) => (
+                        <button
+                          key={option.value}
+                          onClick={() => handleSortOptionClick(option.value)}
+                          className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${
+                            sortBy === option.value ? 'text-white bg-gray-800/50' : 'text-gray-300'
+                          }`}
+                        >
+                          <span>{option.label}</span>
+                          {sortBy === option.value && option.value !== 'custom' && (
+                            <span className="text-gray-400 ml-3">
+                              {sortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
+                            </span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              {/* Mobile Only: Tags Icon Button */}
+              <button
+                onClick={() => setShowTagsModal(true)}
+                className="md:hidden p-2.5 bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300 rounded-lg transition-colors"
+                title="Manage Tags (T)"
+              >
+                <Tag size={16} />
+              </button>
+            </div>
+            
+            {/* Tabs */}
+            <div className="flex border-b border-gray-800">
+              {/* Personal Notes Tab */}
+              <div className="relative flex-1">
+                <button
+                  onClick={() => {
+                    setActiveTab("personal")
+                    setSelectedNote(null)
+                  }}
+                  className={`w-full px-4 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-1.5 ${
+                    activeTab === "personal"
+                      ? "text-orange-400 border-b-2 border-orange-400"
+                      : "text-gray-400 hover:text-white"
+                  }`}
+                >
+                  <span>Personal Notes</span>
+                  <div className="relative group" ref={personalTooltipRef}>
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
-                        setShowTagInfoTooltip(!showTagInfoTooltip)
+                        setShowPersonalTooltip(!showPersonalTooltip)
                       }}
-                      onMouseEnter={() => setShowTagInfoTooltip(true)}
-                      onMouseLeave={() => setShowTagInfoTooltip(false)}
-                      className="text-gray-400 hover:text-blue-400 transition-colors"
-                      aria-label="Tag information"
+                      onMouseEnter={() => setShowPersonalTooltip(true)}
+                      onMouseLeave={() => setShowPersonalTooltip(false)}
+                      className="p-1 touch-manipulation"
+                      aria-label="Personal Notes Information"
                     >
-                      <Info size={16} />
+                      <Info size={12} className="opacity-60 text-gray-400" />
                     </button>
                     
-                    {/* Tooltip */}
-                    {showTagInfoTooltip && (
-                      <div className="absolute -left-20 md:left-0 top-8 w-56 md:w-64 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-xl p-3 z-[100]">
+                    {showPersonalTooltip && (
+                      <div className="absolute left-0 top-full mt-2 w-56 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-xl p-3 z-50">
                         <div className="text-sm">
-                          <p className="text-blue-300 font-medium mb-2">Tags are shared across all notes</p>
+                          <p className="text-white font-medium mb-1.5">Private to you</p>
                           <p className="text-gray-300 text-xs leading-relaxed">
-                            All tags are visible to everyone and can be used in both Personal and Studio Notes. When you move a note between tabs, its tags stay intact.
+                            Only you can see and edit these notes.
                           </p>
                         </div>
-                        {/* Arrow - responsive position */}
-                        <div className="absolute -top-1 left-[5.5rem] md:left-4 w-2 h-2 bg-[#2a2a2a] border-l border-t border-gray-700 transform rotate-45"></div>
+                        <div className="absolute -top-1 left-2 w-2 h-2 bg-[#2a2a2a] border-l border-t border-gray-700 transform rotate-45"></div>
                       </div>
                     )}
                   </div>
-                </div>
-                <button
-                  onClick={() => setIsTagManagerOpen(false)}
-                  className="text-gray-400 hover:text-white"
-                >
-                  <X className="w-5 h-5" />
                 </button>
               </div>
 
-              {/* Scrollable Content */}
-              <div className="overflow-y-auto px-6 pb-6">
-                <div className="mb-6">
-                  <h4 className="text-white text-sm font-medium mb-3">Create New Tag</h4>
-                  <div className="flex gap-2 mb-2">
-                    <input
-                      type="text"
-                      value={newTagName}
-                      onChange={(e) => setNewTagName(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && addTag()}
-                      placeholder="Tag name"
-                      className="flex-1 bg-[#2a2a2a] text-white rounded-lg px-3 py-2 text-sm border border-gray-700 focus:border-orange-500 outline-none"
-                    />
-                    <input
-                      type="color"
-                      value={newTagColor}
-                      onChange={(e) => setNewTagColor(e.target.value)}
-                      className="w-12 h-10 bg-[#2a2a2a] rounded-lg border border-gray-700 cursor-pointer"
-                    />
-                  </div>
-                  <button
-                    onClick={addTag}
-                    className="w-full py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm flex items-center justify-center gap-2"
-                  >
-                    <Plus size={16} />
-                    Add Tag
-                  </button>
-                </div>
-
-                <div>
-                  <h4 className="text-white text-sm font-medium mb-3">Existing Tags</h4>
-                  <div className="space-y-2">
-                    {availableTags.map((tag) => (
-                      <div
-                        key={tag.id}
-                        className="flex items-center justify-between bg-[#2a2a2a] p-3 rounded-lg"
-                      >
-                        <div 
-                          className="px-3 py-1.5 rounded-md text-sm flex items-center gap-2 text-white"
-                          style={{ backgroundColor: tag.color }}
-                        >
-                          <Tag size={14} />
-                          {tag.label}
-                        </div>
-                        <button
-                          onClick={() => deleteTag(tag.id)}
-                          className="text-red-500 hover:text-red-400 p-2"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    ))}
-                    {availableTags.length === 0 && (
-                      <p className="text-gray-400 text-sm text-center py-4">
-                        No tags created yet
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Modals */}
-        <CreateNoteModal 
-          isOpen={isCreateModalOpen} 
-          onClose={() => setIsCreateModalOpen(false)} 
-          onSave={createNote}
-          availableTags={availableTags}
-        />
-
-        <EditNoteModal
-          isOpen={!!editingNote}
-          onClose={() => setEditingNote(null)}
-          note={editingNote}
-          onSave={(updatedNote) => updateNote(editingNote.id, updatedNote)}
-          availableTags={availableTags}
-        />
-
-        <DeleteConfirmModal
-          isOpen={!!deleteConfirm}
-          onClose={() => setDeleteConfirm(null)}
-          onConfirm={() => deleteNote(deleteConfirm.id)}
-          noteTitle={deleteConfirm?.title}
-        />
-      </div>
-
-      {/* View Note Modal */}
-      {viewingNote && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#1A1A1A] rounded-xl max-w-2xl w-full max-h-[80vh] flex flex-col border border-gray-800">
-            {/* Header - Fixed */}
-            <div className="p-6 border-b border-gray-800 flex justify-between items-start flex-shrink-0">
-              <h2 className="text-2xl font-bold text-white pr-8 break-words">{viewingNote.title}</h2>
-              <div className="flex gap-2 flex-shrink-0">
+              {/* Studio Notes Tab */}
+              <div className="relative flex-1">
                 <button
                   onClick={() => {
-                    setEditingNote(viewingNote)
-                    setViewingNote(null)
+                    setActiveTab("studio")
+                    setSelectedNote(null)
                   }}
-                  className="text-gray-400 hover:text-orange-400 p-2 rounded-lg hover:bg-gray-800 transition-colors"
-                  title="Edit note"
+                  className={`w-full px-4 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-1.5 ${
+                    activeTab === "studio"
+                      ? "text-orange-400 border-b-2 border-orange-400"
+                      : "text-gray-400 hover:text-white"
+                  }`}
                 >
-                  <Edit size={20} />
-                </button>
-                <button
-                  onClick={() => setViewingNote(null)}
-                  className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-800 transition-colors"
-                >
-                  <X size={20} />
+                  <span>Studio Notes</span>
+                  <div className="relative group" ref={studioTooltipRef}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setShowStudioTooltip(!showStudioTooltip)
+                      }}
+                      onMouseEnter={() => setShowStudioTooltip(true)}
+                      onMouseLeave={() => setShowStudioTooltip(false)}
+                      className="p-1 touch-manipulation"
+                      aria-label="Studio Notes Information"
+                    >
+                      <Info size={12} className="opacity-60 text-gray-400" />
+                    </button>
+                    
+                    {showStudioTooltip && (
+                      <div className="absolute right-0 top-full mt-2 w-56 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-xl p-3 z-50">
+                        <div className="text-sm">
+                          <p className="text-white font-medium mb-1.5">Shared with everyone</p>
+                          <p className="text-gray-300 text-xs leading-relaxed">
+                            All team members can see and edit these notes.
+                          </p>
+                        </div>
+                        <div className="absolute -top-1 right-2 w-2 h-2 bg-[#2a2a2a] border-l border-t border-gray-700 transform rotate-45"></div>
+                      </div>
+                    )}
+                  </div>
                 </button>
               </div>
             </div>
 
-            {/* Scrollable Content */}
-            <div className="p-6 overflow-y-auto flex-1">
-              {/* Tags in scrollable area */}
-              {viewingNote.tags && viewingNote.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {viewingNote.tags.map(tagId => {
-                    const tag = availableTags.find(t => t.id === tagId)
-                    return tag ? (
-                      <span
-                        key={tagId}
-                        className="text-xs px-3 py-1.5 rounded-md flex items-center gap-1.5 text-white"
-                        style={{ backgroundColor: tag.color }}
-                      >
-                        <Tag size={12} />
-                        {tag.label}
-                      </span>
-                    ) : null
-                  })}
+            {/* Notes List with DnD */}
+            <div className="flex-1 overflow-y-auto">
+              {currentNotes.length === 0 ? (
+                <div className="p-6 md:p-8 text-center text-gray-500">
+                  <p className="text-sm">No notes yet</p>
+                  <p className="text-xs mt-2">Create your first note to get started</p>
                 </div>
-              )}
-
-              <p className="text-gray-300 text-base leading-relaxed whitespace-pre-wrap">
-                {viewingNote.content}
-              </p>
-              
-              {/* Attachments in View Modal */}
-              {viewingNote.attachments && viewingNote.attachments.length > 0 && (
-                <div className="mt-6 pt-6 border-t border-gray-800">
-                  <h3 className="text-sm font-medium text-gray-400 mb-3">Attachments</h3>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {viewingNote.attachments.map((attachment, index) => (
-                      <div 
-                        key={index} 
-                        className="relative group cursor-pointer"
-                        onClick={() => setViewingImage({
-                          image: attachment,
-                          images: viewingNote.attachments,
-                          index: index
-                        })}
-                      >
-                        <img 
-                          src={attachment.url} 
-                          alt={attachment.name}
-                          className="w-full h-32 object-cover rounded-lg border border-gray-700"
-                        />
-                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                          <button className="text-white text-xs bg-gray-800 px-3 py-1 rounded">
-                            View
-                          </button>
-                        </div>
-                      </div>
+              ) : (
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext items={noteIds} strategy={verticalListSortingStrategy}>
+                    {currentNotes.map(note => (
+                      <SortableNoteItem
+                        key={note.id}
+                        note={note}
+                        isSelected={selectedNote?.id === note.id}
+                        onClick={() => setSelectedNote(note)}
+                        availableTags={availableTags}
+                        onPin={togglePin}
+                      />
                     ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Footer - Fixed (always visible) */}
-            <div className="p-6 border-t border-gray-800 text-[11px] text-gray-500 space-y-1 flex-shrink-0">
-              <p>Created: {formatDateTime(viewingNote.createdAt)}</p>
-              {viewingNote.updatedAt !== viewingNote.createdAt && (
-                <p>Updated: {formatDateTime(viewingNote.updatedAt)}</p>
+                  </SortableContext>
+                </DndContext>
               )}
             </div>
           </div>
-        </div>
-      )}
 
-      {/* Image Lightbox Modal */}
-      {viewingImage && viewingImage.image && (
-        <div 
+          {/* Right Content Area - Note Editor (Desktop only) */}
+          <div className="hidden md:flex flex-1 flex-col bg-[#161616] rounded-xl border border-gray-800 min-w-0 max-h-[calc(100vh-200px)]">
+            {selectedNote ? (
+              <>
+                {/* Note Header */}
+                <div className="p-4 md:p-6 border-b border-gray-800 flex-shrink-0">
+                  <div className="flex items-start justify-between gap-4 mb-4">
+                    <div className="flex-1 min-w-0">
+                      <input
+                        type="text"
+                        value={editedTitle}
+                        onChange={(e) => {
+                          setEditedTitle(e.target.value)
+                          setHasUnsavedChanges(true)
+                        }}
+                        placeholder="Note title..."
+                        className="w-full bg-transparent text-xl md:text-2xl font-bold text-white outline-none border-none hover:border-b-2 hover:border-gray-600 transition-all pb-1"
+                      />
+                      <div className="flex flex-wrap gap-3 mt-2 text-[10px] md:text-xs text-gray-500">
+                        <span>Created: {formatDateTime(selectedNote.createdAt)}</span>
+                        {selectedNote.updatedAt !== selectedNote.createdAt && (
+                          <span>Updated: {formatDateTime(selectedNote.updatedAt)}</span>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-2 flex-shrink-0">
+                      <button
+                        onClick={() => togglePin(selectedNote.id)}
+                        className={`p-2 rounded-lg hover:bg-gray-800 transition-colors ${
+                          selectedNote.isPinned ? 'text-orange-400' : 'text-gray-400 hover:text-white'
+                        }`}
+                        title={selectedNote.isPinned ? 'Unpin' : 'Pin'}
+                      >
+                        {selectedNote.isPinned ? <Pin size={18} className="fill-current" /> : <PinOff size={18} />}
+                      </button>
+                      <button
+                        onClick={duplicateNote}
+                        className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-800 transition-colors hidden md:block"
+                        title="Duplicate"
+                      >
+                        <Copy size={18} />
+                      </button>
+                      <button
+                        onClick={moveNoteToOtherTab}
+                        className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-800 transition-colors hidden md:block"
+                        title={`Move to ${activeTab === 'personal' ? 'Studio' : 'Personal'} Notes`}
+                      >
+                        <ArrowRightLeft size={18} />
+                      </button>
+                      <button
+                        onClick={() => setDeleteConfirm(selectedNote)}
+                        className="text-gray-400 hover:text-red-500 p-2 rounded-lg hover:bg-gray-800 transition-colors"
+                        title="Delete"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Tags */}
+                  <div className="flex flex-wrap gap-2">
+                    {availableTags.map(tag => (
+                      <button
+                        key={tag.id}
+                        onClick={() => toggleTag(tag.id)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
+                          editedTags.includes(tag.id) ? "text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                        }`}
+                        style={{ backgroundColor: editedTags.includes(tag.id) ? tag.color : undefined }}
+                      >
+                        <Tag size={10} />
+                        {tag.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Note Content - Scrollable */}
+                <div className="flex-1 overflow-y-auto p-6">
+                  <WysiwygEditor
+                    value={editedContent}
+                    onChange={(value) => {
+                      setEditedContent(value)
+                      setHasUnsavedChanges(true)
+                    }}
+                    placeholder="Start writing..."
+                  />
+                </div>
+
+                {/* Attachments Section - Fixed at bottom */}
+                <div className="flex-shrink-0 border-t border-gray-800 p-4 md:p-6 bg-[#161616]">
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                      <Paperclip size={14} />
+                      Attachments
+                    </label>
+                    <div>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        className="hidden"
+                      />
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="text-xs bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"
+                      >
+                        <Plus size={12} />
+                        Add Images
+                      </button>
+                    </div>
+                  </div>
+
+                  {editedAttachments.length > 0 && (
+                    <div className="grid grid-cols-3 md:grid-cols-5 gap-2">
+                      {editedAttachments.map((attachment, index) => (
+                        <div key={index} className="relative group">
+                          <div
+                            className="cursor-pointer"
+                            onClick={() => setViewingImage({ image: attachment, images: editedAttachments, index })}
+                          >
+                            <img
+                              src={attachment.url}
+                              alt={attachment.name}
+                              className="w-full h-14 md:h-16 object-cover rounded-lg border border-gray-700"
+                            />
+                            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                              <span className="text-white text-xs font-medium bg-gray-800 px-3 py-1 rounded">View</span>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => removeAttachment(index)}
+                            className="absolute top-1 right-1 bg-red-600 hover:bg-red-700 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X size={12} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              /* Empty State */
+              <div className="flex-1 flex items-center justify-center p-4 md:p-8 text-center">
+                <div>
+                  <div className="text-gray-600 mb-4">
+                    <Edit size={40} className="mx-auto md:w-12 md:h-12" />
+                  </div>
+                  <h3 className="text-lg md:text-xl font-semibold text-gray-400 mb-2">No note selected</h3>
+                  <p className="text-xs md:text-sm text-gray-500 mb-6">
+                    Select a note from the list or create a new one
+                  </p>
+                  <button
+                    onClick={handleCreateNote}
+                    className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-xl transition-colors flex items-center gap-2 mx-auto"
+                  >
+                    <Plus size={16} />
+                    Create Note
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Modals */}
+      <DeleteConfirmModal
+        isOpen={!!deleteConfirm}
+        onClose={() => setDeleteConfirm(null)}
+        onConfirm={() => {
+          deleteNote(deleteConfirm.id)
+          setDeleteConfirm(null)
+        }}
+        noteTitle={deleteConfirm?.title || ''}
+      />
+
+      {/* Image Lightbox */}
+      {viewingImage && (
+        <div
           className="fixed inset-0 bg-black/95 flex items-center justify-center z-[100] p-4"
           onClick={() => setViewingImage(null)}
         >
-          {/* Close Button */}
           <button
             onClick={() => setViewingImage(null)}
-            className="absolute top-4 right-4 text-white hover:text-gray-300 p-2 rounded-lg hover:bg-white/10 transition-colors z-10"
-            aria-label="Close image"
+            className="absolute top-4 right-4 text-white hover:text-gray-300 p-2 rounded-lg hover:bg-white/10 transition-colors"
           >
             <X size={32} />
           </button>
 
-          {/* Previous Button */}
           {viewingImage.images.length > 1 && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                const newIndex = viewingImage.index > 0 ? viewingImage.index - 1 : viewingImage.images.length - 1
-                setViewingImage({
-                  ...viewingImage,
-                  image: viewingImage.images[newIndex],
-                  index: newIndex
-                })
-              }}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 p-3 rounded-lg hover:bg-white/10 transition-colors z-10"
-              aria-label="Previous image"
-            >
-              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
+            <>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  const newIndex = viewingImage.index > 0 ? viewingImage.index - 1 : viewingImage.images.length - 1
+                  setViewingImage({ ...viewingImage, image: viewingImage.images[newIndex], index: newIndex })
+                }}
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-white p-3 rounded-lg hover:bg-white/10"
+              >
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  const newIndex = viewingImage.index < viewingImage.images.length - 1 ? viewingImage.index + 1 : 0
+                  setViewingImage({ ...viewingImage, image: viewingImage.images[newIndex], index: newIndex })
+                }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-white p-3 rounded-lg hover:bg-white/10"
+              >
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </>
           )}
 
-          {/* Next Button */}
-          {viewingImage.images.length > 1 && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                const newIndex = viewingImage.index < viewingImage.images.length - 1 ? viewingImage.index + 1 : 0
-                setViewingImage({
-                  ...viewingImage,
-                  image: viewingImage.images[newIndex],
-                  index: newIndex
-                })
-              }}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 p-3 rounded-lg hover:bg-white/10 transition-colors z-10"
-              aria-label="Next image"
-            >
-              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          )}
-
-          {/* Image Container */}
-          <div 
-            className="max-w-[90vw] max-h-[90vh] flex flex-col gap-3"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Filename above image */}
+          <div className="max-w-[90vw] max-h-[90vh] flex flex-col gap-3" onClick={(e) => e.stopPropagation()}>
             <div className="bg-black/60 rounded-lg px-4 py-3 backdrop-blur-sm">
               <p className="text-white text-sm font-medium text-center">
                 {viewingImage.image.name}
@@ -2004,10 +1215,8 @@ export default function NotesApp() {
                 )}
               </p>
             </div>
-            
-            {/* Image */}
-            <img 
-              src={viewingImage.image.url} 
+            <img
+              src={viewingImage.image.url}
               alt={viewingImage.image.name}
               className="max-w-full max-h-[calc(90vh-80px)] object-contain rounded-lg"
             />
@@ -2015,191 +1224,318 @@ export default function NotesApp() {
         </div>
       )}
 
-      {/* Sidebar and related modals */}
-      <Sidebar
-        isRightSidebarOpen={isRightSidebarOpen}
-        toggleRightSidebar={toggleRightSidebar}
-        isSidebarEditing={isSidebarEditing}
-        toggleSidebarEditing={toggleSidebarEditing}
-        rightSidebarWidgets={rightSidebarWidgets}
-        moveRightSidebarWidget={moveRightSidebarWidget}
-        removeRightSidebarWidget={removeRightSidebarWidget}
-        setIsRightWidgetModalOpen={setIsRightWidgetModalOpen}
-        communications={communications}
-        redirectToCommunication={redirectToCommunication}
-        todos={todos}
-        handleTaskComplete={handleTaskCompleteWrapper}
-        todoFilter={todoFilter}
-        setTodoFilter={setTodoFilter}
-        todoFilterOptions={todoFilterOptions}
-        isTodoFilterDropdownOpen={isTodoFilterDropdownOpen}
-        setIsTodoFilterDropdownOpen={setIsTodoFilterDropdownOpen}
-        openDropdownIndex={openDropdownIndex}
-        toggleDropdown={sidebarToggleDropdown}
-        handleEditTask={handleEditTask}
-        setTaskToCancel={setTaskToCancel}
-        setTaskToDelete={setTaskToDelete}
-        birthdays={birthdays}
-        isBirthdayToday={isBirthdayToday}
-        handleSendBirthdayMessage={handleSendBirthdayMessage}
-        customLinks={customLinks}
-        truncateUrl={truncateUrl}
-        appointments={appointments}
-        renderSpecialNoteIcon={renderSpecialNoteIcon}
-        handleDumbbellClick={handleDumbbellClick}
-        handleCheckIn={handleCheckInWrapper}
-        handleAppointmentOptionsModal={handleAppointmentOptionsModal}
-        selectedMemberType={selectedMemberType}
-        setSelectedMemberType={setSelectedMemberType}
-        memberTypes={memberTypes}
-        isChartDropdownOpen={isChartDropdownOpen}
-        setIsChartDropdownOpen={setIsChartDropdownOpen}
-        expiringContracts={expiringContracts}
-        getWidgetPlacementStatus={getWidgetPlacementStatus}
-        onClose={toggleRightSidebar}
-        hasUnreadNotifications={2}
-        setIsWidgetModalOpen={setIsWidgetModalOpen}
-        handleEditNote={handleEditNoteWrapper}
-        activeNoteId={activeNoteId}
-        setActiveNoteId={setActiveNoteId}
-        isSpecialNoteModalOpen={isSpecialNoteModalOpen}
-        setIsSpecialNoteModalOpen={setIsSpecialNoteModalOpen}
-        selectedAppointmentForNote={selectedAppointmentForNote}
-        setSelectedAppointmentForNote={setSelectedAppointmentForNote}
-        handleSaveSpecialNote={handleSaveSpecialNoteWrapper}
-        onSaveSpecialNote={handleSaveSpecialNoteWrapper}
-        notifications={notifications}
-        setTodos={setTodos}
-      />
+      {/* Mobile Fullscreen Note Editor Overlay */}
+      {selectedNote && (
+        <div className="md:hidden fixed inset-0 bg-[#1C1C1C] z-[60] flex flex-col">
+          {/* Mobile Header with Back Button */}
+          <div className="flex items-center gap-3 p-4 border-b border-gray-800">
+            <button
+              onClick={() => setSelectedNote(null)}
+              className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg transition-colors"
+              aria-label="Back to notes list"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <h2 className="text-lg font-semibold text-white flex-1 truncate">
+              {selectedNote.title || 'Untitled'}
+            </h2>
+          </div>
 
-      {/* Sidebar related modals */}
-      <TrainingPlansModal
-        isOpen={isTrainingPlanModalOpen}
-        onClose={() => {
-          setIsTrainingPlanModalOpen(false)
-          setSelectedUserForTrainingPlan(null)
-        }}
-        selectedMember={selectedUserForTrainingPlan}
-        memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
-        availableTrainingPlans={availableTrainingPlans}
-        onAssignPlan={handleAssignTrainingPlan}
-        onRemovePlan={handleRemoveTrainingPlan}
-      />
+          {/* Note Content - Scrollable */}
+          <div className="flex-1 overflow-y-auto">
+            {/* Title Input */}
+            <div className="p-4 border-b border-gray-800">
+              <input
+                type="text"
+                value={editedTitle}
+                onChange={(e) => {
+                  setEditedTitle(e.target.value)
+                  setHasUnsavedChanges(true)
+                }}
+                placeholder="Note title..."
+                className="w-full bg-transparent text-xl font-bold text-white outline-none border-none"
+              />
+              <div className="flex flex-wrap gap-3 mt-2 text-xs text-gray-500">
+                <span>Created: {formatDateTime(selectedNote.createdAt)}</span>
+                {selectedNote.updatedAt !== selectedNote.createdAt && (
+                  <span>Updated: {formatDateTime(selectedNote.updatedAt)}</span>
+                )}
+              </div>
+            </div>
 
-      <AppointmentActionModalV2
-        isOpen={showAppointmentOptionsModal}
-        onClose={() => {
-          setShowAppointmentOptionsModal(false)
-          setSelectedAppointment(null)
-        }}
-        appointment={selectedAppointment}
-        isEventInPast={isEventInPast}
-        onEdit={() => {
-          setShowAppointmentOptionsModal(false)
-          setIsEditAppointmentModalOpen(true)
-        }}
-        onCancel={handleCancelAppointment}
-        onViewMember={handleViewMemberDetails}
-      />
+            {/* Tags */}
+            <div className="p-4 border-b border-gray-800">
+              <div className="flex flex-wrap gap-2">
+                {availableTags.map(tag => (
+                  <button
+                    key={tag.id}
+                    onClick={() => toggleTag(tag.id)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
+                      editedTags.includes(tag.id) ? "text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                    }`}
+                    style={{ backgroundColor: editedTags.includes(tag.id) ? tag.color : undefined }}
+                  >
+                    <Tag size={10} />
+                    {tag.label}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-      <NotifyMemberModal
-        isOpen={isNotifyMemberOpen}
-        onClose={() => setIsNotifyMemberOpen(false)}
-        notifyAction={notifyAction}
-        actuallyHandleCancelAppointment={actuallyHandleCancelAppointmentWrapper}
-        handleNotifyMember={handleNotifyMember}
-      />
+            {/* Editor */}
+            <div className="p-4">
+              <WysiwygEditor
+                value={editedContent}
+                onChange={(value) => {
+                  setEditedContent(value)
+                  setHasUnsavedChanges(true)
+                }}
+                placeholder="Start writing..."
+              />
+            </div>
 
-      {isEditAppointmentModalOpen && selectedAppointment && (
-        <EditAppointmentModalV2
-          selectedAppointment={selectedAppointment}
-          setSelectedAppointment={setSelectedAppointment}
-          appointmentTypes={appointmentTypes}
-          freeAppointments={freeAppointments}
-          handleAppointmentChange={(changes) => {
-            setSelectedAppointment({ ...selectedAppointment, ...changes })
-          }}
-          appointments={appointments}
-          setAppointments={setAppointments}
-          setIsNotifyMemberOpen={setIsNotifyMemberOpen}
-          setNotifyAction={setNotifyAction}
-          onDelete={handleDeleteAppointmentWrapper}
-          onClose={() => {
-            setIsEditAppointmentModalOpen(false)
-            setSelectedAppointment(null)
-          }}
-        />
-      )}
+            {/* Attachments */}
+            {editedAttachments.length > 0 && (
+              <div className="p-4 border-t border-gray-800">
+                <h4 className="text-sm font-medium text-gray-300 mb-3 flex items-center gap-2">
+                  <Paperclip size={14} />
+                  Attachments ({editedAttachments.length})
+                </h4>
+                <div className="grid grid-cols-3 gap-2">
+                  {editedAttachments.map((attachment, index) => (
+                    <div key={index} className="relative group">
+                      <div
+                        className="cursor-pointer"
+                        onClick={() => setViewingImage({ image: attachment, images: editedAttachments, index })}
+                      >
+                        <img
+                          src={attachment.url}
+                          alt={attachment.name}
+                          className="w-full h-20 object-cover rounded-lg border border-gray-700"
+                        />
+                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                          <span className="text-white text-xs font-medium">View</span>
+                        </div>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          removeAttachment(index)
+                        }}
+                        className="absolute top-1 right-1 bg-red-600 hover:bg-red-700 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
 
-      <WidgetSelectionModal
-        isOpen={isRightWidgetModalOpen}
-        onClose={() => setIsRightWidgetModalOpen(false)}
-        onSelectWidget={handleAddRightSidebarWidget}
-        getWidgetStatus={(widgetType) => getWidgetPlacementStatus(widgetType, "sidebar")}
-        widgetArea="sidebar"
-      />
-
-      {isRightSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-          onClick={closeSidebar}
-        />
-      )}
-
-      {isEditTaskModalOpen && editingTask && (
-        <EditTaskModal
-          task={editingTask}
-          onClose={() => {
-            setIsEditTaskModalOpen(false)
-            setEditingTask(null)
-          }}
-          onUpdateTask={handleUpdateTaskWrapper}
-        />
-      )}
-
-      {taskToDelete && (
-        <div className="fixed inset-0 text-white bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
-            <h3 className="text-lg font-semibold mb-4">Delete Task</h3>
-            <p className="text-gray-300 mb-6">
-              Are you sure you want to delete this task? This action cannot be undone.
-            </p>
-            <div className="flex gap-3 justify-end">
+          {/* Mobile Action Bar */}
+          <div className="border-t border-gray-800 p-4 flex gap-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={handleFileChange}
+              className="hidden"
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="flex-1 bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300 px-4 py-3 rounded-xl text-sm transition-colors flex items-center justify-center gap-2"
+            >
+              <Paperclip size={16} />
+              Add Images
+            </button>
+            
+            {/* 3-Dot Actions Menu */}
+            <div className="relative" ref={mobileActionsMenuRef}>
               <button
-                onClick={() => setTaskToDelete(null)}
-                className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#2F2F2F]/90"
+                onClick={() => setShowMobileActionsMenu(!showMobileActionsMenu)}
+                className="bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300 px-4 py-3 rounded-xl transition-colors"
+                aria-label="More actions"
               >
-                Cancel
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
+                </svg>
               </button>
-              <button
-                onClick={() => handleDeleteTaskWrapper(taskToDelete)}
-                className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700"
-              >
-                Delete
-              </button>
+
+              {/* Dropdown Menu */}
+              {showMobileActionsMenu && (
+                <div className="absolute bottom-full right-0 mb-2 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg min-w-[180px] z-50">
+                  <div className="py-1">
+                    <button
+                      onClick={() => {
+                        togglePin(selectedNote.id)
+                        setShowMobileActionsMenu(false)
+                      }}
+                      className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-gray-300"
+                    >
+                      {selectedNote.isPinned ? (
+                        <>
+                          <PinOff size={16} />
+                          <span>Unpin Note</span>
+                        </>
+                      ) : (
+                        <>
+                          <Pin size={16} />
+                          <span>Pin Note</span>
+                        </>
+                      )}
+                    </button>
+                    
+                    <button
+                      onClick={() => {
+                        duplicateNote()
+                        setShowMobileActionsMenu(false)
+                      }}
+                      className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-gray-300"
+                    >
+                      <Copy size={16} />
+                      <span>Duplicate</span>
+                    </button>
+                    
+                    <button
+                      onClick={() => {
+                        moveNoteToOtherTab()
+                        setShowMobileActionsMenu(false)
+                      }}
+                      className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-gray-300"
+                    >
+                      <ArrowRightLeft size={16} />
+                      <span>Move to {activeTab === 'personal' ? 'Studio' : 'Personal'}</span>
+                    </button>
+                    
+                    <div className="border-t border-gray-700 my-1"></div>
+                    
+                    <button
+                      onClick={() => {
+                        setDeleteConfirm(selectedNote)
+                        setShowMobileActionsMenu(false)
+                      }}
+                      className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-red-500"
+                    >
+                      <Trash2 size={16} />
+                      <span>Delete</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
       )}
 
-      {taskToCancel && (
-        <div className="fixed inset-0 bg-black/50 text-white flex items-center justify-center z-50">
-          <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
-            <h3 className="text-lg font-semibold mb-4">Cancel Task</h3>
-            <p className="text-gray-300 mb-6">Are you sure you want to cancel this task?</p>
-            <div className="flex gap-3 justify-end">
+      {/* Tags Management Modal */}
+      {/* Tag Manager Modal */}
+      {showTagsModal && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[80] p-4">
+          <div className="bg-[#1C1C1C] rounded-2xl w-full max-w-md max-h-[80vh] flex flex-col">
+            <div className="flex justify-between items-center mb-4 p-6 pb-0 overflow-visible">
+              <div className="flex items-center gap-2">
+                <h3 className="text-white text-lg font-semibold">Manage Tags</h3>
+                {/* Info Tooltip */}
+                <div className="relative" ref={tagInfoTooltipRef}>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setShowTagInfoTooltip(!showTagInfoTooltip)
+                    }}
+                    onMouseEnter={() => setShowTagInfoTooltip(true)}
+                    onMouseLeave={() => setShowTagInfoTooltip(false)}
+                    className="text-gray-400 hover:text-blue-400 transition-colors"
+                    aria-label="Tag information"
+                  >
+                    <Info size={16} />
+                  </button>
+                  
+                  {/* Tooltip */}
+                  {showTagInfoTooltip && (
+                    <div className="absolute -left-20 md:left-0 top-8 w-56 md:w-64 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-xl p-3 z-[100]">
+                      <div className="text-sm">
+                        <p className="text-blue-300 font-medium mb-2">Tags are shared across all notes</p>
+                        <p className="text-gray-300 text-xs leading-relaxed">
+                          All tags are visible to everyone and can be used in both Personal and Studio Notes. When you move a note between tabs, its tags stay intact.
+                        </p>
+                      </div>
+                      {/* Arrow - responsive position */}
+                      <div className="absolute -top-1 left-[5.5rem] md:left-4 w-2 h-2 bg-[#2a2a2a] border-l border-t border-gray-700 transform rotate-45"></div>
+                    </div>
+                  )}
+                </div>
+              </div>
               <button
-                onClick={() => setTaskToCancel(null)}
-                className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#2F2F2F]/90"
+                onClick={() => setShowTagsModal(false)}
+                className="text-gray-400 hover:text-white"
               >
-                No
+                <X className="w-5 h-5" />
               </button>
-              <button
-                onClick={() => handleCancelTaskWrapper(taskToCancel)}
-                className="px-4 py-2 bg-orange-600 text-white rounded-xl hover:bg-orange-700"
-              >
-                Cancel Task
-              </button>
+            </div>
+
+            {/* Scrollable Content */}
+            <div className="overflow-y-auto px-6 pb-6">
+              <div className="mb-6">
+                <h4 className="text-white text-sm font-medium mb-3">Create New Tag</h4>
+                <div className="flex gap-2 mb-2">
+                  <input
+                    type="text"
+                    value={newTagName}
+                    onChange={(e) => setNewTagName(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && addTag()}
+                    placeholder="Tag name"
+                    className="flex-1 bg-[#2a2a2a] text-white rounded-lg px-3 py-2 text-sm border border-gray-700 focus:border-orange-500 outline-none"
+                  />
+                  <input
+                    type="color"
+                    value={newTagColor}
+                    onChange={(e) => setNewTagColor(e.target.value)}
+                    className="w-12 h-10 bg-[#2a2a2a] rounded-lg border border-gray-700 cursor-pointer"
+                  />
+                </div>
+                <button
+                  onClick={addTag}
+                  className="w-full py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm flex items-center justify-center gap-2"
+                >
+                  <Plus size={16} />
+                  Add Tag
+                </button>
+              </div>
+
+              <div>
+                <h4 className="text-white text-sm font-medium mb-3">Existing Tags</h4>
+                <div className="space-y-2">
+                  {availableTags.map((tag) => (
+                    <div
+                      key={tag.id}
+                      className="flex items-center justify-between bg-[#2a2a2a] p-3 rounded-lg"
+                    >
+                      <div 
+                        className="px-3 py-1.5 rounded-md text-sm flex items-center gap-2 text-white"
+                        style={{ backgroundColor: tag.color }}
+                      >
+                        <Tag size={14} />
+                        {tag.label}
+                      </div>
+                      <button
+                        onClick={() => deleteTag(tag.id)}
+                        className="text-red-500 hover:text-red-400 p-2"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  ))}
+                  {availableTags.length === 0 && (
+                    <p className="text-gray-400 text-sm text-center py-4">
+                      No tags created yet
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -2207,12 +1543,15 @@ export default function NotesApp() {
 
       {/* Floating Action Button - Mobile Only */}
       <button
-        onClick={() => setIsCreateModalOpen(true)}
+        onClick={handleCreateNote}
         className="md:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
         aria-label="Create Note"
       >
         <Plus size={22} />
       </button>
+
+      {/* Right Sidebar - Placeholder for your existing sidebar system */}
+      {/* Add your existing Sidebar component here with all the props */}
     </>
   )
 }
