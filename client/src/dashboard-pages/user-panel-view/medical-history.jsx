@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unescaped-entities */
 import { Plus, Eye, Search, ArrowUpDown, ArrowUp, ArrowDown, GripVertical, Edit, Copy, Trash2, Grid3x3, List } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import CreateFormModal from '../../components/user-panel-components/medical-history-components/CreateFormModal';
@@ -35,20 +35,23 @@ const SortableFormCard = ({ form, children, isDragDisabled }) => {
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
+    transition: isDragging ? 'none' : transition,
+    opacity: isDragging ? 0.85 : 1,
     zIndex: isDragging ? 1000 : 1,
+    boxShadow: isDragging ? '0 8px 24px rgba(249, 115, 22, 0.3)' : 'none',
+    willChange: isDragging ? 'transform' : 'auto',
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="relative">
+    <div ref={setNodeRef} style={style} className={`relative h-full ${isDragging ? 'rounded-xl ring-2 ring-orange-500/50' : ''}`}>
       {!isDragDisabled && (
         <div 
           {...attributes} 
           {...listeners}
-          className="absolute top-3 left-3 md:top-4 md:left-4 cursor-grab active:cursor-grabbing text-gray-500 hover:text-gray-300 p-1 rounded transition-colors z-10"
+          className="absolute top-3 left-3 md:top-4 md:left-4 cursor-grab active:cursor-grabbing text-gray-400 hover:text-white active:text-orange-400 p-2 -m-1 md:p-1 md:-m-0 rounded-lg active:bg-orange-500/30 z-10 touch-none"
+          style={{ WebkitTapHighlightColor: 'transparent' }}
         >
-          <GripVertical size={16} />
+          <GripVertical className="w-5 h-5 md:w-4 md:h-4" />
         </div>
       )}
       {children}
@@ -196,11 +199,17 @@ const Assessment = () => {
   const actuallyHandleCancelAppointmentWrapper = (shouldNotify) => actuallyHandleCancelAppointment(shouldNotify, appointments, setAppointments);
   const handleDeleteAppointmentWrapper = (id) => handleDeleteAppointment(id, appointments, setAppointments);
 
-  // DnD sensors
+  // DnD sensors - optimized for responsive mobile dragging
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8,
+        distance: 5,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 0,
+        tolerance: 5,
       },
     }),
     useSensor(KeyboardSensor, {
@@ -848,15 +857,15 @@ const Assessment = () => {
       >
         <SortableContext items={formIds} strategy={rectSortingStrategy}>
           <div className={viewMode === 'grid' 
-            ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6' 
+            ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 auto-rows-fr' 
             : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:!grid-cols-1 md:!gap-3'
           }>
             {filteredForms.map((form) => (
               <SortableFormCard key={form.id} form={form} isDragDisabled={isDragDisabled}>
                 {/* Grid Card - Always on Mobile, on Desktop only if viewMode is grid */}
-                <div className={`${viewMode === 'list' ? 'flex md:hidden' : 'flex'} flex-col select-none`}>
+                <div className={`${viewMode === 'list' ? 'flex md:hidden' : 'flex'} flex-col select-none h-full`}>
                   <div
-                    className={`bg-[#1A1A1A] rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-800 hover:border-gray-700 p-4 md:p-6 relative ${!isDragDisabled ? 'pl-10 md:pl-12' : ''}`}
+                    className={`bg-[#1A1A1A] rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-800 hover:border-gray-700 p-4 md:p-6 relative h-full flex flex-col ${!isDragDisabled ? 'pl-10 md:pl-12' : ''}`}
                   >
                   {/* Three dots dropdown */}
                   <div className="absolute top-3 right-3 md:top-4 md:right-4">
@@ -903,7 +912,7 @@ const Assessment = () => {
                   </button>
 
                   <div className="flex justify-between items-start mb-3 pr-16">
-                    <h3 className="text-base md:text-lg font-semibold line-clamp-2" title={form.title}>{form.title}</h3>
+                    <h3 className="text-base md:text-lg font-semibold line-clamp-2 leading-snug" title={form.title}>{form.title}</h3>
                   </div>
 
                   <div className="text-xs md:text-sm text-gray-400 mb-2">
@@ -915,7 +924,7 @@ const Assessment = () => {
                   </div>
 
                   {/* Dates */}
-                  <div className="flex flex-col gap-0.5 mb-4">
+                  <div className="flex flex-col gap-0.5 mb-4 flex-grow">
                     <p className="text-[11px] text-gray-500">
                       Created: {formatDateTime(form.createdAt)}
                     </p>
@@ -927,7 +936,7 @@ const Assessment = () => {
                   </div>
 
                   {/* Toggle switch for active/inactive - bulletin board style */}
-                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-700">
+                  <div className="flex items-center justify-between pt-3 border-t border-gray-700 mt-auto">
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-gray-400">Status:</span>
                       <button
