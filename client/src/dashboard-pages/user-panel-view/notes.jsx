@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useMemo } from "react"
 import { Search, Plus, X, GripVertical, Edit, Copy, Trash2, ArrowUpDown, ArrowUp, ArrowDown, Paperclip, Tag, Pin, PinOff, ArrowRightLeft, Info } from "lucide-react"
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
@@ -7,8 +7,6 @@ import { CSS } from '@dnd-kit/utilities'
 import ReactQuill from "react-quill"
 import "react-quill/dist/quill.snow.css"
 import DeleteConfirmModal from "../../components/user-panel-components/notes-components/DeleteConfirmModal"
-import { Toaster } from "react-hot-toast"
-import toast from "react-hot-toast"
 import { trainingVideosData } from "../../utils/user-panel-states/training-states"
 import { useSidebarSystem } from "../../hooks/useSidebarSystem"
 import EditTaskModal from "../../components/user-panel-components/task-components/edit-task-modal"
@@ -76,90 +74,138 @@ const stripHtmlTags = (html) => {
 }
 
 // WysiwygEditor component
-const WysiwygEditor = ({ value, onChange, placeholder }) => {
-  const modules = {
+const WysiwygEditor = ({ value, onChange, placeholder, className = "" }) => {
+  // CRITICAL: modules must be memoized to prevent ReactQuill from losing focus/breaking on re-render
+  const modules = useMemo(() => ({
     toolbar: [
       [{ 'header': [1, 2, 3, false] }],
       ['bold', 'italic', 'underline', 'strike'],
+      [{ 'color': [] }, { 'background': [] }],
       [{ 'list': 'ordered' }, { 'list': 'bullet' }],
       [{ 'align': [] }],
       ['link'],
       ['clean']
     ],
-  }
+  }), [])
 
-  const formats = [
+  const formats = useMemo(() => [
     'header',
     'bold', 'italic', 'underline', 'strike',
+    'color', 'background',
     'list', 'bullet',
     'align',
     'link'
-  ]
+  ], [])
 
   useEffect(() => {
     const style = document.createElement('style')
     style.textContent = `
+      .quill-wrapper {
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid #404040;
+        display: flex;
+        flex-direction: column;
+      }
+      .quill-wrapper.full-height {
+        height: 100%;
+      }
+      .quill-wrapper.full-height .quill {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+      }
+      .quill-wrapper.full-height .ql-container {
+        flex: 1;
+        overflow: auto;
+      }
+      .quill-wrapper.full-height .ql-editor {
+        min-height: 100% !important;
+      }
       .ql-editor.ql-blank::before {
         color: #9ca3af !important;
         opacity: 0.7 !important;
       }
       .ql-editor {
-        color: #ffffff !important;
-        min-height: 200px;
+        color: #e5e7eb !important;
+        background-color: #1f1f1f !important;
+        min-height: 300px;
         font-size: 15px;
         line-height: 1.6;
       }
-      .ql-toolbar {
-        border-color: #303030 !important;
-        background-color: #151515 !important;
-        border-radius: 12px 12px 0 0;
+      .ql-editor p {
+        margin-bottom: 0.5em;
       }
-      .ql-container {
-        border-color: #303030 !important;
-        background-color: #101010 !important;
-        border-radius: 0 0 12px 12px;
+      .ql-editor p:last-child {
+        margin-bottom: 0;
+      }
+      .ql-toolbar.ql-snow {
+        border: none !important;
+        border-bottom: 1px solid #404040 !important;
+        background-color: #2a2a2a !important;
+        flex-shrink: 0;
+      }
+      .ql-container.ql-snow {
+        border: none !important;
+        background-color: #1f1f1f !important;
       }
       .ql-snow .ql-stroke {
-        stroke: #ffffff !important;
+        stroke: #9ca3af !important;
       }
       .ql-snow .ql-fill {
-        fill: #ffffff !important;
+        fill: #9ca3af !important;
       }
       .ql-snow .ql-picker-label {
-        color: #ffffff !important;
+        color: #9ca3af !important;
       }
       .ql-snow .ql-picker-options {
-        background-color: #151515 !important;
-        border-color: #303030 !important;
+        background-color: #2a2a2a !important;
+        border-color: #404040 !important;
       }
       .ql-snow .ql-picker-item {
-        color: #ffffff !important;
+        color: #e5e7eb !important;
       }
       .ql-snow .ql-tooltip {
-        background-color: #151515 !important;
-        border-color: #303030 !important;
-        color: #ffffff !important;
+        background-color: #2a2a2a !important;
+        border-color: #404040 !important;
+        color: #e5e7eb !important;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
       }
       .ql-snow .ql-tooltip input[type="text"] {
-        color: #ffffff !important;
+        color: #e5e7eb !important;
         background-color: #1f1f1f !important;
         border: 1px solid #404040 !important;
         padding: 6px 10px !important;
         border-radius: 6px !important;
       }
       .ql-snow .ql-tooltip input[type="text"]::placeholder {
-        color: #9ca3af !important;
+        color: #6b7280 !important;
       }
       .ql-snow .ql-tooltip a.ql-action,
       .ql-snow .ql-tooltip a.ql-remove {
-        color: #ffffff !important;
+        color: #f97316 !important;
       }
-      .ql-snow .ql-tooltip a.ql-action::after {
-        border-right-color: #ffffff !important;
+      .ql-snow.ql-toolbar button:hover .ql-stroke,
+      .ql-snow .ql-toolbar button:hover .ql-stroke,
+      .ql-snow.ql-toolbar button.ql-active .ql-stroke,
+      .ql-snow .ql-toolbar button.ql-active .ql-stroke {
+        stroke: #f97316 !important;
       }
-      .ql-snow .ql-tooltip.ql-editing a.ql-action::after {
-        border-right-color: #ffffff !important;
+      .ql-snow.ql-toolbar button:hover .ql-fill,
+      .ql-snow .ql-toolbar button:hover .ql-fill,
+      .ql-snow.ql-toolbar button.ql-active .ql-fill,
+      .ql-snow .ql-toolbar button.ql-active .ql-fill {
+        fill: #f97316 !important;
+      }
+      .ql-snow.ql-toolbar .ql-picker-label:hover,
+      .ql-snow .ql-toolbar .ql-picker-label:hover,
+      .ql-snow.ql-toolbar .ql-picker-label.ql-active,
+      .ql-snow .ql-toolbar .ql-picker-label.ql-active {
+        color: #f97316 !important;
+      }
+      .ql-snow.ql-toolbar .ql-picker-label:hover .ql-stroke,
+      .ql-snow .ql-toolbar .ql-picker-label:hover .ql-stroke {
+        stroke: #f97316 !important;
       }
     `
     document.head.appendChild(style)
@@ -167,14 +213,16 @@ const WysiwygEditor = ({ value, onChange, placeholder }) => {
   }, [])
 
   return (
-    <ReactQuill
-      value={value}
-      onChange={onChange}
-      modules={modules}
-      formats={formats}
-      placeholder={placeholder}
-      theme="snow"
-    />
+    <div className={`quill-wrapper ${className}`}>
+      <ReactQuill
+        value={value}
+        onChange={onChange}
+        modules={modules}
+        formats={formats}
+        placeholder={placeholder}
+        theme="snow"
+      />
+    </div>
   )
 }
 
@@ -202,10 +250,10 @@ const SortableNoteItem = ({ note, isSelected, onClick, availableTags, onPin }) =
     <div
       ref={setNodeRef}
       style={style}
-      className={`group relative cursor-pointer transition-colors select-none ${
+      className={`group relative cursor-pointer transition-colors select-none border-b border-gray-800 ${
         isSelected 
-          ? 'bg-gray-800/80 border-l-4 border-gray-600' 
-          : 'hover:bg-gray-800/50 border-l-4 border-transparent'
+          ? 'bg-gray-800/80 border-l-4 border-l-orange-500' 
+          : 'hover:bg-gray-800/50 active:bg-gray-800/70 border-l-4 border-l-transparent'
       }`}
       onClick={onClick}
     >
@@ -222,7 +270,7 @@ const SortableNoteItem = ({ note, isSelected, onClick, availableTags, onPin }) =
         {/* Note Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2 mb-1">
-            <h4 className="text-sm font-medium text-white truncate flex-1">
+            <h4 className={`text-sm font-medium truncate flex-1 ${note.title ? 'text-white' : 'text-gray-500 italic'}`}>
               {note.title || 'Untitled'}
             </h4>
             {note.isPinned && (
@@ -381,10 +429,21 @@ export default function NotesApp() {
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyPress = (e) => {
-      const isTyping = e.target.tagName === 'INPUT' || 
-                       e.target.tagName === 'TEXTAREA' || 
-                       e.target.isContentEditable
-
+      const target = e.target
+      
+      // Check if user is typing in any editable area
+      // Using isContentEditable property for reliable detection of contenteditable elements (like Quill)
+      const isInEditableArea = 
+        target.tagName === 'INPUT' || 
+        target.tagName === 'TEXTAREA' ||
+        target.isContentEditable ||
+        (target.closest && (
+          target.closest('[contenteditable="true"]') ||
+          target.closest('.ql-editor') ||
+          target.closest('.quill-wrapper')
+        ))
+      
+      // Handle Escape globally (works in all contexts)
       if (e.key === 'Escape') {
         if (deleteConfirm) setDeleteConfirm(null)
         else if (showTagsModal) setShowTagsModal(false)
@@ -392,7 +451,11 @@ export default function NotesApp() {
         return
       }
 
-      if (isTyping) return
+      // Don't handle keyboard shortcuts when in editable areas
+      // This allows Enter, all letters, and other keys to work normally in text fields
+      if (isInEditableArea) return
+      
+      // Don't handle if modifier keys are pressed
       if (e.ctrlKey || e.metaKey) return
 
       // C - Create new note
@@ -424,7 +487,7 @@ export default function NotesApp() {
 
     const updatedNote = {
       ...selectedNote,
-      title: editedTitle || 'Untitled',
+      title: editedTitle,
       content: editedContent,
       tags: editedTags,
       attachments: editedAttachments,
@@ -483,7 +546,6 @@ export default function NotesApp() {
   // Tag Management Functions
   const addTag = () => {
     if (!newTagName.trim()) {
-      toast.error("Please enter a tag name")
       return
     }
     
@@ -496,7 +558,6 @@ export default function NotesApp() {
     setAvailableTags([...availableTags, newTag])
     setNewTagName("")
     setNewTagColor("#FF843E")
-    toast.success("Tag created successfully")
   }
 
   const deleteTag = (tagId) => {
@@ -514,15 +575,13 @@ export default function NotesApp() {
     
     // Remove from available tags
     setAvailableTags(availableTags.filter(tag => tag.id !== tagId))
-    
-    toast.success("Tag deleted successfully")
   }
 
   // Create new note directly
   const handleCreateNote = () => {
     const note = {
       id: Date.now(),
-      title: 'Untitled',
+      title: '',
       content: '',
       tags: [],
       attachments: [],
@@ -537,7 +596,12 @@ export default function NotesApp() {
     }))
     
     setSelectedNote(note)
-    toast.success('Note created!')
+    
+    // Focus title input after a short delay to allow render
+    setTimeout(() => {
+      const titleInput = document.querySelector('[data-title-input]')
+      if (titleInput) titleInput.focus()
+    }, 100)
   }
 
   // Delete note
@@ -550,8 +614,6 @@ export default function NotesApp() {
     if (selectedNote?.id === noteId) {
       setSelectedNote(null)
     }
-    
-    toast.success('Note deleted!')
   }
 
   // Duplicate note
@@ -574,7 +636,6 @@ export default function NotesApp() {
     // On mobile: go back to list; on desktop: select the duplicate
     const isMobile = window.innerWidth < 768
     setSelectedNote(isMobile ? null : duplicated)
-    toast.success('Note duplicated!')
   }
 
   // Toggle pin
@@ -589,8 +650,6 @@ export default function NotesApp() {
     if (selectedNote?.id === noteId) {
       setSelectedNote(prev => ({ ...prev, isPinned: !prev.isPinned }))
     }
-
-    toast.success('Note pinned!')
   }
 
   // Move note to other tab
@@ -614,8 +673,6 @@ export default function NotesApp() {
       setSelectedNote(null)
     }
     // On desktop: selectedNote stays the same (note is still selected in new tab)
-    
-    toast.success(`Note moved to ${targetTab === 'personal' ? 'Personal' : 'Studio'} Notes!`)
   }
 
   // Handle file upload
@@ -727,14 +784,110 @@ export default function NotesApp() {
   // Sidebar system destructuring
   const {
     isRightSidebarOpen,
+    isSidebarEditing,
+    isRightWidgetModalOpen,
+    openDropdownIndex,
+    selectedMemberType,
+    isChartDropdownOpen,
+    isWidgetModalOpen,
+    editingTask,
+    todoFilter,
+    isEditTaskModalOpen,
+    isTodoFilterDropdownOpen,
+    taskToCancel,
+    taskToDelete,
+    activeNoteId,
+    isSpecialNoteModalOpen,
+    selectedAppointmentForNote,
+    isTrainingPlanModalOpen,
+    selectedUserForTrainingPlan,
+    selectedAppointment,
+    isEditAppointmentModalOpen,
+    showAppointmentOptionsModal,
+    freeAppointments,
+    isNotifyMemberOpen,
+    notifyAction,
+    rightSidebarWidgets,
+    setIsRightWidgetModalOpen,
+    setSelectedMemberType,
+    setIsChartDropdownOpen,
+    setIsWidgetModalOpen,
+    setEditingTask,
+    setTodoFilter,
+    setIsEditTaskModalOpen,
+    setIsTodoFilterDropdownOpen,
+    setTaskToCancel,
+    setTaskToDelete,
+    setActiveNoteId,
+    setIsSpecialNoteModalOpen,
+    setSelectedAppointmentForNote,
+    setIsTrainingPlanModalOpen,
+    setSelectedUserForTrainingPlan,
+    setSelectedAppointment,
+    setIsEditAppointmentModalOpen,
+    setShowAppointmentOptionsModal,
+    setIsNotifyMemberOpen,
+    setNotifyAction,
     toggleRightSidebar,
-    // ... rest of sidebar props
+    closeSidebar,
+    toggleSidebarEditing,
+    toggleDropdown: toggleSidebarDropdown,
+    redirectToCommunication,
+    moveRightSidebarWidget,
+    removeRightSidebarWidget,
+    getWidgetPlacementStatus,
+    handleAddRightSidebarWidget,
+    handleTaskComplete,
+    handleEditTask,
+    handleUpdateTask,
+    handleCancelTask,
+    handleDeleteTask,
+    isBirthdayToday,
+    handleSendBirthdayMessage,
+    handleEditNote,
+    handleDumbbellClick,
+    handleCheckIn,
+    handleAppointmentOptionsModal,
+    handleSaveSpecialNote,
+    isEventInPast,
+    handleCancelAppointment,
+    actuallyHandleCancelAppointment,
+    handleDeleteAppointment,
+    handleViewMemberDetails,
+    handleNotifyMember,
+    truncateUrl,
+    renderSpecialNoteIcon,
+    customLinks,
+    communications,
+    todos,
+    setTodos,
+    expiringContracts,
+    birthdays,
+    notifications,
+    appointments,
+    setAppointments,
+    memberTypes,
+    todoFilterOptions,
+    appointmentTypes,
+    handleAssignTrainingPlan,
+    handleRemoveTrainingPlan,
+    memberTrainingPlans,
+    availableTrainingPlans,
   } = sidebarSystem
+
+  // Wrapper functions for sidebar
+  const handleTaskCompleteWrapper = (taskId) => handleTaskComplete(taskId, todos, setTodos)
+  const handleUpdateTaskWrapper = (updatedTask) => handleUpdateTask(updatedTask, setTodos)
+  const handleCancelTaskWrapper = (taskId) => handleCancelTask(taskId, setTodos)
+  const handleDeleteTaskWrapper = (taskId) => handleDeleteTask(taskId, setTodos)
+  const handleEditNoteWrapper = (appointmentId, currentNote) => handleEditNote(appointmentId, currentNote, appointments)
+  const handleCheckInWrapper = (appointmentId) => handleCheckIn(appointmentId, appointments, setAppointments)
+  const handleSaveSpecialNoteWrapper = (appointmentId, updatedNote) => handleSaveSpecialNote(appointmentId, updatedNote, setAppointments)
+  const actuallyHandleCancelAppointmentWrapper = (shouldNotify) => actuallyHandleCancelAppointment(shouldNotify, appointments, setAppointments)
+  const handleDeleteAppointmentWrapper = (id) => handleDeleteAppointment(id, appointments, setAppointments)
 
   return (
     <>
-      <Toaster position="top-right" toastOptions={{ duration: 2000, style: { background: "#333", color: "#fff" } }} />
-      
       <div className="min-h-screen rounded-3xl bg-[#1C1C1C] text-white p-3 md:p-6 flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between mb-4 md:mb-6">
@@ -1020,12 +1173,13 @@ export default function NotesApp() {
                     <div className="flex-1 min-w-0">
                       <input
                         type="text"
+                        data-title-input
                         value={editedTitle}
                         onChange={(e) => {
                           setEditedTitle(e.target.value)
                           setHasUnsavedChanges(true)
                         }}
-                        placeholder="Note title..."
+                        placeholder="Untitled"
                         className="w-full bg-transparent text-xl md:text-2xl font-bold text-white outline-none border-none hover:border-b-2 hover:border-gray-600 transition-all pb-1"
                       />
                       <div className="flex flex-wrap gap-3 mt-2 text-[10px] md:text-xs text-gray-500">
@@ -1088,8 +1242,8 @@ export default function NotesApp() {
                   </div>
                 </div>
 
-                {/* Note Content - Scrollable */}
-                <div className="flex-1 overflow-y-auto p-6">
+                {/* Note Content - Fills available space */}
+                <div className="flex-1 overflow-hidden p-6 flex flex-col">
                   <WysiwygEditor
                     value={editedContent}
                     onChange={(value) => {
@@ -1097,6 +1251,7 @@ export default function NotesApp() {
                       setHasUnsavedChanges(true)
                     }}
                     placeholder="Start writing..."
+                    className="full-height"
                   />
                 </div>
 
@@ -1118,9 +1273,9 @@ export default function NotesApp() {
                       />
                       <button
                         onClick={() => fileInputRef.current?.click()}
-                        className="text-xs bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"
+                        className="text-sm bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300 px-4 py-2.5 rounded-xl transition-colors flex items-center gap-2"
                       >
-                        <Plus size={12} />
+                        <Plus size={16} />
                         Add Images
                       </button>
                     </div>
@@ -1357,12 +1512,13 @@ export default function NotesApp() {
             <div className="p-4 border-b border-gray-800">
               <input
                 type="text"
+                data-title-input
                 value={editedTitle}
                 onChange={(e) => {
                   setEditedTitle(e.target.value)
                   setHasUnsavedChanges(true)
                 }}
-                placeholder="Note title..."
+                placeholder="Untitled"
                 className="w-full bg-transparent text-xl font-bold text-white outline-none border-none"
               />
               <div className="flex flex-wrap gap-3 mt-2 text-xs text-gray-500">
@@ -1583,8 +1739,195 @@ export default function NotesApp() {
         <Plus size={22} />
       </button>
 
-      {/* Right Sidebar - Placeholder for your existing sidebar system */}
-      {/* Add your existing Sidebar component here with all the props */}
+      {/* Right Sidebar */}
+      <Sidebar
+        isRightSidebarOpen={isRightSidebarOpen}
+        toggleRightSidebar={toggleRightSidebar}
+        isSidebarEditing={isSidebarEditing}
+        toggleSidebarEditing={toggleSidebarEditing}
+        rightSidebarWidgets={rightSidebarWidgets}
+        moveRightSidebarWidget={moveRightSidebarWidget}
+        removeRightSidebarWidget={removeRightSidebarWidget}
+        setIsRightWidgetModalOpen={setIsRightWidgetModalOpen}
+        communications={communications}
+        redirectToCommunication={redirectToCommunication}
+        todos={todos}
+        handleTaskComplete={handleTaskCompleteWrapper}
+        todoFilter={todoFilter}
+        setTodoFilter={setTodoFilter}
+        todoFilterOptions={todoFilterOptions}
+        isTodoFilterDropdownOpen={isTodoFilterDropdownOpen}
+        setIsTodoFilterDropdownOpen={setIsTodoFilterDropdownOpen}
+        openDropdownIndex={openDropdownIndex}
+        toggleDropdown={toggleSidebarDropdown}
+        handleEditTask={handleEditTask}
+        setTaskToCancel={setTaskToCancel}
+        setTaskToDelete={setTaskToDelete}
+        birthdays={birthdays}
+        isBirthdayToday={isBirthdayToday}
+        handleSendBirthdayMessage={handleSendBirthdayMessage}
+        customLinks={customLinks}
+        truncateUrl={truncateUrl}
+        appointments={appointments}
+        renderSpecialNoteIcon={renderSpecialNoteIcon}
+        handleDumbbellClick={handleDumbbellClick}
+        handleCheckIn={handleCheckInWrapper}
+        handleAppointmentOptionsModal={handleAppointmentOptionsModal}
+        selectedMemberType={selectedMemberType}
+        setSelectedMemberType={setSelectedMemberType}
+        memberTypes={memberTypes}
+        isChartDropdownOpen={isChartDropdownOpen}
+        setIsChartDropdownOpen={setIsChartDropdownOpen}
+        expiringContracts={expiringContracts}
+        getWidgetPlacementStatus={getWidgetPlacementStatus}
+        onClose={toggleRightSidebar}
+        hasUnreadNotifications={2}
+        setIsWidgetModalOpen={setIsWidgetModalOpen}
+        handleEditNote={handleEditNoteWrapper}
+        activeNoteId={activeNoteId}
+        setActiveNoteId={setActiveNoteId}
+        isSpecialNoteModalOpen={isSpecialNoteModalOpen}
+        setIsSpecialNoteModalOpen={setIsSpecialNoteModalOpen}
+        selectedAppointmentForNote={selectedAppointmentForNote}
+        setSelectedAppointmentForNote={setSelectedAppointmentForNote}
+        handleSaveSpecialNote={handleSaveSpecialNoteWrapper}
+        onSaveSpecialNote={handleSaveSpecialNoteWrapper}
+        notifications={notifications}
+        setTodos={setTodos}
+      />
+
+      {/* Sidebar Modals */}
+      <TrainingPlansModal
+        isOpen={isTrainingPlanModalOpen}
+        onClose={() => {
+          setIsTrainingPlanModalOpen(false)
+          setSelectedUserForTrainingPlan(null)
+        }}
+        selectedMember={selectedUserForTrainingPlan}
+        memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
+        availableTrainingPlans={availableTrainingPlans}
+        onAssignPlan={handleAssignTrainingPlan}
+        onRemovePlan={handleRemoveTrainingPlan}
+      />
+
+      <AppointmentActionModalV2
+        isOpen={showAppointmentOptionsModal}
+        onClose={() => {
+          setShowAppointmentOptionsModal(false)
+          setSelectedAppointment(null)
+        }}
+        appointment={selectedAppointment}
+        isEventInPast={isEventInPast}
+        onEdit={() => {
+          setShowAppointmentOptionsModal(false)
+          setIsEditAppointmentModalOpen(true)
+        }}
+        onCancel={handleCancelAppointment}
+        onViewMember={handleViewMemberDetails}
+      />
+
+      <NotifyMemberModal
+        isOpen={isNotifyMemberOpen}
+        onClose={() => setIsNotifyMemberOpen(false)}
+        notifyAction={notifyAction}
+        actuallyHandleCancelAppointment={actuallyHandleCancelAppointmentWrapper}
+        handleNotifyMember={handleNotifyMember}
+      />
+
+      {isEditAppointmentModalOpen && selectedAppointment && (
+        <EditAppointmentModalV2
+          selectedAppointment={selectedAppointment}
+          setSelectedAppointment={setSelectedAppointment}
+          appointmentTypes={appointmentTypes}
+          freeAppointments={freeAppointments}
+          handleAppointmentChange={(changes) => {
+            setSelectedAppointment({ ...selectedAppointment, ...changes })
+          }}
+          appointments={appointments}
+          setAppointments={setAppointments}
+          setIsNotifyMemberOpen={setIsNotifyMemberOpen}
+          setNotifyAction={setNotifyAction}
+          onDelete={handleDeleteAppointmentWrapper}
+          onClose={() => {
+            setIsEditAppointmentModalOpen(false)
+            setSelectedAppointment(null)
+          }}
+        />
+      )}
+
+      <WidgetSelectionModal
+        isOpen={isRightWidgetModalOpen}
+        onClose={() => setIsRightWidgetModalOpen(false)}
+        onSelectWidget={handleAddRightSidebarWidget}
+        getWidgetStatus={(widgetType) => getWidgetPlacementStatus(widgetType, "sidebar")}
+        widgetArea="sidebar"
+      />
+
+      {isRightSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={closeSidebar}
+        />
+      )}
+
+      {isEditTaskModalOpen && editingTask && (
+        <EditTaskModal
+          task={editingTask}
+          onClose={() => {
+            setIsEditTaskModalOpen(false)
+            setEditingTask(null)
+          }}
+          onUpdateTask={handleUpdateTaskWrapper}
+        />
+      )}
+
+      {taskToDelete && (
+        <div className="fixed inset-0 text-white bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
+            <h3 className="text-lg font-semibold mb-4">Delete Task</h3>
+            <p className="text-gray-300 mb-6">
+              Are you sure you want to delete this task? This action cannot be undone.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setTaskToDelete(null)}
+                className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#2F2F2F]/90"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDeleteTaskWrapper(taskToDelete)}
+                className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {taskToCancel && (
+        <div className="fixed inset-0 bg-black/50 text-white flex items-center justify-center z-50">
+          <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
+            <h3 className="text-lg font-semibold mb-4">Cancel Task</h3>
+            <p className="text-gray-300 mb-6">Are you sure you want to cancel this task?</p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setTaskToCancel(null)}
+                className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#2F2F2F]/90"
+              >
+                No
+              </button>
+              <button
+                onClick={() => handleCancelTaskWrapper(taskToCancel)}
+                className="px-4 py-2 bg-orange-600 text-white rounded-xl hover:bg-orange-700"
+              >
+                Cancel Task
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }

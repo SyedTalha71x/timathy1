@@ -9,6 +9,7 @@ const WysiwygEditor = ({ value, onChange, placeholder }) => {
     toolbar: [
       [{ 'header': [1, 2, 3, false] }],
       ['bold', 'italic', 'underline', 'strike'],
+      [{ 'color': [] }, { 'background': [] }],
       [{ 'list': 'ordered' }, { 'list': 'bullet' }],
       [{ 'align': [] }],
       ['link'],
@@ -19,6 +20,7 @@ const WysiwygEditor = ({ value, onChange, placeholder }) => {
   const formats = [
     'header',
     'bold', 'italic', 'underline', 'strike',
+    'color', 'background',
     'list', 'bullet',
     'align',
     'link'
