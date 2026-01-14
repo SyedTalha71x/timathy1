@@ -5,7 +5,10 @@ import { useState, useEffect, useRef } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
 import { MdOutlineHelpCenter, MdOutlineMessage, MdOutlineSupportAgent, MdOutlineLocalActivity } from "react-icons/md"
 import { FaNotesMedical, FaPeopleLine } from "react-icons/fa6"
+import { FaPersonRays } from "react-icons/fa6"
 import { FaCartPlus } from "react-icons/fa"
+import { BsPersonWorkspace } from "react-icons/bs"
+
 import {
   Calendar,
   Home,
@@ -340,8 +343,8 @@ const Sidebar = () => {
         { label: "Contracts", to: "/dashboard/contract", icon: RiContractLine },
       ],
     },
-    { icon: FaPeopleLine, label: "Leads", to: "/dashboard/leads" },
-    { icon: FaUsers, label: "Staff", to: "/dashboard/staff" },
+    { icon: FaPersonRays, label: "Leads", to: "/dashboard/leads" },
+    { icon: BsPersonWorkspace, label: "Staff", to: "/dashboard/staff" },
     { icon: ShoppingCart, label: "Selling", to: "/dashboard/selling" },
     { icon: FaCartPlus, label: "Marketplace", to: "/dashboard/market-place" },
 
