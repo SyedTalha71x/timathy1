@@ -41,7 +41,6 @@ export default function FinancesPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedStatuses, setSelectedStatuses] = useState([])
   const [filteredTransactions, setFilteredTransactions] = useState(financialData[selectedPeriod]?.transactions || [])
-  const [currentPage, setCurrentPage] = useState(1)
   const [sepaModalOpen, setSepaModalOpen] = useState(false)
   const [financialState, setFinancialState] = useState(financialData)
   const [checkFundsModalOpen, setCheckFundsModalOpen] = useState(false)
@@ -74,8 +73,6 @@ export default function FinancesPage() {
   // SEPA Documents state
   const [sepaDocuments, setSepaDocuments] = useState(financesData)
 
-  const transactionsPerPage = 5
-
   // Status options with bright colors (consistent across platform)
   const statusOptions = [
     { id: "Successful", label: "Successful", color: "#10b981" },
@@ -104,10 +101,10 @@ export default function FinancesPage() {
   }
 
   useEffect(() => {
-    let currentTransactions = financialData[selectedPeriod]?.transactions || []
+    let currentTransactions = financialState[selectedPeriod]?.transactions || []
 
     if (customDateRange && selectedPeriod.startsWith("Custom")) {
-      const allTransactions = Object.values(financialData).flatMap((period) => period.transactions)
+      const allTransactions = Object.values(financialState).flatMap((period) => period.transactions)
       currentTransactions = allTransactions.filter((transaction) => {
         const transactionDate = new Date(transaction.date)
         const startDate = new Date(customDateRange.start)
@@ -123,19 +120,27 @@ export default function FinancesPage() {
     })
 
     setFilteredTransactions(filtered)
-    setCurrentPage(1)
-  }, [searchTerm, selectedPeriod, selectedStatuses, customDateRange])
+  }, [searchTerm, selectedPeriod, selectedStatuses, customDateRange, financialState])
 
-  // Close period dropdown when clicking outside
+  // Close period dropdown when clicking outside (desktop only)
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // Only apply on desktop (md breakpoint = 768px)
+      if (window.innerWidth < 768) {
+        return
+      }
+      
       if (periodDropdownRef.current && !periodDropdownRef.current.contains(event.target)) {
         setPeriodDropdownOpen(false)
         setIsCustomPeriodExpanded(false)
       }
     }
     document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
+    document.addEventListener("touchstart", handleClickOutside)
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+      document.removeEventListener("touchstart", handleClickOutside)
+    }
   }, [])
 
   // Sort filtered transactions
@@ -168,14 +173,6 @@ export default function FinancesPage() {
     
     return sorted
   }, [filteredTransactions, sortBy, sortDirection])
-
-  const totalPages = Math.ceil(sortedTransactions.length / transactionsPerPage)
-  const startIndex = (currentPage - 1) * transactionsPerPage
-  const paginatedTransactions = sortedTransactions.slice(startIndex, startIndex + transactionsPerPage)
-
-  const handlePageChange = (page) => {
-    setCurrentPage(page)
-  }
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("en-US", {
@@ -284,35 +281,51 @@ export default function FinancesPage() {
 
   const handleGenerateXml = (selectedTransactions, period, shouldDownload = true) => {
     const updatedFinancialState = { ...financialState }
-    const periodData = { ...updatedFinancialState[selectedPeriod] }
-
-    periodData.transactions = periodData.transactions.map((tx) => {
-      const selected = selectedTransactions.find((s) => s.id === tx.id)
-      if (selected) {
-        return {
-          ...tx,
-          status: "Check incoming funds",
-          amount: selected.amount,
-        }
-      }
-      return tx
+    
+    // Get the IDs of selected transactions
+    const selectedIds = selectedTransactions.map(tx => tx.id)
+    const selectedAmounts = {}
+    selectedTransactions.forEach(tx => {
+      selectedAmounts[tx.id] = tx.amount
     })
 
-    const successful = periodData.transactions
-      .filter((tx) => tx.status === "Successful")
-      .reduce((sum, tx) => sum + tx.amount, 0)
-    const pending = periodData.transactions
-      .filter((tx) => tx.status === "Pending" || tx.status === "Check incoming funds")
-      .reduce((sum, tx) => sum + tx.amount, 0)
-    const failed = periodData.transactions
-      .filter((tx) => tx.status === "Failed")
-      .reduce((sum, tx) => sum + tx.amount, 0)
+    // Update transactions across ALL periods (find by ID)
+    Object.keys(updatedFinancialState).forEach(periodKey => {
+      const periodData = { ...updatedFinancialState[periodKey] }
+      let hasChanges = false
+      
+      periodData.transactions = periodData.transactions.map((tx) => {
+        if (selectedIds.includes(tx.id)) {
+          hasChanges = true
+          return {
+            ...tx,
+            status: "Check incoming funds",
+            amount: selectedAmounts[tx.id] || tx.amount,
+          }
+        }
+        return tx
+      })
 
-    periodData.successfulPayments = successful
-    periodData.pendingPayments = pending
-    periodData.failedPayments = failed
+      if (hasChanges) {
+        // Recalculate totals for this period
+        const successful = periodData.transactions
+          .filter((tx) => tx.status === "Successful")
+          .reduce((sum, tx) => sum + tx.amount, 0)
+        const pending = periodData.transactions
+          .filter((tx) => tx.status === "Pending" || tx.status === "Check incoming funds")
+          .reduce((sum, tx) => sum + tx.amount, 0)
+        const failed = periodData.transactions
+          .filter((tx) => tx.status === "Failed")
+          .reduce((sum, tx) => sum + tx.amount, 0)
 
-    updatedFinancialState[selectedPeriod] = periodData
+        periodData.successfulPayments = successful
+        periodData.pendingPayments = pending
+        periodData.failedPayments = failed
+        
+        updatedFinancialState[periodKey] = periodData
+      }
+    })
+
     setFinancialState(updatedFinancialState)
 
     const totalAmount = selectedTransactions.reduce((sum, tx) => sum + tx.amount, 0)
@@ -341,34 +354,49 @@ export default function FinancesPage() {
 
   const handleUpdateStatuses = (updatedTransactions) => {
     const updatedFinancialState = { ...financialState }
-    const periodData = { ...updatedFinancialState[selectedPeriod] }
-
-    periodData.transactions = periodData.transactions.map((tx) => {
-      const updated = updatedTransactions.find((u) => u.id === tx.id)
-      if (updated) {
-        return {
-          ...tx,
-          status: updated.status,
-        }
-      }
-      return tx
+    
+    // Get the IDs and statuses of updated transactions
+    const updatedMap = {}
+    updatedTransactions.forEach(tx => {
+      updatedMap[tx.id] = tx.status
     })
 
-    const successful = periodData.transactions
-      .filter((tx) => tx.status === "Successful")
-      .reduce((sum, tx) => sum + tx.amount, 0)
-    const pending = periodData.transactions
-      .filter((tx) => tx.status === "Pending" || tx.status === "Check incoming funds")
-      .reduce((sum, tx) => sum + tx.amount, 0)
-    const failed = periodData.transactions
-      .filter((tx) => tx.status === "Failed")
-      .reduce((sum, tx) => sum + tx.amount, 0)
+    // Update transactions across ALL periods (find by ID)
+    Object.keys(updatedFinancialState).forEach(periodKey => {
+      const periodData = { ...updatedFinancialState[periodKey] }
+      let hasChanges = false
+      
+      periodData.transactions = periodData.transactions.map((tx) => {
+        if (updatedMap[tx.id]) {
+          hasChanges = true
+          return {
+            ...tx,
+            status: updatedMap[tx.id],
+          }
+        }
+        return tx
+      })
 
-    periodData.successfulPayments = successful
-    periodData.pendingPayments = pending
-    periodData.failedPayments = failed
+      if (hasChanges) {
+        // Recalculate totals for this period
+        const successful = periodData.transactions
+          .filter((tx) => tx.status === "Successful")
+          .reduce((sum, tx) => sum + tx.amount, 0)
+        const pending = periodData.transactions
+          .filter((tx) => tx.status === "Pending" || tx.status === "Check incoming funds")
+          .reduce((sum, tx) => sum + tx.amount, 0)
+        const failed = periodData.transactions
+          .filter((tx) => tx.status === "Failed")
+          .reduce((sum, tx) => sum + tx.amount, 0)
 
-    updatedFinancialState[selectedPeriod] = periodData
+        periodData.successfulPayments = successful
+        periodData.pendingPayments = pending
+        periodData.failedPayments = failed
+        
+        updatedFinancialState[periodKey] = periodData
+      }
+    })
+
     setFinancialState(updatedFinancialState)
 
     setSuccessMessage("Transaction statuses updated successfully!")
@@ -409,7 +437,7 @@ export default function FinancesPage() {
     }
 
     if (customDateRange && selectedPeriod.startsWith("Custom")) {
-      const allTransactions = Object.values(financialData).flatMap((period) => period?.transactions || [])
+      const allTransactions = Object.values(financialState).flatMap((period) => period?.transactions || [])
       const customTransactions = allTransactions.filter((transaction) => {
         const transactionDate = new Date(transaction.date)
         const startDate = new Date(customDateRange.start)
@@ -434,7 +462,7 @@ export default function FinancesPage() {
       }
     }
     
-    return financialState[selectedPeriod] || financialData[selectedPeriod] || defaultData
+    return financialState[selectedPeriod] || defaultData
   }
 
   // Extract all states and functions from the hook
@@ -680,339 +708,332 @@ export default function FinancesPage() {
       </style>
       <div
         className={`
-      min-h-screen rounded-3xl p-3 sm:p-4 md:p-6 bg-[#1C1C1C]
-      transition-all duration-500 ease-in-out flex-1
+      min-h-screen rounded-3xl p-6 bg-[#1C1C1C]
+      transition-all duration-300 ease-in-out flex-1
       ${isRightSidebarOpen
             ? "lg:mr-86 mr-0"
             : "mr-0"
           }
     `}
       >
-        <div className="flex flex-col space-y-4 mb-4 md:mb-6">
-          {/* Mobile/Tablet: Two rows layout */}
-          <div className="flex flex-col lg:hidden space-y-4">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-2 md:gap-3">
-                <h1 className="text-white oxanium_font text-lg sm:text-xl md:text-2xl">Finances</h1>
-                <button
-                  onClick={() => setDocumentsModalOpen(true)}
-                  className="bg-black text-white p-1.5 sm:p-2 md:p-2 rounded-xl border border-gray-800 hover:bg-[#2F2F2F]/90 transition-colors relative"
-                  title="View SEPA XML Documents"
-                >
-                  <FileText className="w-4 h-4 sm:w-4 sm:h-4 md:w-5 md:h-5" />
-                  {sepaDocuments.length > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-orange-600 text-white text-xs rounded-full w-4 h-4 sm:w-4 sm:h-4 md:w-5 md:h-5 flex items-center justify-center text-[10px] sm:text-[10px] md:text-xs">
-                      {sepaDocuments.length}
-                    </span>
-                  )}
-                </button>
-              </div>
+        {/* Header - Matches Leads Pattern */}
+        <div className="flex items-center justify-between mb-4 sm:mb-6">
+          <div className="flex items-center gap-3">
+            <h1 className="text-xl sm:text-2xl text-white font-bold">Finances</h1>
+            
+            {/* Documents Button */}
+            <button
+              onClick={() => setDocumentsModalOpen(true)}
+              className="bg-black text-white p-2 rounded-xl border border-gray-800 hover:bg-[#2F2F2F]/90 transition-colors relative"
+              title="View SEPA XML Documents"
+            >
+              <FileText className="w-4 h-4 sm:w-5 sm:h-5" />
+              {sepaDocuments.length > 0 && (
+                <span className="absolute -top-2 -right-2 bg-orange-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                  {sepaDocuments.length}
+                </span>
+              )}
+            </button>
+          </div>
+          
+          {/* Action Buttons + Sidebar Toggle */}
+          <div className="flex items-center gap-2">
+            {/* Period Selector */}
+            <div className="relative" ref={periodDropdownRef}>
+              <button
+                onClick={() => setPeriodDropdownOpen(!periodDropdownOpen)}
+                className="bg-[#141414] text-white px-3 sm:px-4 py-2 rounded-xl border border-[#333333] hover:border-[#3F74FF] flex items-center gap-2 text-xs sm:text-sm transition-colors"
+              >
+                <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                <span className={`hidden sm:inline ${selectedPeriod.startsWith("Custom:") ? '' : 'truncate max-w-[120px]'}`}>{selectedPeriod}</span>
+                <ChevronDown className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${periodDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+              
+              {/* Desktop Period Dropdown - inside relative container */}
+              {periodDropdownOpen && (
+                <div className="hidden md:block absolute right-0 z-20 mt-2 min-w-[320px] bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg overflow-hidden top-full">
+                  {/* Preset Periods */}
+                  <div className="py-1">
+                    <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">
+                      Select Period
+                    </div>
+                    {Object.keys(financialState).map((period) => (
+                      <button
+                        key={period}
+                        className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-800 transition-colors ${
+                          selectedPeriod === period && !selectedPeriod.startsWith("Custom:")
+                            ? 'text-white bg-gray-800/50' 
+                            : 'text-gray-300'
+                        }`}
+                        onClick={() => handleSelectPeriod(period)}
+                      >
+                        {period}
+                      </button>
+                    ))}
+                  </div>
+                  
+                  {/* Custom Period Section */}
+                  <div className="border-t border-gray-700">
+                    <button
+                      className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-800 transition-colors flex items-center gap-2 ${
+                        isCustomPeriodExpanded || selectedPeriod.startsWith("Custom:") ? 'text-white bg-gray-800/50' : 'text-gray-300'
+                      }`}
+                      onClick={handleCustomPeriodClick}
+                    >
+                      <Calendar className="w-4 h-4" />
+                      Custom Period
+                    </button>
+                    
+                    {/* Date Inputs */}
+                    {isCustomPeriodExpanded && (
+                      <div className="px-4 py-3 bg-[#141414] border-t border-gray-700">
+                        <div className="flex flex-col gap-3">
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-xs text-gray-500 mb-1">Start Date</label>
+                              <input
+                                type="date"
+                                value={inlineCustomDates.startDate}
+                                onChange={(e) => setInlineCustomDates((prev) => ({ ...prev, startDate: e.target.value }))}
+                                className="w-full bg-[#1C1C1C] text-white px-3 py-2 rounded-lg border border-gray-700 text-sm focus:border-[#3F74FF] focus:outline-none white-calendar-icon"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs text-gray-500 mb-1">End Date</label>
+                              <input
+                                type="date"
+                                value={inlineCustomDates.endDate}
+                                onChange={(e) => setInlineCustomDates((prev) => ({ ...prev, endDate: e.target.value }))}
+                                className="w-full bg-[#1C1C1C] text-white px-3 py-2 rounded-lg border border-gray-700 text-sm focus:border-[#3F74FF] focus:outline-none white-calendar-icon"
+                              />
+                            </div>
+                          </div>
+                          <button
+                            onClick={handleApplyInlineCustomPeriod}
+                            disabled={!inlineCustomDates.startDate || !inlineCustomDates.endDate}
+                            className="w-full py-2 bg-[#3F74FF] text-white rounded-lg text-sm hover:bg-[#3F74FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            Apply
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
 
+            {/* Export Button - Mobile (icon only) */}
+            <button
+              onClick={() => setExportConfirmationOpen(true)}
+              className="md:hidden bg-gray-600 text-white p-2 rounded-xl transition-colors hover:bg-gray-700"
+              title="Export CSV"
+            >
+              <Download className="w-4 h-4" />
+            </button>
+
+            {/* Export Button - Desktop */}
+            <button
+              onClick={() => setExportConfirmationOpen(true)}
+              className="hidden md:flex bg-gray-600 text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 text-xs sm:text-sm transition-colors hover:bg-gray-700"
+            >
+              <Download className="w-4 h-4" />
+              <span className="hidden lg:inline">Export CSV</span>
+            </button>
+            
+            {/* Run Payment Button - Desktop only */}
+            <button
+              onClick={() => setSepaModalOpen(true)}
+              className="hidden md:flex bg-[#3F74FF] hover:bg-[#3F74FF]/90 text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 text-xs sm:text-sm transition-colors"
+            >
+              <Play className="w-4 h-4" />
+              <span className="hidden lg:inline">Run Payment</span>
+            </button>
+            
+            {/* Check Incoming Funds - Desktop only, conditional */}
+            {hasCheckingTransactionsAnyPeriod && (
+              <button
+                onClick={() => setCheckFundsModalOpen(true)}
+                className="hidden md:flex bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 text-xs sm:text-sm transition-colors"
+              >
+                <RefreshCw className="w-4 h-4" />
+                <span className="hidden lg:inline">Check Funds</span>
+              </button>
+            )}
+            
+            {/* Sidebar Toggle */}
+            {isRightSidebarOpen ? (
+              <div onClick={toggleRightSidebar}>
+                <img src="/expand-sidebar mirrored.svg" className="h-5 w-5 cursor-pointer" alt="" />
+              </div>
+            ) : (
               <div onClick={toggleRightSidebar}>
                 <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
               </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 md:gap-4">
-              <div className="relative flex-1 sm:flex-none" ref={periodDropdownRef}>
-                <button
-                  onClick={() => setPeriodDropdownOpen(!periodDropdownOpen)}
-                  className="bg-[#141414] text-white px-2 sm:px-3 md:px-4 py-2 sm:py-2 md:py-2.5 rounded-xl border border-[#333333] hover:border-[#3F74FF] flex items-center justify-between gap-1 sm:gap-2 md:gap-2 w-full sm:min-w-[140px] md:min-w-[180px] text-xs sm:text-sm md:text-sm transition-colors"
-                >
-                  <Calendar className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-gray-400 flex-shrink-0" />
-                  <span className="text-xs sm:text-xs md:text-sm truncate">{selectedPeriod}</span>
-                  <ChevronDown className={`w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-gray-400 flex-shrink-0 transition-transform ${periodDropdownOpen ? 'rotate-180' : ''}`} />
-                </button>
-                {periodDropdownOpen && (
-                  <div className="absolute z-20 mt-2 w-full min-w-[280px] bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg overflow-hidden">
-                    {/* Preset Periods */}
-                    <div className="py-1">
-                      <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">
-                        Select Period
-                      </div>
-                      {Object.keys(financialState).map((period) => (
-                        <button
-                          key={period}
-                          className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-800 transition-colors ${
-                            selectedPeriod === period && !selectedPeriod.startsWith("Custom:")
-                              ? 'text-white bg-gray-800/50' 
-                              : 'text-gray-300'
-                          }`}
-                          onClick={() => handleSelectPeriod(period)}
-                        >
-                          {period}
-                        </button>
-                      ))}
-                    </div>
-                    
-                    {/* Custom Period Section */}
-                    <div className="border-t border-gray-700">
-                      <button
-                        className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-800 transition-colors flex items-center gap-2 ${
-                          isCustomPeriodExpanded || selectedPeriod.startsWith("Custom:") ? 'text-white bg-gray-800/50' : 'text-gray-300'
-                        }`}
-                        onClick={handleCustomPeriodClick}
-                      >
-                        <Calendar className="w-4 h-4" />
-                        Custom Period
-                      </button>
-                      
-                      {/* Date Inputs */}
-                      {isCustomPeriodExpanded && (
-                        <div className="px-4 py-3 bg-[#141414] border-t border-gray-700">
-                          <div className="flex flex-col gap-3">
-                            <div className="flex items-center gap-2">
-                              <div className="flex-1">
-                                <label className="block text-xs text-gray-500 mb-1">Start Date</label>
-                                <input
-                                  type="date"
-                                  value={inlineCustomDates.startDate}
-                                  onChange={(e) => setInlineCustomDates((prev) => ({ ...prev, startDate: e.target.value }))}
-                                  className="w-full bg-[#1C1C1C] text-white px-3 py-2 rounded-lg border border-gray-700 text-sm focus:border-[#3F74FF] focus:outline-none white-calendar-icon"
-                                />
-                              </div>
-                              <span className="text-gray-500 mt-5">–</span>
-                              <div className="flex-1">
-                                <label className="block text-xs text-gray-500 mb-1">End Date</label>
-                                <input
-                                  type="date"
-                                  value={inlineCustomDates.endDate}
-                                  onChange={(e) => setInlineCustomDates((prev) => ({ ...prev, endDate: e.target.value }))}
-                                  className="w-full bg-[#1C1C1C] text-white px-3 py-2 rounded-lg border border-gray-700 text-sm focus:border-[#3F74FF] focus:outline-none white-calendar-icon"
-                                />
-                              </div>
-                            </div>
-                            <button
-                              onClick={handleApplyInlineCustomPeriod}
-                              disabled={!inlineCustomDates.startDate || !inlineCustomDates.endDate}
-                              className="w-full py-2 bg-[#3F74FF] text-white rounded-lg text-sm hover:bg-[#3F74FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              Apply
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-2 md:gap-3 flex-1 sm:flex-none">
-                <div className="flex gap-2 sm:gap-2 md:gap-2">
-                  <button
-                    onClick={() => setExportConfirmationOpen(true)}
-                    className="bg-gray-600 cursor-pointer text-white px-2 sm:px-3 md:px-4 py-1.5 sm:py-1.5 md:py-2 rounded-xl flex items-center justify-center gap-1 sm:gap-1.5 md:gap-2 text-xs sm:text-xs md:text-sm transition-colors flex-1 sm:flex-none"
-                  >
-                    <Download className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4" />
-                    <span className="hidden sm:inline md:inline">Export CSV</span>
-                    <span className="sm:hidden md:hidden">Export</span>
-                  </button>
-                  <button
-                    onClick={() => setSepaModalOpen(true)}
-                    className="bg-[#3F74FF] text-white px-2 sm:px-3 md:px-4 py-1.5 sm:py-1.5 md:py-2 rounded-xl flex items-center justify-center gap-1 sm:gap-1.5 md:gap-2 text-xs sm:text-xs md:text-sm hover:bg-[#3F74FF]/90 transition-colors flex-1 sm:flex-none"
-                  >
-                    <Download className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4" />
-                    <span className="hidden sm:inline md:inline">Run Payment</span>
-                    <span className="sm:hidden md:hidden">Payment</span>
-                  </button>
-                </div>
-                {/* Check Incoming Funds - Only show when there are open funds */}
-                {hasCheckingTransactionsAnyPeriod && (
-                  <button
-                    onClick={() => setCheckFundsModalOpen(true)}
-                    className="bg-[#2F2F2F] hover:bg-[#2F2F2F]/90 text-white px-2 sm:px-3 md:px-4 py-1.5 sm:py-1.5 md:py-2 rounded-xl flex items-center justify-center gap-1 sm:gap-1.5 md:gap-2 text-xs sm:text-xs md:text-sm transition-colors"
-                  >
-                    <RefreshCw className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4" />
-                    <span className="hidden sm:hidden md:inline">Check Incoming Funds</span>
-                    <span className="sm:inline md:hidden">Check Funds</span>
-                  </button>
-                )}
-              </div>
-            </div>
+            )}
           </div>
+        </div>
 
-          {/* Large screens */}
-          <div className="hidden lg:flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <h1 className={`text-white oxanium_font ${isRightSidebarOpen ? 'text-xl' : 'text-2xl'}`}>Finances</h1>
-              <button
-                onClick={() => setDocumentsModalOpen(true)}
-                className="bg-black text-white p-2 rounded-xl border border-gray-800 hover:bg-[#2F2F2F]/90 transition-colors relative"
-                title="View SEPA XML Documents"
-              >
-                <FileText className="w-5 h-5" />
-                {sepaDocuments.length > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-orange-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
-                    {sepaDocuments.length}
-                  </span>
-                )}
-              </button>
-            </div>
-
-            <div className="flex items-center gap-4">
-              <div className="relative" ref={periodDropdownRef}>
-                <button
-                  onClick={() => setPeriodDropdownOpen(!periodDropdownOpen)}
-                  className={`bg-[#141414] text-white px-4 py-2.5 rounded-xl border border-[#333333] hover:border-[#3F74FF] flex items-center gap-3 text-sm transition-colors ${isRightSidebarOpen ? 'min-w-[140px]' : 'min-w-[200px]'}`}
+        {/* Mobile Period Dropdown - Centered Modal */}
+        {periodDropdownOpen && (
+          <div 
+            className="md:hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50" 
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setPeriodDropdownOpen(false)
+                setIsCustomPeriodExpanded(false)
+              }
+            }}
+          >
+            <div 
+              data-mobile-period-modal
+              className="bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg w-[90%] max-w-[340px] max-h-[80vh] overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700">
+                <span className="text-white font-medium">Select Period</span>
+                <button 
+                  type="button"
+                  onClick={() => {
+                    setPeriodDropdownOpen(false)
+                    setIsCustomPeriodExpanded(false)
+                  }} 
+                  className="text-gray-400 hover:text-white p-1 touch-manipulation"
                 >
-                  <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                  <span className="text-sm flex-1 text-left truncate">{selectedPeriod}</span>
-                  <ChevronDown className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${periodDropdownOpen ? 'rotate-180' : ''}`} />
+                  <X className="w-5 h-5" />
                 </button>
-                {periodDropdownOpen && (
-                  <div className="absolute z-20 mt-2 w-full min-w-[280px] bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg overflow-hidden">
-                    {/* Preset Periods */}
-                    <div className="py-1">
-                      <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">
-                        Select Period
-                      </div>
-                      {Object.keys(financialState).map((period) => (
-                        <button
-                          key={period}
-                          className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-800 transition-colors ${
-                            selectedPeriod === period && !selectedPeriod.startsWith("Custom:")
-                              ? 'text-white bg-gray-800/50' 
-                              : 'text-gray-300'
-                          }`}
-                          onClick={() => handleSelectPeriod(period)}
-                        >
-                          {period}
-                        </button>
-                      ))}
-                    </div>
-                    
-                    {/* Custom Period Section */}
-                    <div className="border-t border-gray-700">
-                      <button
-                        className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-800 transition-colors flex items-center gap-2 ${
-                          isCustomPeriodExpanded || selectedPeriod.startsWith("Custom:") ? 'text-white bg-gray-800/50' : 'text-gray-300'
-                        }`}
-                        onClick={handleCustomPeriodClick}
-                      >
-                        <Calendar className="w-4 h-4" />
-                        Custom Period
-                      </button>
-                      
-                      {/* Date Inputs */}
-                      {isCustomPeriodExpanded && (
-                        <div className="px-4 py-3 bg-[#141414] border-t border-gray-700">
-                          <div className="flex flex-col gap-3">
-                            <div className="flex items-center gap-2">
-                              <div className="flex-1">
-                                <label className="block text-xs text-gray-500 mb-1">Start Date</label>
-                                <input
-                                  type="date"
-                                  value={inlineCustomDates.startDate}
-                                  onChange={(e) => setInlineCustomDates((prev) => ({ ...prev, startDate: e.target.value }))}
-                                  className="w-full bg-[#1C1C1C] text-white px-3 py-2 rounded-lg border border-gray-700 text-sm focus:border-[#3F74FF] focus:outline-none white-calendar-icon"
-                                />
-                              </div>
-                              <span className="text-gray-500 mt-5">–</span>
-                              <div className="flex-1">
-                                <label className="block text-xs text-gray-500 mb-1">End Date</label>
-                                <input
-                                  type="date"
-                                  value={inlineCustomDates.endDate}
-                                  onChange={(e) => setInlineCustomDates((prev) => ({ ...prev, endDate: e.target.value }))}
-                                  className="w-full bg-[#1C1C1C] text-white px-3 py-2 rounded-lg border border-gray-700 text-sm focus:border-[#3F74FF] focus:outline-none white-calendar-icon"
-                                />
-                              </div>
-                            </div>
-                            <button
-                              onClick={handleApplyInlineCustomPeriod}
-                              disabled={!inlineCustomDates.startDate || !inlineCustomDates.endDate}
-                              className="w-full py-2 bg-[#3F74FF] text-white rounded-lg text-sm hover:bg-[#3F74FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              Apply
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
               </div>
-
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setExportConfirmationOpen(true)}
-                  className={`bg-gray-600 cursor-pointer text-white px-4 py-2 rounded-xl flex items-center justify-center gap-2 text-sm transition-colors ${isRightSidebarOpen ? 'px-3' : 'px-4'}`}
-                >
-                  <Download className="w-4 h-4" />
-                  <span className={isRightSidebarOpen ? 'hidden xl:inline' : ''}>Export Excel</span>
-                </button>
-                <button
-                  onClick={() => setSepaModalOpen(true)}
-                  className={`bg-[#3F74FF] text-white px-4 py-2 rounded-xl flex items-center justify-center gap-2 text-sm hover:bg-[#3F74FF]/90 transition-colors ${isRightSidebarOpen ? 'px-3' : 'px-4'}`}
-                >
-                  <Download className="w-4 h-4" />
-                  <span className={isRightSidebarOpen ? 'hidden xl:inline' : ''}>Run Payment</span>
-                </button>
-                {/* Check Incoming Funds - Only show when there are open funds */}
-                {hasCheckingTransactionsAnyPeriod && (
+              
+              {/* Preset Periods */}
+              <div className="py-1 max-h-[40vh] overflow-y-auto">
+                {Object.keys(financialState).map((period) => (
                   <button
-                    onClick={() => setCheckFundsModalOpen(true)}
-                    className={`bg-[#2F2F2F] hover:bg-[#2F2F2F]/90 text-white px-4 py-2 rounded-xl flex items-center justify-center gap-2 text-sm transition-colors ${isRightSidebarOpen ? 'px-3' : 'px-4'}`}
+                    type="button"
+                    key={period}
+                    className={`w-full text-left px-4 py-3 text-sm hover:bg-gray-800 active:bg-gray-700 transition-colors touch-manipulation ${
+                      selectedPeriod === period && !selectedPeriod.startsWith("Custom:")
+                        ? 'text-white bg-[#3F74FF]' 
+                        : 'text-gray-300'
+                    }`}
+                    onClick={() => {
+                      setSelectedPeriod(period)
+                      setCustomDateRange(null)
+                      setIsCustomPeriodExpanded(false)
+                      setPeriodDropdownOpen(false)
+                    }}
                   >
-                    <RefreshCw className="w-4 h-4" />
-                    <span className={isRightSidebarOpen ? 'hidden xl:inline' : ''}>Check Incoming Funds</span>
+                    {period}
                   </button>
-                )}
-                {isRightSidebarOpen ? (
-                  <div onClick={toggleRightSidebar} className="md:block hidden">
-                    <img src='/expand-sidebar mirrored.svg' className="h-5 w-5 cursor-pointer" alt="" />
-                  </div>
-                ) : (
-                  <div onClick={toggleRightSidebar} className="md:block hidden">
-                    <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
+                ))}
+              </div>
+              
+              {/* Custom Period Section */}
+              <div className="border-t border-gray-700">
+                <button
+                  type="button"
+                  className={`w-full text-left px-4 py-3 text-sm hover:bg-gray-800 active:bg-gray-700 transition-colors flex items-center gap-2 touch-manipulation ${
+                    isCustomPeriodExpanded || selectedPeriod.startsWith("Custom:") ? 'text-white bg-[#3F74FF]' : 'text-gray-300'
+                  }`}
+                  onClick={() => {
+                    const today = new Date().toISOString().split("T")[0]
+                    setInlineCustomDates((prev) => ({
+                      startDate: prev.startDate || today,
+                      endDate: prev.endDate || today,
+                    }))
+                    setIsCustomPeriodExpanded(!isCustomPeriodExpanded)
+                  }}
+                >
+                  <Calendar className="w-4 h-4" />
+                  Custom Period
+                </button>
+                
+                {/* Date Inputs */}
+                {isCustomPeriodExpanded && (
+                  <div className="px-4 py-3 bg-[#141414] border-t border-gray-700">
+                    <div className="flex flex-col gap-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs text-gray-500 mb-1">Start Date</label>
+                          <input
+                            type="date"
+                            value={inlineCustomDates.startDate}
+                            onChange={(e) => setInlineCustomDates((prev) => ({ ...prev, startDate: e.target.value }))}
+                            className="w-full bg-[#1C1C1C] text-white px-3 py-2 rounded-lg border border-gray-700 text-sm focus:border-[#3F74FF] focus:outline-none white-calendar-icon touch-manipulation"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-500 mb-1">End Date</label>
+                          <input
+                            type="date"
+                            value={inlineCustomDates.endDate}
+                            onChange={(e) => setInlineCustomDates((prev) => ({ ...prev, endDate: e.target.value }))}
+                            className="w-full bg-[#1C1C1C] text-white px-3 py-2 rounded-lg border border-gray-700 text-sm focus:border-[#3F74FF] focus:outline-none white-calendar-icon touch-manipulation"
+                          />
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (inlineCustomDates.startDate && inlineCustomDates.endDate) {
+                            const formattedStart = formatDateForDisplay(inlineCustomDates.startDate)
+                            const formattedEnd = formatDateForDisplay(inlineCustomDates.endDate)
+                            setCustomDateRange({ start: inlineCustomDates.startDate, end: inlineCustomDates.endDate })
+                            setSelectedPeriod(`Custom: ${formattedStart} – ${formattedEnd}`)
+                            setIsCustomPeriodExpanded(false)
+                            setPeriodDropdownOpen(false)
+                          }
+                        }}
+                        disabled={!inlineCustomDates.startDate || !inlineCustomDates.endDate}
+                        className="w-full py-2.5 bg-[#3F74FF] text-white rounded-lg text-sm hover:bg-[#3F74FF]/90 active:bg-[#3F74FF]/70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
+                      >
+                        Apply
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
             </div>
           </div>
+        )}
+
+        {/* Search - Matches Leads Pattern */}
+        <div className="mb-4 sm:mb-6 relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+          <input
+            type="text"
+            placeholder="Search by member name..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-[#333333] focus:border-[#3F74FF] transition-colors"
+          />
         </div>
 
         {/* Stats Grid */}
-        <div className={`grid gap-3 md:gap-4 mb-4 md:mb-6 ${isRightSidebarOpen
-          ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-2'
-          : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
-          }`}>
-          <div className="bg-[#141414] p-3 md:p-4 rounded-xl">
-            <h3 className="text-gray-400 text-xs md:text-sm mb-1">Total Revenue</h3>
-            <p className="text-white text-lg md:text-xl font-semibold">
+        <div className={`grid gap-3 sm:gap-4 mb-4 sm:mb-6 grid-cols-2 lg:grid-cols-4`}>
+          <div className="bg-[#141414] p-3 sm:p-4 rounded-xl">
+            <h3 className="text-gray-400 text-xs sm:text-sm mb-1">Total Revenue</h3>
+            <p className="text-white text-base sm:text-xl font-semibold">
               {formatCurrency(currentPeriodData.totalRevenue)}
             </p>
           </div>
-          <div className="bg-[#141414] p-3 md:p-4 rounded-xl">
-            <h3 className="text-gray-400 text-xs md:text-sm mb-1">Successful Payments</h3>
-            <p className="text-green-500 text-lg md:text-xl font-semibold">
+          <div className="bg-[#141414] p-3 sm:p-4 rounded-xl">
+            <h3 className="text-gray-400 text-xs sm:text-sm mb-1">Successful</h3>
+            <p className="text-green-500 text-base sm:text-xl font-semibold">
               {formatCurrency(currentPeriodData.successfulPayments)}
             </p>
           </div>
-          <div className="bg-[#141414] p-3 md:p-4 rounded-xl">
-            <h3 className="text-gray-400 text-xs md:text-sm mb-1">Pending Payments</h3>
-            <p className="text-yellow-500 text-lg md:text-xl font-semibold">
+          <div className="bg-[#141414] p-3 sm:p-4 rounded-xl">
+            <h3 className="text-gray-400 text-xs sm:text-sm mb-1">Pending</h3>
+            <p className="text-yellow-500 text-base sm:text-xl font-semibold">
               {formatCurrency(currentPeriodData.pendingPayments)}
             </p>
           </div>
-          <div className="bg-[#141414] p-3 md:p-4 rounded-xl">
-            <h3 className="text-gray-400 text-xs md:text-sm mb-1">Failed Payments</h3>
-            <p className="text-red-500 text-lg md:text-xl font-semibold">
+          <div className="bg-[#141414] p-3 sm:p-4 rounded-xl">
+            <h3 className="text-gray-400 text-xs sm:text-sm mb-1">Failed</h3>
+            <p className="text-red-500 text-base sm:text-xl font-semibold">
               {formatCurrency(currentPeriodData.failedPayments)}
             </p>
-          </div>
-        </div>
-
-        <div className="flex flex-col sm:flex-row items-center gap-3 md:gap-4 mb-3 md:mb-4">
-          <div className="relative w-full sm:flex-1">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
-            <input
-              type="search"
-              placeholder="Search by member name..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="h-11 bg-[#181818] text-white rounded-xl pl-12 pr-4 w-full text-sm outline-none border border-[#333333] focus:border-[#3F74FF] leading-none"
-            />
           </div>
         </div>
 
@@ -1106,10 +1127,10 @@ export default function FinancesPage() {
                 </tr>
               </thead>
               <tbody>
-                {paginatedTransactions.map((transaction, index) => (
+                {sortedTransactions.map((transaction, index) => (
                   <tr
                     key={transaction.id}
-                    className={`border-b border-gray-800 ${index === paginatedTransactions.length - 1 ? "rounded-b-xl" : ""}`}
+                    className={`border-b border-gray-800 ${index === sortedTransactions.length - 1 ? "rounded-b-xl" : ""}`}
                   >
                     <td className="px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm">{transaction.memberName}</td>
                     <td className="px-3 md:px-4 py-2 md:py-3 text-xs md:text-sm">{formatDate(transaction.date)}</td>
@@ -1141,41 +1162,6 @@ export default function FinancesPage() {
           </div>
         )}
 
-        {sortedTransactions.length > transactionsPerPage && (
-          <div className="flex justify-center items-center gap-1 md:gap-2 mt-4 md:mt-6">
-            <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="px-2 md:px-3 py-1 md:py-1.5 rounded-xl bg-black text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-900 transition-colors border border-gray-800 text-xs md:text-sm"
-            >
-              <span className="hidden sm:inline">Previous</span>
-              <span className="sm:hidden">Prev</span>
-            </button>
-            <div className="flex gap-1">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                <button
-                  key={page}
-                  onClick={() => handlePageChange(page)}
-                  className={`px-2 md:px-3 py-1 md:py-1.5 rounded-xl transition-colors border text-xs md:text-sm ${currentPage === page
-                    ? "bg-[#3F74FF] text-white border-transparent"
-                    : "bg-black text-white border-gray-800 hover:bg-gray-900"
-                    }`}
-                >
-                  {page}
-                </button>
-              ))}
-            </div>
-            <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="px-2 md:px-3 py-1 md:py-1.5 rounded-xl bg-black text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-900 transition-colors border border-gray-800 text-xs md:text-sm"
-            >
-              <span className="hidden sm:inline">Next</span>
-              <span className="sm:hidden">Next</span>
-            </button>
-          </div>
-        )}
-
         <ExportConfirmationModal
           isOpen={exportConfirmationOpen}
           onClose={() => setExportConfirmationOpen(false)}
@@ -1188,7 +1174,7 @@ export default function FinancesPage() {
           selectedPeriod={selectedPeriod}
           transactions={currentPeriodData.transactions}
           onGenerateXml={handleGenerateXml}
-          financialData={financialData}
+          financialData={financialState}
         />
 
         <DocumentsModal
@@ -1422,6 +1408,29 @@ export default function FinancesPage() {
             </div>
           </div>
         )}
+
+        {/* Floating Action Buttons - Mobile Only */}
+        <div className="md:hidden fixed bottom-4 right-4 flex flex-col gap-3 z-30">
+          {/* Check Funds Button - Only show when there are open funds */}
+          {hasCheckingTransactionsAnyPeriod && (
+            <button
+              onClick={() => setCheckFundsModalOpen(true)}
+              className="bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white p-4 rounded-xl shadow-lg transition-all active:scale-95"
+              aria-label="Check Incoming Funds"
+            >
+              <RefreshCw size={22} />
+            </button>
+          )}
+          
+          {/* Run Payment Button */}
+          <button
+            onClick={() => setSepaModalOpen(true)}
+            className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95"
+            aria-label="Run Payment"
+          >
+            <Play size={22} />
+          </button>
+        </div>
       </div>
     </>
   )

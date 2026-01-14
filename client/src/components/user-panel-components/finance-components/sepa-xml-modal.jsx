@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { Calendar, Download, X, Edit, Info, Search, ArrowUp, ArrowDown, ArrowUpDown, ChevronDown, Play } from "lucide-react"
+import { Calendar, Download, X, Edit, Info, Search, ArrowUp, ArrowDown, ArrowUpDown, ChevronDown } from "lucide-react"
 import { useEffect, useState, useMemo, useRef } from "react"
 
 // eslint-disable-next-line no-unused-vars
@@ -29,15 +29,24 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
   const [localSelectedPeriod, setLocalSelectedPeriod] = useState(selectedPeriod)
   const dropdownRef = useRef(null)
 
-  // Close dropdown when clicking outside
+  // Close dropdown when clicking outside (desktop only)
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // Only apply on desktop (sm breakpoint = 640px)
+      if (window.innerWidth < 640) {
+        return
+      }
+      
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setPeriodDropdownOpen(false)
       }
     }
     document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
+    document.addEventListener("touchstart", handleClickOutside)
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+      document.removeEventListener("touchstart", handleClickOutside)
+    }
   }, [])
 
   useEffect(() => {
@@ -62,9 +71,30 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
     setSearchTerm("")
   }, [transactions, selectedPeriod])
 
-  // Filter transactions based on search term
+  // Get transactions for the currently selected period in the modal
+  const periodTransactions = useMemo(() => {
+    if (isCustomPeriodActive && customPeriod.startDate && customPeriod.endDate) {
+      // Filter from all periods for custom date range
+      const allTransactions = Object.values(financialData || {}).flatMap(period => period?.transactions || [])
+      return allTransactions.filter(tx => {
+        const txDate = new Date(tx.date)
+        const startDate = new Date(customPeriod.startDate)
+        const endDate = new Date(customPeriod.endDate)
+        return txDate >= startDate && txDate <= endDate
+      })
+    }
+    
+    // Use transactions from the selected period in the modal
+    if (financialData && financialData[localSelectedPeriod]) {
+      return financialData[localSelectedPeriod].transactions || []
+    }
+    
+    return transactions
+  }, [financialData, localSelectedPeriod, isCustomPeriodActive, customPeriod, transactions])
+
+  // Filter transactions based on search term - use periodTransactions instead of transactions
   const filteredTransactions = useMemo(() => {
-    let filtered = transactions.filter((tx) => tx.status === "Pending" || tx.status === "Failed")
+    let filtered = periodTransactions.filter((tx) => tx.status === "Pending" || tx.status === "Failed")
     
     if (searchTerm) {
       filtered = filtered.filter((tx) =>
@@ -73,7 +103,7 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
     }
     
     return filtered
-  }, [transactions, searchTerm])
+  }, [periodTransactions, searchTerm])
 
   // Sort filtered transactions
   const sortedTransactions = useMemo(() => {
@@ -156,11 +186,11 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
   }
 
   const handleConfirmGeneration = () => {
-    const selectedTxs = transactions
+    const selectedTxs = periodTransactions
       .filter((tx) => selectedTransactions[tx.id])
       .map((tx) => ({
         ...tx,
-        amount: editedAmounts[tx.id],
+        amount: editedAmounts[tx.id] !== undefined ? editedAmounts[tx.id] : tx.amount,
       }))
 
     const period = isCustomPeriodActive 
@@ -246,7 +276,7 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
 
   return (
     <div className="fixed inset-0 bg-black/70 flex p-2 items-center justify-center z-50">
-      <div className="bg-[#1C1C1C] rounded-xl w-full max-w-3xl max-h-[80vh] overflow-hidden flex flex-col">
+      <div className="bg-[#1C1C1C] rounded-xl w-full max-w-3xl max-h-[80vh] flex flex-col overflow-visible">
         <div className="p-4 border-b border-gray-800 flex justify-between items-center">
           <h2 className="text-white text-lg font-medium">Run Payment</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-white">
@@ -255,23 +285,28 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
         </div>
 
         {/* Period Selection - Integrated Custom Period */}
-        <div className="p-4 border-b border-gray-800">
+        <div className="p-4 border-b border-gray-800 overflow-visible">
           <div className="flex items-center gap-3">
             <span className="text-gray-400 text-sm">Period:</span>
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setPeriodDropdownOpen(!periodDropdownOpen)}
-                className="bg-[#141414] text-white px-4 py-2.5 rounded-xl border border-[#333333] hover:border-[#3F74FF] flex items-center gap-3 text-sm min-w-[200px] transition-colors"
+                className={`bg-[#141414] text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border border-[#333333] hover:border-[#3F74FF] flex items-center gap-2 sm:gap-3 text-xs sm:text-sm transition-colors ${
+                  isCustomPeriodActive || localSelectedPeriod.startsWith("Custom:") 
+                    ? 'min-w-[160px] sm:min-w-[280px]' 
+                    : 'min-w-[120px] sm:min-w-[200px]'
+                }`}
               >
                 <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                <span className="text-sm flex-1 text-left truncate">{getPeriodDisplayText()}</span>
+                <span className={`text-xs sm:text-sm flex-1 text-left ${isCustomPeriodActive || localSelectedPeriod.startsWith("Custom:") ? '' : 'truncate'}`}>{getPeriodDisplayText()}</span>
                 <ChevronDown className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${periodDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
               
+              {/* Desktop Dropdown */}
               {periodDropdownOpen && (
-                <div className="absolute z-20 mt-2 w-full min-w-[320px] bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg overflow-hidden">
+                <div className="hidden sm:block absolute z-30 mt-2 w-full min-w-[320px] bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg overflow-hidden">
                   {/* Preset Periods */}
-                  <div className="py-1">
+                  <div className="py-1 max-h-[40vh] overflow-y-auto">
                     <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">
                       Select Period
                     </div>
@@ -343,6 +378,124 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
           </div>
         </div>
 
+        {/* Mobile Period Dropdown - Centered Modal */}
+        {periodDropdownOpen && (
+          <div 
+            className="sm:hidden fixed inset-0 z-[60] flex items-center justify-center bg-black/50" 
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setPeriodDropdownOpen(false)
+                setIsCustomPeriodActive(false)
+              }
+            }}
+          >
+            <div 
+              className="bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg w-[90%] max-w-[340px] max-h-[80vh] overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700">
+                <span className="text-white font-medium">Select Period</span>
+                <button 
+                  type="button"
+                  onClick={() => {
+                    setPeriodDropdownOpen(false)
+                    setIsCustomPeriodActive(false)
+                  }} 
+                  className="text-gray-400 hover:text-white p-1 touch-manipulation"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              
+              {/* Preset Periods */}
+              <div className="py-1 max-h-[40vh] overflow-y-auto">
+                {availablePeriods.map((period) => (
+                  <button
+                    type="button"
+                    key={period}
+                    className={`w-full text-left px-4 py-3 text-sm hover:bg-gray-800 active:bg-gray-700 transition-colors touch-manipulation ${
+                      localSelectedPeriod === period && !isCustomPeriodActive
+                        ? 'text-white bg-[#3F74FF]' 
+                        : 'text-gray-300'
+                    }`}
+                    onClick={() => {
+                      setLocalSelectedPeriod(period)
+                      setIsCustomPeriodActive(false)
+                      setPeriodDropdownOpen(false)
+                    }}
+                  >
+                    {period}
+                  </button>
+                ))}
+              </div>
+              
+              {/* Custom Period Section */}
+              <div className="border-t border-gray-700">
+                <button
+                  type="button"
+                  className={`w-full text-left px-4 py-3 text-sm hover:bg-gray-800 active:bg-gray-700 transition-colors flex items-center gap-2 touch-manipulation ${
+                    isCustomPeriodActive ? 'text-white bg-[#3F74FF]' : 'text-gray-300'
+                  }`}
+                  onClick={() => {
+                    const today = new Date().toISOString().split("T")[0]
+                    setCustomPeriod((prev) => ({
+                      startDate: prev.startDate || today,
+                      endDate: prev.endDate || today,
+                    }))
+                    setIsCustomPeriodActive(!isCustomPeriodActive)
+                  }}
+                >
+                  <Calendar className="w-4 h-4" />
+                  Custom Period
+                </button>
+                
+                {/* Date Inputs */}
+                {isCustomPeriodActive && (
+                  <div className="px-4 py-3 bg-[#141414] border-t border-gray-700">
+                    <div className="flex flex-col gap-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs text-gray-500 mb-1">Start Date</label>
+                          <input
+                            type="date"
+                            value={customPeriod.startDate}
+                            onChange={(e) => setCustomPeriod((prev) => ({ ...prev, startDate: e.target.value }))}
+                            className="w-full bg-[#1C1C1C] text-white px-3 py-2 rounded-lg border border-gray-700 text-sm focus:border-[#3F74FF] focus:outline-none white-calendar-icon touch-manipulation"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-500 mb-1">End Date</label>
+                          <input
+                            type="date"
+                            value={customPeriod.endDate}
+                            onChange={(e) => setCustomPeriod((prev) => ({ ...prev, endDate: e.target.value }))}
+                            className="w-full bg-[#1C1C1C] text-white px-3 py-2 rounded-lg border border-gray-700 text-sm focus:border-[#3F74FF] focus:outline-none white-calendar-icon touch-manipulation"
+                          />
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (customPeriod.startDate && customPeriod.endDate) {
+                            setLocalSelectedPeriod(`Custom: ${formatDateForDisplay(customPeriod.startDate)} – ${formatDateForDisplay(customPeriod.endDate)}`)
+                            setIsCustomPeriodActive(false)
+                            setPeriodDropdownOpen(false)
+                          }
+                        }}
+                        disabled={!customPeriod.startDate || !customPeriod.endDate}
+                        className="w-full py-2.5 bg-[#3F74FF] text-white rounded-lg text-sm hover:bg-[#3F74FF]/90 active:bg-[#3F74FF]/70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
+                      >
+                        Apply
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Search Bar */}
         <div className="p-4 border-b border-gray-800">
           <div className="relative">
@@ -357,10 +510,10 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
           </div>
         </div>
 
-        <div className="p-4 overflow-y-auto flex-grow">
+        <div className="p-4 overflow-y-auto flex-grow min-h-[200px]">
           {sortedTransactions.length > 0 ? (
             <>
-              <div className="flex justify-between items-center mb-4">
+              <div className="flex flex-col sm:flex-row justify-between gap-3 mb-4">
                 <p className="text-gray-300 text-sm">
                   Review and select transactions to include in the SEPA XML file:
                 </p>
@@ -634,9 +787,8 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
                 </button>
                 <button
                   onClick={handleConfirmGeneration}
-                  className="px-4 py-2 rounded-xl text-sm bg-orange-500 text-white hover:bg-orange-600 transition-colors flex items-center gap-2"
+                  className="px-4 py-2 rounded-xl text-sm bg-orange-500 text-white hover:bg-orange-600 transition-colors"
                 >
-                  <Play className="w-4 h-4" />
                   Generate XML
                 </button>
               </div>
@@ -653,10 +805,9 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
           </button>
           <button
             onClick={handleGenerateXmlClick}
-            className="px-4 py-2 rounded-xl text-sm bg-orange-500 text-white hover:bg-orange-600 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 rounded-xl text-sm bg-orange-500 text-white hover:bg-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={!Object.values(selectedTransactions).some((v) => v)}
           >
-            <Play className="w-4 h-4" />
             Generate SEPA XML
           </button>
         </div>

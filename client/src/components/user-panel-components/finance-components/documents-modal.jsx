@@ -51,10 +51,10 @@ const DocumentsModal = ({ isOpen, onClose, documents, onDeleteDocument, onViewDo
   }
 
   const DocumentItem = ({ doc, isLatest = false }) => (
-    <div className={`bg-[#141414] p-3 md:p-4 rounded-lg flex flex-col md:flex-row md:items-center justify-between gap-3 ${isLatest ? 'border border-orange-500/30' : ''}`}>
+    <div className="bg-[#141414] p-3 md:p-4 rounded-lg flex flex-col md:flex-row md:items-center justify-between gap-3">
       <div className="flex items-center gap-2 md:gap-3 flex-1">
-        <div className={`p-1.5 md:p-2 rounded-lg ${isLatest ? 'bg-orange-900/30' : 'bg-gray-700/30'}`}>
-          <FileText className={`w-4 h-4 md:w-5 md:h-5 ${isLatest ? 'text-orange-400' : 'text-gray-400'}`} />
+        <div className="p-1.5 md:p-2 rounded-lg bg-gray-700/30">
+          <FileText className="w-4 h-4 md:w-5 md:h-5 text-gray-400" />
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2">

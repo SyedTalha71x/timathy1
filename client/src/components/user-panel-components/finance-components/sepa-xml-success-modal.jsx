@@ -40,25 +40,25 @@ export default function SepaXmlSuccessModal({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-[#1E1E1E] rounded-2xl border border-gray-700 max-w-md w-full">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-700">
-          <div className="flex items-center gap-3">
-            <div className="bg-green-500/20 p-2 rounded-full">
-              <CheckCircle className="w-6 h-6 text-green-500" />
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-700">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <div className="bg-green-500/20 p-2 rounded-full flex-shrink-0">
+              <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-500" />
             </div>
-            <h3 className="text-white text-lg font-semibold">
-              SEPA XML Generated Successfully
+            <h3 className="text-white text-base sm:text-lg font-semibold truncate">
+              SEPA XML Generated
             </h3>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors"
+            className="text-gray-400 hover:text-white transition-colors flex-shrink-0 ml-2"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-4">
+        <div className="p-4 sm:p-6 space-y-4">
           <p className="text-gray-300 text-sm">
             {shouldAutoDownload 
               ? "Your SEPA XML file has been generated and downloaded automatically."
@@ -66,10 +66,10 @@ export default function SepaXmlSuccessModal({
             }
           </p>
           
-          <div className="bg-[#141414] rounded-lg p-4 space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-400">File Name:</span>
-              <span className="text-white font-medium">{fileName}</span>
+          <div className="bg-[#141414] rounded-lg p-3 sm:p-4 space-y-3">
+            <div className="flex justify-between items-center gap-2 text-sm min-w-0">
+              <span className="text-gray-400 flex-shrink-0 whitespace-nowrap">File Name:</span>
+              <span className="text-white font-medium truncate text-right" title={fileName}>{fileName}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-gray-400">Transactions:</span>
@@ -92,7 +92,7 @@ export default function SepaXmlSuccessModal({
         </div>
 
         {/* Footer - Show download button only if auto-download was disabled */}
-        <div className={`flex gap-3 p-6 border-t border-gray-700 ${shouldAutoDownload ? 'justify-center' : ''}`}>
+        <div className={`flex gap-3 p-4 sm:p-6 border-t border-gray-700 ${shouldAutoDownload ? 'justify-center' : ''}`}>
           {shouldAutoDownload ? (
             <button
               onClick={onClose}
@@ -113,7 +113,8 @@ export default function SepaXmlSuccessModal({
                 className="flex-1 py-3 px-4 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
               >
                 <Download className="w-4 h-4" />
-                Download XML
+                <span className="hidden sm:inline">Download XML</span>
+                <span className="sm:hidden">Download</span>
               </button>
             </>
           )}

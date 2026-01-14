@@ -8,6 +8,9 @@ import { FaNotesMedical, FaPeopleLine } from "react-icons/fa6"
 import { FaPersonRays } from "react-icons/fa6"
 import { FaCartPlus } from "react-icons/fa"
 import { BsPersonWorkspace } from "react-icons/bs"
+import { FaTasks } from "react-icons/fa"
+import { TbMessage } from "react-icons/tb";
+import { BsFillClipboard2HeartFill } from "react-icons/bs"
 
 import {
   Calendar,
@@ -318,13 +321,13 @@ const Sidebar = () => {
       hasSubmenu: true,
       submenu: [
         {
-          label: "Messenger", to: "/dashboard/communication", icon: MdOutlineMessage
+          label: "Messenger", to: "/dashboard/communication", icon: TbMessage
         },
         { label: "Bulletin Board", to: "/dashboard/bulletin-board", icon: ClipboardList },
       ],
     },
     {
-      icon: ClipboardList,
+      icon: FaTasks,
       label: "Productivity Area",
       to: "#",
       hasSubmenu: true,
@@ -356,7 +359,7 @@ const Sidebar = () => {
       hasSubmenu: true,
       submenu: [
         { label: "Training", to: "/dashboard/training", icon: CgGym },
-        { label: "Medical History", to: "/dashboard/assessment", icon: History },
+        { label: "Medical History", to: "/dashboard/assessment", icon: BsFillClipboard2HeartFill },
       ],
     },
 

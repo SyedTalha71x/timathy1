@@ -1,9 +1,61 @@
 /* eslint-disable react/prop-types */
-import { useState } from 'react'; // Add this import
-import { MdOutlineZoomOutMap } from 'react-icons/md';
+import { useEffect } from 'react'
+import { X } from 'lucide-react'
 
 export default function ViewBulletinModal({ isOpen, onClose, post, allTags }) {
-  const [expandedImage, setExpandedImage] = useState(null); // Fixed this line
+  // Add styles for rich text content
+  useEffect(() => {
+    const style = document.createElement('style')
+    style.textContent = `
+      .view-rich-content p {
+        margin: 0 0 0.5em 0;
+      }
+      .view-rich-content p:last-child {
+        margin-bottom: 0;
+      }
+      .view-rich-content ul, .view-rich-content ol {
+        margin: 0.5em 0;
+        padding-left: 1.5em;
+      }
+      .view-rich-content li {
+        margin: 0.15em 0;
+      }
+      .view-rich-content strong {
+        font-weight: 600;
+        color: #fff;
+      }
+      .view-rich-content em {
+        font-style: italic;
+      }
+      .view-rich-content h1 {
+        font-size: 1.5em;
+        font-weight: 600;
+        margin: 0.3em 0;
+        color: #fff;
+      }
+      .view-rich-content h2 {
+        font-size: 1.25em;
+        font-weight: 600;
+        margin: 0.3em 0;
+        color: #fff;
+      }
+      .view-rich-content h3 {
+        font-size: 1.1em;
+        font-weight: 600;
+        margin: 0.3em 0;
+        color: #fff;
+      }
+      .view-rich-content a {
+        color: #f97316;
+        text-decoration: underline;
+      }
+      .view-rich-content a:hover {
+        color: #fb923c;
+      }
+    `
+    document.head.appendChild(style)
+    return () => document.head.removeChild(style)
+  }, [])
 
   if (!isOpen) return null
 
@@ -12,103 +64,71 @@ export default function ViewBulletinModal({ isOpen, onClose, post, allTags }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-[#1C1C1C] rounded-xl shadow-2xl custom-scrollbar w-full max-w-lg max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b border-gray-700">
-          <h2 className="text-xl font-semibold text-white">{post?.title || "Post"}</h2>
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+      <div className="bg-[#1C1C1C] rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+        {/* Header - just close button */}
+        <div className="flex items-center justify-end p-4 border-b border-gray-700">
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors p-1"
-            aria-label="Close view post modal"
+            className="text-gray-400 hover:text-white transition-colors p-1 flex-shrink-0"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <X size={24} />
           </button>
         </div>
 
-        <div className="p-6 space-y-4">
-          <div className="flex items-center gap-2 mb-4 flex-wrap">
-            <span
-              className={`px-2 py-1 rounded-full text-xs font-medium ${post?.status === "Active" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-gray-500/10 text-gray-400 border border-gray-500/20"}`}
-            >
-              {post?.status}
-            </span>
-            <span className="px-2 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full text-xs font-medium">
-              {post?.visibility}
-            </span>
-            {post?.tags && post.tags.length > 0 && (
-              <div className="flex gap-2 flex-wrap">
-                {post.tags.map((tagId) => {
-                  const tag = getTagById(tagId)
-                  return tag ? (
-                    <span
-                      key={tag.id}
-                      className="px-2 py-1 rounded-full text-xs font-medium text-white"
-                      style={{ backgroundColor: tag.color }}
-                    >
-                      {tag.name}
-                    </span>
-                  ) : null
-                })}
-              </div>
-            )}
-          </div>
-
+        {/* Content */}
+        <div className="p-6 overflow-y-auto flex-1 custom-scrollbar">
+          {/* Cover Image */}
           {post?.image && (
-            <div className="relative rounded-lg overflow-hidden border border-gray-700">
-              <img src={post.image || "/placeholder.svg"} alt="Post" className="w-full h-auto max-h-96 object-cover" />
-              <button
-                onClick={() => setExpandedImage(post.image)}
-                className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-lg transition-colors"
-                title="Expand image"
-              >
-                <MdOutlineZoomOutMap />
-
-              </button>
+            <div className="relative rounded-xl overflow-hidden border border-gray-700 mb-4 bg-black aspect-video">
+              <img 
+                src={post.image} 
+                alt="Post cover" 
+                className="w-full h-full object-contain" 
+              />
             </div>
           )}
 
-          <div className="bg-[#181818] rounded-lg p-4 max-h-96 overflow-y-auto">
-            <p className="text-gray-300 whitespace-pre-wrap">{post?.content}</p>
-          </div>
+          {/* Title - below image */}
+          <h2 className="text-xl font-semibold text-white mb-3">{post?.title || "Post"}</h2>
 
-          <div className="flex items-center justify-between pt-4 border-t border-gray-700">
-            <div className="text-sm text-gray-400">
-              <p>By {post?.author}</p>
-              <p>Created on {post?.createdAt}</p>
+          {/* Custom Tags */}
+          {post?.tags && post.tags.length > 0 && (
+            <div className="flex gap-2 flex-wrap mb-4">
+              {post.tags.map((tagId) => {
+                const tag = getTagById(tagId)
+                return tag ? (
+                  <span
+                    key={tag.id}
+                    className="px-3 py-1 rounded-full text-xs font-medium text-white"
+                    style={{ backgroundColor: tag.color }}
+                  >
+                    {tag.name}
+                  </span>
+                ) : null
+              })}
             </div>
-          </div>
+          )}
 
-          <div className="flex justify-end pt-4">
-            <button
-              onClick={onClose}
-              className="bg-gray-600 hover:bg-gray-700 text-white py-2 px-6 rounded-lg font-medium transition-colors"
-            >
-              Close
-            </button>
+          {/* Content - Rich Text */}
+          <div className="bg-[#181818] rounded-xl p-4">
+            <div 
+              className="text-gray-300 text-sm leading-normal view-rich-content"
+              dangerouslySetInnerHTML={{ __html: post?.content }}
+            />
           </div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex justify-end p-4 border-t border-gray-700">
+          <button
+            onClick={onClose}
+            className="px-5 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-xl text-sm font-medium transition-colors"
+          >
+            Close
+          </button>
         </div>
       </div>
-
-      {expandedImage && (
-        <div
-          className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
-          onClick={() => setExpandedImage(null)}
-        >
-          <div className="relative max-w-4xl max-h-[90vh]">
-            <img src={expandedImage || "/placeholder.svg"} alt="Expanded" className="w-full md:h-[500px] h-auto object-contain" />
-            <button
-              onClick={() => setExpandedImage(null)}
-              className="absolute top-4 right-4 bg-white/20 hover:bg-white/30 text-white p-2 rounded-lg transition-colors"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

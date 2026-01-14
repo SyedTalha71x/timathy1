@@ -131,7 +131,7 @@ export default function Training() {
   const [isEditPlanModalOpen, setIsEditPlanModalOpen] = useState(false)
   const [isAddToPlanModalOpen, setIsAddToPlanModalOpen] = useState(false)
   const [selectedPlan, setSelectedPlan] = useState(null)
-  const [selectedStaffMember, setSelectedStaffMember] = useState("all") // Changed default to "all"
+  const [selectedStaffMembers, setSelectedStaffMembers] = useState([]) // Empty array = all
   const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false)
   const [isStaffDropdownOpen, setIsStaffDropdownOpen] = useState(false)
   const [isAssignPlanModalOpen, setIsAssignPlanModalOpen] = useState(false)
@@ -403,16 +403,18 @@ export default function Training() {
 
 
 
-  // Filter plans based on selected staff member
+  // Filter plans based on selected staff members and search query
   const filteredPlans = trainingPlans.filter((plan) => {
-    if (selectedStaffMember === "own") {
-      return plan.createdBy === "Current User"
-    } else if (selectedStaffMember === "all") {
-      return true
-    } else {
-      const staffMember = staffMembers.find((s) => s.id === selectedStaffMember)
-      return plan.createdBy === staffMember?.name
-    }
+    const matchesSearch = plan.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      plan.description.toLowerCase().includes(searchQuery.toLowerCase())
+    
+    const matchesStaff = selectedStaffMembers.length === 0 || 
+      selectedStaffMembers.some(staffId => {
+        const staffMember = staffMembers.find((s) => s.id === staffId)
+        return plan.createdBy === staffMember?.name
+      })
+    
+    return matchesSearch && matchesStaff
   })
 
   const getAvailableVideos = () => {
@@ -697,26 +699,30 @@ export default function Training() {
             )}
           </div>
 
-          {/* Tab Navigation */}
-          <div className="w-full sm:max-w-sm mb-6">
-            <div className="flex bg-[#000000] rounded-xl border border-slate-300/30 p-1">
-              <button
-                onClick={() => setActiveTab("videos")}
-                className={`flex-1 px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm transition-colors ${activeTab === "videos" ? "bg-orange-500 text-white" : "text-gray-400 hover:text-white"
-                  }`}
-              >
-                <Play size={14} className="inline mr-1 sm:mr-2" />
-                <span className="hidden sm:inline">Training </span>Videos ({trainingVideos.length})
-              </button>
-              <button
-                onClick={() => setActiveTab("plans")}
-                className={`flex-1 px-2 sm:px-4 py-2 rounded-lg text-xs sm:text-sm transition-colors ${activeTab === "plans" ? "bg-orange-500 text-white" : "text-gray-400 hover:text-white"
-                  }`}
-              >
-                <Target size={14} className="inline mr-1 sm:mr-2" />
-                <span className="hidden sm:inline">Training </span>Plans ({trainingPlans.length})
-              </button>
-            </div>
+          {/* Tab Navigation - Section Style */}
+          <div className="flex border-b border-gray-800 mb-6">
+            <button
+              onClick={() => setActiveTab("videos")}
+              className={`flex-1 px-2 sm:px-4 py-4 text-sm sm:text-base font-medium transition-colors whitespace-nowrap ${
+                activeTab === "videos"
+                  ? "text-white border-b-2 border-orange-400"
+                  : "text-gray-400 hover:text-white"
+              }`}
+            >
+              <Play size={16} className="inline mr-1 sm:mr-2" />
+              Training Videos
+            </button>
+            <button
+              onClick={() => setActiveTab("plans")}
+              className={`flex-1 px-2 sm:px-4 py-4 text-sm sm:text-base font-medium transition-colors whitespace-nowrap ${
+                activeTab === "plans"
+                  ? "text-white border-b-2 border-orange-400"
+                  : "text-gray-400 hover:text-white"
+              }`}
+            >
+              <Target size={16} className="inline mr-1 sm:mr-2" />
+              Training Plans
+            </button>
           </div>
 
           {activeTab === "videos" && (
@@ -823,62 +829,56 @@ export default function Training() {
 
           {activeTab === "plans" && (
             <div>
-              {/* Plans Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-                  <h2 className="text-xl sm:text-2xl font-bold text-white">Training Plans</h2>
-                  <div className="relative">
-                    <button
-                      onClick={() => setIsStaffDropdownOpen(!isStaffDropdownOpen)}
-                      className="flex text-white items-center gap-2 px-3 sm:px-4 py-2 text-sm bg-[#161616] rounded-xl border border-gray-700 hover:border-gray-600 transition-colors w-full sm:w-auto justify-between sm:justify-start"
-                    >
-                      <Users size={16} />
-                      <span className="truncate">{getStaffDisplayName(selectedStaffMember)}</span>
-                      <ChevronDown
-                        size={16}
-                        className={`transform transition-transform ${isStaffDropdownOpen ? "rotate-180" : ""}`}
-                      />
-                    </button>
-                    {isStaffDropdownOpen && (
-                      <div className="absolute left-0 mt-2 w-full sm:w-64 bg-[#2F2F2F] rounded-xl shadow-lg z-50 border border-gray-700 overflow-hidden">
-                        {/* All Staff Plans option with divider */}
-                        <button
-                          onClick={() => {
-                            setSelectedStaffMember("all")
-                            setIsStaffDropdownOpen(false)
-                          }}
-                          className={`w-full px-4 py-3 text-left hover:bg-[#3F3F3F] transition-colors flex items-center gap-3 ${selectedStaffMember === "all" ? "bg-[#3F3F3F]" : ""
-                            }`}
-                        >
-                          <span className="text-white">All Staff Plans</span>
-                        </button>
-                        {/* Divider */}
-                        <div className="border-t border-gray-600 my-1"></div>
-                        {/* Other staff members */}
-                        {staffMembers.filter(member => member.id !== "all").map((member) => (
-                          <button
-                            key={member.id}
-                            onClick={() => {
-                              setSelectedStaffMember(member.id)
-                              setIsStaffDropdownOpen(false)
-                            }}
-                            className={`w-full px-4 py-3 text-left hover:bg-[#3F3F3F] transition-colors flex items-center gap-3 ${selectedStaffMember === member.id ? "bg-[#3F3F3F]" : ""
-                              }`}
-                          >
-                            <span className="text-white">{member.name}</span>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+              {/* Search */}
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 sm:mb-8">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                  <input
+                    type="text"
+                    placeholder="Search training plans..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-[#333333] focus:border-[#3F74FF] transition-colors [&::placeholder]:text-ellipsis [&::placeholder]:overflow-hidden"
+                  />
                 </div>
                 <button
                   onClick={() => setIsCreatePlanModalOpen(true)}
-                  className="flex items-center gap-2 px-4 sm:px-6 py-2 cursor-pointer text-sm bg-orange-500 hover:bg-orange-600 rounded-xl text-white font-medium transition-colors justify-center sm:justify-start"
+                  className="hidden md:flex items-center gap-2 px-4 sm:px-6 py-2 cursor-pointer text-sm bg-orange-500 hover:bg-orange-600 rounded-xl text-white font-medium transition-colors justify-center sm:justify-start"
                 >
                   <Plus size={18} />
                   Create Plan
                 </button>
+              </div>
+
+              {/* Staff Member Pills */}
+              <div className="flex flex-wrap gap-2 sm:gap-3 mb-6 sm:mb-8">
+                <button
+                  onClick={() => setSelectedStaffMembers([])}
+                  className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${selectedStaffMembers.length === 0
+                    ? "bg-blue-600 text-white"
+                    : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                    }`}
+                >
+                  All
+                </button>
+                {staffMembers.filter(member => member.id !== "all").map((member) => (
+                  <button
+                    key={member.id}
+                    onClick={() => {
+                      if (selectedStaffMembers.includes(member.id)) {
+                        setSelectedStaffMembers(selectedStaffMembers.filter(id => id !== member.id))
+                      } else {
+                        setSelectedStaffMembers([...selectedStaffMembers, member.id])
+                      }
+                    }}
+                    className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${selectedStaffMembers.includes(member.id)
+                      ? "bg-blue-600 text-white"
+                      : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                      }`}
+                  >
+                    {member.name}
+                  </button>
+                ))}
               </div>
 
               {/* Plans Grid */}
@@ -1057,6 +1057,17 @@ export default function Training() {
         getVideoById={getVideoById}
         getDifficultyColor={getDifficultyColor}
       />
+
+      {/* Floating Action Button - Mobile Only (Plans Tab) */}
+      {activeTab === "plans" && (
+        <button
+          onClick={() => setIsCreatePlanModalOpen(true)}
+          className="md:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
+          aria-label="Create Training Plan"
+        >
+          <Plus size={22} />
+        </button>
+      )}
 
       {/* sidebar related modals */}
 
