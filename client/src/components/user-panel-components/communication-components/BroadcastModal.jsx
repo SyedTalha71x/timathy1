@@ -40,7 +40,7 @@ export default function BroadcastModal({
 
   const [emailFolders, setEmailFolders] = useState([
     { id: 1001, name: "General", messages: [] },
-    { id: 1002, name: "Marketing", messages: [] },
+    { id: 1002, name: "media-library", messages: [] },
     { id: 1003, name: "Announcements", messages: [] },
   ])
   const [selectedEmailFolder, setSelectedEmailFolder] = useState(null)

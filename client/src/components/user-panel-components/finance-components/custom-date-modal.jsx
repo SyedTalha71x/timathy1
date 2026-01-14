@@ -31,7 +31,7 @@ const CustomDateModal = ({ isOpen, onClose, onApply }) => {
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="bg-black text-white px-3 md:px-4 white-calendar-icon py-2 rounded-xl border border-gray-800 w-full focus:outline-none focus:ring-1 focus:ring-[#3F74FF] text-sm"
+                className="bg-[#141414] text-white px-3 md:px-4 white-calendar-icon py-2.5 rounded-xl border border-gray-700 w-full focus:outline-none focus:border-[#3F74FF] text-sm transition-colors"
               />
             </div>
             <div>
@@ -40,20 +40,20 @@ const CustomDateModal = ({ isOpen, onClose, onApply }) => {
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="bg-black text-white white-calendar-icon px-3 md:px-4 py-2 rounded-xl border border-gray-800 w-full focus:outline-none focus:ring-1 focus:ring-[#3F74FF] text-sm"
+                className="bg-[#141414] text-white white-calendar-icon px-3 md:px-4 py-2.5 rounded-xl border border-gray-700 w-full focus:outline-none focus:border-[#3F74FF] text-sm transition-colors"
               />
             </div>
             <div className="flex gap-2 md:gap-3 pt-3 md:pt-4">
               <button
                 onClick={onClose}
-                className="flex-1 bg-gray-800 text-white px-3 md:px-4 py-2 rounded-xl hover:bg-gray-700 transition-colors text-sm"
+                className="flex-1 bg-[#2F2F2F] text-white px-3 md:px-4 py-2.5 rounded-xl hover:bg-[#3F3F3F] transition-colors text-sm"
               >
                 Cancel
               </button>
               <button
                 onClick={handleApply}
                 disabled={!startDate || !endDate}
-                className="flex-1 bg-[#3F74FF] text-white px-3 md:px-4 py-2 rounded-xl hover:bg-[#3F74FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                className="flex-1 bg-[#3F74FF] text-white px-3 md:px-4 py-2.5 rounded-xl hover:bg-[#3F74FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
               >
                 Apply
               </button>

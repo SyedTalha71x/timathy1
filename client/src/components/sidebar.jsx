@@ -12,6 +12,7 @@ import {
   MessageCircle,
   LogOut,
   Menu,
+  Image,
   X,
   Users,
   CheckSquare,
@@ -328,6 +329,7 @@ const Sidebar = () => {
         { label: "Activity Monitor", to: "/dashboard/activity-monitor", icon: CiMonitor },
         { label: "To-Do", to: "/dashboard/to-do", icon: CheckSquare },
         { label: "Notes", to: "/dashboard/notes", icon: FaNotesMedical },
+        { label: "Media Library", to: "/dashboard/media-library", icon: Image }, // Jetzt als Submenü
       ],
     },
     {
@@ -338,9 +340,8 @@ const Sidebar = () => {
         { label: "Contracts", to: "/dashboard/contract", icon: RiContractLine },
       ],
     },
-    { icon: FaUsers, label: "Staff", to: "/dashboard/staff" },
     { icon: FaPeopleLine, label: "Leads", to: "/dashboard/leads" },
-    { icon: CheckSquare, label: "Marketing", to: "/dashboard/marketing" },
+    { icon: FaUsers, label: "Staff", to: "/dashboard/staff" },
     { icon: ShoppingCart, label: "Selling", to: "/dashboard/selling" },
     { icon: FaCartPlus, label: "Marketplace", to: "/dashboard/market-place" },
 

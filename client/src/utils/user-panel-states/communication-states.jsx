@@ -15,7 +15,7 @@ export const emailListNew = {
         },
         {
             id: 2,
-            sender: "marketing@example.com",
+            sender: "media-library@example.com",
             subject: "New product launch!",
             body: "Exciting news! Our new product is now available. Check it out here: [link]",
             time: "2025-07-17T15:30:00Z",

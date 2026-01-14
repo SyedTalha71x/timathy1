@@ -66,7 +66,7 @@ export default function SepaXmlSuccessModal({
             }
           </p>
           
-          <div className="bg-[#2A2A2A] rounded-lg p-4 space-y-2">
+          <div className="bg-[#141414] rounded-lg p-4 space-y-2">
             <div className="flex justify-between text-sm">
               <span className="text-gray-400">File Name:</span>
               <span className="text-white font-medium">{fileName}</span>
@@ -96,7 +96,7 @@ export default function SepaXmlSuccessModal({
           {shouldAutoDownload ? (
             <button
               onClick={onClose}
-              className="flex-1 py-3 px-4 bg-[#3F74FF] text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors"
+              className="flex-1 py-3 px-4 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-colors"
             >
               Close
             </button>
@@ -104,13 +104,13 @@ export default function SepaXmlSuccessModal({
             <>
               <button
                 onClick={onClose}
-                className="flex-1 py-3 px-4 bg-[#2A2A2A] text-white rounded-xl hover:bg-[#3A3A3A] transition-colors border border-gray-600"
+                className="flex-1 py-3 px-4 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#3F3F3F] transition-colors"
               >
                 Close
               </button>
               <button
                 onClick={handleDownload}
-                className="flex-1 py-3 px-4 bg-[#3F74FF] text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors flex items-center justify-center gap-2"
+                className="flex-1 py-3 px-4 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
               >
                 <Download className="w-4 h-4" />
                 Download XML

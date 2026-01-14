@@ -122,7 +122,7 @@ const SidebarMenu = ({ showSidebar, setShowSidebar }) => {
     },
     { icon: FaUsers, label: "Staff", to: "/dashboard/staff" },
     { icon: FaPeopleLine, label: "Leads", to: "/dashboard/leads" },
-    { icon: CheckSquare, label: "Marketing", to: "/dashboard/marketing" },
+    { icon: CheckSquare, label: "media-library", to: "/dashboard/media-library" },
     { icon: ShoppingCart, label: "Selling", to: "/dashboard/selling" },
     { icon: FaCartPlus, label: "Marketplace", to: "/dashboard/market-place" },
     { icon: BadgeDollarSign, label: "Finances", to: "/dashboard/finances" },

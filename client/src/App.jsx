@@ -14,12 +14,12 @@ import Appointments from "./dashboard-pages/user-panel-view/appointments";
 import ToDo from './dashboard-pages/user-panel-view/todo'
 import Members from './dashboard-pages/user-panel-view/members'
 import Staff from './dashboard-pages/user-panel-view/staff'
-import Marketing from './dashboard-pages/user-panel-view/marketing'
+import MediaLibrary from './dashboard-pages/user-panel-view/media-library'
 import Communication from "./dashboard-pages/user-panel-view/communications";
 import Payment from "./dashboard-pages/user-panel-view/payment"
 import Contract from './dashboard-pages/user-panel-view/contract'
 import Configuration from './dashboard-pages/user-panel-view/configuration'
-import Leets from './dashboard-pages/user-panel-view/leads'
+import Leads from './dashboard-pages/user-panel-view/leads'
 import TrialTraining from "./dashboard-pages/user-panel-view/trialtraining";
 import Selling from "./dashboard-pages/user-panel-view/selling";
 import Finances from "./dashboard-pages/user-panel-view/finances";
@@ -99,12 +99,12 @@ function App() {
           <Route path="to-do" element={<ToDo />} />
           <Route path="members" element={<Members />} />
           <Route path="staff" element={<Staff />} />
-          <Route path="marketing" element={<Marketing />} />
+          <Route path="media-library" element={<MediaLibrary />} />
           <Route path="communication" element={<Communication />} />
           <Route path="payment" element={<Payment />} />
           <Route path="contract" element={<Contract />} />
           <Route path="configuration" element={<Configuration />} />
-          <Route path="leads" element={<Leets />} />
+          <Route path="leads" element={<Leads />} />
           <Route path="trialtraining" element={<TrialTraining />} />
           <Route path="selling" element={<Selling />} />
           <Route path="finances" element={<Finances />} />

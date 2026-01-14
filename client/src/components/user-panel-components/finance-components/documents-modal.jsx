@@ -51,16 +51,16 @@ const DocumentsModal = ({ isOpen, onClose, documents, onDeleteDocument, onViewDo
   }
 
   const DocumentItem = ({ doc, isLatest = false }) => (
-    <div className={`bg-[#141414] p-3 md:p-4 rounded-lg flex flex-col md:flex-row md:items-center justify-between gap-3 ${isLatest ? 'border border-blue-500/30' : ''}`}>
+    <div className={`bg-[#141414] p-3 md:p-4 rounded-lg flex flex-col md:flex-row md:items-center justify-between gap-3 ${isLatest ? 'border border-orange-500/30' : ''}`}>
       <div className="flex items-center gap-2 md:gap-3 flex-1">
-        <div className={`p-1.5 md:p-2 rounded-lg ${isLatest ? 'bg-blue-900/30' : 'bg-gray-700/30'}`}>
-          <FileText className={`w-4 h-4 md:w-5 md:h-5 ${isLatest ? 'text-blue-400' : 'text-gray-400'}`} />
+        <div className={`p-1.5 md:p-2 rounded-lg ${isLatest ? 'bg-orange-900/30' : 'bg-gray-700/30'}`}>
+          <FileText className={`w-4 h-4 md:w-5 md:h-5 ${isLatest ? 'text-orange-400' : 'text-gray-400'}`} />
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2">
             <h3 className="text-white font-medium text-sm md:text-base">{doc.filename}</h3>
             {isLatest && (
-              <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full">Latest</span>
+              <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full">Latest</span>
             )}
           </div>
           <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-4 text-xs md:text-sm text-gray-400 mt-1">
@@ -111,7 +111,7 @@ const DocumentsModal = ({ isOpen, onClose, documents, onDeleteDocument, onViewDo
         <div className="bg-[#1C1C1C] rounded-xl w-full max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
           <div className="p-3 md:p-4 border-b border-gray-800 flex justify-between items-center">
             <div className="flex items-center gap-2 md:gap-3">
-              <FileText className="w-4 h-4 md:w-5 md:h-5 text-blue-400" />
+              <FileText className="w-4 h-4 md:w-5 md:h-5 text-white" />
               <h2 className="text-white text-base md:text-lg font-medium">SEPA XML Documents</h2>
             </div>
             <button onClick={onClose} className="text-gray-400 hover:text-white">
@@ -125,7 +125,7 @@ const DocumentsModal = ({ isOpen, onClose, documents, onDeleteDocument, onViewDo
               onClick={() => setActiveTab("latest")}
               className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
                 activeTab === "latest" 
-                  ? "text-white border-b-2 border-[#3F74FF]" 
+                  ? "text-orange-400 border-b-2 border-orange-400" 
                   : "text-gray-400 hover:text-white"
               }`}
             >
@@ -135,7 +135,7 @@ const DocumentsModal = ({ isOpen, onClose, documents, onDeleteDocument, onViewDo
               onClick={() => setActiveTab("past")}
               className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
                 activeTab === "past" 
-                  ? "text-white border-b-2 border-[#3F74FF]" 
+                  ? "text-orange-400 border-b-2 border-orange-400" 
                   : "text-gray-400 hover:text-white"
               }`}
             >
@@ -229,13 +229,13 @@ const DocumentsModal = ({ isOpen, onClose, documents, onDeleteDocument, onViewDo
               <div className="flex gap-3 justify-end">
                 <button
                   onClick={cancelDelete}
-                  className="px-4 py-2 bg-[#2F2F2F] text-white rounded-lg hover:bg-[#3F3F3F] transition-colors"
+                  className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#3F3F3F] transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={confirmDelete}
-                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
+                  className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors flex items-center gap-2"
                 >
                   <Trash2 className="w-4 h-4" />
                   Delete File

@@ -11,7 +11,7 @@ const ServicesModal = ({ isOpen, onClose, services, memberName }) => {
         <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col">
           <div className="p-3 md:p-4 border-b border-gray-800 flex justify-between items-center">
             <h2 className="text-white text-base md:text-lg font-medium">Services Breakdown</h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-white">
+            <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
               <X className="w-4 h-4 md:w-5 md:h-5" />
             </button>
           </div>
@@ -34,7 +34,7 @@ const ServicesModal = ({ isOpen, onClose, services, memberName }) => {
             <div className="mt-3 md:mt-4 pt-3 md:pt-4 border-t border-gray-800">
               <div className="flex justify-between items-center">
                 <span className="text-white font-semibold text-sm md:text-base">Total Amount</span>
-                <span className="text-white font-bold text-base md:text-lg">${totalCost.toFixed(2)} USD</span>
+                <span className="text-orange-400 font-bold text-base md:text-lg">${totalCost.toFixed(2)} USD</span>
               </div>
             </div>
           </div>
