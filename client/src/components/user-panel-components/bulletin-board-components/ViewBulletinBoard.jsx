@@ -85,6 +85,7 @@ export default function ViewBulletinModal({ isOpen, onClose, post, allTags }) {
                 src={post.image} 
                 alt="Post cover" 
                 className="w-full h-full object-contain" 
+                draggable="false"
               />
             </div>
           )}
@@ -94,13 +95,13 @@ export default function ViewBulletinModal({ isOpen, onClose, post, allTags }) {
 
           {/* Custom Tags */}
           {post?.tags && post.tags.length > 0 && (
-            <div className="flex gap-2 flex-wrap mb-4">
+            <div className="flex gap-1 flex-wrap mb-4">
               {post.tags.map((tagId) => {
                 const tag = getTagById(tagId)
                 return tag ? (
                   <span
                     key={tag.id}
-                    className="px-3 py-1 rounded-full text-xs font-medium text-white"
+                    className="text-[10px] px-1.5 py-0.5 rounded text-white"
                     style={{ backgroundColor: tag.color }}
                   >
                     {tag.name}

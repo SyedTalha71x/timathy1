@@ -251,7 +251,7 @@ function EditNoteModal({ isOpen, onClose, note, onSave, availableTags = [] }) {
                   }}
                 >
                   <Tag size={10} />
-                  {tag.label}
+                  {tag.name}
                 </button>
               ))}
             </div>

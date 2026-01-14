@@ -248,7 +248,7 @@ function CreateNoteModal({ isOpen, onClose, onSave, availableTags = [] }) {
                   }}
                 >
                   <Tag size={10} />
-                  {tag.label}
+                  {tag.name}
                 </button>
               ))}
             </div>

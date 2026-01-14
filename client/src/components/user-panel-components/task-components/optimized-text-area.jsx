@@ -1,16 +1,20 @@
 /* eslint-disable react/prop-types */
-import { memo, useState, useCallback } from 'react';
+import { memo, useState, useCallback, useEffect } from 'react';
 
 export const OptimizedTextarea = memo(function OptimizedTextarea({
   value,
   onChange,
   onEnter,
   placeholder,
-  maxLines = 4,
 }) {
   const [localValue, setLocalValue] = useState(value || "");
 
-  // Debounced onChange handler
+  // Sync local value with external value changes (e.g., when cleared after adding task)
+  useEffect(() => {
+    setLocalValue(value || "");
+  }, [value]);
+
+  // Handle change
   const handleChange = useCallback((e) => {
     const newValue = e.target.value;
     setLocalValue(newValue);
@@ -25,29 +29,27 @@ export const OptimizedTextarea = memo(function OptimizedTextarea({
 
   // Handle Enter key press
   const handleKeyDown = useCallback((e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Enter') {
       e.preventDefault();
       if (onEnter && localValue.trim()) {
         onEnter();
+        // Clear local value immediately for better UX
+        setLocalValue("");
       }
     }
   }, [onEnter, localValue]);
 
   return (
-    <textarea
+    <input
+      type="text"
       value={localValue}
       onChange={handleChange}
       onKeyDown={handleKeyDown}
       placeholder={placeholder}
-      className="flex-grow bg-transparent text-white outline-none resize-none overflow-y-auto text-sm custom-scrollbar placeholder-gray-500"
+      className="flex-grow bg-transparent text-white outline-none text-sm placeholder-gray-500"
       style={{
-        minHeight: '20px', // Reduced from 44px
-        maxHeight: `${maxLines * 24}px`,
-        lineHeight: '20px', // Better line spacing
-        paddingTop: '4px', // Adjusted padding
-        paddingBottom: '4px',
+        lineHeight: '28px',
       }}
-      rows={1}
     />
   );
 });

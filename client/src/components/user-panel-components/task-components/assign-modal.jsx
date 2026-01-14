@@ -2,32 +2,22 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useState } from "react"
-import { X, Check, Users, Briefcase, UserCheck } from "lucide-react"
+import { X, Check, Users, UserCheck } from "lucide-react"
 
-const AssignModal = ({ task, availableAssignees, availableRoles, onClose, onUpdate }) => {
-  const [assignmentMode, setAssignmentMode] = useState("staff")
-  const [selectedAssignees, setSelectedAssignees] = useState([...task.assignees])
-  const [selectedRoles, setSelectedRoles] = useState([...task.roles])
+const AssignModal = ({ task, availableAssignees, onClose, onUpdate }) => {
+  const [selectedAssignees, setSelectedAssignees] = useState([...(task.assignees || [])])
 
   const toggleAssignee = (assigneeName) => {
     setSelectedAssignees((prev) =>
       prev.includes(assigneeName) ? prev.filter((a) => a !== assigneeName) : [...prev, assigneeName],
     )
-    // Clear roles when assigning to staff
-    setSelectedRoles([])
-  }
-
-  const toggleRole = (role) => {
-    setSelectedRoles((prev) => (prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role]))
-    // Clear staff when assigning to roles
-    setSelectedAssignees([])
   }
 
   const handleSave = () => {
     onUpdate({
       ...task,
       assignees: selectedAssignees,
-      roles: selectedRoles,
+      roles: [], // Clear any existing roles
     })
     onClose()
   }
@@ -45,73 +35,40 @@ const AssignModal = ({ task, availableAssignees, availableRoles, onClose, onUpda
         <div className="mb-6">
           <p className="text-gray-300 text-sm mb-4">Assign: "{task.title}"</p>
 
-          <div className="flex gap-2 mb-4">
-            <button
-              onClick={() => setAssignmentMode("staff")}
-              className={`flex-1 px-3 py-2 text-xs rounded-lg transition-colors ${
-                assignmentMode === "staff" ? "bg-[#FF843E] text-white" : "bg-gray-600 text-gray-300 hover:bg-gray-500"
-              }`}
-            >
-              to Staff
-            </button>
-            <button
-              onClick={() => setAssignmentMode("roles")}
-              className={`flex-1 px-3 py-2 text-xs rounded-lg transition-colors ${
-                assignmentMode === "roles" ? "bg-[#FF843E] text-white" : "bg-gray-600 text-gray-300 hover:bg-gray-500"
-              }`}
-            >
-              to Roles
-            </button>
+          <div>
+            <h4 className="text-white text-sm font-medium mb-3 flex items-center gap-2">
+              <Users size={16} />
+              Assign to Staff Members
+            </h4>
+            <div className="space-y-2 max-h-60 overflow-y-auto custom-scrollbar">
+              {availableAssignees.map((assignee) => {
+                const fullName = `${assignee.firstName} ${assignee.lastName}`
+                const isSelected = selectedAssignees.includes(fullName)
+                return (
+                  <button
+                    key={assignee.id}
+                    onClick={() => toggleAssignee(fullName)}
+                    className={`flex items-center gap-3 w-full text-left p-3 text-sm rounded-lg transition-colors ${
+                      isSelected ? "bg-[#FF843E]/20 border border-[#FF843E]" : "bg-[#1C1C1C] hover:bg-[#2F2F2F]"
+                    }`}
+                  >
+                    <UserCheck size={16} className={isSelected ? "text-[#FF843E]" : "text-gray-400"} />
+                    <span className="flex-1 text-white">{fullName}</span>
+                    {isSelected && <Check size={16} className="text-[#FF843E]" />}
+                  </button>
+                )
+              })}
+            </div>
+            
+            {/* Selected count indicator */}
+            {selectedAssignees.length > 0 && (
+              <div className="mt-3 px-3 py-2 bg-[#1C1C1C] rounded-lg">
+                <p className="text-sm text-gray-400">
+                  <span className="text-white font-medium">{selectedAssignees.length}</span> staff member{selectedAssignees.length !== 1 ? 's' : ''} selected
+                </p>
+              </div>
+            )}
           </div>
-
-          {assignmentMode === "staff" && (
-            <div>
-              <h4 className="text-white text-sm font-medium mb-2">Assign to Staff</h4>
-              <div className="space-y-2 max-h-40 overflow-y-auto">
-                {availableAssignees.map((assignee) => {
-                  const fullName = `${assignee.firstName} ${assignee.lastName}`
-                  const isSelected = selectedAssignees.includes(fullName)
-                  return (
-                    <button
-                      key={assignee.id}
-                      onClick={() => toggleAssignee(fullName)}
-                      className={`flex items-center gap-2 w-full text-left p-2 text-sm rounded-lg transition-colors ${
-                        isSelected ? "bg-[#FF843E]/20 border border-[#FF843E]" : "bg-[#1C1C1C] hover:bg-[#2F2F2F]"
-                      }`}
-                    >
-                       <UserCheck size={14} />
-                      <span className="flex-1">{fullName}</span>
-                      {isSelected && <Check size={14} className="text-[#FF843E]" />}
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-          )}
-
-          {assignmentMode === "roles" && (
-            <div>
-              <h4 className="text-white text-sm font-medium mb-2">Assign to Roles</h4>
-              <div className="space-y-2 max-h-40 overflow-y-auto">
-                {availableRoles.map((role) => {
-                  const isSelected = selectedRoles.includes(role)
-                  return (
-                    <button
-                      key={role}
-                      onClick={() => toggleRole(role)}
-                      className={`flex items-center gap-2 w-full text-left p-2 text-sm rounded-lg transition-colors ${
-                        isSelected ? "bg-[#FF843E]/20 border border-[#FF843E]" : "bg-[#1C1C1C] hover:bg-[#2F2F2F]"
-                      }`}
-                    >
-                     <Briefcase size={14} />
-                      <span className="flex-1">{role}</span>
-                      {isSelected && <Check size={14} className="text-[#FF843E]" />}
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-          )}
         </div>
 
         <div className="flex justify-end gap-3">
@@ -129,6 +86,23 @@ const AssignModal = ({ task, availableAssignees, availableRoles, onClose, onUpda
           </button>
         </div>
       </div>
+      
+      <style jsx>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #2F2F2F;
+          border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #555;
+          border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #777;
+        }
+      `}</style>
     </div>
   )
 }

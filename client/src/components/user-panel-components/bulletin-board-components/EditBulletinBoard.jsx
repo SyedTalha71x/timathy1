@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import { memo, useCallback, useState, useMemo, useEffect, useRef } from 'react'
-import { X, Image as ImageIcon, Crop } from 'lucide-react'
+import { X, Image as ImageIcon, Crop, Tag } from 'lucide-react'
 import ReactQuill from 'react-quill'
 import 'react-quill/dist/quill.snow.css'
 import ImageCropModal from './ImageCropModal'
@@ -203,13 +203,14 @@ const OptimizedEditBulletinModal = memo(function OptimizedEditBulletinModal({
           <button
             key={tag.id}
             onClick={() => handleTagToggle(tag.id)}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
               formData.tags.includes(tag.id)
-                ? "ring-2 ring-blue-500 ring-offset-2 ring-offset-[#1C1C1C]"
-                : "opacity-50 hover:opacity-80"
+                ? "text-white"
+                : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
             }`}
-            style={{ backgroundColor: tag.color, color: "white" }}
+            style={formData.tags.includes(tag.id) ? { backgroundColor: tag.color } : undefined}
           >
+            <Tag size={10} />
             {tag.name}
           </button>
         ))}
@@ -252,7 +253,7 @@ const OptimizedEditBulletinModal = memo(function OptimizedEditBulletinModal({
             {formData.image ? (
               <div className="relative rounded-xl overflow-hidden border border-gray-700 bg-black">
                 <div className="aspect-video">
-                  <img src={formData.image} alt="Cover preview" className="w-full h-full object-contain" />
+                  <img src={formData.image} alt="Cover preview" className="w-full h-full object-contain" draggable="false" />
                 </div>
                 <div className="absolute top-2 right-2 flex gap-2">
                   <button
@@ -274,9 +275,9 @@ const OptimizedEditBulletinModal = memo(function OptimizedEditBulletinModal({
             ) : (
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-gray-700 rounded-xl p-8 text-center cursor-pointer hover:border-blue-600/50 transition-colors"
+                className="border-2 border-dashed border-gray-700 rounded-xl aspect-video flex flex-col items-center justify-center cursor-pointer hover:border-blue-600/50 transition-colors"
               >
-                <ImageIcon className="w-10 h-10 mx-auto mb-3 text-gray-500" />
+                <ImageIcon className="w-10 h-10 mb-3 text-gray-500" />
                 <p className="text-gray-400 text-sm">Click to upload cover image</p>
                 <p className="text-gray-500 text-xs mt-1">Recommended: 16:9 ratio • Max 5MB</p>
               </div>
@@ -301,6 +302,19 @@ const OptimizedEditBulletinModal = memo(function OptimizedEditBulletinModal({
             </div>
           </div>
 
+          {/* Tags */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-medium text-gray-300">Tags</label>
+              <button onClick={onOpenTagManager} className="text-xs text-blue-500 hover:text-blue-400 transition-colors">
+                Manage Tags
+              </button>
+            </div>
+            <div className="bg-[#181818] border border-gray-700 rounded-xl p-3">
+              {tagsDisplay}
+            </div>
+          </div>
+
           {/* Status */}
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">Status</label>
@@ -312,19 +326,6 @@ const OptimizedEditBulletinModal = memo(function OptimizedEditBulletinModal({
                 <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${formData.status === "Active" ? "translate-x-8" : "translate-x-1"}`} />
               </button>
               <span className="text-sm text-gray-300">{formData.status}</span>
-            </div>
-          </div>
-
-          {/* Tags */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm font-medium text-gray-300">Tags</label>
-              <button onClick={onOpenTagManager} className="text-xs text-blue-500 hover:text-blue-400 transition-colors">
-                Manage Tags
-              </button>
-            </div>
-            <div className="bg-[#181818] border border-gray-700 rounded-xl p-3">
-              {tagsDisplay}
             </div>
           </div>
         </div>

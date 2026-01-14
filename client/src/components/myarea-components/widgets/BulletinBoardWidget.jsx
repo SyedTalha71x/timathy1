@@ -10,7 +10,7 @@ import {
 } from "lucide-react"
 import Modal from "../bulletin-board-widjet-components/Modal"
 import { Link } from "react-router-dom"
-import TagManagerModal from "../../user-panel-components/bulletin-board-components/TagManagerModal"
+import TagManagerModal from "../../TagManagerModal"
 
 export const BulletinBoardWidget = ({isSidebarEditing, expanded}) => {
   const [bulletinPosts, setBulletinPosts] = useState([

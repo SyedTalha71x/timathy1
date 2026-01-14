@@ -17,7 +17,7 @@ import EditAppointmentModalV2 from "../../components/myarea-components/EditAppoi
 import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
 import DeleteBulletinModal from "../../components/user-panel-components/bulletin-board-components/DeleteBulletinBoard"
 import ViewBulletinModal from "../../components/user-panel-components/bulletin-board-components/ViewBulletinBoard"
-import TagManagerModal from "../../components/user-panel-components/bulletin-board-components/TagManagerModal"
+import TagManagerModal from "../../components/TagManagerModal"
 import OptimizedEditBulletinModal from "../../components/user-panel-components/bulletin-board-components/EditBulletinBoard"
 import OptimizedCreateBulletinModal from "../../components/user-panel-components/bulletin-board-components/CreateBulletinBoard"
 
@@ -68,10 +68,10 @@ const SortablePostCard = ({ post, children, isDragDisabled }) => {
         <div 
           {...attributes} 
           {...listeners}
-          className="absolute top-3 left-3 md:top-4 md:left-4 cursor-grab active:cursor-grabbing text-gray-400 hover:text-white active:text-orange-400 p-2 -m-1 md:p-1 md:-m-0 rounded-lg active:bg-orange-500/30 z-20 touch-none"
+          className="absolute top-3 left-3 md:top-4 md:left-4 cursor-grab active:cursor-grabbing text-white hover:text-white active:text-orange-400 p-1 rounded active:bg-orange-500/30 z-20 touch-none bg-black/40 shadow"
           style={{ WebkitTapHighlightColor: 'transparent' }}
         >
-          <GripVertical className="w-5 h-5 md:w-4 md:h-4" />
+          <GripVertical className="w-4 h-4" />
         </div>
       )}
       {children}
@@ -83,9 +83,9 @@ const BulletinBoard = () => {
   const sidebarSystem = useSidebarSystem()
 
   const [tags, setTags] = useState([
-    { id: 1, name: "Important", color: "#FF6B6B" },
-    { id: 2, name: "Update", color: "#4ECDC4" },
-    { id: 3, name: "Announcement", color: "#FFE66D" },
+    { id: 1, name: "Important", color: "#ef4444" },
+    { id: 2, name: "Info", color: "#3b82f6" },
+    { id: 3, name: "Event", color: "#8b5cf6" },
   ])
   const [isTagManagerOpen, setIsTagManagerOpen] = useState(false)
 
@@ -709,13 +709,13 @@ const BulletinBoard = () => {
                         {/* Cover Image */}
                         {post.image && (
                           <div className="relative mb-4 rounded-lg overflow-hidden border border-gray-700 -mx-4 -mt-4 md:-mx-6 md:-mt-6 rounded-t-xl rounded-b-none aspect-video bg-black">
-                            <img src={post.image} alt="Post cover" className="w-full h-full object-contain" />
+                            <img src={post.image} alt="Post cover" className="w-full h-full object-contain pointer-events-none" draggable="false" />
                           </div>
                         )}
 
                         {/* Spacer when no image and drag enabled - to avoid grip icon overlap */}
                         {!post.image && !isDragDisabled && (
-                          <div className="h-4 md:h-3" />
+                          <div className="h-6 md:h-5" />
                         )}
 
                         {/* Title */}
@@ -728,7 +728,11 @@ const BulletinBoard = () => {
                           <div className="flex gap-1 flex-wrap mb-2">
                             {post.tags.map((tagId) => {
                               const tag = tags.find((t) => t.id === tagId)
-                              return tag ? (<span key={tag.id} className="px-2 py-0.5 rounded-full text-xs font-medium text-white" style={{ backgroundColor: tag.color }}>{tag.name}</span>) : null
+                              return tag ? (
+                                <span key={tag.id} className="text-[10px] px-1.5 py-0.5 rounded text-white" style={{ backgroundColor: tag.color }}>
+                                  {tag.name}
+                                </span>
+                              ) : null
                             })}
                           </div>
                         )}

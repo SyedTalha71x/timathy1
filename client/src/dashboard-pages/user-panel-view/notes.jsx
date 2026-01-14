@@ -7,6 +7,7 @@ import { CSS } from '@dnd-kit/utilities'
 import ReactQuill from "react-quill"
 import "react-quill/dist/quill.snow.css"
 import DeleteConfirmModal from "../../components/user-panel-components/notes-components/DeleteConfirmModal"
+import TagManagerModal from "../../components/TagManagerModal"
 import { trainingVideosData } from "../../utils/user-panel-states/training-states"
 import { useSidebarSystem } from "../../hooks/useSidebarSystem"
 import EditTaskModal from "../../components/user-panel-components/task-components/edit-task-modal"
@@ -19,12 +20,12 @@ import TrainingPlansModal from "../../components/myarea-components/TrainingPlanM
 
 // Available tags
 const AVAILABLE_TAGS = [
-  { id: 'urgent', label: 'Urgent', color: '#ef4444' },
-  { id: 'meeting', label: 'Meeting', color: '#3b82f6' },
-  { id: 'ideas', label: 'Ideas', color: '#8b5cf6' },
-  { id: 'todo', label: 'Todo', color: '#f59e0b' },
-  { id: 'training', label: 'Training', color: '#10b981' },
-  { id: 'member', label: 'Member', color: '#ec4899' },
+  { id: 'urgent', name: 'Urgent', color: '#ef4444' },
+  { id: 'meeting', name: 'Meeting', color: '#3b82f6' },
+  { id: 'ideas', name: 'Ideas', color: '#8b5cf6' },
+  { id: 'todo', name: 'Todo', color: '#f59e0b' },
+  { id: 'training', name: 'Training', color: '#10b981' },
+  { id: 'member', name: 'Member', color: '#ec4899' },
 ]
 
 // Demo notes with tags and dates before 2026
@@ -515,7 +516,7 @@ const SortableNoteItem = ({ note, isSelected, onClick, availableTags, onPin }) =
                     className="text-[10px] px-1.5 py-0.5 rounded text-white"
                     style={{ backgroundColor: tag.color }}
                   >
-                    {tag.label}
+                    {tag.name}
                   </span>
                 ) : null
               })}
@@ -542,12 +543,6 @@ export default function NotesApp() {
   const [showSortDropdown, setShowSortDropdown] = useState(false)
   const [availableTags, setAvailableTags] = useState(AVAILABLE_TAGS) // Now has setter
   const [showTagsModal, setShowTagsModal] = useState(false)
-  
-  // Tag management states
-  const [newTagName, setNewTagName] = useState("")
-  const [newTagColor, setNewTagColor] = useState("#FF843E")
-  const [showTagInfoTooltip, setShowTagInfoTooltip] = useState(false)
-  const tagInfoTooltipRef = useRef(null)
   
   // Editing state
   const [editedTitle, setEditedTitle] = useState("")
@@ -601,9 +596,6 @@ export default function NotesApp() {
       }
       if (studioTooltipRef.current && !studioTooltipRef.current.contains(event.target)) {
         setShowStudioTooltip(false)
-      }
-      if (tagInfoTooltipRef.current && !tagInfoTooltipRef.current.contains(event.target)) {
-        setShowTagInfoTooltip(false)
       }
       if (mobileActionsMenuRef.current && !mobileActionsMenuRef.current.contains(event.target)) {
         setShowMobileActionsMenu(false)
@@ -793,23 +785,11 @@ export default function NotesApp() {
   }
 
   // Tag Management Functions
-  const addTag = () => {
-    if (!newTagName.trim()) {
-      return
-    }
-    
-    const newTag = {
-      id: `tag-${Date.now()}`,
-      label: newTagName.trim(),
-      color: newTagColor
-    }
-    
+  const handleAddTag = (newTag) => {
     setAvailableTags([...availableTags, newTag])
-    setNewTagName("")
-    setNewTagColor("#FF843E")
   }
 
-  const deleteTag = (tagId) => {
+  const handleDeleteTag = (tagId) => {
     // Remove tag from all notes
     setNotes((prev) => {
       const updatedNotes = {}
@@ -1501,7 +1481,7 @@ export default function NotesApp() {
                           style={{ backgroundColor: editedTags.includes(tag.id) ? tag.color : undefined }}
                         >
                           <Tag size={10} />
-                          {tag.label}
+                          {tag.name}
                         </button>
                       ))}
                     </div>
@@ -1828,6 +1808,15 @@ export default function NotesApp() {
 
             {/* Tags */}
             <div className="p-4 border-b border-gray-800">
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-medium text-gray-300">Tags</label>
+                <button 
+                  onClick={() => setShowTagsModal(true)} 
+                  className="text-xs text-blue-500 hover:text-blue-400 transition-colors"
+                >
+                  Manage Tags
+                </button>
+              </div>
               <div className="flex flex-wrap gap-2">
                 {(showAllTags ? availableTags : availableTags.slice(0, 4)).map(tag => (
                   <button
@@ -1839,7 +1828,7 @@ export default function NotesApp() {
                     style={{ backgroundColor: editedTags.includes(tag.id) ? tag.color : undefined }}
                   >
                     <Tag size={10} />
-                    {tag.label}
+                    {tag.name}
                   </button>
                 ))}
               </div>
@@ -1942,114 +1931,13 @@ export default function NotesApp() {
       )}
 
       {/* Tags Management Modal */}
-      {/* Tag Manager Modal */}
-      {showTagsModal && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[80] p-4">
-          <div className="bg-[#1C1C1C] rounded-2xl w-full max-w-md max-h-[80vh] flex flex-col">
-            <div className="flex justify-between items-center mb-4 p-6 pb-0 overflow-visible">
-              <div className="flex items-center gap-2">
-                <h3 className="text-white text-lg font-semibold">Manage Tags</h3>
-                {/* Info Tooltip */}
-                <div className="relative" ref={tagInfoTooltipRef}>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setShowTagInfoTooltip(!showTagInfoTooltip)
-                    }}
-                    onMouseEnter={() => setShowTagInfoTooltip(true)}
-                    onMouseLeave={() => setShowTagInfoTooltip(false)}
-                    className="text-gray-400 hover:text-blue-400 transition-colors"
-                    aria-label="Tag information"
-                  >
-                    <Info size={16} />
-                  </button>
-                  
-                  {/* Tooltip */}
-                  {showTagInfoTooltip && (
-                    <div className="absolute -left-20 md:left-0 top-8 w-56 md:w-64 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-xl p-3 z-[100]">
-                      <div className="text-sm">
-                        <p className="text-blue-300 font-medium mb-2">Tags are shared across all notes</p>
-                        <p className="text-gray-300 text-xs leading-relaxed">
-                          All tags are visible to everyone and can be used in both Personal and Studio Notes. When you move a note between tabs, its tags stay intact.
-                        </p>
-                      </div>
-                      {/* Arrow - responsive position */}
-                      <div className="absolute -top-1 left-[5.5rem] md:left-4 w-2 h-2 bg-[#2a2a2a] border-l border-t border-gray-700 transform rotate-45"></div>
-                    </div>
-                  )}
-                </div>
-              </div>
-              <button
-                onClick={() => setShowTagsModal(false)}
-                className="text-gray-400 hover:text-white"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Scrollable Content */}
-            <div className="overflow-y-auto px-6 pb-6">
-              <div className="mb-6">
-                <h4 className="text-white text-sm font-medium mb-3">Create New Tag</h4>
-                <div className="flex gap-2 mb-2">
-                  <input
-                    type="text"
-                    value={newTagName}
-                    onChange={(e) => setNewTagName(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && addTag()}
-                    placeholder="Tag name"
-                    className="flex-1 bg-[#2a2a2a] text-white rounded-lg px-3 py-2 text-sm border border-gray-700 focus:border-orange-500 outline-none"
-                  />
-                  <input
-                    type="color"
-                    value={newTagColor}
-                    onChange={(e) => setNewTagColor(e.target.value)}
-                    className="w-12 h-10 bg-[#2a2a2a] rounded-lg border border-gray-700 cursor-pointer"
-                  />
-                </div>
-                <button
-                  onClick={addTag}
-                  className="w-full py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm flex items-center justify-center gap-2"
-                >
-                  <Plus size={16} />
-                  Add Tag
-                </button>
-              </div>
-
-              <div>
-                <h4 className="text-white text-sm font-medium mb-3">Existing Tags</h4>
-                <div className="space-y-2">
-                  {availableTags.map((tag) => (
-                    <div
-                      key={tag.id}
-                      className="flex items-center justify-between bg-[#2a2a2a] p-3 rounded-lg"
-                    >
-                      <div 
-                        className="px-3 py-1.5 rounded-md text-sm flex items-center gap-2 text-white"
-                        style={{ backgroundColor: tag.color }}
-                      >
-                        <Tag size={14} />
-                        {tag.label}
-                      </div>
-                      <button
-                        onClick={() => deleteTag(tag.id)}
-                        className="text-red-500 hover:text-red-400 p-2"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  ))}
-                  {availableTags.length === 0 && (
-                    <p className="text-gray-400 text-sm text-center py-4">
-                      No tags created yet
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <TagManagerModal
+        isOpen={showTagsModal}
+        onClose={() => setShowTagsModal(false)}
+        tags={availableTags}
+        onAddTag={handleAddTag}
+        onDeleteTag={handleDeleteTag}
+      />
 
       {/* Floating Action Button - Mobile Only */}
       <button
