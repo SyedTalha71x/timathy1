@@ -44,7 +44,7 @@ import SortableTaskColumn from "../../components/user-panel-components/task-comp
 import SortableTaskCard from "../../components/user-panel-components/task-components/sortable-task-card"
 
 // ============================================
-// Mobile Create Task Modal Component
+// Mobile Create Task Modal Component (Redesigned)
 // ============================================
 const MobileCreateTaskModal = ({
   isOpen,
@@ -52,15 +52,13 @@ const MobileCreateTaskModal = ({
   onCreateTask,
   configuredTags,
   availableAssignees,
+  onOpenCalendarModal,
+  onOpenAssignModal,
+  onOpenTagsModal,
+  newTaskData,
+  setNewTaskData,
 }) => {
   const [taskTitle, setTaskTitle] = useState("")
-  const [selectedTags, setSelectedTags] = useState([])
-  const [selectedAssignees, setSelectedAssignees] = useState([])
-  const [dueDate, setDueDate] = useState("")
-  const [dueTime, setDueTime] = useState("")
-  const [showTagsSection, setShowTagsSection] = useState(false)
-  const [showAssignSection, setShowAssignSection] = useState(false)
-  const [showDateSection, setShowDateSection] = useState(false)
   const titleInputRef = useRef(null)
 
   // Focus title input when modal opens
@@ -70,26 +68,21 @@ const MobileCreateTaskModal = ({
         titleInputRef.current?.focus()
       }, 100)
     }
-    // Set today's date as default when modal opens
-    if (isOpen) {
-      const today = new Date().toISOString().split('T')[0]
-      setDueDate(today)
-    }
   }, [isOpen])
 
   // Reset form when modal closes
   useEffect(() => {
     if (!isOpen) {
       setTaskTitle("")
-      setSelectedTags([])
-      setSelectedAssignees([])
-      setDueDate("")
-      setDueTime("")
-      setShowTagsSection(false)
-      setShowAssignSection(false)
-      setShowDateSection(false)
     }
   }, [isOpen])
+
+  // Sync title with newTaskData
+  useEffect(() => {
+    if (isOpen) {
+      setTaskTitle(newTaskData.title || "")
+    }
+  }, [isOpen, newTaskData.title])
 
   const handleCreate = () => {
     if (!taskTitle.trim()) {
@@ -97,31 +90,11 @@ const MobileCreateTaskModal = ({
     }
 
     onCreateTask({
+      ...newTaskData,
       title: taskTitle.trim(),
-      tags: selectedTags,
-      assignees: selectedAssignees.map(a => `${a.firstName} ${a.lastName}`),
-      dueDate,
-      dueTime,
     })
 
     onClose()
-  }
-
-  const toggleTag = (tagName) => {
-    setSelectedTags(prev =>
-      prev.includes(tagName)
-        ? prev.filter(t => t !== tagName)
-        : [...prev, tagName]
-    )
-  }
-
-  const toggleAssignee = (assignee) => {
-    setSelectedAssignees(prev => {
-      const isSelected = prev.find(a => a.id === assignee.id)
-      return isSelected
-        ? prev.filter(a => a.id !== assignee.id)
-        : [...prev, assignee]
-    })
   }
 
   const getTagColor = (tagName) => {
@@ -129,13 +102,25 @@ const MobileCreateTaskModal = ({
     return tag ? tag.color : "#3F74FF"
   }
 
-  const formatTime = (timeStr) => {
-    if (!timeStr) return ""
-    const [hours, minutes] = timeStr.split(":")
-    const hour = parseInt(hours)
-    const ampm = hour >= 12 ? "PM" : "AM"
-    const formattedHour = hour % 12 || 12
-    return `${formattedHour}:${minutes} ${ampm}`
+  const formatDateTime = () => {
+    let display = ""
+    if (newTaskData.dueDate) {
+      const date = new Date(newTaskData.dueDate)
+      display = date.toLocaleDateString("en-US", { 
+        weekday: 'short',
+        month: "short", 
+        day: "numeric",
+        year: 'numeric'
+      })
+    }
+    if (newTaskData.dueTime) {
+      const [hours, minutes] = newTaskData.dueTime.split(':')
+      const hour = parseInt(hours)
+      const ampm = hour >= 12 ? 'PM' : 'AM'
+      const formattedHour = hour % 12 || 12
+      display += display ? ` at ${formattedHour}:${minutes} ${ampm}` : `${formattedHour}:${minutes} ${ampm}`
+    }
+    return display || "No due date"
   }
 
   if (!isOpen) return null
@@ -164,178 +149,115 @@ const MobileCreateTaskModal = ({
         </button>
       </div>
 
-      {/* Content */}
+      {/* Content - Scrollable */}
       <div className="flex-1 overflow-y-auto">
         {/* Task Title */}
         <div className="p-4 border-b border-gray-800">
           <textarea
             ref={titleInputRef}
             value={taskTitle}
-            onChange={(e) => setTaskTitle(e.target.value)}
+            onChange={(e) => {
+              setTaskTitle(e.target.value)
+              setNewTaskData(prev => ({ ...prev, title: e.target.value }))
+            }}
             placeholder="What needs to be done?"
-            className="w-full bg-transparent text-lg text-white placeholder-gray-500 outline-none resize-none min-h-[80px]"
+            className="w-full bg-transparent text-xl font-semibold text-white placeholder-gray-500 outline-none resize-none min-h-[80px]"
             rows={3}
           />
         </div>
 
-        {/* Due Date & Time Section */}
-        <div className="border-b border-gray-800">
-          <button
-            onClick={() => setShowDateSection(!showDateSection)}
-            className="w-full p-4 flex items-center justify-between active:bg-gray-800/50"
-          >
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-gray-800">
-                <Calendar size={18} className="text-gray-400" />
-              </div>
-              <div className="text-left">
-                <p className="text-sm font-medium text-gray-300">Due Date & Time</p>
-                {dueDate ? (
-                  <p className="text-sm text-white">
-                    {new Date(dueDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
-                    {dueTime && ` at ${formatTime(dueTime)}`}
-                  </p>
-                ) : (
-                  <p className="text-sm text-gray-500">Not set</p>
-                )}
-              </div>
+        {/* Date & Time Section - Clickable (opens CalendarModal) */}
+        <button
+          onClick={() => onOpenCalendarModal()}
+          className="w-full p-4 border-b border-gray-800 flex items-center justify-between active:bg-gray-800/50"
+        >
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-gray-800">
+              <Calendar size={18} className="text-gray-400" />
             </div>
-            <ChevronDown size={18} className={`text-gray-400 transition-transform ${showDateSection ? 'rotate-180' : ''}`} />
-          </button>
-          
-          {showDateSection && (
-            <div className="px-4 pb-4 space-y-3">
-              <div>
-                <label className="text-xs text-gray-400 mb-1 block">Date</label>
-                <input
-                  type="date"
-                  value={dueDate}
-                  onChange={(e) => setDueDate(e.target.value)}
-                  className="w-full bg-[#2F2F2F] text-white px-4 py-3 rounded-xl outline-none text-sm"
-                />
-              </div>
-              <div>
-                <label className="text-xs text-gray-400 mb-1 block">Time (optional)</label>
-                <input
-                  type="time"
-                  value={dueTime}
-                  onChange={(e) => setDueTime(e.target.value)}
-                  className="w-full bg-[#2F2F2F] text-white px-4 py-3 rounded-xl outline-none text-sm"
-                />
-              </div>
-              {(dueDate || dueTime) && (
-                <button
-                  onClick={() => {
-                    setDueDate("")
-                    setDueTime("")
-                  }}
-                  className="text-sm text-red-400 hover:text-red-300"
-                >
-                  Clear date & time
-                </button>
+            <div className="text-left">
+              <p className="text-sm font-medium text-gray-300">Due Date & Time</p>
+              <p className={`text-sm ${newTaskData.dueDate ? 'text-white' : 'text-gray-500'}`}>
+                {formatDateTime()}
+              </p>
+            </div>
+          </div>
+          <ChevronDown size={18} className="text-gray-400" />
+        </button>
+
+        {/* Reminder Section (shown if set) */}
+        {newTaskData.reminder && newTaskData.reminder !== "" && (
+          <div className="p-4 border-b border-gray-800 flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-gray-800">
+              <Bell size={18} className="text-gray-400" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-300">Reminder</p>
+              <p className="text-sm text-white">{newTaskData.reminder}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Assignees Section - Clickable (opens AssignModal) */}
+        <button
+          onClick={() => onOpenAssignModal()}
+          className="w-full p-4 border-b border-gray-800 text-left active:bg-gray-800/50"
+        >
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-gray-800">
+              <Users size={18} className="text-gray-400" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-gray-300">Assigned To</p>
+              {newTaskData.assignees && newTaskData.assignees.length > 0 ? (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {newTaskData.assignees.map((assignee, idx) => (
+                    <span 
+                      key={idx}
+                      className="px-3 py-1.5 bg-[#2F2F2F] text-gray-300 rounded-lg text-sm"
+                    >
+                      {assignee}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500">No one assigned</p>
               )}
             </div>
-          )}
-        </div>
+            <ChevronDown size={18} className="text-gray-400 flex-shrink-0" />
+          </div>
+        </button>
 
-        {/* Assignees Section */}
-        <div className="border-b border-gray-800">
-          <button
-            onClick={() => setShowAssignSection(!showAssignSection)}
-            className="w-full p-4 flex items-center justify-between active:bg-gray-800/50"
-          >
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-gray-800">
-                <Users size={18} className="text-gray-400" />
-              </div>
-              <div className="text-left">
-                <p className="text-sm font-medium text-gray-300">Assign To</p>
-                {selectedAssignees.length > 0 ? (
-                  <p className="text-sm text-white">
-                    {selectedAssignees.length} staff member{selectedAssignees.length !== 1 ? 's' : ''}
-                  </p>
-                ) : (
-                  <p className="text-sm text-gray-500">No one assigned</p>
-                )}
-              </div>
+        {/* Tags Section - Clickable (opens TagsModal) */}
+        <button
+          onClick={() => onOpenTagsModal()}
+          className="w-full p-4 border-b border-gray-800 text-left active:bg-gray-800/50"
+        >
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-gray-800">
+              <Tag size={18} className="text-gray-400" />
             </div>
-            <ChevronDown size={18} className={`text-gray-400 transition-transform ${showAssignSection ? 'rotate-180' : ''}`} />
-          </button>
-          
-          {showAssignSection && (
-            <div className="px-4 pb-4">
-              <div className="space-y-2 max-h-48 overflow-y-auto">
-                {availableAssignees.map((assignee) => {
-                  const isSelected = selectedAssignees.find(a => a.id === assignee.id)
-                  return (
-                    <button
-                      key={assignee.id}
-                      onClick={() => toggleAssignee(assignee)}
-                      className={`w-full flex items-center gap-3 p-3 rounded-xl transition-colors ${
-                        isSelected
-                          ? 'bg-[#3F3F3F] border border-gray-500'
-                          : 'bg-[#2F2F2F] border border-transparent'
-                      }`}
+            <div className="flex-1">
+              <p className="text-sm font-medium text-gray-300">Tags</p>
+              {newTaskData.tags && newTaskData.tags.length > 0 ? (
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {newTaskData.tags.map((tag, idx) => (
+                    <span 
+                      key={idx}
+                      className="px-3 py-1.5 rounded-lg text-sm text-white"
+                      style={{ backgroundColor: getTagColor(tag) }}
                     >
-                      <UserCheck size={16} className={isSelected ? 'text-white' : 'text-gray-400'} />
-                      <span className="flex-1 text-left text-sm text-white">
-                        {assignee.firstName} {assignee.lastName}
-                      </span>
-                      {isSelected && <Check size={16} className="text-white" />}
-                    </button>
-                  )
-                })}
-              </div>
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500">No tags</p>
+              )}
             </div>
-          )}
-        </div>
-
-        {/* Tags Section */}
-        <div className="border-b border-gray-800">
-          <button
-            onClick={() => setShowTagsSection(!showTagsSection)}
-            className="w-full p-4 flex items-center justify-between active:bg-gray-800/50"
-          >
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-gray-800">
-                <Tag size={18} className="text-gray-400" />
-              </div>
-              <div className="text-left">
-                <p className="text-sm font-medium text-gray-300">Tags</p>
-                {selectedTags.length > 0 ? (
-                  <p className="text-sm text-white">{selectedTags.length} tag{selectedTags.length !== 1 ? 's' : ''} selected</p>
-                ) : (
-                  <p className="text-sm text-gray-500">No tags</p>
-                )}
-              </div>
-            </div>
-            <ChevronDown size={18} className={`text-gray-400 transition-transform ${showTagsSection ? 'rotate-180' : ''}`} />
-          </button>
-          
-          {showTagsSection && (
-            <div className="px-4 pb-4">
-              <div className="flex flex-wrap gap-2">
-                {configuredTags.map((tag) => {
-                  const isSelected = selectedTags.includes(tag.name)
-                  return (
-                    <button
-                      key={tag.id}
-                      onClick={() => toggleTag(tag.name)}
-                      className={`px-3 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 ${
-                        isSelected ? 'text-white' : 'bg-[#2F2F2F] text-gray-300'
-                      }`}
-                      style={{ backgroundColor: isSelected ? tag.color : undefined }}
-                    >
-                      <Tag size={12} />
-                      {tag.name}
-                      {isSelected && <Check size={12} />}
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-          )}
-        </div>
+            <ChevronDown size={18} className="text-gray-400 flex-shrink-0" />
+          </div>
+        </button>
       </div>
     </div>
   )
@@ -447,10 +369,6 @@ const MobileTaskDetail = ({
           }`}>
             {task.status.charAt(0).toUpperCase() + task.status.slice(1)}
           </span>
-
-          {task.isPinned && (
-            <Pin size={18} className="text-amber-400 fill-amber-400" />
-          )}
           
           {/* 3-Dot Actions Menu */}
           <div className="relative" ref={actionsMenuRef}>
@@ -609,7 +527,7 @@ const MobileTaskDetail = ({
             onBlur={handleSaveTitle}
             placeholder="Task title..."
             className={`w-full bg-transparent text-xl font-semibold outline-none border-b-2 border-transparent focus:border-blue-500 transition-all pb-2 resize-none ${
-              isCompleted ? 'text-gray-500 line-through' : 
+              isCompleted ? 'text-gray-500' : 
               isCanceled ? 'text-gray-600 line-through italic' : 
               'text-white'
             }`}
@@ -794,34 +712,43 @@ const MobileTaskCard = ({
       }`}
     >
       <div className="flex items-start gap-3">
-        {/* Checkbox */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
-            onStatusChange(task.id, isCompleted ? "ongoing" : "completed")
-          }}
-          className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
-            isCompleted ? 'bg-gray-500 border-gray-500' :
-            isCanceled ? 'bg-gray-600 border-gray-600' :
-            'border-gray-500 hover:border-blue-400'
-          }`}
-        >
-          {(isCompleted || isCanceled) && <Check size={12} className="text-white" />}
-        </button>
+        {/* Checkbox / X for canceled */}
+        {isCanceled ? (
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              onStatusChange(task.id, "ongoing")
+            }}
+            className="mt-0.5 w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 bg-gray-600 border border-gray-500"
+            title="Canceled - Click to restore"
+          >
+            <X size={12} className="text-gray-400" />
+          </button>
+        ) : (
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              onStatusChange(task.id, isCompleted ? "ongoing" : "completed")
+            }}
+            className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+              isCompleted ? 'bg-gray-500 border-gray-500' :
+              'border-gray-500 hover:border-blue-400'
+            }`}
+          >
+            {isCompleted && <Check size={12} className="text-white" />}
+          </button>
+        )}
 
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <p className={`text-sm font-medium ${
-              isCompleted ? 'text-gray-500 line-through' :
+              isCompleted ? 'text-gray-500' :
               isCanceled ? 'text-gray-600 line-through italic' :
               'text-white'
             }`} style={{ wordBreak: 'break-word' }}>
               {task.title}
             </p>
-            {task.isPinned && (
-              <Pin size={14} className="text-amber-400 fill-amber-400 flex-shrink-0 mt-0.5" />
-            )}
           </div>
 
           {/* Meta Row */}
@@ -893,7 +820,7 @@ const SelectedDateTimeDisplay = ({ date, time, onClear }) => {
     <div className="flex items-center gap-2 bg-[#2F2F2F] rounded-lg px-3 py-1 text-sm mr-2">
       <span className="text-white whitespace-nowrap">
         {date && formatDate(date)}
-        {date && time && " â€¢ "}
+        {date && time && " • "}
         {time && formatTime(time)}
       </span>
       <button onClick={onClear} className="text-gray-400 hover:text-white ml-1" title="Clear date and time">
@@ -957,6 +884,40 @@ export default function TodoApp() {
   const mobileFilterRef = useRef(null)
 
   // ============================================
+  // New Task Data for Create Modal
+  // ============================================
+  const [newTaskData, setNewTaskData] = useState({
+    title: "",
+    tags: [],
+    assignees: [],
+    dueDate: "",
+    dueTime: "",
+    reminder: "",
+    repeat: "",
+  })
+
+  // Reset newTaskData when create modal closes
+  useEffect(() => {
+    if (!showMobileCreateModal) {
+      setNewTaskData({
+        title: "",
+        tags: [],
+        assignees: [],
+        dueDate: new Date().toISOString().split('T')[0],
+        dueTime: "",
+        reminder: "",
+        repeat: "",
+      })
+    } else {
+      // Set default date when opening
+      setNewTaskData(prev => ({
+        ...prev,
+        dueDate: prev.dueDate || new Date().toISOString().split('T')[0],
+      }))
+    }
+  }, [showMobileCreateModal])
+
+  // ============================================
   // UI State
   // ============================================
   const [isCalendarOpen, setIsCalendarOpen] = useState(false)
@@ -987,6 +948,13 @@ export default function TodoApp() {
     initialReminder: "",
     initialRepeat: "",
   })
+
+  // ============================================
+  // Create Modal - Modal States
+  // ============================================
+  const [createModeAssignModal, setCreateModeAssignModal] = useState(false)
+  const [createModeTagsModal, setCreateModeTagsModal] = useState(false)
+  const [createModeCalendarModal, setCreateModeCalendarModal] = useState(false)
 
   // ============================================
   // @dnd-kit State and Logic
@@ -1021,7 +989,7 @@ export default function TodoApp() {
     return rectIntersection(args)
   }, [])
 
-  // Close mobile menus on outside click
+  // Close mobile menus on outside click or scroll
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (!event.target.closest(".mobile-sort-dropdown")) {
@@ -1040,9 +1008,107 @@ export default function TodoApp() {
         setIsTagDropdownOpen(false)
       }
     }
+    
+    const handleScroll = () => {
+      setMobileSortMenuOpen(null)
+      setShowMobileFilterMenu(false)
+      setIsCalendarOpen(false)
+      setIsAssignDropdownOpen(false)
+      setIsTagDropdownOpen(false)
+    }
+    
     document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
+    window.addEventListener("scroll", handleScroll, true) // true for capture phase to catch all scroll events
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+      window.removeEventListener("scroll", handleScroll, true)
+    }
   }, [])
+
+  // Keyboard shortcuts: T for Tags, ESC for closing modals
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      // Check if user is typing in an input field
+      const target = e.target
+      const activeEl = document.activeElement
+      
+      const isInEditableArea = 
+        target.tagName === 'INPUT' || 
+        target.tagName === 'TEXTAREA' ||
+        target.isContentEditable === true ||
+        activeEl?.tagName === 'INPUT' ||
+        activeEl?.tagName === 'TEXTAREA' ||
+        activeEl?.isContentEditable === true
+
+      // If in editable area, only handle Escape
+      if (isInEditableArea) {
+        if (e.key === 'Escape') {
+          activeEl?.blur?.()
+        }
+        return
+      }
+
+      // Handle Escape for modals (priority order)
+      if (e.key === 'Escape') {
+        if (isDeleteModalOpen) {
+          setIsDeleteModalOpen(false)
+          setSelectedTask(null)
+        } else if (isRepeatModalOpen) {
+          setIsRepeatModalOpen(false)
+          setSelectedTaskForRepeat(null)
+        } else if (assignModalTask) {
+          if (createModeAssignModal) setCreateModeAssignModal(false)
+          setAssignModalTask(null)
+        } else if (tagsModalTask) {
+          if (createModeTagsModal) setCreateModeTagsModal(false)
+          setTagsModalTask(null)
+        } else if (calendarModal.isOpen) {
+          setCreateModeCalendarModal(false)
+          setCalendarModal({ isOpen: false, taskId: null, initialDate: "", initialTime: "", initialReminder: "", initialRepeat: "" })
+        } else if (isTagManagerOpen) {
+          setIsTagManagerOpen(false)
+        } else if (isEditModalOpenTask) {
+          setIsEditModalOpenTask(false)
+          setSelectedTask(null)
+        } else if (showMobileCreateModal) {
+          setShowMobileCreateModal(false)
+        } else if (selectedMobileTask) {
+          setSelectedMobileTask(null)
+        } else if (mobileSortMenuOpen) {
+          setMobileSortMenuOpen(null)
+        } else if (showMobileFilterMenu) {
+          setShowMobileFilterMenu(false)
+        }
+        return
+      }
+
+      // Don't handle other shortcuts if modifier keys are pressed
+      if (e.ctrlKey || e.metaKey || e.altKey) return
+
+      // T - Open Tag Manager (only when no modal is open)
+      if ((e.key === 't' || e.key === 'T') && !isTagManagerOpen && !showMobileCreateModal && !selectedMobileTask) {
+        e.preventDefault()
+        setIsTagManagerOpen(true)
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyPress)
+    return () => document.removeEventListener('keydown', handleKeyPress)
+  }, [
+    isDeleteModalOpen, 
+    isRepeatModalOpen, 
+    assignModalTask, 
+    tagsModalTask, 
+    calendarModal.isOpen, 
+    isTagManagerOpen, 
+    isEditModalOpenTask, 
+    showMobileCreateModal, 
+    selectedMobileTask,
+    mobileSortMenuOpen,
+    showMobileFilterMenu,
+    createModeAssignModal,
+    createModeTagsModal
+  ])
 
   // Get column ID from droppable ID
   const getColumnId = (id) => {
@@ -1221,7 +1287,7 @@ export default function TodoApp() {
     return sortTasks(columnTasks, columnId)
   }, [tasks, sortTasks, selectedStaffFilter, availableAssignees])
 
-  // Get all tasks for mobile view
+  // Get all tasks for mobile view - NOW WITH SORTING
   const getAllFilteredTasks = useCallback(() => {
     let allTasks = [...tasks]
     
@@ -1238,13 +1304,13 @@ export default function TodoApp() {
       })
     }
 
-    // Group by status
-    const ongoing = allTasks.filter(t => t.status === 'ongoing')
-    const completed = allTasks.filter(t => t.status === 'completed')
-    const canceled = allTasks.filter(t => t.status === 'canceled')
+    // Group by status AND apply sorting for each status
+    const ongoing = sortTasks(allTasks.filter(t => t.status === 'ongoing'), 'ongoing')
+    const completed = sortTasks(allTasks.filter(t => t.status === 'completed'), 'completed')
+    const canceled = sortTasks(allTasks.filter(t => t.status === 'canceled'), 'canceled')
 
     return { ongoing, completed, canceled, total: allTasks.length }
-  }, [tasks, selectedStaffFilter, availableAssignees])
+  }, [tasks, selectedStaffFilter, availableAssignees, sortTasks])
 
   // ============================================
   // Column collapse
@@ -1275,6 +1341,20 @@ export default function TodoApp() {
   }
 
   const handleCalendarSave = (calendarData) => {
+    // Check if this is for create mode
+    if (createModeCalendarModal) {
+      setNewTaskData(prev => ({
+        ...prev,
+        dueDate: calendarData.date,
+        dueTime: calendarData.time,
+        reminder: calendarData.reminder,
+        repeat: calendarData.repeat,
+      }))
+      setCreateModeCalendarModal(false)
+      setCalendarModal({ isOpen: false, taskId: null, initialDate: "", initialTime: "", initialReminder: "", initialRepeat: "" })
+      return
+    }
+
     if (calendarModal.taskId) {
       const taskToUpdate = tasks.find((t) => t.id === calendarModal.taskId)
       const updatedTask = {
@@ -1304,6 +1384,7 @@ export default function TodoApp() {
   }
 
   const handleCalendarClose = () => {
+    setCreateModeCalendarModal(false)
     setCalendarModal({ isOpen: false, taskId: null, initialDate: "", initialTime: "", initialReminder: "", initialRepeat: "" })
   }
 
@@ -1312,6 +1393,41 @@ export default function TodoApp() {
   // ============================================
   const handleOpenAssignModal = (task) => setAssignModalTask(task)
   const handleOpenTagsModal = (task) => setTagsModalTask(task)
+
+  // ============================================
+  // Create Mode Modal Handlers
+  // ============================================
+  const handleOpenCreateCalendarModal = () => {
+    setCreateModeCalendarModal(true)
+    setCalendarModal({
+      isOpen: true,
+      taskId: null,
+      initialDate: newTaskData.dueDate || new Date().toISOString().split('T')[0],
+      initialTime: newTaskData.dueTime,
+      initialReminder: newTaskData.reminder,
+      initialRepeat: newTaskData.repeat,
+    })
+  }
+
+  const handleOpenCreateAssignModal = () => {
+    setCreateModeAssignModal(true)
+    // Create a temporary task object for the assign modal
+    setAssignModalTask({
+      id: 'new-task',
+      title: newTaskData.title || 'New Task',
+      assignees: newTaskData.assignees || [],
+    })
+  }
+
+  const handleOpenCreateTagsModal = () => {
+    setCreateModeTagsModal(true)
+    // Create a temporary task object for the tags modal
+    setTagsModalTask({
+      id: 'new-task',
+      title: newTaskData.title || 'New Task',
+      tags: newTaskData.tags || [],
+    })
+  }
 
   // ============================================
   // Task CRUD Operations
@@ -1327,6 +1443,27 @@ export default function TodoApp() {
   }
 
   const handleTaskUpdate = (updatedTask) => {
+    // Check if this is for create mode
+    if (createModeAssignModal && updatedTask.id === 'new-task') {
+      setNewTaskData(prev => ({
+        ...prev,
+        assignees: updatedTask.assignees || [],
+      }))
+      setCreateModeAssignModal(false)
+      setAssignModalTask(null)
+      return
+    }
+    
+    if (createModeTagsModal && updatedTask.id === 'new-task') {
+      setNewTaskData(prev => ({
+        ...prev,
+        tags: updatedTask.tags || [],
+      }))
+      setCreateModeTagsModal(false)
+      setTagsModalTask(null)
+      return
+    }
+
     setTasks((prevTasks) => prevTasks.map((task) => (task.id === updatedTask.id ? updatedTask : task)))
     if (selectedMobileTask && selectedMobileTask.id === updatedTask.id) {
       setSelectedMobileTask(updatedTask)
@@ -1413,13 +1550,15 @@ export default function TodoApp() {
     const newTask = {
       id: newId,
       title: taskData.title,
-      assignees: taskData.assignees,
+      assignees: taskData.assignees || [],
       roles: [],
-      tags: taskData.tags,
+      tags: taskData.tags || [],
       status: "ongoing",
       category: "general",
       dueDate: taskData.dueDate,
       dueTime: taskData.dueTime,
+      reminder: taskData.reminder,
+      repeat: taskData.repeat,
       isPinned: false,
       createdAt: new Date().toISOString(),
     }
@@ -1723,6 +1862,7 @@ export default function TodoApp() {
               <button
                 onClick={() => setIsTagManagerOpen(true)}
                 className="bg-[#2F2F2F] text-gray-300 p-3 rounded-xl hover:bg-[#3F3F3F] transition-colors active:scale-95"
+                title="Manage Tags (T)"
               >
                 <Tag size={18} />
               </button>
@@ -1736,7 +1876,7 @@ export default function TodoApp() {
                   value={newTaskInput}
                   onChange={handleTextareaChange}
                   onEnter={handleAddTaskFromInputOptimized}
-                  placeholder="New taskâ€¦ (Press Enter to add)"
+                  placeholder="New task… (Press Enter to add)"
                   maxLines={4}
                 />
                 <SelectedDateTimeDisplay date={selectedDate} time={selectedTime} onClear={handleClearDateTime} />
@@ -1840,13 +1980,24 @@ export default function TodoApp() {
               </div>
               
               {/* Desktop: Tags Button */}
-              <button
-                onClick={() => setIsTagManagerOpen(true)}
-                className="bg-[#2F2F2F] text-white px-4 py-3 rounded-xl text-sm flex items-center gap-2 hover:bg-gray-600 whitespace-nowrap transition-colors"
-              >
-                <Tag size={16} />
-                <span>Tags</span>
-              </button>
+              <div className="relative group">
+                <button
+                  onClick={() => setIsTagManagerOpen(true)}
+                  className="bg-[#2F2F2F] text-white px-4 py-3 rounded-xl text-sm flex items-center gap-2 hover:bg-gray-600 whitespace-nowrap transition-colors"
+                >
+                  <Tag size={16} />
+                  <span>Tags</span>
+                </button>
+                
+                {/* Tooltip */}
+                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                  <span className="font-medium">Manage Tags</span>
+                  <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
+                    T
+                  </span>
+                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                </div>
+              </div>
             </div>
 
             {/* Desktop: Staff Filter Pills */}
@@ -1980,7 +2131,7 @@ export default function TodoApp() {
                       <ArrowUpDown size={14} />
                     </button>
                     {mobileSortMenuOpen === 'ongoing' && (
-                      <div className="absolute right-0 top-full mt-1 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[160px] overflow-hidden">
+                      <div className="absolute right-0 top-full mt-1 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[200px] overflow-hidden">
                         <div className="px-3 py-2 text-xs text-gray-500 border-b border-gray-700">Sort by</div>
                         {[
                           { value: 'custom', label: 'Custom' },
@@ -1988,21 +2139,54 @@ export default function TodoApp() {
                           { value: 'dueDate', label: 'Due Date' },
                           { value: 'recentlyAdded', label: 'Recent' },
                         ].map((option) => (
-                          <button
+                          <div
                             key={option.value}
-                            onClick={() => {
-                              handleSortChange('ongoing', option.value)
-                              setMobileSortMenuOpen(null)
-                            }}
-                            className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                            className={`flex items-center justify-between px-4 py-2.5 text-sm transition-colors ${
                               columnSortSettings.ongoing?.sortBy === option.value 
                                 ? 'bg-gray-800 text-white' 
                                 : 'text-gray-300 hover:bg-gray-800'
                             }`}
                           >
-                            {option.label}
-                          </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleSortChange('ongoing', option.value)
+                                // Only close for 'custom' option which has no direction toggle
+                                if (option.value === 'custom') {
+                                  setMobileSortMenuOpen(null)
+                                }
+                              }}
+                              className="flex-1 text-left"
+                            >
+                              {option.label}
+                            </button>
+                            {columnSortSettings.ongoing?.sortBy === option.value && option.value !== 'custom' && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleToggleSortOrder('ongoing')
+                                }}
+                                className="p-1 hover:bg-gray-700 rounded text-gray-400"
+                              >
+                                {columnSortSettings.ongoing?.sortOrder === 'asc' 
+                                  ? <ArrowUp size={14} /> 
+                                  : <ArrowDown size={14} />
+                                }
+                              </button>
+                            )}
+                          </div>
                         ))}
+                        <div className="border-t border-gray-700 mt-1">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setMobileSortMenuOpen(null)
+                            }}
+                            className="w-full text-left px-4 py-2.5 text-sm text-gray-400 hover:bg-gray-800"
+                          >
+                            Close
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -2035,8 +2219,7 @@ export default function TodoApp() {
                           {unpinnedOngoing.length > 0 && (
                             <>
                               {pinnedOngoing.length > 0 && (
-                                <div className="flex items-center gap-2 px-2 py-1 mt-2">
-                                  <span className="text-xs text-gray-500 font-medium">Tasks</span>
+                                <div className="flex items-center px-2 py-1 mt-2">
                                   <div className="flex-1 h-px bg-gray-700"></div>
                                 </div>
                               )}
@@ -2093,7 +2276,7 @@ export default function TodoApp() {
                       <ArrowUpDown size={14} />
                     </button>
                     {mobileSortMenuOpen === 'completed' && (
-                      <div className="absolute right-0 top-full mt-1 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[160px] overflow-hidden">
+                      <div className="absolute right-0 top-full mt-1 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[200px] overflow-hidden">
                         <div className="px-3 py-2 text-xs text-gray-500 border-b border-gray-700">Sort by</div>
                         {[
                           { value: 'custom', label: 'Custom' },
@@ -2101,21 +2284,54 @@ export default function TodoApp() {
                           { value: 'dueDate', label: 'Due Date' },
                           { value: 'recentlyAdded', label: 'Recent' },
                         ].map((option) => (
-                          <button
+                          <div
                             key={option.value}
-                            onClick={() => {
-                              handleSortChange('completed', option.value)
-                              setMobileSortMenuOpen(null)
-                            }}
-                            className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                            className={`flex items-center justify-between px-4 py-2.5 text-sm transition-colors ${
                               columnSortSettings.completed?.sortBy === option.value 
                                 ? 'bg-gray-800 text-white' 
                                 : 'text-gray-300 hover:bg-gray-800'
                             }`}
                           >
-                            {option.label}
-                          </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleSortChange('completed', option.value)
+                                // Only close for 'custom' option which has no direction toggle
+                                if (option.value === 'custom') {
+                                  setMobileSortMenuOpen(null)
+                                }
+                              }}
+                              className="flex-1 text-left"
+                            >
+                              {option.label}
+                            </button>
+                            {columnSortSettings.completed?.sortBy === option.value && option.value !== 'custom' && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleToggleSortOrder('completed')
+                                }}
+                                className="p-1 hover:bg-gray-700 rounded text-gray-400"
+                              >
+                                {columnSortSettings.completed?.sortOrder === 'asc' 
+                                  ? <ArrowUp size={14} /> 
+                                  : <ArrowDown size={14} />
+                                }
+                              </button>
+                            )}
+                          </div>
                         ))}
+                        <div className="border-t border-gray-700 mt-1">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setMobileSortMenuOpen(null)
+                            }}
+                            className="w-full text-left px-4 py-2.5 text-sm text-gray-400 hover:bg-gray-800"
+                          >
+                            Close
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -2171,7 +2387,7 @@ export default function TodoApp() {
                       <ArrowUpDown size={14} />
                     </button>
                     {mobileSortMenuOpen === 'canceled' && (
-                      <div className="absolute right-0 top-full mt-1 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[160px] overflow-hidden">
+                      <div className="absolute right-0 top-full mt-1 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[200px] overflow-hidden">
                         <div className="px-3 py-2 text-xs text-gray-500 border-b border-gray-700">Sort by</div>
                         {[
                           { value: 'custom', label: 'Custom' },
@@ -2179,21 +2395,54 @@ export default function TodoApp() {
                           { value: 'dueDate', label: 'Due Date' },
                           { value: 'recentlyAdded', label: 'Recent' },
                         ].map((option) => (
-                          <button
+                          <div
                             key={option.value}
-                            onClick={() => {
-                              handleSortChange('canceled', option.value)
-                              setMobileSortMenuOpen(null)
-                            }}
-                            className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${
+                            className={`flex items-center justify-between px-4 py-2.5 text-sm transition-colors ${
                               columnSortSettings.canceled?.sortBy === option.value 
                                 ? 'bg-gray-800 text-white' 
                                 : 'text-gray-300 hover:bg-gray-800'
                             }`}
                           >
-                            {option.label}
-                          </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleSortChange('canceled', option.value)
+                                // Only close for 'custom' option which has no direction toggle
+                                if (option.value === 'custom') {
+                                  setMobileSortMenuOpen(null)
+                                }
+                              }}
+                              className="flex-1 text-left"
+                            >
+                              {option.label}
+                            </button>
+                            {columnSortSettings.canceled?.sortBy === option.value && option.value !== 'custom' && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleToggleSortOrder('canceled')
+                                }}
+                                className="p-1 hover:bg-gray-700 rounded text-gray-400"
+                              >
+                                {columnSortSettings.canceled?.sortOrder === 'asc' 
+                                  ? <ArrowUp size={14} /> 
+                                  : <ArrowDown size={14} />
+                                }
+                              </button>
+                            )}
+                          </div>
                         ))}
+                        <div className="border-t border-gray-700 mt-1">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setMobileSortMenuOpen(null)
+                            }}
+                            className="w-full text-left px-4 py-2.5 text-sm text-gray-400 hover:bg-gray-800"
+                          >
+                            Close
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -2256,6 +2505,11 @@ export default function TodoApp() {
           onCreateTask={handleMobileCreateTask}
           configuredTags={configuredTags}
           availableAssignees={availableAssignees}
+          onOpenCalendarModal={handleOpenCreateCalendarModal}
+          onOpenAssignModal={handleOpenCreateAssignModal}
+          onOpenTagsModal={handleOpenCreateTagsModal}
+          newTaskData={newTaskData}
+          setNewTaskData={setNewTaskData}
         />
 
         {/* ============================================ */}
@@ -2329,6 +2583,9 @@ export default function TodoApp() {
               availableAssignees={availableAssignees}
               availableRoles={[]}
               onClose={() => {
+                if (createModeAssignModal) {
+                  setCreateModeAssignModal(false)
+                }
                 setAssignModalTask(null)
               }}
               onUpdate={(updatedTask) => {
@@ -2336,6 +2593,9 @@ export default function TodoApp() {
                 // Update mobile task view immediately
                 if (selectedMobileTask && selectedMobileTask.id === updatedTask.id) {
                   setSelectedMobileTask(updatedTask)
+                }
+                if (createModeAssignModal) {
+                  setCreateModeAssignModal(false)
                 }
                 setAssignModalTask(null)
               }}
@@ -2350,6 +2610,9 @@ export default function TodoApp() {
               task={tagsModalTask}
               configuredTags={configuredTags}
               onClose={() => {
+                if (createModeTagsModal) {
+                  setCreateModeTagsModal(false)
+                }
                 setTagsModalTask(null)
               }}
               onUpdate={(updatedTask) => {
@@ -2357,6 +2620,9 @@ export default function TodoApp() {
                 // Update mobile task view immediately
                 if (selectedMobileTask && selectedMobileTask.id === updatedTask.id) {
                   setSelectedMobileTask(updatedTask)
+                }
+                if (createModeTagsModal) {
+                  setCreateModeTagsModal(false)
                 }
                 setTagsModalTask(null)
               }}

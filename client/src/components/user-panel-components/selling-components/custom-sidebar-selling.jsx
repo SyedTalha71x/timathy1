@@ -1479,7 +1479,7 @@ const SidebarAreaSelling = ({
                                     <h3 className="font-semibold text-sm flex items-center gap-1">
                                       {birthday.name}
                                       {isBirthdayToday(birthday.date) && (
-                                        <span className="text-yellow-500">Ã°Å¸Å½â€š</span>
+                                        <span className="text-yellow-500">🎂</span>
                                       )}
                                     </h3>
                                     <p className="text-xs text-zinc-400">{birthday.date}</p>

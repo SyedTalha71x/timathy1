@@ -224,7 +224,7 @@ export default function TaskItem({
         isCompleted
           ? "bg-[#1c1c1c] text-gray-500"
           : isCanceled
-            ? "bg-[#1a1a1a] text-gray-600 italic line-through"
+            ? "bg-[#1a1a1a] text-gray-600 italic"
             : "bg-[#1a1a1a] text-white"
       } ${isAnimatingCompletion ? "animate-pulse scale-[0.98]" : ""}`}
       style={{
@@ -241,10 +241,10 @@ export default function TaskItem({
             {isCanceled ? (
               <button
                 onClick={() => handleStatusChange("ongoing")}
-                className="mt-1 h-4 w-4 flex items-center justify-center text-gray-400 bg-[#3a3a3a] rounded-sm cursor-pointer no-drag border border-gray-500"
-                title="Canceled"
+                className="mt-1 h-4 w-4 flex items-center justify-center text-gray-400 bg-[#3a3a3a] rounded-full cursor-pointer no-drag border border-gray-500"
+                title="Canceled - Click to restore"
               >
-                <X size={14} />
+                <X size={12} />
               </button>
             ) : (
               <div className="relative mt-1">
@@ -278,6 +278,8 @@ export default function TaskItem({
             <div className="flex-grow min-w-0">
               <h3
                 className={`font-medium text-sm break-words whitespace-normal word-wrap-break-word no-drag ${
+                  isCanceled ? "line-through" : ""
+                } ${
                   isCompleted || isCanceled ? "" : "cursor-pointer hover:text-gray-300 transition-colors"
                 } ${
                   !isDragging && !isCompleted && !isCanceled
@@ -292,13 +294,6 @@ export default function TaskItem({
                 }}
               >
                 {task.title}
-                {task.isPinned && (
-                  <Pin
-                    size={14}
-                    className="inline-block ml-2 text-gray-500 fill-gray-500"
-                    aria-label="Task is pinned"
-                  />
-                )}
               </h3>
             </div>
           </div>

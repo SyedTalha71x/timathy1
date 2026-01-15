@@ -1,5 +1,6 @@
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react/prop-types */
+import { useEffect } from "react";
 import { AlertTriangle } from "lucide-react";
 
 export default function DeleteConfirmationModal({
@@ -8,6 +9,17 @@ export default function DeleteConfirmationModal({
   onConfirm,
   productToDelete,
 }) {
+  // ESC key handler
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && show) {
+        onClose();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [show, onClose]);
+
   if (!show) return null;
 
   return (
@@ -29,14 +41,14 @@ export default function DeleteConfirmationModal({
           <div className="flex flex-row justify-center items-center gap-3 pt-2">
             <button
               onClick={onConfirm}
-              className="w-full sm:w-auto px-8 py-2.5 bg-red-500 text-sm text-white rounded-xl hover:bg-red-600 transition-colors"
+              className="flex-1 sm:flex-none sm:w-auto px-8 py-2.5 bg-red-500 text-sm text-white rounded-xl hover:bg-red-600 transition-colors"
             >
               Delete
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="w-full sm:w-auto px-8 py-2.5 bg-transparent text-sm text-white rounded-xl border border-[#333333] hover:bg-[#101010] transition-colors"
+              className="flex-1 sm:flex-none sm:w-auto px-8 py-2.5 bg-transparent text-sm text-white rounded-xl border border-[#333333] hover:bg-[#101010] transition-colors"
             >
               Cancel
             </button>

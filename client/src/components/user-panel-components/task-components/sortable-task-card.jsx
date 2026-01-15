@@ -260,13 +260,19 @@ export default function SortableTaskCard({
       >
         <div className="flex items-center gap-3">
           <GripVertical size={16} className="text-blue-400 flex-shrink-0" />
-          <input
-            type="checkbox"
-            checked={isCompleted}
-            readOnly
-            className="form-checkbox h-5 w-5 rounded-full border-gray-300 flex-shrink-0"
-          />
-          <span className="font-medium text-sm select-none truncate">{task.title}</span>
+          {isCanceled ? (
+            <div className="w-5 h-5 flex items-center justify-center text-gray-400 bg-[#3a3a3a] rounded-full border border-gray-500 flex-shrink-0">
+              <X size={12} />
+            </div>
+          ) : (
+            <input
+              type="checkbox"
+              checked={isCompleted}
+              readOnly
+              className="form-checkbox h-5 w-5 rounded-full border-gray-300 flex-shrink-0"
+            />
+          )}
+          <span className={`font-medium text-sm select-none truncate ${isCanceled ? 'line-through' : ''}`}>{task.title}</span>
         </div>
       </div>
     )
@@ -441,10 +447,7 @@ export default function SortableTaskCard({
                 </div>
               )}
 
-              {/* Pin indicator */}
-              {task.isPinned && (
-                <Pin size={12} className="text-amber-400 fill-amber-400 flex-shrink-0" />
-              )}
+              {/* Pin indicator removed - pins shown in section header only */}
             </div>
 
             {/* Right side: Date/Time - pushed to right on desktop */}

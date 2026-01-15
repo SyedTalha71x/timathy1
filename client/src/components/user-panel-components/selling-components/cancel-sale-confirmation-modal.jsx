@@ -44,4 +44,3 @@ const CancelSaleConfirmationModal = ({ sale, onConfirm, onClose }) => {
 }
 
 export default CancelSaleConfirmationModal
-    

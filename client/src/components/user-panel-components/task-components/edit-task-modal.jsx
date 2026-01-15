@@ -3,7 +3,7 @@
 
 // NOTE: Compatible with both props: taskToEdit and task
 
-import { X, ChevronDown, Users, Tag, Bell, Repeat } from "lucide-react"
+import { X, ChevronDown, Users, Tag, Bell, Repeat, Check } from "lucide-react"
 import { useState } from "react"
 
 const EditTaskModal = ({ onClose, onUpdateTask, configuredTags = [], taskToEdit, task }) => {
@@ -213,7 +213,7 @@ const EditTaskModal = ({ onClose, onUpdateTask, configuredTags = [], taskToEdit,
                               <Users size={14} />
                               <span className="text-gray-200">{fullName}</span>
                             </div>
-                            {isSelected && <span className="text-green-400">✓</span>}
+                            {isSelected && <Check size={14} className="text-green-400" />}
                           </button>
                         )
                       })}
@@ -281,7 +281,7 @@ const EditTaskModal = ({ onClose, onUpdateTask, configuredTags = [], taskToEdit,
                               <Users size={14} />
                               <span className="text-gray-200">{role}</span>
                             </div>
-                            {isSelected && <span className="text-green-400">✓</span>}
+                            {isSelected && <Check size={14} className="text-green-400" />}
                           </button>
                         )
                       })}
@@ -339,7 +339,7 @@ const EditTaskModal = ({ onClose, onUpdateTask, configuredTags = [], taskToEdit,
                             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: tag.color }} />
                             <span className="text-gray-200">{tag.name}</span>
                           </div>
-                          {isSelected && <span className="text-green-400">✓</span>}
+                          {isSelected && <Check size={14} className="text-green-400" />}
                         </button>
                       )
                     })}

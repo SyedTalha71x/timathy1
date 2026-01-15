@@ -74,21 +74,25 @@ const SortableTaskColumn = ({
     }
   }, [showSortDropdown])
 
-  // Update position on scroll/resize when dropdown is open
+  // Update position on scroll/resize when dropdown is open - close on scroll
   useEffect(() => {
     if (showSortDropdown) {
       updateDropdownPosition()
       
-      const handleScrollResize = () => {
+      const handleScroll = () => {
+        setShowSortDropdown(false)
+      }
+      
+      const handleResize = () => {
         updateDropdownPosition()
       }
       
-      window.addEventListener('scroll', handleScrollResize, true)
-      window.addEventListener('resize', handleScrollResize)
+      window.addEventListener('scroll', handleScroll, true)
+      window.addEventListener('resize', handleResize)
       
       return () => {
-        window.removeEventListener('scroll', handleScrollResize, true)
-        window.removeEventListener('resize', handleScrollResize)
+        window.removeEventListener('scroll', handleScroll, true)
+        window.removeEventListener('resize', handleResize)
       }
     }
   }, [showSortDropdown])
@@ -107,7 +111,10 @@ const SortableTaskColumn = ({
 
   const handleSortOptionClick = (sortBy) => {
     onSortChange(sortBy)
-    setShowSortDropdown(false)
+    // Only close for 'custom' option which has no direction toggle
+    if (sortBy === 'custom') {
+      setShowSortDropdown(false)
+    }
   }
 
   const handleToggleDropdown = (e) => {
@@ -204,19 +211,23 @@ const SortableTaskColumn = ({
               Sort by
             </div>
             {sortOptions.map((option) => (
-              <button
+              <div
                 key={option.value}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  handleSortOptionClick(option.value)
-                }}
-                className={`w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${
+                className={`flex items-center justify-between px-4 py-3 text-sm transition-colors ${
                   sortSettings.sortBy === option.value 
                     ? 'text-white bg-gray-800/50' 
-                    : 'text-gray-300'
+                    : 'text-gray-300 hover:bg-gray-800'
                 }`}
               >
-                <span>{option.label}</span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleSortOptionClick(option.value)
+                  }}
+                  className="flex-1 text-left"
+                >
+                  {option.label}
+                </button>
                 {sortSettings.sortBy === option.value && option.value !== 'custom' && (
                   <button
                     onClick={(e) => {
@@ -232,8 +243,19 @@ const SortableTaskColumn = ({
                     }
                   </button>
                 )}
-              </button>
+              </div>
             ))}
+            <div className="border-t border-gray-700 mt-1">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setShowSortDropdown(false)
+                }}
+                className="w-full text-left px-4 py-2.5 text-sm text-gray-400 hover:bg-gray-800"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -284,8 +306,7 @@ const SortableTaskColumn = ({
                 {unpinnedTasks.length > 0 && (
                   <>
                     {pinnedTasks.length > 0 && (
-                      <div className="flex items-center gap-2 px-2 py-1 mt-2">
-                        <span className="text-xs text-gray-500 font-medium">Tasks</span>
+                      <div className="flex items-center px-2 py-1 mt-2">
                         <div className="flex-1 h-px bg-gray-700"></div>
                       </div>
                     )}

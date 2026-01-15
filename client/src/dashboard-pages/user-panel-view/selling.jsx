@@ -35,19 +35,19 @@ const SortableItemCard = ({ item, children, isDragDisabled }) => {
   const style = {
     transform: CSS.Transform.toString(transform),
     transition: isDragging ? 'none' : transition,
-    opacity: isDragging ? 0.9 : 1,
+    opacity: isDragging ? 0.95 : 1,
     zIndex: isDragging ? 1000 : 1,
-    boxShadow: isDragging ? '0 4px 12px rgba(249, 115, 22, 0.15)' : 'none',
+    boxShadow: isDragging ? '0 4px 12px rgba(0, 0, 0, 0.15)' : 'none',
     willChange: isDragging ? 'transform' : 'auto',
   }
 
   return (
-    <div ref={setNodeRef} style={style} className={`relative h-full ${isDragging ? 'rounded-xl ring-1 ring-orange-500/30' : ''}`}>
+    <div ref={setNodeRef} style={style} className={`relative h-full ${isDragging ? 'rounded-xl ring-1 ring-gray-500/30' : ''}`}>
       {!isDragDisabled && (
         <div 
           {...attributes} 
           {...listeners}
-          className="absolute top-3 left-3 cursor-grab active:cursor-grabbing text-white hover:text-white active:text-orange-400 p-1.5 rounded-lg active:bg-orange-500/30 z-20 touch-none bg-black/50 shadow"
+          className="absolute top-3 left-3 md:top-4 md:left-4 cursor-grab active:cursor-grabbing text-white hover:text-white active:text-blue-400 p-1.5 md:p-1.5 rounded-lg active:bg-blue-600/30 z-20 touch-none bg-black/60 shadow-lg"
           style={{ WebkitTapHighlightColor: 'transparent' }}
         >
           <GripVertical className="w-4 h-4" />
@@ -220,6 +220,56 @@ const Selling = () => {
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [])
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Ignore if user is typing in an input or textarea
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return
+      
+      // Ignore if Ctrl/Cmd is pressed (for Ctrl+C copy, etc.)
+      if (e.ctrlKey || e.metaKey) return
+      
+      // ESC key - Close modals
+      if (e.key === 'Escape') {
+        if (isModalOpen) {
+          setIsModalOpen(false)
+          return
+        }
+        if (isDeleteModalOpen) {
+          setIsDeleteModalOpen(false)
+          return
+        }
+        if (showHistoryModalMain) {
+          setShowHistoryModalMain(false)
+          return
+        }
+        if (showCreateTempMemberModal) {
+          setShowCreateTempMemberModal(false)
+          return
+        }
+      }
+      
+      // C key - Create new product/service
+      if (e.key === 'c' || e.key === 'C') {
+        if (!isModalOpen && !isDeleteModalOpen && !showHistoryModalMain && !showCreateTempMemberModal) {
+          e.preventDefault()
+          openAddModal()
+        }
+      }
+      
+      // J key - Open Journal
+      if (e.key === 'j' || e.key === 'J') {
+        if (!isModalOpen && !isDeleteModalOpen && !showHistoryModalMain && !showCreateTempMemberModal) {
+          e.preventDefault()
+          setShowHistoryModalMain(true)
+        }
+      }
+    }
+    
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [isModalOpen, isDeleteModalOpen, showHistoryModalMain, showCreateTempMemberModal])
 
   const toggleRightSidebar = () => {
     setIsRightSidebarOpen(!isRightSidebarOpen)
@@ -443,7 +493,10 @@ const Selling = () => {
     } else {
       setCart([...cart, { ...item, quantity: 1 }])
     }
-    setIsRightSidebarOpen(true)
+    // Only open sidebar on desktop (768px = md breakpoint)
+    if (window.innerWidth >= 768) {
+      setIsRightSidebarOpen(true)
+    }
   }
 
   const removeFromCart = (itemId) => {
@@ -689,30 +742,92 @@ Payment Method: ${invoiceData.paymentMethod}
           <div className="flex sm:items-center justify-between mb-4 gap-4">
             <div className="flex items-center gap-3">
               <h1 className="text-white oxanium_font text-xl md:text-2xl">Selling</h1>
+              
+              {/* Sort Button - Mobile: next to title */}
+              <div className="md:hidden relative" ref={sortDropdownRef}>
+                <button
+                  onClick={(e) => { e.stopPropagation(); setShowSortDropdown(!showSortDropdown) }}
+                  className="px-3 py-2 bg-[#2F2F2F] text-gray-300 rounded-xl text-xs hover:bg-[#3F3F3F] transition-colors flex items-center gap-2"
+                >
+                  {getSortIcon()}
+                  <span>{currentSortLabel}</span>
+                </button>
+
+                {/* Sort Dropdown - Mobile */}
+                {showSortDropdown && (
+                  <div className="absolute left-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[180px]">
+                    <div className="py-1">
+                      <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">
+                        Sort by
+                      </div>
+                      {sortOptions.map((option) => (
+                        <button
+                          key={option.value}
+                          onClick={(e) => { e.stopPropagation(); handleSortOptionClick(option.value) }}
+                          className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${sortBy === option.value ? 'text-white bg-gray-800/50' : 'text-gray-300'}`}
+                        >
+                          <span>{option.label}</span>
+                          {sortBy === option.value && option.value !== 'custom' && (
+                            <span className="text-gray-400">{sortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}</span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="flex items-center gap-2">
-              {/* History Button */}
-              <button
-                onClick={() => setShowHistoryModalMain(true)}
-                className="bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300 text-sm px-3 py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-colors font-medium"
-                title="View Sales Journal"
-              >
-                <History size={16} />
-                <span className="hidden sm:inline">Journal</span>
-              </button>
+              {/* History Button with Tooltip */}
+              <div className="relative group">
+                <button
+                  onClick={() => setShowHistoryModalMain(true)}
+                  className="bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300 text-sm px-3 py-3 md:py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-colors font-medium"
+                >
+                  <History size={18} className="md:w-4 md:h-4" />
+                  <span className="hidden sm:inline">Journal</span>
+                </button>
+                {/* Tooltip */}
+                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                  <span className="font-medium">Sales Journal</span>
+                  <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
+                    J
+                  </span>
+                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                </div>
+              </div>
 
-              {/* Add Product/Service Button - Desktop */}
+              {/* Add Product/Service Button - Desktop with Tooltip */}
+              <div className="hidden md:block relative group">
+                <button
+                  onClick={openAddModal}
+                  className="bg-orange-500 hover:bg-orange-600 text-xs sm:text-sm text-white px-3 sm:px-4 py-2.5 rounded-xl flex items-center gap-2 justify-center transition-colors"
+                >
+                  <Plus size={16} />
+                  <span className='hidden sm:inline'>Add {activeTab === "services" ? "Service" : "Product"}</span>
+                </button>
+                {/* Tooltip */}
+                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                  <span className="font-medium">Add {activeTab === "services" ? "Service" : "Product"}</span>
+                  <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
+                    C
+                  </span>
+                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                </div>
+              </div>
+
+              {/* Add Button - Mobile Only */}
               <button
                 onClick={openAddModal}
-                className="hidden md:flex bg-orange-500 hover:bg-orange-600 text-xs sm:text-sm text-white px-3 sm:px-4 py-2.5 rounded-xl items-center gap-2 justify-center transition-colors"
+                className="md:hidden cursor-pointer relative p-3 bg-orange-500 hover:bg-orange-600 rounded-xl transition-colors"
+                aria-label={`Add ${activeTab === "services" ? "Service" : "Product"}`}
               >
-                <Plus size={16} />
-                <span className='hidden sm:inline'>Add {activeTab === "services" ? "Service" : "Product"}</span>
+                <Plus size={18} className="text-white" />
               </button>
 
-              {/* Cart Icon */}
-              <div onClick={toggleRightSidebar} className="cursor-pointer relative p-2 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-xl transition-colors">
+              {/* Cart Icon - Desktop Only */}
+              <div onClick={toggleRightSidebar} className="hidden md:block cursor-pointer relative p-3 md:p-2 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-xl transition-colors">
                 <ShoppingCart size={18} className="text-white" />
                 {cart.length > 0 && (
                   <span className="bg-orange-500 text-white text-[10px] rounded-full px-[5px] py-[2px] min-w-[18px] h-[18px] flex items-center justify-center absolute -top-1 -right-1">
@@ -727,7 +842,7 @@ Payment Method: ${invoiceData.paymentMethod}
           <div className="flex border-b border-gray-800 mb-4">
             <button
               onClick={() => setActiveTab("products")}
-              className={`flex-1 sm:flex-none px-6 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+              className={`flex-1 sm:flex-none px-4 sm:px-6 py-3.5 sm:py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
                 activeTab === "products" 
                   ? "text-white border-b-2 border-orange-400" 
                   : "text-gray-400 hover:text-white"
@@ -738,7 +853,7 @@ Payment Method: ${invoiceData.paymentMethod}
             </button>
             <button
               onClick={() => setActiveTab("services")}
-              className={`flex-1 sm:flex-none px-6 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+              className={`flex-1 sm:flex-none px-4 sm:px-6 py-3.5 sm:py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
                 activeTab === "services" 
                   ? "text-white border-b-2 border-orange-400" 
                   : "text-gray-400 hover:text-white"
@@ -759,18 +874,18 @@ Payment Method: ${invoiceData.paymentMethod}
                 placeholder={activeTab === "products" ? "Search by name, brand or article no..." : "Search by name..."}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2.5 pl-10 border border-[#333333] focus:border-[#3F74FF] transition-colors [&::placeholder]:text-ellipsis [&::placeholder]:overflow-hidden"
+                className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-3 md:py-2.5 pl-10 border border-[#333333] focus:border-[#3F74FF] transition-colors [&::placeholder]:text-ellipsis [&::placeholder]:overflow-hidden"
               />
             </div>
 
-            {/* Sort Dropdown */}
-            <div className="relative" ref={sortDropdownRef}>
+            {/* Sort Dropdown - Desktop only */}
+            <div className="hidden md:block relative" ref={sortDropdownRef}>
               <button
                 onClick={(e) => { e.stopPropagation(); setShowSortDropdown(!showSortDropdown) }}
                 className="px-4 py-2.5 bg-[#2F2F2F] text-gray-300 rounded-xl text-sm hover:bg-[#3F3F3F] transition-colors flex items-center gap-2 whitespace-nowrap"
               >
                 {getSortIcon()}
-                <span className="hidden sm:inline">{currentSortLabel}</span>
+                <span>{currentSortLabel}</span>
               </button>
               {showSortDropdown && (
                 <div className="absolute top-full right-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[180px]">
@@ -800,22 +915,24 @@ Payment Method: ${invoiceData.paymentMethod}
               <div
                 className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 
                   ${isRightSidebarOpen ? "lg:grid-cols-3 xl:grid-cols-3" : "lg:grid-cols-4 xl:grid-cols-5"} 
-                  gap-4 auto-rows-fr`}
+                  gap-4 md:gap-6 auto-rows-fr`}
               >
                 {sortedItems.map((item) => (
                   <SortableItemCard key={item.id} item={item} isDragDisabled={false}>
-                    <div className="w-full h-full bg-[#181818] rounded-2xl overflow-hidden relative group">
+                    <div className="w-full h-full bg-[#181818] rounded-2xl overflow-hidden relative group select-none">
                       {/* IMAGE / ORANGE BOX - 16:9 aspect ratio */}
                       <div className="relative w-full aspect-video overflow-hidden rounded-t-2xl">
                         {item.image ? (
                           <img
                             src={item.image || "/placeholder.svg"}
                             alt={item.name}
-                            className="object-cover w-full h-full"
+                            className="object-cover w-full h-full pointer-events-none"
+                            draggable="false"
+                            onDragStart={(e) => e.preventDefault()}
                           />
                         ) : (
                           <div className="w-full h-full bg-orange-500 flex items-center justify-center text-white text-center p-4">
-                            <p className={`font-bold leading-tight ${getTextSizeClass(item.name, true)}`} style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>
+                            <p className={`font-bold leading-tight ${getTextSizeClass(item.name, true)}`} style={{ wordBreak: 'break-word', overflowWrap: 'break-word', userSelect: 'none' }}>
                               {item.name}
                             </p>
                           </div>
@@ -828,7 +945,7 @@ Payment Method: ${invoiceData.paymentMethod}
                             className="absolute bottom-3 left-3 cursor-pointer bg-black/50 hover:bg-black/70 text-white p-2 rounded-lg transition-colors"
                             aria-label="Open link"
                           >
-                            <ExternalLink size={16} />
+                            <ExternalLink className="w-4 h-4" />
                           </button>
                         )}
 
@@ -839,7 +956,7 @@ Payment Method: ${invoiceData.paymentMethod}
                             className="bg-black/50 cursor-pointer hover:bg-black/70 text-white p-2 rounded-lg transition-colors relative"
                             aria-label="Add to cart"
                           >
-                            <ShoppingBasket size={16} />
+                            <ShoppingBasket className="w-4 h-4" />
                             {cart.some(cartItem => cartItem.id === item.id) && (
                               <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-[10px] rounded-full px-[4px] py-[1px] min-w-[16px] h-[16px] flex items-center justify-center border border-white">
                                 {cart.find(cartItem => cartItem.id === item.id)?.quantity || 0}
@@ -850,7 +967,7 @@ Payment Method: ${invoiceData.paymentMethod}
                       </div>
 
                       {/* CONTENT */}
-                      <div className="p-3">
+                      <div className="p-4 md:p-3">
                         <div className="min-h-[70px] flex flex-col justify-between">
                           <div className="mb-2">
                             {/* Row 1: Product/Service Name - always visible */}
@@ -886,9 +1003,9 @@ Payment Method: ${invoiceData.paymentMethod}
                                   e.stopPropagation()
                                   setDropdownOpen(dropdownOpen === item.id ? null : item.id)
                                 }}
-                                className="text-gray-400 hover:text-orange-400 p-1.5 rounded-lg hover:bg-gray-800 transition-colors"
+                                className="text-gray-400 hover:text-orange-400 p-2 md:p-1.5 rounded-lg hover:bg-gray-800 transition-colors"
                               >
-                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <svg className="w-5 h-5 md:w-4 md:h-4" fill="currentColor" viewBox="0 0 20 20">
                                   <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
                                 </svg>
                               </button>
@@ -899,7 +1016,7 @@ Payment Method: ${invoiceData.paymentMethod}
                                       e.stopPropagation()
                                       openEditModal(item)
                                     }} 
-                                    className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2 transition-colors"
+                                    className="w-full text-left px-3 py-2.5 md:py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2 transition-colors"
                                   >
                                     <Edit size={14} /> Edit
                                   </button>
@@ -908,7 +1025,7 @@ Payment Method: ${invoiceData.paymentMethod}
                                       e.stopPropagation()
                                       handleDuplicateItem(item)
                                     }} 
-                                    className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2 transition-colors"
+                                    className="w-full text-left px-3 py-2.5 md:py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2 transition-colors"
                                   >
                                     <Copy size={14} /> Duplicate
                                   </button>
@@ -917,7 +1034,7 @@ Payment Method: ${invoiceData.paymentMethod}
                                       e.stopPropagation()
                                       openDeleteModal(item)
                                     }} 
-                                    className="w-full text-left px-3 py-2 hover:bg-gray-800 text-red-500 text-sm flex items-center gap-2 transition-colors"
+                                    className="w-full text-left px-3 py-2.5 md:py-2 hover:bg-gray-800 text-red-500 text-sm flex items-center gap-2 transition-colors"
                                   >
                                     <Trash2 size={14} /> Delete
                                   </button>
@@ -1052,14 +1169,21 @@ Payment Method: ${invoiceData.paymentMethod}
         )}
       </div>
 
-      {/* Floating Action Button - Mobile */}
-      <button
-        onClick={openAddModal}
-        className="md:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
-        aria-label={`Add ${activeTab === "services" ? "Service" : "Product"}`}
-      >
-        <Plus size={22} />
-      </button>
+      {/* Floating Action Button - Mobile Only - Shopping Cart (hidden when sidebar is open) */}
+      {!isRightSidebarOpen && (
+        <button
+          onClick={toggleRightSidebar}
+          className="md:hidden fixed bottom-4 right-4 bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white p-4 rounded-xl shadow-2xl transition-all active:scale-95 z-[100]"
+          aria-label="Open Shopping Cart"
+        >
+          <ShoppingCart size={22} />
+          {cart.length > 0 && (
+            <span className="bg-orange-500 text-white text-[10px] rounded-full px-[5px] py-[2px] min-w-[18px] h-[18px] flex items-center justify-center absolute -top-1 -right-1 border-2 border-[#1C1C1C]">
+              {cart.reduce((sum, item) => sum + item.quantity, 0)}
+            </span>
+          )}
+        </button>
+      )}
     </>
   )
 }

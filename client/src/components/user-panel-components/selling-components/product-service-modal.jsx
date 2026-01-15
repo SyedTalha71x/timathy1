@@ -45,6 +45,17 @@ const ProductServiceModal = ({
     }
   }, [isOpen])
 
+  // ESC key handler
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isOpen && !showCropModal) {
+        closeModal()
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, showCropModal, closeModal])
+
   // Reset original image when editing a different product
   useEffect(() => {
     if (isOpen && modalMode === "edit" && currentProduct) {
@@ -339,7 +350,7 @@ const ProductServiceModal = ({
             <div className="flex flex-row-reverse gap-3 p-6 pt-4 border-t border-[#333333] bg-[#181818] flex-shrink-0">
               <button
                 type="submit"
-                className="w-full sm:w-auto px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-sm text-white rounded-xl transition-colors flex items-center justify-center gap-2 font-medium"
+                className="flex-1 sm:flex-none sm:w-auto px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-sm text-white rounded-xl transition-colors flex items-center justify-center gap-2 font-medium"
               >
                 {modalMode === "add" && <Plus size={16} />}
                 {buttonText}
@@ -347,7 +358,7 @@ const ProductServiceModal = ({
               <button
                 type="button"
                 onClick={closeModal}
-                className="w-full sm:w-auto px-6 py-2.5 bg-gray-600 hover:bg-gray-500 text-sm text-white rounded-xl transition-colors"
+                className="flex-1 sm:flex-none sm:w-auto px-6 py-2.5 bg-gray-600 hover:bg-gray-500 text-sm text-white rounded-xl transition-colors"
               >
                 Cancel
               </button>

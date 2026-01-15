@@ -84,14 +84,57 @@ const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice,
   // Period options
   const periodOptions = ["Overall", "Today", "This Week", "This Month", "Last Month", "This Year"]
 
+  // ESC key handler
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        // Close sub-modals first, then main modal
+        if (periodDropdownOpen) {
+          setPeriodDropdownOpen(false)
+          setIsCustomPeriodExpanded(false)
+          return
+        }
+        if (invoiceToView) {
+          setInvoiceToView(null)
+          return
+        }
+        if (saleToCancel) {
+          setSaleToCancel(null)
+          return
+        }
+        if (exportModalOpen) {
+          setExportModalOpen(false)
+          return
+        }
+        onClose()
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [periodDropdownOpen, invoiceToView, saleToCancel, exportModalOpen, onClose])
+
   // Update dropdown position when opening
   useEffect(() => {
     if (periodDropdownOpen && periodDropdownRef.current) {
       const rect = periodDropdownRef.current.getBoundingClientRect()
-      setDropdownPosition({
-        top: rect.bottom + 8,
-        left: Math.min(rect.left, window.innerWidth - 360)
-      })
+      const isMobile = window.innerWidth < 640 // sm breakpoint
+      
+      if (isMobile) {
+        // Center on mobile
+        setDropdownPosition({
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          isMobile: true
+        })
+      } else {
+        setDropdownPosition({
+          top: rect.bottom + 8,
+          left: Math.min(rect.left, window.innerWidth - 360),
+          transform: 'none',
+          isMobile: false
+        })
+      }
     }
   }, [periodDropdownOpen])
 
@@ -304,7 +347,7 @@ const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice,
     if (customDates.startDate && customDates.endDate) {
       const formattedStart = formatDateForDisplay(customDates.startDate)
       const formattedEnd = formatDateForDisplay(customDates.endDate)
-      setSelectedPeriod(`Custom: ${formattedStart} â€“ ${formattedEnd}`)
+      setSelectedPeriod(`Custom: ${formattedStart} – ${formattedEnd}`)
       setCustomDateRange({
         start: customDates.startDate,
         end: customDates.endDate
@@ -345,13 +388,18 @@ const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice,
         <>
           {/* Backdrop */}
           <div 
-            className="fixed inset-0 z-[10000001]" 
+            className="fixed inset-0 z-[10000001] bg-black/50 sm:bg-transparent" 
             onClick={closeDropdown}
           />
           {/* Dropdown content */}
           <div 
-            className="fixed bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-2xl max-h-[70vh] overflow-y-auto z-[10000002]"
-            style={{
+            className="fixed bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-2xl max-h-[70vh] overflow-y-auto z-[10000002] w-[calc(100%-32px)] sm:w-[340px]"
+            style={dropdownPosition.isMobile ? {
+              top: dropdownPosition.top,
+              left: dropdownPosition.left,
+              transform: dropdownPosition.transform,
+              maxWidth: '340px',
+            } : {
               top: dropdownPosition.top,
               left: dropdownPosition.left,
               width: '340px',

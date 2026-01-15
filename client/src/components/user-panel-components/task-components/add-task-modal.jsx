@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unknown-property */
 /* eslint-disable react/prop-types */
 
-import { X, ChevronDown, Users, Tag, Bell, Repeat } from "lucide-react"
+import { X, ChevronDown, Users, Tag, Bell, Repeat, Check } from "lucide-react"
 import { useState } from "react"
 
 const AddTaskModal = ({ onClose, onAddTask, configuredTags = [] }) => {
@@ -236,7 +236,7 @@ const AddTaskModal = ({ onClose, onAddTask, configuredTags = [] }) => {
                               <Users size={14} />
                               <span className="text-gray-200">{fullName}</span>
                             </div>
-                            {isSelected && <span className="text-green-400">✓</span>}
+                            {isSelected && <Check size={14} className="text-green-400" />}
                           </button>
                         )
                       })}
@@ -304,7 +304,7 @@ const AddTaskModal = ({ onClose, onAddTask, configuredTags = [] }) => {
                               <Users size={14} />
                               <span className="text-gray-200">{role}</span>
                             </div>
-                            {isSelected && <span className="text-green-400">✓</span>}
+                            {isSelected && <Check size={14} className="text-green-400" />}
                           </button>
                         )
                       })}
@@ -360,7 +360,7 @@ const AddTaskModal = ({ onClose, onAddTask, configuredTags = [] }) => {
                             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: tag.color }} />
                             <span className="text-gray-200">{tag.name}</span>
                           </div>
-                          {isSelected && <span className="text-green-400">✓</span>}
+                          {isSelected && <Check size={14} className="text-green-400" />}
                         </button>
                       )
                     })}
