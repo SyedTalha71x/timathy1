@@ -1,12 +1,13 @@
 /* eslint-disable no-unused-vars */
 import { useCallback, useState, useRef, useEffect } from "react"
 import { Toaster } from "react-hot-toast"
-import { Search, Plus, ArrowUpDown, ArrowUp, ArrowDown, Tag, Info, Eye, Edit, Copy, Trash2, GripVertical } from "lucide-react"
+import { Search, Plus, ArrowUpDown, ArrowUp, ArrowDown, Tag, Info, Eye, Edit, Copy, Trash2, GripVertical, Calendar, Clock } from "lucide-react"
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 
 import { trainingVideosData } from "../../utils/user-panel-states/training-states"
+import { defaultTags, defaultPosts } from "../../utils/user-panel-states/bulletin-board-states"
 import { useSidebarSystem } from "../../hooks/useSidebarSystem"
 import { WidgetSelectionModal } from "../../components/widget-selection-modal"
 
@@ -37,6 +38,39 @@ const stripHtmlTags = (html) => {
   text = tmp.textContent || tmp.innerText || ''
   // Clean up multiple newlines and trim
   return text.replace(/\n{3,}/g, '\n\n').trim()
+}
+
+// Format schedule date for display
+const formatScheduleDate = (dateStr) => {
+  if (!dateStr) return ''
+  const date = new Date(dateStr)
+  return date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+}
+
+// Format schedule time for display
+const formatScheduleTime = (time) => {
+  if (!time) return ''
+  const [hours, minutes] = time.split(':')
+  const hour = parseInt(hours)
+  const ampm = hour >= 12 ? 'PM' : 'AM'
+  const formattedHour = hour % 12 || 12
+  return `${formattedHour}:${minutes} ${ampm}`
+}
+
+// Get full schedule tooltip text
+const getScheduleTooltipText = (schedule) => {
+  if (!schedule) return ''
+  let text = ''
+  if (schedule.type === 'scheduled' && schedule.startDate) {
+    text += `Starts: ${formatScheduleDate(schedule.startDate)}`
+    if (schedule.startTime) text += ` at ${formatScheduleTime(schedule.startTime)}`
+  }
+  if (schedule.hasEndDate && schedule.endDate) {
+    if (text) text += '\n'
+    text += `Ends: ${formatScheduleDate(schedule.endDate)}`
+    if (schedule.endTime) text += ` at ${formatScheduleTime(schedule.endTime)}`
+  }
+  return text
 }
 
 // Sortable Post Card Component
@@ -82,78 +116,13 @@ const SortablePostCard = ({ post, children, isDragDisabled }) => {
 const BulletinBoard = () => {
   const sidebarSystem = useSidebarSystem()
 
-  const [tags, setTags] = useState([
-    { id: 1, name: "Important", color: "#ef4444" },
-    { id: 2, name: "Info", color: "#3b82f6" },
-    { id: 3, name: "Event", color: "#8b5cf6" },
-  ])
+  const [tags, setTags] = useState(defaultTags)
   const [isTagManagerOpen, setIsTagManagerOpen] = useState(false)
 
   // Tab state - "member" or "staff"
   const [activeTab, setActiveTab] = useState("member")
 
-  const [posts, setPosts] = useState([
-    {
-      id: 1,
-      title: "Welcome to the Bulletin Board",
-      content: "<p>This is where important announcements and information will be shared with team members and staff.</p><p><strong>Key updates:</strong></p><ul><li>New scheduling system rolling out next week</li><li>Updated safety protocols</li></ul>",
-      visibility: "Members",
-      status: "Active",
-      author: "Admin",
-      createdAt: Date.now() - 86400000 * 2,
-      createdBy: "current-user",
-      image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&h=450&fit=crop",
-      tags: [],
-    },
-    {
-      id: 2,
-      title: "Quick Update",
-      content: "<p>Meeting at 3 PM today.</p>",
-      visibility: "Staff",
-      status: "Active",
-      author: "Manager",
-      createdAt: Date.now() - 86400000,
-      createdBy: "current-user",
-      image: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800&h=450&fit=crop",
-      tags: [1],
-    },
-    {
-      id: 3,
-      title: "Reminder",
-      content: "<p>Don't forget to submit your reports by Friday.</p><p>This is a longer post with more content to show the difference in tile sizes.</p>",
-      visibility: "Members",
-      status: "Active",
-      author: "Supervisor",
-      createdAt: Date.now() - 86400000 * 3,
-      createdBy: "other-user",
-      image: "https://images.unsplash.com/photo-1540497077202-7c8a3999166f?w=800&h=450&fit=crop",
-      tags: [2],
-    },
-    {
-      id: 4,
-      title: "Holiday Schedule Update",
-      content: "<p>Please note the updated holiday schedule for the upcoming season.</p>",
-      visibility: "Members",
-      status: "Inactive",
-      author: "HR",
-      createdAt: Date.now() - 86400000 * 5,
-      createdBy: "current-user",
-      image: "",
-      tags: [3],
-    },
-    {
-      id: 5,
-      title: "Staff Training Session",
-      content: "<p>Mandatory training session scheduled for all staff members next Monday.</p><p>Topics covered:</p><ol><li>New software training</li><li>Safety procedures</li><li>Customer service excellence</li></ol>",
-      visibility: "Staff",
-      status: "Inactive",
-      author: "Training Dept",
-      createdAt: Date.now() - 86400000 * 7,
-      createdBy: "other-user",
-      image: "",
-      tags: [1, 2],
-    },
-  ])
+  const [posts, setPosts] = useState(defaultPosts)
 
   const trainingVideos = trainingVideosData
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -170,6 +139,7 @@ const BulletinBoard = () => {
   const [sortDirection, setSortDirection] = useState("desc")
   const [showSortDropdown, setShowSortDropdown] = useState(false)
   const [showInfoTooltip, setShowInfoTooltip] = useState(false)
+  const [schedulePopupPostId, setSchedulePopupPostId] = useState(null)
 
   const sortDropdownRef = useRef(null)
   const infoTooltipRef = useRef(null)
@@ -209,10 +179,14 @@ const BulletinBoard = () => {
       if (infoTooltipRef.current && !infoTooltipRef.current.contains(event.target)) {
         setShowInfoTooltip(false)
       }
+      // Close schedule popup when clicking outside
+      if (schedulePopupPostId && !event.target.closest('[data-schedule-popup]')) {
+        setSchedulePopupPostId(null)
+      }
     }
     document.addEventListener('click', handleClickOutside)
     return () => document.removeEventListener('click', handleClickOutside)
-  }, [])
+  }, [schedulePopupPostId])
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -315,9 +289,20 @@ const BulletinBoard = () => {
 
   const handleCreatePost = useCallback((formData) => {
     if (formData.title.trim() && stripHtmlTags(formData.content).trim()) {
+      // Status automatisch basierend auf Schedule setzen
+      let finalStatus = formData.status
+      if (formData.schedule && formData.schedule.type === 'scheduled') {
+        finalStatus = 'Scheduled'
+      }
+      
       const newPost = {
         id: Date.now(),
         ...formData,
+        status: finalStatus,
+        // Schedule nur speichern wenn type === 'scheduled'
+        schedule: (formData.schedule && formData.schedule.type === 'scheduled') 
+          ? formData.schedule 
+          : null,
         visibility: activeTab === "member" ? "Members" : "Staff",
         author: "Current User",
         createdAt: Date.now(),
@@ -329,8 +314,26 @@ const BulletinBoard = () => {
 
   const handleEditPost = useCallback((formData) => {
     if (formData.title.trim() && stripHtmlTags(formData.content).trim() && selectedPost) {
+      // Status automatisch basierend auf Schedule setzen
+      let finalStatus = formData.status
+      if (formData.schedule && formData.schedule.type === 'scheduled') {
+        finalStatus = 'Scheduled'
+      } else if (selectedPost.status === 'Scheduled') {
+        // Wenn vorher Scheduled war und jetzt nicht mehr, auf Active setzen
+        finalStatus = 'Active'
+      }
+      
       setPosts(prev => prev.map((post) =>
-        post.id === selectedPost.id ? { ...post, ...formData, updatedAt: Date.now() } : post
+        post.id === selectedPost.id ? { 
+          ...post, 
+          ...formData,
+          status: finalStatus,
+          // Schedule nur speichern wenn type === 'scheduled'
+          schedule: (formData.schedule && formData.schedule.type === 'scheduled') 
+            ? formData.schedule 
+            : null,
+          updatedAt: Date.now() 
+        } : post
       ))
       setSelectedPost(null)
     }
@@ -387,9 +390,9 @@ const BulletinBoard = () => {
       if (post.visibility !== tabVisibility) return false
 
       if (filterStatus !== "all") {
-        const isActive = post.status === "Active"
-        if (filterStatus === "active" && !isActive) return false
-        if (filterStatus === "inactive" && isActive) return false
+        if (filterStatus === "active" && post.status !== "Active") return false
+        if (filterStatus === "inactive" && post.status !== "Inactive") return false
+        if (filterStatus === "scheduled" && post.status !== "Scheduled") return false
       }
 
       if (searchQuery.trim()) {
@@ -535,6 +538,9 @@ const BulletinBoard = () => {
         {`
           .post-inactive { opacity: 0.35; }
           .post-inactive:hover { opacity: 0.55; }
+          .post-scheduled { opacity: 0.85; }
+          .post-scheduled:hover { opacity: 1; }
+          .post-scheduled > div { border-color: #f97316 !important; }
           .rich-text-content p { margin: 0; }
           .rich-text-content ul, .rich-text-content ol { margin: 0; padding-left: 1.5em; }
           .rich-text-content li { margin: 0; }
@@ -661,6 +667,7 @@ const BulletinBoard = () => {
         <div className="flex flex-wrap gap-2 sm:gap-3 mb-6">
           <button onClick={() => setFilterStatus('all')} className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${filterStatus === 'all' ? "bg-blue-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}>All</button>
           <button onClick={() => setFilterStatus('active')} className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${filterStatus === 'active' ? "bg-blue-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}>Active</button>
+          <button onClick={() => setFilterStatus('scheduled')} className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${filterStatus === 'scheduled' ? "bg-blue-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}>Scheduled</button>
           <button onClick={() => setFilterStatus('inactive')} className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${filterStatus === 'inactive' ? "bg-blue-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}>Inactive</button>
           <button onClick={() => setIsTagManagerOpen(true)} className="md:hidden px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F] flex items-center gap-1.5"><Tag size={14} />Tags</button>
           
@@ -698,9 +705,10 @@ const BulletinBoard = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 auto-rows-fr">
               {filteredPosts.map((post) => {
                 const isInactive = post.status === "Inactive"
+                const isScheduled = post.status === "Scheduled"
                 return (
                   <SortablePostCard key={post.id} post={post} isDragDisabled={isDragDisabled}>
-                    <div className={`flex flex-col select-none h-full ${isInactive ? 'post-inactive' : ''}`}>
+                    <div className={`flex flex-col select-none h-full ${isInactive ? 'post-inactive' : ''} ${isScheduled ? 'post-scheduled' : ''}`}>
                       <div 
                         className="bg-[#1A1A1A] rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-800 hover:border-gray-700 p-4 md:p-6 relative h-full flex flex-col"
                         onClick={() => dropdownOpen === post.id && setDropdownOpen(null)}
@@ -752,10 +760,52 @@ const BulletinBoard = () => {
                           {/* Left: Status Toggle */}
                           <div className="flex items-center gap-2">
                             <span className="text-xs text-gray-400">Status:</span>
-                            <button onClick={(e) => handleStatusToggle(post.id, e)} className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${post.status === "Active" ? 'bg-blue-600' : 'bg-gray-600'}`}>
-                              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${post.status === "Active" ? 'translate-x-6' : 'translate-x-1'}`} />
-                            </button>
-                            <span className="text-xs font-medium text-gray-300 min-w-[50px]">{post.status}</span>
+                            {post.status === "Scheduled" ? (
+                              <div 
+                                className="relative flex items-center gap-2" 
+                                data-schedule-popup
+                                onMouseEnter={() => setSchedulePopupPostId(post.id)}
+                                onMouseLeave={() => setSchedulePopupPostId(null)}
+                              >
+                                <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
+                                <button 
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    setSchedulePopupPostId(schedulePopupPostId === post.id ? null : post.id)
+                                  }}
+                                  className="text-xs font-medium text-orange-400 cursor-pointer hover:text-orange-300 transition-colors"
+                                >
+                                  Scheduled
+                                </button>
+                                {/* Popup for schedule info */}
+                                {post.schedule && schedulePopupPostId === post.id && (
+                                  <div className="absolute bottom-full left-0 mb-2 px-3 py-2 bg-[#1a1a1a] border border-gray-700 rounded-lg shadow-xl z-50 whitespace-nowrap">
+                                    <div className="text-xs space-y-1">
+                                      {post.schedule.startDate && (
+                                        <div className="flex items-center gap-2 text-orange-400">
+                                          <Calendar size={10} />
+                                          <span>Starts: {formatScheduleDate(post.schedule.startDate)}{post.schedule.startTime && ` at ${formatScheduleTime(post.schedule.startTime)}`}</span>
+                                        </div>
+                                      )}
+                                      {post.schedule.hasEndDate && post.schedule.endDate && (
+                                        <div className="flex items-center gap-2 text-gray-400">
+                                          <Clock size={10} />
+                                          <span>Ends: {formatScheduleDate(post.schedule.endDate)}{post.schedule.endTime && ` at ${formatScheduleTime(post.schedule.endTime)}`}</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                    <div className="absolute -bottom-1 left-4 w-2 h-2 bg-[#1a1a1a] border-r border-b border-gray-700 transform rotate-45" />
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <>
+                                <button onClick={(e) => handleStatusToggle(post.id, e)} className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${post.status === "Active" ? 'bg-blue-600' : 'bg-gray-600'}`}>
+                                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${post.status === "Active" ? 'translate-x-6' : 'translate-x-1'}`} />
+                                </button>
+                                <span className="text-xs font-medium text-gray-300 min-w-[50px]">{post.status}</span>
+                              </>
+                            )}
                           </div>
 
                           {/* Right: Eye and 3-dot menu */}

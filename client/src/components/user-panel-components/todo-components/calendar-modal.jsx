@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import React, { useState, useEffect } from "react";
-import { Clock, Bell, Repeat, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Clock, Bell, Repeat, X, ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
 import ConfirmationModal from "./confirmation-modal";
 
 const CalendarModal = ({
@@ -17,6 +17,10 @@ const CalendarModal = ({
 }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showClearConfirmation, setShowClearConfirmation] = useState(false)
+  
+  // Mobile collapsible sections - collapsed by default
+  const [isReminderExpanded, setIsReminderExpanded] = useState(false)
+  const [isRepeatExpanded, setIsRepeatExpanded] = useState(false)
 
   const [tempDate, setTempDate] = useState(initialDate);
   const [tempTime, setTempTime] = useState(initialTime);
@@ -68,6 +72,14 @@ const CalendarModal = ({
           ));
         }
       }
+      
+      // Expand sections if they have values, otherwise collapse on mobile
+      setIsReminderExpanded(!!initialReminder && initialReminder !== "")
+      setIsRepeatExpanded(!!initialRepeat && initialRepeat !== "")
+    } else {
+      // Reset collapsed state when modal closes
+      setIsReminderExpanded(false)
+      setIsRepeatExpanded(false)
     }
   }, [isOpen, initialDate, initialTime, initialReminder, initialRepeat, initialCustomReminder, initialRepeatEnd]);
 
@@ -260,124 +272,174 @@ const CalendarModal = ({
               </select>
             </div>
 
-            {/* Reminder */}
+            {/* Reminder - Collapsible on mobile */}
             <div>
-              <label className="text-sm text-gray-200 flex items-center gap-2 mb-2">
+              {/* Mobile: Collapsible header */}
+              <button
+                onClick={() => setIsReminderExpanded(!isReminderExpanded)}
+                className="md:hidden w-full flex items-center justify-between text-sm text-gray-200 py-2"
+              >
+                <span className="flex items-center gap-2">
+                  <Bell size={16} className="text-gray-400" />
+                  Reminder
+                  {tempReminder && tempReminder !== "" && (
+                    <span className="text-xs text-orange-400 bg-orange-500/20 px-2 py-0.5 rounded-full">
+                      {tempReminder}
+                    </span>
+                  )}
+                </span>
+                <ChevronDown 
+                  size={16} 
+                  className={`text-gray-400 transition-transform ${isReminderExpanded ? 'rotate-180' : ''}`} 
+                />
+              </button>
+              
+              {/* Desktop: Always visible label */}
+              <label className="hidden md:flex text-sm text-gray-200 items-center gap-2 mb-2">
                 <Bell size={16} className="text-gray-400" />
                 Reminder
               </label>
-              <select
-                value={tempReminder}
-                onChange={(e) => handleReminderChange(e.target.value)}
-                className="w-full bg-[#101010] text-sm rounded-xl px-4 py-2.5 text-white outline-none border border-transparent focus:border-orange-500 transition-colors"
-              >
-                <option value="">None</option>
-                <option value="On time">On time</option>
-                <option value="5 minutes before">5 minutes before</option>
-                <option value="15 minutes before">15 minutes before</option>
-                <option value="30 minutes before">30 minutes before</option>
-                <option value="1 hour before">1 hour before</option>
-                <option value="1 day before">1 day before</option>
-                <option value="Custom">Custom</option>
-              </select>
+              
+              {/* Content - Always visible on desktop, collapsible on mobile */}
+              <div className={`${isReminderExpanded ? 'block' : 'hidden'} md:block`}>
+                <select
+                  value={tempReminder}
+                  onChange={(e) => handleReminderChange(e.target.value)}
+                  className="w-full bg-[#101010] text-sm rounded-xl px-4 py-2.5 text-white outline-none border border-transparent focus:border-orange-500 transition-colors"
+                >
+                  <option value="">None</option>
+                  <option value="On time">On time</option>
+                  <option value="5 minutes before">5 minutes before</option>
+                  <option value="15 minutes before">15 minutes before</option>
+                  <option value="30 minutes before">30 minutes before</option>
+                  <option value="1 hour before">1 hour before</option>
+                  <option value="1 day before">1 day before</option>
+                  <option value="Custom">Custom</option>
+                </select>
 
-              {showCustomReminder && (
-                <div className="flex items-center gap-2 mt-2 ml-1">
-                  <input
-                    type="number"
-                    value={customValue}
-                    onChange={(e) => setCustomValue(e.target.value)}
-                    className="bg-[#101010] text-white px-3 py-2 rounded-xl text-sm w-20 outline-none border border-transparent focus:border-orange-500"
-                    placeholder="30"
-                    min="1"
-                  />
-                  <select
-                    value={customUnit}
-                    onChange={(e) => setCustomUnit(e.target.value)}
-                    className="bg-[#101010] text-white px-3 py-2 rounded-xl text-sm outline-none"
-                  >
-                    <option value="Minutes">Minutes</option>
-                    <option value="Hours">Hours</option>
-                    <option value="Days">Days</option>
-                    <option value="Weeks">Weeks</option>
-                  </select>
-                  <span className="text-sm text-gray-400">before</span>
-                </div>
-              )}
+                {showCustomReminder && (
+                  <div className="flex items-center gap-2 mt-2 ml-1">
+                    <input
+                      type="number"
+                      value={customValue}
+                      onChange={(e) => setCustomValue(e.target.value)}
+                      className="bg-[#101010] text-white px-3 py-2 rounded-xl text-sm w-20 outline-none border border-transparent focus:border-orange-500"
+                      placeholder="30"
+                      min="1"
+                    />
+                    <select
+                      value={customUnit}
+                      onChange={(e) => setCustomUnit(e.target.value)}
+                      className="bg-[#101010] text-white px-3 py-2 rounded-xl text-sm outline-none"
+                    >
+                      <option value="Minutes">Minutes</option>
+                      <option value="Hours">Hours</option>
+                      <option value="Days">Days</option>
+                      <option value="Weeks">Weeks</option>
+                    </select>
+                    <span className="text-sm text-gray-400">before</span>
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* Repeat */}
+            {/* Repeat - Collapsible on mobile */}
             <div>
-              <label className="text-sm text-gray-200 flex items-center gap-2 mb-2">
+              {/* Mobile: Collapsible header */}
+              <button
+                onClick={() => setIsRepeatExpanded(!isRepeatExpanded)}
+                className="md:hidden w-full flex items-center justify-between text-sm text-gray-200 py-2"
+              >
+                <span className="flex items-center gap-2">
+                  <Repeat size={16} className="text-gray-400" />
+                  Repeat
+                  {tempRepeat && tempRepeat !== "" && (
+                    <span className="text-xs text-orange-400 bg-orange-500/20 px-2 py-0.5 rounded-full">
+                      {tempRepeat}
+                    </span>
+                  )}
+                </span>
+                <ChevronDown 
+                  size={16} 
+                  className={`text-gray-400 transition-transform ${isRepeatExpanded ? 'rotate-180' : ''}`} 
+                />
+              </button>
+              
+              {/* Desktop: Always visible label */}
+              <label className="hidden md:flex text-sm text-gray-200 items-center gap-2 mb-2">
                 <Repeat size={16} className="text-gray-400" />
                 Repeat
               </label>
-              <select
-                value={tempRepeat}
-                onChange={(e) => setTempRepeat(e.target.value)}
-                className="w-full bg-[#101010] text-sm rounded-xl px-4 py-2.5 text-white outline-none border border-transparent focus:border-orange-500 transition-colors"
-              >
-                <option value="">Never</option>
-                <option value="Daily">Daily</option>
-                <option value="Weekly">Weekly</option>
-                <option value="Monthly">Monthly</option>
-              </select>
+              
+              {/* Content - Always visible on desktop, collapsible on mobile */}
+              <div className={`${isRepeatExpanded ? 'block' : 'hidden'} md:block`}>
+                <select
+                  value={tempRepeat}
+                  onChange={(e) => setTempRepeat(e.target.value)}
+                  className="w-full bg-[#101010] text-sm rounded-xl px-4 py-2.5 text-white outline-none border border-transparent focus:border-orange-500 transition-colors"
+                >
+                  <option value="">Never</option>
+                  <option value="Daily">Daily</option>
+                  <option value="Weekly">Weekly</option>
+                  <option value="Monthly">Monthly</option>
+                </select>
 
-              {tempRepeat && tempRepeat !== "" && (
-                <div className="mt-3 ml-1 space-y-2">
-                  <div className="text-sm text-gray-400 mb-2">Ends:</div>
-                  <label className="flex items-center gap-2 text-sm text-gray-200 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="repeatEnd"
-                      value="never"
-                      checked={repeatEndType === "never"}
-                      onChange={() => setRepeatEndType("never")}
-                      className="w-4 h-4 text-orange-500 bg-[#101010] border-gray-600 focus:ring-orange-500"
-                    />
-                    Never
-                  </label>
-                  <label className="flex items-center gap-2 text-sm text-gray-200 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="repeatEnd"
-                      value="onDate"
-                      checked={repeatEndType === "onDate"}
-                      onChange={() => setRepeatEndType("onDate")}
-                      className="w-4 h-4 text-orange-500 bg-[#101010] border-gray-600 focus:ring-orange-500"
-                    />
-                    On date:
-                    <input
-                      type="date"
-                      value={repeatEndDate}
-                      onChange={(e) => setRepeatEndDate(e.target.value)}
-                      onClick={() => setRepeatEndType("onDate")}
-                      className="bg-[#101010] text-sm rounded-xl px-3 py-1.5 text-white outline-none border border-gray-700 focus:border-orange-500 ml-1"
-                    />
-                  </label>
-                  <label className="flex items-center gap-2 text-sm text-gray-200 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="repeatEnd"
-                      value="after"
-                      checked={repeatEndType === "after"}
-                      onChange={() => setRepeatEndType("after")}
-                      className="w-4 h-4 text-orange-500 bg-[#101010] border-gray-600 focus:ring-orange-500"
-                    />
-                    After
-                    <input
-                      type="number"
-                      value={repeatOccurrences}
-                      onChange={(e) => setRepeatOccurrences(e.target.value)}
-                      onClick={() => setRepeatEndType("after")}
-                      min="1"
-                      placeholder="5"
-                      className="w-16 bg-[#101010] text-sm rounded-xl px-3 py-1.5 text-white outline-none border border-gray-700 focus:border-orange-500 ml-1"
-                    />
-                    <span className="text-gray-400">occurrences</span>
-                  </label>
-                </div>
-              )}
+                {tempRepeat && tempRepeat !== "" && (
+                  <div className="mt-3 ml-1 space-y-2">
+                    <div className="text-sm text-gray-400 mb-2">Ends:</div>
+                    <label className="flex items-center gap-2 text-sm text-gray-200 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="repeatEnd"
+                        value="never"
+                        checked={repeatEndType === "never"}
+                        onChange={() => setRepeatEndType("never")}
+                        className="w-4 h-4 text-orange-500 bg-[#101010] border-gray-600 focus:ring-orange-500"
+                      />
+                      Never
+                    </label>
+                    <label className="flex items-center gap-2 text-sm text-gray-200 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="repeatEnd"
+                        value="onDate"
+                        checked={repeatEndType === "onDate"}
+                        onChange={() => setRepeatEndType("onDate")}
+                        className="w-4 h-4 text-orange-500 bg-[#101010] border-gray-600 focus:ring-orange-500"
+                      />
+                      On date:
+                      <input
+                        type="date"
+                        value={repeatEndDate}
+                        onChange={(e) => setRepeatEndDate(e.target.value)}
+                        onClick={() => setRepeatEndType("onDate")}
+                        className="bg-[#101010] text-sm rounded-xl px-3 py-1.5 text-white outline-none border border-gray-700 focus:border-orange-500 ml-1"
+                      />
+                    </label>
+                    <label className="flex items-center gap-2 text-sm text-gray-200 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="repeatEnd"
+                        value="after"
+                        checked={repeatEndType === "after"}
+                        onChange={() => setRepeatEndType("after")}
+                        className="w-4 h-4 text-orange-500 bg-[#101010] border-gray-600 focus:ring-orange-500"
+                      />
+                      After
+                      <input
+                        type="number"
+                        value={repeatOccurrences}
+                        onChange={(e) => setRepeatOccurrences(e.target.value)}
+                        onClick={() => setRepeatEndType("after")}
+                        min="1"
+                        placeholder="5"
+                        className="w-16 bg-[#101010] text-sm rounded-xl px-3 py-1.5 text-white outline-none border border-gray-700 focus:border-orange-500 ml-1"
+                      />
+                      <span className="text-gray-400">occurrences</span>
+                    </label>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>

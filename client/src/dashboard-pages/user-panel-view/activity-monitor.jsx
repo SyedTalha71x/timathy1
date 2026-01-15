@@ -26,7 +26,7 @@ import { useSidebarSystem } from "../../hooks/useSidebarSystem"
 
 
 // sidebar related import
-import EditTaskModal from "../../components/user-panel-components/task-components/edit-task-modal"
+import EditTaskModal from "../../components/user-panel-components/todo-components/edit-task-modal"
 import { WidgetSelectionModal } from "../../components/widget-selection-modal"
 import NotifyMemberModal from "../../components/myarea-components/NotifyMemberModal"
 import Sidebar from "../../components/central-sidebar"

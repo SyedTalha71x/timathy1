@@ -42,7 +42,7 @@ import { demoNotifications, memberTypesData } from "../../utils/user-panel-state
 import BulletinBoardWidget from "./widgets/BulletinBoardWidget"
 import NotesWidget from "./widgets/NotesWidjets"
 import { configuredTagsData } from "../../utils/user-panel-states/todo-states"
-import AddTaskModal from "../user-panel-components/task-components/add-task-modal"
+import AddTaskModal from "../user-panel-components/todo-components/add-task-modal"
 import ShiftScheduleWidget from "./widgets/ShiftScheduleWidget"
 import { createPortal } from "react-dom"
 import ReplyModal from "./sidebar-components/ReplyModal"

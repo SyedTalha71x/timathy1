@@ -5,15 +5,15 @@
 
 import React, { useState, useRef, useEffect, useCallback, useMemo } from "react"
 import { Plus, X, Calendar, Tag, Repeat, Check, ChevronDown, Clock, Bell, Users, ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, Pin, PinOff, Copy, Trash2, Edit, GripVertical } from "lucide-react"
-import EditTaskModal from "../../components/user-panel-components/task-components/edit-task-modal"
+import EditTaskModal from "../../components/user-panel-components/todo-components/edit-task-modal"
 // toast removed
-import RepeatTaskModal from "../../components/user-panel-components/task-components/repeat-task-modal"
-import AssignModal from "../../components/user-panel-components/task-components/assign-modal"
-import TagsModal from "../../components/user-panel-components/task-components/edit-tags"
-import CalendarModal from "../../components/user-panel-components/task-components/calendar-modal"
+import RepeatTaskModal from "../../components/user-panel-components/todo-components/repeat-task-modal"
+import AssignModal from "../../components/user-panel-components/todo-components/assign-modal"
+import TagsModal from "../../components/user-panel-components/todo-components/edit-tags"
+import CalendarModal from "../../components/user-panel-components/todo-components/calendar-modal"
 import { UserCheck } from "lucide-react"
 import { todosTaskData, configuredTagsData, availableAssigneesData } from "../../utils/user-panel-states/todo-states"
-import DeleteModal from "../../components/user-panel-components/task-components/delete-task"
+import DeleteModal from "../../components/user-panel-components/todo-components/delete-task"
 import { useSidebarSystem } from "../../hooks/useSidebarSystem"
 import { trainingVideosData } from "../../utils/user-panel-states/training-states"
 import Sidebar from "../../components/central-sidebar"
@@ -22,7 +22,7 @@ import NotifyMemberModal from "../../components/myarea-components/NotifyMemberMo
 import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"
 import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
 import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
-import { OptimizedTextarea } from "../../components/user-panel-components/task-components/optimized-text-area"
+import { OptimizedTextarea } from "../../components/user-panel-components/todo-components/optimized-text-area"
 import TagManagerModal from "../../components/TagManagerModal"
 
 // @dnd-kit imports
@@ -40,8 +40,8 @@ import {
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable"
 
 // New sortable components
-import SortableTaskColumn from "../../components/user-panel-components/task-components/sortable-task-column"
-import SortableTaskCard from "../../components/user-panel-components/task-components/sortable-task-card"
+import SortableTaskColumn from "../../components/user-panel-components/todo-components/sortable-task-column"
+import SortableTaskCard from "../../components/user-panel-components/todo-components/sortable-task-card"
 
 // ============================================
 // Mobile Create Task Modal Component (Redesigned)
@@ -820,7 +820,7 @@ const SelectedDateTimeDisplay = ({ date, time, onClear }) => {
     <div className="flex items-center gap-2 bg-[#2F2F2F] rounded-lg px-3 py-1 text-sm mr-2">
       <span className="text-white whitespace-nowrap">
         {date && formatDate(date)}
-        {date && time && " • "}
+        {date && time && " â€¢ "}
         {time && formatTime(time)}
       </span>
       <button onClick={onClear} className="text-gray-400 hover:text-white ml-1" title="Clear date and time">
@@ -903,17 +903,11 @@ export default function TodoApp() {
         title: "",
         tags: [],
         assignees: [],
-        dueDate: new Date().toISOString().split('T')[0],
+        dueDate: "",
         dueTime: "",
         reminder: "",
         repeat: "",
       })
-    } else {
-      // Set default date when opening
-      setNewTaskData(prev => ({
-        ...prev,
-        dueDate: prev.dueDate || new Date().toISOString().split('T')[0],
-      }))
     }
   }, [showMobileCreateModal])
 
@@ -1402,7 +1396,7 @@ export default function TodoApp() {
     setCalendarModal({
       isOpen: true,
       taskId: null,
-      initialDate: newTaskData.dueDate || new Date().toISOString().split('T')[0],
+      initialDate: newTaskData.dueDate || "",
       initialTime: newTaskData.dueTime,
       initialReminder: newTaskData.reminder,
       initialRepeat: newTaskData.repeat,
@@ -1831,7 +1825,6 @@ export default function TodoApp() {
                     <button
                       onClick={() => {
                         setSelectedStaffFilter([])
-                        setShowMobileFilterMenu(false)
                       }}
                       className={`w-full text-left px-4 py-3 text-sm transition-colors flex items-center gap-2 ${
                         selectedStaffFilter.length === 0 ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-800'
@@ -1844,7 +1837,6 @@ export default function TodoApp() {
                         key={staff.id}
                         onClick={() => {
                           toggleStaffFilter(staff.id)
-                          setShowMobileFilterMenu(false)
                         }}
                         className={`w-full text-left px-4 py-3 text-sm transition-colors flex items-center gap-2 ${
                           selectedStaffFilter.includes(staff.id) ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-800'
@@ -1876,7 +1868,7 @@ export default function TodoApp() {
                   value={newTaskInput}
                   onChange={handleTextareaChange}
                   onEnter={handleAddTaskFromInputOptimized}
-                  placeholder="New task… (Press Enter to add)"
+                  placeholder="New taskâ€¦ (Press Enter to add)"
                   maxLines={4}
                 />
                 <SelectedDateTimeDisplay date={selectedDate} time={selectedTime} onClear={handleClearDateTime} />

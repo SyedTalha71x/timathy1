@@ -29,7 +29,7 @@ import { Toaster, toast } from "react-hot-toast"
 import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
 
 
-import EditTaskModal from "../../components/user-panel-components/task-components/edit-task-modal"
+import EditTaskModal from "../../components/user-panel-components/todo-components/edit-task-modal"
 import ViewManagementModal from "../../components/myarea-components/ViewManagementModal"
 import StaffCheckInWidget from "../../components/myarea-components/widgets/StaffWidgetCheckIn"
 import TrainingPlanModal from "../../components/myarea-components/TrainingPlanModal"
@@ -48,7 +48,7 @@ import EditAppointmentModalV2 from "../../components/myarea-components/EditAppoi
 import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
 import NotesWidget from "../../components/myarea-components/widgets/NotesWidjets"
 import BulletinBoardWidget from "../../components/myarea-components/widgets/BulletinBoardWidget"
-import AddTaskModal from "../../components/user-panel-components/task-components/add-task-modal"
+import AddTaskModal from "../../components/user-panel-components/todo-components/add-task-modal"
 import { configuredTagsData } from "../../utils/user-panel-states/todo-states"
 import ShiftScheduleWidget from "../../components/myarea-components/widgets/ShiftScheduleWidget"
 import { createPortal } from "react-dom"

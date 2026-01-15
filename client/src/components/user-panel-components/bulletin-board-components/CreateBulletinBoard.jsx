@@ -1,9 +1,12 @@
 /* eslint-disable react/prop-types */
 import { memo, useCallback, useState, useMemo, useEffect, useRef } from 'react'
-import { X, Image as ImageIcon, Crop, Tag } from 'lucide-react'
+import { X, Image as ImageIcon, Crop, Tag, Calendar, Clock, Trash2 } from 'lucide-react'
 import ReactQuill from 'react-quill'
 import 'react-quill/dist/quill.snow.css'
 import ImageCropModal from './ImageCropModal'
+import PostSchedulerModal from './PostSchedulerModal'
+import ImageSourceModal from './ImageSourceModal'
+import MediaLibraryPickerModal from './MediaLibraryPickerModal'
 
 // Quill editor configuration
 const QUILL_MODULES = {
@@ -54,6 +57,21 @@ const OptimizedCreateBulletinModal = memo(function OptimizedCreateBulletinModal(
   const [tempImage, setTempImage] = useState(null)
   const [originalImage, setOriginalImage] = useState(null)
   const fileInputRef = useRef(null)
+  
+  // Image source selection state
+  const [showImageSourceModal, setShowImageSourceModal] = useState(false)
+  const [showMediaLibraryModal, setShowMediaLibraryModal] = useState(false)
+  
+  // Scheduling state
+  const [showScheduleModal, setShowScheduleModal] = useState(false)
+  const [schedule, setSchedule] = useState({
+    type: 'immediate',
+    startDate: '',
+    startTime: '',
+    hasEndDate: false,
+    endDate: '',
+    endTime: '',
+  })
 
   // Reset form when modal opens
   useEffect(() => {
@@ -64,6 +82,14 @@ const OptimizedCreateBulletinModal = memo(function OptimizedCreateBulletinModal(
         status: "Active",
         image: null,
         tags: [],
+      })
+      setSchedule({
+        type: 'immediate',
+        startDate: '',
+        startTime: '',
+        hasEndDate: false,
+        endDate: '',
+        endTime: '',
       })
     }
   }, [isOpen])
@@ -184,12 +210,74 @@ const OptimizedCreateBulletinModal = memo(function OptimizedCreateBulletinModal(
     if (fileInputRef.current) fileInputRef.current.value = ""
   }, [])
 
+  const handleMediaLibrarySelect = useCallback((imageUrl) => {
+    setFormData(prev => ({ ...prev, image: imageUrl }))
+    setOriginalImage(imageUrl)
+  }, [])
+
+  const handleScheduleSave = useCallback((newSchedule) => {
+    setSchedule(newSchedule)
+  }, [])
+
+  const handleRemoveSchedule = useCallback(() => {
+    setSchedule({
+      type: 'immediate',
+      startDate: '',
+      startTime: '',
+      hasEndDate: false,
+      endDate: '',
+      endTime: '',
+    })
+    // Status auf Active setzen wenn vorher scheduled
+    setFormData(prev => ({ ...prev, status: 'Active' }))
+  }, [])
+
   const handleCreate = useCallback(() => {
     if (formData.title.trim() && stripHtmlTags(formData.content).trim()) {
-      onCreate(formData)
+      // Include schedule data in the post
+      const postData = {
+        ...formData,
+        schedule: schedule,
+        // If scheduled for later, set status based on schedule
+        status: schedule.type === 'scheduled' ? 'Scheduled' : formData.status,
+      }
+      onCreate(postData)
       onClose()
     }
-  }, [formData, onCreate, onClose])
+  }, [formData, schedule, onCreate, onClose])
+
+  // Format date for display
+  const formatDisplayDate = (dateStr) => {
+    if (!dateStr) return ''
+    const date = new Date(dateStr)
+    return date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+  }
+
+  // Format time for display
+  const formatTime = (time) => {
+    if (!time) return ''
+    const [hours, minutes] = time.split(':')
+    const hour = parseInt(hours)
+    const ampm = hour >= 12 ? 'PM' : 'AM'
+    const formattedHour = hour % 12 || 12
+    return `${formattedHour}:${minutes} ${ampm}`
+  }
+
+  // Get schedule display text
+  const getScheduleDisplayText = () => {
+    if (schedule.type === 'immediate') {
+      if (schedule.hasEndDate && schedule.endDate) {
+        return `Immediately | Ends ${formatDisplayDate(schedule.endDate)}${schedule.endTime ? ` at ${formatTime(schedule.endTime)}` : ''}`
+      }
+      return 'Post immediately'
+    } else {
+      let text = `Starts ${formatDisplayDate(schedule.startDate)}${schedule.startTime ? ` at ${formatTime(schedule.startTime)}` : ''}`
+      if (schedule.hasEndDate && schedule.endDate) {
+        text += ` | Ends ${formatDisplayDate(schedule.endDate)}${schedule.endTime ? ` at ${formatTime(schedule.endTime)}` : ''}`
+      }
+      return text
+    }
+  }
 
   const tagsDisplay = useMemo(() => {
     if (!availableTags || availableTags.length === 0) {
@@ -257,14 +345,14 @@ const OptimizedCreateBulletinModal = memo(function OptimizedCreateBulletinModal(
                   <button
                     onClick={handleReCrop}
                     className="bg-black/70 hover:bg-black/90 text-white p-2 rounded-lg transition-colors"
-                    title="Zuschnitt anpassen"
+                    title="Adjust crop"
                   >
                     <Crop size={16} />
                   </button>
                   <button
                     onClick={handleRemoveImage}
                     className="bg-black/70 hover:bg-black/90 text-white p-2 rounded-lg transition-colors"
-                    title="Bild entfernen"
+                    title="Remove image"
                   >
                     <X size={16} />
                   </button>
@@ -272,12 +360,12 @@ const OptimizedCreateBulletinModal = memo(function OptimizedCreateBulletinModal(
               </div>
             ) : (
               <div
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => setShowImageSourceModal(true)}
                 className="border-2 border-dashed border-gray-700 rounded-xl aspect-video flex flex-col items-center justify-center cursor-pointer hover:border-blue-600/50 transition-colors"
               >
                 <ImageIcon className="w-10 h-10 mb-3 text-gray-500" />
                 <p className="text-gray-400 text-sm">Click to upload cover image</p>
-                <p className="text-gray-500 text-xs mt-1">Recommended: 16:9 ratio • Max 5MB</p>
+                <p className="text-gray-500 text-xs mt-1">Recommended: 16:9 ratio - Max 5MB</p>
               </div>
             )}
             <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
@@ -313,19 +401,70 @@ const OptimizedCreateBulletinModal = memo(function OptimizedCreateBulletinModal(
             </div>
           </div>
 
-          {/* Status */}
+          {/* Schedule Section */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Status</label>
-            <div className="flex items-center gap-3">
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              <span className="flex items-center gap-2">
+                <Calendar size={16} className="text-gray-400" />
+                Schedule
+              </span>
+            </label>
+            <div className="flex gap-2">
               <button
-                onClick={() => setFormData(prev => ({ ...prev, status: prev.status === "Active" ? "Inactive" : "Active" }))}
-                className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors ${formData.status === "Active" ? "bg-blue-600" : "bg-gray-600"}`}
+                onClick={() => setShowScheduleModal(true)}
+                className="flex-1 bg-[#181818] border border-gray-700 rounded-xl px-4 py-3 text-left hover:border-blue-600/50 transition-colors group"
               >
-                <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${formData.status === "Active" ? "translate-x-8" : "translate-x-1"}`} />
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center">
+                      {schedule.type === 'immediate' ? (
+                        <Clock size={18} className="text-orange-400" />
+                      ) : (
+                        <Calendar size={18} className="text-orange-400" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-orange-400">
+                        {schedule.type === 'immediate' ? 'Publish Immediately' : 'Scheduled'}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        {getScheduleDisplayText()}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-gray-500 group-hover:text-blue-400 transition-colors text-sm">
+                    Edit
+                  </span>
+                </div>
               </button>
-              <span className="text-sm text-gray-300">{formData.status}</span>
+              {/* Remove Schedule Button - nur anzeigen wenn scheduled */}
+              {schedule.type === 'scheduled' && (
+                <button
+                  onClick={handleRemoveSchedule}
+                  className="bg-[#181818] border border-gray-700 rounded-xl px-4 py-3 hover:border-red-500/50 hover:bg-red-500/10 transition-colors group"
+                  title="Remove Schedule"
+                >
+                  <Trash2 size={18} className="text-gray-500 group-hover:text-red-400 transition-colors" />
+                </button>
+              )}
             </div>
           </div>
+
+          {/* Status - Only show if immediate */}
+          {schedule.type === 'immediate' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Status</label>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setFormData(prev => ({ ...prev, status: prev.status === "Active" ? "Inactive" : "Active" }))}
+                  className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors ${formData.status === "Active" ? "bg-blue-600" : "bg-gray-600"}`}
+                >
+                  <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${formData.status === "Active" ? "translate-x-8" : "translate-x-1"}`} />
+                </button>
+                <span className="text-sm text-gray-300">{formData.status}</span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Footer */}
@@ -335,10 +474,10 @@ const OptimizedCreateBulletinModal = memo(function OptimizedCreateBulletinModal(
           </button>
           <button
             onClick={handleCreate}
-            disabled={!formData.title.trim() || !stripHtmlTags(formData.content).trim()}
+            disabled={!formData.title.trim() || !stripHtmlTags(formData.content).trim() || (schedule.type === 'scheduled' && !schedule.startDate)}
             className="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-xl text-sm font-medium transition-colors"
           >
-            Create Post
+            {schedule.type === 'immediate' ? 'Create Post' : 'Schedule Post'}
           </button>
         </div>
       </div>
@@ -350,6 +489,29 @@ const OptimizedCreateBulletinModal = memo(function OptimizedCreateBulletinModal(
         imageSrc={tempImage}
         onCropComplete={handleCropComplete}
         aspectRatio={16 / 9}
+      />
+
+      {/* Post Scheduler Modal */}
+      <PostSchedulerModal
+        isOpen={showScheduleModal}
+        onClose={() => setShowScheduleModal(false)}
+        onSave={handleScheduleSave}
+        initialSchedule={schedule}
+      />
+
+      {/* Image Source Selection Modal */}
+      <ImageSourceModal
+        isOpen={showImageSourceModal}
+        onClose={() => setShowImageSourceModal(false)}
+        onSelectFile={() => fileInputRef.current?.click()}
+        onSelectMediaLibrary={() => setShowMediaLibraryModal(true)}
+      />
+
+      {/* Media Library Picker Modal */}
+      <MediaLibraryPickerModal
+        isOpen={showMediaLibraryModal}
+        onClose={() => setShowMediaLibraryModal(false)}
+        onSelectImage={handleMediaLibrarySelect}
       />
     </div>
   )

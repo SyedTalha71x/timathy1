@@ -16,7 +16,7 @@ import Sidebar from "../../components/central-sidebar"
 import { TbPlusMinus } from "react-icons/tb";
 
 
-import EditTaskModal from "../../components/user-panel-components/task-components/edit-task-modal"
+import EditTaskModal from "../../components/user-panel-components/todo-components/edit-task-modal"
 import { WidgetSelectionModal } from "../../components/widget-selection-modal"
 import NotifyMemberModal from "../../components/myarea-components/NotifyMemberModal"
 import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"

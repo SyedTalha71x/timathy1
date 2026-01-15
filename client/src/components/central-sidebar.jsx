@@ -44,7 +44,7 @@ import ViewManagementModal from "./myarea-components/sidebar-components/ViewMana
 import { bulletinBoardData, demoNotifications, memberTypesData } from "../utils/user-panel-states/myarea-states"
 import NotesWidget from "./myarea-components/widgets/NotesWidjets"
 import BulletinBoardWidget from "./myarea-components/widgets/BulletinBoardWidget"
-import AddTaskModal from "./user-panel-components/task-components/add-task-modal"
+import AddTaskModal from "./user-panel-components/todo-components/add-task-modal"
 import { configuredTagsData } from "../utils/user-panel-states/todo-states"
 import ShiftScheduleWidget from "./myarea-components/widgets/ShiftScheduleWidget"
 import { createPortal } from "react-dom"

@@ -32,7 +32,7 @@ import AppointmentActionModal from "../../components/user-panel-components/appoi
 
 
 // sidebar related import
-import EditTaskModal from "../../components/user-panel-components/task-components/edit-task-modal"
+import EditTaskModal from "../../components/user-panel-components/todo-components/edit-task-modal"
 import { WidgetSelectionModal } from "../../components/widget-selection-modal"
 import EditAppointmentModal from "../../components/user-panel-components/appointments-components/selected-appointment-modal"
 import NotifyMemberModal from "../../components/myarea-components/NotifyMemberModal"
