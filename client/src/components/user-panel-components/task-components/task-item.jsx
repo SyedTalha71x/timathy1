@@ -323,7 +323,7 @@ export default function TaskItem({
                   tag && (
                     <span
                       key={index}
-                      className={`px-2 py-1 rounded-md text-xs flex items-center gap-1 cursor-pointer no-drag ${
+                      className={`px-2 py-1 rounded-md text-xs flex items-center gap-1 cursor-pointer no-drag transition-transform duration-200 md:hover:scale-105 ${
                         isCompleted || isCanceled
                           ? "bg-[#2b2b2b] text-gray-500"
                           : "text-white"
@@ -347,7 +347,7 @@ export default function TaskItem({
           {(task.assignees?.length > 0 || task.roles?.length > 0) && (
             <div className="relative">
               <div
-                className={`px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 cursor-pointer no-drag ${
+                className={`px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 cursor-pointer no-drag transition-transform duration-200 md:hover:scale-105 ${
                   isCompleted || isCanceled ? "bg-[#2d2d2d] text-gray-500" : "bg-[#2F2F2F] text-gray-300"
                 }`}
                 onClick={handleAssignClick}
@@ -360,7 +360,7 @@ export default function TaskItem({
 
           <div className="relative">
             <div
-              className={`px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 no-drag cursor-pointer group relative ${
+              className={`px-3 py-1.5 rounded-xl text-xs flex items-center gap-2 no-drag cursor-pointer group relative transition-transform duration-200 md:hover:scale-105 ${
                 isCompleted || isCanceled ? "bg-[#2d2d2d] text-gray-500" : "bg-[#2F2F2F] text-gray-300 hover:bg-gray-700"
               }`}
               onClick={(e) => {

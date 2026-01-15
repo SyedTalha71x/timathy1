@@ -3,7 +3,6 @@
 
 import { X, ChevronDown, Users, Tag, Bell, Repeat } from "lucide-react"
 import { useState } from "react"
-import { toast, Toaster } from "react-hot-toast"
 
 const AddTaskModal = ({ onClose, onAddTask, configuredTags = [] }) => {
   const [newTask, setNewTask] = useState({
@@ -46,12 +45,10 @@ const AddTaskModal = ({ onClose, onAddTask, configuredTags = [] }) => {
     e.preventDefault()
     
     if (!newTask.title.trim()) {
-      toast.error("Please enter a task description")
       return
     }
 
     if (!newTask.dueDate) {
-      toast.error("You must add a due date.")
       return
     }
 
@@ -93,7 +90,6 @@ const AddTaskModal = ({ onClose, onAddTask, configuredTags = [] }) => {
     if (onAddTask) {
       onAddTask(taskToAdd)
       onClose()
-      toast.success("Task has been added successfully!")
     }
   }
 
@@ -152,16 +148,6 @@ const AddTaskModal = ({ onClose, onAddTask, configuredTags = [] }) => {
 
   return (
     <>
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 2000,
-          style: {
-            background: "#333",
-            color: "#fff",
-          },
-        }}
-      />
       <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
         <div className="bg-[#181818] rounded-xl w-[500px] max-h-[90vh] p-6">
           <div className="flex justify-between items-center mb-5">

@@ -145,34 +145,30 @@ const SortableTaskColumn = ({
         overflow: 'visible'
       }}
     >
-      {/* Section Header */}
-      <div 
-        className={`px-3 py-2 flex items-center cursor-pointer hover:brightness-110 transition-all ${
+      {/* Section Header - Touch Optimized */}
+      <button 
+        className={`px-3 py-3 md:py-2 flex items-center w-full text-left transition-all active:opacity-80 ${
           isCollapsed ? 'rounded-2xl' : 'rounded-t-2xl'
         }`}
         style={{ backgroundColor: `${color}20` }}
         onClick={() => onToggleCollapse(id)}
       >
         {/* Left side: Collapse + Sort + Color dot + Title + Count */}
-        <div className="flex items-center gap-1 flex-1">
-          {/* Collapse/Expand Button - Left aligned */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              onToggleCollapse(id)
-            }}
-            className="text-gray-400 hover:text-white p-1 flex-shrink-0"
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          {/* Collapse/Expand Button */}
+          <div
+            className="text-gray-400 p-1 flex-shrink-0"
             title={isCollapsed ? "Expand section" : "Collapse section"}
           >
-            {isCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
-          </button>
+            {isCollapsed ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
+          </div>
 
-          {/* Sort Button - Left aligned, only show when expanded */}
+          {/* Sort Button - Desktop only in header */}
           {!isCollapsed && (
             <button
               ref={sortButtonRef}
               onClick={handleToggleDropdown}
-              className="text-gray-400 hover:text-white p-1 hover:bg-gray-800 rounded-lg flex items-center gap-1"
+              className="hidden md:flex text-gray-400 hover:text-white p-1.5 hover:bg-gray-800 rounded-lg items-center gap-1 transition-colors"
               title={`Sort by: ${currentSortLabel}`}
             >
               {getSortIcon()}
@@ -180,23 +176,23 @@ const SortableTaskColumn = ({
           )}
 
           {/* Color dot */}
-          <div className="w-3 h-3 rounded-full ml-1 flex-shrink-0" style={{ backgroundColor: color }}></div>
+          <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: color }}></div>
           
           {/* Title */}
-          <h3 className="font-medium text-white text-sm ml-2">{title}</h3>
+          <h3 className="font-medium text-white text-sm truncate">{title}</h3>
           
           {/* Count badge */}
-          <span className="text-xs text-black font-medium bg-white px-2 py-0.5 rounded-full ml-2">
+          <span className="text-xs text-black font-medium bg-white px-2 py-0.5 rounded-full flex-shrink-0">
             {tasks.length}
           </span>
         </div>
-      </div>
+      </button>
 
-      {/* Sort Dropdown - Rendered via Portal-like fixed positioning */}
+      {/* Sort Dropdown - Portal-like positioning */}
       {showSortDropdown && (
         <div 
           ref={sortDropdownRef}
-          className="fixed bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-2xl min-w-[180px]"
+          className="fixed bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-2xl min-w-[180px] overflow-hidden"
           style={{ 
             zIndex: 99999,
             top: dropdownPosition.top,
@@ -204,7 +200,7 @@ const SortableTaskColumn = ({
           }}
         >
           <div className="py-1">
-            <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">
+            <div className="px-3 py-2 text-xs text-gray-500 font-medium border-b border-gray-700">
               Sort by
             </div>
             {sortOptions.map((option) => (
@@ -214,7 +210,7 @@ const SortableTaskColumn = ({
                   e.stopPropagation()
                   handleSortOptionClick(option.value)
                 }}
-                className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${
+                className={`w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${
                   sortSettings.sortBy === option.value 
                     ? 'text-white bg-gray-800/50' 
                     : 'text-gray-300'
@@ -242,7 +238,7 @@ const SortableTaskColumn = ({
         </div>
       )}
 
-      {/* Section Content - Tasks in Full Width Rows */}
+      {/* Section Content - Tasks */}
       {!isCollapsed && (
         <div 
           className="px-2 py-2 rounded-b-2xl"
@@ -321,9 +317,9 @@ const SortableTaskColumn = ({
             ) : (
               <div 
                 className={`
-                  min-h-[40px]
+                  min-h-[50px]
                   border-2 border-dashed rounded-xl 
-                  flex items-center justify-center text-gray-500 text-xs
+                  flex items-center justify-center text-gray-500 text-sm
                   transition-colors duration-200
                   ${isOver ? "border-blue-500 bg-blue-500/10 text-blue-400" : "border-gray-700"}
                 `}

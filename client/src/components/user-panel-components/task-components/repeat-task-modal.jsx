@@ -3,7 +3,7 @@
 /* eslint-disable react/prop-types */
 import { useState } from "react"
 import { X } from "lucide-react"
-import { Toaster, toast } from "react-hot-toast"
+
 
 const RepeatTaskModal = ({ onClose, onRepeatTask, task }) => {
   const [frequency, setFrequency] = useState("daily")
@@ -43,7 +43,6 @@ const RepeatTaskModal = ({ onClose, onRepeatTask, task }) => {
   const handleSubmit = (e) => {
     e.preventDefault()
     if (frequency === "weekly" && repeatDays.length === 0) {
-      toast.error("Please select at least one day for weekly repeats.")
       return
     }
 
@@ -55,21 +54,11 @@ const RepeatTaskModal = ({ onClose, onRepeatTask, task }) => {
     }
 
     onRepeatTask(task, repeatOptions)
-    toast.success("Task repeat settings saved!")
-    setTimeout(() => {
-      onClose()
-    }, 2000)
+    onClose()
   }
 
   return (
     <>
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 2000,
-          style: { background: "#333", color: "#fff" },
-        }}
-      />
       <div className="fixed inset-0 open_sans_font w-screen h-screen bg-black/50 flex items-center p-3 sm:p-4 md:p-6 justify-center z-[1000]">
         <div className="bg-[#181818] rounded-2xl w-full max-w-md p-4 sm:p-5 md:p-6 lg:p-6 relative">
           <div className="flex justify-between items-center mb-5 sm:mb-6">
@@ -192,9 +181,9 @@ const RepeatTaskModal = ({ onClose, onRepeatTask, task }) => {
               </button>
               <button
                 type="submit"
-                className="px-6 py-2 bg-[#3F74FF] text-sm text-white rounded-xl hover:bg-[#4F7FFF] transition-colors"
+                className="px-6 py-2 bg-orange-500 text-sm text-white rounded-xl hover:bg-orange-600 transition-colors"
               >
-                Save Repeat
+                Save Changes
               </button>
             </div>
           </form>

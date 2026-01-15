@@ -2,7 +2,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useEffect, useRef, useState } from "react"
-import { Tag, Calendar, X, Pin, PinOff, Copy, Repeat, Edit, Check, Users, Save, GripVertical, Trash2 } from "lucide-react"
+import { Tag, Calendar, X, Pin, PinOff, Copy, Repeat, Edit, Check, Users, GripVertical, Trash2 } from "lucide-react"
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 
@@ -60,11 +60,10 @@ export default function SortableTaskCard({
     zIndex: isDragging ? 1000 : "auto",
   }
 
-  // Focus input when editing title - cursor at end
+  // Focus input when editing title
   useEffect(() => {
     if (isEditingTitle && titleInputRef.current) {
       titleInputRef.current.focus()
-      // Place cursor at the end, not select all
       const length = titleInputRef.current.value.length
       titleInputRef.current.setSelectionRange(length, length)
     }
@@ -98,8 +97,8 @@ export default function SortableTaskCard({
         setTimeout(() => {
           onStatusChange(task.id, newStatus)
           setIsAnimatingCompletion(false)
-        }, 500)
-      }, 300)
+        }, 400)
+      }, 250)
     } else {
       onStatusChange(task.id, newStatus)
     }
@@ -116,10 +115,7 @@ export default function SortableTaskCard({
   const handleSaveTitle = (e) => {
     if (e) e.stopPropagation()
     if (editedTitle.trim() && editedTitle.trim() !== task.title) {
-      onUpdate({
-        ...task,
-        title: editedTitle.trim()
-      })
+      onUpdate({ ...task, title: editedTitle.trim() })
     }
     setIsEditingTitle(false)
   }
@@ -140,7 +136,6 @@ export default function SortableTaskCard({
   }
 
   const handleTitleBlur = () => {
-    // Save on blur
     handleSaveTitle()
   }
 
@@ -191,10 +186,7 @@ export default function SortableTaskCard({
   }
 
   const getDateTimeTooltip = () => {
-    if (!task.dueDate && !task.dueTime) {
-      return "No due date set"
-    }
-
+    if (!task.dueDate && !task.dueTime) return "No due date set"
     let tooltip = ""
 
     if (task.dueDate) {
@@ -216,34 +208,11 @@ export default function SortableTaskCard({
     }
 
     if (task.reminder && task.reminder !== "None" && task.reminder !== "") {
-      if (task.reminder === "Custom" && task.customReminder) {
-        tooltip += `\nReminder: ${task.customReminder.value} ${task.customReminder.unit} before`
-      } else {
-        tooltip += `\nReminder: ${task.reminder}`
-      }
+      tooltip += `\nReminder: ${task.reminder}`
     }
 
     if (hasRepeat) {
-      const repeatConfig = repeatConfigs[task.id]
-      let repeatText = `\nRepeats: ${task.repeat || task.repeatSettings?.frequency || 'Yes'}`
-
-      if (repeatConfig?.repeatOptions) {
-        const { repeatOptions } = repeatConfig
-        if (repeatOptions.frequency === "weekly" && repeatOptions.repeatDays && repeatOptions.repeatDays.length > 0) {
-          const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-          const dayNames = repeatOptions.repeatDays.map(day => days[day]).join(', ')
-          repeatText += ` (${dayNames})`
-        }
-
-        if (repeatOptions.endDate) {
-          const endDate = new Date(repeatOptions.endDate).toLocaleDateString()
-          repeatText += `\nEnds on: ${endDate}`
-        } else if (repeatOptions.occurrences) {
-          repeatText += `\nEnds after: ${repeatOptions.occurrences} occurrences`
-        }
-      }
-
-      tooltip += repeatText
+      tooltip += `\nRepeats: Yes`
     }
 
     return tooltip
@@ -257,32 +226,20 @@ export default function SortableTaskCard({
   const handleAssignClick = (e) => {
     e.stopPropagation()
     setShowDropdown(false)
-    if (onOpenAssignModal) {
-      onOpenAssignModal(task)
-    }
+    onOpenAssignModal?.(task)
   }
 
   const handleTagsClick = (e) => {
     e.stopPropagation()
     setShowDropdown(false)
-    if (onOpenTagsModal) {
-      onOpenTagsModal(task)
-    }
+    onOpenTagsModal?.(task)
   }
 
   const handleCalendarClick = (e) => {
     e.stopPropagation()
     setShowDropdown(false)
     if (!isCompleted && !isCanceled) {
-      onOpenCalendarModal?.(
-        task.id,
-        task.dueDate,
-        task.dueTime,
-        task.reminder,
-        task.repeat,
-        task.customReminder,
-        task.repeatEnd
-      )
+      onOpenCalendarModal?.(task.id, task.dueDate, task.dueTime, task.reminder, task.repeat)
     }
   }
 
@@ -290,32 +247,26 @@ export default function SortableTaskCard({
   const isCanceled = task.status === "canceled"
   const hasRepeat = (task.repeatSettings && task.repeatSettings.frequency) || repeatConfigs[task.id] || task.repeat
 
-  // For drag overlay, render without sortable functionality
+  // For drag overlay
   if (isDraggingOverlay) {
     return (
       <div
-        className={`rounded-xl px-3 py-2 transition-all duration-300 ease-in-out relative shadow-2xl scale-105 select-none ${
-          isCompleted
-            ? "bg-[#1c1c1c] text-gray-500"
-            : isCanceled
-              ? "bg-[#1a1a1a] text-gray-600 italic line-through"
-              : "bg-[#1a1a1a] text-white"
+        className={`rounded-xl px-3 py-3 transition-all duration-300 ease-in-out relative shadow-2xl scale-105 select-none ${
+          isCompleted ? "bg-[#1c1c1c] text-gray-500" :
+          isCanceled ? "bg-[#1a1a1a] text-gray-600 italic line-through" :
+          "bg-[#1a1a1a] text-white"
         }`}
         style={{ touchAction: "none", userSelect: "none" }}
       >
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <GripVertical size={16} className="text-blue-400 flex-shrink-0" />
           <input
             type="checkbox"
             checked={isCompleted}
             readOnly
-            className={`form-checkbox h-4 w-4 rounded-full border-gray-300 flex-shrink-0 ${
-              isCompleted ? "text-gray-500 bg-gray-500 border-gray-500" : "text-blue-500"
-            }`}
+            className="form-checkbox h-5 w-5 rounded-full border-gray-300 flex-shrink-0"
           />
-          <span className="font-medium text-sm select-none truncate">
-            {task.title}
-          </span>
+          <span className="font-medium text-sm select-none truncate">{task.title}</span>
         </div>
       </div>
     )
@@ -325,23 +276,21 @@ export default function SortableTaskCard({
     <div
       ref={setNodeRef}
       style={style}
-      className={`rounded-xl px-3 py-2 transition-all duration-300 ease-in-out relative select-none ${
+      className={`rounded-xl px-3 py-3 transition-all duration-300 ease-in-out relative select-none ${
         isDragging ? "opacity-50 shadow-2xl scale-[1.02]" : "opacity-100"
       } ${
-        isCompleted
-          ? "bg-[#1c1c1c] text-gray-500"
-          : isCanceled
-            ? "bg-[#1a1a1a] text-gray-600 italic"
-            : "bg-[#1a1a1a] text-white"
+        isCompleted ? "bg-[#1c1c1c] text-gray-500" :
+        isCanceled ? "bg-[#1a1a1a] text-gray-600 italic" :
+        "bg-[#1a1a1a] text-white"
       } ${isAnimatingCompletion ? "animate-pulse scale-[0.98]" : ""}`}
     >
-      {/* Main Row: Drag Handle + Checkbox + Title + Tags + Meta + Menu */}
-      <div className="flex items-center gap-2">
-        {/* Drag Handle - Only this area enables dragging */}
+      {/* Main Row */}
+      <div className="flex items-start gap-2">
+        {/* Drag Handle - Larger touch area */}
         <div 
           {...attributes} 
           {...listeners}
-          className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-white active:text-blue-400 p-1 -ml-1 rounded-lg active:bg-blue-500/30 flex-shrink-0 touch-none"
+          className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-white active:text-blue-400 p-2 -ml-1 -mt-1 rounded-xl active:bg-blue-500/30 flex-shrink-0 touch-none"
           style={{ WebkitTapHighlightColor: 'transparent' }}
         >
           <GripVertical size={16} />
@@ -354,44 +303,40 @@ export default function SortableTaskCard({
               e.stopPropagation()
               handleStatusChange("ongoing")
             }}
-            className="h-4 w-4 flex items-center justify-center text-gray-400 bg-[#3a3a3a] rounded-sm cursor-pointer border border-gray-500 flex-shrink-0"
+            className="mt-1 w-5 h-5 flex items-center justify-center text-gray-400 bg-[#3a3a3a] rounded-full cursor-pointer border border-gray-500 flex-shrink-0 active:scale-90"
             title="Canceled - Click to restore"
           >
             <X size={12} />
           </button>
         ) : (
-          <div className="relative flex-shrink-0">
-            <input
-              type="checkbox"
-              checked={isCompleted}
-              onChange={() => handleStatusChange(isCompleted ? "ongoing" : "completed")}
-              className={`form-checkbox h-4 w-4 cursor-pointer rounded-full border-gray-300 focus:ring-blue-500 transition-all duration-200 ${
+          <div className="relative flex-shrink-0 mt-1">
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                handleStatusChange(isCompleted ? "ongoing" : "completed")
+              }}
+              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all duration-200 active:scale-90 ${
                 isCheckboxAnimating ? "opacity-0 scale-90" : "opacity-100 scale-100"
               } ${
-                isCompleted
-                  ? "text-gray-500 bg-gray-500 border-gray-500"
-                  : "text-blue-500"
+                isCompleted 
+                  ? "bg-gray-500 border-gray-500" 
+                  : "border-gray-500 hover:border-blue-400"
               }`}
-            />
+            >
+              {isCompleted && <Check size={12} className="text-white" />}
+            </button>
             {isCheckboxAnimating && (
               <div className="absolute inset-0 flex items-center justify-center">
-                <Check
-                  size={12}
-                  className="text-blue-500 animate-tick"
-                  style={{
-                    animation: "tick 0.3s ease-out forwards",
-                    strokeDasharray: 18,
-                    strokeDashoffset: isCheckboxAnimating ? 0 : 18,
-                  }}
-                />
+                <Check size={12} className="text-blue-500 animate-tick" />
               </div>
             )}
           </div>
         )}
 
-        {/* Title - Inline editable - Takes full width when editing */}
-        {isEditingTitle ? (
-          <div className="flex-1 min-w-0">
+        {/* Content Area */}
+        <div className="flex-1 min-w-0">
+          {/* Title - Inline editable */}
+          {isEditingTitle ? (
             <input
               ref={titleInputRef}
               type="text"
@@ -399,15 +344,12 @@ export default function SortableTaskCard({
               onChange={(e) => setEditedTitle(e.target.value)}
               onKeyDown={handleTitleKeyDown}
               onBlur={handleTitleBlur}
-              className="w-full bg-[#101010] text-white px-3 py-1.5 rounded-lg outline-none text-sm border-2 border-blue-500 focus:border-blue-400"
+              className="w-full bg-[#101010] text-white px-3 py-1.5 rounded-lg outline-none text-sm border-2 border-blue-500"
               onClick={(e) => e.stopPropagation()}
             />
-          </div>
-        ) : (
-          <>
-            {/* Title text */}
-            <span
-              className={`font-medium text-sm flex-shrink min-w-0 truncate ${
+          ) : (
+            <div
+              className={`font-medium text-sm ${
                 isCanceled ? "line-through" : ""
               } ${
                 !isCompleted && !isCanceled 
@@ -416,104 +358,125 @@ export default function SortableTaskCard({
               }`}
               onClick={handleTitleClick}
               title={!isCompleted && !isCanceled ? "Click to edit" : task.title}
+              style={{
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+              }}
             >
               {task.title}
-            </span>
+            </div>
+          )}
 
-            {/* Tags - directly after title */}
-            {task.tags && task.tags.length > 0 && (
-              <div className="flex items-center gap-1 flex-shrink-0">
-                {task.tags.slice(0, 3).map((tag, idx) =>
-                  tag && (
+          {/* Meta Row - Tags, Assignees, Date */}
+          <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+            {/* Left side: Tags, Assignees, Pin */}
+            <div className="flex items-center gap-1.5 flex-wrap flex-1 min-w-0">
+              {/* Tags - show 2 on mobile, up to 5 on desktop */}
+              {task.tags && task.tags.length > 0 && (
+                <>
+                  {/* Mobile: show max 2 */}
+                  <div className="flex items-center gap-1.5 flex-wrap md:hidden">
+                    {task.tags.slice(0, 2).map((tag, idx) =>
+                      tag && (
+                        <span
+                          key={idx}
+                          className={`px-2 py-0.5 rounded text-xs cursor-pointer transition-all duration-200 hover:brightness-110 whitespace-nowrap ${
+                            isCompleted || isCanceled ? "bg-[#2b2b2b] text-gray-500" : "text-white"
+                          }`}
+                          style={{ backgroundColor: isCompleted || isCanceled ? "#2b2b2b" : getTagColor(tag) }}
+                          onClick={handleTagsClick}
+                        >
+                          {tag}
+                        </span>
+                      )
+                    )}
+                    {task.tags.length > 2 && (
+                      <span className="text-xs text-gray-400 cursor-pointer" onClick={handleTagsClick}>
+                        +{task.tags.length - 2}
+                      </span>
+                    )}
+                  </div>
+                  {/* Desktop: show max 5 */}
+                  <div className="hidden md:flex items-center gap-1.5 flex-wrap">
+                    {task.tags.slice(0, 5).map((tag, idx) =>
+                      tag && (
+                        <span
+                          key={idx}
+                          className={`px-2 py-0.5 rounded text-xs cursor-pointer transition-all duration-200 hover:brightness-110 hover:scale-105 whitespace-nowrap ${
+                            isCompleted || isCanceled ? "bg-[#2b2b2b] text-gray-500" : "text-white"
+                          }`}
+                          style={{ backgroundColor: isCompleted || isCanceled ? "#2b2b2b" : getTagColor(tag) }}
+                          onClick={handleTagsClick}
+                        >
+                          {tag}
+                        </span>
+                      )
+                    )}
+                    {task.tags.length > 5 && (
+                      <span className="text-xs text-gray-400 cursor-pointer hover:scale-105 transition-transform" onClick={handleTagsClick}>
+                        +{task.tags.length - 5}
+                      </span>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {/* Assignees - Show full names */}
+              {task.assignees?.length > 0 && (
+                <div className="flex items-center gap-1 flex-wrap">
+                  {task.assignees.map((assignee, idx) => (
                     <span
                       key={idx}
-                      className={`px-2 py-0.5 rounded text-xs cursor-pointer transition-all hover:brightness-110 hover:scale-105 whitespace-nowrap ${
-                        isCompleted || isCanceled ? "bg-[#2b2b2b] text-gray-500" : "text-white"
+                      className={`px-2 py-0.5 rounded text-xs flex items-center gap-1 cursor-pointer whitespace-nowrap transition-transform duration-200 md:hover:scale-105 ${
+                        isCompleted || isCanceled ? "bg-[#2d2d2d] text-gray-500" : "bg-[#2F2F2F] text-gray-300"
                       }`}
-                      style={{
-                        backgroundColor: isCompleted || isCanceled ? "#2b2b2b" : getTagColor(tag),
-                      }}
-                      onClick={handleTagsClick}
+                      onClick={handleAssignClick}
                     >
-                      {tag}
+                      <Users size={10} />
+                      {assignee}
                     </span>
-                  )
-                )}
-                {task.tags.length > 3 && (
-                  <span 
-                    className="text-xs text-gray-400 cursor-pointer hover:text-white transition-colors"
-                    onClick={handleTagsClick}
-                  >
-                    +{task.tags.length - 3}
-                  </span>
-                )}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
 
-            {/* Spacer to push meta items to the right */}
-            <div className="flex-1" />
+              {/* Pin indicator */}
+              {task.isPinned && (
+                <Pin size={12} className="text-amber-400 fill-amber-400 flex-shrink-0" />
+              )}
+            </div>
 
-            {/* Assignees - show full names when title is short */}
-            {task.assignees?.length > 0 && (
-              <div
-                className={`px-2 py-0.5 rounded text-xs flex items-center gap-1 cursor-pointer flex-shrink-0 transition-all ${
+            {/* Right side: Date/Time - pushed to right on desktop */}
+            {(task.dueDate || task.dueTime) && (
+              <span
+                className={`px-2 py-0.5 rounded text-xs flex items-center gap-1 cursor-pointer group relative transition-transform duration-200 md:hover:scale-105 md:ml-auto flex-shrink-0 ${
                   isCompleted || isCanceled 
                     ? "bg-[#2d2d2d] text-gray-500" 
-                    : "bg-[#2F2F2F] text-gray-300 hover:bg-gray-700 hover:scale-105 hover:brightness-110"
-                }`}
-                onClick={handleAssignClick}
-              >
-                <Users size={10} />
-                {/* Show full names if title is short (< 40 chars), otherwise abbreviate */}
-                {(task.title?.length || 0) < 40 ? (
-                  <span className="whitespace-nowrap">
-                    {task.assignees.join(", ")}
-                  </span>
-                ) : (
-                  <>
-                    <span className="truncate max-w-[80px]">
-                      {task.assignees?.[0]}
-                    </span>
-                    {task.assignees?.length > 1 && (
-                      <span>+{task.assignees.length - 1}</span>
-                    )}
-                  </>
-                )}
-              </div>
-            )}
-
-            {/* Date/Time - Always blue background with hover effect */}
-            {(task.dueDate || task.dueTime) && (
-              <div
-                className={`px-2 py-0.5 rounded text-xs flex items-center gap-1 cursor-pointer group relative flex-shrink-0 transition-all ${
-                  isCompleted || isCanceled 
-                    ? "bg-[#2d2d2d] text-gray-500 border border-gray-600" 
-                    : "bg-blue-900/30 text-blue-300 border border-blue-700/50 hover:bg-blue-800/40 hover:scale-105 hover:brightness-110"
+                    : "bg-blue-900/30 text-blue-300 border border-blue-700/50"
                 }`}
                 onClick={handleCalendarClick}
               >
                 <Calendar size={10} />
                 <span className="whitespace-nowrap">{formatDateTime()}</span>
-                {hasRepeat && (
-                  <Repeat size={10} className={`${isCompleted || isCanceled ? 'text-gray-500' : 'text-blue-400'}`} title="Repeating task" />
-                )}
-
-                {/* Hover tooltip */}
-                <div className="absolute bottom-full mb-2 right-0 hidden group-hover:block z-50 min-w-[180px]">
+                {hasRepeat && <Repeat size={10} className={isCompleted || isCanceled ? 'text-gray-500' : 'text-blue-400'} />}
+                
+                {/* Tooltip - Desktop only */}
+                <div className="hidden md:block absolute bottom-full mb-2 right-0 invisible group-hover:visible z-50 min-w-[180px]">
                   <div className="bg-black text-white text-xs rounded-lg py-2 px-3 whitespace-pre-line shadow-xl border border-gray-600">
                     {getDateTimeTooltip()}
                   </div>
                 </div>
-              </div>
+              </span>
             )}
-          </>
-        )}
+          </div>
+        </div>
 
-        {/* Three-dot Menu */}
+        {/* Three-dot Menu - Larger touch target */}
         <div className="relative flex-shrink-0" ref={dropdownRef}>
           <button
             onClick={toggleDropdown}
-            className="text-gray-400 hover:text-blue-400 p-1 rounded-lg hover:bg-gray-800 transition-colors"
+            className="text-gray-400 hover:text-blue-400 p-2 -mr-1 rounded-xl hover:bg-gray-800 transition-colors active:scale-90"
           >
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
               <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
@@ -522,60 +485,58 @@ export default function SortableTaskCard({
 
           {/* Dropdown Menu */}
           {showDropdown && (
-            <div className="absolute right-0 top-8 bg-[#1C1C1C] border border-gray-700 rounded-lg shadow-lg py-1 z-[9999] min-w-[160px]">
+            <div className="absolute right-0 top-10 bg-[#1C1C1C] border border-gray-700 rounded-xl shadow-lg py-1 z-[9999] min-w-[180px] overflow-hidden">
               {/* Date/Time */}
               <button
                 onClick={handleCalendarClick}
-                className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2 transition-colors"
+                className="w-full text-left px-4 py-3 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-3 transition-colors active:bg-gray-700"
               >
-                <Calendar size={14} /> Date & Time
+                <Calendar size={16} /> Date & Time
               </button>
 
               {/* Assign */}
               <button
                 onClick={handleAssignClick}
-                className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2 transition-colors"
+                className="w-full text-left px-4 py-3 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-3 transition-colors active:bg-gray-700"
               >
-                <Users size={14} /> Assign
+                <Users size={16} /> Assign
               </button>
 
               {/* Tags */}
               <button
                 onClick={handleTagsClick}
-                className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2 transition-colors"
+                className="w-full text-left px-4 py-3 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-3 transition-colors active:bg-gray-700"
               >
-                <Tag size={14} /> Tags
+                <Tag size={16} /> Tags
               </button>
 
-              {/* Divider */}
               <div className="border-t border-gray-700 my-1"></div>
 
               {/* Pin/Unpin */}
               <button
                 onClick={handlePinToggle}
-                className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2 transition-colors"
+                className="w-full text-left px-4 py-3 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-3 transition-colors active:bg-gray-700"
               >
-                {task.isPinned ? <PinOff size={14} /> : <Pin size={14} />}
+                {task.isPinned ? <PinOff size={16} /> : <Pin size={16} />}
                 {task.isPinned ? "Unpin" : "Pin"}
               </button>
 
               {/* Duplicate */}
               <button
                 onClick={handleDuplicate}
-                className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2 transition-colors"
+                className="w-full text-left px-4 py-3 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-3 transition-colors active:bg-gray-700"
               >
-                <Copy size={14} /> Duplicate
+                <Copy size={16} /> Duplicate
               </button>
 
               {/* Repeat */}
               <button
                 onClick={handleRepeat}
-                className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2 transition-colors"
+                className="w-full text-left px-4 py-3 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-3 transition-colors active:bg-gray-700"
               >
-                <Repeat size={14} /> Repeat
+                <Repeat size={16} /> Repeat
               </button>
 
-              {/* Divider */}
               <div className="border-t border-gray-700 my-1"></div>
 
               {/* Status changes */}
@@ -586,9 +547,9 @@ export default function SortableTaskCard({
                     setShowDropdown(false)
                     handleStatusChange("canceled")
                   }}
-                  className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2 transition-colors"
+                  className="w-full text-left px-4 py-3 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-3 transition-colors active:bg-gray-700"
                 >
-                  <X size={14} /> Cancel Task
+                  <X size={16} /> Cancel Task
                 </button>
               ) : (
                 <>
@@ -598,9 +559,9 @@ export default function SortableTaskCard({
                       setShowDropdown(false)
                       handleStatusChange("ongoing")
                     }}
-                    className="w-full text-left px-3 py-2 hover:bg-gray-800 text-yellow-500 text-sm flex items-center gap-2 transition-colors"
+                    className="w-full text-left px-4 py-3 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-3 transition-colors active:bg-gray-700"
                   >
-                    <Edit size={14} /> Set Ongoing
+                    <Edit size={16} /> Set Ongoing
                   </button>
                   <button
                     onClick={(e) => {
@@ -608,9 +569,9 @@ export default function SortableTaskCard({
                       setShowDropdown(false)
                       handleStatusChange("completed")
                     }}
-                    className="w-full text-left px-3 py-2 hover:bg-gray-800 text-green-500 text-sm flex items-center gap-2 transition-colors"
+                    className="w-full text-left px-4 py-3 hover:bg-gray-800 text-green-400 text-sm flex items-center gap-3 transition-colors active:bg-gray-700"
                   >
-                    <Check size={14} /> Complete
+                    <Check size={16} /> Complete
                   </button>
                 </>
               )}
@@ -618,9 +579,9 @@ export default function SortableTaskCard({
               {/* Delete */}
               <button
                 onClick={openDeleteConfirmation}
-                className="w-full text-left px-3 py-2 hover:bg-gray-800 text-red-500 text-sm flex items-center gap-2 transition-colors"
+                className="w-full text-left px-4 py-3 hover:bg-gray-800 text-red-500 text-sm flex items-center gap-3 transition-colors active:bg-gray-700"
               >
-                <Trash2 size={14} /> Delete
+                <Trash2 size={16} /> Delete
               </button>
             </div>
           )}
@@ -639,7 +600,7 @@ export default function SortableTaskCard({
           }
         }
         .animate-tick {
-          animation: tick 0.5s ease-out forwards;
+          animation: tick 0.4s ease-out forwards;
         }
         @keyframes pulse {
           0% { transform: scale(1); }
@@ -647,7 +608,7 @@ export default function SortableTaskCard({
           100% { transform: scale(1); }
         }
         .animate-pulse {
-          animation: pulse 0.5s ease-out;
+          animation: pulse 0.4s ease-out;
         }
         .cursor-grab {
           cursor: grab;

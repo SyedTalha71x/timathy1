@@ -80,7 +80,7 @@ const AssignModal = ({ task, availableAssignees, onClose, onUpdate }) => {
           </button>
           <button
             onClick={handleSave}
-            className="bg-[#FF843E] text-sm text-white px-4 py-2 rounded-xl hover:bg-[#FF843E]/90"
+            className="bg-orange-500 text-sm text-white px-4 py-2 rounded-xl hover:bg-orange-600 transition-colors"
           >
             Save Changes
           </button>
