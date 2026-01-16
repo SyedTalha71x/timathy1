@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   Edit2, 
   Trash2, 
   Copy, 
   Download,
   Layers,
-  GripVertical
+  GripVertical,
+  Eye
 } from 'lucide-react';
 
 const DesignCard = ({ 
@@ -14,13 +15,22 @@ const DesignCard = ({
   onDownload, 
   onDelete, 
   onDuplicate,
+  onPreview,
   onDragStart,
   onDragEnd,
   isDragging
 }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const [isDragHandleHeld, setIsDragHandleHeld] = useState(false);
+  const cardRef = useRef(null);
 
   const handleDragStart = (e) => {
+    // Only allow drag if drag handle is being held
+    if (!isDragHandleHeld) {
+      e.preventDefault();
+      return;
+    }
+    
     e.dataTransfer.setData('application/json', JSON.stringify(design));
     e.dataTransfer.setData('text/plain', design.id);
     e.dataTransfer.effectAllowed = 'move';
@@ -37,6 +47,20 @@ const DesignCard = ({
     onDragStart?.(e, design);
   };
 
+  const handleDragHandleMouseDown = (e) => {
+    e.stopPropagation();
+    setIsDragHandleHeld(true);
+  };
+
+  const handleDragHandleMouseUp = () => {
+    setIsDragHandleHeld(false);
+  };
+
+  const handleDragEnd = () => {
+    setIsDragHandleHeld(false);
+    onDragEnd?.();
+  };
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -51,36 +75,73 @@ const DesignCard = ({
 
   return (
     <div
+      ref={cardRef}
       className={`
         group relative bg-[#1a1a1a] rounded-xl overflow-hidden transition-all duration-200 border border-[#333333]
-        hover:border-[#444444] hover:shadow-lg
+        hover:border-[#444444] hover:shadow-lg select-none
         ${isDragging ? 'opacity-50 scale-95' : ''}
+        ${isDragHandleHeld ? 'cursor-grabbing' : ''}
       `}
       onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      draggable
+      onMouseLeave={() => {
+        setIsHovered(false);
+        setIsDragHandleHeld(false);
+      }}
+      draggable={isDragHandleHeld}
       onDragStart={handleDragStart}
-      onDragEnd={onDragEnd}
+      onDragEnd={handleDragEnd}
+      style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
     >
       {/* Drag Handle - Top Left */}
       <div 
         className="absolute top-2 left-2 cursor-grab active:cursor-grabbing text-white/70 hover:text-white p-1.5 rounded-lg bg-black/50 hover:bg-black/70 z-20 opacity-0 group-hover:opacity-100 transition-opacity"
-        title="Drag to move"
+        title="Drag to move to folder"
+        onMouseDown={handleDragHandleMouseDown}
+        onMouseUp={handleDragHandleMouseUp}
+        onMouseLeave={handleDragHandleMouseUp}
       >
         <GripVertical size={14} />
       </div>
 
-      {/* Fixed-size Preview Container - Larger size */}
-      <div className="relative w-full h-[180px] bg-[#2a2a2a] flex items-center justify-center overflow-hidden">
+      {/* Preview Button - Top Right */}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onPreview?.(design);
+        }}
+        className="absolute top-2 right-2 cursor-pointer text-white/70 hover:text-white p-1.5 rounded-lg bg-black/50 hover:bg-black/70 z-20 opacity-0 group-hover:opacity-100 transition-opacity"
+        title="Preview"
+      >
+        <Eye size={14} />
+      </button>
+
+      {/* Fixed-size Preview Container - Larger size with transparency checkerboard */}
+      <div 
+        className="relative w-full h-[180px] flex items-center justify-center overflow-hidden"
+        onDragStart={(e) => e.preventDefault()}
+        style={{
+          backgroundImage: `
+            linear-gradient(45deg, #3a3a3a 25%, transparent 25%),
+            linear-gradient(-45deg, #3a3a3a 25%, transparent 25%),
+            linear-gradient(45deg, transparent 75%, #3a3a3a 75%),
+            linear-gradient(-45deg, transparent 75%, #3a3a3a 75%)
+          `,
+          backgroundSize: '16px 16px',
+          backgroundPosition: '0 0, 0 8px, 8px -8px, -8px 0px',
+          backgroundColor: '#2a2a2a'
+        }}
+      >
         {design.thumbnail && design.thumbnail !== 'data:,' ? (
           <img 
             src={design.thumbnail}
             alt={design.name}
-            className="max-w-full max-h-full object-contain transition-transform duration-300 group-hover:scale-105"
+            className="max-w-full max-h-full object-contain transition-transform duration-300 group-hover:scale-105 pointer-events-none"
             draggable={false}
+            onDragStart={(e) => e.preventDefault()}
+            style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
           />
         ) : (
-          <div className="flex flex-col items-center justify-center text-gray-500">
+          <div className="flex flex-col items-center justify-center text-gray-500 pointer-events-none">
             <Layers size={32} className="mb-2 opacity-50" />
             <span className="text-xs">No preview</span>
           </div>
@@ -141,15 +202,15 @@ const DesignCard = ({
       </div>
 
       {/* Info - Always at the same position */}
-      <div className="p-3 bg-[#1a1a1a]">
-        <h4 className="text-white font-medium text-sm truncate group-hover:text-orange-400 transition-colors">
+      <div className="p-3 bg-[#1a1a1a]" style={{ userSelect: 'none', WebkitUserSelect: 'none' }}>
+        <h4 className="text-white font-medium text-sm truncate group-hover:text-orange-400 transition-colors pointer-events-none">
           {design.name}
         </h4>
-        <div className="flex items-center justify-between mt-1.5">
+        <div className="flex items-center justify-between mt-1.5 pointer-events-none">
           <span className="text-gray-500 text-xs">{formatDate(design.createdAt)}</span>
           <span className="text-gray-500 text-xs">{design.size}</span>
         </div>
-        <div className="flex items-center gap-1 text-gray-500 text-xs mt-1">
+        <div className="flex items-center gap-1 text-gray-500 text-xs mt-1 pointer-events-none">
           <Layers size={10} />
           <span>{design.elements?.length || 0} layers</span>
         </div>

@@ -109,14 +109,14 @@ export default function FinancesPage() {
 
   // Column widths state for resizable table
   const [columnWidths, setColumnWidths] = useState({
-    member: 90,
-    iban: 70,
-    mandate: 90,
-    date: 70,
-    type: 50,
-    amount: 45,
-    services: 30,
-    status: 70
+    member: 120,
+    iban: 160,
+    mandate: 100,
+    date: 90,
+    type: 80,
+    amount: 90,
+    services: 50,
+    status: 110
   })
   const resizingRef = useRef(null)
 
@@ -339,29 +339,21 @@ export default function FinancesPage() {
   }
 
   const exportToCSV = () => {
-    // Complete headers matching table columns
-    const headers = ["Member Name", "Amount", "Services", "Status", "IBAN", "Mandate Number", "Date", "Type"]
-    
+    const headers = ["Member Name", "Date", "Type", "Amount", "Status", "Services"]
     const csvData = sortedTransactions.map((transaction) => [
       transaction.memberName,
-      transaction.amount.toFixed(2),
-      transaction.services.map((service) => `${service.name}: $${service.cost.toFixed(2)}`).join(" | "),
-      transaction.status,
-      transaction.iban || "DE89370400440532013000",
-      transaction.mandateNumber || `MNDT-${transaction.id.toString().padStart(6, '0')}`,
       formatDate(transaction.date),
       transaction.type,
+      transaction.amount,
+      transaction.status,
+      transaction.services.map((service) => `${service.name}: $${service.cost}`).join("; "),
     ])
 
-    // Proper CSV format with comma separator and quoted fields
-    const csvContent = [
-      headers.join(","),
-      ...csvData.map((row) => row.map((field) => `"${String(field).replace(/"/g, '""')}"`).join(","))
-    ].join("\n")
+    const csvContent = [headers.join(","), ...csvData.map((row) => row.map((field) => `"${field}"`).join(","))].join(
+      "\n",
+    )
 
-    // Add BOM for proper Excel encoding
-    const BOM = '\uFEFF'
-    const blob = new Blob([BOM + csvContent], { type: "text/csv;charset=utf-8;" })
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
     const link = document.createElement("a")
     const url = URL.createObjectURL(blob)
     link.setAttribute("href", url)
@@ -408,10 +400,7 @@ export default function FinancesPage() {
           .filter((tx) => tx.status === "Successful")
           .reduce((sum, tx) => sum + tx.amount, 0)
         const pending = periodData.transactions
-          .filter((tx) => tx.status === "Pending")
-          .reduce((sum, tx) => sum + tx.amount, 0)
-        const checkingFunds = periodData.transactions
-          .filter((tx) => tx.status === "Check incoming funds")
+          .filter((tx) => tx.status === "Pending" || tx.status === "Check incoming funds")
           .reduce((sum, tx) => sum + tx.amount, 0)
         const failed = periodData.transactions
           .filter((tx) => tx.status === "Failed")
@@ -419,7 +408,6 @@ export default function FinancesPage() {
 
         periodData.successfulPayments = successful
         periodData.pendingPayments = pending
-        periodData.checkingFunds = checkingFunds
         periodData.failedPayments = failed
         
         updatedFinancialState[periodKey] = periodData
@@ -483,10 +471,7 @@ export default function FinancesPage() {
           .filter((tx) => tx.status === "Successful")
           .reduce((sum, tx) => sum + tx.amount, 0)
         const pending = periodData.transactions
-          .filter((tx) => tx.status === "Pending")
-          .reduce((sum, tx) => sum + tx.amount, 0)
-        const checkingFunds = periodData.transactions
-          .filter((tx) => tx.status === "Check incoming funds")
+          .filter((tx) => tx.status === "Pending" || tx.status === "Check incoming funds")
           .reduce((sum, tx) => sum + tx.amount, 0)
         const failed = periodData.transactions
           .filter((tx) => tx.status === "Failed")
@@ -494,7 +479,6 @@ export default function FinancesPage() {
 
         periodData.successfulPayments = successful
         periodData.pendingPayments = pending
-        periodData.checkingFunds = checkingFunds
         periodData.failedPayments = failed
         
         updatedFinancialState[periodKey] = periodData
@@ -536,7 +520,6 @@ export default function FinancesPage() {
       totalRevenue: 0,
       successfulPayments: 0,
       pendingPayments: 0,
-      checkingFunds: 0,
       failedPayments: 0,
       transactions: [],
     }
@@ -554,40 +537,20 @@ export default function FinancesPage() {
         .filter((tx) => tx.status === "Successful")
         .reduce((sum, tx) => sum + tx.amount, 0)
       const pending = customTransactions
-        .filter((tx) => tx.status === "Pending")
-        .reduce((sum, tx) => sum + tx.amount, 0)
-      const checkingFunds = customTransactions
-        .filter((tx) => tx.status === "Check incoming funds")
+        .filter((tx) => tx.status === "Pending" || tx.status === "Check incoming funds")
         .reduce((sum, tx) => sum + tx.amount, 0)
       const failed = customTransactions.filter((tx) => tx.status === "Failed").reduce((sum, tx) => sum + tx.amount, 0)
 
       return {
-        totalRevenue: successful + pending + checkingFunds + failed,
+        totalRevenue: successful + pending + failed,
         successfulPayments: successful,
         pendingPayments: pending,
-        checkingFunds: checkingFunds,
         failedPayments: failed,
         transactions: customTransactions,
       }
     }
     
-    // Calculate checkingFunds from period data
-    const periodData = financialState[selectedPeriod] || defaultData
-    if (periodData.transactions) {
-      const checkingFunds = periodData.transactions
-        .filter((tx) => tx.status === "Check incoming funds")
-        .reduce((sum, tx) => sum + tx.amount, 0)
-      const pending = periodData.transactions
-        .filter((tx) => tx.status === "Pending")
-        .reduce((sum, tx) => sum + tx.amount, 0)
-      return {
-        ...periodData,
-        pendingPayments: pending,
-        checkingFunds: checkingFunds,
-      }
-    }
-    
-    return periodData
+    return financialState[selectedPeriod] || defaultData
   }
 
   // Extract all states and functions from the hook
@@ -1135,7 +1098,7 @@ export default function FinancesPage() {
         </div>
 
         {/* Stats Grid */}
-        <div className={`grid gap-3 sm:gap-4 mb-4 sm:mb-6 grid-cols-2 lg:grid-cols-5`}>
+        <div className={`grid gap-3 sm:gap-4 mb-4 sm:mb-6 grid-cols-2 lg:grid-cols-4`}>
           <div className="bg-[#141414] p-3 sm:p-4 rounded-xl">
             <h3 className="text-gray-400 text-xs sm:text-sm mb-1">Total Revenue</h3>
             <p className="text-white text-base sm:text-xl font-semibold">
@@ -1152,12 +1115,6 @@ export default function FinancesPage() {
             <h3 className="text-gray-400 text-xs sm:text-sm mb-1">Pending</h3>
             <p className="text-yellow-500 text-base sm:text-xl font-semibold">
               {formatCurrency(currentPeriodData.pendingPayments)}
-            </p>
-          </div>
-          <div className="bg-[#141414] p-3 sm:p-4 rounded-xl">
-            <h3 className="text-gray-400 text-xs sm:text-sm mb-1">Check Funds</h3>
-            <p className="text-blue-500 text-base sm:text-xl font-semibold">
-              {formatCurrency(currentPeriodData.checkingFunds || 0)}
             </p>
           </div>
           <div className="bg-[#141414] p-3 sm:p-4 rounded-xl">
@@ -1203,20 +1160,18 @@ export default function FinancesPage() {
         </div>
 
         <div className="overflow-x-auto">
-          <div style={{ minWidth: '600px' }}>
-            <table className="text-sm text-left text-gray-300 border-collapse w-full">
+          <div style={{ minWidth: isRightSidebarOpen ? '900px' : '800px' }}>
+            <table className="text-sm text-left text-gray-300 border-collapse" style={{ width: '100%' }}>
               <thead className="text-xs text-gray-400 uppercase bg-[#141414]">
                 <tr>
                   {/* Member Column */}
                   <th 
                     scope="col" 
-                    className="px-1.5 md:px-3 py-2 rounded-tl-xl hover:bg-[#1C1C1C] transition-colors relative"
-                    style={{ width: `${columnWidths.member}px`, minWidth: '60px' }}
+                    className="px-2 md:px-3 py-2 md:py-3 rounded-tl-xl hover:bg-[#1C1C1C] transition-colors relative"
+                    style={{ width: `${columnWidths.member}px`, minWidth: '80px' }}
                   >
                     <div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("member")}>
-                      <span className="hidden md:inline">Member</span>
-                      <span className="md:hidden">Name</span>
-                      {getSortIcon("member")}
+                      Member {getSortIcon("member")}
                     </div>
                     <div 
                       className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group"
@@ -1226,66 +1181,33 @@ export default function FinancesPage() {
                       <div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" />
                     </div>
                   </th>
-                  {/* Amount Column - 2nd */}
+                  {/* Mobile: Amount next to member */}
                   <th 
                     scope="col" 
-                    className="px-1.5 md:px-3 py-2 hover:bg-[#1C1C1C] transition-colors relative"
-                    style={{ width: `${columnWidths.amount}px`, minWidth: '40px' }}
-                  >
-                    <div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("amount")}>
-                      <span className="hidden md:inline">Amount</span>
-                      <span className="md:hidden">Amt</span>
-                      {getSortIcon("amount")}
-                    </div>
-                    <div 
-                      className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group"
-                      onMouseDown={(e) => handleResizeMouseDown(e, 'amount')}
-                      style={{ touchAction: 'none' }}
-                    >
-                      <div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" />
-                    </div>
-                  </th>
-                  {/* Services Column - 3rd, next to Amount */}
-                  <th 
-                    scope="col" 
-                    className="px-1.5 md:px-2 py-2 relative"
-                    style={{ width: `${columnWidths.services}px`, minWidth: '25px' }}
-                  >
-                    <span className="hidden md:inline">Services</span>
-                    <span className="md:hidden">Svc</span>
-                    <div 
-                      className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group"
-                      onMouseDown={(e) => handleResizeMouseDown(e, 'services')}
-                      style={{ touchAction: 'none' }}
-                    >
-                      <div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" />
-                    </div>
-                  </th>
-                  {/* Status Column - 4th */}
-                  <th 
-                    scope="col" 
-                    className="px-1.5 md:px-3 py-2 cursor-pointer hover:bg-[#1C1C1C] transition-colors relative"
-                    style={{ width: `${columnWidths.status}px`, minWidth: '40px' }}
-                    onClick={() => handleSort("status")}
+                    className="px-2 py-2 md:py-3 cursor-pointer hover:bg-[#1C1C1C] transition-colors md:hidden"
+                    onClick={() => handleSort("amount")}
+                    style={{ width: '70px' }}
                   >
                     <div className="flex items-center gap-1">
-                      <span className="hidden md:inline">Status</span>
-                      <span className="md:hidden">St.</span>
-                      {getSortIcon("status")}
+                      Amt {getSortIcon("amount")}
                     </div>
-                    <div 
-                      className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group"
-                      onMouseDown={(e) => handleResizeMouseDown(e, 'status')}
-                      style={{ touchAction: 'none' }}
-                    >
-                      <div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" />
+                  </th>
+                  {/* Mobile: Status next */}
+                  <th 
+                    scope="col" 
+                    className="px-2 py-2 md:py-3 cursor-pointer hover:bg-[#1C1C1C] transition-colors md:hidden rounded-tr-xl"
+                    onClick={() => handleSort("status")}
+                    style={{ width: '50px' }}
+                  >
+                    <div className="flex items-center gap-1">
+                      St. {getSortIcon("status")}
                     </div>
                   </th>
                   {/* IBAN Column */}
                   <th 
                     scope="col" 
-                    className="px-1.5 md:px-3 py-2 hover:bg-[#1C1C1C] transition-colors relative"
-                    style={{ width: `${columnWidths.iban}px`, minWidth: '60px' }}
+                    className="px-2 md:px-3 py-2 md:py-3 hover:bg-[#1C1C1C] transition-colors hidden md:table-cell relative"
+                    style={{ width: `${columnWidths.iban}px`, minWidth: '100px' }}
                   >
                     <div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("iban")}>
                       IBAN {getSortIcon("iban")}
@@ -1301,13 +1223,11 @@ export default function FinancesPage() {
                   {/* Mandate Column */}
                   <th 
                     scope="col" 
-                    className="px-1.5 md:px-3 py-2 hover:bg-[#1C1C1C] transition-colors relative"
-                    style={{ width: `${columnWidths.mandate}px`, minWidth: '50px' }}
+                    className="px-2 md:px-3 py-2 md:py-3 hover:bg-[#1C1C1C] transition-colors hidden md:table-cell relative"
+                    style={{ width: `${columnWidths.mandate}px`, minWidth: '80px' }}
                   >
                     <div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("mandate")}>
-                      <span className="hidden md:inline">Mandate Number</span>
-                      <span className="md:hidden">Mandate</span>
-                      {getSortIcon("mandate")}
+                      Mandate {getSortIcon("mandate")}
                     </div>
                     <div 
                       className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group"
@@ -1320,8 +1240,8 @@ export default function FinancesPage() {
                   {/* Date Column */}
                   <th 
                     scope="col" 
-                    className="px-1.5 md:px-3 py-2 hover:bg-[#1C1C1C] transition-colors relative"
-                    style={{ width: `${columnWidths.date}px`, minWidth: '50px' }}
+                    className="px-2 md:px-3 py-2 md:py-3 hover:bg-[#1C1C1C] transition-colors hidden md:table-cell relative"
+                    style={{ width: `${columnWidths.date}px`, minWidth: '70px' }}
                   >
                     <div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("date")}>
                       Date {getSortIcon("date")}
@@ -1337,8 +1257,8 @@ export default function FinancesPage() {
                   {/* Type Column */}
                   <th 
                     scope="col" 
-                    className="px-1.5 md:px-3 py-2 rounded-tr-xl hover:bg-[#1C1C1C] transition-colors relative"
-                    style={{ width: `${columnWidths.type}px`, minWidth: '40px' }}
+                    className="px-2 md:px-3 py-2 md:py-3 hover:bg-[#1C1C1C] transition-colors hidden md:table-cell relative"
+                    style={{ width: `${columnWidths.type}px`, minWidth: '60px' }}
                   >
                     <div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("type")}>
                       Type {getSortIcon("type")}
@@ -1351,6 +1271,49 @@ export default function FinancesPage() {
                       <div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" />
                     </div>
                   </th>
+                  {/* Amount Column */}
+                  <th 
+                    scope="col" 
+                    className="px-2 md:px-3 py-2 md:py-3 hover:bg-[#1C1C1C] transition-colors hidden md:table-cell relative"
+                    style={{ width: `${columnWidths.amount}px`, minWidth: '70px' }}
+                  >
+                    <div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("amount")}>
+                      Amount {getSortIcon("amount")}
+                    </div>
+                    <div 
+                      className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group"
+                      onMouseDown={(e) => handleResizeMouseDown(e, 'amount')}
+                      style={{ touchAction: 'none' }}
+                    >
+                      <div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" />
+                    </div>
+                  </th>
+                  {/* Services Column */}
+                  <th 
+                    scope="col" 
+                    className="px-2 py-2 md:py-3 hidden md:table-cell relative"
+                    style={{ width: `${columnWidths.services}px`, minWidth: '40px' }}
+                  >
+                    Svc
+                    <div 
+                      className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group"
+                      onMouseDown={(e) => handleResizeMouseDown(e, 'services')}
+                      style={{ touchAction: 'none' }}
+                    >
+                      <div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" />
+                    </div>
+                  </th>
+                  {/* Status Column */}
+                  <th 
+                    scope="col" 
+                    className="px-2 md:px-3 py-2 md:py-3 rounded-tr-xl cursor-pointer hover:bg-[#1C1C1C] transition-colors hidden md:table-cell"
+                    style={{ width: `${columnWidths.status}px`, minWidth: '90px' }}
+                    onClick={() => handleSort("status")}
+                  >
+                    <div className="flex items-center gap-1">
+                      Status {getSortIcon("status")}
+                    </div>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -1359,9 +1322,27 @@ export default function FinancesPage() {
                     key={transaction.id}
                     className={`border-b border-gray-800 ${index === sortedTransactions.length - 1 ? "rounded-b-xl" : ""}`}
                   >
-                    <td className="px-1.5 md:px-3 py-2 text-xs truncate">{transaction.memberName}</td>
-                    <td className="px-1.5 md:px-3 py-2 text-xs">{formatCurrency(transaction.amount)}</td>
-                    <td className="px-1.5 md:px-2 py-2">
+                    <td className="px-2 md:px-3 py-2 md:py-3 text-xs md:text-sm truncate" style={{ width: columnWidths.member }}>{transaction.memberName}</td>
+                    {/* Mobile: Amount */}
+                    <td className="px-2 py-2 md:py-3 text-xs md:hidden">{formatCurrency(transaction.amount)}</td>
+                    {/* Mobile: Status */}
+                    <td className="px-2 py-2 md:py-3 md:hidden">
+                      <span className={`px-1.5 py-0.5 rounded text-xs font-medium ${getStatusColorClass(transaction.status)}`}>
+                        {transaction.status === "Successful" ? "✓" : 
+                         transaction.status === "Pending" ? "P" : 
+                         transaction.status === "Failed" ? "F" : "C"}
+                      </span>
+                    </td>
+                    <td className="px-2 md:px-3 py-2 md:py-3 hidden md:table-cell" style={{ width: columnWidths.iban }}>
+                      <MaskedIban iban={transaction.iban || "DE89370400440532013000"} />
+                    </td>
+                    <td className="px-2 md:px-3 py-2 md:py-3 text-xs hidden md:table-cell truncate" style={{ width: columnWidths.mandate }}>
+                      {transaction.mandateNumber || `MNDT-${transaction.id.toString().padStart(6, '0')}`}
+                    </td>
+                    <td className="px-2 md:px-3 py-2 md:py-3 text-xs hidden md:table-cell" style={{ width: columnWidths.date }}>{formatDate(transaction.date)}</td>
+                    <td className="px-2 md:px-3 py-2 md:py-3 text-xs hidden md:table-cell truncate" style={{ width: columnWidths.type }}>{transaction.type}</td>
+                    <td className="px-2 md:px-3 py-2 md:py-3 text-xs hidden md:table-cell" style={{ width: columnWidths.amount }}>{formatCurrency(transaction.amount)}</td>
+                    <td className="px-2 py-2 md:py-3 hidden md:table-cell" style={{ width: columnWidths.services }}>
                       <button
                         onClick={() => handleShowServices(transaction.services, transaction.memberName)}
                         className="text-blue-400 hover:text-blue-300"
@@ -1369,26 +1350,11 @@ export default function FinancesPage() {
                         <Info className="w-3.5 h-3.5" />
                       </button>
                     </td>
-                    <td className="px-1.5 md:px-3 py-2">
-                      {/* Mobile: Single letter abbreviation */}
-                      <span className={`md:hidden px-1.5 py-0.5 rounded text-xs font-medium ${getStatusColorClass(transaction.status)}`}>
-                        {transaction.status === "Successful" ? "S" : 
-                         transaction.status === "Pending" ? "P" : 
-                         transaction.status === "Failed" ? "F" : "C"}
-                      </span>
-                      {/* Desktop: Full status */}
-                      <span className={`hidden md:inline px-2 py-1 rounded-lg text-xs font-medium ${getStatusColorClass(transaction.status)}`}>
+                    <td className="px-2 md:px-3 py-2 md:py-3 hidden md:table-cell" style={{ width: columnWidths.status }}>
+                      <span className={`px-2 py-1 rounded-lg text-xs font-medium ${getStatusColorClass(transaction.status)}`}>
                         {transaction.status}
                       </span>
                     </td>
-                    <td className="px-1.5 md:px-3 py-2 text-xs">
-                      <MaskedIban iban={transaction.iban || "DE89370400440532013000"} />
-                    </td>
-                    <td className="px-1.5 md:px-3 py-2 text-xs truncate">
-                      {transaction.mandateNumber || `MNDT-${transaction.id.toString().padStart(6, '0')}`}
-                    </td>
-                    <td className="px-1.5 md:px-3 py-2 text-xs">{formatDate(transaction.date)}</td>
-                    <td className="px-1.5 md:px-3 py-2 text-xs truncate">{transaction.type}</td>
                   </tr>
                 ))}
               </tbody>

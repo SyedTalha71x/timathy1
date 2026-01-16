@@ -15,7 +15,8 @@ import {
   X,
   Settings,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Bookmark
 } from 'lucide-react';
 import { templates, templateCategories } from '../constants/templates';
 
@@ -27,7 +28,8 @@ const iconMap = {
   Calendar,
   Quote,
   Bell,
-  Minus
+  Minus,
+  Bookmark
 };
 
 // Extended blank templates with standard social media sizes (no Universal)
@@ -49,7 +51,8 @@ const TemplateGallery = ({
   isOpen, 
   onClose, 
   onSelectTemplate, 
-  onSelectBlank
+  onSelectBlank,
+  customTemplates = []
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -74,17 +77,21 @@ const TemplateGallery = ({
 
   // Filter templates based on search and category
   const filteredTemplates = useMemo(() => {
-    return templates.filter(template => {
+    // Combine built-in templates with custom templates
+    const allTemplates = [...templates, ...customTemplates];
+    
+    return allTemplates.filter(template => {
       const matchesSearch = searchQuery === '' || 
         template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         template.category.toLowerCase().includes(searchQuery.toLowerCase());
       
       const matchesCategory = selectedCategory === 'all' || 
-        template.category === selectedCategory;
+        template.category === selectedCategory ||
+        (selectedCategory === 'custom' && template.isCustom);
       
       return matchesSearch && matchesCategory;
     });
-  }, [searchQuery, selectedCategory]);
+  }, [searchQuery, selectedCategory, customTemplates]);
 
   // Group blank templates by category
   const groupedBlankTemplates = useMemo(() => {
@@ -152,9 +159,14 @@ const TemplateGallery = ({
             {templateCategories.map(category => {
               const Icon = iconMap[category.icon] || Grid3X3;
               const isSelected = selectedCategory === category.id;
-              const count = category.id === 'all' 
-                ? templates.length 
-                : templates.filter(t => t.category === category.id).length;
+              let count;
+              if (category.id === 'all') {
+                count = templates.length + customTemplates.length;
+              } else if (category.id === 'custom') {
+                count = customTemplates.length;
+              } else {
+                count = templates.filter(t => t.category === category.id).length;
+              }
               
               return (
                 <button
@@ -292,22 +304,18 @@ const TemplateGallery = ({
                       onClick={() => onSelectTemplate(template)}
                       onMouseEnter={() => setHoveredTemplate(template.id)}
                       onMouseLeave={() => setHoveredTemplate(null)}
-                      className="group relative rounded-xl overflow-hidden transition-all hover:ring-2 hover:ring-orange-500/50 hover:shadow-lg border border-[#333333]"
+                      className="group relative rounded-xl overflow-hidden transition-all hover:ring-2 hover:ring-orange-500/50 hover:shadow-lg border border-[#333333] bg-[#141414]"
                     >
-                      {/* Fixed height preview area */}
-                      <div 
-                        className="w-full h-[140px] relative overflow-hidden"
-                        style={{ backgroundColor: template.colors?.secondary || '#1a1a1a' }}
-                      >
-                        {/* Simplified Preview Rendering */}
+                      {/* Preview area with correct aspect ratio */}
+                      <div className="w-full h-[160px] bg-[#0a0a0a] flex items-center justify-center p-3">
                         <TemplatePreview template={template} />
-                        
-                        {/* Hover Overlay */}
-                        <div className={`absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex items-end justify-center pb-3 transition-opacity ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
-                          <span className="px-3 py-1.5 bg-orange-500 text-white text-xs font-medium rounded-lg">
-                            Use Template
-                          </span>
-                        </div>
+                      </div>
+                      
+                      {/* Hover Overlay */}
+                      <div className={`absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex items-end justify-center pb-3 transition-opacity ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
+                        <span className="px-3 py-1.5 bg-orange-500 text-white text-xs font-medium rounded-lg">
+                          Use Template
+                        </span>
                       </div>
                       
                       {/* Fixed info area - consistent layout */}
@@ -422,23 +430,49 @@ const TemplateGallery = ({
   );
 };
 
-// Simplified Template Preview Component
+// Simplified Template Preview Component with correct aspect ratio
 const TemplatePreview = ({ template }) => {
   const [width, height] = template.size.split('x').map(Number);
-  const scale = 140 / Math.max(width, height);
+  
+  // Calculate dimensions to fit within container while maintaining aspect ratio
+  const maxWidth = 160;
+  const maxHeight = 140;
+  const aspectRatio = width / height;
+  
+  let previewWidth, previewHeight;
+  if (aspectRatio > maxWidth / maxHeight) {
+    // Wider than container ratio - fit to width
+    previewWidth = maxWidth;
+    previewHeight = maxWidth / aspectRatio;
+  } else {
+    // Taller than container ratio - fit to height
+    previewHeight = maxHeight;
+    previewWidth = maxHeight * aspectRatio;
+  }
+  
+  const scale = previewWidth / width;
   
   return (
     <div 
-      className="absolute inset-0 overflow-hidden"
-      style={{ backgroundColor: template.colors?.secondary || '#1a1a1a' }}
+      className="relative overflow-hidden rounded-lg shadow-lg"
+      style={{ 
+        width: `${previewWidth}px`,
+        height: `${previewHeight}px`,
+        backgroundColor: template.colors?.secondary || '#1a1a1a',
+        flexShrink: 0
+      }}
     >
-      {template.elements?.slice(0, 5).map((element, index) => {
+      {template.elements?.slice(0, 6).map((element, index) => {
         const scaledX = element.x * scale;
         const scaledY = element.y * scale;
         const scaledWidth = element.width * scale;
         const scaledHeight = element.height * scale;
         
         if (element.type === 'shape') {
+          let borderRadius = '0';
+          if (element.shape === 'circle') borderRadius = '50%';
+          else if (element.shape === 'rounded-rectangle') borderRadius = `${Math.min(scaledWidth, scaledHeight) * 0.1}px`;
+          
           return (
             <div
               key={index}
@@ -449,14 +483,14 @@ const TemplatePreview = ({ template }) => {
                 width: `${scaledWidth}px`,
                 height: `${scaledHeight}px`,
                 backgroundColor: element.color,
-                borderRadius: element.shape === 'circle' ? '50%' : 
-                             element.shape === 'rounded-rectangle' ? '6px' : '0'
+                borderRadius
               }}
             />
           );
         }
         
         if (element.type === 'text') {
+          const fontSize = Math.max(3, element.size * scale);
           return (
             <div
               key={index}
@@ -467,7 +501,7 @@ const TemplatePreview = ({ template }) => {
                 width: `${scaledWidth}px`,
                 height: `${scaledHeight}px`,
                 color: element.color,
-                fontSize: `${Math.max(4, element.size * scale)}px`,
+                fontSize: `${fontSize}px`,
                 fontFamily: element.font,
                 fontWeight: element.bold ? 'bold' : 'normal',
                 fontStyle: element.italic ? 'italic' : 'normal',

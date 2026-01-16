@@ -94,6 +94,11 @@ const Canvas = ({
       return;
     }
 
+    // If we're editing a DIFFERENT text element, stop editing it
+    if (editingTextId && editingTextId !== elementId) {
+      setEditingTextId(null);
+    }
+
     e.preventDefault();
     e.stopPropagation();
 
@@ -210,11 +215,37 @@ const Canvas = ({
 
   // Handle canvas click
   const handleCanvasClick = (e) => {
-    if (e.target === canvasContainerRef.current || e.target.classList.contains('canvas-area') || e.target.classList.contains('canvas-scroll-area') || e.target.classList.contains('canvas-center-wrapper')) {
+    // Check if click is on canvas background (not on an element)
+    const isCanvasBackground = 
+      e.target === canvasContainerRef.current || 
+      e.target.classList.contains('canvas-area') || 
+      e.target.classList.contains('canvas-scroll-area') || 
+      e.target.classList.contains('canvas-center-wrapper');
+    
+    if (isCanvasBackground) {
       onDeselectAll();
       setEditingTextId(null);
     }
   };
+
+  // Handle global mousedown to exit text editing when clicking outside
+  const handleGlobalMouseDown = useCallback((e) => {
+    if (!editingTextId) return;
+    
+    // Check if click is inside the textarea
+    if (textInputRef.current && textInputRef.current.contains(e.target)) {
+      return;
+    }
+    
+    // Check if click is inside the editing element's container
+    const editingElement = document.querySelector(`[data-element-id="${editingTextId}"]`);
+    if (editingElement && editingElement.contains(e.target)) {
+      return;
+    }
+    
+    // Click was outside - exit editing mode
+    setEditingTextId(null);
+  }, [editingTextId]);
 
   // Add global event listeners
   useEffect(() => {
@@ -226,6 +257,16 @@ const Canvas = ({
       document.removeEventListener('mousemove', handleCanvasMouseMove);
     };
   }, [handleMouseUp, handleCanvasMouseMove]);
+
+  // Add global mousedown listener to exit text editing
+  useEffect(() => {
+    if (editingTextId) {
+      document.addEventListener('mousedown', handleGlobalMouseDown);
+      return () => {
+        document.removeEventListener('mousedown', handleGlobalMouseDown);
+      };
+    }
+  }, [editingTextId, handleGlobalMouseDown]);
 
   // Render shape
   const renderShape = (shape, color, width, height) => {
@@ -326,7 +367,7 @@ const Canvas = ({
           {/* Canvas Container */}
           <div
             ref={canvasContainerRef}
-            className="canvas-area relative bg-white shadow-2xl flex-shrink-0"
+            className="canvas-area relative flex-shrink-0 overflow-hidden"
             style={{
               width: `${canvasWidth}px`,
               height: `${canvasHeight}px`,
@@ -334,15 +375,19 @@ const Canvas = ({
               boxShadow: '0 0 0 1px rgba(255,255,255,0.1), 0 0 40px rgba(0,0,0,0.5), 0 0 80px rgba(0,0,0,0.3), inset 0 0 0 1px rgba(255,255,255,0.05)'
             }}
           >
-            {/* Grid Pattern (optional) */}
+            {/* Transparency Checkerboard Pattern (like Photoshop) */}
             <div 
-              className="absolute inset-0 pointer-events-none opacity-5"
+              className="absolute inset-0 pointer-events-none"
               style={{
                 backgroundImage: `
-                  linear-gradient(rgba(0,0,0,0.1) 1px, transparent 1px),
-                  linear-gradient(90deg, rgba(0,0,0,0.1) 1px, transparent 1px)
+                  linear-gradient(45deg, #e0e0e0 25%, transparent 25%),
+                  linear-gradient(-45deg, #e0e0e0 25%, transparent 25%),
+                  linear-gradient(45deg, transparent 75%, #e0e0e0 75%),
+                  linear-gradient(-45deg, transparent 75%, #e0e0e0 75%)
                 `,
-                backgroundSize: `${20 * displayScale}px ${20 * displayScale}px`
+                backgroundSize: `${16 * displayScale}px ${16 * displayScale}px`,
+                backgroundPosition: `0 0, 0 ${8 * displayScale}px, ${8 * displayScale}px -${8 * displayScale}px, -${8 * displayScale}px 0px`,
+                backgroundColor: '#ffffff'
               }}
             />
 
@@ -355,6 +400,7 @@ const Canvas = ({
               return (
                 <div
                   key={element.id}
+                  data-element-id={element.id}
                   onMouseDown={(e) => handleElementMouseDown(e, element.id)}
                   onDoubleClick={(e) => element.type === 'text' && handleTextDoubleClick(e, element.id)}
                   className={`absolute ${getCursorStyle(element, isActive, isLocked)}`}
@@ -437,9 +483,9 @@ const Canvas = ({
                   {/* Resize Handle */}
                   {isActive && !isLocked && !isEditing && (
                     <div
-                      className="absolute -right-1.5 -bottom-1.5 w-3 h-3 bg-[#FF843E] border-2 border-white rounded-sm cursor-se-resize shadow-md"
+                      className="absolute -right-1 -bottom-1 w-2 h-2 bg-[#FF843E] border border-white rounded-sm cursor-se-resize shadow-sm"
                       style={{
-                        transform: `scale(${1 / displayScale})`,
+                        transform: `scale(${1 / Math.max(displayScale, 0.5)})`,
                         transformOrigin: 'center'
                       }}
                     />
@@ -448,19 +494,50 @@ const Canvas = ({
                   {/* Corner Handles (for visual feedback) */}
                   {isActive && !isLocked && !isEditing && (
                     <>
-                      <div className="absolute -left-1 -top-1 w-2 h-2 bg-white border border-[#FF843E] rounded-sm" />
-                      <div className="absolute -right-1 -top-1 w-2 h-2 bg-white border border-[#FF843E] rounded-sm" />
-                      <div className="absolute -left-1 -bottom-1 w-2 h-2 bg-white border border-[#FF843E] rounded-sm" />
+                      <div 
+                        className="absolute bg-white border border-[#FF843E] rounded-sm"
+                        style={{
+                          width: '5px',
+                          height: '5px',
+                          left: '-2px',
+                          top: '-2px',
+                          transform: `scale(${1 / Math.max(displayScale, 0.5)})`,
+                          transformOrigin: 'center'
+                        }}
+                      />
+                      <div 
+                        className="absolute bg-white border border-[#FF843E] rounded-sm"
+                        style={{
+                          width: '5px',
+                          height: '5px',
+                          right: '-2px',
+                          top: '-2px',
+                          transform: `scale(${1 / Math.max(displayScale, 0.5)})`,
+                          transformOrigin: 'center'
+                        }}
+                      />
+                      <div 
+                        className="absolute bg-white border border-[#FF843E] rounded-sm"
+                        style={{
+                          width: '5px',
+                          height: '5px',
+                          left: '-2px',
+                          bottom: '-2px',
+                          transform: `scale(${1 / Math.max(displayScale, 0.5)})`,
+                          transformOrigin: 'center'
+                        }}
+                      />
                     </>
                   )}
 
                   {/* Action Buttons - Duplicate & Delete on Selection Box */}
                   {isActive && !isLocked && !isEditing && (
                     <div 
-                      className="absolute -top-10 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-[#1C1C1C] border border-[#333333] rounded-lg p-1 shadow-xl"
+                      className="absolute -top-5 left-1/2 flex items-center gap-px bg-[#1C1C1C]/90 border border-[#333333] rounded-sm shadow-lg"
                       style={{
-                        transform: `translateX(-50%) scale(${1 / Math.min(displayScale, 1)})`,
-                        transformOrigin: 'bottom center'
+                        transform: `translateX(-50%) scale(${1 / Math.max(displayScale, 0.5)})`,
+                        transformOrigin: 'bottom center',
+                        padding: '1px'
                       }}
                     >
                       <button
@@ -468,21 +545,21 @@ const Canvas = ({
                           e.stopPropagation();
                           onDuplicateElement?.(element.id);
                         }}
-                        className="p-1.5 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded transition-colors"
+                        className="p-0.5 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded-sm transition-colors"
                         title="Duplicate (Ctrl+D)"
                       >
-                        <Copy size={14} />
+                        <Copy size={9} />
                       </button>
-                      <div className="w-px h-4 bg-[#333333]" />
+                      <div className="w-px h-2 bg-[#444]" />
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           onDeleteElement?.(element.id);
                         }}
-                        className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"
+                        className="p-0.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-sm transition-colors"
                         title="Delete (Del)"
                       >
-                        <Trash2 size={14} />
+                        <Trash2 size={9} />
                       </button>
                     </div>
                   )}

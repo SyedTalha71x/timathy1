@@ -1,6 +1,40 @@
 /* eslint-disable react/prop-types */
-import { Calendar, Download, X, Edit, Info, Search, ArrowUp, ArrowDown, ArrowUpDown, ChevronDown } from "lucide-react"
+import { Calendar, Download, X, Edit, Info, Search, ArrowUp, ArrowDown, ArrowUpDown, ChevronDown, Eye, EyeOff } from "lucide-react"
 import { useEffect, useState, useMemo, useRef } from "react"
+
+// Masked IBAN Component
+const MaskedIban = ({ iban, className = "" }) => {
+  const [isRevealed, setIsRevealed] = useState(false);
+
+  if (!iban) return <span className="text-gray-500">-</span>;
+
+  const maskIban = (ibanStr) => {
+    if (ibanStr.length <= 8) return ibanStr;
+    const start = ibanStr.slice(0, 4);
+    const end = ibanStr.slice(-4);
+    const middleLength = ibanStr.length - 8;
+    const masked = '*'.repeat(Math.min(middleLength, 8));
+    return `${start}${masked}${end}`;
+  };
+
+  const displayValue = isRevealed ? iban : maskIban(iban);
+
+  return (
+    <div className={`flex items-center gap-1 ${className}`}>
+      <span className="font-mono text-xs whitespace-nowrap">{displayValue}</span>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsRevealed(!isRevealed);
+        }}
+        className="p-0.5 text-gray-400 hover:text-white transition-colors flex-shrink-0"
+        title={isRevealed ? "Hide IBAN" : "Show full IBAN"}
+      >
+        {isRevealed ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+      </button>
+    </div>
+  );
+};
 
 // eslint-disable-next-line no-unused-vars
 const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerateXml, onUpdateStatus, financialData }) => {
@@ -28,6 +62,47 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
   const [periodDropdownOpen, setPeriodDropdownOpen] = useState(false)
   const [localSelectedPeriod, setLocalSelectedPeriod] = useState(selectedPeriod)
   const dropdownRef = useRef(null)
+  
+  // Column widths state for resizable table
+  const [columnWidths, setColumnWidths] = useState({
+    member: 85,
+    iban: 65,
+    mandate: 85,
+    date: 65,
+    status: 50,
+    amount: 45,
+    services: 28
+  })
+  
+  // Handle column resize
+  const handleColumnResize = (columnId, newWidth) => {
+    setColumnWidths(prev => ({
+      ...prev,
+      [columnId]: Math.max(50, newWidth)
+    }))
+  }
+  
+  // Mouse down handler for resize
+  const handleResizeMouseDown = (e, columnId) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    const startX = e.clientX
+    const startWidth = columnWidths[columnId]
+    
+    const handleMouseMove = (moveEvent) => {
+      const diff = moveEvent.clientX - startX
+      handleColumnResize(columnId, startWidth + diff)
+    }
+    
+    const handleMouseUp = () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+    
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+  }
 
   // Close dropdown when clicking outside (desktop only)
   useEffect(() => {
@@ -98,7 +173,9 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
     
     if (searchTerm) {
       filtered = filtered.filter((tx) =>
-        tx.memberName.toLowerCase().includes(searchTerm.toLowerCase())
+        tx.memberName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        tx.iban?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        tx.mandateNumber?.toLowerCase().includes(searchTerm.toLowerCase())
       )
     }
     
@@ -124,6 +201,12 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
           const amountA = editedAmounts[a.id] || a.amount
           const amountB = editedAmounts[b.id] || b.amount
           comparison = amountA - amountB
+          break
+        case "iban":
+          comparison = (a.iban || "").localeCompare(b.iban || "")
+          break
+        case "mandate":
+          comparison = (a.mandateNumber || "").localeCompare(b.mandateNumber || "")
           break
         default:
           comparison = 0
@@ -276,7 +359,7 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
 
   return (
     <div className="fixed inset-0 bg-black/70 flex p-2 items-center justify-center z-50">
-      <div className="bg-[#1C1C1C] rounded-xl w-full max-w-3xl max-h-[80vh] flex flex-col overflow-visible">
+      <div className="bg-[#1C1C1C] rounded-xl w-full max-w-5xl max-h-[80vh] flex flex-col overflow-visible">
         <div className="p-4 border-b border-gray-800 flex justify-between items-center">
           <h2 className="text-white text-lg font-medium">Run Payment</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-white">
@@ -502,7 +585,7 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
             <input
               type="search"
-              placeholder="Search by member name..."
+              placeholder="Search by member, IBAN, or mandate number..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="h-10 bg-[#141414] text-white rounded-xl pl-12 pr-4 w-full text-sm outline-none border border-[#333333] focus:border-[#3F74FF] transition-colors"
@@ -533,149 +616,231 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
                 </div>
               </div>
               <div className="overflow-x-auto">
-                <div className="min-w-[700px]">
-                  <table className="w-full text-sm text-gray-300">
-                    <thead className="text-xs text-gray-400 uppercase bg-[#141414]">
-                    <tr>
-                      <th className="px-3 py-2 w-12 rounded-tl-lg">
-                        <input 
-                          type="checkbox" 
-                          className="rounded bg-black border-gray-700 text-orange-500 focus:ring-orange-500"
-                          checked={sortedTransactions.length > 0 && sortedTransactions.every(tx => selectedTransactions[tx.id])}
-                          onChange={() => {
-                            const allSelected = sortedTransactions.every(tx => selectedTransactions[tx.id])
-                            handleSelectAll(!allSelected)
-                          }}
-                        />
-                      </th>
-                      <th 
-                        className="px-3 py-2 text-left cursor-pointer hover:bg-[#1C1C1C] transition-colors"
-                        onClick={() => handleSort("member")}
+                <table className="text-sm text-gray-300 border-collapse w-full" style={{ minWidth: '600px' }}>
+                  <thead className="text-xs text-gray-400 uppercase bg-[#141414]">
+                  <tr>
+                    <th className="px-1.5 py-2 w-8 rounded-tl-lg">
+                      <input 
+                        type="checkbox" 
+                        className="rounded bg-black border-gray-700 text-orange-500 focus:ring-orange-500"
+                        checked={sortedTransactions.length > 0 && sortedTransactions.every(tx => selectedTransactions[tx.id])}
+                        onChange={() => {
+                          const allSelected = sortedTransactions.every(tx => selectedTransactions[tx.id])
+                          handleSelectAll(!allSelected)
+                        }}
+                      />
+                    </th>
+                    {/* Member Column */}
+                    <th 
+                      className="px-1.5 md:px-2 py-2 text-left hover:bg-[#1C1C1C] transition-colors relative"
+                      style={{ width: `${columnWidths.member}px`, minWidth: '60px' }}
+                    >
+                      <div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("member")}>
+                        <span className="hidden md:inline">Member</span>
+                        <span className="md:hidden">Name</span>
+                        {getSortIcon("member")}
+                      </div>
+                      <div 
+                        className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group"
+                        onMouseDown={(e) => handleResizeMouseDown(e, 'member')}
+                        style={{ touchAction: 'none' }}
                       >
-                        <div className="flex items-center gap-1">
-                          Member {getSortIcon("member")}
-                        </div>
-                      </th>
-                      <th 
-                        className="px-3 py-2 text-left cursor-pointer hover:bg-[#1C1C1C] transition-colors"
-                        onClick={() => handleSort("date")}
+                        <div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" />
+                      </div>
+                    </th>
+                    {/* Amount Column - 2nd */}
+                    <th 
+                      className="px-1.5 md:px-2 py-2 text-right hover:bg-[#1C1C1C] transition-colors relative"
+                      style={{ width: `${columnWidths.amount}px`, minWidth: '40px' }}
+                    >
+                      <div className="flex items-center justify-end gap-1 cursor-pointer" onClick={() => handleSort("amount")}>
+                        <span className="hidden md:inline">Amount</span>
+                        <span className="md:hidden">Amt</span>
+                        {getSortIcon("amount")}
+                      </div>
+                      <div 
+                        className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group"
+                        onMouseDown={(e) => handleResizeMouseDown(e, 'amount')}
+                        style={{ touchAction: 'none' }}
                       >
-                        <div className="flex items-center gap-1">
-                          Date {getSortIcon("date")}
-                        </div>
-                      </th>
-                      <th 
-                        className="px-3 py-2 text-left cursor-pointer hover:bg-[#1C1C1C] transition-colors"
-                        onClick={() => handleSort("status")}
+                        <div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" />
+                      </div>
+                    </th>
+                    {/* Services Column - 3rd, next to Amount */}
+                    <th className="px-1.5 py-2 text-center relative" style={{ width: `${columnWidths.services}px`, minWidth: '25px' }}>
+                      <span className="hidden md:inline">Services</span>
+                      <span className="md:hidden">Svc</span>
+                      <div 
+                        className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group"
+                        onMouseDown={(e) => handleResizeMouseDown(e, 'services')}
+                        style={{ touchAction: 'none' }}
                       >
-                        <div className="flex items-center gap-1">
-                          Status {getSortIcon("status")}
-                        </div>
-                      </th>
-                      <th 
-                        className="px-3 py-2 text-right cursor-pointer hover:bg-[#1C1C1C] transition-colors"
-                        onClick={() => handleSort("amount")}
+                        <div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" />
+                      </div>
+                    </th>
+                    {/* Status Column - 4th */}
+                    <th 
+                      className="px-1.5 md:px-2 py-2 text-left hover:bg-[#1C1C1C] transition-colors relative"
+                      style={{ width: `${columnWidths.status}px`, minWidth: '35px' }}
+                    >
+                      <div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("status")}>
+                        <span className="hidden md:inline">Status</span>
+                        <span className="md:hidden">St.</span>
+                        {getSortIcon("status")}
+                      </div>
+                      <div 
+                        className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group"
+                        onMouseDown={(e) => handleResizeMouseDown(e, 'status')}
+                        style={{ touchAction: 'none' }}
                       >
-                        <div className="flex items-center justify-end gap-1">
-                          Amount {getSortIcon("amount")}
-                        </div>
-                      </th>
-                      <th className="px-3 py-2 text-center rounded-tr-lg">Services</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                      {sortedTransactions.map((tx) => (
-                        <tr
-                          key={tx.id}
-                          className={`border-b border-gray-800 ${
-                            !selectedTransactions[tx.id] ? "opacity-50" : ""
-                          }`}
-                        >
-                          <td className="px-3 py-2">
-                            <input
-                              type="checkbox"
-                              className="rounded bg-black border-gray-700 text-orange-500 focus:ring-orange-500"
-                              checked={selectedTransactions[tx.id] || false}
-                              onChange={() => handleToggleTransaction(tx.id)}
-                            />
-                          </td>
-                          <td className="px-2 sm:px-3 py-2 text-xs sm:text-sm">{tx.memberName}</td>
-                          <td className="px-2 sm:px-3 py-2 text-xs sm:text-sm">{new Date(tx.date).toLocaleDateString()}</td>
-                          <td className="px-2 sm:px-3 py-2">
-                            <span
-                              className={`px-2 py-1 rounded text-xs font-medium ${
-                                tx.status === "Pending"
-                                  ? "bg-[#f59e0b] text-white"
-                                  : "bg-[#ef4444] text-white"
-                              }`}
-                            >
-                              {tx.status}
-                            </span>
-                          </td>
-                          <td className="px-2 sm:px-3 py-2 text-right">
-                            <div className="flex items-center justify-end gap-1 sm:gap-2">
-                              {editingAmount === tx.id ? (
-                                <>
-                                  <input
-                                    type="number"
-                                    value={tempAmount}
-                                    onChange={(e) => setTempAmount(e.target.value)}
-                                    className="w-16 sm:w-20 bg-[#141414] text-white px-2 py-1 rounded border border-gray-700 text-xs sm:text-sm focus:border-orange-500 focus:outline-none"
-                                    autoFocus
-                                    onKeyDown={(e) => {
-                                      if (e.key === "Enter") handleSaveAmount(tx.id)
-                                      if (e.key === "Escape") handleCancelEdit()
-                                    }}
-                                  />
-                                  <button
-                                    onClick={() => handleSaveAmount(tx.id)}
-                                    className="p-1 rounded text-xs bg-orange-500 hover:bg-orange-600 text-white"
-                                  >
-                                    Save
-                                  </button>
-                                  <button
-                                    onClick={handleCancelEdit}
-                                    className="p-1 rounded bg-gray-600 hover:bg-gray-700 text-white text-xs px-2"
-                                  >
-                                    Cancel
-                                  </button>
-                                </>
-                              ) : (
-                                <>
-                                  <span
-                                    className={`text-xs sm:text-sm ${!selectedTransactions[tx.id] ? "text-gray-500" : "text-white"}`}
-                                  >
-                                    ${(editedAmounts[tx.id] || tx.amount).toFixed(2)}
-                                  </span>
-                                  <button
-                                    onClick={() => handleStartEdit(tx.id, editedAmounts[tx.id] || tx.amount)}
-                                    disabled={!selectedTransactions[tx.id]}
-                                    className={`p-1 rounded hover:bg-gray-700 ${
-                                      !selectedTransactions[tx.id]
-                                        ? "text-gray-600 cursor-not-allowed"
-                                        : "text-gray-400 hover:text-white"
-                                    }`}
-                                  >
-                                    <Edit className="w-3 h-3" />
-                                  </button>
-                                </>
-                              )}
-                            </div>
-                          </td>
-                          <td className="px-2 sm:px-3 py-2 text-center">
-                            <button
-                              onClick={() => handleShowServices(tx.services, tx.studioName)}
-                              className="text-blue-400 hover:text-blue-300"
-                              disabled={!selectedTransactions[tx.id]}
-                            >
-                              <Info className="w-3 h-3 sm:w-4 sm:h-4" />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                        <div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" />
+                      </div>
+                    </th>
+                    {/* IBAN Column */}
+                    <th 
+                      className="px-1.5 md:px-2 py-2 text-left hover:bg-[#1C1C1C] transition-colors relative"
+                      style={{ width: `${columnWidths.iban}px`, minWidth: '55px' }}
+                    >
+                      <div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("iban")}>
+                        IBAN {getSortIcon("iban")}
+                      </div>
+                      <div 
+                        className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group"
+                        onMouseDown={(e) => handleResizeMouseDown(e, 'iban')}
+                        style={{ touchAction: 'none' }}
+                      >
+                        <div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" />
+                      </div>
+                    </th>
+                    {/* Mandate Column */}
+                    <th 
+                      className="px-1.5 md:px-2 py-2 text-left hover:bg-[#1C1C1C] transition-colors relative"
+                      style={{ width: `${columnWidths.mandate}px`, minWidth: '50px' }}
+                    >
+                      <div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("mandate")}>
+                        <span className="hidden md:inline">Mandate Number</span>
+                        <span className="md:hidden">Mandate</span>
+                        {getSortIcon("mandate")}
+                      </div>
+                      <div 
+                        className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group"
+                        onMouseDown={(e) => handleResizeMouseDown(e, 'mandate')}
+                        style={{ touchAction: 'none' }}
+                      >
+                        <div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" />
+                      </div>
+                    </th>
+                    {/* Date Column */}
+                    <th 
+                      className="px-1.5 md:px-2 py-2 text-left rounded-tr-lg hover:bg-[#1C1C1C] transition-colors relative"
+                      style={{ width: `${columnWidths.date}px`, minWidth: '50px' }}
+                    >
+                      <div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("date")}>
+                        Date {getSortIcon("date")}
+                      </div>
+                      <div 
+                        className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group"
+                        onMouseDown={(e) => handleResizeMouseDown(e, 'date')}
+                        style={{ touchAction: 'none' }}
+                      >
+                        <div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" />
+                      </div>
+                    </th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                    {sortedTransactions.map((tx) => (
+                      <tr
+                        key={tx.id}
+                        className={`border-b border-gray-800 ${
+                          !selectedTransactions[tx.id] ? "opacity-50" : ""
+                        }`}
+                      >
+                        <td className="px-1.5 py-2">
+                          <input
+                            type="checkbox"
+                            className="rounded bg-black border-gray-700 text-orange-500 focus:ring-orange-500"
+                            checked={selectedTransactions[tx.id] || false}
+                            onChange={() => handleToggleTransaction(tx.id)}
+                          />
+                        </td>
+                        <td className="px-1.5 md:px-2 py-2 text-xs truncate">{tx.memberName}</td>
+                        <td className="px-1.5 md:px-2 py-2 text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            {editingAmount === tx.id ? (
+                              <>
+                                <input
+                                  type="number"
+                                  value={tempAmount}
+                                  onChange={(e) => setTempAmount(e.target.value)}
+                                  className="w-12 md:w-16 bg-[#141414] text-white px-1 py-0.5 rounded border border-gray-700 text-xs focus:border-orange-500 focus:outline-none"
+                                  autoFocus
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter") handleSaveAmount(tx.id)
+                                    if (e.key === "Escape") handleCancelEdit()
+                                  }}
+                                />
+                                <button
+                                  onClick={() => handleSaveAmount(tx.id)}
+                                  className="p-0.5 rounded text-xs bg-orange-500 hover:bg-orange-600 text-white"
+                                >
+                                  ✓
+                                </button>
+                              </>
+                            ) : (
+                              <>
+                                <span className={`text-xs ${!selectedTransactions[tx.id] ? "text-gray-500" : "text-white"}`}>
+                                  ${(editedAmounts[tx.id] || tx.amount).toFixed(2)}
+                                </span>
+                                <button
+                                  onClick={() => handleStartEdit(tx.id, editedAmounts[tx.id] || tx.amount)}
+                                  disabled={!selectedTransactions[tx.id]}
+                                  className={`p-0.5 rounded ${
+                                    !selectedTransactions[tx.id]
+                                      ? "text-gray-600 cursor-not-allowed"
+                                      : "text-gray-400 hover:text-white"
+                                  }`}
+                                >
+                                  <Edit className="w-2.5 h-2.5" />
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-1.5 py-2 text-center">
+                          <button
+                            onClick={() => handleShowServices(tx.services, tx.studioName)}
+                            className="text-blue-400 hover:text-blue-300"
+                            disabled={!selectedTransactions[tx.id]}
+                          >
+                            <Info className="w-3 h-3" />
+                          </button>
+                        </td>
+                        <td className="px-1.5 md:px-2 py-2">
+                          {/* Mobile: Single letter */}
+                          <span className={`md:hidden px-1 py-0.5 rounded text-xs font-medium ${
+                            tx.status === "Pending" ? "bg-[#f59e0b] text-white" : "bg-[#ef4444] text-white"
+                          }`}>
+                            {tx.status === "Pending" ? "P" : "F"}
+                          </span>
+                          {/* Desktop: Full status */}
+                          <span className={`hidden md:inline px-2 py-1 rounded text-xs font-medium ${
+                            tx.status === "Pending" ? "bg-[#f59e0b] text-white" : "bg-[#ef4444] text-white"
+                          }`}>
+                            {tx.status}
+                          </span>
+                        </td>
+                        <td className="px-1.5 md:px-2 py-2 text-xs">
+                          <MaskedIban iban={tx.iban || "DE89370400440532013000"} />
+                        </td>
+                        <td className="px-1.5 md:px-2 py-2 text-xs truncate">
+                          {tx.mandateNumber || `MNDT-${tx.id.toString().padStart(6, '0')}`}
+                        </td>
+                        <td className="px-1.5 md:px-2 py-2 text-xs">{new Date(tx.date).toLocaleDateString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </>
           ) : (

@@ -14,7 +14,11 @@ import {
   Edit2,
   GripVertical,
   Layers,
-  Pipette
+  Pipette,
+  Eye,
+  Bookmark,
+  AlertTriangle,
+  FolderInput
 } from 'lucide-react';
 
 // Components
@@ -41,6 +45,10 @@ const MediaLibrary = () => {
   const [showEditor, setShowEditor] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showFolderModal, setShowFolderModal] = useState(false);
+  const [showFolderDeleteModal, setShowFolderDeleteModal] = useState(false);
+  const [folderToDelete, setFolderToDelete] = useState(null);
+  const [showMoveDesignsModal, setShowMoveDesignsModal] = useState(false);
+  const [designsToMove, setDesignsToMove] = useState([]);
   
   // Design states
   const [myCreations, setMyCreations] = useState([]);
@@ -55,6 +63,19 @@ const MediaLibrary = () => {
   const [showFoldersSection, setShowFoldersSection] = useState(true);
   const [showDesignsSection, setShowDesignsSection] = useState(true);
   const [showDraftsSection, setShowDraftsSection] = useState(true);
+  
+  // Preview modal state
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [previewDesign, setPreviewDesign] = useState(null);
+  
+  // Custom templates state
+  const [customTemplates, setCustomTemplates] = useState([]);
+  
+  // Save as template modal state
+  const [showSaveTemplateModal, setShowSaveTemplateModal] = useState(false);
+  const [pendingTemplate, setPendingTemplate] = useState(null);
+  const [templateName, setTemplateName] = useState('');
+  const [templateCategory, setTemplateCategory] = useState('custom');
 
   // Folder management
   const {
@@ -76,7 +97,7 @@ const MediaLibrary = () => {
   const [newFolderIsDefault, setNewFolderIsDefault] = useState(false);
   const [showCustomColorPicker, setShowCustomColorPicker] = useState(false);
 
-  // Keyboard shortcut for 'C' to create design
+  // Keyboard shortcut for 'C' to create design (but NOT Ctrl+C)
   useEffect(() => {
     const handleKeyDown = (e) => {
       // Don't trigger if user is typing in an input
@@ -84,6 +105,9 @@ const MediaLibrary = () => {
       
       // Don't trigger if any modal is open
       if (showCreateModal || showTemplateGallery || showEditor || showDeleteConfirm || showFolderModal) return;
+      
+      // Don't trigger if Ctrl, Meta, or Alt is pressed (e.g., Ctrl+C for copy)
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
       
       if (e.key === 'c' || e.key === 'C') {
         e.preventDefault();
@@ -351,6 +375,39 @@ const MediaLibrary = () => {
     setMyCreations(prev => [...prev, duplicated]);
   };
 
+  // Handle preview design
+  const handlePreviewDesign = (design) => {
+    setPreviewDesign(design);
+    setShowPreviewModal(true);
+  };
+
+  // Handle save as template - open modal
+  const handleSaveAsTemplate = (templateData) => {
+    setPendingTemplate(templateData);
+    setTemplateName(templateData.name || 'My Template');
+    setTemplateCategory('custom');
+    setShowSaveTemplateModal(true);
+  };
+
+  // Confirm save as template
+  const confirmSaveAsTemplate = () => {
+    if (!pendingTemplate || !templateName.trim()) return;
+    
+    const template = {
+      ...pendingTemplate,
+      id: `custom-${generateId()}`,
+      name: templateName.trim(),
+      category: templateCategory,
+      isCustom: true,
+      createdAt: new Date().toISOString()
+    };
+    
+    setCustomTemplates(prev => [...prev, template]);
+    setShowSaveTemplateModal(false);
+    setPendingTemplate(null);
+    setTemplateName('');
+  };
+
   // Handle delete draft
   const handleDeleteDraft = (draft) => {
     setDesignToDelete({ ...draft, isDraft: true });
@@ -394,16 +451,51 @@ const MediaLibrary = () => {
       return;
     }
     
-    const targetFolderId = deleteFolder(folder.id);
-    if (targetFolderId) {
+    // Get designs in this folder
+    const designsInFolder = myCreations.filter(d => d.folderId === folder.id);
+    
+    setFolderToDelete(folder);
+    setDesignsToMove(designsInFolder);
+    setShowFolderDeleteModal(true);
+  };
+
+  // Handle folder deletion - only folder (move designs)
+  const handleDeleteFolderOnly = () => {
+    setShowFolderDeleteModal(false);
+    setShowMoveDesignsModal(true);
+  };
+
+  // Handle folder deletion - with all contents
+  const handleDeleteFolderWithContents = () => {
+    if (folderToDelete) {
+      // Delete all designs in this folder
+      setMyCreations(prev => prev.filter(d => d.folderId !== folderToDelete.id));
+      // Delete the folder
+      deleteFolder(folderToDelete.id);
+      setFolderToDelete(null);
+      setDesignsToMove([]);
+      setShowFolderDeleteModal(false);
+    }
+  };
+
+  // Handle moving designs to another folder
+  const handleMoveDesignsToFolder = (targetFolderId) => {
+    if (folderToDelete && designsToMove.length > 0) {
       setMyCreations(prev => 
         prev.map(design => 
-          design.folderId === folder.id 
+          design.folderId === folderToDelete.id 
             ? { ...design, folderId: targetFolderId }
             : design
         )
       );
     }
+    // Delete the folder
+    if (folderToDelete) {
+      deleteFolder(folderToDelete.id);
+    }
+    setFolderToDelete(null);
+    setDesignsToMove([]);
+    setShowMoveDesignsModal(false);
   };
 
   // Design drag handling
@@ -607,6 +699,7 @@ const MediaLibrary = () => {
                       onDownload={() => handleDownloadDesign(design)}
                       onDelete={() => handleDeleteDesign(design)}
                       onDuplicate={() => handleDuplicateDesign(design)}
+                      onPreview={() => handlePreviewDesign(design)}
                       onDragStart={handleDesignDragStart}
                       onDragEnd={handleDesignDragEnd}
                       isDragging={draggingDesign?.id === design.id}
@@ -767,6 +860,7 @@ const MediaLibrary = () => {
         onClose={() => setShowTemplateGallery(false)}
         onSelectTemplate={handleSelectTemplate}
         onSelectBlank={handleSelectBlank}
+        customTemplates={customTemplates}
       />
 
       {showEditor && currentDesign && (
@@ -779,6 +873,7 @@ const MediaLibrary = () => {
           }}
           onSave={handleSaveDesign}
           onSaveDraft={handleSaveDraft}
+          onSaveAsTemplate={handleSaveAsTemplate}
           initialElements={currentDesign.elements}
           initialName={currentDesign.name}
           initialSize={currentDesign.size}
@@ -951,6 +1046,264 @@ const MediaLibrary = () => {
             >
               {folderModalMode === 'create' ? 'Create' : 'Save'}
             </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Folder Delete Confirmation Modal */}
+      <Modal
+        isOpen={showFolderDeleteModal}
+        onClose={() => {
+          setShowFolderDeleteModal(false);
+          setFolderToDelete(null);
+          setDesignsToMove([]);
+        }}
+        title={`Delete "${folderToDelete?.name || 'Folder'}"`}
+        subtitle={designsToMove.length > 0 
+          ? `This folder contains ${designsToMove.length} design${designsToMove.length !== 1 ? 's' : ''}`
+          : 'This folder is empty'
+        }
+        size="sm"
+      >
+        <div className="space-y-4">
+          {/* Options - only show "delete folder only" if folder has designs */}
+          {designsToMove.length > 0 ? (
+            <div className="space-y-2">
+              <button
+                onClick={handleDeleteFolderOnly}
+                className="w-full flex items-center gap-3 p-3 bg-[#0a0a0a] hover:bg-[#2F2F2F] text-white rounded-xl transition-colors text-left"
+              >
+                <FolderInput size={18} className="text-blue-400" />
+                <div>
+                  <p className="text-sm font-medium">Delete folder only</p>
+                  <p className="text-gray-500 text-xs">Move designs to another folder</p>
+                </div>
+              </button>
+              
+              <button
+                onClick={handleDeleteFolderWithContents}
+                className="w-full flex items-center gap-3 p-3 bg-[#0a0a0a] hover:bg-red-500/10 text-white hover:text-red-400 rounded-xl transition-colors text-left border border-transparent hover:border-red-500/30"
+              >
+                <Trash2 size={18} className="text-red-400" />
+                <div>
+                  <p className="text-sm font-medium">Delete folder and designs</p>
+                  <p className="text-gray-500 text-xs">Permanently delete {designsToMove.length} design{designsToMove.length !== 1 ? 's' : ''}</p>
+                </div>
+              </button>
+            </div>
+          ) : (
+            <p className="text-gray-400 text-sm">
+              Are you sure you want to delete this empty folder?
+            </p>
+          )}
+          
+          <div className="flex gap-3 pt-2">
+            <button
+              onClick={() => {
+                setShowFolderDeleteModal(false);
+                setFolderToDelete(null);
+                setDesignsToMove([]);
+              }}
+              className="flex-1 py-2.5 bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white rounded-xl transition-colors"
+            >
+              Cancel
+            </button>
+            {designsToMove.length === 0 && (
+              <button
+                onClick={handleDeleteFolderWithContents}
+                className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl transition-colors"
+              >
+                Delete
+              </button>
+            )}
+          </div>
+        </div>
+      </Modal>
+
+      {/* Move Designs to Folder Modal */}
+      <Modal
+        isOpen={showMoveDesignsModal}
+        onClose={() => {
+          setShowMoveDesignsModal(false);
+          setFolderToDelete(null);
+          setDesignsToMove([]);
+        }}
+        title="Move Designs"
+        subtitle={`Select a folder for ${designsToMove.length} design${designsToMove.length !== 1 ? 's' : ''}`}
+        size="sm"
+      >
+        <div className="space-y-4">
+          <div className="space-y-2 max-h-60 overflow-y-auto">
+            {folders
+              .filter(f => f.id !== folderToDelete?.id)
+              .map((folder) => (
+                <button
+                  key={folder.id}
+                  onClick={() => handleMoveDesignsToFolder(folder.id)}
+                  className="w-full flex items-center gap-3 p-3 bg-[#0a0a0a] hover:bg-[#2F2F2F] text-white rounded-xl transition-colors text-left"
+                >
+                  <div 
+                    className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                    style={{ backgroundColor: `${folder.color}20` }}
+                  >
+                    <FolderIcon size={20} style={{ color: folder.color }} />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">{folder.name}</p>
+                    <p className="text-gray-500 text-xs">
+                      {getDesignsForFolder(folder.id).length} designs
+                    </p>
+                  </div>
+                  {folder.isDefault && (
+                    <span className="text-[10px] bg-[#2F2F2F] text-gray-400 px-2 py-0.5 rounded">
+                      Default
+                    </span>
+                  )}
+                </button>
+              ))}
+          </div>
+          
+          <button
+            onClick={() => {
+              setShowMoveDesignsModal(false);
+              setShowFolderDeleteModal(true);
+            }}
+            className="w-full py-2.5 bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white rounded-xl transition-colors"
+          >
+            Back
+          </button>
+        </div>
+      </Modal>
+
+      {/* Save as Template Modal */}
+      <Modal
+        isOpen={showSaveTemplateModal}
+        onClose={() => {
+          setShowSaveTemplateModal(false);
+          setPendingTemplate(null);
+          setTemplateName('');
+        }}
+        title="Save as Template"
+        subtitle="Save your design as a reusable template"
+        size="sm"
+      >
+        <div className="space-y-4">
+          {/* Template Preview */}
+          {pendingTemplate?.thumbnail && (
+            <div className="relative bg-[#0a0a0a] rounded-xl p-3 flex items-center justify-center">
+              <img 
+                src={pendingTemplate.thumbnail}
+                alt="Template preview"
+                className="max-h-32 object-contain rounded-lg"
+                draggable={false}
+              />
+            </div>
+          )}
+          
+          {/* Template Name */}
+          <div>
+            <label className="block text-sm text-gray-400 mb-1.5">Template Name</label>
+            <input
+              type="text"
+              value={templateName}
+              onChange={(e) => setTemplateName(e.target.value)}
+              className="w-full bg-[#0a0a0a] border border-[#333333] rounded-xl py-2.5 px-4 text-white focus:outline-none focus:border-orange-500 transition-colors"
+              placeholder="Enter template name"
+              autoFocus
+            />
+          </div>
+          
+          {/* Template Info */}
+          <div className="flex items-center gap-4 text-xs text-gray-500">
+            <div className="flex items-center gap-1">
+              <Layers size={12} />
+              <span>{pendingTemplate?.elements?.length || 0} layers</span>
+            </div>
+            <div>
+              <span>{pendingTemplate?.size}</span>
+            </div>
+          </div>
+          
+          <div className="flex gap-3 pt-2">
+            <button
+              onClick={() => {
+                setShowSaveTemplateModal(false);
+                setPendingTemplate(null);
+                setTemplateName('');
+              }}
+              className="flex-1 py-2.5 bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white rounded-xl transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={confirmSaveAsTemplate}
+              disabled={!templateName.trim()}
+              className="flex-1 py-2.5 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-500/50 disabled:cursor-not-allowed text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
+            >
+              <Bookmark size={16} />
+              Save Template
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Preview Modal */}
+      <Modal
+        isOpen={showPreviewModal}
+        onClose={() => {
+          setShowPreviewModal(false);
+          setPreviewDesign(null);
+        }}
+        title={previewDesign?.name || 'Preview'}
+        size="4xl"
+      >
+        <div className="flex flex-col items-center">
+          {previewDesign?.thumbnail && previewDesign.thumbnail !== 'data:,' ? (
+            <div 
+              className="relative rounded-xl p-4 w-full flex items-center justify-center" 
+              style={{ 
+                maxHeight: '70vh',
+                backgroundImage: `
+                  linear-gradient(45deg, #2a2a2a 25%, transparent 25%),
+                  linear-gradient(-45deg, #2a2a2a 25%, transparent 25%),
+                  linear-gradient(45deg, transparent 75%, #2a2a2a 75%),
+                  linear-gradient(-45deg, transparent 75%, #2a2a2a 75%)
+                `,
+                backgroundSize: '20px 20px',
+                backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px',
+                backgroundColor: '#1a1a1a'
+              }}
+            >
+              <img 
+                src={previewDesign.thumbnail}
+                alt={previewDesign.name}
+                className="max-w-full max-h-[60vh] object-contain rounded-lg"
+                draggable={false}
+              />
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-20 text-gray-500">
+              <Eye size={48} className="mb-4 opacity-50" />
+              <span>No preview available</span>
+            </div>
+          )}
+          <div className="flex items-center justify-between w-full mt-4 pt-4 border-t border-[#333333]">
+            <div>
+              <p className="text-gray-400 text-sm">{previewDesign?.size}</p>
+              <p className="text-gray-500 text-xs">{previewDesign?.elements?.length || 0} layers</p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  setShowPreviewModal(false);
+                  handleEditDesign(previewDesign);
+                }}
+                className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-xl transition-colors"
+              >
+                <Edit2 size={14} />
+                Edit
+              </button>
+            </div>
           </div>
         </div>
       </Modal>

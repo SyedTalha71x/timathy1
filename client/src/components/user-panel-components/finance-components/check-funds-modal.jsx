@@ -1,6 +1,40 @@
 /* eslint-disable react/prop-types */
-import { Check, X, Search, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
+import { Check, X, Search, ArrowUp, ArrowDown, ArrowUpDown, Eye, EyeOff, Info } from "lucide-react";
 import { useEffect, useState, useMemo } from "react";
+
+// Masked IBAN Component
+const MaskedIban = ({ iban, className = "" }) => {
+  const [isRevealed, setIsRevealed] = useState(false);
+
+  if (!iban) return <span className="text-gray-500">-</span>;
+
+  const maskIban = (ibanStr) => {
+    if (ibanStr.length <= 8) return ibanStr;
+    const start = ibanStr.slice(0, 4);
+    const end = ibanStr.slice(-4);
+    const middleLength = ibanStr.length - 8;
+    const masked = '*'.repeat(Math.min(middleLength, 8));
+    return `${start}${masked}${end}`;
+  };
+
+  const displayValue = isRevealed ? iban : maskIban(iban);
+
+  return (
+    <div className={`flex items-center gap-1 ${className}`}>
+      <span className="font-mono text-xs whitespace-nowrap">{displayValue}</span>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsRevealed(!isRevealed);
+        }}
+        className="p-0.5 text-gray-400 hover:text-white transition-colors flex-shrink-0"
+        title={isRevealed ? "Hide IBAN" : "Show full IBAN"}
+      >
+        {isRevealed ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+      </button>
+    </div>
+  );
+};
 
 const CheckFundsModal = ({
   isOpen,
@@ -16,6 +50,59 @@ const CheckFundsModal = ({
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("date");
   const [sortDirection, setSortDirection] = useState("desc");
+  
+  // Services modal state
+  const [servicesModalOpen, setServicesModalOpen] = useState(false);
+  const [selectedServices, setSelectedServices] = useState([]);
+  const [selectedMemberName, setSelectedMemberName] = useState("");
+  
+  // Column widths state for resizable table
+  const [columnWidths, setColumnWidths] = useState({
+    member: 90,
+    amount: 45,
+    services: 28,
+    iban: 70,
+    mandate: 90,
+    date: 70,
+    status: 120
+  });
+  
+  // Handle show services
+  const handleShowServices = (services, memberName) => {
+    setSelectedServices(services || []);
+    setSelectedMemberName(memberName);
+    setServicesModalOpen(true);
+  };
+  
+  // Handle column resize
+  const handleColumnResize = (columnId, newWidth) => {
+    setColumnWidths(prev => ({
+      ...prev,
+      [columnId]: Math.max(50, newWidth)
+    }));
+  };
+  
+  // Mouse down handler for resize
+  const handleResizeMouseDown = (e, columnId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const startX = e.clientX;
+    const startWidth = columnWidths[columnId];
+    
+    const handleMouseMove = (moveEvent) => {
+      const diff = moveEvent.clientX - startX;
+      handleColumnResize(columnId, startWidth + diff);
+    };
+    
+    const handleMouseUp = () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+    
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  };
 
   // Get all transactions with "Check incoming funds" status from ALL periods
   const allCheckingTransactions = useMemo(() => {
@@ -54,7 +141,9 @@ const CheckFundsModal = ({
     if (!searchTerm) return allCheckingTransactions;
     
     return allCheckingTransactions.filter((tx) =>
-      tx.memberName.toLowerCase().includes(searchTerm.toLowerCase())
+      tx.memberName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      tx.iban?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      tx.mandateNumber?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [allCheckingTransactions, searchTerm]);
 
@@ -77,6 +166,12 @@ const CheckFundsModal = ({
           break;
         case "amount":
           comparison = a.amount - b.amount;
+          break;
+        case "iban":
+          comparison = (a.iban || "").localeCompare(b.iban || "");
+          break;
+        case "mandate":
+          comparison = (a.mandateNumber || "").localeCompare(b.mandateNumber || "");
           break;
         default:
           comparison = 0;
@@ -174,7 +269,7 @@ const CheckFundsModal = ({
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-      <div className="bg-[#1C1C1C] rounded-xl w-full max-w-4xl max-h-[80vh] overflow-hidden flex flex-col mx-4">
+      <div className="bg-[#1C1C1C] rounded-xl w-full max-w-6xl max-h-[80vh] overflow-hidden flex flex-col mx-4">
         <div className="p-4 border-b border-gray-800 flex justify-between items-center">
           <h2 className="text-white text-lg font-medium">
             Check Incoming Funds
@@ -190,7 +285,7 @@ const CheckFundsModal = ({
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
             <input
               type="search"
-              placeholder="Search by member name..."
+              placeholder="Search by member, IBAN, or mandate number..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="h-10 bg-[#141414] text-white rounded-xl pl-12 pr-4 w-full text-sm outline-none border border-[#333333] focus:border-[#3F74FF] transition-colors"
@@ -202,7 +297,7 @@ const CheckFundsModal = ({
           {sortedTransactions.length > 0 ? (
             <>
               <div className="flex flex-col sm:flex-row justify-between gap-3 mb-4">
-                <p className="text-gray-300">
+                <p className="text-gray-300 text-sm">
                   Update the status of pending transactions:
                 </p>
                 <div className="flex gap-2">
@@ -224,7 +319,7 @@ const CheckFundsModal = ({
               {/* Bulk status update buttons */}
               {selectedCount > 0 && (
                 <div className="mb-4 p-3 bg-[#141414] rounded-lg">
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-3">
                     <span className="text-gray-300 text-sm">
                       Set all selected ({selectedCount}) to:
                     </span>
@@ -245,10 +340,10 @@ const CheckFundsModal = ({
               )}
 
               <div className="overflow-x-auto">
-                <table className="w-full text-sm text-gray-300 min-w-[500px]">
+                <table className="text-sm text-gray-300 border-collapse w-full" style={{ minWidth: '600px' }}>
                   <thead className="text-xs text-gray-400 uppercase bg-[#141414]">
                     <tr>
-                      <th className="px-3 py-2 w-12 rounded-tl-lg">
+                      <th className="px-1.5 py-2 w-8 rounded-tl-lg">
                         <input
                           type="checkbox"
                           className="rounded bg-black border-gray-700 text-orange-500 focus:ring-orange-500"
@@ -262,36 +357,122 @@ const CheckFundsModal = ({
                           }}
                         />
                       </th>
+                      {/* Member Column */}
                       <th 
-                        className="px-3 py-2 text-left cursor-pointer hover:bg-[#1C1C1C] transition-colors"
-                        onClick={() => handleSort("member")}
+                        className="px-1.5 md:px-2 py-2 text-left hover:bg-[#1C1C1C] transition-colors relative"
+                        style={{ width: `${columnWidths.member}px`, minWidth: '60px' }}
                       >
-                        <div className="flex items-center gap-1">
-                          Member {getSortIcon("member")}
+                        <div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("member")}>
+                          <span className="hidden md:inline">Member</span>
+                          <span className="md:hidden">Name</span>
+                          {getSortIcon("member")}
+                        </div>
+                        <div 
+                          className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group"
+                          onMouseDown={(e) => handleResizeMouseDown(e, 'member')}
+                          style={{ touchAction: 'none' }}
+                        >
+                          <div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" />
                         </div>
                       </th>
+                      {/* Amount Column - 2nd */}
                       <th 
-                        className="px-3 py-2 text-left cursor-pointer hover:bg-[#1C1C1C] transition-colors"
-                        onClick={() => handleSort("date")}
-                      >
-                        <div className="flex items-center gap-1">
-                          Date {getSortIcon("date")}
-                        </div>
-                      </th>
-                      <th 
-                        className="px-3 py-2 text-left cursor-pointer hover:bg-[#1C1C1C] transition-colors"
-                        onClick={() => handleSort("status")}
-                      >
-                        <div className="flex items-center gap-1">
-                          Status {getSortIcon("status")}
-                        </div>
-                      </th>
-                      <th 
-                        className="px-3 py-2 text-right rounded-tr-lg cursor-pointer hover:bg-[#1C1C1C] transition-colors"
+                        className="px-1.5 md:px-2 py-2 text-right cursor-pointer hover:bg-[#1C1C1C] transition-colors relative"
                         onClick={() => handleSort("amount")}
+                        style={{ width: `${columnWidths.amount}px`, minWidth: '40px' }}
                       >
                         <div className="flex items-center justify-end gap-1">
-                          Amount {getSortIcon("amount")}
+                          <span className="hidden md:inline">Amount</span>
+                          <span className="md:hidden">Amt</span>
+                          {getSortIcon("amount")}
+                        </div>
+                        <div 
+                          className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group"
+                          onMouseDown={(e) => handleResizeMouseDown(e, 'amount')}
+                          style={{ touchAction: 'none' }}
+                        >
+                          <div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" />
+                        </div>
+                      </th>
+                      {/* Services Column - 3rd, next to Amount */}
+                      <th 
+                        className="px-1.5 md:px-2 py-2 text-center relative"
+                        style={{ width: `${columnWidths.services}px`, minWidth: '25px' }}
+                      >
+                        <span className="hidden md:inline">Services</span>
+                        <span className="md:hidden">Svc</span>
+                        <div 
+                          className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group"
+                          onMouseDown={(e) => handleResizeMouseDown(e, 'services')}
+                          style={{ touchAction: 'none' }}
+                        >
+                          <div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" />
+                        </div>
+                      </th>
+                      {/* Status Column - 4th */}
+                      <th 
+                        className="px-1.5 md:px-2 py-2 text-left hover:bg-[#1C1C1C] transition-colors relative"
+                        style={{ width: `${columnWidths.status}px`, minWidth: '100px' }}
+                      >
+                        <div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("status")}>
+                          Status {getSortIcon("status")}
+                        </div>
+                        <div 
+                          className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group"
+                          onMouseDown={(e) => handleResizeMouseDown(e, 'status')}
+                          style={{ touchAction: 'none' }}
+                        >
+                          <div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" />
+                        </div>
+                      </th>
+                      {/* IBAN Column */}
+                      <th 
+                        className="px-1.5 md:px-2 py-2 text-left hover:bg-[#1C1C1C] transition-colors relative"
+                        style={{ width: `${columnWidths.iban}px`, minWidth: '60px' }}
+                      >
+                        <div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("iban")}>
+                          IBAN {getSortIcon("iban")}
+                        </div>
+                        <div 
+                          className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group"
+                          onMouseDown={(e) => handleResizeMouseDown(e, 'iban')}
+                          style={{ touchAction: 'none' }}
+                        >
+                          <div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" />
+                        </div>
+                      </th>
+                      {/* Mandate Column */}
+                      <th 
+                        className="px-1.5 md:px-2 py-2 text-left hover:bg-[#1C1C1C] transition-colors relative"
+                        style={{ width: `${columnWidths.mandate}px`, minWidth: '60px' }}
+                      >
+                        <div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("mandate")}>
+                          <span className="hidden md:inline">Mandate Number</span>
+                          <span className="md:hidden">Mandate</span>
+                          {getSortIcon("mandate")}
+                        </div>
+                        <div 
+                          className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group"
+                          onMouseDown={(e) => handleResizeMouseDown(e, 'mandate')}
+                          style={{ touchAction: 'none' }}
+                        >
+                          <div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" />
+                        </div>
+                      </th>
+                      {/* Date Column */}
+                      <th 
+                        className="px-1.5 md:px-2 py-2 text-left rounded-tr-lg hover:bg-[#1C1C1C] transition-colors relative"
+                        style={{ width: `${columnWidths.date}px`, minWidth: '50px' }}
+                      >
+                        <div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("date")}>
+                          Date {getSortIcon("date")}
+                        </div>
+                        <div 
+                          className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group"
+                          onMouseDown={(e) => handleResizeMouseDown(e, 'date')}
+                          style={{ touchAction: 'none' }}
+                        >
+                          <div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" />
                         </div>
                       </th>
                     </tr>
@@ -308,7 +489,7 @@ const CheckFundsModal = ({
                             !isSelected ? "opacity-50" : ""
                           } transition-colors`}
                         >
-                          <td className="px-3 py-2">
+                          <td className="px-1.5 py-2">
                             <input
                               type="checkbox"
                               className="rounded bg-black border-gray-700 text-orange-500 focus:ring-orange-500"
@@ -316,47 +497,66 @@ const CheckFundsModal = ({
                               onChange={() => handleToggleTransaction(tx.id)}
                             />
                           </td>
-                          <td className="px-3 py-2">{tx.memberName}</td>
-                          <td className="px-3 py-2">
-                            {new Date(tx.date).toLocaleDateString()}
+                          <td className="px-1.5 md:px-2 py-2 text-xs truncate">{tx.memberName}</td>
+                          <td className="px-1.5 md:px-2 py-2 text-right text-xs">
+                            {new Intl.NumberFormat("en-US", {
+                              style: "currency",
+                              currency: "USD",
+                            }).format(tx.amount)}
                           </td>
-                          <td className="px-3 py-2">
+                          <td className="px-1.5 md:px-2 py-2 text-center">
+                            <button
+                              onClick={() => handleShowServices(tx.services, tx.memberName)}
+                              className="text-blue-400 hover:text-blue-300"
+                            >
+                              <Info className="w-3 h-3" />
+                            </button>
+                          </td>
+                          <td className="px-1.5 md:px-2 py-2">
                             {isSelected ? (
-                              // Side-by-side status buttons for selected transactions
                               <div className="flex gap-1">
                                 <button
                                   onClick={() => handleUpdateStatus(tx.id, "Successful")}
-                                  className={`px-2 py-1 rounded-lg text-xs font-medium transition-colors ${
+                                  className={`px-1 md:px-2 py-0.5 md:py-1 rounded md:rounded-lg text-xs font-medium transition-colors ${
                                     currentStatus === "Successful"
                                       ? "bg-[#10b981] text-white"
                                       : "bg-[#2F2F2F] text-gray-400 hover:bg-[#3F3F3F]"
                                   }`}
                                 >
-                                  Successful
+                                  <span className="hidden md:inline">Successful</span>
+                                  <span className="md:hidden">S</span>
                                 </button>
                                 <button
                                   onClick={() => handleUpdateStatus(tx.id, "Failed")}
-                                  className={`px-2 py-1 rounded-lg text-xs font-medium transition-colors ${
+                                  className={`px-1 md:px-2 py-0.5 md:py-1 rounded md:rounded-lg text-xs font-medium transition-colors ${
                                     currentStatus === "Failed"
                                       ? "bg-[#ef4444] text-white"
                                       : "bg-[#2F2F2F] text-gray-400 hover:bg-[#3F3F3F]"
                                   }`}
                                 >
-                                  Failed
+                                  <span className="hidden md:inline">Failed</span>
+                                  <span className="md:hidden">F</span>
                                 </button>
                               </div>
                             ) : (
-                              // Show pending status for non-selected
-                              <span className="text-white bg-[#f59e0b] px-2 py-1 rounded-lg text-xs">
-                                Pending
-                              </span>
+                              <>
+                                <span className="hidden md:inline text-white bg-[#f59e0b] px-2 py-1 rounded-lg text-xs">
+                                  Pending
+                                </span>
+                                <span className="md:hidden text-white bg-[#f59e0b] px-1 py-0.5 rounded text-xs">
+                                  P
+                                </span>
+                              </>
                             )}
                           </td>
-                          <td className="px-3 py-2 text-right">
-                            {new Intl.NumberFormat("en-US", {
-                              style: "currency",
-                              currency: "USD",
-                            }).format(tx.amount)}
+                          <td className="px-1.5 md:px-2 py-2 text-xs">
+                            <MaskedIban iban={tx.iban || "DE89370400440532013000"} />
+                          </td>
+                          <td className="px-1.5 md:px-2 py-2 text-xs truncate">
+                            {tx.mandateNumber || `MNDT-${tx.id.toString().padStart(6, '0')}`}
+                          </td>
+                          <td className="px-1.5 md:px-2 py-2 text-xs">
+                            {new Date(tx.date).toLocaleDateString()}
                           </td>
                         </tr>
                       );
@@ -393,6 +593,48 @@ const CheckFundsModal = ({
             Update
           </button>
         </div>
+
+        {/* Services Modal */}
+        {servicesModalOpen && (
+          <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-20">
+            <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col mx-4">
+              <div className="p-4 border-b border-gray-800 flex justify-between items-center">
+                <h2 className="text-white text-lg font-medium">Services Breakdown</h2>
+                <button onClick={() => setServicesModalOpen(false)} className="text-gray-400 hover:text-white">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-4 overflow-y-auto flex-grow">
+                <div className="mb-4">
+                  <h3 className="text-white font-medium mb-2">{selectedMemberName}</h3>
+                  <p className="text-gray-400 text-sm">Service breakdown for this member</p>
+                </div>
+
+                <div className="space-y-3">
+                  {selectedServices.map((service, index) => (
+                    <div key={index} className="bg-[#141414] p-3 rounded-lg">
+                      <div className="flex justify-between items-start mb-1">
+                        <span className="text-white font-medium text-sm">{service.name}</span>
+                        <span className="text-white font-semibold text-sm">${service.cost?.toFixed(2) || '0.00'}</span>
+                      </div>
+                      <p className="text-gray-400 text-xs">{service.description}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-4 pt-4 border-t border-gray-800">
+                  <div className="flex justify-between items-center">
+                    <span className="text-white font-semibold text-sm">Total Amount</span>
+                    <span className="text-white font-bold text-lg">
+                      ${selectedServices.reduce((sum, service) => sum + (service.cost || 0), 0).toFixed(2)} USD
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

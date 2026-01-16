@@ -7,7 +7,8 @@ import {
   ZoomIn,
   ZoomOut,
   Undo2,
-  Redo2
+  Redo2,
+  Bookmark
 } from 'lucide-react';
 import EditorToolbar from './EditorToolbar';
 import Canvas from './Canvas';
@@ -46,6 +47,7 @@ const EditorModal = ({
   onClose,
   onSave,
   onSaveDraft,
+  onSaveAsTemplate,
   initialElements = [],
   initialName = 'Untitled Design',
   initialSize = '1080x1080',
@@ -90,11 +92,64 @@ const EditorModal = ({
     canRedo
   } = useCanvasElements([]);
 
-  // Load initial elements when modal opens
+  // Create default background element
+  const createBackgroundElement = useCallback((size) => {
+    const { width, height } = getOriginalDimensions(size);
+    return {
+      id: 'background',
+      type: 'shape',
+      shape: 'rectangle',
+      color: '#FFFFFF',
+      x: 0,
+      y: 0,
+      width: width,
+      height: height,
+      zIndex: -1,
+      isBackground: true,
+      name: 'Background'
+    };
+  }, []);
+
+  // Load initial elements when modal opens - use a ref to prevent double-loading
+  const elementsLoadedRef = React.useRef(false);
+  const backgroundLockedRef = React.useRef(false);
+  
   useEffect(() => {
-    if (initialElements.length > 0) {
-      setInitialElements(initialElements);
+    if (!elementsLoadedRef.current) {
+      if (initialElements.length > 0) {
+        // Check if there's already a background element
+        const hasBackground = initialElements.some(el => el.isBackground);
+        if (hasBackground) {
+          setInitialElements(initialElements);
+        } else {
+          // Add background element to existing designs that don't have one
+          const bgElement = createBackgroundElement(initialSize);
+          setInitialElements([bgElement, ...initialElements]);
+        }
+      } else {
+        // New design - create background element
+        const bgElement = createBackgroundElement(initialSize);
+        setInitialElements([bgElement]);
+      }
+      elementsLoadedRef.current = true;
     }
+  }, [initialElements, setInitialElements, initialSize, createBackgroundElement]);
+
+  // Lock background for new designs (separate effect to ensure elements are loaded first)
+  useEffect(() => {
+    if (elementsLoadedRef.current && !backgroundLockedRef.current && initialElements.length === 0) {
+      // Only lock background for new designs (not when editing existing designs)
+      toggleLock('background');
+      backgroundLockedRef.current = true;
+    }
+  }, [elements, toggleLock, initialElements.length]);
+
+  // Reset the ref when the component unmounts (will be reset on new mount due to key change)
+  useEffect(() => {
+    return () => {
+      elementsLoadedRef.current = false;
+      backgroundLockedRef.current = false;
+    };
   }, []);
 
   // Update state when props change
@@ -239,13 +294,15 @@ const EditorModal = ({
     
     setIsSaving(true);
     try {
-      const thumbnail = await generateThumbnail(elements, imageSize, hiddenLayers);
+      // Deep clone elements to ensure no reference issues
+      const elementsToSave = JSON.parse(JSON.stringify(elements));
+      const thumbnail = await generateThumbnail(elementsToSave, imageSize, hiddenLayers);
       
       const design = {
         id: designId || generateId(),
         name: designName,
         size: imageSize,
-        elements: [...elements],
+        elements: elementsToSave,
         thumbnail,
         createdAt: new Date().toISOString()
       };
@@ -256,6 +313,39 @@ const EditorModal = ({
       alert('Failed to save design. Please try again.');
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  // Handle save as template
+  const handleSaveAsTemplate = async () => {
+    if (elements.length === 0) {
+      alert('Add some elements before saving as template');
+      return;
+    }
+
+    try {
+      // Deep clone elements to ensure no reference issues
+      const elementsToSave = JSON.parse(JSON.stringify(elements));
+      const thumbnail = await generateThumbnail(elementsToSave, imageSize, hiddenLayers);
+      
+      const templateData = {
+        name: designName,
+        size: imageSize,
+        elements: elementsToSave,
+        thumbnail,
+        colors: {
+          primary: elementsToSave.find(el => el.color)?.color || '#FF843E',
+          secondary: '#1A1A1A',
+          accent: '#FFFFFF'
+        }
+      };
+
+      if (onSaveAsTemplate) {
+        onSaveAsTemplate(templateData);
+      }
+    } catch (error) {
+      console.error('Error saving template:', error);
+      alert('Failed to prepare template. Please try again.');
     }
   };
 
@@ -271,13 +361,15 @@ const EditorModal = ({
   // Handle save as draft
   const handleSaveAsDraft = async () => {
     try {
-      const thumbnail = await generateThumbnail(elements, imageSize, hiddenLayers);
+      // Deep clone elements to ensure no reference issues
+      const elementsToSave = JSON.parse(JSON.stringify(elements));
+      const thumbnail = await generateThumbnail(elementsToSave, imageSize, hiddenLayers);
       
       const draft = {
         id: generateId(),
         name: designName,
         size: imageSize,
-        elements: [...elements],
+        elements: elementsToSave,
         thumbnail,
         createdAt: new Date().toISOString(),
         isDraft: true
@@ -350,53 +442,6 @@ const EditorModal = ({
             onChange={(e) => setDesignName(e.target.value)}
             className="bg-transparent text-white font-medium text-base border-b border-transparent hover:border-[#333333] focus:border-orange-500 outline-none px-1 min-w-[200px] transition-colors"
           />
-
-          {/* Undo/Redo in Top Bar */}
-          <div className="flex items-center gap-1 ml-4">
-            <div className="relative group">
-              <button
-                onClick={undo}
-                disabled={!canUndo}
-                className={`p-2 rounded-xl transition-colors ${
-                  canUndo 
-                    ? 'text-gray-400 hover:text-white hover:bg-[#2F2F2F]' 
-                    : 'text-gray-700 cursor-not-allowed'
-                }`}
-              >
-                <Undo2 size={18} />
-              </button>
-              {/* Tooltip */}
-              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                <span className="font-medium">Undo</span>
-                <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
-                  Ctrl+Z
-                </span>
-                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
-              </div>
-            </div>
-            
-            <div className="relative group">
-              <button
-                onClick={redo}
-                disabled={!canRedo}
-                className={`p-2 rounded-xl transition-colors ${
-                  canRedo 
-                    ? 'text-gray-400 hover:text-white hover:bg-[#2F2F2F]' 
-                    : 'text-gray-700 cursor-not-allowed'
-                }`}
-              >
-                <Redo2 size={18} />
-              </button>
-              {/* Tooltip */}
-              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                <span className="font-medium">Redo</span>
-                <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
-                  Ctrl+Shift+Z
-                </span>
-                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* Center Section - Size Selector & Zoom */}
@@ -456,8 +501,8 @@ const EditorModal = ({
               {/* Tooltip */}
               <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
                 <span className="font-medium">Zoom Out</span>
-                <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
-                  Ctrl+-
+                <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono flex items-center gap-1">
+                  Ctrl+Scroll <span className="text-[10px]">â†“</span>
                 </span>
                 <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
               </div>
@@ -487,8 +532,8 @@ const EditorModal = ({
               {/* Tooltip */}
               <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
                 <span className="font-medium">Zoom In</span>
-                <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
-                  Ctrl++
+                <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono flex items-center gap-1">
+                  Ctrl+Scroll <span className="text-[10px]">â†‘</span>
                 </span>
                 <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
               </div>
@@ -498,6 +543,74 @@ const EditorModal = ({
 
         {/* Right Section */}
         <div className="flex items-center gap-2 flex-1 justify-end">
+          {/* Undo/Redo */}
+          <div className="flex items-center gap-1">
+            <div className="relative group">
+              <button
+                onClick={undo}
+                disabled={!canUndo}
+                className={`p-2 rounded-xl transition-colors ${
+                  canUndo 
+                    ? 'text-gray-400 hover:text-white hover:bg-[#2F2F2F]' 
+                    : 'text-gray-700 cursor-not-allowed'
+                }`}
+              >
+                <Undo2 size={18} />
+              </button>
+              {/* Tooltip */}
+              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                <span className="font-medium">Undo</span>
+                <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
+                  Ctrl+Z
+                </span>
+                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+              </div>
+            </div>
+            
+            <div className="relative group">
+              <button
+                onClick={redo}
+                disabled={!canRedo}
+                className={`p-2 rounded-xl transition-colors ${
+                  canRedo 
+                    ? 'text-gray-400 hover:text-white hover:bg-[#2F2F2F]' 
+                    : 'text-gray-700 cursor-not-allowed'
+                }`}
+              >
+                <Redo2 size={18} />
+              </button>
+              {/* Tooltip */}
+              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                <span className="font-medium">Redo</span>
+                <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
+                  Ctrl+Shift+Z
+                </span>
+                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+              </div>
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="w-px h-6 bg-[#333333]" />
+
+          {/* Save as Template Button */}
+          {onSaveAsTemplate && (
+            <div className="relative group">
+              <button
+                onClick={handleSaveAsTemplate}
+                className="flex items-center gap-2 px-3 py-2 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded-xl transition-all"
+                title="Save as Template"
+              >
+                <Bookmark size={16} />
+              </button>
+              {/* Tooltip */}
+              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none">
+                <span className="font-medium">Save as Template</span>
+                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+              </div>
+            </div>
+          )}
+
           {/* Save Button with Tooltip */}
           <div className="relative group">
             <button
@@ -522,13 +635,22 @@ const EditorModal = ({
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden min-h-0">
-        {/* Left Toolbar */}
+        {/* Left Toolbar with Layers */}
         <EditorToolbar
           selectedTool={selectedTool}
           onSelectTool={setSelectedTool}
           onAddText={handleAddText}
           onAddShape={handleAddShape}
           onAddImage={handleAddImage}
+          elements={elements}
+          activeElementId={activeElementId}
+          lockedElements={lockedElements}
+          hiddenLayers={hiddenLayers}
+          onSelectElement={setActiveElementId}
+          onToggleLock={toggleLock}
+          onToggleVisibility={toggleVisibility}
+          onDeleteElement={deleteElement}
+          onReorderElements={reorderElements}
         />
 
         {/* Canvas Area */}
@@ -548,8 +670,8 @@ const EditorModal = ({
           />
         </div>
 
-        {/* Right Panels */}
-        <div className="w-[300px] min-w-[300px] flex flex-col border-l border-[#333333] bg-[#141414]">
+        {/* Right Panel - Properties Only */}
+        <div className="w-[280px] min-w-[280px] flex flex-col border-l border-[#333333] bg-[#141414]">
           {/* Properties Panel */}
           {showProperties && (
             <div className="flex-1 overflow-hidden">
@@ -558,14 +680,6 @@ const EditorModal = ({
                 onUpdate={(updates) => updateElementWithHistory(activeElementId, updates)}
                 isLocked={lockedElements.has(activeElementId)}
                 onToggleLock={() => toggleLock(activeElementId)}
-                elements={elements}
-                activeElementId={activeElementId}
-                lockedElements={lockedElements}
-                hiddenLayers={hiddenLayers}
-                onSelectElement={setActiveElementId}
-                onToggleVisibility={toggleVisibility}
-                onDeleteElement={deleteElement}
-                onReorderElements={reorderElements}
               />
             </div>
           )}

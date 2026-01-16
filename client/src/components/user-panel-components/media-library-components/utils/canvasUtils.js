@@ -94,11 +94,10 @@ export const generateThumbnail = async (elements, size, hiddenLayers = new Set()
         return;
       }
       
-      // Draw white background
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Clear canvas (transparent background)
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       
-      // Sort elements by zIndex
+      // Sort elements by zIndex (background layer will be drawn first due to zIndex: -1)
       const sortedElements = [...elements]
         .filter(el => !hiddenLayers.has(el.id))
         .sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
@@ -194,27 +193,31 @@ const drawElement = (ctx, element, scaleX, scaleY, targetWidth, targetHeight) =>
     if (element.bold) fontStyle += 'bold ';
     if (element.italic) fontStyle += 'italic ';
     
-    ctx.font = `${fontStyle}${element.size * scaleY}px ${element.font || 'Arial'}`;
+    const fontSize = element.size * scaleY;
+    ctx.font = `${fontStyle}${fontSize}px ${element.font || 'Arial'}`;
     ctx.textAlign = element.align || 'left';
     ctx.textBaseline = 'top';
     
-    const x = element.x * scaleX;
-    const y = element.y * scaleY;
-    const maxWidth = element.width * scaleX;
+    // Add padding offset to match editor display (4px padding in editor)
+    const padding = 4 * scaleY;
+    const x = element.x * scaleX + padding;
+    const y = element.y * scaleY + padding;
+    const maxWidth = (element.width * scaleX) - (padding * 2);
     
     // Handle multi-line text
     const lines = element.content.split('\n');
-    const lineHeight = element.size * scaleY * 1.2;
+    const lineHeight = fontSize * 1.2;
     
     lines.forEach((line, index) => {
       let textX = x;
       if (element.align === 'center') {
-        textX = x + maxWidth / 2;
+        textX = element.x * scaleX + (element.width * scaleX) / 2;
       } else if (element.align === 'right') {
-        textX = x + maxWidth;
+        textX = element.x * scaleX + element.width * scaleX - padding;
       }
       
-      ctx.fillText(line, textX, y + index * lineHeight, maxWidth);
+      // Don't use maxWidth parameter for fillText as it can squish text
+      ctx.fillText(line, textX, y + index * lineHeight);
     });
     
   } else if (element.type === 'shape') {
