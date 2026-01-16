@@ -154,7 +154,7 @@ const EditorToolbar = ({
   };
 
   return (
-    <div className="w-[220px] min-w-[220px] h-full bg-[#141414] border-r border-[#333333] flex flex-col overflow-hidden">
+    <div className="w-[280px] min-w-[280px] h-full bg-[#141414] border-r border-[#333333] flex flex-col overflow-hidden relative z-10">
       {/* Tools Section */}
       <div className="p-2 border-b border-[#333333]">
         <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1.5 px-2">Tools</p>
@@ -191,8 +191,8 @@ const EditorToolbar = ({
             />
             {showShapeMenu && (
               <>
-                <div className="fixed inset-0 z-40" onClick={() => setShowShapeMenu(false)} />
-                <div className="absolute left-full top-0 ml-1 bg-[#1C1C1C] border border-[#333333] rounded-lg p-2 shadow-xl z-50 min-w-[140px]">
+                <div className="fixed inset-0 z-[100]" onClick={() => setShowShapeMenu(false)} />
+                <div className="absolute left-full top-0 ml-1 bg-[#1C1C1C] border border-[#333333] rounded-lg p-2 shadow-2xl z-[110] min-w-[160px]">
                   <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1.5 px-1">Shapes</p>
                   <div className="grid grid-cols-4 gap-1">
                     {shapes.map(shape => {
@@ -227,8 +227,8 @@ const EditorToolbar = ({
             />
             {showLineMenu && (
               <>
-                <div className="fixed inset-0 z-40" onClick={() => setShowLineMenu(false)} />
-                <div className="absolute left-full top-0 ml-1 bg-[#1C1C1C] border border-[#333333] rounded-lg p-2 shadow-xl z-50 min-w-[120px]">
+                <div className="fixed inset-0 z-[100]" onClick={() => setShowLineMenu(false)} />
+                <div className="absolute left-full top-0 ml-1 bg-[#1C1C1C] border border-[#333333] rounded-lg p-2 shadow-2xl z-[110] min-w-[140px]">
                   <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1.5 px-1">Lines</p>
                   <div className="space-y-0.5">
                     {lineStyles.map(style => (
@@ -263,8 +263,8 @@ const EditorToolbar = ({
             />
             {showGradientMenu && (
               <>
-                <div className="fixed inset-0 z-40" onClick={() => setShowGradientMenu(false)} />
-                <div className="absolute left-full top-0 ml-1 bg-[#1C1C1C] border border-[#333333] rounded-lg p-2 shadow-xl z-50 min-w-[140px]">
+                <div className="fixed inset-0 z-[100]" onClick={() => setShowGradientMenu(false)} />
+                <div className="absolute left-full top-0 ml-1 bg-[#1C1C1C] border border-[#333333] rounded-lg p-2 shadow-2xl z-[110] min-w-[160px]">
                   <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1.5 px-1">Gradients</p>
                   <div className="grid grid-cols-2 gap-1.5">
                     {gradientPresets.map(gradient => (

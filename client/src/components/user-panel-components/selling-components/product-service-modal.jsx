@@ -243,7 +243,7 @@ const ProductServiceModal = ({
                   <div>
                     <label className="text-sm text-gray-200 block mb-2">Price *</label>
                     <div className="flex items-center rounded-xl bg-[#101010] border border-transparent focus-within:border-[#3F74FF] transition-colors">
-                      <span className="px-3 text-white text-sm">€</span>
+                      <span className="px-3 text-white text-sm">â‚¬</span>
                       <input
                         type="text"
                         name="price"
@@ -264,8 +264,8 @@ const ProductServiceModal = ({
                       onChange={handleInputChangeMain}
                       className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
                     >
-                      <option value="7">7% (take-away)</option>
-                      <option value="19">19% (eat-in)</option>
+                      <option value={7}>7% (take-away)</option>
+                      <option value={19}>19% (eat-in)</option>
                     </select>
                   </div>
                 </div>
@@ -276,7 +276,7 @@ const ProductServiceModal = ({
                     <div>
                       <label className="text-sm text-gray-200 block mb-2">Price *</label>
                       <div className="flex items-center rounded-xl bg-[#101010] border border-transparent focus-within:border-[#3F74FF] transition-colors">
-                        <span className="px-3 text-white text-sm">€</span>
+                        <span className="px-3 text-white text-sm">â‚¬</span>
                         <input
                           type="text"
                           name="price"
@@ -310,8 +310,8 @@ const ProductServiceModal = ({
                       onChange={handleInputChangeMain}
                       className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
                     >
-                      <option value="7">7% (take-away)</option>
-                      <option value="19">19% (eat-in)</option>
+                      <option value={7}>7% (take-away)</option>
+                      <option value={19}>19% (eat-in)</option>
                     </select>
                   </div>
                 </>

@@ -181,36 +181,66 @@ const SendEmailModal = ({ sale, onClose }) => {
 
     // Generate PDF invoice content
     const generateInvoicePDF = () => {
+        const hasCustomer = sale.member && sale.member !== "No Member"
+        
+        let totalNet = 0
+        let totalVat19 = 0
+        let totalVat7 = 0
+        let totalGross = 0
+        
+        sale.items.forEach(item => {
+            const itemTotal = (item.price || 0) * item.quantity
+            const vatRate = item.vatRate || 19
+            const netAmount = itemTotal / (1 + vatRate / 100)
+            const vatAmount = itemTotal - netAmount
+            
+            totalNet += netAmount
+            totalGross += itemTotal
+            if (vatRate === 7) {
+                totalVat7 += vatAmount
+            } else {
+                totalVat19 += vatAmount
+            }
+        })
+        
         const invoiceContent = `
-INVOICE
+========================================
+         Fitness Studio Pro
+  123 Fitness Street, Health City 12345
+        VAT ID: DE123456789
 ========================================
 
-Invoice #: ${sale.invoiceNumber || sale.id}
+Receipt No: ${sale.invoiceNumber || sale.id}
 Date: ${sale.date}
-
-CUSTOMER INFORMATION
-----------------------------------------
-Member: ${sale.member}
-Member Type: ${sale.memberType}
+Terminal: Fitness Studio Pro
+${hasCustomer ? `Member: ${sale.member}` : ''}
 ${sale.email ? `Email: ${sale.email}` : ''}
 
-ITEMS
 ----------------------------------------
-${sale.items.map((item, idx) =>
-            `${idx + 1}. ${item.name} x${item.quantity} - $${(item.price * item.quantity).toFixed(2)} (${item.type})`
-        ).join("\n")}
+${sale.items.map((item) => {
+            const itemTotal = (item.price || 0) * item.quantity
+            const vatRate = item.vatRate || 19
+            const netAmount = itemTotal / (1 + vatRate / 100)
+            const vatAmount = itemTotal - netAmount
+            return `${item.name}
+${item.quantity} x $${(item.price || 0).toFixed(2)}          $${itemTotal.toFixed(2)}
+  Net: $${netAmount.toFixed(2)} | VAT ${vatRate}%: $${vatAmount.toFixed(2)}`
+        }).join("\n\n")}
 
-PAYMENT DETAILS
 ----------------------------------------
-Subtotal: $${sale.subtotal?.toFixed(2) || sale.totalAmount.toFixed(2)}
-${sale.discountApplied ? `Discount: -$${sale.discountApplied.toFixed(2)}` : ''}
-${sale.vatApplied ? `VAT: $${sale.vatApplied.toFixed(2)}` : ''}
-Payment Method: ${sale.paymentMethod}
+Net:                        $${totalNet.toFixed(2)}
+${totalVat19 > 0 ? `VAT 19%:                    $${totalVat19.toFixed(2)}` : ''}
+${totalVat7 > 0 ? `VAT 7%:                     $${totalVat7.toFixed(2)}` : ''}
+${sale.discountApplied ? `Discount:                  -$${sale.discountApplied.toFixed(2)}` : ''}
+----------------------------------------
+TOTAL:                      $${sale.totalAmount.toFixed(2)}
+----------------------------------------
 
-Total Amount: $${sale.totalAmount.toFixed(2)}
+Payment: ${sale.paymentMethod}
 
 ========================================
-Thank you for your business!
+     Thank you for your purchase!
+========================================
         `.trim()
 
         return invoiceContent

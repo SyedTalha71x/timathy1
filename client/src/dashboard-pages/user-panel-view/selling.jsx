@@ -333,7 +333,7 @@ const Selling = () => {
       paymentOption: "",
       brandName: "",
       link: "",
-      vatRate: "19",
+      vatRate: 19, // Changed from string "19" to number 19
       vatSelectable: false,
     })
     setSelectedImage(null)
@@ -350,7 +350,7 @@ const Selling = () => {
       paymentOption: item.paymentOption || "",
       brandName: item.brandName || "",
       link: item.link || "",
-      vatRate: item.vatRate || "19",
+      vatRate: Number(item.vatRate) || 19, // Ensure number type
       vatSelectable: item.vatSelectable || false,
     })
     setSelectedImage(null)
@@ -419,7 +419,7 @@ const Selling = () => {
     const { name, value, type, checked } = e.target
     setFormData({
       ...formData,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: type === "checkbox" ? checked : (name === "vatRate" ? Number(value) : value),
     })
   }
 
@@ -448,7 +448,7 @@ const Selling = () => {
         type: isService ? "service" : "product",
         position: isService ? services.length : products.length,
         link: formData.link,
-        vatRate: formData.vatRate,
+        vatRate: Number(formData.vatRate) || 19, // Convert to Number
         vatSelectable: formData.vatSelectable,
       }
       if (isService) {
@@ -469,7 +469,7 @@ const Selling = () => {
               image: selectedImage || currentProduct?.image || null,
               brandName: isService ? undefined : formData.brandName,
               link: formData.link,
-              vatRate: formData.vatRate,
+              vatRate: Number(formData.vatRate) || 19, // Convert to Number
               vatSelectable: formData.vatSelectable,
             }
           }
@@ -491,7 +491,8 @@ const Selling = () => {
         cart.map((cartItem) => (cartItem.id === item.id ? { ...cartItem, quantity: cartItem.quantity + 1 } : cartItem)),
       )
     } else {
-      setCart([...cart, { ...item, quantity: 1 }])
+      // Ensure vatRate is a number when adding to cart
+      setCart([...cart, { ...item, quantity: 1, vatRate: Number(item.vatRate) || 19 }])
     }
     // Only open sidebar on desktop (768px = md breakpoint)
     if (window.innerWidth >= 768) {
@@ -555,8 +556,45 @@ const Selling = () => {
   }, [])
 
   const cancelSale = (saleId) => {
-    setSalesHistory((prev) => prev.filter((sale) => sale.id !== saleId))
-    toast.success("Sale cancelled successfully")
+    setSalesHistory((prev) => {
+      // Find the original sale
+      const originalSale = prev.find((sale) => sale.id === saleId)
+      if (!originalSale) return prev
+
+      // Create cancellation entry (counter-entry for accounting)
+      const cancellationEntry = {
+        id: Date.now(),
+        date: new Date().toLocaleString(),
+        member: originalSale.member,
+        email: originalSale.email,
+        memberType: originalSale.memberType,
+        items: originalSale.items.map((item) => ({
+          ...item,
+          price: -Math.abs(item.price), // Negative price for cancellation
+        })),
+        totalAmount: -Math.abs(originalSale.totalAmount), // Negative amount
+        subtotal: originalSale.subtotal ? -Math.abs(originalSale.subtotal) : undefined,
+        discountApplied: originalSale.discountApplied,
+        vatApplied: originalSale.vatApplied ? -Math.abs(originalSale.vatApplied) : undefined,
+        paymentMethod: originalSale.paymentMethod,
+        soldBy: "Current Staff", // Staff who processed the cancellation
+        invoiceNumber: `CANCEL-${originalSale.invoiceNumber || saleId}`,
+        canCancel: false,
+        isCancellation: true, // Flag to identify cancellation entries
+        originalSaleId: saleId, // Reference to original sale
+      }
+
+      // Mark original sale as cancelled (don't remove it)
+      const updatedSales = prev.map((sale) => 
+        sale.id === saleId 
+          ? { ...sale, canCancel: false, isCancelled: true }
+          : sale
+      )
+
+      // Add cancellation entry at the top
+      return [cancellationEntry, ...updatedSales]
+    })
+    toast.success("Sale cancelled - reversal entry created")
   }
 
   const handleCheckout = () => {
@@ -577,13 +615,14 @@ const Selling = () => {
         type: item.type === "service" ? "Service" : "Product",
         articalNo: item.articalNo,
         brandName: item.brandName,
+        vatRate: item.vatRate || 19,
       })),
       totalAmount: total,
       subtotal: subtotal,
       discountApplied: discountAmount,
       vatApplied: vatAmount,
       paymentMethod: selectedPaymentMethod,
-      soldBy: sellWithoutMember ? "No Member" : selectedMemberData?.name || "No Member Selected",
+      soldBy: "Current Staff", // In production, this would be the logged-in staff user
       invoiceNumber: invoiceNumber,
       canCancel: true,
     }
@@ -606,43 +645,65 @@ const Selling = () => {
   }
 
   const downloadInvoice = (sale) => {
-    const invoiceData = {
-      studioName: "Fitness Studio Pro",
-      studioAddress: "123 Fitness Street, Health City, HC 12345",
-      vatNumber: "DE123456789",
-      logo: "Studio Logo Here",
-      invoiceNumber: sale.invoiceNumber,
-      date: sale.date,
-      member: sale.member,
-      memberType: sale.memberType,
-      items: sale.items,
-      subtotal: sale.subtotal,
-      discount: sale.discountApplied,
-      vat: sale.vatApplied,
-      total: sale.totalAmount,
-      paymentMethod: sale.paymentMethod,
-    }
+    const hasCustomer = sale.member && sale.member !== "No Member"
+    
+    let totalNet = 0
+    let totalVat19 = 0
+    let totalVat7 = 0
+    let totalGross = 0
+    
+    sale.items.forEach(item => {
+      const itemTotal = (item.price || 0) * item.quantity
+      const vatRate = item.vatRate || 19
+      const netAmount = itemTotal / (1 + vatRate / 100)
+      const vatAmount = itemTotal - netAmount
+      
+      totalNet += netAmount
+      totalGross += itemTotal
+      if (vatRate === 7) {
+        totalVat7 += vatAmount
+      } else {
+        totalVat19 += vatAmount
+      }
+    })
 
     const invoiceContent = `
-INVOICE - ${invoiceData.invoiceNumber}
-${invoiceData.studioName}
-${invoiceData.studioAddress}
-VAT Number: ${invoiceData.vatNumber}
+========================================
+         Fitness Studio Pro
+  123 Fitness Street, Health City 12345
+        VAT ID: DE123456789
+========================================
 
-Date: ${invoiceData.date}
-Member: ${invoiceData.member} (${invoiceData.memberType})
+Receipt No: ${sale.invoiceNumber}
+Date: ${sale.date}
+Terminal: Fitness Studio Pro
+${hasCustomer ? `Member: ${sale.member}` : ''}
 
-ITEMS:
-${invoiceData.items
-        .map((item) => `${item.name} (${item.type}) - Qty: ${item.quantity} - Price: $${item.price.toFixed(2)}`)
-        .join("\n")}
+----------------------------------------
+${sale.items.map((item) => {
+      const itemTotal = (item.price || 0) * item.quantity
+      const vatRate = item.vatRate || 19
+      const netAmount = itemTotal / (1 + vatRate / 100)
+      const vatAmount = itemTotal - netAmount
+      return `${item.name}
+${item.quantity} x $${(item.price || 0).toFixed(2)}          $${itemTotal.toFixed(2)}
+  Net: $${netAmount.toFixed(2)} | VAT ${vatRate}%: $${vatAmount.toFixed(2)}`
+    }).join("\n\n")}
 
-Subtotal: $${invoiceData.subtotal?.toFixed(2) || "0.00"}
-Discount: -$${invoiceData.discount?.toFixed(2) || "0.00"}
-VAT (${selectedVat}%): $${invoiceData.vat?.toFixed(2) || "0.00"}
-Total: $${invoiceData.total.toFixed(2)}
+----------------------------------------
+Net:                        $${totalNet.toFixed(2)}
+${totalVat19 > 0 ? `VAT 19%:                    $${totalVat19.toFixed(2)}` : ''}
+${totalVat7 > 0 ? `VAT 7%:                     $${totalVat7.toFixed(2)}` : ''}
+${sale.discountApplied ? `Discount:                  -$${sale.discountApplied.toFixed(2)}` : ''}
+----------------------------------------
+TOTAL:                      $${totalGross.toFixed(2)}
+----------------------------------------
 
-Payment Method: ${invoiceData.paymentMethod}
+Payment: ${sale.paymentMethod}
+
+========================================
+     Thank you for your purchase!
+========================================
     `
 
     const blob = new Blob([invoiceContent], { type: "text/plain" })

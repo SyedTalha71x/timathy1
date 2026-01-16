@@ -951,11 +951,12 @@ const SidebarAreaSelling = ({
                       <span>${subtotal.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">incl. VAT</span>
+                      <span className="text-gray-400">Incl. VAT</span>
                       <span>${(() => {
                         const totalVat = cart.reduce((sum, item) => {
                           const itemTotal = item.price * item.quantity
-                          const vatRate = item.vatRate || 19
+                          // IMPORTANT: Convert vatRate to Number to avoid string concatenation bug
+                          const vatRate = Number(item.vatRate) || 19
                           const vatAmount = itemTotal * vatRate / (100 + vatRate)
                           return sum + vatAmount
                         }, 0)
@@ -1492,7 +1493,7 @@ const SidebarAreaSelling = ({
                                     <h3 className="font-semibold text-sm flex items-center gap-1">
                                       {birthday.name}
                                       {isBirthdayToday(birthday.date) && (
-                                        <span className="text-yellow-500">ðŸŽ‚</span>
+                                        <span className="text-yellow-500">Ã°Å¸Å½â€š</span>
                                       )}
                                     </h3>
                                     <p className="text-xs text-zinc-400">{birthday.date}</p>

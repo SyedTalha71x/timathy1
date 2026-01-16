@@ -29,25 +29,6 @@ export const getCanvasDimensions = (imageSize, maxWidth = 800, maxHeight = 600) 
 };
 
 /**
- * Scale element coordinates from template to canvas
- */
-export const scaleElementToCanvas = (element, fromSize, toCanvasDim) => {
-  if (!fromSize || !fromSize.includes('x')) return element;
-  
-  const [fromWidth, fromHeight] = fromSize.split('x').map(Number);
-  const scaleX = toCanvasDim.width / fromWidth;
-  const scaleY = toCanvasDim.height / fromHeight;
-  
-  return {
-    ...element,
-    x: element.x * scaleX,
-    y: element.y * scaleY,
-    width: element.width * scaleX,
-    height: element.height * scaleY,
-    size: element.size ? element.size * Math.min(scaleX, scaleY) : element.size
-  };
-};
-/**
  * Generate unique ID
  */
 export const generateId = () => {
@@ -570,8 +551,67 @@ const drawArrow = (ctx, x, y, angle) => {
   ctx.stroke();
 };
 
+/**
+ * Calculate aspect ratio style for design cards
+ */
+export const getDesignAspectRatioStyle = (size, cardWidth = 200) => {
+  if (!size || !size.includes('x')) {
+    return { 
+      height: '120px',
+      width: '100%', 
+      position: 'relative',
+      backgroundColor: '#ffffff' 
+    };
+  }
+  
+  const [width, height] = size.split('x').map(Number);
+  if (isNaN(width) || isNaN(height) || width <= 0 || height <= 0) {
+    return { 
+      height: '120px',
+      width: '100%', 
+      position: 'relative',
+      backgroundColor: '#ffffff' 
+    };
+  }
+  
+  const ratio = height / width;
+  const calculatedHeight = cardWidth * ratio;
+  const maxHeight = 250;
+  const minHeight = 100;
+  
+  return {
+    height: `${Math.max(minHeight, Math.min(calculatedHeight, maxHeight))}px`,
+    width: `${cardWidth}px`,
+    margin: '0 auto',
+    position: 'relative',
+    backgroundColor: '#ffffff',
+    overflow: 'hidden'
+  };
+};
+
+/**
+ * Scale element coordinates from template to canvas
+ */
+export const scaleElementToCanvas = (element, fromSize, toCanvasDim) => {
+  if (!fromSize || !fromSize.includes('x')) return element;
+  
+  const [fromWidth, fromHeight] = fromSize.split('x').map(Number);
+  const scaleX = toCanvasDim.width / fromWidth;
+  const scaleY = toCanvasDim.height / fromHeight;
+  
+  return {
+    ...element,
+    x: element.x * scaleX,
+    y: element.y * scaleY,
+    width: element.width * scaleX,
+    height: element.height * scaleY,
+    size: element.size ? element.size * Math.min(scaleX, scaleY) : element.size
+  };
+};
+
 export default {
   getCanvasDimensions,
+  getDesignAspectRatioStyle,
   generateId,
   deepClone,
   applyPersonalization,

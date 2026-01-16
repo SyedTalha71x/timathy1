@@ -1,7 +1,8 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { X, FileText, Download, Calendar, ChevronDown, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react"
+import { X, FileText, Download, Calendar, ChevronDown, ArrowUp, ArrowDown, ArrowUpDown, Info } from "lucide-react"
 import { useEffect, useState, useRef, useMemo } from "react"
+import * as XLSX from 'xlsx'
 import CancelSaleConfirmationModal from "./cancel-sale-confirmation-modal"
 import InvoicePreviewModal from "./invoice-preview-modal"
 
@@ -11,51 +12,62 @@ const ExportConfirmationModal = ({ isOpen, onClose, onConfirm, salesCount, total
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[10000002] p-4">
-      <div className="bg-[#181818] rounded-xl w-full max-w-md">
-        <div className="p-6">
-          <div className="flex flex-col items-center mb-6">
-            <div className="bg-blue-500/20 p-3 rounded-full mb-4">
-              <Download className="h-8 w-8 text-blue-500" />
+      <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md p-6">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-white text-lg font-medium">Confirm Export</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-white">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="mb-6">
+          <p className="text-gray-300 mb-4">Are you sure you want to export the sales data as Excel?</p>
+          
+          {/* Export Details */}
+          <div className="space-y-2">
+            {/* Selected Period Display */}
+            <div className="bg-[#141414] p-3 rounded-lg flex items-center gap-3">
+              <Calendar className="w-4 h-4 text-gray-400" />
+              <div>
+                <p className="text-gray-400 text-xs">Export Period</p>
+                <p className="text-white text-sm font-medium">{selectedPeriod || "Overall"}</p>
+              </div>
             </div>
-            <h2 className="text-white text-lg font-semibold text-center">
-              Export Sales Data
-            </h2>
-            <p className="text-gray-400 text-center mt-2 text-sm">
-              You are about to export the current filtered sales data to CSV format.
-            </p>
-          </div>
+            
+            {/* Record Count Display */}
+            <div className="bg-[#141414] p-3 rounded-lg flex items-center gap-3">
+              <FileText className="w-4 h-4 text-gray-400" />
+              <div>
+                <p className="text-gray-400 text-xs">Records</p>
+                <p className="text-white text-sm font-medium">{salesCount} {salesCount === 1 ? 'transaction' : 'transactions'}</p>
+              </div>
+            </div>
 
-          <div className="bg-[#141414] rounded-xl p-4 mb-6">
-            <div className="flex justify-between text-sm mb-2">
-              <span className="text-gray-400">Period:</span>
-              <span className="text-white font-medium">{selectedPeriod}</span>
-            </div>
-            <div className="flex justify-between text-sm mb-2">
-              <span className="text-gray-400">Total Records:</span>
-              <span className="text-white font-medium">{salesCount}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-400">Total Amount:</span>
-              <span className="text-white font-medium">${totalAmount.toFixed(2)}</span>
+            {/* Total Amount Display */}
+            <div className="bg-[#141414] p-3 rounded-lg flex items-center gap-3">
+              <Download className="w-4 h-4 text-gray-400" />
+              <div>
+                <p className="text-gray-400 text-xs">Total Amount</p>
+                <p className="text-white text-sm font-medium">${totalAmount.toFixed(2)}</p>
+              </div>
             </div>
           </div>
-
-          <div className="flex flex-row justify-center items-center gap-3">
-            <button
-              onClick={onConfirm}
-              className="w-full sm:w-auto px-8 py-2.5 bg-blue-600 text-sm text-white rounded-xl hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
-            >
-              <Download size={16} />
-              Export CSV
-            </button>
-            <button
-              type="button"
-              onClick={onClose}
-              className="w-full sm:w-auto px-8 py-2.5 bg-transparent text-sm text-white rounded-xl border border-[#333333] hover:bg-[#101010] transition-colors"
-            >
-              Cancel
-            </button>
-          </div>
+        </div>
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 bg-[#2F2F2F] text-white px-4 py-2.5 rounded-xl hover:bg-[#3F3F3F] transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => {
+              onConfirm()
+              onClose()
+            }}
+            className="flex-1 bg-gray-600 text-white px-4 py-2.5 rounded-xl hover:bg-gray-700 transition-colors"
+          >
+            Export
+          </button>
         </div>
       </div>
     </div>
@@ -80,6 +92,9 @@ const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice,
   // Sorting state
   const [sortBy, setSortBy] = useState("date")
   const [sortDirection, setSortDirection] = useState("desc")
+  
+  // VAT tooltip state for mobile touch support
+  const [activeVatTooltip, setActiveVatTooltip] = useState(null)
 
   // Period options
   const periodOptions = ["Overall", "Today", "This Week", "This Month", "Last Month", "This Year"]
@@ -89,6 +104,10 @@ const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice,
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
         // Close sub-modals first, then main modal
+        if (activeVatTooltip) {
+          setActiveVatTooltip(null)
+          return
+        }
         if (periodDropdownOpen) {
           setPeriodDropdownOpen(false)
           setIsCustomPeriodExpanded(false)
@@ -111,7 +130,18 @@ const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice,
     }
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [periodDropdownOpen, invoiceToView, saleToCancel, exportModalOpen, onClose])
+  }, [activeVatTooltip, periodDropdownOpen, invoiceToView, saleToCancel, exportModalOpen, onClose])
+  
+  // Close VAT tooltip when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (activeVatTooltip && !e.target.closest('.vat-tooltip-trigger')) {
+        setActiveVatTooltip(null)
+      }
+    }
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [activeVatTooltip])
 
   // Update dropdown position when opening
   useEffect(() => {
@@ -266,6 +296,12 @@ const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice,
         case "payment":
           comparison = a.paymentMethod.localeCompare(b.paymentMethod)
           break
+        case "staff":
+          // Sort by staff name
+          const aStaff = a.soldBy || ''
+          const bStaff = b.soldBy || ''
+          comparison = aStaff.localeCompare(bStaff)
+          break
         default:
           comparison = 0
       }
@@ -282,31 +318,68 @@ const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice,
   }, [sortedSales])
 
   const handleExportToExcel = () => {
-    const headers = ["Member", "Member Type", "Date", "Items", "Type", "Total", "Payment Method"]
-    const csvContent = [
-      headers.join(","),
-      ...sortedSales.map((sale) =>
-        [
-          `"${sale.member}"`,
-          `"${sale.memberType}"`,
-          sale.date,
-          `"${sale.items.map((item) => `${item.name} x${item.quantity}`).join("; ")}"`,
-          `"${sale.items.map((item) => item.type).join("; ")}"`,
-          sale.totalAmount.toFixed(2),
-          sale.paymentMethod,
-        ].join(","),
-      ),
-    ].join("\n")
+    // Helper function to calculate VAT
+    const calculateVat = (sale) => {
+      if (sale.vatApplied !== undefined) return Math.abs(sale.vatApplied)
+      let totalVat = 0
+      sale.items.forEach(item => {
+        const itemTotal = Math.abs(item.price || 0) * item.quantity
+        const vatRate = item.vatRate || 19
+        const vatAmount = itemTotal * vatRate / (100 + vatRate)
+        totalVat += vatAmount
+      })
+      return totalVat
+    }
 
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement("a")
-    link.href = url
-    link.download = `sales-journal-${selectedPeriod.replace(/[:\s]/g, "_")}-${new Date().toISOString().split("T")[0]}.csv`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    URL.revokeObjectURL(url)
+    // Prepare data for Excel
+    const excelData = sortedSales.map((sale) => {
+      const vatAmount = calculateVat(sale)
+      const status = sale.isCancellation ? 'CANCELLATION' : sale.isCancelled ? 'CANCELLED' : 'Active'
+      const netValue = (Math.abs(sale.totalAmount) - vatAmount) * (sale.totalAmount < 0 ? -1 : 1)
+      const vatValue = vatAmount * (sale.totalAmount < 0 ? -1 : 1)
+      
+      return {
+        "Status": status,
+        "Member": sale.member,
+        "Member Type": sale.memberType,
+        "Date": sale.date,
+        "Items": sale.items.map((item) => `${item.name} x${item.quantity}`).join(" | "),
+        "Type": sale.items.map((item) => item.type).join(" | "),
+        "Net": Math.round(netValue * 100) / 100,
+        "VAT": Math.round(vatValue * 100) / 100,
+        "Total": Math.round(sale.totalAmount * 100) / 100,
+        "Payment Method": sale.paymentMethod,
+        "Staff": sale.soldBy || "-",
+        "Invoice Number": sale.invoiceNumber || "-",
+      }
+    })
+
+    // Create workbook and worksheet
+    const workbook = XLSX.utils.book_new()
+    const worksheet = XLSX.utils.json_to_sheet(excelData)
+
+    // Set column widths for better readability
+    worksheet['!cols'] = [
+      { wch: 14 },  // Status
+      { wch: 20 },  // Member
+      { wch: 15 },  // Member Type
+      { wch: 20 },  // Date
+      { wch: 40 },  // Items
+      { wch: 15 },  // Type
+      { wch: 12 },  // Net
+      { wch: 12 },  // VAT
+      { wch: 12 },  // Total
+      { wch: 15 },  // Payment Method
+      { wch: 18 },  // Staff
+      { wch: 18 },  // Invoice Number
+    ]
+
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Sales Journal")
+
+    // Generate filename and download
+    const fileName = `sales-journal_${selectedPeriod.replace(/[:\s]/g, "_")}_${new Date().toISOString().split("T")[0]}.xlsx`
+    XLSX.writeFile(workbook, fileName)
     setExportModalOpen(false)
   }
 
@@ -347,7 +420,7 @@ const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice,
     if (customDates.startDate && customDates.endDate) {
       const formattedStart = formatDateForDisplay(customDates.startDate)
       const formattedEnd = formatDateForDisplay(customDates.endDate)
-      setSelectedPeriod(`Custom: ${formattedStart} – ${formattedEnd}`)
+      setSelectedPeriod(`Custom: ${formattedStart} - ${formattedEnd}`)
       setCustomDateRange({
         start: customDates.startDate,
         end: customDates.endDate
@@ -548,7 +621,7 @@ const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice,
           </div>
 
           <div className="overflow-x-auto overflow-y-auto flex-1">
-            <table className="w-full min-w-[800px]">
+            <table className="w-full min-w-[900px]">
               <thead className="bg-black sticky top-0 z-10">
                 <tr>
                   <th 
@@ -584,7 +657,7 @@ const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice,
                     </div>
                   </th>
                   <th 
-                    className="text-left p-2 sm:p-4 text-zinc-400 text-xs sm:text-sm cursor-pointer hover:bg-[#1C1C1C] transition-colors"
+                    className="text-left p-2 sm:p-4 text-zinc-400 text-xs sm:text-sm cursor-pointer hover:bg-[#1C1C1C] transition-colors min-w-[130px]"
                     onClick={() => handleSort("total")}
                   >
                     <div className="flex items-center gap-1">
@@ -599,23 +672,73 @@ const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice,
                       Payment {getSortIcon("payment")}
                     </div>
                   </th>
+                  <th 
+                    className="text-left p-2 sm:p-4 text-zinc-400 text-xs sm:text-sm cursor-pointer hover:bg-[#1C1C1C] transition-colors"
+                    onClick={() => handleSort("staff")}
+                  >
+                    <div className="flex items-center gap-1">
+                      Staff {getSortIcon("staff")}
+                    </div>
+                  </th>
                   <th className="text-left p-2 sm:p-4 text-zinc-400 text-xs sm:text-sm">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {sortedSales.map((sale) => (
-                  <tr key={sale.id} className="border-b border-gray-700 hover:bg-zinc-800/50">
+                {sortedSales.map((sale, index) => {
+                  // Calculate VAT breakdown for tooltip
+                  const calculateVatBreakdown = () => {
+                    let totalVat19 = 0
+                    let totalVat7 = 0
+                    let totalNet = 0
+                    let totalGross = 0
+                    
+                    sale.items.forEach(item => {
+                      const itemTotal = Math.abs(item.price || 0) * item.quantity
+                      const vatRate = item.vatRate || 19
+                      const netAmount = itemTotal / (1 + vatRate / 100)
+                      const vatAmount = itemTotal - netAmount
+                      
+                      totalNet += netAmount
+                      totalGross += itemTotal
+                      if (vatRate === 7) {
+                        totalVat7 += vatAmount
+                      } else {
+                        totalVat19 += vatAmount
+                      }
+                    })
+                    
+                    return { totalNet, totalVat19, totalVat7, totalGross }
+                  }
+                  
+                  const vatBreakdown = calculateVatBreakdown()
+                  const isCancellation = sale.isCancellation
+                  const isCancelled = sale.isCancelled
+                  // Open tooltip upward for last 2 entries to prevent cutoff
+                  const isNearBottom = index >= sortedSales.length - 2
+                  
+                  return (
+                  <tr 
+                    key={sale.id} 
+                    className={`border-b border-gray-700 hover:bg-zinc-800/50 ${
+                      isCancellation ? 'bg-red-900/20' : ''
+                    } ${isCancelled ? 'text-zinc-500' : ''}`}
+                  >
                     <td className="p-2 sm:p-4">
-                      <div className="text-white text-xs sm:text-sm">{sale.member}</div>
-                      <div className="text-zinc-400 text-xs">{sale.memberType}</div>
+                      <div className={`text-xs sm:text-sm ${isCancellation ? 'text-red-400' : isCancelled ? 'text-zinc-500' : 'text-white'}`}>
+                        {sale.member}
+                        {isCancelled && <span className="ml-2 text-xs bg-gray-600 px-1.5 py-0.5 rounded">CANCELLED</span>}
+                      </div>
+                      {sale.member !== "No Member" && sale.memberType !== "N/A" && (
+                        <div className={`text-xs ${isCancelled ? 'text-zinc-600' : 'text-zinc-400'}`}>{sale.memberType}</div>
+                      )}
                     </td>
-                    <td className="p-2 sm:p-4 text-zinc-300 text-xs sm:text-sm">{sale.date}</td>
+                    <td className={`p-2 sm:p-4 text-xs sm:text-sm ${isCancelled ? 'text-zinc-500' : 'text-zinc-300'}`}>{sale.date}</td>
                     <td className="p-2 sm:p-4">
                       <div className="space-y-1">
                         {sale.items.map((item, idx) => (
                           <div key={idx} className="text-xs sm:text-sm">
-                            <span className="text-white">{item.name}</span>
-                            <span className="text-zinc-400 ml-2">x{item.quantity}</span>
+                            <span className={isCancellation ? 'text-red-400' : isCancelled ? 'text-zinc-500' : 'text-white'}>{item.name}</span>
+                            <span className={`ml-2 ${isCancelled ? 'text-zinc-600' : 'text-zinc-400'}`}>x{item.quantity}</span>
                           </div>
                         ))}
                       </div>
@@ -624,30 +747,87 @@ const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice,
                       <div className="space-y-1">
                         {sale.items.map((item, idx) => (
                           <div key={idx} className="text-xs mt-3">
-                            <span className="px-1 sm:px-2 py-1 rounded text-xs bg-gray-600 text-white">
+                            <span className={`px-1 sm:px-2 py-1 rounded text-xs ${isCancelled ? 'bg-gray-700 text-zinc-400' : 'bg-gray-600 text-white'}`}>
                               {item.type}
                             </span>
                           </div>
                         ))}
                       </div>
                     </td>
-                    <td className="p-2 sm:p-4 text-white font-semibold text-xs sm:text-sm">
-                      ${sale.totalAmount.toFixed(2)}
+                    <td className="p-2 sm:p-4 min-w-[130px]">
+                      <div 
+                        className="relative inline-flex items-center gap-1 vat-tooltip-trigger"
+                        onMouseEnter={() => setActiveVatTooltip(sale.id)}
+                        onMouseLeave={() => setActiveVatTooltip(null)}
+                      >
+                        <span className={`font-semibold text-xs sm:text-sm ${
+                          sale.totalAmount < 0 ? 'text-red-400' : isCancelled ? 'text-zinc-400' : 'text-white'
+                        }`}>
+                          {sale.totalAmount < 0 ? '-' : ''}${Math.abs(sale.totalAmount).toFixed(2)}
+                        </span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setActiveVatTooltip(activeVatTooltip === sale.id ? null : sale.id)
+                          }}
+                          className="text-zinc-500 hover:text-zinc-300 cursor-pointer p-0.5"
+                        >
+                          <Info size={14} />
+                        </button>
+                        {/* VAT Breakdown Tooltip - position based on row location */}
+                        {activeVatTooltip === sale.id && (
+                          <div 
+                            className={`absolute left-0 z-[10000001] ${
+                              isNearBottom ? 'bottom-full pb-1' : 'top-full pt-1'
+                            }`}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <div className="bg-[#0a0a0a] border border-gray-500 rounded-lg p-3 shadow-2xl min-w-[180px]">
+                              <div className="text-xs text-gray-400 mb-2 font-medium">VAT Breakdown</div>
+                              <div className="space-y-1 text-xs">
+                                <div className="flex justify-between">
+                                  <span className="text-gray-400">Net:</span>
+                                  <span className="text-white">${vatBreakdown.totalNet.toFixed(2)}</span>
+                                </div>
+                                {vatBreakdown.totalVat19 > 0 && (
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-400">VAT 19%:</span>
+                                    <span className="text-white">${vatBreakdown.totalVat19.toFixed(2)}</span>
+                                  </div>
+                                )}
+                                {vatBreakdown.totalVat7 > 0 && (
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-400">VAT 7%:</span>
+                                    <span className="text-white">${vatBreakdown.totalVat7.toFixed(2)}</span>
+                                  </div>
+                                )}
+                                <div className="flex justify-between border-t border-gray-600 pt-1 mt-1">
+                                  <span className="text-gray-300 font-medium">Gross:</span>
+                                  <span className="text-white font-medium">${vatBreakdown.totalGross.toFixed(2)}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </td>
-                    <td className="p-2 sm:p-4 text-zinc-300 text-xs sm:text-sm">{sale.paymentMethod}</td>
+                    <td className={`p-2 sm:p-4 text-xs sm:text-sm ${isCancelled ? 'text-zinc-500' : 'text-zinc-300'}`}>{sale.paymentMethod}</td>
+                    <td className={`p-2 sm:p-4 text-xs sm:text-sm ${isCancelled ? 'text-zinc-500' : 'text-zinc-300'}`}>{sale.soldBy || '-'}</td>
                     <td className="p-2 sm:p-4">
                       <div className="flex gap-1 sm:gap-2">
-                        <button
-                          onClick={() => handleViewInvoice(sale)}
-                          className="p-1 sm:p-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-xs flex items-center justify-center"
-                          title="View E-Invoice"
-                        >
-                          <FileText size={16} />
-                        </button>
-                        {sale.canCancel && (
+                        {!isCancellation && (
+                          <button
+                            onClick={() => handleViewInvoice(sale)}
+                            className="p-1 sm:p-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-xs flex items-center justify-center"
+                            title="View E-Invoice"
+                          >
+                            <FileText size={16} />
+                          </button>
+                        )}
+                        {sale.canCancel && !isCancellation && (
                           <button
                             onClick={() => handleCancelSaleClick(sale)}
-                            className="p-1 sm:p-2 bg-red-600 hover:bg-red-700 rounded-lg text-white text-xs flex items-center justify-center"
+                            className="p-1 sm:p-2 bg-orange-500 hover:bg-orange-600 rounded-lg text-white text-xs flex items-center justify-center"
                             title="Cancel Sale (24h limit)"
                           >
                             <X size={16} />
@@ -656,7 +836,7 @@ const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice,
                       </div>
                     </td>
                   </tr>
-                ))}
+                )})}
               </tbody>
             </table>
 

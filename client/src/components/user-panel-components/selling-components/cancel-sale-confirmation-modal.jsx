@@ -3,21 +3,36 @@
 import React from "react"
 
 const CancelSaleConfirmationModal = ({ sale, onConfirm, onClose }) => {
+  // Only show credit card warning for Credit Card payments
+  const isCreditCard = sale.paymentMethod === "Credit Card"
+  
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[60] p-4">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[10000003] p-4">
       <div className="bg-[#2F2F2F] rounded-xl w-full max-w-md">
         <div className="p-4 border-b border-gray-700">
           <h3 className="text-white font-semibold text-lg">Confirm Sale Cancellation</h3>
         </div>
         <div className="p-4">
           <p className="text-white mb-3">Are you sure you want to cancel this sale?</p>
-          <div className="bg-yellow-900/30 border border-yellow-600 rounded-lg p-3 mb-4">
-            <p className="text-yellow-200 text-sm font-medium mb-2">⚠️ Important Notice:</p>
-            <p className="text-yellow-100 text-sm">
-              Credit card payments that have already been processed cannot be cancelled. Only the journal entry will be
-              removed.
+          
+          {/* Credit card warning - only shown for Credit Card payments */}
+          {isCreditCard && (
+            <div className="bg-yellow-900/30 border border-yellow-600 rounded-lg p-3 mb-4">
+              <p className="text-yellow-200 text-sm font-medium mb-2">&#9888; Important Notice:</p>
+              <p className="text-yellow-100 text-sm">
+                Credit card payments that have already been processed cannot be reversed via this cancellation. 
+                A cancellation entry will be added to the journal for accounting purposes.
+              </p>
+            </div>
+          )}
+          
+          {/* Info box for all cancellations */}
+          <div className="bg-blue-900/30 border border-blue-600 rounded-lg p-3 mb-4">
+            <p className="text-blue-200 text-sm">
+              A reversal entry will be created in the sales journal for traceability.
             </p>
           </div>
+          
           <div className="bg-black rounded-lg p-3 mb-4">
             <p className="text-gray-400 text-sm">
               Member: <span className="text-white">{sale.member}</span>
@@ -26,7 +41,7 @@ const CancelSaleConfirmationModal = ({ sale, onConfirm, onClose }) => {
               Total: <span className="text-white">${sale.totalAmount.toFixed(2)}</span>
             </p>
             <p className="text-gray-400 text-sm">
-              Payment: <span className="text-white">{sale.paymentMethod}</span>
+              Payment Method: <span className="text-white">{sale.paymentMethod}</span>
             </p>
           </div>
         </div>

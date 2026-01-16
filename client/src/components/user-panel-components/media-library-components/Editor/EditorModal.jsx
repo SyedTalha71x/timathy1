@@ -601,7 +601,7 @@ const EditorModal = ({
         </div>
 
         {/* Right Panel */}
-        <div className="w-[240px] min-w-[240px] border-l border-[#333333] bg-[#141414]">
+        <div className="w-[320px] min-w-[320px] border-l border-[#333333] bg-[#141414]">
           <PropertiesPanel
             element={activeElement}
             onUpdate={(updates) => updateElementWithHistory(activeElementId, updates)}

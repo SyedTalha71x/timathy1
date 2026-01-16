@@ -10,7 +10,7 @@ export const productsMainData = [
     type: "product",
     position: 0,
     link: "https://example.com/product1",
-    vatRate: "19",
+    vatRate: 19, // Changed from string "19" to number 19
     vatSelectable: false,
   },
   {
@@ -24,7 +24,7 @@ export const productsMainData = [
     type: "product",
     position: 1,
     link: "",
-    vatRate: "7",
+    vatRate: 7, // Changed from string "7" to number 7
     vatSelectable: true,
   },
   {
@@ -38,7 +38,7 @@ export const productsMainData = [
     type: "product",
     position: 2,
     link: "",
-    vatRate: "19",
+    vatRate: 19, // Changed from string "19" to number 19
     vatSelectable: false,
   },
   {
@@ -52,7 +52,7 @@ export const productsMainData = [
     type: "product",
     position: 3,
     link: "",
-    vatRate: "7",
+    vatRate: 7, // Changed from string "7" to number 7
     vatSelectable: true,
   },
 ]
@@ -67,7 +67,7 @@ export const serviceMainData = [
     type: "service",
     position: 0,
     link: "https://example.com/training",
-    vatRate: "19",
+    vatRate: 19, // Changed from string "19" to number 19
     vatSelectable: false,
   },
   {
@@ -79,7 +79,7 @@ export const serviceMainData = [
     type: "service",
     position: 1,
     link: "",
-    vatRate: "7",
+    vatRate: 7, // Changed from string "7" to number 7
     vatSelectable: true,
   },
   {
@@ -91,7 +91,7 @@ export const serviceMainData = [
     type: "service",
     position: 2,
     link: "",
-    vatRate: "19",
+    vatRate: 19, // Changed from string "19" to number 19
     vatSelectable: false,
   },
 ]
@@ -104,8 +104,8 @@ export const sellingMainData = [
     email: 'johndoe@gmail.com',
     memberType: "Full Member",
     items: [
-      { name: "Premium Orange Sneakers", quantity: 2, price: 129.99, type: "Product" },
-      { name: "Personal Training", quantity: 1, price: 75.0, type: "Service" },
+      { name: "Premium Orange Sneakers", quantity: 2, price: 129.99, type: "Product", vatRate: 19 },
+      { name: "Personal Training", quantity: 1, price: 75.0, type: "Service", vatRate: 19 },
     ],
     totalAmount: 334.98,
     paymentMethod: "Credit Card",
@@ -119,7 +119,7 @@ export const sellingMainData = [
     member: "No Member",
     email: '',
     memberType: "N/A",
-    items: [{ name: "Athletic Shoes", quantity: 1, price: 189.5, type: "Product" }],
+    items: [{ name: "Athletic Shoes", quantity: 1, price: 189.5, type: "Product", vatRate: 7 }],
     totalAmount: 189.5,
     paymentMethod: "Cash",
     soldBy: "Sarah Johnson",
@@ -133,8 +133,8 @@ export const sellingMainData = [
     memberType: "Temporary Member",
     email: 'janesmith@gmail.com',
     items: [
-      { name: "Nutrition Consultation Session", quantity: 3, price: 50.0, type: "Service" },
-      { name: "Premium Orange Sneakers", quantity: 1, price: 129.99, type: "Product" },
+      { name: "Nutrition Consultation Session", quantity: 3, price: 50.0, type: "Service", vatRate: 7 },
+      { name: "Premium Orange Sneakers", quantity: 1, price: 129.99, type: "Product", vatRate: 19 },
     ],
     totalAmount: 279.99,
     paymentMethod: "Debit Card",

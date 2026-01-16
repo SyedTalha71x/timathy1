@@ -139,7 +139,7 @@ const PropertiesPanel = ({
                         disabled={isLocked}
                         className="flex-1 h-1.5 bg-[#333] rounded-full appearance-none cursor-pointer accent-orange-500"
                       />
-                      <span className="text-white text-xs w-10 text-right flex-shrink-0">{element.size || 24}px</span>
+                      <span className="text-white text-xs w-12 text-right flex-shrink-0">{element.size || 24}px</span>
                     </div>
                   </div>
                 </CollapsibleSection>
@@ -168,7 +168,7 @@ const PropertiesPanel = ({
                         disabled={isLocked}
                         className="flex-1 h-1.5 bg-[#333] rounded-full appearance-none cursor-pointer accent-orange-500"
                       />
-                      <span className="text-white text-xs w-8 text-right flex-shrink-0">{element.strokeWidth || 2}px</span>
+                      <span className="text-white text-xs w-10 text-right flex-shrink-0">{element.strokeWidth || 2}px</span>
                     </div>
                   </div>
                   <div>
@@ -243,7 +243,7 @@ const PropertiesPanel = ({
                         disabled={isLocked}
                         className="flex-1 h-1.5 bg-[#333] rounded-full appearance-none cursor-pointer accent-orange-500"
                       />
-                      <span className="text-white text-xs w-8 text-right flex-shrink-0">{element.gradientAngle || 135}°</span>
+                      <span className="text-white text-xs w-10 text-right flex-shrink-0">{element.gradientAngle || 135}°</span>
                     </div>
                   </div>
                   
@@ -280,7 +280,7 @@ const PropertiesPanel = ({
                         disabled={isLocked}
                         className="flex-1 h-1.5 bg-[#333] rounded-full appearance-none cursor-pointer accent-orange-500"
                       />
-                      <span className="text-white text-xs w-8 text-right flex-shrink-0">{element.strokeWidth || 2}px</span>
+                      <span className="text-white text-xs w-10 text-right flex-shrink-0">{element.strokeWidth || 2}px</span>
                     </div>
                   </div>
                 </div>
@@ -340,7 +340,7 @@ const PropertiesPanel = ({
                         disabled={isLocked}
                         className="flex-1 h-1.5 bg-[#333] rounded-full appearance-none cursor-pointer accent-orange-500"
                       />
-                      <span className="text-white text-xs w-8 text-right flex-shrink-0">{element.blur || 0}px</span>
+                      <span className="text-white text-xs w-10 text-right flex-shrink-0">{element.blur || 0}px</span>
                     </div>
                   </div>
                   <div>
@@ -351,7 +351,7 @@ const PropertiesPanel = ({
                         disabled={isLocked}
                         className="flex-1 h-1.5 bg-[#333] rounded-full appearance-none cursor-pointer accent-orange-500"
                       />
-                      <span className="text-white text-xs w-8 text-right flex-shrink-0">{element.brightness || 100}%</span>
+                      <span className="text-white text-xs w-10 text-right flex-shrink-0">{element.brightness || 100}%</span>
                     </div>
                   </div>
                 </div>
@@ -369,7 +369,7 @@ const PropertiesPanel = ({
                       disabled={isLocked}
                       className="flex-1 h-1.5 bg-[#333] rounded-full appearance-none cursor-pointer accent-orange-500"
                     />
-                    <span className="text-white text-xs w-8 text-right flex-shrink-0">{Math.round((element.opacity ?? 1) * 100)}%</span>
+                    <span className="text-white text-xs w-10 text-right flex-shrink-0">{Math.round((element.opacity ?? 1) * 100)}%</span>
                   </div>
                 </div>
                 <div>
