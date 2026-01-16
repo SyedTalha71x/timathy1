@@ -947,8 +947,21 @@ const SidebarAreaSelling = ({
 
                   <div className="border-t border-[#333333] pt-4 space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Subtotal:</span>
+                      <span className="text-gray-400">Total</span>
                       <span>${subtotal.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400">incl. VAT</span>
+                      <span>${(() => {
+                        const totalVat = cart.reduce((sum, item) => {
+                          const itemTotal = item.price * item.quantity
+                          const vatRate = item.vatRate || 19
+                          const vatAmount = itemTotal * vatRate / (100 + vatRate)
+                          return sum + vatAmount
+                        }, 0)
+                        const discountedVat = totalVat * (1 - discountValue / 100)
+                        return discountedVat.toFixed(2)
+                      })()}</span>
                     </div>
                     {discountValue > 0 && (
                       <div className="flex justify-between text-sm">
@@ -957,7 +970,7 @@ const SidebarAreaSelling = ({
                       </div>
                     )}
                     <div className="flex justify-between font-bold mt-2 pt-2 border-t border-[#333333]">
-                      <span>Total:</span>
+                      <span>To pay</span>
                       <span>${total.toFixed(2)}</span>
                     </div>
 
@@ -1479,7 +1492,7 @@ const SidebarAreaSelling = ({
                                     <h3 className="font-semibold text-sm flex items-center gap-1">
                                       {birthday.name}
                                       {isBirthdayToday(birthday.date) && (
-                                        <span className="text-yellow-500">🎂</span>
+                                        <span className="text-yellow-500">ðŸŽ‚</span>
                                       )}
                                     </h3>
                                     <p className="text-xs text-zinc-400">{birthday.date}</p>

@@ -13,11 +13,9 @@ import {
 import EditorToolbar from './EditorToolbar';
 import Canvas from './Canvas';
 import PropertiesPanel from './PropertiesPanel';
-import LayersPanel from './LayersPanel';
 import useCanvasElements from '../hooks/useCanvasElements';
 import { generateId, generateThumbnail } from '../utils/canvasUtils';
 
-// All available sizes
 const availableSizes = [
   { id: "ig-feed-square", name: "Instagram Feed", size: "1080x1080" },
   { id: "ig-feed-portrait", name: "Instagram Portrait", size: "1080x1350" },
@@ -28,12 +26,8 @@ const availableSizes = [
   { id: "fb-story", name: "Facebook Story", size: "1080x1920" },
   { id: "fb-cover", name: "Facebook Cover", size: "820x312" },
   { id: "fb-event", name: "Facebook Event", size: "1920x1080" },
-  { id: "universal-square", name: "Universal Square", size: "1200x1200" },
-  { id: "universal-wide", name: "Widescreen 16:9", size: "1920x1080" },
-  { id: "universal-portrait", name: "Portrait 4:5", size: "1080x1350" },
 ];
 
-// Helper to get original dimensions from size string
 const getOriginalDimensions = (imageSize) => {
   if (!imageSize || !imageSize.includes('x')) {
     return { width: 1080, height: 1080 };
@@ -59,8 +53,6 @@ const EditorModal = ({
   const [customSize, setCustomSize] = useState({ width: '1080', height: '1080' });
   const [zoom, setZoom] = useState(1);
   const [selectedTool, setSelectedTool] = useState('select');
-  const [showLayers, setShowLayers] = useState(true);
-  const [showProperties, setShowProperties] = useState(true);
   const [showSizeDropdown, setShowSizeDropdown] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
@@ -80,11 +72,7 @@ const EditorModal = ({
     toggleLock,
     toggleVisibility,
     reorderElements,
-    bringToFront,
-    sendToBack,
     duplicateElement,
-    clearAll,
-    loadElements,
     setInitialElements,
     undo,
     redo,
@@ -92,7 +80,6 @@ const EditorModal = ({
     canRedo
   } = useCanvasElements([]);
 
-  // Create default background element
   const createBackgroundElement = useCallback((size) => {
     const { width, height } = getOriginalDimensions(size);
     return {
@@ -110,24 +97,20 @@ const EditorModal = ({
     };
   }, []);
 
-  // Load initial elements when modal opens - use a ref to prevent double-loading
   const elementsLoadedRef = React.useRef(false);
   const backgroundLockedRef = React.useRef(false);
   
   useEffect(() => {
     if (!elementsLoadedRef.current) {
       if (initialElements.length > 0) {
-        // Check if there's already a background element
         const hasBackground = initialElements.some(el => el.isBackground);
         if (hasBackground) {
           setInitialElements(initialElements);
         } else {
-          // Add background element to existing designs that don't have one
           const bgElement = createBackgroundElement(initialSize);
           setInitialElements([bgElement, ...initialElements]);
         }
       } else {
-        // New design - create background element
         const bgElement = createBackgroundElement(initialSize);
         setInitialElements([bgElement]);
       }
@@ -135,16 +118,13 @@ const EditorModal = ({
     }
   }, [initialElements, setInitialElements, initialSize, createBackgroundElement]);
 
-  // Lock background for new designs (separate effect to ensure elements are loaded first)
   useEffect(() => {
     if (elementsLoadedRef.current && !backgroundLockedRef.current && initialElements.length === 0) {
-      // Only lock background for new designs (not when editing existing designs)
       toggleLock('background');
       backgroundLockedRef.current = true;
     }
   }, [elements, toggleLock, initialElements.length]);
 
-  // Reset the ref when the component unmounts (will be reset on new mount due to key change)
   useEffect(() => {
     return () => {
       elementsLoadedRef.current = false;
@@ -152,13 +132,12 @@ const EditorModal = ({
     };
   }, []);
 
-  // Update state when props change
   useEffect(() => {
     setDesignName(initialName);
     setImageSize(initialSize);
   }, [initialName, initialSize]);
 
-  // Handle keyboard shortcuts
+  // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (!isOpen) return;
@@ -199,7 +178,7 @@ const EditorModal = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, activeElementId, lockedElements, deleteElement, undo, redo, duplicateElement]);
 
-  // Handle mouse wheel zoom
+  // Mouse wheel zoom
   const handleWheel = useCallback((e) => {
     if (e.ctrlKey || e.metaKey) {
       e.preventDefault();
@@ -215,7 +194,7 @@ const EditorModal = ({
     }
   }, [isOpen, handleWheel]);
 
-  // Add text element
+  // Add text
   const handleAddText = useCallback(() => {
     const { width, height } = getOriginalDimensions(imageSize);
     addElement({
@@ -231,12 +210,13 @@ const EditorModal = ({
       x: width / 2 - 100,
       y: height / 2 - 20,
       width: 200,
-      height: 50
+      height: 50,
+      opacity: 1
     });
     setSelectedTool('text');
   }, [imageSize, addElement]);
 
-  // Add shape element
+  // Add shape
   const handleAddShape = useCallback((shapeType) => {
     const { width, height } = getOriginalDimensions(imageSize);
     addElement({
@@ -246,12 +226,66 @@ const EditorModal = ({
       x: width / 2 - 50,
       y: height / 2 - 50,
       width: 100,
-      height: 100
+      height: 100,
+      opacity: 1
     });
     setSelectedTool('shape');
   }, [imageSize, addElement]);
 
-  // Add image element
+  // Add line
+  const handleAddLine = useCallback((options = {}) => {
+    const { width, height } = getOriginalDimensions(imageSize);
+    addElement({
+      type: 'line',
+      color: '#FFFFFF',
+      lineStyle: options.lineStyle || 'solid',
+      strokeWidth: 2,
+      arrowStart: options.arrowStart || false,
+      arrowEnd: options.arrowEnd || false,
+      x: width / 2 - 100,
+      y: height / 2,
+      width: 200,
+      height: 20,
+      opacity: 1
+    });
+    setSelectedTool('line');
+  }, [imageSize, addElement]);
+
+  // Add gradient
+  const handleAddGradient = useCallback((colors) => {
+    const { width, height } = getOriginalDimensions(imageSize);
+    addElement({
+      type: 'gradient',
+      gradientColors: colors || ['#FF6B6B', '#FFA500'],
+      gradientAngle: 135,
+      x: width / 2 - 100,
+      y: height / 2 - 100,
+      width: 200,
+      height: 200,
+      borderRadius: 0,
+      opacity: 1
+    });
+    setSelectedTool('gradient');
+  }, [imageSize, addElement]);
+
+  // Add divider
+  const handleAddDivider = useCallback(() => {
+    const { width, height } = getOriginalDimensions(imageSize);
+    addElement({
+      type: 'divider',
+      color: '#FFFFFF',
+      dividerStyle: 'solid',
+      strokeWidth: 2,
+      x: width / 4,
+      y: height / 2,
+      width: width / 2,
+      height: 20,
+      opacity: 1
+    });
+    setSelectedTool('divider');
+  }, [imageSize, addElement]);
+
+  // Add image
   const handleAddImage = useCallback(() => {
     const input = document.createElement('input');
     input.type = 'file';
@@ -278,7 +312,8 @@ const EditorModal = ({
             width: img.width * scale,
             height: img.height * scale,
             originalWidth: img.width,
-            originalHeight: img.height
+            originalHeight: img.height,
+            opacity: 1
           });
         };
         img.src = event.target.result;
@@ -288,13 +323,12 @@ const EditorModal = ({
     input.click();
   }, [imageSize, addElement]);
 
-  // Handle save
+  // Save
   const handleSave = async () => {
     if (isSaving) return;
     
     setIsSaving(true);
     try {
-      // Deep clone elements to ensure no reference issues
       const elementsToSave = JSON.parse(JSON.stringify(elements));
       const thumbnail = await generateThumbnail(elementsToSave, imageSize, hiddenLayers);
       
@@ -316,7 +350,7 @@ const EditorModal = ({
     }
   };
 
-  // Handle save as template
+  // Save as template
   const handleSaveAsTemplate = async () => {
     if (elements.length === 0) {
       alert('Add some elements before saving as template');
@@ -324,7 +358,6 @@ const EditorModal = ({
     }
 
     try {
-      // Deep clone elements to ensure no reference issues
       const elementsToSave = JSON.parse(JSON.stringify(elements));
       const thumbnail = await generateThumbnail(elementsToSave, imageSize, hiddenLayers);
       
@@ -345,11 +378,10 @@ const EditorModal = ({
       }
     } catch (error) {
       console.error('Error saving template:', error);
-      alert('Failed to prepare template. Please try again.');
     }
   };
 
-  // Handle close - show confirmation if there are unsaved changes
+  // Close handling
   const handleClose = () => {
     if (elements.length > 0 && !designId) {
       setShowCloseConfirm(true);
@@ -358,10 +390,8 @@ const EditorModal = ({
     }
   };
 
-  // Handle save as draft
   const handleSaveAsDraft = async () => {
     try {
-      // Deep clone elements to ensure no reference issues
       const elementsToSave = JSON.parse(JSON.stringify(elements));
       const thumbnail = await generateThumbnail(elementsToSave, imageSize, hiddenLayers);
       
@@ -386,19 +416,11 @@ const EditorModal = ({
     }
   };
 
-  // Handle discard
-  const handleDiscard = () => {
-    setShowCloseConfirm(false);
-    onClose();
-  };
-
-  // Handle size change
   const handleSizeChange = (newSize) => {
     setImageSize(newSize);
     setShowSizeDropdown(false);
   };
 
-  // Apply custom size
   const applyCustomSize = () => {
     const width = parseInt(customSize.width);
     const height = parseInt(customSize.height);
@@ -411,237 +433,145 @@ const EditorModal = ({
     }
   };
 
-  // Handle duplicate from canvas
-  const handleDuplicateElement = useCallback((id) => {
-    duplicateElement(id);
-  }, [duplicateElement]);
-
-  // Handle delete from canvas
-  const handleDeleteElement = useCallback((id) => {
-    deleteElement(id);
-  }, [deleteElement]);
-
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 bg-[#0a0a0a] flex flex-col">
       {/* Header */}
-      <div className="h-14 bg-[#141414] border-b border-[#333333] flex items-center justify-between px-4 flex-shrink-0">
-        {/* Left Section */}
-        <div className="flex items-center gap-4 flex-1">
+      <div className="h-12 bg-[#141414] border-b border-[#333333] flex items-center justify-between px-3 flex-shrink-0">
+        {/* Left */}
+        <div className="flex items-center gap-3 flex-1 min-w-0">
           <button
             onClick={handleClose}
-            className="p-2 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded-xl transition-colors"
+            className="p-1.5 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded-lg transition-colors flex-shrink-0"
           >
-            <X size={20} />
+            <X size={18} />
           </button>
           
           <input
             type="text"
             value={designName}
             onChange={(e) => setDesignName(e.target.value)}
-            className="bg-transparent text-white font-medium text-base border-b border-transparent hover:border-[#333333] focus:border-orange-500 outline-none px-1 min-w-[200px] transition-colors"
+            className="bg-transparent text-white font-medium text-sm border-b border-transparent hover:border-[#333333] focus:border-orange-500 outline-none px-1 min-w-0 max-w-[200px] transition-colors"
           />
         </div>
 
-        {/* Center Section - Size Selector & Zoom */}
+        {/* Center */}
         <div className="flex items-center gap-2">
           {/* Size Dropdown */}
           <div className="relative">
             <button
               onClick={() => setShowSizeDropdown(!showSizeDropdown)}
-              className="flex items-center gap-2 px-4 py-2 bg-[#0a0a0a] hover:bg-[#2F2F2F] text-white rounded-xl transition-colors border border-[#333333]"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0a0a0a] hover:bg-[#1a1a1a] text-white text-sm rounded-lg transition-colors border border-[#333333]"
             >
-              <span className="text-sm">{imageSize}</span>
-              <ChevronDown size={16} className={`transition-transform ${showSizeDropdown ? 'rotate-180' : ''}`} />
+              <span className="text-xs">{imageSize}</span>
+              <ChevronDown size={14} className={`transition-transform ${showSizeDropdown ? 'rotate-180' : ''}`} />
             </button>
 
             {showSizeDropdown && (
-              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-[#1C1C1C] border border-[#333333] rounded-xl shadow-xl overflow-hidden z-20 min-w-[220px] max-h-[400px] overflow-y-auto">
-                {availableSizes.map((size) => (
-                  <button
-                    key={size.id}
-                    onClick={() => handleSizeChange(size.size)}
-                    className={`w-full flex items-center justify-between px-4 py-3 hover:bg-[#2F2F2F] transition-colors ${
-                      imageSize === size.size ? 'bg-orange-500/10 text-orange-500' : 'text-white'
-                    }`}
-                  >
-                    <span className="text-sm">{size.name}</span>
-                    <span className="text-xs text-gray-500">{size.size}</span>
-                  </button>
-                ))}
-                <div className="border-t border-[#333333]">
-                  <button
-                    onClick={() => {
-                      setShowSizeDropdown(false);
-                      setShowCustomSize(true);
-                    }}
-                    className="w-full flex items-center gap-2 px-4 py-3 text-gray-400 hover:text-white hover:bg-[#2F2F2F] transition-colors"
-                  >
-                    <Settings size={14} />
-                    <span className="text-sm">Custom Size</span>
-                  </button>
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowSizeDropdown(false)} />
+                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-[#1C1C1C] border border-[#333333] rounded-lg shadow-xl overflow-hidden z-50 min-w-[180px] max-h-[300px] overflow-y-auto">
+                  {availableSizes.map((size) => (
+                    <button
+                      key={size.id}
+                      onClick={() => handleSizeChange(size.size)}
+                      className={`w-full flex items-center justify-between px-3 py-2 hover:bg-[#2F2F2F] transition-colors text-left ${
+                        imageSize === size.size ? 'bg-orange-500/10 text-orange-500' : 'text-white'
+                      }`}
+                    >
+                      <span className="text-xs">{size.name}</span>
+                      <span className="text-[10px] text-gray-500">{size.size}</span>
+                    </button>
+                  ))}
+                  <div className="border-t border-[#333333]">
+                    <button
+                      onClick={() => { setShowSizeDropdown(false); setShowCustomSize(true); }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-gray-400 hover:text-white hover:bg-[#2F2F2F] transition-colors"
+                    >
+                      <Settings size={12} />
+                      <span className="text-xs">Custom Size</span>
+                    </button>
+                  </div>
                 </div>
-              </div>
+              </>
             )}
           </div>
 
-          {/* Divider */}
-          <div className="w-px h-6 bg-[#333333]" />
+          <div className="w-px h-5 bg-[#333333]" />
 
-          {/* Zoom Controls with Tooltips */}
-          <div className="flex items-center gap-1 bg-[#0a0a0a] rounded-xl px-2 py-1 border border-[#333333]">
-            <div className="relative group">
-              <button
-                onClick={() => setZoom(Math.max(0.25, zoom - 0.1))}
-                className="p-1.5 text-gray-400 hover:text-white transition-colors"
-              >
-                <ZoomOut size={16} />
-              </button>
-              {/* Tooltip */}
-              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                <span className="font-medium">Zoom Out</span>
-                <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono flex items-center gap-1">
-                  Ctrl+Scroll <span className="text-[10px]">â†“</span>
-                </span>
-                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
-              </div>
-            </div>
-            
-            <div className="relative group">
-              <span className="text-xs text-gray-400 font-medium min-w-[45px] text-center cursor-default">
-                {Math.round(zoom * 100)}%
-              </span>
-              {/* Tooltip */}
-              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                <span className="font-medium">Scroll to zoom</span>
-                <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
-                  Ctrl+Scroll
-                </span>
-                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
-              </div>
-            </div>
-            
-            <div className="relative group">
-              <button
-                onClick={() => setZoom(Math.min(3, zoom + 0.1))}
-                className="p-1.5 text-gray-400 hover:text-white transition-colors"
-              >
-                <ZoomIn size={16} />
-              </button>
-              {/* Tooltip */}
-              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                <span className="font-medium">Zoom In</span>
-                <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono flex items-center gap-1">
-                  Ctrl+Scroll <span className="text-[10px]">â†‘</span>
-                </span>
-                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
-              </div>
-            </div>
+          {/* Zoom */}
+          <div className="flex items-center gap-0.5 bg-[#0a0a0a] rounded-lg px-1.5 py-1 border border-[#333333]">
+            <button
+              onClick={() => setZoom(Math.max(0.25, zoom - 0.1))}
+              className="p-1 text-gray-400 hover:text-white transition-colors"
+            >
+              <ZoomOut size={14} />
+            </button>
+            <span className="text-[10px] text-gray-400 font-medium w-9 text-center">{Math.round(zoom * 100)}%</span>
+            <button
+              onClick={() => setZoom(Math.min(3, zoom + 0.1))}
+              className="p-1 text-gray-400 hover:text-white transition-colors"
+            >
+              <ZoomIn size={14} />
+            </button>
           </div>
         </div>
 
-        {/* Right Section */}
+        {/* Right */}
         <div className="flex items-center gap-2 flex-1 justify-end">
-          {/* Undo/Redo */}
-          <div className="flex items-center gap-1">
-            <div className="relative group">
-              <button
-                onClick={undo}
-                disabled={!canUndo}
-                className={`p-2 rounded-xl transition-colors ${
-                  canUndo 
-                    ? 'text-gray-400 hover:text-white hover:bg-[#2F2F2F]' 
-                    : 'text-gray-700 cursor-not-allowed'
-                }`}
-              >
-                <Undo2 size={18} />
-              </button>
-              {/* Tooltip */}
-              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                <span className="font-medium">Undo</span>
-                <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
-                  Ctrl+Z
-                </span>
-                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
-              </div>
-            </div>
-            
-            <div className="relative group">
-              <button
-                onClick={redo}
-                disabled={!canRedo}
-                className={`p-2 rounded-xl transition-colors ${
-                  canRedo 
-                    ? 'text-gray-400 hover:text-white hover:bg-[#2F2F2F]' 
-                    : 'text-gray-700 cursor-not-allowed'
-                }`}
-              >
-                <Redo2 size={18} />
-              </button>
-              {/* Tooltip */}
-              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                <span className="font-medium">Redo</span>
-                <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
-                  Ctrl+Shift+Z
-                </span>
-                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
-              </div>
-            </div>
+          <div className="flex items-center gap-0.5">
+            <button
+              onClick={undo}
+              disabled={!canUndo}
+              className={`p-1.5 rounded-lg transition-colors ${canUndo ? 'text-gray-400 hover:text-white hover:bg-[#2F2F2F]' : 'text-gray-700'}`}
+            >
+              <Undo2 size={16} />
+            </button>
+            <button
+              onClick={redo}
+              disabled={!canRedo}
+              className={`p-1.5 rounded-lg transition-colors ${canRedo ? 'text-gray-400 hover:text-white hover:bg-[#2F2F2F]' : 'text-gray-700'}`}
+            >
+              <Redo2 size={16} />
+            </button>
           </div>
 
-          {/* Divider */}
-          <div className="w-px h-6 bg-[#333333]" />
+          <div className="w-px h-5 bg-[#333333]" />
 
-          {/* Save as Template Button */}
           {onSaveAsTemplate && (
-            <div className="relative group">
-              <button
-                onClick={handleSaveAsTemplate}
-                className="flex items-center gap-2 px-3 py-2 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded-xl transition-all"
-                title="Save as Template"
-              >
-                <Bookmark size={16} />
-              </button>
-              {/* Tooltip */}
-              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none">
-                <span className="font-medium">Save as Template</span>
-                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
-              </div>
-            </div>
+            <button
+              onClick={handleSaveAsTemplate}
+              className="p-1.5 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded-lg transition-colors"
+              title="Save as Template"
+            >
+              <Bookmark size={16} />
+            </button>
           )}
 
-          {/* Save Button with Tooltip */}
-          <div className="relative group">
-            <button
-              onClick={handleSave}
-              disabled={isSaving}
-              className="flex items-center gap-2 px-5 py-2 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-xl transition-all disabled:opacity-50"
-            >
-              <Save size={16} />
-              <span className="text-sm">{isSaving ? 'Saving...' : 'Save'}</span>
-            </button>
-            {/* Tooltip */}
-            <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-              <span className="font-medium">Save Design</span>
-              <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
-                Ctrl+S
-              </span>
-              <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
-            </div>
-          </div>
+          <button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="flex items-center gap-1.5 px-4 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-lg transition-all disabled:opacity-50"
+          >
+            <Save size={14} />
+            <span>{isSaving ? 'Saving...' : 'Save'}</span>
+          </button>
         </div>
       </div>
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden min-h-0">
-        {/* Left Toolbar with Layers */}
+        {/* Left Toolbar */}
         <EditorToolbar
           selectedTool={selectedTool}
           onSelectTool={setSelectedTool}
           onAddText={handleAddText}
           onAddShape={handleAddShape}
           onAddImage={handleAddImage}
+          onAddLine={handleAddLine}
+          onAddGradient={handleAddGradient}
+          onAddDivider={handleAddDivider}
           elements={elements}
           activeElementId={activeElementId}
           lockedElements={lockedElements}
@@ -653,7 +583,7 @@ const EditorModal = ({
           onReorderElements={reorderElements}
         />
 
-        {/* Canvas Area */}
+        {/* Canvas */}
         <div className="flex-1 min-w-0">
           <Canvas
             elements={elements}
@@ -665,67 +595,62 @@ const EditorModal = ({
             onSelectElement={setActiveElementId}
             onUpdateElement={updateElement}
             onDeselectAll={() => setActiveElementId(null)}
-            onDuplicateElement={handleDuplicateElement}
-            onDeleteElement={handleDeleteElement}
+            onDuplicateElement={duplicateElement}
+            onDeleteElement={deleteElement}
           />
         </div>
 
-        {/* Right Panel - Properties Only */}
-        <div className="w-[280px] min-w-[280px] flex flex-col border-l border-[#333333] bg-[#141414]">
-          {/* Properties Panel */}
-          {showProperties && (
-            <div className="flex-1 overflow-hidden">
-              <PropertiesPanel
-                element={activeElement}
-                onUpdate={(updates) => updateElementWithHistory(activeElementId, updates)}
-                isLocked={lockedElements.has(activeElementId)}
-                onToggleLock={() => toggleLock(activeElementId)}
-              />
-            </div>
-          )}
+        {/* Right Panel */}
+        <div className="w-[240px] min-w-[240px] border-l border-[#333333] bg-[#141414]">
+          <PropertiesPanel
+            element={activeElement}
+            onUpdate={(updates) => updateElementWithHistory(activeElementId, updates)}
+            isLocked={lockedElements.has(activeElementId)}
+            onToggleLock={() => toggleLock(activeElementId)}
+          />
         </div>
       </div>
 
       {/* Custom Size Modal */}
       {showCustomSize && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-          <div className="bg-[#1C1C1C] rounded-xl p-6 w-full max-w-sm border border-[#333333]">
-            <h3 className="text-white font-medium text-lg mb-4">Custom Size</h3>
-            <div className="space-y-4">
-              <div className="flex gap-3">
+          <div className="bg-[#1C1C1C] rounded-xl p-5 w-full max-w-xs border border-[#333333]">
+            <h3 className="text-white font-medium text-base mb-4">Custom Size</h3>
+            <div className="space-y-3">
+              <div className="flex gap-2">
                 <div className="flex-1">
-                  <label className="text-gray-400 text-xs mb-1.5 block">Width (px)</label>
+                  <label className="text-gray-400 text-xs mb-1 block">Width</label>
                   <input
                     type="number"
                     value={customSize.width}
                     onChange={(e) => setCustomSize(prev => ({ ...prev, width: e.target.value }))}
-                    className="w-full bg-[#0a0a0a] border border-[#333333] rounded-xl py-2.5 px-3 text-white focus:outline-none focus:border-orange-500 transition-colors"
+                    className="w-full bg-[#0a0a0a] border border-[#333333] rounded-lg py-2 px-2 text-white text-sm focus:outline-none focus:border-orange-500"
                     min="100"
                     max="5000"
                   />
                 </div>
                 <div className="flex-1">
-                  <label className="text-gray-400 text-xs mb-1.5 block">Height (px)</label>
+                  <label className="text-gray-400 text-xs mb-1 block">Height</label>
                   <input
                     type="number"
                     value={customSize.height}
                     onChange={(e) => setCustomSize(prev => ({ ...prev, height: e.target.value }))}
-                    className="w-full bg-[#0a0a0a] border border-[#333333] rounded-xl py-2.5 px-3 text-white focus:outline-none focus:border-orange-500 transition-colors"
+                    className="w-full bg-[#0a0a0a] border border-[#333333] rounded-lg py-2 px-2 text-white text-sm focus:outline-none focus:border-orange-500"
                     min="100"
                     max="5000"
                   />
                 </div>
               </div>
-              <div className="flex gap-3">
+              <div className="flex gap-2">
                 <button
                   onClick={() => setShowCustomSize(false)}
-                  className="flex-1 py-2.5 bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white rounded-xl transition-colors"
+                  className="flex-1 py-2 bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white text-sm rounded-lg transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={applyCustomSize}
-                  className="flex-1 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-xl transition-colors"
+                  className="flex-1 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-lg transition-colors"
                 >
                   Apply
                 </button>
@@ -735,32 +660,22 @@ const EditorModal = ({
         </div>
       )}
 
-      {/* Close Confirmation Modal */}
+      {/* Close Confirm Modal */}
       {showCloseConfirm && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-          <div className="bg-[#1C1C1C] rounded-xl p-6 w-full max-w-sm border border-[#333333] relative">
-            {/* Close X Button */}
-            <button
-              onClick={() => setShowCloseConfirm(false)}
-              className="absolute top-4 right-4 p-1.5 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded-lg transition-colors"
-            >
-              <X size={18} />
-            </button>
-            
-            <h3 className="text-white font-medium text-lg mb-2 pr-8">Save as Draft?</h3>
-            <p className="text-gray-400 text-sm mb-5">
-              You have unsaved changes. Would you like to save this design as a draft?
-            </p>
+          <div className="bg-[#1C1C1C] rounded-xl p-5 w-full max-w-xs border border-[#333333]">
+            <h3 className="text-white font-medium text-base mb-2">Save as Draft?</h3>
+            <p className="text-gray-400 text-sm mb-4">You have unsaved changes.</p>
             <div className="flex flex-col gap-2">
               <button
                 onClick={handleSaveAsDraft}
-                className="w-full py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-xl transition-colors"
+                className="w-full py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-lg transition-colors"
               >
                 Save as Draft
               </button>
               <button
-                onClick={handleDiscard}
-                className="w-full py-2.5 bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white rounded-xl transition-colors"
+                onClick={() => { setShowCloseConfirm(false); onClose(); }}
+                className="w-full py-2 bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white text-sm rounded-lg transition-colors"
               >
                 Discard
               </button>

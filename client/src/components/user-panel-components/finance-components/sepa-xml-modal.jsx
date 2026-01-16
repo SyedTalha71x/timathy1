@@ -387,7 +387,7 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
               
               {/* Desktop Dropdown */}
               {periodDropdownOpen && (
-                <div className="hidden sm:block absolute z-30 mt-2 w-full min-w-[320px] bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg overflow-hidden">
+                <div className="hidden sm:block absolute z-40 mt-2 w-full min-w-[320px] bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg overflow-hidden">
                   {/* Preset Periods */}
                   <div className="py-1 max-h-[40vh] overflow-y-auto">
                     <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">

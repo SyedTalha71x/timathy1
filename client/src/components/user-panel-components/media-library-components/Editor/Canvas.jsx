@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
-import { Copy, Trash2 } from 'lucide-react';
+import { Copy, Trash2, Check, X } from 'lucide-react';
 
 // Calculate canvas dimensions that fit nicely in the viewport
 const getCanvasDimensions = (imageSize, containerWidth = 600, containerHeight = 500) => {
@@ -13,10 +13,7 @@ const getCanvasDimensions = (imageSize, containerWidth = 600, containerHeight = 
     return { width: 400, height: 400, scale: 1, originalWidth: 400, originalHeight: 400 };
   }
   
-  // Calculate scale to fit within container
   let scale = Math.min(containerWidth / width, containerHeight / height);
-  
-  // Cap at 1 to avoid upscaling small designs
   scale = Math.min(scale, 1);
   
   return {
@@ -50,6 +47,13 @@ const Canvas = ({
   const [editingTextId, setEditingTextId] = useState(null);
   const [containerSize, setContainerSize] = useState({ width: 600, height: 500 });
   const textInputRef = useRef(null);
+  
+  // Cropping state
+  const [croppingElementId, setCroppingElementId] = useState(null);
+  const [cropBox, setCropBox] = useState(null);
+  const [isCropDragging, setIsCropDragging] = useState(false);
+  const [cropDragStart, setCropDragStart] = useState({ x: 0, y: 0 });
+  const [cropDragType, setCropDragType] = useState(null);
 
   // Measure container size
   useEffect(() => {
@@ -65,7 +69,6 @@ const Canvas = ({
 
     updateContainerSize();
     window.addEventListener('resize', updateContainerSize);
-    
     const timer = setTimeout(updateContainerSize, 100);
     
     return () => {
@@ -84,17 +87,48 @@ const Canvas = ({
     }
   }, [editingTextId]);
 
-  // Handle element mouse down - single click selects/drags, double click edits text
+  // Start cropping an image
+  const startCropping = useCallback((elementId) => {
+    const element = elements.find(el => el.id === elementId);
+    if (!element || element.type !== 'image') return;
+    
+    setCroppingElementId(elementId);
+    setCropBox({
+      x: element.cropX || 0,
+      y: element.cropY || 0,
+      width: element.cropWidth || element.width,
+      height: element.cropHeight || element.height
+    });
+  }, [elements]);
+
+  // Apply crop
+  const applyCrop = useCallback(() => {
+    if (!croppingElementId || !cropBox) return;
+    
+    onUpdateElement(croppingElementId, {
+      cropX: cropBox.x,
+      cropY: cropBox.y,
+      cropWidth: cropBox.width,
+      cropHeight: cropBox.height
+    });
+    
+    setCroppingElementId(null);
+    setCropBox(null);
+  }, [croppingElementId, cropBox, onUpdateElement]);
+
+  // Cancel crop
+  const cancelCrop = useCallback(() => {
+    setCroppingElementId(null);
+    setCropBox(null);
+  }, []);
+
+  // Handle element mouse down
   const handleElementMouseDown = (e, elementId) => {
     const element = elements.find(el => el.id === elementId);
     if (!element || lockedElements.has(elementId)) return;
 
-    // If we're currently editing this text element, let the textarea handle it
-    if (editingTextId === elementId) {
-      return;
-    }
+    if (editingTextId === elementId) return;
 
-    // If we're editing a DIFFERENT text element, stop editing it
     if (editingTextId && editingTextId !== elementId) {
       setEditingTextId(null);
     }
@@ -102,14 +136,12 @@ const Canvas = ({
     e.preventDefault();
     e.stopPropagation();
 
-    // Select the element
     onSelectElement(elementId);
 
     const rect = e.currentTarget.getBoundingClientRect();
     const localX = e.clientX - rect.left;
     const localY = e.clientY - rect.top;
 
-    // Check if clicking resize handle
     const handleSize = 12;
     const isResizeHandle = 
       localX >= rect.width - handleSize && 
@@ -119,7 +151,6 @@ const Canvas = ({
       setIsResizing(true);
       setResizeDirection('se');
     } else {
-      // Start dragging
       setIsDragging(true);
       const canvasRect = canvasContainerRef.current?.getBoundingClientRect();
       if (canvasRect) {
@@ -131,7 +162,7 @@ const Canvas = ({
     }
   };
 
-  // Handle text double click for editing
+  // Handle text double click
   const handleTextDoubleClick = (e, elementId) => {
     e.preventDefault();
     e.stopPropagation();
@@ -146,7 +177,7 @@ const Canvas = ({
     onUpdateElement(elementId, { content: e.target.value });
   };
 
-  // Handle text blur (finish editing)
+  // Handle text blur
   const handleTextBlur = () => {
     setEditingTextId(null);
   };
@@ -175,7 +206,6 @@ const Canvas = ({
       let newX = mouseX - dragStart.x / totalScale;
       let newY = mouseY - dragStart.y / totalScale;
 
-      // Boundary constraints using original dimensions
       newX = Math.max(0, Math.min(newX, canvasDim.originalWidth - element.width));
       newY = Math.max(0, Math.min(newY, canvasDim.originalHeight - element.height));
 
@@ -187,11 +217,9 @@ const Canvas = ({
       let newWidth = Math.max(minSize, mouseX - element.x);
       let newHeight = Math.max(minSize, mouseY - element.y);
 
-      // Boundary constraints
       newWidth = Math.min(newWidth, canvasDim.originalWidth - element.x);
       newHeight = Math.min(newHeight, canvasDim.originalHeight - element.y);
 
-      // Maintain aspect ratio for images
       if (element.type === 'image' && element.originalWidth && element.originalHeight) {
         const aspectRatio = element.originalWidth / element.originalHeight;
         newHeight = newWidth / aspectRatio;
@@ -215,7 +243,6 @@ const Canvas = ({
 
   // Handle canvas click
   const handleCanvasClick = (e) => {
-    // Check if click is on canvas background (not on an element)
     const isCanvasBackground = 
       e.target === canvasContainerRef.current || 
       e.target.classList.contains('canvas-area') || 
@@ -228,22 +255,15 @@ const Canvas = ({
     }
   };
 
-  // Handle global mousedown to exit text editing when clicking outside
+  // Handle global mousedown
   const handleGlobalMouseDown = useCallback((e) => {
     if (!editingTextId) return;
     
-    // Check if click is inside the textarea
-    if (textInputRef.current && textInputRef.current.contains(e.target)) {
-      return;
-    }
+    if (textInputRef.current && textInputRef.current.contains(e.target)) return;
     
-    // Check if click is inside the editing element's container
     const editingElement = document.querySelector(`[data-element-id="${editingTextId}"]`);
-    if (editingElement && editingElement.contains(e.target)) {
-      return;
-    }
+    if (editingElement && editingElement.contains(e.target)) return;
     
-    // Click was outside - exit editing mode
     setEditingTextId(null);
   }, [editingTextId]);
 
@@ -251,26 +271,58 @@ const Canvas = ({
   useEffect(() => {
     document.addEventListener('mouseup', handleMouseUp);
     document.addEventListener('mousemove', handleCanvasMouseMove);
-
     return () => {
       document.removeEventListener('mouseup', handleMouseUp);
       document.removeEventListener('mousemove', handleCanvasMouseMove);
     };
   }, [handleMouseUp, handleCanvasMouseMove]);
 
-  // Add global mousedown listener to exit text editing
   useEffect(() => {
     if (editingTextId) {
       document.addEventListener('mousedown', handleGlobalMouseDown);
-      return () => {
-        document.removeEventListener('mousedown', handleGlobalMouseDown);
-      };
+      return () => document.removeEventListener('mousedown', handleGlobalMouseDown);
     }
   }, [editingTextId, handleGlobalMouseDown]);
 
+  // Get element styles with effects
+  const getElementStyles = (element) => {
+    const styles = {};
+    
+    if (element.opacity !== undefined && element.opacity !== 1) {
+      styles.opacity = element.opacity;
+    }
+    
+    if (element.shadow) {
+      const displayScale = canvasDim.scale * zoom;
+      styles.boxShadow = `${element.shadow.x * displayScale}px ${element.shadow.y * displayScale}px ${element.shadow.blur * displayScale}px ${element.shadow.color || 'rgba(0,0,0,0.5)'}`;
+    }
+    
+    if (element.borderWidth && element.borderWidth > 0) {
+      const displayScale = canvasDim.scale * zoom;
+      styles.border = `${element.borderWidth * displayScale}px solid ${element.borderColor || '#000'}`;
+    }
+    
+    if (element.borderRadius && element.type === 'shape' && element.shape !== 'circle') {
+      const displayScale = canvasDim.scale * zoom;
+      styles.borderRadius = `${element.borderRadius * displayScale}px`;
+    }
+    
+    if (element.blur && element.type === 'image') {
+      styles.filter = `blur(${element.blur}px)`;
+    }
+    
+    return styles;
+  };
+
   // Render shape
-  const renderShape = (shape, color, width, height) => {
-    const style = { width: '100%', height: '100%', backgroundColor: color };
+  const renderShape = (shape, color, width, height, borderRadius = 0) => {
+    const displayScale = canvasDim.scale * zoom;
+    const style = { 
+      width: '100%', 
+      height: '100%', 
+      backgroundColor: color,
+      borderRadius: borderRadius > 0 ? `${borderRadius * displayScale}px` : undefined
+    };
 
     switch (shape) {
       case 'rectangle':
@@ -320,12 +372,110 @@ const Canvas = ({
     }
   };
 
+  // Render line
+  const renderLine = (element, displayScale) => {
+    const strokeWidth = (element.strokeWidth || 2) * displayScale;
+    const height = element.height * displayScale;
+    const width = element.width * displayScale;
+    
+    let strokeDasharray = '';
+    if (element.lineStyle === 'dashed') strokeDasharray = `${strokeWidth * 4} ${strokeWidth * 2}`;
+    if (element.lineStyle === 'dotted') strokeDasharray = `${strokeWidth} ${strokeWidth * 2}`;
+    
+    return (
+      <svg width={width} height={height} style={{ overflow: 'visible' }}>
+        <defs>
+          <marker
+            id={`arrowEnd-${element.id}`}
+            markerWidth="10"
+            markerHeight="10"
+            refX="9"
+            refY="3"
+            orient="auto"
+            markerUnits="strokeWidth"
+          >
+            <path d="M0,0 L0,6 L9,3 z" fill={element.color || '#FFFFFF'} />
+          </marker>
+          <marker
+            id={`arrowStart-${element.id}`}
+            markerWidth="10"
+            markerHeight="10"
+            refX="0"
+            refY="3"
+            orient="auto"
+            markerUnits="strokeWidth"
+          >
+            <path d="M9,0 L9,6 L0,3 z" fill={element.color || '#FFFFFF'} />
+          </marker>
+        </defs>
+        <line
+          x1="0"
+          y1={height / 2}
+          x2={width}
+          y2={height / 2}
+          stroke={element.color || '#FFFFFF'}
+          strokeWidth={strokeWidth}
+          strokeDasharray={strokeDasharray}
+          strokeLinecap="round"
+          markerEnd={element.arrowEnd ? `url(#arrowEnd-${element.id})` : ''}
+          markerStart={element.arrowStart ? `url(#arrowStart-${element.id})` : ''}
+        />
+      </svg>
+    );
+  };
+
+  // Render gradient
+  const renderGradient = (element, displayScale) => {
+    const colors = element.gradientColors || ['#FF6B6B', '#FFA500'];
+    const angle = element.gradientAngle || 135;
+    const borderRadius = element.borderRadius ? element.borderRadius * displayScale : 0;
+    
+    return (
+      <div
+        style={{
+          width: '100%',
+          height: '100%',
+          background: `linear-gradient(${angle}deg, ${colors.join(', ')})`,
+          borderRadius: borderRadius > 0 ? `${borderRadius}px` : undefined
+        }}
+      />
+    );
+  };
+
+  // Render divider
+  const renderDivider = (element, displayScale) => {
+    const strokeWidth = (element.strokeWidth || 2) * displayScale;
+    const color = element.color || '#FFFFFF';
+    
+    if (element.dividerStyle === 'double') {
+      return (
+        <div className="w-full h-full flex flex-col justify-center" style={{ gap: strokeWidth }}>
+          <div style={{ height: strokeWidth, backgroundColor: color }} />
+          <div style={{ height: strokeWidth, backgroundColor: color }} />
+        </div>
+      );
+    }
+    
+    let borderStyle = 'solid';
+    if (element.dividerStyle === 'dashed') borderStyle = 'dashed';
+    if (element.dividerStyle === 'dotted') borderStyle = 'dotted';
+    
+    return (
+      <div className="w-full h-full flex items-center">
+        <div style={{ 
+          width: '100%', 
+          borderTop: `${strokeWidth}px ${borderStyle} ${color}` 
+        }} />
+      </div>
+    );
+  };
+
   // Sort visible elements by z-index
   const visibleElements = elements
     .filter(el => !hiddenLayers.has(el.id))
     .sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
 
-  // Get cursor style for element
+  // Get cursor style
   const getCursorStyle = (element, isActive, isLocked) => {
     if (isLocked) return 'cursor-not-allowed';
     if (editingTextId === element.id) return 'cursor-text';
@@ -333,10 +483,7 @@ const Canvas = ({
     return 'cursor-pointer';
   };
 
-  // Combined scale for display
   const displayScale = canvasDim.scale * zoom;
-  
-  // Calculate the actual canvas dimensions with zoom
   const canvasWidth = canvasDim.width * zoom;
   const canvasHeight = canvasDim.height * zoom;
 
@@ -345,12 +492,10 @@ const Canvas = ({
       ref={canvasWrapperRef}
       className="flex-1 bg-[#0a0a0a] overflow-hidden"
     >
-      {/* Scrollable canvas area with true centering */}
       <div 
         className="canvas-scroll-area w-full h-full overflow-auto"
         onClick={handleCanvasClick}
       >
-        {/* Centering wrapper - uses flexbox for true vertical and horizontal centering */}
         <div 
           className="canvas-center-wrapper flex items-center justify-center"
           style={{
@@ -364,7 +509,6 @@ const Canvas = ({
             boxSizing: 'border-box'
           }}
         >
-          {/* Canvas Container */}
           <div
             ref={canvasContainerRef}
             className="canvas-area relative flex-shrink-0 overflow-hidden"
@@ -372,10 +516,10 @@ const Canvas = ({
               width: `${canvasWidth}px`,
               height: `${canvasHeight}px`,
               transformOrigin: 'center',
-              boxShadow: '0 0 0 1px rgba(255,255,255,0.1), 0 0 40px rgba(0,0,0,0.5), 0 0 80px rgba(0,0,0,0.3), inset 0 0 0 1px rgba(255,255,255,0.05)'
+              boxShadow: '0 0 0 1px rgba(255,255,255,0.1), 0 0 40px rgba(0,0,0,0.5)'
             }}
           >
-            {/* Transparency Checkerboard Pattern (like Photoshop) */}
+            {/* Checkerboard Pattern */}
             <div 
               className="absolute inset-0 pointer-events-none"
               style={{
@@ -396,6 +540,8 @@ const Canvas = ({
               const isActive = activeElementId === element.id;
               const isLocked = lockedElements.has(element.id);
               const isEditing = editingTextId === element.id;
+              const isCropping = croppingElementId === element.id;
+              const elementStyles = getElementStyles(element);
 
               return (
                 <div
@@ -409,9 +555,10 @@ const Canvas = ({
                     top: `${element.y * displayScale}px`,
                     width: `${element.width * displayScale}px`,
                     height: `${element.height * displayScale}px`,
-                    outline: isActive ? '2px solid #FF843E' : 'none',
+                    outline: isActive && !isCropping ? '2px solid #FF843E' : 'none',
                     outlineOffset: '2px',
-                    transition: isDragging || isResizing ? 'none' : 'outline 0.15s ease'
+                    transition: isDragging || isResizing ? 'none' : 'outline 0.15s ease',
+                    ...elementStyles
                   }}
                 >
                   {/* Text Element */}
@@ -466,7 +613,7 @@ const Canvas = ({
                   {/* Shape Element */}
                   {element.type === 'shape' && (
                     <div style={{ width: '100%', height: '100%' }}>
-                      {renderShape(element.shape, element.color, element.width, element.height)}
+                      {renderShape(element.shape, element.color, element.width, element.height, element.borderRadius)}
                     </div>
                   )}
 
@@ -477,8 +624,18 @@ const Canvas = ({
                       alt="Layer"
                       className="w-full h-full object-contain"
                       draggable={false}
+                      style={element.blur ? { filter: `blur(${element.blur}px)` } : undefined}
                     />
                   )}
+
+                  {/* Line Element */}
+                  {element.type === 'line' && renderLine(element, displayScale)}
+
+                  {/* Gradient Element */}
+                  {element.type === 'gradient' && renderGradient(element, displayScale)}
+
+                  {/* Divider Element */}
+                  {element.type === 'divider' && renderDivider(element, displayScale)}
 
                   {/* Resize Handle */}
                   {isActive && !isLocked && !isEditing && (
@@ -491,46 +648,29 @@ const Canvas = ({
                     />
                   )}
 
-                  {/* Corner Handles (for visual feedback) */}
+                  {/* Corner Handles */}
                   {isActive && !isLocked && !isEditing && (
                     <>
-                      <div 
-                        className="absolute bg-white border border-[#FF843E] rounded-sm"
-                        style={{
-                          width: '5px',
-                          height: '5px',
-                          left: '-2px',
-                          top: '-2px',
-                          transform: `scale(${1 / Math.max(displayScale, 0.5)})`,
-                          transformOrigin: 'center'
-                        }}
-                      />
-                      <div 
-                        className="absolute bg-white border border-[#FF843E] rounded-sm"
-                        style={{
-                          width: '5px',
-                          height: '5px',
-                          right: '-2px',
-                          top: '-2px',
-                          transform: `scale(${1 / Math.max(displayScale, 0.5)})`,
-                          transformOrigin: 'center'
-                        }}
-                      />
-                      <div 
-                        className="absolute bg-white border border-[#FF843E] rounded-sm"
-                        style={{
-                          width: '5px',
-                          height: '5px',
-                          left: '-2px',
-                          bottom: '-2px',
-                          transform: `scale(${1 / Math.max(displayScale, 0.5)})`,
-                          transformOrigin: 'center'
-                        }}
-                      />
+                      {['tl', 'tr', 'bl'].map(corner => (
+                        <div 
+                          key={corner}
+                          className="absolute bg-white border border-[#FF843E] rounded-sm"
+                          style={{
+                            width: '5px',
+                            height: '5px',
+                            left: corner.includes('l') ? '-2px' : undefined,
+                            right: corner.includes('r') ? '-2px' : undefined,
+                            top: corner.includes('t') ? '-2px' : undefined,
+                            bottom: corner.includes('b') ? '-2px' : undefined,
+                            transform: `scale(${1 / Math.max(displayScale, 0.5)})`,
+                            transformOrigin: 'center'
+                          }}
+                        />
+                      ))}
                     </>
                   )}
 
-                  {/* Action Buttons - Duplicate & Delete on Selection Box */}
+                  {/* Action Buttons */}
                   {isActive && !isLocked && !isEditing && (
                     <div 
                       className="absolute -top-5 left-1/2 flex items-center gap-px bg-[#1C1C1C]/90 border border-[#333333] rounded-sm shadow-lg"
@@ -546,7 +686,7 @@ const Canvas = ({
                           onDuplicateElement?.(element.id);
                         }}
                         className="p-0.5 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded-sm transition-colors"
-                        title="Duplicate (Ctrl+D)"
+                        title="Duplicate"
                       >
                         <Copy size={9} />
                       </button>
@@ -557,7 +697,7 @@ const Canvas = ({
                           onDeleteElement?.(element.id);
                         }}
                         className="p-0.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-sm transition-colors"
-                        title="Delete (Del)"
+                        title="Delete"
                       >
                         <Trash2 size={9} />
                       </button>

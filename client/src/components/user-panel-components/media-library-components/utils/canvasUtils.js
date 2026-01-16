@@ -29,41 +29,150 @@ export const getCanvasDimensions = (imageSize, maxWidth = 800, maxHeight = 600) 
 };
 
 /**
- * Calculate aspect ratio style for design cards
+ * Scale element coordinates from template to canvas
  */
-export const getDesignAspectRatioStyle = (size, cardWidth = 200) => {
-  if (!size || !size.includes('x')) {
-    return { 
-      height: '120px',
-      width: '100%', 
-      position: 'relative',
-      backgroundColor: '#ffffff' 
-    };
-  }
+export const scaleElementToCanvas = (element, fromSize, toCanvasDim) => {
+  if (!fromSize || !fromSize.includes('x')) return element;
   
-  const [width, height] = size.split('x').map(Number);
-  if (isNaN(width) || isNaN(height) || width <= 0 || height <= 0) {
-    return { 
-      height: '120px',
-      width: '100%', 
-      position: 'relative',
-      backgroundColor: '#ffffff' 
-    };
-  }
-  
-  const ratio = height / width;
-  const calculatedHeight = cardWidth * ratio;
-  const maxHeight = 250;
-  const minHeight = 100;
+  const [fromWidth, fromHeight] = fromSize.split('x').map(Number);
+  const scaleX = toCanvasDim.width / fromWidth;
+  const scaleY = toCanvasDim.height / fromHeight;
   
   return {
-    height: `${Math.max(minHeight, Math.min(calculatedHeight, maxHeight))}px`,
-    width: `${cardWidth}px`,
-    margin: '0 auto',
-    position: 'relative',
-    backgroundColor: '#ffffff',
-    overflow: 'hidden'
+    ...element,
+    x: element.x * scaleX,
+    y: element.y * scaleY,
+    width: element.width * scaleX,
+    height: element.height * scaleY,
+    size: element.size ? element.size * Math.min(scaleX, scaleY) : element.size
   };
+};
+/**
+ * Generate unique ID
+ */
+export const generateId = () => {
+  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+};
+
+/**
+ * Deep clone an object
+ */
+export const deepClone = (obj) => {
+  return JSON.parse(JSON.stringify(obj));
+};
+
+/**
+ * Apply personalization to template elements
+ * @param {Array} elements - Template elements to personalize
+ * @param {Object} personalization - Personalization options
+ * @param {string} personalization.primaryColor - Primary accent color
+ * @param {string} personalization.secondaryColor - Secondary/background color
+ * @param {string} personalization.titleText - Text to replace in title elements
+ * @param {string} personalization.subtitleText - Text to replace in subtitle elements
+ * @returns {Array} - Personalized elements
+ */
+export const applyPersonalization = (elements, personalization) => {
+  if (!personalization || !elements || elements.length === 0) {
+    return elements;
+  }
+
+  const { primaryColor, secondaryColor, titleText, subtitleText } = personalization;
+  
+  return elements.map(element => {
+    const newElement = { ...element };
+    
+    // Apply to background elements - use secondary color
+    if (element.isBackground && secondaryColor) {
+      if (element.type === 'shape') {
+        newElement.color = secondaryColor;
+      } else if (element.type === 'gradient') {
+        // For gradient backgrounds, create gradient from secondary to a darker version
+        newElement.gradientColors = [secondaryColor, adjustBrightness(secondaryColor, -20)];
+      }
+      return newElement;
+    }
+    
+    // Apply colors to shapes (non-background) - use primary color
+    if (element.type === 'shape' && !element.isBackground) {
+      if (primaryColor) {
+        newElement.color = primaryColor;
+      }
+    }
+    
+    // Apply colors to gradients (non-background)
+    if (element.type === 'gradient' && !element.isBackground) {
+      if (primaryColor && secondaryColor) {
+        newElement.gradientColors = [primaryColor, secondaryColor];
+      } else if (primaryColor) {
+        newElement.gradientColors = [primaryColor, adjustBrightness(primaryColor, -30)];
+      }
+    }
+    
+    // Apply colors to lines and dividers
+    if ((element.type === 'line' || element.type === 'divider') && primaryColor) {
+      newElement.color = primaryColor;
+    }
+    
+    // Apply text changes
+    if (element.type === 'text') {
+      // Determine if this is a title (larger text) or subtitle (smaller text)
+      const isTitle = (element.size || 24) >= 48;
+      const isSubtitle = (element.size || 24) < 48 && (element.size || 24) >= 16;
+      
+      // Apply text content if provided
+      if (isTitle && titleText) {
+        newElement.content = titleText;
+      } else if (isSubtitle && subtitleText) {
+        newElement.content = subtitleText;
+      }
+      
+      // Apply colors based on background
+      // If text is on a light background, use dark color
+      // If text is on a dark background, use light color or primary
+      if (secondaryColor) {
+        const isLightBg = isLightColor(secondaryColor);
+        if (isLightBg) {
+          // Light background - use dark text
+          newElement.color = '#1A1A1A';
+        } else {
+          // Dark background - headlines white, accent text uses primary
+          if (isTitle) {
+            newElement.color = '#FFFFFF';
+          } else if (primaryColor) {
+            newElement.color = primaryColor;
+          }
+        }
+      }
+    }
+    
+    return newElement;
+  });
+};
+
+/**
+ * Check if a color is light or dark
+ */
+export const isLightColor = (color) => {
+  const hex = color.replace('#', '');
+  const r = parseInt(hex.substr(0, 2), 16);
+  const g = parseInt(hex.substr(2, 2), 16);
+  const b = parseInt(hex.substr(4, 2), 16);
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+  return brightness > 128;
+};
+
+/**
+ * Adjust color brightness
+ * @param {string} color - Hex color
+ * @param {number} amount - Amount to adjust (-100 to 100)
+ * @returns {string} - Adjusted hex color
+ */
+export const adjustBrightness = (color, amount) => {
+  const hex = color.replace('#', '');
+  const r = Math.max(0, Math.min(255, parseInt(hex.substr(0, 2), 16) + amount));
+  const g = Math.max(0, Math.min(255, parseInt(hex.substr(2, 2), 16) + amount));
+  const b = Math.max(0, Math.min(255, parseInt(hex.substr(4, 2), 16) + amount));
+  return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
 };
 
 /**
@@ -97,7 +206,7 @@ export const generateThumbnail = async (elements, size, hiddenLayers = new Set()
       // Clear canvas (transparent background)
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
-      // Sort elements by zIndex (background layer will be drawn first due to zIndex: -1)
+      // Sort elements by zIndex
       const sortedElements = [...elements]
         .filter(el => !hiddenLayers.has(el.id))
         .sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
@@ -105,7 +214,7 @@ export const generateThumbnail = async (elements, size, hiddenLayers = new Set()
       const imageElements = sortedElements.filter(el => el.type === 'image');
       
       if (imageElements.length === 0) {
-        drawElements(ctx, sortedElements, targetWidth, targetHeight, size);
+        drawElements(ctx, sortedElements, targetWidth, targetHeight);
         resolve(canvas.toDataURL('image/png'));
       } else {
         let imagesLoaded = 0;
@@ -119,14 +228,14 @@ export const generateThumbnail = async (elements, size, hiddenLayers = new Set()
             loadedImages[element.id] = img;
             imagesLoaded++;
             if (imagesLoaded === totalImages) {
-              drawElementsWithImages(ctx, sortedElements, targetWidth, targetHeight, size, loadedImages);
+              drawElementsWithImages(ctx, sortedElements, targetWidth, targetHeight, loadedImages);
               resolve(canvas.toDataURL('image/png'));
             }
           };
           img.onerror = () => {
             imagesLoaded++;
             if (imagesLoaded === totalImages) {
-              drawElementsWithImages(ctx, sortedElements, targetWidth, targetHeight, size, loadedImages);
+              drawElementsWithImages(ctx, sortedElements, targetWidth, targetHeight, loadedImages);
               resolve(canvas.toDataURL('image/png'));
             }
           };
@@ -136,7 +245,7 @@ export const generateThumbnail = async (elements, size, hiddenLayers = new Set()
         // Timeout fallback
         setTimeout(() => {
           if (imagesLoaded < totalImages) {
-            drawElementsWithImages(ctx, sortedElements, targetWidth, targetHeight, size, loadedImages);
+            drawElementsWithImages(ctx, sortedElements, targetWidth, targetHeight, loadedImages);
             resolve(canvas.toDataURL('image/png'));
           }
         }, 3000);
@@ -150,20 +259,17 @@ export const generateThumbnail = async (elements, size, hiddenLayers = new Set()
 
 /**
  * Draw elements on canvas context
- * Elements are stored in original canvas dimensions, so draw at 1:1 scale
  */
-const drawElements = (ctx, elements, targetWidth, targetHeight, size) => {
-  // Elements are already stored in target/original dimensions - no scaling needed
+const drawElements = (ctx, elements, targetWidth, targetHeight) => {
   elements.forEach(element => {
-    drawElement(ctx, element, 1, 1, targetWidth, targetHeight);
+    drawElement(ctx, element, targetWidth, targetHeight);
   });
 };
 
 /**
  * Draw elements with pre-loaded images
- * Elements are stored in original canvas dimensions, so draw at 1:1 scale
  */
-const drawElementsWithImages = (ctx, elements, targetWidth, targetHeight, size, loadedImages) => {
+const drawElementsWithImages = (ctx, elements, targetWidth, targetHeight, loadedImages) => {
   elements.forEach(element => {
     if (element.type === 'image' && loadedImages[element.id]) {
       const x = element.x;
@@ -172,12 +278,20 @@ const drawElementsWithImages = (ctx, elements, targetWidth, targetHeight, size, 
       const height = element.height;
       
       try {
+        ctx.save();
+        if (element.blur) {
+          ctx.filter = `blur(${element.blur}px)`;
+        }
+        if (element.opacity !== undefined) {
+          ctx.globalAlpha = element.opacity;
+        }
         ctx.drawImage(loadedImages[element.id], x, y, width, height);
+        ctx.restore();
       } catch (e) {
         console.warn("Could not draw image:", e);
       }
     } else {
-      drawElement(ctx, element, 1, 1, targetWidth, targetHeight);
+      drawElement(ctx, element, targetWidth, targetHeight);
     }
   });
 };
@@ -185,7 +299,14 @@ const drawElementsWithImages = (ctx, elements, targetWidth, targetHeight, size, 
 /**
  * Draw a single element on canvas
  */
-const drawElement = (ctx, element, scaleX, scaleY, targetWidth, targetHeight) => {
+const drawElement = (ctx, element, targetWidth, targetHeight) => {
+  ctx.save();
+  
+  // Apply opacity
+  if (element.opacity !== undefined) {
+    ctx.globalAlpha = element.opacity;
+  }
+  
   if (element.type === 'text') {
     ctx.fillStyle = element.color;
     
@@ -193,59 +314,49 @@ const drawElement = (ctx, element, scaleX, scaleY, targetWidth, targetHeight) =>
     if (element.bold) fontStyle += 'bold ';
     if (element.italic) fontStyle += 'italic ';
     
-    const fontSize = element.size * scaleY;
+    const fontSize = element.size;
     ctx.font = `${fontStyle}${fontSize}px ${element.font || 'Arial'}`;
     ctx.textAlign = element.align || 'left';
     ctx.textBaseline = 'top';
     
-    // Add padding offset to match editor display (4px padding in editor)
-    const padding = 4 * scaleY;
-    const x = element.x * scaleX + padding;
-    const y = element.y * scaleY + padding;
-    const maxWidth = (element.width * scaleX) - (padding * 2);
+    const padding = 4;
+    const x = element.x + padding;
+    const y = element.y + padding;
     
-    // Handle multi-line text
     const lines = element.content.split('\n');
     const lineHeight = fontSize * 1.2;
     
     lines.forEach((line, index) => {
       let textX = x;
       if (element.align === 'center') {
-        textX = element.x * scaleX + (element.width * scaleX) / 2;
+        textX = element.x + element.width / 2;
       } else if (element.align === 'right') {
-        textX = element.x * scaleX + element.width * scaleX - padding;
+        textX = element.x + element.width - padding;
       }
-      
-      // Don't use maxWidth parameter for fillText as it can squish text
       ctx.fillText(line, textX, y + index * lineHeight);
     });
     
   } else if (element.type === 'shape') {
     ctx.fillStyle = element.color;
     
-    const x = element.x * scaleX;
-    const y = element.y * scaleY;
-    const width = element.width * scaleX;
-    const height = element.height * scaleY;
+    const x = element.x;
+    const y = element.y;
+    const width = element.width;
+    const height = element.height;
     
     switch (element.shape) {
       case 'rectangle':
-        ctx.fillRect(x, y, width, height);
+        if (element.borderRadius) {
+          drawRoundedRect(ctx, x, y, width, height, element.borderRadius);
+          ctx.fill();
+        } else {
+          ctx.fillRect(x, y, width, height);
+        }
         break;
         
       case 'rounded-rectangle':
         const radius = Math.min(width, height) * 0.1;
-        ctx.beginPath();
-        ctx.moveTo(x + radius, y);
-        ctx.lineTo(x + width - radius, y);
-        ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-        ctx.lineTo(x + width, y + height - radius);
-        ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-        ctx.lineTo(x + radius, y + height);
-        ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-        ctx.lineTo(x, y + radius);
-        ctx.quadraticCurveTo(x, y, x + radius, y);
-        ctx.closePath();
+        drawRoundedRect(ctx, x, y, width, height, radius);
         ctx.fill();
         break;
         
@@ -272,28 +383,112 @@ const drawElement = (ctx, element, scaleX, scaleY, targetWidth, targetHeight) =>
         drawHeart(ctx, x, y, width, height);
         break;
         
-      case 'hexagon':
-        drawHexagon(ctx, x + width / 2, y + height / 2, Math.min(width, height) / 2);
-        break;
-        
-      case 'diamond':
-        ctx.beginPath();
-        ctx.moveTo(x + width / 2, y);
-        ctx.lineTo(x + width, y + height / 2);
-        ctx.lineTo(x + width / 2, y + height);
-        ctx.lineTo(x, y + height / 2);
-        ctx.closePath();
-        ctx.fill();
-        break;
-        
-      case 'pentagon':
-        drawPentagon(ctx, x + width / 2, y + height / 2, Math.min(width, height) / 2);
-        break;
-        
       default:
         ctx.fillRect(x, y, width, height);
     }
+    
+    // Draw border if present
+    if (element.borderWidth && element.borderColor) {
+      ctx.strokeStyle = element.borderColor;
+      ctx.lineWidth = element.borderWidth;
+      ctx.stroke();
+    }
+    
+  } else if (element.type === 'gradient') {
+    const x = element.x;
+    const y = element.y;
+    const width = element.width;
+    const height = element.height;
+    const angle = (element.gradientAngle || 135) * Math.PI / 180;
+    
+    const cx = x + width / 2;
+    const cy = y + height / 2;
+    const len = Math.max(width, height);
+    
+    const x1 = cx - Math.cos(angle) * len / 2;
+    const y1 = cy - Math.sin(angle) * len / 2;
+    const x2 = cx + Math.cos(angle) * len / 2;
+    const y2 = cy + Math.sin(angle) * len / 2;
+    
+    const gradient = ctx.createLinearGradient(x1, y1, x2, y2);
+    const colors = element.gradientColors || ['#FF6B6B', '#FFA500'];
+    gradient.addColorStop(0, colors[0]);
+    gradient.addColorStop(1, colors[1]);
+    
+    ctx.fillStyle = gradient;
+    ctx.fillRect(x, y, width, height);
+    
+  } else if (element.type === 'line') {
+    ctx.strokeStyle = element.color || '#FFFFFF';
+    ctx.lineWidth = element.strokeWidth || 2;
+    
+    if (element.lineStyle === 'dashed') {
+      ctx.setLineDash([10, 5]);
+    } else if (element.lineStyle === 'dotted') {
+      ctx.setLineDash([2, 4]);
+    }
+    
+    ctx.beginPath();
+    ctx.moveTo(element.x, element.y);
+    ctx.lineTo(element.x + element.width, element.y + element.height);
+    ctx.stroke();
+    
+    // Draw arrows if needed
+    if (element.arrowEnd) {
+      drawArrow(ctx, element.x + element.width, element.y + element.height, 
+                Math.atan2(element.height, element.width));
+    }
+    if (element.arrowStart) {
+      drawArrow(ctx, element.x, element.y, 
+                Math.atan2(-element.height, -element.width));
+    }
+    
+  } else if (element.type === 'divider') {
+    ctx.strokeStyle = element.color || '#FFFFFF';
+    ctx.lineWidth = element.strokeWidth || 2;
+    
+    if (element.dividerStyle === 'dashed') {
+      ctx.setLineDash([10, 5]);
+    } else if (element.dividerStyle === 'dotted') {
+      ctx.setLineDash([2, 4]);
+    } else if (element.dividerStyle === 'double') {
+      // Draw double line
+      ctx.beginPath();
+      ctx.moveTo(element.x, element.y - 2);
+      ctx.lineTo(element.x + element.width, element.y - 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(element.x, element.y + 2);
+      ctx.lineTo(element.x + element.width, element.y + 2);
+      ctx.stroke();
+      ctx.restore();
+      return;
+    }
+    
+    ctx.beginPath();
+    ctx.moveTo(element.x, element.y);
+    ctx.lineTo(element.x + element.width, element.y);
+    ctx.stroke();
   }
+  
+  ctx.restore();
+};
+
+/**
+ * Draw rounded rectangle
+ */
+const drawRoundedRect = (ctx, x, y, width, height, radius) => {
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.lineTo(x + width - radius, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+  ctx.lineTo(x + width, y + height - radius);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+  ctx.lineTo(x + radius, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+  ctx.lineTo(x, y + radius);
+  ctx.quadraticCurveTo(x, y, x + radius, y);
+  ctx.closePath();
 };
 
 /**
@@ -361,86 +556,27 @@ const drawHeart = (ctx, x, y, width, height) => {
 };
 
 /**
- * Draw hexagon shape
+ * Draw arrow head
  */
-const drawHexagon = (ctx, cx, cy, radius) => {
-  const sides = 6;
-  const angle = (2 * Math.PI) / sides;
+const drawArrow = (ctx, x, y, angle) => {
+  const headLen = 15;
+  const headAngle = Math.PI / 6;
   
   ctx.beginPath();
-  for (let i = 0; i < sides; i++) {
-    const x = cx + radius * Math.cos(angle * i - Math.PI / 2);
-    const y = cy + radius * Math.sin(angle * i - Math.PI / 2);
-    if (i === 0) {
-      ctx.moveTo(x, y);
-    } else {
-      ctx.lineTo(x, y);
-    }
-  }
-  ctx.closePath();
-  ctx.fill();
-};
-
-/**
- * Draw pentagon shape
- */
-const drawPentagon = (ctx, cx, cy, radius) => {
-  const sides = 5;
-  const angle = (2 * Math.PI) / sides;
-  
-  ctx.beginPath();
-  for (let i = 0; i < sides; i++) {
-    const x = cx + radius * Math.cos(angle * i - Math.PI / 2);
-    const y = cy + radius * Math.sin(angle * i - Math.PI / 2);
-    if (i === 0) {
-      ctx.moveTo(x, y);
-    } else {
-      ctx.lineTo(x, y);
-    }
-  }
-  ctx.closePath();
-  ctx.fill();
-};
-
-/**
- * Generate unique ID
- */
-export const generateId = () => {
-  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-};
-
-/**
- * Deep clone an object
- */
-export const deepClone = (obj) => {
-  return JSON.parse(JSON.stringify(obj));
-};
-
-/**
- * Scale element coordinates from template to canvas
- */
-export const scaleElementToCanvas = (element, fromSize, toCanvasDim) => {
-  if (!fromSize || !fromSize.includes('x')) return element;
-  
-  const [fromWidth, fromHeight] = fromSize.split('x').map(Number);
-  const scaleX = toCanvasDim.width / fromWidth;
-  const scaleY = toCanvasDim.height / fromHeight;
-  
-  return {
-    ...element,
-    x: element.x * scaleX,
-    y: element.y * scaleY,
-    width: element.width * scaleX,
-    height: element.height * scaleY,
-    size: element.size ? element.size * Math.min(scaleX, scaleY) : element.size
-  };
+  ctx.moveTo(x, y);
+  ctx.lineTo(x - headLen * Math.cos(angle - headAngle), y - headLen * Math.sin(angle - headAngle));
+  ctx.moveTo(x, y);
+  ctx.lineTo(x - headLen * Math.cos(angle + headAngle), y - headLen * Math.sin(angle + headAngle));
+  ctx.stroke();
 };
 
 export default {
   getCanvasDimensions,
-  getDesignAspectRatioStyle,
-  generateThumbnail,
   generateId,
   deepClone,
+  applyPersonalization,
+  isLightColor,
+  adjustBrightness,
+  generateThumbnail,
   scaleElementToCanvas
 };

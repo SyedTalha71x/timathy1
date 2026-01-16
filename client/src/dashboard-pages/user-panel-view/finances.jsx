@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from "react"
 import { Download, Calendar, ChevronDown, RefreshCw, Info, X, FileText, Eye, EyeOff, Trash2, Search, Play, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react"
+import * as XLSX from 'xlsx'
 import CheckFundsModal from "../../components/user-panel-components/finance-components/check-funds-modal"
 import SepaXmlModal from "../../components/user-panel-components/finance-components/sepa-xml-modal"
 import { financialData } from "../../utils/user-panel-states/finance-states"
@@ -338,41 +339,41 @@ export default function FinancesPage() {
     setDocumentViewerOpen(true)
   }
 
-  const exportToCSV = () => {
-    // Complete headers matching table columns
-    const headers = ["Member Name", "Amount", "Services", "Status", "IBAN", "Mandate Number", "Date", "Type"]
-    
-    const csvData = sortedTransactions.map((transaction) => [
-      transaction.memberName,
-      transaction.amount.toFixed(2),
-      transaction.services.map((service) => `${service.name}: $${service.cost.toFixed(2)}`).join(" | "),
-      transaction.status,
-      transaction.iban || "DE89370400440532013000",
-      transaction.mandateNumber || `MNDT-${transaction.id.toString().padStart(6, '0')}`,
-      formatDate(transaction.date),
-      transaction.type,
-    ])
+  const exportToExcel = () => {
+    // Prepare data for Excel
+    const excelData = sortedTransactions.map((transaction) => ({
+      "Member Name": transaction.memberName,
+      "Amount": transaction.amount,
+      "Services": transaction.services.map((service) => `${service.name}: $${service.cost.toFixed(2)}`).join(" | "),
+      "Status": transaction.status,
+      "IBAN": transaction.iban || "DE89370400440532013000",
+      "Mandate Number": transaction.mandateNumber || `MNDT-${transaction.id.toString().padStart(6, '0')}`,
+      "Date": formatDate(transaction.date),
+      "Type": transaction.type,
+    }))
 
-    // Proper CSV format with comma separator and quoted fields
-    const csvContent = [
-      headers.join(","),
-      ...csvData.map((row) => row.map((field) => `"${String(field).replace(/"/g, '""')}"`).join(","))
-    ].join("\n")
+    // Create workbook and worksheet
+    const workbook = XLSX.utils.book_new()
+    const worksheet = XLSX.utils.json_to_sheet(excelData)
 
-    // Add BOM for proper Excel encoding
-    const BOM = '\uFEFF'
-    const blob = new Blob([BOM + csvContent], { type: "text/csv;charset=utf-8;" })
-    const link = document.createElement("a")
-    const url = URL.createObjectURL(blob)
-    link.setAttribute("href", url)
-    link.setAttribute(
-      "download",
-      `financial_data_${selectedPeriod.replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.csv`,
-    )
-    link.style.visibility = "hidden"
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+    // Set column widths for better readability
+    worksheet['!cols'] = [
+      { wch: 20 },  // Member Name
+      { wch: 12 },  // Amount
+      { wch: 40 },  // Services
+      { wch: 18 },  // Status
+      { wch: 25 },  // IBAN
+      { wch: 18 },  // Mandate Number
+      { wch: 15 },  // Date
+      { wch: 15 },  // Type
+    ]
+
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Transactions")
+
+    // Generate filename and download
+    const fileName = `financial_data_${selectedPeriod.replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.xlsx`
+    XLSX.writeFile(workbook, fileName)
   }
 
   const handleGenerateXml = (selectedTransactions, period, shouldDownload = true) => {
@@ -876,7 +877,7 @@ export default function FinancesPage() {
               
               {/* Desktop Period Dropdown - inside relative container */}
               {periodDropdownOpen && (
-                <div className="hidden md:block absolute right-0 z-20 mt-2 min-w-[320px] bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg overflow-hidden top-full">
+                <div className="hidden md:block absolute right-0 z-40 mt-2 min-w-[320px] bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg overflow-hidden top-full">
                   {/* Preset Periods */}
                   <div className="py-1">
                     <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">
@@ -952,7 +953,7 @@ export default function FinancesPage() {
             <button
               onClick={() => setExportConfirmationOpen(true)}
               className="md:hidden bg-gray-600 text-white p-2 rounded-xl transition-colors hover:bg-gray-700"
-              title="Export CSV"
+              title="Export Excel"
             >
               <Download className="w-4 h-4" />
             </button>
@@ -963,7 +964,7 @@ export default function FinancesPage() {
               className="hidden md:flex bg-gray-600 text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 text-xs sm:text-sm transition-colors hover:bg-gray-700"
             >
               <Download className="w-4 h-4" />
-              <span className="hidden lg:inline">Export CSV</span>
+              <span className="hidden lg:inline">Export Excel</span>
             </button>
             
             {/* Run Payment Button - Desktop only */}
@@ -1405,7 +1406,9 @@ export default function FinancesPage() {
         <ExportConfirmationModal
           isOpen={exportConfirmationOpen}
           onClose={() => setExportConfirmationOpen(false)}
-          onConfirm={exportToCSV}
+          onConfirm={exportToExcel}
+          selectedPeriod={selectedPeriod}
+          recordCount={sortedTransactions.length}
         />
 
         <SepaXmlModal
