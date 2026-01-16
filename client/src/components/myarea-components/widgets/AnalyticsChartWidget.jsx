@@ -537,7 +537,7 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
                 : "bg-[#3f3e3e] text-gray-400 hover:bg-[#3F3F3F] hover:text-white"
             }`}
           >
-            <span className="text-xs sm:text-sm">{tab.icon}</span>
+            <tab.icon className="text-xs sm:text-sm" />
             <span className={isMobile && tab.name.length > 8 ? "truncate max-w-[60px]" : ""}>
               {isMobile && tab.name === "Appointments" ? "Appts" : 
                isMobile && tab.name === "Finances" ? "Finance" : tab.name}

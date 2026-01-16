@@ -3,6 +3,9 @@ import { useState, useRef, useEffect } from "react"
 import { Tag, X, Paperclip, Plus } from "lucide-react"
 import ReactQuill from "react-quill"
 import Modal from "./Modal"
+import ImageSourceModal from "../../shared/ImageSourceModal"
+import MediaLibraryPickerModal from "../../shared/MediaLibraryPickerModal"
+import { mediaLibraryFolders, mediaLibraryDesigns } from "../../../utils/user-panel-states/media-library-picker-modal-state"
 
 const WysiwygEditor = ({ value, onChange, placeholder }) => {
   const modules = {
@@ -105,6 +108,10 @@ function CreateNoteModal({ isOpen, onClose, onSave, availableTags = [] }) {
   const [viewingImage, setViewingImage] = useState(null) // { image, images, index }
   const fileInputRef = useRef(null)
 
+  // Image source modal states
+  const [showImageSourceModal, setShowImageSourceModal] = useState(false)
+  const [showMediaLibraryModal, setShowMediaLibraryModal] = useState(false)
+
   // Lightbox keyboard navigation
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -169,6 +176,24 @@ function CreateNoteModal({ isOpen, onClose, onSave, availableTags = [] }) {
     setNewNote(prev => ({
       ...prev,
       attachments: [...prev.attachments, ...newAttachments]
+    }))
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""
+    }
+  }
+
+  const handleMediaLibrarySelect = (imageUrl) => {
+    // Extract filename from URL or generate one
+    const filename = imageUrl.split('/').pop() || `media-${Date.now()}.jpg`
+    const newAttachment = {
+      name: filename,
+      url: imageUrl,
+      file: null // From media library, no file object
+    }
+    setNewNote(prev => ({
+      ...prev,
+      attachments: [...prev.attachments, newAttachment]
     }))
   }
 
@@ -271,7 +296,7 @@ function CreateNoteModal({ isOpen, onClose, onSave, availableTags = [] }) {
           />
           <button
             type="button"
-            onClick={() => fileInputRef.current?.click()}
+            onClick={() => setShowImageSourceModal(true)}
             className="w-full bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300 px-4 py-2 rounded-xl text-sm transition-colors flex items-center justify-center gap-2"
           >
             <Paperclip size={14} />
@@ -317,10 +342,27 @@ function CreateNoteModal({ isOpen, onClose, onSave, availableTags = [] }) {
       </div>
     </Modal>
 
+    {/* Image Source Modal */}
+    <ImageSourceModal
+      isOpen={showImageSourceModal}
+      onClose={() => setShowImageSourceModal(false)}
+      onSelectFile={() => fileInputRef.current?.click()}
+      onSelectMediaLibrary={() => setShowMediaLibraryModal(true)}
+    />
+
+    {/* Media Library Picker Modal */}
+    <MediaLibraryPickerModal
+      isOpen={showMediaLibraryModal}
+      onClose={() => setShowMediaLibraryModal(false)}
+      onSelectImage={handleMediaLibrarySelect}
+      folders={mediaLibraryFolders}
+      designs={mediaLibraryDesigns}
+    />
+
     {/* Image Lightbox Modal */}
     {viewingImage && viewingImage.image && (
       <div 
-        className="fixed inset-0 bg-black/95 flex items-center justify-center z-[100] p-4"
+        className="fixed inset-0 bg-black/95 flex items-center justify-center z-[1010] p-4"
         onClick={() => setViewingImage(null)}
       >
         {/* Close Button */}

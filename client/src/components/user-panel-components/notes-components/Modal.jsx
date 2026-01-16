@@ -3,7 +3,7 @@ function Modal({ isOpen, onClose, children, title, footer }) {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center p-4 z-[70]">
+    <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center p-4 z-[1000]">
       <div className="bg-[#1C1C1C] rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col">
         <div className="flex items-center justify-between p-6 border-b border-gray-700 flex-shrink-0">
           <h2 className="text-xl font-semibold text-white">{title}</h2>

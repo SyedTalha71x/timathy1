@@ -8,6 +8,8 @@ import ReactQuill from "react-quill"
 import "react-quill/dist/quill.snow.css"
 import DeleteConfirmModal from "../../components/user-panel-components/notes-components/DeleteConfirmModal"
 import TagManagerModal from "../../components/shared/TagManagerModal"
+import ImageSourceModal from "../../components/shared/ImageSourceModal"
+import MediaLibraryPickerModal from "../../components/shared/MediaLibraryPickerModal"
 import { trainingVideosData } from "../../utils/user-panel-states/training-states"
 import { useSidebarSystem } from "../../hooks/useSidebarSystem"
 import EditTaskModal from "../../components/user-panel-components/todo-components/edit-task-modal"
@@ -555,6 +557,10 @@ export default function NotesApp() {
   const [showAllAttachments, setShowAllAttachments] = useState(false)
   const [showAllTags, setShowAllTags] = useState(false)
   
+  // Image source modal states
+  const [showImageSourceModal, setShowImageSourceModal] = useState(false)
+  const [showMediaLibraryModal, setShowMediaLibraryModal] = useState(false)
+  
   const sortDropdownRef = useRef(null)
   const desktopSortDropdownRef = useRef(null)
   const fileInputRef = useRef(null)
@@ -928,6 +934,18 @@ export default function NotesApp() {
     }))
     
     setEditedAttachments(prev => [...prev, ...newAttachments])
+    setHasUnsavedChanges(true)
+  }
+
+  // Handle media library selection
+  const handleMediaLibrarySelect = (imageUrl) => {
+    const filename = imageUrl.split('/').pop() || `media-${Date.now()}.jpg`
+    const newAttachment = {
+      name: filename,
+      url: imageUrl,
+      file: null
+    }
+    setEditedAttachments(prev => [...prev, newAttachment])
     setHasUnsavedChanges(true)
   }
 
@@ -1531,7 +1549,7 @@ export default function NotesApp() {
                         className="hidden"
                       />
                       <button
-                        onClick={() => fileInputRef.current?.click()}
+                        onClick={() => setShowImageSourceModal(true)}
                         className="text-sm bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300 px-4 py-2.5 rounded-xl transition-colors flex items-center gap-2"
                       >
                         <Plus size={16} />
@@ -1920,7 +1938,7 @@ export default function NotesApp() {
               className="hidden"
             />
             <button
-              onClick={() => fileInputRef.current?.click()}
+              onClick={() => setShowImageSourceModal(true)}
               className="w-full bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300 px-4 py-3 rounded-xl text-sm transition-colors flex items-center justify-center gap-2"
             >
               <Paperclip size={16} />
@@ -1937,6 +1955,21 @@ export default function NotesApp() {
         tags={availableTags}
         onAddTag={handleAddTag}
         onDeleteTag={handleDeleteTag}
+      />
+
+      {/* Image Source Modal */}
+      <ImageSourceModal
+        isOpen={showImageSourceModal}
+        onClose={() => setShowImageSourceModal(false)}
+        onSelectFile={() => fileInputRef.current?.click()}
+        onSelectMediaLibrary={() => setShowMediaLibraryModal(true)}
+      />
+
+      {/* Media Library Picker Modal */}
+      <MediaLibraryPickerModal
+        isOpen={showMediaLibraryModal}
+        onClose={() => setShowMediaLibraryModal(false)}
+        onSelectImage={handleMediaLibrarySelect}
       />
 
       {/* Floating Action Button - Mobile Only */}

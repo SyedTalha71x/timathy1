@@ -699,14 +699,14 @@ export default function MarketplacePage() {
 
           <div className={`grid grid-cols-1 sm:grid-cols-2 ${isRightSidebarOpen ? 'lg:grid-cols-3' : 'lg:grid-cols-3 xl:grid-cols-4'} gap-4 sm:gap-6`}>
             {sortedProducts.map((product) => (
-              <div key={product.id} className="bg-[#2a2a2a] rounded-2xl overflow-hidden relative">
-              
+              <div key={product.id} className="bg-[#2a2a2a] rounded-2xl overflow-hidden relative select-none">
 
                 <div className="relative w-full h-48 bg-white">
                   <img
                     src={product.image || "/placeholder.svg"}
                     alt={product.name}
-                    className="object-cover w-full h-full"
+                    className="object-cover w-full h-full pointer-events-none"
+                    draggable="false"
                   />
 
                   {/* Favorite button - top left */}

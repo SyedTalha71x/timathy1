@@ -1,36 +1,48 @@
 /* eslint-disable react/prop-types */
 import { useState, useMemo } from 'react'
 import { X, Search, Folder as FolderIcon, Image as ImageIcon } from 'lucide-react'
+import { mediaLibraryFolders as defaultFolders, mediaLibraryDesigns as defaultDesigns } from '../../utils/user-panel-states/media-library-picker-modal-state'
 
 /**
  * Shared MediaLibraryPickerModal
  * 
  * Usage:
  * import MediaLibraryPickerModal from '@/components/shared/MediaLibraryPickerModal'
- * import { mediaLibraryFolders, mediaLibraryDesigns } from '@/utils/media-library-data'
  * 
+ * // Option 1: Use default data (imported internally)
  * <MediaLibraryPickerModal
  *   isOpen={showMediaPicker}
  *   onClose={() => setShowMediaPicker(false)}
  *   onSelectImage={(imageUrl) => handleImageSelected(imageUrl)}
- *   folders={mediaLibraryFolders}
- *   designs={mediaLibraryDesigns}
+ * />
+ * 
+ * // Option 2: Provide custom data via props
+ * <MediaLibraryPickerModal
+ *   isOpen={showMediaPicker}
+ *   onClose={() => setShowMediaPicker(false)}
+ *   onSelectImage={(imageUrl) => handleImageSelected(imageUrl)}
+ *   folders={customFolders}
+ *   designs={customDesigns}
  * />
  */
 export default function MediaLibraryPickerModal({ 
   isOpen, 
   onClose, 
   onSelectImage,
-  folders = [],
-  designs = []
+  folders,
+  designs
 }) {
+  // Use props if provided, otherwise fall back to default imported data
+  const activeFolders = folders ?? defaultFolders
+  const activeDesigns = designs ?? defaultDesigns
+
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedFolderId, setSelectedFolderId] = useState('all')
   const [selectedDesign, setSelectedDesign] = useState(null)
 
   // Filter designs based on search and folder
   const filteredDesigns = useMemo(() => {
-    let filtered = designs
+    let filtered = activeDesigns
 
     if (selectedFolderId !== 'all') {
       filtered = filtered.filter(d => d.folderId === selectedFolderId)
@@ -43,9 +55,9 @@ export default function MediaLibraryPickerModal({
     }
 
     return filtered
-  }, [designs, searchQuery, selectedFolderId])
+  }, [activeDesigns, searchQuery, selectedFolderId])
 
-  const selectedFolder = folders.find(f => f.id === selectedFolderId)
+  const selectedFolder = activeFolders.find(f => f.id === selectedFolderId)
 
   const handleSelect = () => {
     if (selectedDesign) {
@@ -90,7 +102,7 @@ export default function MediaLibraryPickerModal({
             <div className="p-4">
               <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Folders</h3>
               <div className="space-y-1">
-                {folders.map((folder) => (
+                {activeFolders.map((folder) => (
                   <button
                     key={folder.id}
                     onClick={() => setSelectedFolderId(folder.id)}
@@ -131,7 +143,7 @@ export default function MediaLibraryPickerModal({
                   onChange={(e) => setSelectedFolderId(e.target.value)}
                   className="w-full bg-[#0a0a0a] border border-gray-700 rounded-xl py-2.5 px-4 text-white text-sm focus:outline-none focus:border-orange-500"
                 >
-                  {folders.map((folder) => (
+                  {activeFolders.map((folder) => (
                     <option key={folder.id} value={folder.id}>
                       {folder.name}
                     </option>

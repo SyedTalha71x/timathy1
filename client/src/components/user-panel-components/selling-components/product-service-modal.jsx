@@ -1,30 +1,10 @@
 /* eslint-disable react/prop-types */
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { X, Plus, Crop } from "lucide-react"
-// Shared modals - adjust path based on your file location
-// From: /components/user-panel-components/selling-components/product-service-modal.jsx
+// Shared modals
 import ImageCropModal from '../../shared/ImageCropModal'
 import ImageSourceModal from '../../shared/ImageSourceModal'
 import MediaLibraryPickerModal from '../../shared/MediaLibraryPickerModal'
-// Import your media library data from your centralized location
-// Example: import { mediaLibraryFolders, mediaLibraryDesigns } from '../../../utils/user-panel-states/media-library-states'
-
-// Temporary demo data - REPLACE with your actual import from bulletin-board-states or a new shared file
-const mediaLibraryFolders = [
-  { id: 'all', name: 'All Designs', color: '#9ca3af' },
-  { id: 'products', name: 'Products', color: '#f97316' },
-  { id: 'services', name: 'Services', color: '#3b82f6' },
-  { id: 'promotions', name: 'Promotions', color: '#22c55e' },
-]
-
-const mediaLibraryDesigns = [
-  { id: '1', name: 'Fitness Equipment', thumbnail: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400', folderId: 'products' },
-  { id: '2', name: 'Yoga Class', thumbnail: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400', folderId: 'services' },
-  { id: '3', name: 'Summer Sale', thumbnail: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=400', folderId: 'promotions' },
-  { id: '4', name: 'Protein Shake', thumbnail: 'https://images.unsplash.com/photo-1622485831930-34623abf66c6?w=400', folderId: 'products' },
-  { id: '5', name: 'Personal Training', thumbnail: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400', folderId: 'services' },
-  { id: '6', name: 'New Year Offer', thumbnail: 'https://images.unsplash.com/photo-1467810563316-b5476525c0f9?w=400', folderId: 'promotions' },
-]
 
 // Helper function to get dynamic text size based on content length
 const getPreviewTextSize = (text) => {
@@ -196,38 +176,31 @@ const ProductServiceModal = ({
     <>
       <div className="fixed inset-0 cursor-pointer open_sans_font w-full h-full bg-black/50 flex items-center justify-center z-[1000] p-4">
         <div className="bg-[#181818] rounded-xl w-full max-w-md my-8 relative max-h-[90vh] flex flex-col">
-          <div className="p-6 pb-0 flex-shrink-0">
-            {/* Header */}
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-white text-lg open_sans_font_700">
-                {modalMode === "add"
-                  ? `Add ${itemType}`
-                  : `Edit ${itemType}`}
+          {/* Header */}
+          <div className="p-6 pb-4 border-b border-[#333333] flex-shrink-0">
+            <div className="flex justify-between items-center">
+              <h2 className="text-white open_sans_font_700 text-xl font-semibold">
+                {modalMode === "add" ? `Add ${itemType}` : `Edit ${itemType}`}
               </h2>
               <button onClick={closeModal} className="text-gray-400 hover:text-white transition-colors">
-                <X size={20} />
+                <X size={24} className="cursor-pointer" />
               </button>
             </div>
           </div>
 
-          {/* FORM */}
-          <form
-            onSubmit={(e) => {
-              e.preventDefault()
-              handleSubmit()
-            }}
-            className="flex flex-col flex-1 overflow-hidden"
-          >
-            <div className="space-y-3 custom-scrollbar overflow-y-auto px-6 flex-1">
-              {/* Upload Image - Full width 16:9 aspect ratio preview */}
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+            {/* Scrollable Content */}
+            <div className="space-y-4 p-6 overflow-y-auto flex-1 custom-scrollbar">
+              {/* Image Upload */}
               <div>
-                <label className="text-sm text-gray-200 block mb-2">{itemType} image</label>
-                {hasImage ? (
+                <label className="text-sm text-gray-200 block mb-2">Image</label>
+                {selectedImage || currentProduct?.image ? (
                   <div className="relative rounded-xl overflow-hidden border border-gray-700 bg-black">
                     <div className="aspect-video">
                       <img
                         src={selectedImage || currentProduct?.image}
-                        alt={itemType}
+                        alt="Preview"
                         className="w-full h-full object-contain"
                         draggable="false"
                       />
@@ -426,13 +399,11 @@ const ProductServiceModal = ({
         onSelectMediaLibrary={() => setShowMediaLibrary(true)}
       />
 
-      {/* Media Library Picker Modal */}
+      {/* Media Library Picker Modal - uses internal default data */}
       <MediaLibraryPickerModal
         isOpen={showMediaLibrary}
         onClose={() => setShowMediaLibrary(false)}
         onSelectImage={handleMediaLibrarySelect}
-        folders={mediaLibraryFolders}
-        designs={mediaLibraryDesigns}
       />
 
       {/* Image Crop Modal */}
