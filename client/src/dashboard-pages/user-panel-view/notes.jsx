@@ -7,7 +7,7 @@ import { CSS } from '@dnd-kit/utilities'
 import ReactQuill from "react-quill"
 import "react-quill/dist/quill.snow.css"
 import DeleteConfirmModal from "../../components/user-panel-components/notes-components/DeleteConfirmModal"
-import TagManagerModal from "../../components/TagManagerModal"
+import TagManagerModal from "../../components/shared/TagManagerModal"
 import { trainingVideosData } from "../../utils/user-panel-states/training-states"
 import { useSidebarSystem } from "../../hooks/useSidebarSystem"
 import EditTaskModal from "../../components/user-panel-components/todo-components/edit-task-modal"

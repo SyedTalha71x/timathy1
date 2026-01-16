@@ -4,7 +4,7 @@ import { X, Plus, Trash2, Tag } from 'lucide-react'
 
 export default function TagManagerModal({ isOpen, onClose, tags, onAddTag, onDeleteTag }) {
   const [newTagName, setNewTagName] = useState("")
-  const [newTagColor, setNewTagColor] = useState("#FF843E")
+  const [newTagColor, setNewTagColor] = useState("#f97316")
 
   if (!isOpen) return null
 
@@ -13,10 +13,10 @@ export default function TagManagerModal({ isOpen, onClose, tags, onAddTag, onDel
       onAddTag({
         id: Date.now(),
         name: newTagName.trim(),
-        color: newTagColor || "#FF843E",
+        color: newTagColor || "#f97316",
       })
       setNewTagName("")
-      setNewTagColor("#FF843E")
+      setNewTagColor("#f97316")
     }
   }
 
@@ -27,7 +27,7 @@ export default function TagManagerModal({ isOpen, onClose, tags, onAddTag, onDel
   }
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[60] p-4">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[1001] p-4">
       <div className="bg-[#1C1C1C] rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-700">
@@ -52,7 +52,7 @@ export default function TagManagerModal({ isOpen, onClose, tags, onAddTag, onDel
                 onChange={(e) => setNewTagName(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Tag name"
-                className="flex-1 bg-[#2a2a2a] text-white rounded-lg px-3 py-2.5 text-sm border border-gray-700 focus:border-orange-500 outline-none"
+                className="flex-1 bg-[#2a2a2a] text-white rounded-lg px-3 py-2.5 text-sm border border-gray-700 focus:border-blue-600 outline-none"
               />
               <input
                 type="color"
@@ -79,7 +79,7 @@ export default function TagManagerModal({ isOpen, onClose, tags, onAddTag, onDel
             <div className="max-h-60 overflow-y-auto custom-scrollbar">
               {tags && tags.length > 0 ? (
                 <div className="space-y-2">
-                  {tags.map((tag) => (
+                  {[...tags].reverse().map((tag) => (
                     <div 
                       key={tag.id} 
                       className="flex justify-between items-center bg-[#2a2a2a] p-3 rounded-lg"

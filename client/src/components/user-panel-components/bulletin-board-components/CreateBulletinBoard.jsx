@@ -3,19 +3,17 @@ import { memo, useCallback, useState, useMemo, useEffect, useRef } from 'react'
 import { X, Image as ImageIcon, Crop, Tag, Calendar, Clock, Trash2 } from 'lucide-react'
 import ReactQuill from 'react-quill'
 import 'react-quill/dist/quill.snow.css'
-import ImageCropModal from './ImageCropModal'
+import ImageCropModal from '../../shared/ImageCropModal'
 import PostSchedulerModal from './PostSchedulerModal'
-import ImageSourceModal from './ImageSourceModal'
-import MediaLibraryPickerModal from './MediaLibraryPickerModal'
+import ImageSourceModal from '../../shared/ImageSourceModal'
+import MediaLibraryPickerModal from '../../shared/MediaLibraryPickerModal'
 
-// Quill editor configuration
+// Quill editor configuration - compact toolbar
 const QUILL_MODULES = {
   toolbar: [
     [{ 'header': [1, 2, 3, false] }],
-    ['bold', 'italic', 'underline', 'strike'],
-    [{ 'color': [] }, { 'background': [] }],
+    ['bold', 'italic', 'underline'],
     [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-    [{ 'align': [] }],
     ['link'],
     ['clean']
   ],
@@ -94,24 +92,26 @@ const OptimizedCreateBulletinModal = memo(function OptimizedCreateBulletinModal(
     }
   }, [isOpen])
 
-  // Editor styles
+  // Editor styles - compact
   useEffect(() => {
     const style = document.createElement('style')
     style.textContent = `
       .bulletin-modal-editor {
         border-radius: 12px;
         overflow: hidden;
-        border: 1px solid #404040;
+        border: 1px solid #333333;
       }
       .bulletin-modal-editor:focus-within {
-        border-color: #2563eb;
+        border-color: #3F74FF;
       }
       .bulletin-modal-editor .ql-editor {
         color: #e5e7eb !important;
-        background-color: #181818 !important;
-        min-height: 180px;
+        background-color: #101010 !important;
+        min-height: 100px;
+        max-height: 150px;
         font-size: 14px;
-        line-height: 1.6;
+        line-height: 1.5;
+        overflow-y: auto;
       }
       .bulletin-modal-editor .ql-editor.ql-blank::before {
         color: #6b7280 !important;
@@ -119,8 +119,9 @@ const OptimizedCreateBulletinModal = memo(function OptimizedCreateBulletinModal(
       }
       .bulletin-modal-editor .ql-toolbar.ql-snow {
         border: none !important;
-        border-bottom: 1px solid #404040 !important;
-        background-color: #141414 !important;
+        border-bottom: 1px solid #333333 !important;
+        background-color: #101010 !important;
+        padding: 6px 8px !important;
       }
       .bulletin-modal-editor .ql-container.ql-snow {
         border: none !important;
@@ -130,11 +131,11 @@ const OptimizedCreateBulletinModal = memo(function OptimizedCreateBulletinModal(
       .bulletin-modal-editor .ql-snow .ql-picker-label { color: #9ca3af !important; }
       .bulletin-modal-editor .ql-snow .ql-picker-options { background-color: #1f1f1f !important; border-color: #404040 !important; }
       .bulletin-modal-editor .ql-snow .ql-picker-item { color: #e5e7eb !important; }
-      .bulletin-modal-editor .ql-snow .ql-picker-item:hover { color: #2563eb !important; }
-      .bulletin-modal-editor .ql-snow button:hover .ql-stroke { stroke: #2563eb !important; }
-      .bulletin-modal-editor .ql-snow button:hover .ql-fill { fill: #2563eb !important; }
-      .bulletin-modal-editor .ql-snow button.ql-active .ql-stroke { stroke: #2563eb !important; }
-      .bulletin-modal-editor .ql-snow button.ql-active .ql-fill { fill: #2563eb !important; }
+      .bulletin-modal-editor .ql-snow .ql-picker-item:hover { color: #3F74FF !important; }
+      .bulletin-modal-editor .ql-snow button:hover .ql-stroke { stroke: #3F74FF !important; }
+      .bulletin-modal-editor .ql-snow button:hover .ql-fill { fill: #3F74FF !important; }
+      .bulletin-modal-editor .ql-snow button.ql-active .ql-stroke { stroke: #3F74FF !important; }
+      .bulletin-modal-editor .ql-snow button.ql-active .ql-fill { fill: #3F74FF !important; }
     `
     document.head.appendChild(style)
     return () => document.head.removeChild(style)
@@ -210,13 +211,9 @@ const OptimizedCreateBulletinModal = memo(function OptimizedCreateBulletinModal(
     if (fileInputRef.current) fileInputRef.current.value = ""
   }, [])
 
-  const handleMediaLibrarySelect = useCallback((imageUrl) => {
-    setFormData(prev => ({ ...prev, image: imageUrl }))
-    setOriginalImage(imageUrl)
-  }, [])
-
   const handleScheduleSave = useCallback((newSchedule) => {
     setSchedule(newSchedule)
+    setShowScheduleModal(false)
   }, [])
 
   const handleRemoveSchedule = useCallback(() => {
@@ -228,73 +225,61 @@ const OptimizedCreateBulletinModal = memo(function OptimizedCreateBulletinModal(
       endDate: '',
       endTime: '',
     })
-    // Status auf Active setzen wenn vorher scheduled
-    setFormData(prev => ({ ...prev, status: 'Active' }))
+  }, [])
+
+  const handleMediaLibrarySelect = useCallback((imageUrl) => {
+    setOriginalImage(imageUrl)
+    setTempImage(imageUrl)
+    setShowMediaLibraryModal(false)
+    setShowCropModal(true)
   }, [])
 
   const handleCreate = useCallback(() => {
-    if (formData.title.trim() && stripHtmlTags(formData.content).trim()) {
-      // Include schedule data in the post
-      const postData = {
-        ...formData,
-        schedule: schedule,
-        // If scheduled for later, set status based on schedule
-        status: schedule.type === 'scheduled' ? 'Scheduled' : formData.status,
-      }
-      onCreate(postData)
-      onClose()
+    if (!formData.title.trim() || !stripHtmlTags(formData.content).trim()) return
+    
+    const postData = {
+      ...formData,
+      schedule: schedule.type === 'scheduled' ? schedule : null,
     }
+    onCreate(postData)
+    onClose()
   }, [formData, schedule, onCreate, onClose])
 
-  // Format date for display
-  const formatDisplayDate = (dateStr) => {
-    if (!dateStr) return ''
-    const date = new Date(dateStr)
-    return date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
-  }
-
-  // Format time for display
-  const formatTime = (time) => {
-    if (!time) return ''
-    const [hours, minutes] = time.split(':')
-    const hour = parseInt(hours)
-    const ampm = hour >= 12 ? 'PM' : 'AM'
-    const formattedHour = hour % 12 || 12
-    return `${formattedHour}:${minutes} ${ampm}`
-  }
-
-  // Get schedule display text
-  const getScheduleDisplayText = () => {
+  const getScheduleDisplayText = useCallback(() => {
     if (schedule.type === 'immediate') {
-      if (schedule.hasEndDate && schedule.endDate) {
-        return `Immediately | Ends ${formatDisplayDate(schedule.endDate)}${schedule.endTime ? ` at ${formatTime(schedule.endTime)}` : ''}`
-      }
-      return 'Post immediately'
-    } else {
-      let text = `Starts ${formatDisplayDate(schedule.startDate)}${schedule.startTime ? ` at ${formatTime(schedule.startTime)}` : ''}`
-      if (schedule.hasEndDate && schedule.endDate) {
-        text += ` | Ends ${formatDisplayDate(schedule.endDate)}${schedule.endTime ? ` at ${formatTime(schedule.endTime)}` : ''}`
-      }
-      return text
+      return 'Post will be published when created'
     }
-  }
+    
+    let text = `Starts: ${schedule.startDate}`
+    if (schedule.startTime) text += ` at ${schedule.startTime}`
+    
+    if (schedule.hasEndDate && schedule.endDate) {
+      text += ` | Ends: ${schedule.endDate}`
+      if (schedule.endTime) text += ` at ${schedule.endTime}`
+    }
+    
+    return text
+  }, [schedule])
 
   const tagsDisplay = useMemo(() => {
     if (!availableTags || availableTags.length === 0) {
-      return <p className="text-gray-500 text-xs">No tags available. Create one using Manage Tags.</p>
+      return (
+        <p className="text-gray-500 text-xs">No tags available. Create tags in Tag Manager.</p>
+      )
     }
     return (
       <div className="flex flex-wrap gap-2">
         {availableTags.map((tag) => (
           <button
             key={tag.id}
+            type="button"
             onClick={() => handleTagToggle(tag.id)}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
-              formData.tags.includes(tag.id)
-                ? "text-white"
+              formData.tags.includes(tag.id) 
+                ? "text-white" 
                 : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
             }`}
-            style={formData.tags.includes(tag.id) ? { backgroundColor: tag.color } : undefined}
+            style={{ backgroundColor: formData.tags.includes(tag.id) ? tag.color : undefined }}
           >
             <Tag size={10} />
             {tag.name}
@@ -307,179 +292,192 @@ const OptimizedCreateBulletinModal = memo(function OptimizedCreateBulletinModal(
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
-      <div className="bg-[#1C1C1C] rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[1000]">
+      <div className="bg-[#181818] rounded-xl w-full max-w-md max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-700">
-          <h2 className="text-xl font-semibold text-white">Create New Post</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors p-1">
-            <X size={24} />
+        <div className="flex items-center justify-between p-6 pb-0 flex-shrink-0">
+          <h2 className="text-white text-lg font-semibold">Create New Post</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
+            <X size={20} />
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto flex-1 space-y-5 custom-scrollbar">
-          {/* Title */}
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Title <span className="text-red-400">*</span>
-            </label>
-            <input
-              type="text"
-              value={formData.title}
-              onChange={handleInputChange('title')}
-              className="w-full bg-[#181818] border border-gray-700 rounded-xl px-4 py-3 text-white text-sm placeholder-gray-500 focus:border-blue-600 focus:outline-none transition-colors"
-              placeholder="Enter post title..."
-            />
-          </div>
-
-          {/* Cover Image */}
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Cover Image</label>
-            {formData.image ? (
-              <div className="relative rounded-xl overflow-hidden border border-gray-700 bg-black">
-                <div className="aspect-video">
-                  <img src={formData.image} alt="Cover preview" className="w-full h-full object-contain" draggable="false" />
+        <form
+          onSubmit={(e) => { e.preventDefault(); handleCreate(); }}
+          className="flex flex-col flex-1 overflow-hidden"
+        >
+          <div className="space-y-3 custom-scrollbar overflow-y-auto px-6 py-4 flex-1">
+            {/* Cover Image */}
+            <div>
+              <label className="text-sm text-gray-200 block mb-2">Cover Image</label>
+              {formData.image ? (
+                <div className="relative rounded-xl overflow-hidden border border-gray-700 bg-black">
+                  <div className="aspect-video">
+                    <img src={formData.image} alt="Cover preview" className="w-full h-full object-contain" draggable="false" />
+                  </div>
+                  <div className="absolute top-2 right-2 flex gap-2">
+                    <button
+                      type="button"
+                      onClick={handleReCrop}
+                      className="bg-black/70 hover:bg-black/90 text-white p-2 rounded-lg transition-colors"
+                      title="Adjust crop"
+                    >
+                      <Crop size={16} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleRemoveImage}
+                      className="bg-black/70 hover:bg-black/90 text-white p-2 rounded-lg transition-colors"
+                      title="Remove image"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
                 </div>
-                <div className="absolute top-2 right-2 flex gap-2">
-                  <button
-                    onClick={handleReCrop}
-                    className="bg-black/70 hover:bg-black/90 text-white p-2 rounded-lg transition-colors"
-                    title="Adjust crop"
-                  >
-                    <Crop size={16} />
-                  </button>
-                  <button
-                    onClick={handleRemoveImage}
-                    className="bg-black/70 hover:bg-black/90 text-white p-2 rounded-lg transition-colors"
-                    title="Remove image"
-                  >
-                    <X size={16} />
-                  </button>
+              ) : (
+                <div
+                  onClick={() => setShowImageSourceModal(true)}
+                  className="border-2 border-dashed border-gray-700 rounded-xl aspect-video flex flex-col items-center justify-center cursor-pointer hover:border-[#3F74FF]/50 transition-colors"
+                >
+                  <ImageIcon className="w-8 h-8 mb-2 text-gray-500" />
+                  <p className="text-gray-400 text-sm">Click to upload</p>
+                  <p className="text-gray-500 text-xs mt-1">16:9 ratio - Max 5MB</p>
                 </div>
-              </div>
-            ) : (
-              <div
-                onClick={() => setShowImageSourceModal(true)}
-                className="border-2 border-dashed border-gray-700 rounded-xl aspect-video flex flex-col items-center justify-center cursor-pointer hover:border-blue-600/50 transition-colors"
-              >
-                <ImageIcon className="w-10 h-10 mb-3 text-gray-500" />
-                <p className="text-gray-400 text-sm">Click to upload cover image</p>
-                <p className="text-gray-500 text-xs mt-1">Recommended: 16:9 ratio - Max 5MB</p>
-              </div>
-            )}
-            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
-          </div>
+              )}
+              <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+            </div>
 
-          {/* Content - Rich Text Editor */}
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              Content <span className="text-red-400">*</span>
-            </label>
-            <div className="bulletin-modal-editor">
-              <ReactQuill
-                value={formData.content}
-                onChange={handleContentChange}
-                modules={QUILL_MODULES}
-                formats={QUILL_FORMATS}
-                placeholder="Write your post content here..."
-                theme="snow"
+            {/* Title */}
+            <div>
+              <label className="text-sm text-gray-200 block mb-2">Title *</label>
+              <input
+                type="text"
+                value={formData.title}
+                onChange={handleInputChange('title')}
+                className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                placeholder="Enter post title..."
+                required
               />
             </div>
-          </div>
 
-          {/* Tags */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm font-medium text-gray-300">Tags</label>
-              <button onClick={onOpenTagManager} className="text-xs text-blue-500 hover:text-blue-400 transition-colors">
-                Manage Tags
-              </button>
-            </div>
-            <div className="bg-[#181818] border border-gray-700 rounded-xl p-3">
-              {tagsDisplay}
-            </div>
-          </div>
-
-          {/* Schedule Section */}
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              <span className="flex items-center gap-2">
-                <Calendar size={16} className="text-gray-400" />
-                Schedule
-              </span>
-            </label>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setShowScheduleModal(true)}
-                className="flex-1 bg-[#181818] border border-gray-700 rounded-xl px-4 py-3 text-left hover:border-blue-600/50 transition-colors group"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center">
-                      {schedule.type === 'immediate' ? (
-                        <Clock size={18} className="text-orange-400" />
-                      ) : (
-                        <Calendar size={18} className="text-orange-400" />
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-orange-400">
-                        {schedule.type === 'immediate' ? 'Publish Immediately' : 'Scheduled'}
-                      </p>
-                      <p className="text-xs text-gray-400 mt-0.5">
-                        {getScheduleDisplayText()}
-                      </p>
-                    </div>
-                  </div>
-                  <span className="text-gray-500 group-hover:text-blue-400 transition-colors text-sm">
-                    Edit
-                  </span>
-                </div>
-              </button>
-              {/* Remove Schedule Button - nur anzeigen wenn scheduled */}
-              {schedule.type === 'scheduled' && (
-                <button
-                  onClick={handleRemoveSchedule}
-                  className="bg-[#181818] border border-gray-700 rounded-xl px-4 py-3 hover:border-red-500/50 hover:bg-red-500/10 transition-colors group"
-                  title="Remove Schedule"
-                >
-                  <Trash2 size={18} className="text-gray-500 group-hover:text-red-400 transition-colors" />
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Status - Only show if immediate */}
-          {schedule.type === 'immediate' && (
+            {/* Content - Rich Text Editor */}
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Status</label>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setFormData(prev => ({ ...prev, status: prev.status === "Active" ? "Inactive" : "Active" }))}
-                  className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors ${formData.status === "Active" ? "bg-blue-600" : "bg-gray-600"}`}
-                >
-                  <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${formData.status === "Active" ? "translate-x-8" : "translate-x-1"}`} />
-                </button>
-                <span className="text-sm text-gray-300">{formData.status}</span>
+              <label className="text-sm text-gray-200 block mb-2">Content *</label>
+              <div className="bulletin-modal-editor">
+                <ReactQuill
+                  value={formData.content}
+                  onChange={handleContentChange}
+                  modules={QUILL_MODULES}
+                  formats={QUILL_FORMATS}
+                  placeholder="Write your post content..."
+                  theme="snow"
+                />
               </div>
             </div>
-          )}
-        </div>
 
-        {/* Footer */}
-        <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-700">
-          <button onClick={onClose} className="px-5 py-2.5 bg-gray-600 hover:bg-gray-500 text-white rounded-xl text-sm font-medium transition-colors">
-            Cancel
-          </button>
-          <button
-            onClick={handleCreate}
-            disabled={!formData.title.trim() || !stripHtmlTags(formData.content).trim() || (schedule.type === 'scheduled' && !schedule.startDate)}
-            className="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-xl text-sm font-medium transition-colors"
-          >
-            {schedule.type === 'immediate' ? 'Create Post' : 'Schedule Post'}
-          </button>
-        </div>
+            {/* Tags */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm text-gray-200 flex items-center gap-1.5">
+                  <Tag size={14} className="text-gray-400" />
+                  Tags
+                </label>
+                <button type="button" onClick={onOpenTagManager} className="text-xs text-blue-500 hover:text-blue-400 transition-colors">
+                  Manage
+                </button>
+              </div>
+              <div className="bg-[#101010] border border-[#333333] rounded-xl p-2.5">
+                {tagsDisplay}
+              </div>
+            </div>
+
+            {/* Schedule Section - Compact */}
+            <div>
+              <label className="text-sm text-gray-200 block mb-2">
+                <span className="flex items-center gap-1.5">
+                  <Calendar size={14} className="text-gray-400" />
+                  Schedule
+                </span>
+              </label>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowScheduleModal(true)}
+                  className="flex-1 bg-[#101010] border border-[#333333] rounded-xl px-3 py-2.5 text-left hover:border-[#3F74FF]/50 transition-colors group"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-full bg-orange-500/20 flex items-center justify-center">
+                        {schedule.type === 'immediate' ? (
+                          <Clock size={14} className="text-orange-400" />
+                        ) : (
+                          <Calendar size={14} className="text-orange-400" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium text-orange-400">
+                          {schedule.type === 'immediate' ? 'Publish Immediately' : 'Scheduled'}
+                        </p>
+                        <p className="text-[10px] text-gray-400 mt-0.5 line-clamp-1">
+                          {schedule.type === 'immediate' ? 'On create' : `${schedule.startDate}`}
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-gray-500 group-hover:text-blue-400 transition-colors text-xs">
+                      Edit
+                    </span>
+                  </div>
+                </button>
+                {schedule.type === 'scheduled' && (
+                  <button
+                    type="button"
+                    onClick={handleRemoveSchedule}
+                    className="bg-[#101010] border border-[#333333] rounded-xl px-3 hover:border-red-500/50 hover:bg-red-500/10 transition-colors group"
+                    title="Remove Schedule"
+                  >
+                    <Trash2 size={16} className="text-gray-500 group-hover:text-red-400 transition-colors" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Status - Only show if immediate */}
+            {schedule.type === 'immediate' && (
+              <div>
+                <label className="text-sm text-gray-200 block mb-2">Status</label>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, status: prev.status === "Active" ? "Inactive" : "Active" }))}
+                    className={`relative inline-flex h-6 w-12 items-center rounded-full transition-colors ${formData.status === "Active" ? "bg-blue-600" : "bg-gray-600"}`}
+                  >
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${formData.status === "Active" ? "translate-x-7" : "translate-x-1"}`} />
+                  </button>
+                  <span className="text-sm text-gray-300">{formData.status}</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="flex flex-row-reverse gap-3 p-6 pt-4 border-t border-[#333333] bg-[#181818] flex-shrink-0">
+            <button
+              type="submit"
+              disabled={!formData.title.trim() || !stripHtmlTags(formData.content).trim() || (schedule.type === 'scheduled' && !schedule.startDate)}
+              className="flex-1 sm:flex-none sm:w-auto px-6 py-2.5 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-sm text-white rounded-xl transition-colors font-medium"
+            >
+              {schedule.type === 'immediate' ? 'Create Post' : 'Schedule Post'}
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 sm:flex-none sm:w-auto px-6 py-2.5 bg-gray-600 hover:bg-gray-500 text-sm text-white rounded-xl transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
       </div>
 
       {/* Image Crop Modal */}

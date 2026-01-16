@@ -23,7 +23,7 @@ import AppointmentActionModalV2 from "../../components/myarea-components/Appoint
 import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
 import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
 import { OptimizedTextarea } from "../../components/user-panel-components/todo-components/optimized-text-area"
-import TagManagerModal from "../../components/TagManagerModal"
+import TagManagerModal from "../../components/shared/TagManagerModal"
 
 // @dnd-kit imports
 import {

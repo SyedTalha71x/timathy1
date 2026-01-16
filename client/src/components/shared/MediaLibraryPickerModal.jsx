@@ -1,31 +1,51 @@
 /* eslint-disable react/prop-types */
 import { useState, useMemo } from 'react'
 import { X, Search, Folder as FolderIcon, Image as ImageIcon } from 'lucide-react'
-import { mediaLibraryFolders, mediaLibraryDesigns } from '../../../utils/user-panel-states/bulletin-board-states'
 
-export default function MediaLibraryPickerModal({ isOpen, onClose, onSelectImage }) {
+/**
+ * Shared MediaLibraryPickerModal
+ * 
+ * Usage:
+ * import MediaLibraryPickerModal from '@/components/shared/MediaLibraryPickerModal'
+ * import { mediaLibraryFolders, mediaLibraryDesigns } from '@/utils/media-library-data'
+ * 
+ * <MediaLibraryPickerModal
+ *   isOpen={showMediaPicker}
+ *   onClose={() => setShowMediaPicker(false)}
+ *   onSelectImage={(imageUrl) => handleImageSelected(imageUrl)}
+ *   folders={mediaLibraryFolders}
+ *   designs={mediaLibraryDesigns}
+ * />
+ */
+export default function MediaLibraryPickerModal({ 
+  isOpen, 
+  onClose, 
+  onSelectImage,
+  folders = [],
+  designs = []
+}) {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedFolderId, setSelectedFolderId] = useState('all')
   const [selectedDesign, setSelectedDesign] = useState(null)
 
   // Filter designs based on search and folder
   const filteredDesigns = useMemo(() => {
-    let designs = mediaLibraryDesigns
+    let filtered = designs
 
     if (selectedFolderId !== 'all') {
-      designs = designs.filter(d => d.folderId === selectedFolderId)
+      filtered = filtered.filter(d => d.folderId === selectedFolderId)
     }
 
     if (searchQuery.trim()) {
-      designs = designs.filter(d => 
+      filtered = filtered.filter(d => 
         d.name.toLowerCase().includes(searchQuery.toLowerCase())
       )
     }
 
-    return designs
-  }, [searchQuery, selectedFolderId])
+    return filtered
+  }, [designs, searchQuery, selectedFolderId])
 
-  const selectedFolder = mediaLibraryFolders.find(f => f.id === selectedFolderId)
+  const selectedFolder = folders.find(f => f.id === selectedFolderId)
 
   const handleSelect = () => {
     if (selectedDesign) {
@@ -47,7 +67,7 @@ export default function MediaLibraryPickerModal({ isOpen, onClose, onSelectImage
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-[60]">
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-[1002]">
       <div className="bg-[#1C1C1C] rounded-2xl shadow-2xl w-full max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-4 md:p-6 border-b border-gray-700">
@@ -70,7 +90,7 @@ export default function MediaLibraryPickerModal({ isOpen, onClose, onSelectImage
             <div className="p-4">
               <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Folders</h3>
               <div className="space-y-1">
-                {mediaLibraryFolders.map((folder) => (
+                {folders.map((folder) => (
                   <button
                     key={folder.id}
                     onClick={() => setSelectedFolderId(folder.id)}
@@ -111,7 +131,7 @@ export default function MediaLibraryPickerModal({ isOpen, onClose, onSelectImage
                   onChange={(e) => setSelectedFolderId(e.target.value)}
                   className="w-full bg-[#0a0a0a] border border-gray-700 rounded-xl py-2.5 px-4 text-white text-sm focus:outline-none focus:border-orange-500"
                 >
-                  {mediaLibraryFolders.map((folder) => (
+                  {folders.map((folder) => (
                     <option key={folder.id} value={folder.id}>
                       {folder.name}
                     </option>
@@ -124,7 +144,7 @@ export default function MediaLibraryPickerModal({ isOpen, onClose, onSelectImage
                 <span className="text-gray-500">Showing:</span>
                 <span className="text-white font-medium flex items-center gap-2">
                   <FolderIcon size={14} style={{ color: selectedFolder?.color }} />
-                  {selectedFolder?.name}
+                  {selectedFolder?.name || 'All'}
                 </span>
                 <span className="text-gray-500">({filteredDesigns.length} designs)</span>
               </div>

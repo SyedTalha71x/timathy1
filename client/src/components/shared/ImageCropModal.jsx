@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import Cropper from 'react-easy-crop'
 import { X, Check, ZoomIn, ZoomOut } from 'lucide-react'
 
@@ -8,40 +8,74 @@ const createCroppedImage = (imageSrc, pixelCrop) => {
   return new Promise((resolve, reject) => {
     const image = new Image()
     
+    // Enable CORS for external images
+    image.crossOrigin = 'anonymous'
+    
     image.onload = () => {
-      const canvas = document.createElement('canvas')
-      const ctx = canvas.getContext('2d')
+      try {
+        const canvas = document.createElement('canvas')
+        const ctx = canvas.getContext('2d')
 
-      canvas.width = pixelCrop.width
-      canvas.height = pixelCrop.height
+        canvas.width = pixelCrop.width
+        canvas.height = pixelCrop.height
 
-      ctx.drawImage(
-        image,
-        pixelCrop.x,
-        pixelCrop.y,
-        pixelCrop.width,
-        pixelCrop.height,
-        0,
-        0,
-        pixelCrop.width,
-        pixelCrop.height
-      )
+        ctx.drawImage(
+          image,
+          pixelCrop.x,
+          pixelCrop.y,
+          pixelCrop.width,
+          pixelCrop.height,
+          0,
+          0,
+          pixelCrop.width,
+          pixelCrop.height
+        )
 
-      resolve(canvas.toDataURL('image/jpeg', 0.92))
+        resolve(canvas.toDataURL('image/jpeg', 0.92))
+      } catch (error) {
+        // If CORS fails, return the original image
+        console.warn('CORS error, returning original image:', error)
+        resolve(imageSrc)
+      }
     }
     
     image.onerror = (error) => {
-      reject(error)
+      // On error, return original image instead of failing
+      console.warn('Image load error, returning original:', error)
+      resolve(imageSrc)
     }
     
     image.src = imageSrc
   })
 }
 
+/**
+ * Shared ImageCropModal
+ * 
+ * Usage:
+ * <ImageCropModal
+ *   isOpen={showCropModal}
+ *   onClose={() => setShowCropModal(false)}
+ *   imageSrc={tempImage}
+ *   onCropComplete={(croppedImage) => handleCroppedImage(croppedImage)}
+ *   aspectRatio={16 / 9}
+ * />
+ */
 export default function ImageCropModal({ isOpen, onClose, imageSrc, onCropComplete, aspectRatio = 16 / 9 }) {
   const [crop, setCrop] = useState({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null)
+  const [isProcessing, setIsProcessing] = useState(false)
+
+  // Reset state when modal opens with new image
+  useEffect(() => {
+    if (isOpen && imageSrc) {
+      setCrop({ x: 0, y: 0 })
+      setZoom(1)
+      setCroppedAreaPixels(null)
+      setIsProcessing(false)
+    }
+  }, [isOpen, imageSrc])
 
   const onCropChange = useCallback((crop) => {
     setCrop(crop)
@@ -56,17 +90,30 @@ export default function ImageCropModal({ isOpen, onClose, imageSrc, onCropComple
   }, [])
 
   const handleConfirm = async () => {
-    if (croppedAreaPixels) {
-      try {
+    setIsProcessing(true)
+    
+    try {
+      if (croppedAreaPixels) {
+        // Use cropped area
         const croppedImage = await createCroppedImage(imageSrc, croppedAreaPixels)
         onCropComplete(croppedImage)
-        // Reset state
-        setCrop({ x: 0, y: 0 })
-        setZoom(1)
-        onClose()
-      } catch (error) {
-        console.error('Error cropping image:', error)
+      } else {
+        // No crop made yet - use original image
+        onCropComplete(imageSrc)
       }
+      
+      // Reset state
+      setCrop({ x: 0, y: 0 })
+      setZoom(1)
+      setCroppedAreaPixels(null)
+      onClose()
+    } catch (error) {
+      console.error('Error cropping image:', error)
+      // Fallback: use original image
+      onCropComplete(imageSrc)
+      onClose()
+    } finally {
+      setIsProcessing(false)
     }
   }
 
@@ -74,17 +121,18 @@ export default function ImageCropModal({ isOpen, onClose, imageSrc, onCropComple
     // Reset state
     setCrop({ x: 0, y: 0 })
     setZoom(1)
+    setCroppedAreaPixels(null)
     onClose()
   }
 
   if (!isOpen || !imageSrc) return null
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-[1001]">
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-[1003]">
       <div className="bg-[#1C1C1C] rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-700">
-          <h2 className="text-lg font-semibold text-white">Adjust image crop</h2>
+          <h2 className="text-lg font-semibold text-white">Adjust Image Crop</h2>
           <button
             onClick={handleCancel}
             className="text-gray-400 hover:text-white transition-colors p-1"
@@ -137,16 +185,18 @@ export default function ImageCropModal({ isOpen, onClose, imageSrc, onCropComple
           <div className="flex justify-end gap-3">
             <button
               onClick={handleCancel}
-              className="px-5 py-2.5 bg-gray-600 hover:bg-gray-500 text-white rounded-xl text-sm font-medium transition-colors"
+              disabled={isProcessing}
+              className="px-5 py-2.5 bg-gray-600 hover:bg-gray-500 disabled:opacity-50 text-white rounded-xl text-sm font-medium transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={handleConfirm}
-              className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-sm font-medium transition-colors flex items-center gap-2"
+              disabled={isProcessing}
+              className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white rounded-xl text-sm font-medium transition-colors flex items-center gap-2"
             >
               <Check size={18} />
-              Apply
+              {isProcessing ? 'Processing...' : 'Apply'}
             </button>
           </div>
         </div>

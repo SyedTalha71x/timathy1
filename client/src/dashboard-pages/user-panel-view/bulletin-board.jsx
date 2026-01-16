@@ -18,7 +18,7 @@ import EditAppointmentModalV2 from "../../components/myarea-components/EditAppoi
 import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
 import DeleteBulletinModal from "../../components/user-panel-components/bulletin-board-components/DeleteBulletinBoard"
 import ViewBulletinModal from "../../components/user-panel-components/bulletin-board-components/ViewBulletinBoard"
-import TagManagerModal from "../../components/TagManagerModal"
+import TagManagerModal from "../../components/shared/TagManagerModal";
 import OptimizedEditBulletinModal from "../../components/user-panel-components/bulletin-board-components/EditBulletinBoard"
 import OptimizedCreateBulletinModal from "../../components/user-panel-components/bulletin-board-components/CreateBulletinBoard"
 

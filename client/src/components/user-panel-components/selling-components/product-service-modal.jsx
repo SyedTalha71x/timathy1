@@ -1,7 +1,30 @@
 /* eslint-disable react/prop-types */
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { X, Plus, Crop } from "lucide-react"
-import ImageCropModal from "./ImageCropModal"
+// Shared modals - adjust path based on your file location
+// From: /components/user-panel-components/selling-components/product-service-modal.jsx
+import ImageCropModal from '../../shared/ImageCropModal'
+import ImageSourceModal from '../../shared/ImageSourceModal'
+import MediaLibraryPickerModal from '../../shared/MediaLibraryPickerModal'
+// Import your media library data from your centralized location
+// Example: import { mediaLibraryFolders, mediaLibraryDesigns } from '../../../utils/user-panel-states/media-library-states'
+
+// Temporary demo data - REPLACE with your actual import from bulletin-board-states or a new shared file
+const mediaLibraryFolders = [
+  { id: 'all', name: 'All Designs', color: '#9ca3af' },
+  { id: 'products', name: 'Products', color: '#f97316' },
+  { id: 'services', name: 'Services', color: '#3b82f6' },
+  { id: 'promotions', name: 'Promotions', color: '#22c55e' },
+]
+
+const mediaLibraryDesigns = [
+  { id: '1', name: 'Fitness Equipment', thumbnail: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400', folderId: 'products' },
+  { id: '2', name: 'Yoga Class', thumbnail: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400', folderId: 'services' },
+  { id: '3', name: 'Summer Sale', thumbnail: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=400', folderId: 'promotions' },
+  { id: '4', name: 'Protein Shake', thumbnail: 'https://images.unsplash.com/photo-1622485831930-34623abf66c6?w=400', folderId: 'products' },
+  { id: '5', name: 'Personal Training', thumbnail: 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=400', folderId: 'services' },
+  { id: '6', name: 'New Year Offer', thumbnail: 'https://images.unsplash.com/photo-1467810563316-b5476525c0f9?w=400', folderId: 'promotions' },
+]
 
 // Helper function to get dynamic text size based on content length
 const getPreviewTextSize = (text) => {
@@ -29,6 +52,8 @@ const ProductServiceModal = ({
   onCroppedImage,
 }) => {
   const [showCropModal, setShowCropModal] = useState(false)
+  const [showSourceModal, setShowSourceModal] = useState(false)
+  const [showMediaLibrary, setShowMediaLibrary] = useState(false)
   const [tempImage, setTempImage] = useState(null)
   const [originalImage, setOriginalImage] = useState(null)
   const internalFileInputRef = useRef(null)
@@ -40,6 +65,8 @@ const ProductServiceModal = ({
   useEffect(() => {
     if (!isOpen) {
       setShowCropModal(false)
+      setShowSourceModal(false)
+      setShowMediaLibrary(false)
       setTempImage(null)
       setOriginalImage(null)
     }
@@ -48,13 +75,25 @@ const ProductServiceModal = ({
   // ESC key handler
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape' && isOpen && !showCropModal) {
+      if (e.key === 'Escape' && isOpen) {
+        if (showCropModal) {
+          setShowCropModal(false)
+          return
+        }
+        if (showMediaLibrary) {
+          setShowMediaLibrary(false)
+          return
+        }
+        if (showSourceModal) {
+          setShowSourceModal(false)
+          return
+        }
         closeModal()
       }
     }
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [isOpen, showCropModal, closeModal])
+  }, [isOpen, showCropModal, showSourceModal, showMediaLibrary, closeModal])
 
   // Reset original image when editing a different product
   useEffect(() => {
@@ -108,7 +147,7 @@ const ProductServiceModal = ({
     }
   }, [onRemoveImage, actualFileInputRef])
 
-  // Handle image selection - open crop modal
+  // Handle image selection from file - open crop modal
   const handleImageChange = useCallback((e) => {
     const file = e.target.files[0]
     if (file) {
@@ -128,6 +167,18 @@ const ProductServiceModal = ({
       }
       reader.readAsDataURL(file)
     }
+  }, [])
+
+  // Handle image selection from media library
+  const handleMediaLibrarySelect = useCallback((imageUrl) => {
+    setOriginalImage(imageUrl)
+    setTempImage(imageUrl)
+    setShowCropModal(true)
+  }, [])
+
+  // Handle click on image area - show source selection
+  const handleImageAreaClick = useCallback(() => {
+    setShowSourceModal(true)
   }, [])
 
   // Early return AFTER all hooks
@@ -170,7 +221,7 @@ const ProductServiceModal = ({
             <div className="space-y-3 custom-scrollbar overflow-y-auto px-6 flex-1">
               {/* Upload Image - Full width 16:9 aspect ratio preview */}
               <div>
-                <label className="text-sm text-gray-200 block mb-2">Product image</label>
+                <label className="text-sm text-gray-200 block mb-2">{itemType} image</label>
                 {hasImage ? (
                   <div className="relative rounded-xl overflow-hidden border border-gray-700 bg-black">
                     <div className="aspect-video">
@@ -202,7 +253,7 @@ const ProductServiceModal = ({
                   </div>
                 ) : (
                   <div
-                    onClick={() => actualFileInputRef.current?.click()}
+                    onClick={handleImageAreaClick}
                     className="border-2 border-dashed border-gray-700 rounded-xl aspect-video flex flex-col items-center justify-center cursor-pointer hover:border-[#3F74FF]/50 transition-colors bg-orange-500"
                   >
                     <p className={`font-bold leading-tight text-white text-center px-4 ${getPreviewTextSize(previewText)}`} style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>
@@ -243,7 +294,7 @@ const ProductServiceModal = ({
                   <div>
                     <label className="text-sm text-gray-200 block mb-2">Price *</label>
                     <div className="flex items-center rounded-xl bg-[#101010] border border-transparent focus-within:border-[#3F74FF] transition-colors">
-                      <span className="px-3 text-white text-sm">â‚¬</span>
+                      <span className="px-3 text-white text-sm">€</span>
                       <input
                         type="text"
                         name="price"
@@ -276,7 +327,7 @@ const ProductServiceModal = ({
                     <div>
                       <label className="text-sm text-gray-200 block mb-2">Price *</label>
                       <div className="flex items-center rounded-xl bg-[#101010] border border-transparent focus-within:border-[#3F74FF] transition-colors">
-                        <span className="px-3 text-white text-sm">â‚¬</span>
+                        <span className="px-3 text-white text-sm">€</span>
                         <input
                           type="text"
                           name="price"
@@ -366,6 +417,23 @@ const ProductServiceModal = ({
           </form>
         </div>
       </div>
+
+      {/* Image Source Selection Modal */}
+      <ImageSourceModal
+        isOpen={showSourceModal}
+        onClose={() => setShowSourceModal(false)}
+        onSelectFile={() => actualFileInputRef.current?.click()}
+        onSelectMediaLibrary={() => setShowMediaLibrary(true)}
+      />
+
+      {/* Media Library Picker Modal */}
+      <MediaLibraryPickerModal
+        isOpen={showMediaLibrary}
+        onClose={() => setShowMediaLibrary(false)}
+        onSelectImage={handleMediaLibrarySelect}
+        folders={mediaLibraryFolders}
+        designs={mediaLibraryDesigns}
+      />
 
       {/* Image Crop Modal */}
       <ImageCropModal
