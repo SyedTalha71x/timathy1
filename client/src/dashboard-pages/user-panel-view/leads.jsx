@@ -1298,7 +1298,7 @@ export default function LeadManagement() {
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex gap-4 h-[calc(100vh-220px)] min-h-[400px] overflow-x-auto overflow-y-visible">
+        <div className="flex gap-4 h-[calc(100vh-220px)] min-h-[400px] overflow-x-auto overflow-y-visible pb-4 pr-4">
           {columns.map((column) => {
             const isCollapsed = collapsedColumns.includes(column.id)
             const expandedCount = columns.length - collapsedColumns.length
@@ -1309,24 +1309,24 @@ export default function LeadManagement() {
               return (
                 <div 
                   key={column.id}
-                  className="flex-shrink-0 w-12 h-full transition-all duration-300 ease-in-out overflow-visible hover:z-[9999] relative"
+                  className="flex-shrink-0 w-12 h-full transition-all duration-300 ease-in-out overflow-visible hover:z-[100] relative"
                 >
                   <div 
                     className="h-full rounded-xl flex flex-col items-center py-3 transition-colors overflow-visible"
                     style={{ backgroundColor: column.color + '20' }}
                   >
                     {/* Expand button - top with tooltip */}
-                    <div className="relative group flex-shrink-0 hover:z-[9999]">
+                    <div className="relative group flex-shrink-0 hover:z-[100]">
                       <button 
                         className="p-1 hover:bg-white/10 rounded transition-colors cursor-pointer"
                         onClick={() => toggleColumnCollapse(column.id)}
                       >
                         <ChevronRight size={16} className="text-gray-400" />
                       </button>
-                      {/* Tooltip - positioned below */}
-                      <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[9999] shadow-lg pointer-events-none">
+                      {/* Tooltip - links ausgerichtet, nach unten */}
+                      <div className="absolute left-0 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[1000] shadow-lg pointer-events-none">
                         <span className="font-medium">Expand column</span>
-                        <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                        <div className="absolute -top-1 left-2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
                       </div>
                     </div>
                     
@@ -1365,7 +1365,7 @@ export default function LeadManagement() {
             return (
               <div 
                 key={column.id}
-                className="transition-all duration-300 ease-in-out flex-shrink-0 h-full overflow-visible hover:z-[9999] relative"
+                className="transition-all duration-300 ease-in-out flex-shrink-0 h-full overflow-visible hover:z-[100] relative"
                 style={{ 
                   flex: `1 1 0`,
                   minWidth: expandedCount <= 2 ? '300px' : '200px',
@@ -1405,10 +1405,13 @@ export default function LeadManagement() {
         </div>
 
         {/* Drag Overlay - shows the dragged item */}
-        <DragOverlay dropAnimation={{
-          duration: 200,
-          easing: "cubic-bezier(0.18, 0.67, 0.6, 1.22)",
-        }}>
+        <DragOverlay 
+          dropAnimation={{
+            duration: 200,
+            easing: "cubic-bezier(0.18, 0.67, 0.6, 1.22)",
+          }}
+          style={{ zIndex: 99999 }}
+        >
           {activeLead ? (
             <SortableLeadCard
               lead={activeLead}

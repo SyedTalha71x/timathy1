@@ -118,7 +118,7 @@ const SortableColumn = ({
         {/* Sort, Lock, Edit and Collapse Buttons */}
         <div className="flex items-center gap-1 ml-2">
           {/* Sort Button with Tooltip */}
-          <div className="relative group hover:z-[9999]" ref={sortDropdownRef}>
+          <div className="relative group hover:z-[100]" ref={sortDropdownRef}>
             <button
               onClick={() => setShowSortDropdown(!showSortDropdown)}
               className="text-gray-400 hover:text-white p-1 hover:bg-gray-800 rounded-lg flex items-center gap-1"
@@ -127,7 +127,7 @@ const SortableColumn = ({
             </button>
             {/* Tooltip - only show when dropdown is closed */}
             {!showSortDropdown && (
-              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[9999] shadow-lg pointer-events-none">
+              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[1000] shadow-lg pointer-events-none">
                 <span className="font-medium">Sort by: {currentSortLabel}</span>
                 <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
               </div>
@@ -175,14 +175,14 @@ const SortableColumn = ({
 
           {/* Lock Icon Button (for trial column) with Tooltip */}
           {isTrialColumn && (
-            <div className="relative group hover:z-[9999]">
+            <div className="relative group hover:z-[100]">
               <button
                 className="text-gray-400 hover:text-white p-1 hover:bg-gray-800 rounded-lg"
               >
                 <Lock size={14} className="sm:w-3.5 sm:h-3.5 shrink-0" />
               </button>
               {/* Tooltip */}
-              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[9999] shadow-lg pointer-events-none">
+              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[1000] shadow-lg pointer-events-none">
                 <span className="font-medium">This column cannot be edited</span>
                 <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
               </div>
@@ -191,7 +191,7 @@ const SortableColumn = ({
 
           {/* Edit Column Button (3-Punkte-Menü) with Tooltip */}
           {isEditable && (
-            <div className="relative group hover:z-[9999]">
+            <div className="relative group hover:z-[100]">
               <button
                 onClick={() => onEditColumn(id, title, color)}
                 className="text-gray-400 hover:text-white p-1 hover:bg-gray-800 rounded-lg"
@@ -213,7 +213,7 @@ const SortableColumn = ({
                 </svg>
               </button>
               {/* Tooltip */}
-              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[9999] shadow-lg pointer-events-none">
+              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[1000] shadow-lg pointer-events-none">
                 <span className="font-medium">Edit column</span>
                 <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
               </div>
@@ -222,17 +222,17 @@ const SortableColumn = ({
 
           {/* Collapse Button - ganz rechts with Tooltip */}
           {onToggleCollapse && (
-            <div className="relative group hover:z-[9999]">
+            <div className="relative group hover:z-[100]">
               <button
                 onClick={onToggleCollapse}
                 className="text-gray-400 hover:text-white p-1 hover:bg-gray-800 rounded-lg ml-1"
               >
                 <ChevronLeft size={14} />
               </button>
-              {/* Tooltip */}
-              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[9999] shadow-lg pointer-events-none">
+              {/* Tooltip - nach links ausgerichtet damit es nicht abgeschnitten wird */}
+              <div className="absolute right-0 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[1000] shadow-lg pointer-events-none">
                 <span className="font-medium">Collapse column</span>
-                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                <div className="absolute -top-1 right-2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
               </div>
             </div>
           )}
