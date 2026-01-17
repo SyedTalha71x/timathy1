@@ -23,7 +23,7 @@ const marketplaceProducts = [
     name: "Mens Jordan Trainer",
     brand: "JORDAN",
     articleNo: "456",
-    price: "5,00 €",
+    price: "5,00 â‚¬",
     image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSV1xUYD-Gqa5d08aoyqp4g1i6vs4lySrH4cA&s",
     link: "https://example.com/product/1",
     pinned: true,
@@ -34,7 +34,7 @@ const marketplaceProducts = [
     name: "Snickers Off-White 2024",
     brand: "NIKE",
     articleNo: "123",
-    price: "5,00 €",
+    price: "5,00 â‚¬",
     image: "https://image.goat.com/transform/v1/attachments/product_template_additional_pictures/images/105/365/563/original/1507255_01.jpg.jpeg?action=crop&width=750",
     link: "https://example.com/product/2",
     pinned: false,
@@ -156,31 +156,83 @@ const InfoTooltip = ({ product }) => {
   );
 };
 
-// Affiliate Link Button with disclosure tooltip
-const AffiliateLinkButton = ({ link }) => {
-  const [showDisclosure, setShowDisclosure] = useState(false);
+// External Link Confirmation Modal
+const ExternalLinkModal = ({ isOpen, onClose, link }) => {
+  if (!isOpen) return null;
+
+  const handleContinue = () => {
+    window.open(link, "_blank");
+    onClose();
+  };
 
   return (
-    <div className="relative">
-      <button
-        onClick={() => window.open(link, "_blank")}
-        onMouseEnter={() => setShowDisclosure(true)}
-        onMouseLeave={() => setShowDisclosure(false)}
-        className="bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-full transition-colors"
-        aria-label="Open product link (affiliate)"
-      >
-        <ExternalLink size={16} />
-      </button>
-      
-      {showDisclosure && (
-        <div className="absolute top-full right-0 mt-2 w-48 bg-[#1C1C1C] border border-gray-700 rounded-xl shadow-lg z-50 p-2">
-          <div className="absolute -top-1.5 right-4 w-3 h-3 bg-[#1C1C1C] border-l border-t border-gray-700 rotate-45"></div>
-          <p className="text-gray-400 text-xs leading-relaxed">
-            <span className="text-orange-500 font-medium">Affiliate Link</span> – We may earn a small commission on purchases.
-          </p>
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
+      <div className="bg-[#1C1C1C] rounded-2xl w-full max-w-md mx-auto border border-gray-700 shadow-2xl">
+        <div className="p-6">
+          {/* Affiliate Notice Banner */}
+          <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4 mb-5">
+            <div className="flex items-start gap-3">
+              <div className="bg-orange-500 rounded-full p-1.5 mt-0.5">
+                <Info size={14} className="text-white" />
+              </div>
+              <div>
+                <h4 className="text-orange-400 font-semibold text-sm mb-1">Affiliate Link</h4>
+                <p className="text-orange-300/80 text-xs leading-relaxed">
+                  This is an affiliate link. We may earn a small commission if you make a purchase through this link, at no additional cost to you.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* External Link Warning */}
+          <div className="text-center mb-6">
+            <div className="bg-[#2a2a2a] rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+              <ExternalLink size={28} className="text-gray-400" />
+            </div>
+            <h3 className="text-xl font-bold text-white mb-2">You are leaving our site</h3>
+            <p className="text-gray-400 text-sm leading-relaxed">
+              You are about to be redirected to an external website. We are not responsible for the content, privacy policies, or practices of third-party websites.
+            </p>
+          </div>
+
+          {/* Link Preview */}
+          <div className="bg-[#101010] rounded-xl p-3 mb-6">
+            <p className="text-gray-500 text-xs mb-1">Destination:</p>
+            <p className="text-blue-400 text-sm break-all truncate">{link}</p>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-3">
+            <button
+              onClick={onClose}
+              className="flex-1 bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white py-3 px-4 rounded-xl font-medium transition-colors text-sm"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleContinue}
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-xl font-medium transition-colors text-sm flex items-center justify-center gap-2"
+            >
+              Continue
+              <ExternalLink size={16} />
+            </button>
+          </div>
         </div>
-      )}
+      </div>
     </div>
+  );
+};
+
+// Affiliate Link Button - opens confirmation modal
+const AffiliateLinkButton = ({ link, onOpenModal }) => {
+  return (
+    <button
+      onClick={() => onOpenModal(link)}
+      className="bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-full transition-colors"
+      aria-label="Open product link (affiliate)"
+    >
+      <ExternalLink size={16} />
+    </button>
   );
 };
 
@@ -194,6 +246,20 @@ export default function MarketplacePage() {
 
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [productForInfo, setProductForInfo] = useState(null);
+
+  // External link modal state
+  const [isExternalLinkModalOpen, setIsExternalLinkModalOpen] = useState(false);
+  const [externalLinkUrl, setExternalLinkUrl] = useState("");
+
+  const openExternalLinkModal = (link) => {
+    setExternalLinkUrl(link);
+    setIsExternalLinkModalOpen(true);
+  };
+
+  const closeExternalLinkModal = () => {
+    setIsExternalLinkModalOpen(false);
+    setExternalLinkUrl("");
+  };
 
   const [sortBy, setSortBy] = useState("name");
   const [sortDirection, setSortDirection] = useState("asc");
@@ -292,7 +358,7 @@ export default function MarketplacePage() {
       // Special handling for price
       if (sortBy === "price") {
         const parsePrice = (priceStr) =>
-          parseFloat(priceStr.replace("€", "").replace(",", ".").trim());
+          parseFloat(priceStr.replace("â‚¬", "").replace(",", ".").trim());
         aValue = parsePrice(aValue);
         bValue = parsePrice(bValue);
       } else {
@@ -731,7 +797,7 @@ export default function MarketplacePage() {
                     <InfoTooltip product={product} />
 
                     {/* Affiliate Link Button with disclosure */}
-                    <AffiliateLinkButton link={product.link} />
+                    <AffiliateLinkButton link={product.link} onOpenModal={openExternalLinkModal} />
                   </div>
                 </div>
 
@@ -814,6 +880,13 @@ export default function MarketplacePage() {
           </div>
         </div>
       )}
+
+      {/* External Link Confirmation Modal */}
+      <ExternalLinkModal
+        isOpen={isExternalLinkModalOpen}
+        onClose={closeExternalLinkModal}
+        link={externalLinkUrl}
+      />
 
       <Sidebar
         isRightSidebarOpen={isRightSidebarOpen}

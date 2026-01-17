@@ -48,6 +48,7 @@ import NotesWidget from "../../myarea-components/widgets/NotesWidjets"
 import BulletinBoardWidget from "../../myarea-components/widgets/BulletinBoardWidget"
 import ShiftScheduleWidget from "../../myarea-components/widgets/ShiftScheduleWidget"
 import ReplyModal from "../../myarea-components/sidebar-components/ReplyModal"
+import { formatCurrency, getCurrencySymbol } from "../../../utils/user-panel-states/selling-states"
 
 const MessageReplyModal = ({ isOpen, onClose, message, onSendReply }) => {
   const [replyText, setReplyText] = useState("")
@@ -275,6 +276,9 @@ const SidebarAreaSelling = ({
   })
 
   const [sidebarBulletinFilter, setSidebarBulletinFilter] = useState("all")
+
+  // Currency symbol for display
+  const currencySymbol = getCurrencySymbol()
 
   const addCustomLink = () => {
     setEditingLink({})
@@ -846,7 +850,7 @@ const SidebarAreaSelling = ({
                             <p className="text-xs text-zinc-400 mb-1 truncate">Art. No: {item.articalNo}</p>
                           )}
 
-                          <p className="text-sm font-bold">${item.price.toFixed(2)}</p>
+                          <p className="text-sm font-bold">{formatCurrency(item.price)}</p>
 
                           <div className="flex gap-2 mt-1">
                             <span className="text-xs bg-gray-600 px-2 py-1 rounded">
@@ -948,11 +952,11 @@ const SidebarAreaSelling = ({
                   <div className="border-t border-[#333333] pt-4 space-y-2">
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-400">Total</span>
-                      <span>${subtotal.toFixed(2)}</span>
+                      <span>{formatCurrency(subtotal)}</span>
                     </div>
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-400">Incl. VAT</span>
-                      <span>${(() => {
+                      <span>{formatCurrency((() => {
                         const totalVat = cart.reduce((sum, item) => {
                           const itemTotal = item.price * item.quantity
                           // IMPORTANT: Convert vatRate to Number to avoid string concatenation bug
@@ -961,18 +965,18 @@ const SidebarAreaSelling = ({
                           return sum + vatAmount
                         }, 0)
                         const discountedVat = totalVat * (1 - discountValue / 100)
-                        return discountedVat.toFixed(2)
-                      })()}</span>
+                        return discountedVat
+                      })())}</span>
                     </div>
                     {discountValue > 0 && (
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-400">Discount ({discountValue}%):</span>
-                        <span>-${discountAmount.toFixed(2)}</span>
+                        <span>-{formatCurrency(discountAmount)}</span>
                       </div>
                     )}
                     <div className="flex justify-between font-bold mt-2 pt-2 border-t border-[#333333]">
                       <span>To pay</span>
-                      <span>${total.toFixed(2)}</span>
+                      <span>{formatCurrency(total)}</span>
                     </div>
 
                   </div>
@@ -1493,7 +1497,7 @@ const SidebarAreaSelling = ({
                                     <h3 className="font-semibold text-sm flex items-center gap-1">
                                       {birthday.name}
                                       {isBirthdayToday(birthday.date) && (
-                                        <span className="text-yellow-500">Ã°Å¸Å½â€š</span>
+                                        <span className="text-yellow-500">🎂</span>
                                       )}
                                     </h3>
                                     <p className="text-xs text-zinc-400">{birthday.date}</p>

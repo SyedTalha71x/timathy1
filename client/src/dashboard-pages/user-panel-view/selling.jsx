@@ -10,7 +10,8 @@ import { toast, Toaster } from "react-hot-toast"
 import CreateTempMemberModal from "../../components/user-panel-components/selling-components/create-temp-member-modal"
 import DeleteConfirmationModal from "../../components/user-panel-components/selling-components/delete-confirmation-modal"
 import SalesJournalModal from "../../components/user-panel-components/selling-components/sales-journal-modal"
-import { productsMainData, sellingMainData, serviceMainData } from "../../utils/user-panel-states/selling-states"
+import CheckoutConfirmationModal from "../../components/user-panel-components/selling-components/checkout-confirmation-modal"
+import { productsMainData, sellingMainData, serviceMainData, formatCurrency, getCurrencySymbol } from "../../utils/user-panel-states/selling-states"
 import { useSidebarSystem } from "../../hooks/useSidebarSystem"
 import { trainingVideosData } from "../../utils/user-panel-states/training-states"
 import ProductServiceModal from "../../components/user-panel-components/selling-components/product-service-modal"
@@ -86,6 +87,7 @@ const Selling = () => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [showCreateTempMemberModal, setShowCreateTempMemberModal] = useState(false)
+  const [showCheckoutConfirmModal, setShowCheckoutConfirmModal] = useState(false)
   const [productToDelete, setProductToDelete] = useState(null)
   const [modalMode, setModalMode] = useState("add") // "add" or "edit"
   const [currentProduct, setCurrentProduct] = useState(null)
@@ -106,7 +108,7 @@ const Selling = () => {
     paymentOption: "",
     brandName: "",
     link: "",
-    vatRate: "19",
+    vatRate: 19,
     vatSelectable: false,
   })
 
@@ -232,6 +234,10 @@ const Selling = () => {
       
       // ESC key - Close modals
       if (e.key === 'Escape') {
+        if (showCheckoutConfirmModal) {
+          setShowCheckoutConfirmModal(false)
+          return
+        }
         if (isModalOpen) {
           setIsModalOpen(false)
           return
@@ -252,7 +258,7 @@ const Selling = () => {
       
       // C key - Create new product/service
       if (e.key === 'c' || e.key === 'C') {
-        if (!isModalOpen && !isDeleteModalOpen && !showHistoryModalMain && !showCreateTempMemberModal) {
+        if (!isModalOpen && !isDeleteModalOpen && !showHistoryModalMain && !showCreateTempMemberModal && !showCheckoutConfirmModal) {
           e.preventDefault()
           openAddModal()
         }
@@ -260,7 +266,7 @@ const Selling = () => {
       
       // J key - Open Journal
       if (e.key === 'j' || e.key === 'J') {
-        if (!isModalOpen && !isDeleteModalOpen && !showHistoryModalMain && !showCreateTempMemberModal) {
+        if (!isModalOpen && !isDeleteModalOpen && !showHistoryModalMain && !showCreateTempMemberModal && !showCheckoutConfirmModal) {
           e.preventDefault()
           setShowHistoryModalMain(true)
         }
@@ -269,7 +275,7 @@ const Selling = () => {
     
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [isModalOpen, isDeleteModalOpen, showHistoryModalMain, showCreateTempMemberModal])
+  }, [isModalOpen, isDeleteModalOpen, showHistoryModalMain, showCreateTempMemberModal, showCheckoutConfirmModal])
 
   const toggleRightSidebar = () => {
     setIsRightSidebarOpen(!isRightSidebarOpen)
@@ -333,7 +339,7 @@ const Selling = () => {
       paymentOption: "",
       brandName: "",
       link: "",
-      vatRate: 19, // Changed from string "19" to number 19
+      vatRate: 19,
       vatSelectable: false,
     })
     setSelectedImage(null)
@@ -350,7 +356,7 @@ const Selling = () => {
       paymentOption: item.paymentOption || "",
       brandName: item.brandName || "",
       link: item.link || "",
-      vatRate: Number(item.vatRate) || 19, // Ensure number type
+      vatRate: Number(item.vatRate) || 19,
       vatSelectable: item.vatSelectable || false,
     })
     setSelectedImage(null)
@@ -448,7 +454,7 @@ const Selling = () => {
         type: isService ? "service" : "product",
         position: isService ? services.length : products.length,
         link: formData.link,
-        vatRate: Number(formData.vatRate) || 19, // Convert to Number
+        vatRate: Number(formData.vatRate) || 19,
         vatSelectable: formData.vatSelectable,
       }
       if (isService) {
@@ -469,7 +475,7 @@ const Selling = () => {
               image: selectedImage || currentProduct?.image || null,
               brandName: isService ? undefined : formData.brandName,
               link: formData.link,
-              vatRate: Number(formData.vatRate) || 19, // Convert to Number
+              vatRate: Number(formData.vatRate) || 19,
               vatSelectable: formData.vatSelectable,
             }
           }
@@ -491,7 +497,6 @@ const Selling = () => {
         cart.map((cartItem) => (cartItem.id === item.id ? { ...cartItem, quantity: cartItem.quantity + 1 } : cartItem)),
       )
     } else {
-      // Ensure vatRate is a number when adding to cart
       setCart([...cart, { ...item, quantity: 1, vatRate: Number(item.vatRate) || 19 }])
     }
     // Only open sidebar on desktop (768px = md breakpoint)
@@ -557,11 +562,9 @@ const Selling = () => {
 
   const cancelSale = (saleId) => {
     setSalesHistory((prev) => {
-      // Find the original sale
       const originalSale = prev.find((sale) => sale.id === saleId)
       if (!originalSale) return prev
 
-      // Create cancellation entry (counter-entry for accounting)
       const cancellationEntry = {
         id: Date.now(),
         date: new Date().toLocaleString(),
@@ -570,36 +573,39 @@ const Selling = () => {
         memberType: originalSale.memberType,
         items: originalSale.items.map((item) => ({
           ...item,
-          price: -Math.abs(item.price), // Negative price for cancellation
+          price: -Math.abs(item.price),
         })),
-        totalAmount: -Math.abs(originalSale.totalAmount), // Negative amount
+        totalAmount: -Math.abs(originalSale.totalAmount),
         subtotal: originalSale.subtotal ? -Math.abs(originalSale.subtotal) : undefined,
         discountApplied: originalSale.discountApplied,
         vatApplied: originalSale.vatApplied ? -Math.abs(originalSale.vatApplied) : undefined,
         paymentMethod: originalSale.paymentMethod,
-        soldBy: "Current Staff", // Staff who processed the cancellation
+        soldBy: "Current Staff",
         invoiceNumber: `CANCEL-${originalSale.invoiceNumber || saleId}`,
         canCancel: false,
-        isCancellation: true, // Flag to identify cancellation entries
-        originalSaleId: saleId, // Reference to original sale
+        isCancellation: true,
+        originalSaleId: saleId,
       }
 
-      // Mark original sale as cancelled (don't remove it)
       const updatedSales = prev.map((sale) => 
         sale.id === saleId 
           ? { ...sale, canCancel: false, isCancelled: true }
           : sale
       )
 
-      // Add cancellation entry at the top
       return [cancellationEntry, ...updatedSales]
     })
     toast.success("Sale cancelled - reversal entry created")
   }
 
-  const handleCheckout = () => {
+  // Show checkout confirmation modal
+  const handleCheckoutClick = () => {
     if (cart.length === 0) return
+    setShowCheckoutConfirmModal(true)
+  }
 
+  // Confirm and process checkout
+  const handleConfirmCheckout = () => {
     const selectedMemberData = selectedMemberMain ? members.find((m) => m.id === selectedMemberMain) : null
     const invoiceNumber = `INV-${new Date().getFullYear()}-${String(salesHistory.length + 1).padStart(3, "0")}`
 
@@ -622,7 +628,7 @@ const Selling = () => {
       discountApplied: discountAmount,
       vatApplied: vatAmount,
       paymentMethod: selectedPaymentMethod,
-      soldBy: "Current Staff", // In production, this would be the logged-in staff user
+      soldBy: "Current Staff",
       invoiceNumber: invoiceNumber,
       canCancel: true,
     }
@@ -635,6 +641,9 @@ const Selling = () => {
     setDiscount("")
     setSelectedPaymentMethod("Cash")
     setIsRightSidebarOpen(false)
+    setShowCheckoutConfirmModal(false)
+
+    toast.success("Sale completed successfully!")
 
     setTimeout(
       () => {
@@ -667,6 +676,8 @@ const Selling = () => {
       }
     })
 
+    const currencySymbol = getCurrencySymbol()
+
     const invoiceContent = `
 ========================================
          Fitness Studio Pro
@@ -686,17 +697,17 @@ ${sale.items.map((item) => {
       const netAmount = itemTotal / (1 + vatRate / 100)
       const vatAmount = itemTotal - netAmount
       return `${item.name}
-${item.quantity} x $${(item.price || 0).toFixed(2)}          $${itemTotal.toFixed(2)}
-  Net: $${netAmount.toFixed(2)} | VAT ${vatRate}%: $${vatAmount.toFixed(2)}`
+${item.quantity} x ${currencySymbol}${(item.price || 0).toFixed(2)}          ${currencySymbol}${itemTotal.toFixed(2)}
+  Net: ${currencySymbol}${netAmount.toFixed(2)} | VAT ${vatRate}%: ${currencySymbol}${vatAmount.toFixed(2)}`
     }).join("\n\n")}
 
 ----------------------------------------
-Net:                        $${totalNet.toFixed(2)}
-${totalVat19 > 0 ? `VAT 19%:                    $${totalVat19.toFixed(2)}` : ''}
-${totalVat7 > 0 ? `VAT 7%:                     $${totalVat7.toFixed(2)}` : ''}
-${sale.discountApplied ? `Discount:                  -$${sale.discountApplied.toFixed(2)}` : ''}
+Net:                        ${currencySymbol}${totalNet.toFixed(2)}
+${totalVat19 > 0 ? `VAT 19%:                    ${currencySymbol}${totalVat19.toFixed(2)}` : ''}
+${totalVat7 > 0 ? `VAT 7%:                     ${currencySymbol}${totalVat7.toFixed(2)}` : ''}
+${sale.discountApplied ? `Discount:                  -${currencySymbol}${sale.discountApplied.toFixed(2)}` : ''}
 ----------------------------------------
-TOTAL:                      $${totalGross.toFixed(2)}
+TOTAL:                      ${currencySymbol}${totalGross.toFixed(2)}
 ----------------------------------------
 
 Payment: ${sale.paymentMethod}
@@ -710,7 +721,7 @@ Payment: ${sale.paymentMethod}
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url
-    a.download = `${invoiceData.invoiceNumber}.txt`
+    a.download = `${sale.invoiceNumber}.txt`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
@@ -777,6 +788,12 @@ Payment: ${sale.paymentMethod}
 
   const sortedItems = getFilteredAndSortedItems()
   const itemIds = sortedItems.map(item => item.id)
+
+  // Get cart item count for badge
+  const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0)
+
+  // Get selected member data for checkout confirmation
+  const selectedMemberData = selectedMemberMain ? members.find((m) => m.id === selectedMemberMain) : null
 
   return (
     <>
@@ -887,12 +904,12 @@ Payment: ${sale.paymentMethod}
                 <Plus size={18} className="text-white" />
               </button>
 
-              {/* Cart Icon - Desktop Only */}
-              <div onClick={toggleRightSidebar} className="hidden md:block cursor-pointer relative p-3 md:p-2 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-xl transition-colors">
-                <ShoppingCart size={18} className="text-white" />
-                {cart.length > 0 && (
-                  <span className="bg-orange-500 text-white text-[10px] rounded-full px-[5px] py-[2px] min-w-[18px] h-[18px] flex items-center justify-center absolute -top-1 -right-1">
-                    {cart.reduce((sum, item) => sum + item.quantity, 0)}
+              {/* Cart Icon - Desktop Only - Updated badge styling */}
+              <div onClick={toggleRightSidebar} className="hidden md:block cursor-pointer relative p-2.5 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-xl transition-colors">
+                <ShoppingCart size={20} className="text-white" />
+                {cartItemCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-[11px] font-bold rounded-full min-w-[22px] h-[22px] flex items-center justify-center px-1 border-2 border-[#1C1C1C] shadow-lg">
+                    {cartItemCount}
                   </span>
                 )}
               </div>
@@ -975,7 +992,7 @@ Payment: ${sale.paymentMethod}
             <SortableContext items={itemIds} strategy={rectSortingStrategy}>
               <div
                 className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 
-                  ${isRightSidebarOpen ? "lg:grid-cols-3 xl:grid-cols-3" : "lg:grid-cols-4 xl:grid-cols-5"} 
+                  ${isRightSidebarOpen ? "lg:grid-cols-4 xl:grid-cols-4" : "lg:grid-cols-4 xl:grid-cols-5"} 
                   gap-4 md:gap-6 auto-rows-fr`}
               >
                 {sortedItems.map((item) => (
@@ -1019,7 +1036,7 @@ Payment: ${sale.paymentMethod}
                           >
                             <ShoppingBasket className="w-4 h-4" />
                             {cart.some(cartItem => cartItem.id === item.id) && (
-                              <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-[10px] rounded-full px-[4px] py-[1px] min-w-[16px] h-[16px] flex items-center justify-center border border-white">
+                              <span className="absolute -top-1.5 -right-1.5 bg-orange-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-0.5 border border-white shadow-md">
                                 {cart.find(cartItem => cartItem.id === item.id)?.quantity || 0}
                               </span>
                             )}
@@ -1054,7 +1071,7 @@ Payment: ${sale.paymentMethod}
                           {/* Price row with 3-dot menu */}
                           <div className="flex items-center justify-between mt-auto">
                             <p className="text-lg font-bold text-white whitespace-nowrap">
-                              ${item.price.toFixed(2)}
+                              {formatCurrency(item.price)}
                             </p>
                             
                             {/* 3-dot menu - Bulletin Board style */}
@@ -1151,6 +1168,21 @@ Payment: ${sale.paymentMethod}
           productToDelete={productToDelete}
         />
 
+        {/* Checkout Confirmation Modal */}
+        <CheckoutConfirmationModal
+          show={showCheckoutConfirmModal}
+          onClose={() => setShowCheckoutConfirmModal(false)}
+          onConfirm={handleConfirmCheckout}
+          cart={cart}
+          member={selectedMemberData}
+          sellWithoutMember={sellWithoutMember}
+          paymentMethod={selectedPaymentMethod}
+          subtotal={subtotal}
+          discountAmount={discountAmount}
+          discountValue={discountValue}
+          total={total}
+        />
+
         {/* Edit/Add Modal */}
         <ProductServiceModal
           isOpen={isModalOpen}
@@ -1218,7 +1250,7 @@ Payment: ${sale.paymentMethod}
           afterDiscount={afterDiscount}
           vatAmount={vatAmount}
           total={total}
-          handleCheckout={handleCheckout}
+          handleCheckout={handleCheckoutClick}
           updateItemVatRate={updateItemVatRate}
         />
 
@@ -1230,7 +1262,7 @@ Payment: ${sale.paymentMethod}
         )}
       </div>
 
-      {/* Floating Action Button - Mobile Only - Shopping Cart (hidden when sidebar is open) */}
+      {/* Floating Action Button - Mobile Only - Shopping Cart (hidden when sidebar is open) - Updated badge styling */}
       {!isRightSidebarOpen && (
         <button
           onClick={toggleRightSidebar}
@@ -1238,9 +1270,9 @@ Payment: ${sale.paymentMethod}
           aria-label="Open Shopping Cart"
         >
           <ShoppingCart size={22} />
-          {cart.length > 0 && (
-            <span className="bg-orange-500 text-white text-[10px] rounded-full px-[5px] py-[2px] min-w-[18px] h-[18px] flex items-center justify-center absolute -top-1 -right-1 border-2 border-[#1C1C1C]">
-              {cart.reduce((sum, item) => sum + item.quantity, 0)}
+          {cartItemCount > 0 && (
+            <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-[11px] font-bold rounded-full min-w-[24px] h-[24px] flex items-center justify-center px-1.5 border-2 border-[#1C1C1C] shadow-lg">
+              {cartItemCount}
             </span>
           )}
         </button>

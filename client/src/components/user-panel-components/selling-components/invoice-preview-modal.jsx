@@ -3,9 +3,11 @@ import { useState } from "react"
 import { Mail, Download, Printer, X } from "lucide-react"
 import { jsPDF } from "jspdf"
 import SendEmailModal from "./send-email-modal"
+import { formatCurrency, getCurrencySymbol } from "../../../utils/user-panel-states/selling-states"
 
 const InvoicePreviewModal = ({ sale, onClose }) => {
   const [showEmailModal, setShowEmailModal] = useState(false)
+  const currencySymbol = getCurrencySymbol()
 
   const handlePrint = () => {
     window.print()
@@ -125,14 +127,14 @@ const InvoicePreviewModal = ({ sale, onClose }) => {
       
       // Quantity x Price = Total
       doc.setFont('helvetica', 'normal')
-      doc.text(`${item.quantity} x $${(item.price || 0).toFixed(2)}`, margin, y)
-      doc.text(`$${itemTotal.toFixed(2)}`, pageWidth - margin, y, { align: 'right' })
+      doc.text(`${item.quantity} x ${currencySymbol}${(item.price || 0).toFixed(2)}`, margin, y)
+      doc.text(`${currencySymbol}${itemTotal.toFixed(2)}`, pageWidth - margin, y, { align: 'right' })
       y += 4
       
       // Net and VAT
       doc.setFontSize(6)
       doc.setTextColor(100)
-      doc.text(`Net: $${netAmount.toFixed(2)} | VAT ${vatRate}%: $${vatAmount.toFixed(2)}`, margin, y)
+      doc.text(`Net: ${currencySymbol}${netAmount.toFixed(2)} | VAT ${vatRate}%: ${currencySymbol}${vatAmount.toFixed(2)}`, margin, y)
       doc.setTextColor(0)
       y += 5
     })
@@ -144,18 +146,18 @@ const InvoicePreviewModal = ({ sale, onClose }) => {
     // Totals
     doc.setFontSize(8)
     doc.text('Net:', margin, y)
-    doc.text(`$${totalNet.toFixed(2)}`, pageWidth - margin, y, { align: 'right' })
+    doc.text(`${currencySymbol}${totalNet.toFixed(2)}`, pageWidth - margin, y, { align: 'right' })
     y += 4
     
     if (totalVat19 > 0) {
       doc.text('VAT 19%:', margin, y)
-      doc.text(`$${totalVat19.toFixed(2)}`, pageWidth - margin, y, { align: 'right' })
+      doc.text(`${currencySymbol}${totalVat19.toFixed(2)}`, pageWidth - margin, y, { align: 'right' })
       y += 4
     }
     
     if (totalVat7 > 0) {
       doc.text('VAT 7%:', margin, y)
-      doc.text(`$${totalVat7.toFixed(2)}`, pageWidth - margin, y, { align: 'right' })
+      doc.text(`${currencySymbol}${totalVat7.toFixed(2)}`, pageWidth - margin, y, { align: 'right' })
       y += 4
     }
     
@@ -163,7 +165,7 @@ const InvoicePreviewModal = ({ sale, onClose }) => {
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(10)
     doc.text('TOTAL:', margin, y)
-    doc.text(`$${totalGross.toFixed(2)}`, pageWidth - margin, y, { align: 'right' })
+    doc.text(`${currencySymbol}${totalGross.toFixed(2)}`, pageWidth - margin, y, { align: 'right' })
     y += 6
     
     dashedLine(y)
@@ -198,10 +200,10 @@ const InvoicePreviewModal = ({ sale, onClose }) => {
 
       <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[100000000] p-2 sm:p-4">
         <div className="bg-[#161616] rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
-          {/* Header - Responsive */}
-          <div className="sticky top-0 bg-gray-100 p-3 sm:p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0 border-b">
+          {/* Header - Fixed: Title and icons on same line */}
+          <div className="sticky top-0 bg-gray-100 p-3 sm:p-4 flex justify-between items-center border-b">
             <h3 className="font-semibold text-gray-900 text-base sm:text-lg">E-Invoice Preview</h3>
-            <div className="flex gap-2 w-full sm:w-auto justify-end">
+            <div className="flex gap-2 items-center">
               <button
                 onClick={() => setShowEmailModal(true)}
                 className="p-2 bg-gray-600 hover:bg-gray-700 rounded-lg text-white transition-colors"
@@ -280,11 +282,11 @@ const InvoicePreviewModal = ({ sale, onClose }) => {
                     <div key={idx} className="mb-2">
                       <div className="text-gray-900 font-medium truncate">{item.name}</div>
                       <div className="flex justify-between text-gray-600">
-                        <span>{item.quantity} x ${(item.price || 0).toFixed(2)}</span>
-                        <span className="text-gray-900">${itemTotal.toFixed(2)}</span>
+                        <span>{item.quantity} x {formatCurrency(item.price || 0)}</span>
+                        <span className="text-gray-900">{formatCurrency(itemTotal)}</span>
                       </div>
                       <div className="text-gray-500 text-[10px] sm:text-xs">
-                        Net: ${netAmount.toFixed(2)} | VAT {vatRate}%: ${vatAmount.toFixed(2)}
+                        Net: {formatCurrency(netAmount)} | VAT {vatRate}%: {formatCurrency(vatAmount)}
                       </div>
                     </div>
                   )
@@ -318,23 +320,23 @@ const InvoicePreviewModal = ({ sale, onClose }) => {
                     <>
                       <div className="flex justify-between">
                         <span className="text-gray-600">Net:</span>
-                        <span className="text-gray-900">${totalNet.toFixed(2)}</span>
+                        <span className="text-gray-900">{formatCurrency(totalNet)}</span>
                       </div>
                       {totalVat19 > 0 && (
                         <div className="flex justify-between">
                           <span className="text-gray-600">VAT 19%:</span>
-                          <span className="text-gray-900">${totalVat19.toFixed(2)}</span>
+                          <span className="text-gray-900">{formatCurrency(totalVat19)}</span>
                         </div>
                       )}
                       {totalVat7 > 0 && (
                         <div className="flex justify-between">
                           <span className="text-gray-600">VAT 7%:</span>
-                          <span className="text-gray-900">${totalVat7.toFixed(2)}</span>
+                          <span className="text-gray-900">{formatCurrency(totalVat7)}</span>
                         </div>
                       )}
                       <div className="flex justify-between font-bold text-sm sm:text-base mt-1">
                         <span className="text-gray-900">TOTAL:</span>
-                        <span className="text-gray-900">${totalGross.toFixed(2)}</span>
+                        <span className="text-gray-900">{formatCurrency(totalGross)}</span>
                       </div>
                     </>
                   )

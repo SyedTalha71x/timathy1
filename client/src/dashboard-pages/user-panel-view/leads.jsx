@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import React from "react"
 import { useState, useEffect, useRef, useMemo, useCallback } from "react"
-import { Search, Plus, X } from "lucide-react"
+import { Search, Plus, X, ChevronLeft, ChevronRight } from "lucide-react"
 import toast, { Toaster } from "react-hot-toast"
 import { useNavigate } from "react-router-dom"
 
@@ -104,6 +104,16 @@ export default function LeadManagement() {
     return typeof window !== 'undefined' ? window.innerWidth < 768 : false
   })
   const [expandedLeadId, setExpandedLeadId] = useState(null)
+  const [collapsedColumns, setCollapsedColumns] = useState([])
+
+  // Toggle column collapse
+  const toggleColumnCollapse = (columnId) => {
+    setCollapsedColumns(prev => 
+      prev.includes(columnId) 
+        ? prev.filter(id => id !== columnId)
+        : [...prev, columnId]
+    )
+  }
 
   // Assessment states
   const [isAssessmentSelectionModalOpen, setIsAssessmentSelectionModalOpen] = useState(false)
@@ -1288,36 +1298,110 @@ export default function LeadManagement() {
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 h-[calc(100vh-220px)] min-h-[400px]">
-          {columns.map((column) => (
-            <SortableColumn
-              key={column.id}
-              id={column.id}
-              title={column.title}
-              color={column.color}
-              leads={getColumnLeads(column.id)}
-              onViewDetails={handleViewLeadDetails}
-              onAddTrial={handleAddTrialTraining}
-              onCreateContract={handleCreateContract}
-              onEditLead={handleEditLead}
-              onDeleteLead={handleDeleteLead}
-              isEditable={!column.isFixed}
-              onEditColumn={handleEditColumn}
-              memberRelationsLead={memberRelationsLead}
-              setShowHistoryModalLead={setShowHistoryModalLead}
-              setSelectedLead={setSelectedLead}
-              onManageTrialAppointments={handleManageTrialAppointments}
-              onEditNote={handleEditNote}
-              onOpenDocuments={handleOpenDocuments}
-              onCreateAssessment={handleCreateAssessmentClick}
-              isCompactView={isCompactView}
-              expandedLeadId={expandedLeadId}
-              setExpandedLeadId={setExpandedLeadId}
-              sortSettings={columnSortSettings[column.id]}
-              onSortChange={(sortBy) => handleSortChange(column.id, sortBy)}
-              onToggleSortOrder={() => handleToggleSortOrder(column.id)}
-            />
-          ))}
+        <div className="flex gap-4 h-[calc(100vh-220px)] min-h-[400px] overflow-x-auto overflow-y-visible">
+          {columns.map((column) => {
+            const isCollapsed = collapsedColumns.includes(column.id)
+            const expandedCount = columns.length - collapsedColumns.length
+            const columnLeads = getColumnLeads(column.id)
+            
+            // Collapsed state - show minimal vertical bar
+            if (isCollapsed) {
+              return (
+                <div 
+                  key={column.id}
+                  className="flex-shrink-0 w-12 h-full transition-all duration-300 ease-in-out overflow-visible hover:z-[9999] relative"
+                >
+                  <div 
+                    className="h-full rounded-xl flex flex-col items-center py-3 transition-colors overflow-visible"
+                    style={{ backgroundColor: column.color + '20' }}
+                  >
+                    {/* Expand button - top with tooltip */}
+                    <div className="relative group flex-shrink-0 hover:z-[9999]">
+                      <button 
+                        className="p-1 hover:bg-white/10 rounded transition-colors cursor-pointer"
+                        onClick={() => toggleColumnCollapse(column.id)}
+                      >
+                        <ChevronRight size={16} className="text-gray-400" />
+                      </button>
+                      {/* Tooltip - positioned below */}
+                      <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[9999] shadow-lg pointer-events-none">
+                        <span className="font-medium">Expand column</span>
+                        <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                      </div>
+                    </div>
+                    
+                    {/* Lead count badge - identisch wie aufgeklappt */}
+                    <span 
+                      className="mt-2 shrink-0 text-xs text-black font-medium bg-white px-2 py-0.5 rounded-full"
+                    >
+                      {columnLeads.length}
+                    </span>
+                    
+                    {/* Vertical title with color indicator - mittig zentriert */}
+                    <div 
+                      className="flex-1 flex items-center justify-center py-4"
+                    >
+                      <div 
+                        className="flex items-center gap-2"
+                        style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
+                      >
+                        {/* Text - identisch wie aufgeklappt */}
+                        <span className="font-medium text-white text-xs sm:text-sm whitespace-nowrap transform rotate-180">
+                          {column.title}
+                        </span>
+                        {/* Color indicator - nach dem Text im Code, damit er visuell davor erscheint */}
+                        <div 
+                          className="w-2 h-2 sm:w-3 sm:h-3 rounded-full shrink-0 transform rotate-180"
+                          style={{ backgroundColor: column.color }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )
+            }
+            
+            // Expanded state - show full column
+            return (
+              <div 
+                key={column.id}
+                className="transition-all duration-300 ease-in-out flex-shrink-0 h-full overflow-visible hover:z-[9999] relative"
+                style={{ 
+                  flex: `1 1 0`,
+                  minWidth: expandedCount <= 2 ? '300px' : '200px',
+                  maxWidth: expandedCount === 1 ? '100%' : undefined
+                }}
+              >
+                <SortableColumn
+                  id={column.id}
+                  title={column.title}
+                  color={column.color}
+                  leads={columnLeads}
+                  onViewDetails={handleViewLeadDetails}
+                  onAddTrial={handleAddTrialTraining}
+                  onCreateContract={handleCreateContract}
+                  onEditLead={handleEditLead}
+                  onDeleteLead={handleDeleteLead}
+                  isEditable={!column.isFixed}
+                  onEditColumn={handleEditColumn}
+                  memberRelationsLead={memberRelationsLead}
+                  setShowHistoryModalLead={setShowHistoryModalLead}
+                  setSelectedLead={setSelectedLead}
+                  onManageTrialAppointments={handleManageTrialAppointments}
+                  onEditNote={handleEditNote}
+                  onOpenDocuments={handleOpenDocuments}
+                  onCreateAssessment={handleCreateAssessmentClick}
+                  isCompactView={isCompactView}
+                  expandedLeadId={expandedLeadId}
+                  setExpandedLeadId={setExpandedLeadId}
+                  sortSettings={columnSortSettings[column.id]}
+                  onSortChange={(sortBy) => handleSortChange(column.id, sortBy)}
+                  onToggleSortOrder={() => handleToggleSortOrder(column.id)}
+                  onToggleCollapse={() => toggleColumnCollapse(column.id)}
+                />
+              </div>
+            )
+          })}
         </div>
 
         {/* Drag Overlay - shows the dragged item */}
