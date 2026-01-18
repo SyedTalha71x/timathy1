@@ -23,6 +23,11 @@ import {
   FileText,
   Plus,
   ChevronUp,
+  ArrowUp,
+  ArrowDown,
+  StickyNote,
+  Edit,
+  Pencil,
 } from "lucide-react"
 import DefaultAvatar1 from "../../../public/gray-avatar-fotor-20250912192528.png"
 import toast, { Toaster } from "react-hot-toast"
@@ -36,6 +41,7 @@ import EditMemberModalMain from "../../components/user-panel-components/members-
 import AddBillingPeriodModalMain from "../../components/user-panel-components/members-components/AddBillingPeriodModal"
 import ContingentModalMain from "../../components/user-panel-components/members-components/ShowContigentModal"
 import ViewDetailsModal from "../../components/user-panel-components/members-components/ViewDetailsModal"
+import { MemberSpecialNoteModal } from "../../components/user-panel-components/members-components/MemberSpecialNoteModal"
 import AppointmentModalMain from "../../components/user-panel-components/members-components/AppointmentModal"
 import FilterModal from "../../components/user-panel-components/members-components/FilterModal"
 import { MemberDocumentModal } from "../../components/user-panel-components/members-components/MemberDocumentModal"
@@ -57,6 +63,7 @@ import { trainingVideosData } from "../../utils/user-panel-states/training-state
 import ChatPopup from "../../components/user-panel-components/members-components/ChatPopup"
 import TrainingPlansModalMain from "../../components/user-panel-components/members-components/TrainingPlanModal"
 import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
+import MemberSpecialNoteIcon from "../../components/user-panel-components/members-components/MemberSpecialNoteIcon"
 
 const StatusTag = ({ status, reason = "", compact = false }) => {
   const getStatusColor = (status, isArchived) => {
@@ -117,8 +124,17 @@ export default function Members() {
     member: null
   });
 
+  // Member Special Note Modal states (like leads)
+  const [isMemberSpecialNoteModalOpen, setIsMemberSpecialNoteModalOpen] = useState(false)
+  const [selectedMemberForNote, setSelectedMemberForNote] = useState(null)
 
-  const [sortBy, setSortBy] = useState("alphabetical-asc");
+
+  const [sortBy, setSortBy] = useState("name"); // 'name', 'status', 'relations', 'age', 'expiring'
+  const [sortDirection, setSortDirection] = useState("asc"); // 'asc', 'desc'
+  const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const [showMobileSortDropdown, setShowMobileSortDropdown] = useState(false);
+  const sortDropdownRef = useRef(null);
+  const mobileSortDropdownRef = useRef(null);
 
 
   const [showCreateTempMemberModal, setShowCreateTempMemberModal] = useState(false)
@@ -126,6 +142,7 @@ export default function Members() {
   const [memberTypeFilter, setMemberTypeFilter] = useState("all")
   const [archivedFilter, setArchivedFilter] = useState("active")
   const [filterStatus, setFilterStatus] = useState("all")
+  const [filtersExpanded, setFiltersExpanded] = useState(true) // Default expanded, will collapse on mobile via useEffect
 
 
   const [appointmentToDelete, setAppointmentToDelete] = useState(null)
@@ -439,6 +456,16 @@ export default function Members() {
       if (!event.target.closest(".direction-dropdown")) {
         setIsDirectionDropdownOpen(false)
       }
+
+      // Close sort dropdown if clicking outside (desktop)
+      if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target)) {
+        setShowSortDropdown(false);
+      }
+      
+      // Close mobile sort dropdown if clicking outside
+      if (mobileSortDropdownRef.current && !mobileSortDropdownRef.current.contains(event.target)) {
+        setShowMobileSortDropdown(false);
+      }
     }
 
     document.addEventListener("mousedown", handleClickOutside)
@@ -446,6 +473,97 @@ export default function Members() {
       document.removeEventListener("mousedown", handleClickOutside)
     }
   }, [activeNoteIdMain])
+
+  // Close sort dropdowns on scroll
+  useEffect(() => {
+    if (!showSortDropdown && !showMobileSortDropdown) return;
+
+    const handleScroll = () => {
+      setShowSortDropdown(false);
+      setShowMobileSortDropdown(false);
+    };
+
+    window.addEventListener('scroll', handleScroll, { capture: true, passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll, { capture: true, passive: true });
+    };
+  }, [showSortDropdown, showMobileSortDropdown]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      // Ignore if user is typing in an input
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      
+      // Ignore if Ctrl/Cmd is pressed (for Ctrl+C copy, etc.)
+      if (e.ctrlKey || e.metaKey) return;
+      
+      // C key - Create Temporary Member
+      if (e.key === 'c' || e.key === 'C') {
+        e.preventDefault();
+        setShowCreateTempMemberModal(true);
+      }
+      
+      // V key - Toggle view mode
+      if (e.key === 'v' || e.key === 'V') {
+        e.preventDefault();
+        setViewMode(prev => prev === 'grid' ? 'list' : 'grid');
+      }
+    };
+    
+    document.addEventListener('keydown', handleKeyPress);
+    return () => document.removeEventListener('keydown', handleKeyPress);
+  }, []);
+
+  // Collapse filters on mobile by default
+  useEffect(() => {
+    const isMobile = window.innerWidth < 768; // md breakpoint
+    if (isMobile) {
+      setFiltersExpanded(false);
+    }
+  }, []);
+
+  // Sort options
+  const sortOptions = [
+    { value: 'name', label: 'Name' },
+    { value: 'status', label: 'Status' },
+    { value: 'relations', label: 'Relations' },
+    { value: 'age', label: 'Age' },
+    { value: 'expiring', label: 'Contract Expiring' },
+  ];
+
+  // Handle sort option click - doesn't close dropdown so user can change direction
+  const handleSortOptionClick = (newSortBy) => {
+    if (sortBy === newSortBy) {
+      // If same option clicked, toggle direction
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(newSortBy);
+      setSortDirection('asc'); // Default to ascending for new sort
+    }
+    // Don't close dropdown - user may want to change direction
+  };
+
+  // Handle mobile sort option click - closes dropdown after selection
+  const handleMobileSortOptionClick = (newSortBy) => {
+    if (sortBy === newSortBy) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(newSortBy);
+      setSortDirection('asc');
+    }
+    setShowMobileSortDropdown(false);
+  };
+
+  // Get current sort label
+  const currentSortLabel = sortOptions.find(opt => opt.value === sortBy)?.label || 'Name';
+
+  // Get sort icon based on current state
+  const getSortIcon = () => {
+    return sortDirection === 'asc' 
+      ? <ArrowUp size={14} className="text-white" />
+      : <ArrowDown size={14} className="text-white" />;
+  };
 
 
   const filterOptions = [
@@ -483,85 +601,114 @@ export default function Members() {
       filtered = filtered.filter((member) => member.memberType === "temporary")
     }
 
-    // Extract field and direction from sortBy
-    const [field, direction] = sortBy.split("-");
-
-    // Apply sorting
-    if (field === "alphabetical") {
-      filtered.sort((a, b) => {
-        const comparison = a.title.localeCompare(b.title)
-        return direction === "asc" ? comparison : -comparison
-      })
-    } else if (field === "status") {
-      filtered.sort((a, b) => {
-        const getStatusPriority = (member) => {
-          if (member.isArchived) return 3
-          if (!member.isActive) return 2
-          return 1
+    // Sort members
+    filtered.sort((a, b) => {
+      let comparison = 0;
+      
+      switch (sortBy) {
+          case 'name':
+            comparison = a.title.localeCompare(b.title);
+            break;
+          case 'status':
+            const getStatusPriority = (member) => {
+              if (member.isArchived) return 3
+              if (!member.isActive) return 2
+              return 1
+            }
+            comparison = getStatusPriority(a) - getStatusPriority(b);
+            break;
+          case 'relations':
+            comparison = getRelationsCount(a.id) - getRelationsCount(b.id);
+            break;
+          case 'age':
+            const getAge = (dateOfBirth) => {
+              if (!dateOfBirth) return 0
+              const today = new Date()
+              const birthDate = new Date(dateOfBirth)
+              let age = today.getFullYear() - birthDate.getFullYear()
+              const m = today.getMonth() - birthDate.getMonth()
+              if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                age--
+              }
+              return age
+            }
+            comparison = getAge(a.dateOfBirth) - getAge(b.dateOfBirth);
+            break;
+          case 'expiring':
+            const aExpiring = isContractExpiringSoonMain(a.contractEnd)
+            const bExpiring = isContractExpiringSoonMain(b.contractEnd)
+            if (aExpiring === bExpiring) {
+              if (!a.contractEnd && !b.contractEnd) {
+                comparison = 0;
+              } else if (!a.contractEnd) {
+                comparison = 1;
+              } else if (!b.contractEnd) {
+                comparison = -1;
+              } else {
+                comparison = new Date(a.contractEnd) - new Date(b.contractEnd);
+              }
+            } else {
+              comparison = aExpiring ? -1 : 1;
+            }
+            break;
+          default:
+            comparison = 0;
         }
-        const comparison = getStatusPriority(a) - getStatusPriority(b)
-        return direction === "asc" ? comparison : -comparison
-      })
-    } else if (field === "relations") {
-      filtered.sort((a, b) => {
-        const comparison = getRelationsCount(a.id) - getRelationsCount(b.id)
-        return direction === "asc" ? comparison : -comparison
-      })
-    } else if (field === "age") {
-      filtered.sort((a, b) => {
-        const getAge = (dateOfBirth) => {
-          if (!dateOfBirth) return 0
-          const today = new Date()
-          const birthDate = new Date(dateOfBirth)
-          let age = today.getFullYear() - birthDate.getFullYear()
-          const m = today.getMonth() - birthDate.getMonth()
-          if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-            age--
-          }
-          return age
-        }
-        const comparison = getAge(a.dateOfBirth) - getAge(b.dateOfBirth)
-        return direction === "asc" ? comparison : -comparison
-      })
-    } else if (field === "expiring") {
-      // Sort members with contracts expiring first, then by expiration date
-      filtered.sort((a, b) => {
-        const aExpiring = isContractExpiringSoonMain(a.contractEnd)
-        const bExpiring = isContractExpiringSoonMain(b.contractEnd)
-
-        // If both are expiring or both are not expiring, sort by contract end date
-        if (aExpiring === bExpiring) {
-          if (!a.contractEnd && !b.contractEnd) return 0
-          if (!a.contractEnd) return direction === "asc" ? 1 : -1
-          if (!b.contractEnd) return direction === "asc" ? -1 : 1
-
-          const comparison = new Date(a.contractEnd) - new Date(b.contractEnd)
-          return direction === "asc" ? comparison : -comparison
-        }
-
-        // Prioritize expiring contracts
-        if (direction === "asc") {
-          return bExpiring ? 1 : -1
-        } else {
-          return aExpiring ? 1 : -1
-        }
-      })
-    }
+        
+        // Apply sort direction
+        return sortDirection === 'asc' ? comparison : -comparison;
+      });
 
     return filtered
   }
 
 
-  const handleEditMember = (member) => {
+  const handleEditMember = (member, tab = "details") => {
     setSelectedMemberMain(member)
+    setEditModalTabMain(tab)
     setIsEditModalOpenMain(true)
-    setEditModalTabMain("details")
   }
 
-  const handleViewDetails = (member) => {
+  const handleViewDetails = (member, tab = "details") => {
     setSelectedMemberMain(member)
-    setViewDetailsInitialTab("details")
+    setViewDetailsInitialTab(tab)
     setIsViewDetailsModalOpen(true)
+  }
+
+  // Handle opening special note modal for a member
+  const handleEditMemberNote = (member) => {
+    setSelectedMemberForNote(member)
+    setIsMemberSpecialNoteModalOpen(true)
+  }
+
+  // Handle saving a new special note for a member
+  const handleSaveMemberSpecialNote = (memberId, newNote) => {
+    const updatedMembers = members.map((member) => {
+      if (member.id === memberId) {
+        // Add new note to existing notes array
+        const existingNotes = member.notes || []
+        const updatedNotes = [newNote, ...existingNotes]
+        
+        // Find the first important note or first note for backwards compatibility
+        const importantNote = updatedNotes.find(n => n.isImportant)
+        const primaryNote = importantNote || updatedNotes[0]
+        
+        return {
+          ...member,
+          notes: updatedNotes,
+          // Keep single note fields for backwards compatibility
+          note: primaryNote ? primaryNote.text : "",
+          noteImportance: primaryNote?.isImportant ? "important" : "unimportant",
+          noteStartDate: primaryNote?.startDate || "",
+          noteEndDate: primaryNote?.endDate || "",
+        }
+      }
+      return member
+    })
+    setMembers(updatedMembers)
+    setIsMemberSpecialNoteModalOpen(false)
+    setSelectedMemberForNote(null)
+    toast.success("Special note added successfully")
   }
 
   // 
@@ -1108,51 +1255,112 @@ export default function Members() {
           }`}
       >
         <div className="flex-1 min-w-0 md:p-6 p-4 pb-36">
-          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6 w-full">
-            {/* Left Section (Members + View Mode) */}
-            <div className="flex w-full lg:w-auto justify-between items-center gap-3">
-              <div className="flex items-center gap-3">
-                <h1 className="text-xl sm:text-2xl oxanium_font text-white">Members</h1>
-              </div>
+          {/* Header */}
+          <div className="flex sm:items-center justify-between mb-6 sm:mb-8 gap-4">
+            <div className="flex items-center gap-3">
+              <h1 className="text-white oxanium_font text-xl md:text-2xl">Members</h1>
+              
+              {/* Sort Button - Mobile: next to title */}
+              <div className="md:hidden relative" ref={mobileSortDropdownRef}>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowMobileSortDropdown(!showMobileSortDropdown);
+                  }}
+                  className="px-3 py-2 bg-[#2F2F2F] text-gray-300 rounded-xl text-xs hover:bg-[#3F3F3F] transition-colors flex items-center gap-2"
+                >
+                  {getSortIcon()}
+                  <span>{currentSortLabel}</span>
+                </button>
 
-              {isRightSidebarOpen ? (<div onClick={toggleRightSidebar} className="md:hidden block ">
-                <img src='/expand-sidebar mirrored.svg' className="h-5 w-5 cursor-pointer" alt="" />
+                {/* Sort Dropdown - Mobile */}
+                {showMobileSortDropdown && (
+                  <div className="absolute left-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[180px]">
+                    <div className="py-1">
+                      <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">
+                        Sort by
+                      </div>
+                      {sortOptions.map((option) => (
+                        <button
+                          key={option.value}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleMobileSortOptionClick(option.value);
+                          }}
+                          className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${
+                            sortBy === option.value 
+                              ? 'text-white bg-gray-800/50' 
+                              : 'text-gray-300'
+                          }`}
+                        >
+                          <span>{option.label}</span>
+                          {sortBy === option.value && (
+                            <span className="text-gray-400">
+                              {sortDirection === 'asc' 
+                                ? <ArrowUp size={14} /> 
+                                : <ArrowDown size={14} />
+                              }
+                            </span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-              ) : (<div onClick={toggleRightSidebar} className="md:hidden block ">
-                <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
-              </div>
-              )}
-            </div>
-
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
-              <div className="flex gap-2">
-                {/* Combined View and Display Controls */}
-                <div className="flex items-center gap-2 bg-black rounded-xl p-1">
-                  <span className="text-xs text-gray-400 px-2">View</span>
+              
+              {/* View Toggle - Desktop only */}
+              <div className="hidden md:flex items-center gap-2 bg-black rounded-xl p-1">
+                <div className="relative group">
                   <button
-                    onClick={toggleViewMode}
-                    className={`p-2 rounded-lg transition-colors ${viewMode === "grid" ? "bg-[#FF843E] text-white" : "text-gray-400 hover:text-white"
-                      }`}
-                    title={viewMode === "grid" ? "Grid View (Active)" : "Switch to Grid View"}
+                    onClick={() => setViewMode('grid')}
+                    className={`p-2 rounded-lg transition-colors ${
+                      viewMode === 'grid'
+                        ? 'bg-orange-500 text-white'
+                        : 'text-gray-400 hover:text-white'
+                    }`}
                   >
                     <Grid3X3 size={16} />
                   </button>
+                  
+                  {/* Tooltip */}
+                  <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                    <span className="font-medium">Grid View</span>
+                    <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
+                      V
+                    </span>
+                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                  </div>
+                </div>
+                
+                <div className="relative group">
                   <button
-                    onClick={toggleViewMode}
-                    className={`p-2 rounded-lg transition-colors ${viewMode === "list" ? "bg-[#FF843E] text-white" : "text-gray-400 hover:text-white"
-                      }`}
-                    title={viewMode === "list" ? "List View (Active)" : "Switch to List View"}
+                    onClick={() => setViewMode('list')}
+                    className={`p-2 rounded-lg transition-colors ${
+                      viewMode === 'list'
+                        ? 'bg-orange-500 text-white'
+                        : 'text-gray-400 hover:text-white'
+                    }`}
                   >
                     <List size={16} />
                   </button>
+                  
+                  {/* Tooltip */}
+                  <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                    <span className="font-medium">List View</span>
+                    <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
+                      V
+                    </span>
+                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                  </div>
+                </div>
 
-                  {/* Three Dots Display Mode Toggle */}
-                  <div className="h-6 w-px bg-gray-700 mx-1"></div>
+                {/* Compact/Detailed Toggle */}
+                <div className="h-6 w-px bg-gray-700 mx-1"></div>
+                <div className="relative group">
                   <button
                     onClick={() => setIsCompactView(!isCompactView)}
-                    className={`p-2 rounded-lg transition-colors flex items-center gap-1 ${isCompactView ? "text-[#F27A30]" : "text-[#F27A30]"
-                      }`}
-                    title={isCompactView ? "Compact View (Click for Detailed)" : "Detailed View (Click for Compact)"}
+                    className={`p-2 rounded-lg transition-colors flex items-center gap-1 ${isCompactView ? "text-orange-500" : "text-orange-500"}`}
                   >
                     <div className="flex flex-col gap-0.5">
                       <div className="flex gap-0.5">
@@ -1164,75 +1372,213 @@ export default function Members() {
                         <div className={`w-1.5 h-1.5 rounded-full ${isCompactView ? 'bg-current' : 'bg-gray-500'}`}></div>
                       </div>
                     </div>
-                    <span className="text-xs ml-1 hidden sm:inline">
-                      {isCompactView ? "Compact" : "Detailed"}
-                    </span>
                   </button>
+                  
+                  {/* Tooltip */}
+                  <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                    <span className="font-medium">{isCompactView ? "Compact View" : "Detailed View"}</span>
+                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                  </div>
                 </div>
               </div>
-              <button
-                onClick={() => setShowCreateTempMemberModal(true)}
-                className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-xl text-sm"
-              >
-                <Plus size={16} />
-                Create Temp Member
-              </button>
+            </div>
 
-              <button
-                onClick={() => setShowFilterModal(true)}
-                className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-black min-w-[160px]"
-              >
-                <Filter size={16} />
-                <span className="truncate">
-                  {(filterStatus !== 'all' || memberTypeFilter !== 'all')
-                    ? getActiveFiltersText()
-                    : 'Filter'}
-                </span>
-              </button>
+            <div className="flex items-center gap-2">
+              <div className="hidden md:block relative group">
+                <button
+                  onClick={() => setShowCreateTempMemberModal(true)}
+                  className="flex bg-blue-600 hover:bg-blue-700 text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors"
+                >
+                  <Plus size={14} className="sm:w-4 sm:h-4" />
+                  <span className='hidden sm:inline'>Create Temporary Member</span>
+                </button>
+                
+                {/* Tooltip - YouTube Style */}
+                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                  <span className="font-medium">Create Temporary Member</span>
+                  <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
+                    C
+                  </span>
+                  {/* Arrow pointing up */}
+                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                </div>
+              </div>
 
-              {isRightSidebarOpen ? (<div onClick={toggleRightSidebar} className="md:block hidden ">
-                <img src='/expand-sidebar mirrored.svg' className="h-5 w-5 cursor-pointer" alt="" />
-              </div>
-              ) : (<div onClick={toggleRightSidebar} className="md:block hidden ">
-                <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
-              </div>
+              {isRightSidebarOpen ? (
+                <div onClick={toggleRightSidebar}>
+                  <img src='/expand-sidebar mirrored.svg' className="h-5 w-5 cursor-pointer" alt="" />
+                </div>
+              ) : (
+                <div onClick={toggleRightSidebar}>
+                  <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
+                </div>
               )}
             </div>
           </div>
 
-          <div className="flex justify-end items-center mb-4">
-            <div className="flex items-center justify-end gap-2 w-full">
-              <div className="flex items-center gap-2">
-                <label htmlFor="sort" className="text-sm whitespace-nowrap">Sort by:</label>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="cursor-pointer px-4 py-2 rounded-xl text-sm border border-slate-300/30 bg-black min-w-[200px]"
-                >
-                  <option value="alphabetical-asc">Alphabetical (A-Z)</option>
-                  <option value="alphabetical-desc">Alphabetical (Z-A)</option>
-                  <option value="status-asc">Status (Active First)</option>
-                  <option value="status-desc">Status (Archived First)</option>
-                  <option value="relations-asc">Relations Count (Low to High)</option>
-                  <option value="relations-desc">Relations Count (High to Low)</option>
-                  <option value="expiring-asc">Contracts Expiring Soon</option>
-                  <option value="expiring-desc">Contracts Expiring Last</option>
-                </select>
-              </div>
+          {/* Search Bar */}
+          <div className="mb-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+              <input
+                type="text"
+                placeholder="Search members..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-[#333333] focus:border-[#3F74FF] transition-colors"
+              />
             </div>
           </div>
 
-          <div className="flex flex-col space-y-4 mb-6">
-            <div className="flex gap-3">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                <input
-                  type="text"
-                  placeholder="Search members..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-[#101010] pl-10 pr-4 py-3 text-sm outline-none rounded-xl text-white placeholder-gray-500 border border-transparent"
+          {/* Filters Section - Collapsible */}
+          <div className="mb-4 sm:mb-6">
+            {/* Filters Header Row - Always visible */}
+            <div className="flex items-center justify-between mb-2">
+              {/* Filters Toggle - Clickable to expand/collapse */}
+              <button
+                onClick={() => setFiltersExpanded(!filtersExpanded)}
+                className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+              >
+                <Filter size={14} />
+                <span className="text-xs sm:text-sm font-medium">Filters</span>
+                <ChevronDown 
+                  size={14} 
+                  className={`transition-transform duration-200 ${filtersExpanded ? 'rotate-180' : ''}`} 
                 />
+                {/* Show active filter count when collapsed */}
+                {!filtersExpanded && (filterStatus !== 'all' || memberTypeFilter !== 'all') && (
+                  <span className="bg-blue-600 text-white text-[10px] px-1.5 py-0.5 rounded-full">
+                    {(filterStatus !== 'all' ? 1 : 0) + (memberTypeFilter !== 'all' ? 1 : 0)}
+                  </span>
+                )}
+              </button>
+
+              {/* Sort Controls - Desktop only, always visible */}
+              <div className="hidden md:block relative" ref={sortDropdownRef}>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowSortDropdown(!showSortDropdown);
+                  }}
+                  className="px-3 sm:px-4 py-1.5 bg-[#2F2F2F] text-gray-300 rounded-xl text-xs sm:text-sm hover:bg-[#3F3F3F] transition-colors flex items-center gap-2"
+                >
+                  {getSortIcon()}
+                  <span>{currentSortLabel}</span>
+                </button>
+
+                {/* Sort Dropdown - Desktop */}
+                {showSortDropdown && (
+                  <div className="absolute top-full right-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[180px]">
+                    <div className="py-1">
+                      <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">
+                        Sort by
+                      </div>
+                      {sortOptions.map((option) => (
+                        <button
+                          key={option.value}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSortOptionClick(option.value);
+                          }}
+                          className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${
+                            sortBy === option.value 
+                              ? 'text-white bg-gray-800/50' 
+                              : 'text-gray-300'
+                          }`}
+                        >
+                          <span>{option.label}</span>
+                          {sortBy === option.value && (
+                            <span className="text-gray-400">
+                              {sortDirection === 'asc' 
+                                ? <ArrowUp size={14} /> 
+                                : <ArrowDown size={14} />
+                              }
+                            </span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Filter Pills - Collapsible */}
+            <div className={`overflow-hidden transition-all duration-300 ${filtersExpanded ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
+              <div className="flex flex-wrap gap-1.5 sm:gap-3">
+                <button
+                  onClick={() => setFilterStatus('all')}
+                  className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${
+                    filterStatus === 'all'
+                      ? "bg-blue-600 text-white"
+                      : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                  }`}
+                >
+                  All ({members.length})
+                </button>
+                <button
+                  onClick={() => setFilterStatus('active')}
+                  className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${
+                    filterStatus === 'active'
+                      ? "bg-blue-600 text-white"
+                      : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                  }`}
+                >
+                  Active ({members.filter((m) => m.isActive && !m.isArchived).length})
+                </button>
+                <button
+                  onClick={() => setFilterStatus('paused')}
+                  className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${
+                    filterStatus === 'paused'
+                      ? "bg-blue-600 text-white"
+                      : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                  }`}
+                >
+                  Paused ({members.filter((m) => !m.isActive && !m.isArchived).length})
+                </button>
+                <button
+                  onClick={() => setFilterStatus('archived')}
+                  className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${
+                    filterStatus === 'archived'
+                      ? "bg-blue-600 text-white"
+                      : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                  }`}
+                >
+                  Archived ({members.filter((m) => m.isArchived).length})
+                </button>
+
+                {/* Member Type Pills */}
+                <div className="h-6 w-px bg-gray-700 mx-1 hidden sm:block self-center"></div>
+                <button
+                  onClick={() => setMemberTypeFilter('all')}
+                  className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${
+                    memberTypeFilter === 'all'
+                      ? "bg-orange-500 text-white"
+                      : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                  }`}
+                >
+                  All Types
+                </button>
+                <button
+                  onClick={() => setMemberTypeFilter('full')}
+                  className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${
+                    memberTypeFilter === 'full'
+                      ? "bg-orange-500 text-white"
+                      : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                  }`}
+                >
+                  Full Members
+                </button>
+                <button
+                  onClick={() => setMemberTypeFilter('temporary')}
+                  className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${
+                    memberTypeFilter === 'temporary'
+                      ? "bg-orange-500 text-white"
+                      : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                  }`}
+                >
+                  Temporary Members
+                </button>
               </div>
             </div>
           </div>
@@ -1249,66 +1595,15 @@ export default function Members() {
                         {expandedMemberId === member.id ? (
                           // Expanded compact view - shows full details
                           <div className="flex flex-col lg:flex-row lg:items-center justify-between bg-[#141414] p-4 rounded-xl hover:bg-[#1a1a1a] transition-colors gap-4 relative">
-                            {/* Note indicator */}
-                            {member.note && (
-                              <div className="absolute top-3 left-3 z-10">
-                                <div className="relative">
-                                  <div
-                                    className={`${member.noteImportance === "important" ? "bg-red-500" : "bg-blue-500"
-                                      } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      setActiveNoteIdMain(activeNoteIdMain === member.id ? null : member.id)
-                                    }}
-                                  >
-                                    {member.noteImportance === "important" ? (
-                                      <AlertTriangle size={18} className="text-white" />
-                                    ) : (
-                                      <Info size={18} className="text-white" />
-                                    )}
-                                  </div>
-                                  {activeNoteIdMain === member.id && (
-                                    <div
-                                      ref={notePopoverRefMain}
-                                      className="absolute left-6 top-4 w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-[10000000]"
-                                    >
-                                      <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
-                                        {member.noteImportance === "important" ? (
-                                          <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
-                                        ) : (
-                                          <Info className="text-blue-500 shrink-0" size={18} />
-                                        )}
-                                        <h4 className="text-white flex gap-1 items-center font-medium">
-                                          <div>Special Note</div>
-                                          <div className="text-sm text-gray-400">
-                                            {member.noteImportance === "important" ? "(Important)" : ""}
-                                          </div>
-                                        </h4>
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation()
-                                            setActiveNoteIdMain(null)
-                                          }}
-                                          className="ml-auto text-gray-400 hover:text-white"
-                                        >
-                                          <X size={16} />
-                                        </button>
-                                      </div>
-                                      <div className="p-3">
-                                        <p className="text-white text-sm leading-relaxed">{member.note}</p>
-                                        {member.noteStartDate && member.noteEndDate && (
-                                          <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
-                                            <p className="text-xs text-gray-300">
-                                              Valid from {member.noteStartDate} to {member.noteEndDate}
-                                            </p>
-                                          </div>
-                                        )}
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            )}
+                            {/* Note indicator - always visible like Leads */}
+                            <div className="absolute top-3 left-3 z-10">
+                              <MemberSpecialNoteIcon
+                                member={member}
+                                onEditMember={handleEditMember}
+                                size="md"
+                                position="relative"
+                              />
+                            </div>
 
                             <div className="flex items-center gap-4 flex-1 min-w-0 pl-4">
                               <img
@@ -1413,19 +1708,20 @@ export default function Members() {
                                 </button>
                               </div>
 
-                              <div className="grid grid-cols-2 gap-2">
+                              <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
                                 <button
                                   onClick={() => handleViewDetails(member)}
-                                  className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-3 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
+                                  className="text-gray-200 cursor-pointer bg-black rounded-lg sm:rounded-xl border border-slate-600 py-1.5 sm:py-2 px-2 sm:px-3 hover:text-white hover:border-slate-400 transition-colors text-xs sm:text-sm flex items-center justify-center gap-1 sm:gap-2"
                                 >
-                                  <Eye size={16} />
-                                  <span className="text-sm">View Details</span>
+                                  <Eye size={14} className="sm:w-4 sm:h-4" />
+                                  <span>Details</span>
                                 </button>
                                 <button
                                   onClick={() => handleEditMember(member)}
-                                  className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-3 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                                  className="text-gray-200 cursor-pointer bg-black rounded-lg sm:rounded-xl border border-slate-600 py-1.5 sm:py-2 px-2 sm:px-3 hover:text-white hover:border-slate-400 transition-colors text-xs sm:text-sm flex items-center justify-center gap-1 sm:gap-2"
                                 >
-                                  <span className="text-sm">Edit</span>
+                                  <Pencil size={14} className="sm:w-4 sm:h-4" />
+                                  <span>Edit</span>
                                 </button>
                               </div>
                             </div>
@@ -1442,6 +1738,13 @@ export default function Members() {
                           // Collapsed compact view - minimal info
                           <div className="flex items-center justify-between bg-[#141414] p-3 rounded-xl hover:bg-[#1a1a1a] transition-colors gap-3">
                             <div className="flex items-center gap-3 flex-1 min-w-0">
+                              {/* Special Note Icon */}
+                              <MemberSpecialNoteIcon
+                                member={member}
+                                onEditMember={handleEditMember}
+                                size="sm"
+                                position="relative"
+                              />
                               <img
                                 src={member.image || DefaultAvatar1}
                                 alt={member.title}
@@ -1494,66 +1797,15 @@ export default function Members() {
                         key={member.id}
                         className="bg-[#161616] rounded-xl relative p-4 sm:p-6"
                       >
-                        {/* Note indicator */}
-                        {member.note && (
-                          <div className="absolute top-3 left-3 z-10">
-                            <div className="relative">
-                              <div
-                                className={`${member.noteImportance === "important" ? "bg-red-500" : "bg-blue-500"
-                                  } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  setActiveNoteIdMain(activeNoteIdMain === member.id ? null : member.id)
-                                }}
-                              >
-                                {member.noteImportance === "important" ? (
-                                  <AlertTriangle size={18} className="text-white" />
-                                ) : (
-                                  <Info size={18} className="text-white" />
-                                )}
-                              </div>
-                              {activeNoteIdMain === member.id && (
-                                <div
-                                  ref={notePopoverRefMain}
-                                  className="absolute left-6 top-4 w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-[10000000]"
-                                >
-                                  <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
-                                    {member.noteImportance === "important" ? (
-                                      <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
-                                    ) : (
-                                      <Info className="text-blue-500 shrink-0" size={18} />
-                                    )}
-                                    <h4 className="text-white flex gap-1 items-center font-medium">
-                                      <div>Special Note</div>
-                                      <div className="text-sm text-gray-400">
-                                        {member.noteImportance === "important" ? "(Important)" : ""}
-                                      </div>
-                                    </h4>
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation()
-                                        setActiveNoteIdMain(null)
-                                      }}
-                                      className="ml-auto text-gray-400 hover:text-white"
-                                    >
-                                      <X size={16} />
-                                    </button>
-                                  </div>
-                                  <div className="p-3">
-                                    <p className="text-white text-sm leading-relaxed">{member.note}</p>
-                                    {member.noteStartDate && member.noteEndDate && (
-                                      <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
-                                        <p className="text-xs text-gray-300">
-                                          Valid from {member.noteStartDate} to {member.noteEndDate}
-                                        </p>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
+                        {/* Note indicator - always visible like Leads */}
+                        <div className="absolute top-3 left-3 z-10">
+                          <MemberSpecialNoteIcon
+                            member={member}
+                            onEditMember={handleEditMember}
+                            size="md"
+                            position="relative"
+                          />
+                        </div>
 
                         <div className="flex flex-col lg:flex-row lg:items-center gap-4 pl-4">
                           {/* Left side - Profile info */}
@@ -1662,19 +1914,20 @@ export default function Members() {
                             </div>
 
                             {/* Second row - Text buttons */}
-                            <div className="grid grid-cols-2 gap-2">
+                            <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
                               <button
                                 onClick={() => handleViewDetails(member)}
-                                className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-3 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
+                                className="text-gray-200 cursor-pointer bg-black rounded-lg sm:rounded-xl border border-slate-600 py-1.5 sm:py-2 px-2 sm:px-3 hover:text-white hover:border-slate-400 transition-colors text-xs sm:text-sm flex items-center justify-center gap-1 sm:gap-2"
                               >
-                                <Eye size={16} />
-                                <span className="text-sm">View Details</span>
+                                <Eye size={14} className="sm:w-4 sm:h-4" />
+                                <span>Details</span>
                               </button>
                               <button
                                 onClick={() => handleEditMember(member)}
-                                className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-3 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                                className="text-gray-200 cursor-pointer bg-black rounded-lg sm:rounded-xl border border-slate-600 py-1.5 sm:py-2 px-2 sm:px-3 hover:text-white hover:border-slate-400 transition-colors text-xs sm:text-sm flex items-center justify-center gap-1 sm:gap-2"
                               >
-                                <span className="text-sm">Edit</span>
+                                <Pencil size={14} className="sm:w-4 sm:h-4" />
+                                <span>Edit</span>
                               </button>
                             </div>
                           </div>
@@ -1706,27 +1959,15 @@ export default function Members() {
                         {expandedMemberId === member.id ? (
                           // Expanded view within grid
                           <div className="bg-[#141414] p-4 rounded-xl hover:bg-[#1a1a1a] transition-colors flex flex-col h-full col-span-2 md:col-span-2 lg:col-span-2 relative">
-                            {/* Note indicator */}
-                            {member.note && (
-                              <div className="absolute top-3 left-3 z-10">
-                                <div className="relative">
-                                  <div
-                                    className={`${member.noteImportance === "important" ? "bg-red-500" : "bg-blue-500"
-                                      } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      setActiveNoteIdMain(activeNoteIdMain === member.id ? null : member.id)
-                                    }}
-                                  >
-                                    {member.noteImportance === "important" ? (
-                                      <AlertTriangle size={18} className="text-white" />
-                                    ) : (
-                                      <Info size={18} className="text-white" />
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            )}
+                            {/* Note indicator - always visible like Leads */}
+                            <div className="absolute top-3 left-3 z-10">
+                              <MemberSpecialNoteIcon
+                                member={member}
+                                onEditMember={handleEditMember}
+                                size="md"
+                                position="relative"
+                              />
+                            </div>
 
                             {/* Header section */}
                             <div className="flex justify-between items-start mb-3 pl-4">
@@ -1824,19 +2065,20 @@ export default function Members() {
                                 </button>
                               </div>
 
-                              <div className="grid grid-cols-1 gap-2">
+                              <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
                                 <button
                                   onClick={() => handleViewDetails(member)}
-                                  className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-3 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2"
+                                  className="text-gray-200 cursor-pointer bg-black rounded-lg sm:rounded-xl border border-slate-600 py-1.5 sm:py-2 px-2 sm:px-3 hover:text-white hover:border-slate-400 transition-colors text-xs sm:text-sm flex items-center justify-center gap-1 sm:gap-2"
                                 >
-                                  <Eye size={16} />
-                                  <span className="text-sm">View Details</span>
+                                  <Eye size={14} className="sm:w-4 sm:h-4" />
+                                  <span>Details</span>
                                 </button>
                                 <button
                                   onClick={() => handleEditMember(member)}
-                                  className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-3 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                                  className="text-gray-200 cursor-pointer bg-black rounded-lg sm:rounded-xl border border-slate-600 py-1.5 sm:py-2 px-2 sm:px-3 hover:text-white hover:border-slate-400 transition-colors text-xs sm:text-sm flex items-center justify-center gap-1 sm:gap-2"
                                 >
-                                  <span className="text-sm">Edit</span>
+                                  <Pencil size={14} className="sm:w-4 sm:h-4" />
+                                  <span>Edit</span>
                                 </button>
                               </div>
 
@@ -1853,66 +2095,15 @@ export default function Members() {
                         ) : (
                           // Compact tile view
                           <div className="bg-[#141414] p-3 rounded-xl hover:bg-[#1a1a1a] transition-colors flex flex-col items-center justify-center gap-2 h-full relative">
-                            {/* Note indicator - positioned inside the card */}
-                            {member.note && (
-                              <div className="absolute top-2 left-2 z-10">
-                                <div className="relative">
-                                  <div
-                                    className={`${member.noteImportance === "important" ? "bg-red-500" : "bg-blue-500"
-                                      } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      setActiveNoteIdMain(activeNoteIdMain === member.id ? null : member.id)
-                                    }}
-                                  >
-                                    {member.noteImportance === "important" ? (
-                                      <AlertTriangle size={14} className="text-white" />
-                                    ) : (
-                                      <Info size={14} className="text-white" />
-                                    )}
-                                  </div>
-                                  {activeNoteIdMain === member.id && (
-                                    <div
-                                      ref={notePopoverRefMain}
-                                      className="absolute left-6 top-0 w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-[10000000]"
-                                    >
-                                      <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
-                                        {member.noteImportance === "important" ? (
-                                          <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
-                                        ) : (
-                                          <Info className="text-blue-500 shrink-0" size={18} />
-                                        )}
-                                        <h4 className="text-white flex gap-1 items-center font-medium">
-                                          <div>Special Note</div>
-                                          <div className="text-sm text-gray-400">
-                                            {member.noteImportance === "important" ? "(Important)" : "(Unimportant)"}
-                                          </div>
-                                        </h4>
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation()
-                                            setActiveNoteIdMain(null)
-                                          }}
-                                          className="ml-auto text-gray-400 hover:text-white"
-                                        >
-                                          <X size={16} />
-                                        </button>
-                                      </div>
-                                      <div className="p-3">
-                                        <p className="text-white text-sm leading-relaxed">{member.note}</p>
-                                        {member.noteStartDate && member.noteEndDate && (
-                                          <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
-                                            <p className="text-xs text-gray-300">
-                                              Valid from {member.noteStartDate} to {member.noteEndDate}
-                                            </p>
-                                          </div>
-                                        )}
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            )}
+                            {/* Note indicator - always visible like Leads */}
+                            <div className="absolute top-2 left-2 z-10">
+                              <MemberSpecialNoteIcon
+                                member={member}
+                                onEditMember={handleEditMember}
+                                size="sm"
+                                position="relative"
+                              />
+                            </div>
 
                             <div className="relative w-full flex justify-center">
                               <img
@@ -1969,66 +2160,15 @@ export default function Members() {
                         key={member.id}
                         className="bg-[#161616] rounded-xl relative p-4"
                       >
-                        {/* Note indicator */}
-                        {member.note && (
-                          <div className="absolute top-3 left-3 z-10">
-                            <div className="relative">
-                              <div
-                                className={`${member.noteImportance === "important" ? "bg-red-500" : "bg-blue-500"
-                                  } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer`}
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  setActiveNoteIdMain(activeNoteIdMain === member.id ? null : member.id)
-                                }}
-                              >
-                                {member.noteImportance === "important" ? (
-                                  <AlertTriangle size={18} className="text-white" />
-                                ) : (
-                                  <Info size={18} className="text-white" />
-                                )}
-                              </div>
-                              {activeNoteIdMain === member.id && (
-                                <div
-                                  ref={notePopoverRefMain}
-                                  className="absolute left-6 top-4 w-72 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-[10000000]"
-                                >
-                                  <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
-                                    {member.noteImportance === "important" ? (
-                                      <AlertTriangle className="text-yellow-500 shrink-0" size={18} />
-                                    ) : (
-                                      <Info className="text-blue-500 shrink-0" size={18} />
-                                    )}
-                                    <h4 className="text-white flex gap-1 items-center font-medium">
-                                      <div>Special Note</div>
-                                      <div className="text-sm text-gray-400">
-                                        {member.noteImportance === "important" ? "(Important)" : "(Unimportant)"}
-                                      </div>
-                                    </h4>
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation()
-                                        setActiveNoteIdMain(null)
-                                      }}
-                                      className="ml-auto text-gray-400 hover:text-white"
-                                    >
-                                      <X size={16} />
-                                    </button>
-                                  </div>
-                                  <div className="p-3">
-                                    <p className="text-white text-sm leading-relaxed">{member.note}</p>
-                                    {member.noteStartDate && member.noteEndDate && (
-                                      <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
-                                        <p className="text-xs text-gray-300">
-                                          Valid from {member.noteStartDate} to {member.noteEndDate}
-                                        </p>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        )}
+                        {/* Note indicator - always visible like Leads */}
+                        <div className="absolute top-3 left-3 z-10">
+                          <MemberSpecialNoteIcon
+                            member={member}
+                            onEditMember={handleEditMember}
+                            size="md"
+                            position="relative"
+                          />
+                        </div>
 
                         <div className="flex flex-col">
                           <div className="flex flex-col items-center mb-4">
@@ -2131,19 +2271,20 @@ export default function Members() {
                           </div>
 
                           {/* Second row - Text buttons */}
-                          <div className="grid grid-cols-2 gap-2 mt-2">
+                          <div className="grid grid-cols-2 gap-1.5 mt-2">
                             <button
                               onClick={() => handleViewDetails(member)}
-                              className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-1 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-1"
+                              className="text-gray-200 cursor-pointer bg-black rounded-lg border border-slate-600 py-1.5 px-1 hover:text-white hover:border-slate-400 transition-colors flex items-center justify-center gap-1"
                             >
-                              <Eye size={14} />
-                              <span className="text-xs">View Details</span>
+                              <Eye size={12} />
+                              <span className="text-xs">Details</span>
                             </button>
                             <button
                               onClick={() => handleEditMember(member)}
-                              className="text-gray-200 cursor-pointer bg-black rounded-xl border border-slate-600 py-2 px-1 hover:text-white hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
+                              className="text-gray-200 cursor-pointer bg-black rounded-lg border border-slate-600 py-1.5 px-1 hover:text-white hover:border-slate-400 transition-colors flex items-center justify-center gap-1"
                             >
-                              <span className="text-sm">Edit</span>
+                              <Pencil size={12} />
+                              <span className="text-xs">Edit</span>
                             </button>
                           </div>
                         </div>
@@ -2262,6 +2403,7 @@ export default function Members() {
         setEditModalTabMain={setEditModalTabMain}
         DefaultAvatar1={DefaultAvatar1}
         initialTab={viewDetailsInitialTab}
+        onEditMemberNote={handleEditMemberNote}
       />
       <AppointmentModalMain
         isOpen={showAppointmentModalMain}
@@ -2354,6 +2496,17 @@ export default function Members() {
         onClose={() => setShowHistoryModalMain(false)}
       />
       <NotifyMemberModalMain open={isNotifyMemberOpenMain} action={notifyActionMain} onClose={() => setIsNotifyMemberOpenMain(false)} />
+
+      {/* Member Special Note Modal */}
+      <MemberSpecialNoteModal
+        isOpen={isMemberSpecialNoteModalOpen}
+        onClose={() => {
+          setIsMemberSpecialNoteModalOpen(false)
+          setSelectedMemberForNote(null)
+        }}
+        member={selectedMemberForNote}
+        onSave={handleSaveMemberSpecialNote}
+      />
 
 
       {chatPopup.isOpen && chatPopup.member && (
@@ -2555,6 +2708,15 @@ export default function Members() {
           </div>
         </div>
       )}
+      
+      {/* Floating Action Button - Mobile Only */}
+      <button
+        onClick={() => setShowCreateTempMemberModal(true)}
+        className="md:hidden fixed bottom-4 right-4 bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
+        aria-label="Create Temporary Member"
+      >
+        <Plus size={22} />
+      </button>
     </>
   )
 }

@@ -324,3 +324,31 @@ video {
   overflow-y: auto;
   overflow-x: hidden;
 }
+
+/* Canvas scroll area styling */
+.canvas-scroll-area {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+.canvas-scroll-area::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.canvas-scroll-area::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.canvas-scroll-area::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
+.canvas-scroll-area::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.canvas-scroll-area::-webkit-scrollbar-corner {
+  background: transparent;
+}

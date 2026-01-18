@@ -115,21 +115,10 @@ const DesignCard = ({
         <Eye size={14} />
       </button>
 
-      {/* Fixed-size Preview Container - Larger size with transparency checkerboard */}
+      {/* Fixed-size Preview Container - Solid gray background like drafts */}
       <div 
-        className="relative w-full h-[180px] flex items-center justify-center overflow-hidden"
+        className="relative w-full h-[180px] bg-[#2a2a2a] flex items-center justify-center overflow-hidden"
         onDragStart={(e) => e.preventDefault()}
-        style={{
-          backgroundImage: `
-            linear-gradient(45deg, #3a3a3a 25%, transparent 25%),
-            linear-gradient(-45deg, #3a3a3a 25%, transparent 25%),
-            linear-gradient(45deg, transparent 75%, #3a3a3a 75%),
-            linear-gradient(-45deg, transparent 75%, #3a3a3a 75%)
-          `,
-          backgroundSize: '16px 16px',
-          backgroundPosition: '0 0, 0 8px, 8px -8px, -8px 0px',
-          backgroundColor: '#2a2a2a'
-        }}
       >
         {design.thumbnail && design.thumbnail !== 'data:,' ? (
           <img 

@@ -46,10 +46,8 @@ export const deepClone = (obj) => {
  * Apply personalization to template elements
  * @param {Array} elements - Template elements to personalize
  * @param {Object} personalization - Personalization options
- * @param {string} personalization.primaryColor - Primary accent color
- * @param {string} personalization.secondaryColor - Secondary/background color
- * @param {string} personalization.titleText - Text to replace in title elements
- * @param {string} personalization.subtitleText - Text to replace in subtitle elements
+ * @param {string} personalization.primaryColor - Background color
+ * @param {string} personalization.secondaryColor - Accent color
  * @returns {Array} - Personalized elements
  */
 export const applyPersonalization = (elements, personalization) => {
@@ -57,78 +55,52 @@ export const applyPersonalization = (elements, personalization) => {
     return elements;
   }
 
-  const { primaryColor, secondaryColor, titleText, subtitleText } = personalization;
-  
-  // Track if we've already replaced title and subtitle
-  let titleReplaced = false;
-  let subtitleReplaced = false;
+  const { primaryColor, secondaryColor, textColor } = personalization;
   
   return elements.map(element => {
     const newElement = { ...element };
     
-    // Apply to background elements - use secondary color
-    if (element.isBackground && secondaryColor) {
+    // Apply to background elements - use PRIMARY color (background)
+    if (element.isBackground && primaryColor) {
       if (element.type === 'shape') {
-        newElement.color = secondaryColor;
+        newElement.color = primaryColor;
       } else if (element.type === 'gradient') {
-        // For gradient backgrounds, create gradient from secondary to a darker version
-        newElement.gradientColors = [secondaryColor, adjustBrightness(secondaryColor, -20)];
+        // For gradient backgrounds, create gradient from primary to a darker version
+        newElement.gradientColors = [primaryColor, adjustBrightness(primaryColor, -20)];
       }
       return newElement;
     }
     
-    // Apply colors to shapes (non-background) - use primary color
+    // Apply colors to shapes (non-background) - use SECONDARY color (accent)
     if (element.type === 'shape' && !element.isBackground) {
-      if (primaryColor) {
-        newElement.color = primaryColor;
+      if (secondaryColor) {
+        newElement.color = secondaryColor;
       }
     }
     
     // Apply colors to gradients (non-background)
     if (element.type === 'gradient' && !element.isBackground) {
-      if (primaryColor && secondaryColor) {
-        newElement.gradientColors = [primaryColor, secondaryColor];
-      } else if (primaryColor) {
-        newElement.gradientColors = [primaryColor, adjustBrightness(primaryColor, -30)];
+      if (secondaryColor && primaryColor) {
+        newElement.gradientColors = [secondaryColor, adjustBrightness(secondaryColor, -30)];
+      } else if (secondaryColor) {
+        newElement.gradientColors = [secondaryColor, adjustBrightness(secondaryColor, -30)];
       }
     }
     
-    // Apply colors to lines and dividers
-    if ((element.type === 'line' || element.type === 'divider') && primaryColor) {
-      newElement.color = primaryColor;
+    // Apply colors to lines and dividers - use SECONDARY color (accent)
+    if ((element.type === 'line' || element.type === 'divider') && secondaryColor) {
+      newElement.color = secondaryColor;
     }
     
-    // Apply text changes
+    // Apply text color from personalization
     if (element.type === 'text') {
-      // Determine if this is a title (larger text) or subtitle (smaller text)
-      const isTitle = (element.size || 24) >= 48;
-      const isSubtitle = (element.size || 24) < 48 && (element.size || 24) >= 16;
-      
-      // Apply text content if provided - only replace FIRST occurrence
-      if (isTitle && titleText && !titleReplaced) {
-        newElement.content = titleText;
-        titleReplaced = true;
-      } else if (isSubtitle && subtitleText && !subtitleReplaced) {
-        newElement.content = subtitleText;
-        subtitleReplaced = true;
-      }
-      
-      // Apply colors based on background
-      // If text is on a light background, use dark color
-      // If text is on a dark background, use light color or primary
-      if (secondaryColor) {
-        const isLightBg = isLightColor(secondaryColor);
-        if (isLightBg) {
-          // Light background - use dark text
-          newElement.color = '#1A1A1A';
-        } else {
-          // Dark background - headlines white, accent text uses primary
-          if (isTitle) {
-            newElement.color = '#FFFFFF';
-          } else if (primaryColor) {
-            newElement.color = primaryColor;
-          }
-        }
+      if (textColor) {
+        // Use the user-specified text color
+        newElement.color = textColor;
+      } else if (primaryColor) {
+        // Fallback: determine text color based on background brightness
+        const isLightBg = isLightColor(primaryColor);
+        newElement.color = isLightBg ? '#1A1A1A' : '#FFFFFF';
       }
     }
     
@@ -140,7 +112,9 @@ export const applyPersonalization = (elements, personalization) => {
  * Check if a color is light or dark
  */
 export const isLightColor = (color) => {
+  if (!color || typeof color !== 'string') return false;
   const hex = color.replace('#', '');
+  if (hex.length !== 6) return false;
   const r = parseInt(hex.substr(0, 2), 16);
   const g = parseInt(hex.substr(2, 2), 16);
   const b = parseInt(hex.substr(4, 2), 16);
@@ -155,7 +129,9 @@ export const isLightColor = (color) => {
  * @returns {string} - Adjusted hex color
  */
 export const adjustBrightness = (color, amount) => {
+  if (!color || typeof color !== 'string') return '#000000';
   const hex = color.replace('#', '');
+  if (hex.length !== 6) return color;
   const r = Math.max(0, Math.min(255, parseInt(hex.substr(0, 2), 16) + amount));
   const g = Math.max(0, Math.min(255, parseInt(hex.substr(2, 2), 16) + amount));
   const b = Math.max(0, Math.min(255, parseInt(hex.substr(4, 2), 16) + amount));
@@ -259,6 +235,7 @@ const drawElements = (ctx, elements, targetWidth, targetHeight) => {
 const drawElementsWithImages = (ctx, elements, targetWidth, targetHeight, loadedImages) => {
   elements.forEach(element => {
     if (element.type === 'image' && loadedImages[element.id]) {
+      const img = loadedImages[element.id];
       const x = element.x;
       const y = element.y;
       const width = element.width;
@@ -272,7 +249,29 @@ const drawElementsWithImages = (ctx, elements, targetWidth, targetHeight, loaded
         if (element.opacity !== undefined) {
           ctx.globalAlpha = element.opacity;
         }
-        ctx.drawImage(loadedImages[element.id], x, y, width, height);
+        
+        // Check if image has crop applied
+        if (element.cropWidth && element.cropHeight) {
+          // Crop coordinates are in element-space, convert to image-space
+          const elementToImageScaleX = img.naturalWidth / element.width;
+          const elementToImageScaleY = img.naturalHeight / element.height;
+          
+          const srcX = element.cropX * elementToImageScaleX;
+          const srcY = element.cropY * elementToImageScaleY;
+          const srcWidth = element.cropWidth * elementToImageScaleX;
+          const srcHeight = element.cropHeight * elementToImageScaleY;
+          
+          // Draw only the cropped portion to fill the element area
+          ctx.drawImage(
+            img,
+            srcX, srcY, srcWidth, srcHeight,  // Source rectangle (in image coordinates)
+            x, y, width, height                // Destination rectangle (on canvas)
+          );
+        } else {
+          // Normal draw without crop
+          ctx.drawImage(img, x, y, width, height);
+        }
+        
         ctx.restore();
       } catch (e) {
         console.warn("Could not draw image:", e);

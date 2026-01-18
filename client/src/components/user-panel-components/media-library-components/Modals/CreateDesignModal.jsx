@@ -1,18 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, Folder as FolderIcon, ChevronDown, ChevronUp, Palette, Type } from 'lucide-react';
+import { Sparkles, Folder as FolderIcon, ChevronDown, Palette } from 'lucide-react';
 import Modal from './Modal';
-
-// Color presets - Default: orange-500 primary, blue-600 secondary
-const colorPresets = [
-  { id: 'default', name: 'Default', primary: '#F97316', secondary: '#2563EB' },
-  { id: 'sunset', name: 'Sunset', primary: '#FF6B6B', secondary: '#1A1A2E' },
-  { id: 'ocean', name: 'Ocean', primary: '#00D9FF', secondary: '#0D0D0D' },
-  { id: 'forest', name: 'Forest', primary: '#10B981', secondary: '#064E3B' },
-  { id: 'royal', name: 'Royal', primary: '#8B5CF6', secondary: '#1E1B4B' },
-  { id: 'energy', name: 'Energy', primary: '#F59E0B', secondary: '#292524' },
-  { id: 'berry', name: 'Berry', primary: '#EC4899', secondary: '#1C1C1C' },
-  { id: 'mono', name: 'Mono', primary: '#000000', secondary: '#FFFFFF' },
-];
 
 const CreateDesignModal = ({ 
   isOpen, 
@@ -25,13 +13,10 @@ const CreateDesignModal = ({
   const [selectedFolderId, setSelectedFolderId] = useState(defaultFolderId);
   const [showFolderDropdown, setShowFolderDropdown] = useState(false);
   
-  // Personalization state
-  const [showPersonalization, setShowPersonalization] = useState(false);
-  const [primaryColor, setPrimaryColor] = useState('#F97316');
-  const [secondaryColor, setSecondaryColor] = useState('#2563EB');
-  const [titleText, setTitleText] = useState('');
-  const [subtitleText, setSubtitleText] = useState('');
-  const [selectedPreset, setSelectedPreset] = useState('default');
+  // Color state
+  const [primaryColor, setPrimaryColor] = useState('#1A1A2E');
+  const [secondaryColor, setSecondaryColor] = useState('#F97316');
+  const [textColor, setTextColor] = useState('#FFFFFF');
 
   // Reset when modal opens
   useEffect(() => {
@@ -40,32 +25,21 @@ const CreateDesignModal = ({
       const defaultFolder = folders.find(f => f.isDefault) || folders[0];
       setSelectedFolderId(defaultFolderId || defaultFolder?.id || null);
       setShowFolderDropdown(false);
-      setShowPersonalization(false);
-      setPrimaryColor('#F97316');
-      setSecondaryColor('#2563EB');
-      setTitleText('');
-      setSubtitleText('');
-      setSelectedPreset('default');
+      setPrimaryColor('#1A1A2E');
+      setSecondaryColor('#F97316');
+      setTextColor('#FFFFFF');
     }
   }, [isOpen, folders, defaultFolderId]);
-
-  const handlePresetSelect = (preset) => {
-    setSelectedPreset(preset.id);
-    setPrimaryColor(preset.primary);
-    setSecondaryColor(preset.secondary);
-  };
 
   const handleSubmit = (e) => {
     e?.preventDefault();
     const finalName = designName.trim() || 'Untitled Design';
     
-    // Pass personalization data when section was expanded
-    const personalization = showPersonalization ? {
+    const personalization = {
       primaryColor,
       secondaryColor,
-      titleText: titleText.trim(),
-      subtitleText: subtitleText.trim()
-    } : null;
+      textColor
+    };
     
     onCreateDesign(finalName, selectedFolderId, personalization);
     setDesignName('');
@@ -84,11 +58,10 @@ const CreateDesignModal = ({
       isOpen={isOpen}
       onClose={onClose}
       title="Create New Design"
-      subtitle="Name your design and customize"
+      subtitle="Name your design and choose colors"
       size="sm"
     >
-      {/* Scrollable content */}
-      <div className="max-h-[60vh] overflow-y-auto overflow-x-hidden space-y-3 pr-1">
+      <div className="space-y-3">
         {/* Design Name */}
         <div>
           <label className="block text-xs font-medium text-gray-300 mb-1">Design Name</label>
@@ -163,129 +136,74 @@ const CreateDesignModal = ({
           </div>
         )}
 
-        {/* Personalization Section */}
+        {/* Color Theme Section - Always visible */}
         <div className="border border-[#333] rounded-lg overflow-hidden">
-          <button
-            type="button"
-            onClick={() => setShowPersonalization(!showPersonalization)}
-            className="w-full flex items-center justify-between p-2.5 hover:bg-[#1a1a1a] transition-colors"
-          >
-            <div className="flex items-center gap-2">
-              <Palette size={14} className="text-orange-500" />
-              <span className="text-sm font-medium text-white">Personalize Template</span>
-            </div>
-            {showPersonalization ? <ChevronUp size={14} className="text-gray-400" /> : <ChevronDown size={14} className="text-gray-400" />}
-          </button>
+          <div className="flex items-center gap-2 p-2.5 border-b border-[#333] bg-[#1a1a1a]/50">
+            <Palette size={14} className="text-orange-500" />
+            <span className="text-sm font-medium text-white">Color Theme</span>
+          </div>
 
-          {showPersonalization && (
-            <div className="p-2.5 pt-0 space-y-2.5 border-t border-[#333]">
-              {/* Color Presets */}
-              <div className="pt-2">
-                <label className="block text-[10px] text-gray-400 mb-1.5 uppercase">Quick Presets</label>
-                <div className="grid grid-cols-4 gap-1">
-                  {colorPresets.map((preset) => (
-                    <button
-                      key={preset.id}
-                      type="button"
-                      onClick={() => handlePresetSelect(preset)}
-                      className={`p-1 rounded border transition-all ${
-                        selectedPreset === preset.id 
-                          ? 'border-orange-500 bg-orange-500/10' 
-                          : 'border-transparent hover:border-[#444] bg-[#1a1a1a]'
-                      }`}
-                    >
-                      <div className="flex h-4 rounded overflow-hidden">
-                        <div className="flex-1" style={{ backgroundColor: preset.primary }} />
-                        <div className="flex-1" style={{ backgroundColor: preset.secondary }} />
-                      </div>
-                      <span className="text-[8px] text-gray-400 mt-0.5 block truncate text-center">{preset.name}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Custom Colors - Stacked vertically for responsive */}
-              <div className="space-y-2">
-                <div>
-                  <label className="block text-[10px] text-gray-400 mb-1 uppercase">Primary Color</label>
-                  <div className="flex items-center gap-2 bg-[#0a0a0a] rounded p-1.5">
-                    <input
-                      type="color"
-                      value={primaryColor}
-                      onChange={(e) => { setPrimaryColor(e.target.value); setSelectedPreset(null); }}
-                      className="w-6 h-6 rounded cursor-pointer border-0 bg-transparent flex-shrink-0"
-                    />
-                    <input
-                      type="text"
-                      value={primaryColor}
-                      onChange={(e) => { setPrimaryColor(e.target.value); setSelectedPreset(null); }}
-                      className="flex-1 min-w-0 bg-transparent text-white text-xs font-mono uppercase focus:outline-none"
-                      maxLength={7}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-[10px] text-gray-400 mb-1 uppercase">Secondary Color</label>
-                  <div className="flex items-center gap-2 bg-[#0a0a0a] rounded p-1.5">
-                    <input
-                      type="color"
-                      value={secondaryColor}
-                      onChange={(e) => { setSecondaryColor(e.target.value); setSelectedPreset(null); }}
-                      className="w-6 h-6 rounded cursor-pointer border-0 bg-transparent flex-shrink-0"
-                    />
-                    <input
-                      type="text"
-                      value={secondaryColor}
-                      onChange={(e) => { setSecondaryColor(e.target.value); setSelectedPreset(null); }}
-                      className="flex-1 min-w-0 bg-transparent text-white text-xs font-mono uppercase focus:outline-none"
-                      maxLength={7}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Preview */}
-              <div className="flex items-center gap-2 p-1.5 bg-[#0a0a0a] rounded">
-                <span className="text-[9px] text-gray-500 flex-shrink-0">Preview:</span>
-                <div 
-                  className="flex-1 h-4 rounded"
-                  style={{ background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)` }}
+          <div className="p-2.5 space-y-2">
+            {/* Background Color */}
+            <div>
+              <label className="block text-[10px] text-gray-400 mb-1 uppercase">Background</label>
+              <div className="flex items-center gap-2 bg-[#0a0a0a] rounded p-1.5">
+                <input
+                  type="color"
+                  value={primaryColor}
+                  onChange={(e) => setPrimaryColor(e.target.value)}
+                  className="w-6 h-6 rounded cursor-pointer border-0 bg-transparent flex-shrink-0"
+                />
+                <input
+                  type="text"
+                  value={primaryColor}
+                  onChange={(e) => setPrimaryColor(e.target.value)}
+                  className="flex-1 min-w-0 bg-transparent text-white text-xs font-mono uppercase focus:outline-none"
+                  maxLength={7}
                 />
               </div>
-
-              {/* Text Inputs */}
-              <div className="space-y-2">
-                <div>
-                  <label className="flex items-center gap-1 text-[10px] text-gray-400 mb-1 uppercase">
-                    <Type size={9} /> Title
-                  </label>
-                  <input
-                    type="text"
-                    value={titleText}
-                    onChange={(e) => setTitleText(e.target.value)}
-                    className="w-full bg-[#0a0a0a] border border-[#333] rounded py-1.5 px-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-orange-500"
-                    placeholder="Your headline..."
-                  />
-                </div>
-                <div>
-                  <label className="flex items-center gap-1 text-[10px] text-gray-400 mb-1 uppercase">
-                    <Type size={9} /> Subtitle
-                  </label>
-                  <input
-                    type="text"
-                    value={subtitleText}
-                    onChange={(e) => setSubtitleText(e.target.value)}
-                    className="w-full bg-[#0a0a0a] border border-[#333] rounded py-1.5 px-2 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-orange-500"
-                    placeholder="Your tagline..."
-                  />
-                </div>
-              </div>
-
-              <p className="text-[9px] text-gray-500 text-center">
-                Colors & text will be applied to your template
-              </p>
             </div>
-          )}
+
+            {/* Accent Color */}
+            <div>
+              <label className="block text-[10px] text-gray-400 mb-1 uppercase">Accent</label>
+              <div className="flex items-center gap-2 bg-[#0a0a0a] rounded p-1.5">
+                <input
+                  type="color"
+                  value={secondaryColor}
+                  onChange={(e) => setSecondaryColor(e.target.value)}
+                  className="w-6 h-6 rounded cursor-pointer border-0 bg-transparent flex-shrink-0"
+                />
+                <input
+                  type="text"
+                  value={secondaryColor}
+                  onChange={(e) => setSecondaryColor(e.target.value)}
+                  className="flex-1 min-w-0 bg-transparent text-white text-xs font-mono uppercase focus:outline-none"
+                  maxLength={7}
+                />
+              </div>
+            </div>
+
+            {/* Text Color */}
+            <div>
+              <label className="block text-[10px] text-gray-400 mb-1 uppercase">Text</label>
+              <div className="flex items-center gap-2 bg-[#0a0a0a] rounded p-1.5">
+                <input
+                  type="color"
+                  value={textColor}
+                  onChange={(e) => setTextColor(e.target.value)}
+                  className="w-6 h-6 rounded cursor-pointer border-0 bg-transparent flex-shrink-0"
+                />
+                <input
+                  type="text"
+                  value={textColor}
+                  onChange={(e) => setTextColor(e.target.value)}
+                  className="flex-1 min-w-0 bg-transparent text-white text-xs font-mono uppercase focus:outline-none"
+                  maxLength={7}
+                />
+              </div>
+            </div>
+          </div>
         </div>
         
         {/* Continue Button */}
@@ -296,10 +214,6 @@ const CreateDesignModal = ({
           <Sparkles size={16} />
           Choose Template
         </button>
-        
-        <p className="text-center text-gray-500 text-[10px]">
-          You'll choose a template or start blank next
-        </p>
       </div>
     </Modal>
   );

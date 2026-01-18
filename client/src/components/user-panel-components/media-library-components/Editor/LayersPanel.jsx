@@ -127,9 +127,9 @@ const LayersPanel = ({
               <div className="absolute top-full right-0 mt-2 bg-[#1C1C1C] border border-[#333333] rounded-xl p-3 shadow-xl z-50 w-48">
                 <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-2 font-medium">Tips</p>
                 <div className="text-[11px] text-gray-300 space-y-1.5">
-                  <p>• Drag layers to reorder</p>
-                  <p>• Click eye to hide/show</p>
-                  <p>• Lock to prevent edits</p>
+                  <p>- Drag layers to reorder</p>
+                  <p>- Click eye to hide/show</p>
+                  <p>- Lock to prevent edits</p>
                 </div>
                 {/* Tooltip arrow */}
                 <div className="absolute -top-1 right-4 w-2 h-2 bg-[#1C1C1C] border-l border-t border-[#333333] transform rotate-45" />

@@ -343,7 +343,7 @@ const EditorToolbar = ({
                 {style.id === 'dashed' && <div className="w-full h-0.5 bg-gray-400" style={{ backgroundImage: 'repeating-linear-gradient(90deg, currentColor, currentColor 4px, transparent 4px, transparent 8px)' }} />}
                 {style.id === 'dotted' && <div className="w-full h-0.5" style={{ backgroundImage: 'repeating-linear-gradient(90deg, #9ca3af, #9ca3af 2px, transparent 2px, transparent 6px)' }} />}
                 {style.id === 'arrow' && <ArrowRight size={14} className="text-gray-400" />}
-                {style.id === 'double-arrow' && <div className="flex items-center text-gray-400 text-[10px]">←→</div>}
+                {style.id === 'double-arrow' && <div className="flex items-center text-gray-400 text-[10px]">&lt;-&gt;</div>}
               </div>
               <span className="text-xs text-gray-300">{style.name}</span>
             </button>

@@ -1,11 +1,22 @@
-
+/* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { X, Info, Trash2 } from "lucide-react"
-import Avatar from "../../../../public/gray-avatar-fotor-20250912192528.png"
-import { toast } from "react-hot-toast"
-import { useState } from "react"
+import { Trash2, X, Search, Plus, ChevronDown, ChevronUp, Pencil, Info } from "lucide-react"
+import { useEffect, useState, useRef } from "react"
+import toast from "react-hot-toast"
 import useCountries from "../../../hooks/useCountries"
+import DefaultAvatar from "../../../../public/gray-avatar-fotor-20250912192528.png"
 
+// Note Status Options
+const NOTE_STATUSES = [
+  { id: "contact_attempt", label: "Contact Attempt" },
+  { id: "callback_requested", label: "Callback Requested" },
+  { id: "interest", label: "Interest" },
+  { id: "objection", label: "Objection" },
+  { id: "personal_info", label: "Personal Info" },
+  { id: "health", label: "Health" },
+  { id: "follow_up", label: "Follow-up" },
+  { id: "general", label: "General" },
+]
 
 const CreateTempMemberModal = ({
   show,
@@ -22,16 +33,264 @@ const CreateTempMemberModal = ({
   newRelationMain,
   setNewRelationMain,
   availableMembersLeadsMain,
-  relationOptionsMain,
+  relationOptionsMain = {
+    family: ["Father", "Mother", "Brother", "Sister", "Son", "Daughter", "Uncle", "Aunt", "Cousin", "Grandfather", "Grandmother", "Nephew", "Niece", "Stepfather", "Stepmother", "Father-in-law", "Mother-in-law", "Brother-in-law", "Sister-in-law"],
+    friendship: ["Best Friend", "Close Friend", "Friend", "Acquaintance", "Childhood Friend"],
+    relationship: ["Partner", "Spouse", "Fiancé/Fiancée", "Ex-Partner", "Boyfriend", "Girlfriend"],
+    work: ["Colleague", "Boss", "Manager", "Employee", "Business Partner", "Client", "Mentor", "Cofounder"],
+    other: ["Neighbor", "Doctor", "Trainer", "Coach", "Teacher", "Therapist", "Roommate"],
+  },
 }) => {
-  const [countryInput, setCountryInput] = useState(tempMemberForm.country || "")
+  const [activeTab, setActiveTab] = useState(tempMemberModalTab || "details")
+  const [editingRelations, setEditingRelations] = useState(false)
+  const { countries, loading } = useCountries()
+  const specialNoteTextareaRef = useRef(null)
 
-  const { countries, loading } = useCountries();
+  // Calculate default auto-archive date (6 weeks from now)
+  const getDefaultAutoArchiveDate = () => {
+    const date = new Date()
+    date.setDate(date.getDate() + 42) // 6 weeks = 42 days
+    return date.toISOString().split('T')[0]
+  }
 
-  const handleCountryChange = (e) => {
-    const value = e.target.value
-    setCountryInput(value)
-    handleTempMemberInputChange({ target: { name: "country", value } })
+  // Set default auto-archive date when modal opens
+  useEffect(() => {
+    if (show && !tempMemberForm.autoArchiveDate) {
+      handleTempMemberInputChange({ target: { name: "autoArchiveDate", value: getDefaultAutoArchiveDate() } })
+    }
+  }, [show])
+
+  // Local copy of notes for editing
+  const [localNotes, setLocalNotes] = useState([])
+  const [isAddingNote, setIsAddingNote] = useState(false)
+  const [editingNoteId, setEditingNoteId] = useState(null)
+  const [expandedNoteId, setExpandedNoteId] = useState(null)
+  const [newNote, setNewNote] = useState({
+    status: "general",
+    text: "",
+    isImportant: false,
+    startDate: "",
+    endDate: "",
+  })
+
+  // Local copy of relations for editing
+  const [localRelations, setLocalRelations] = useState({
+    family: [],
+    friendship: [],
+    relationship: [],
+    work: [],
+    other: [],
+  })
+
+  const [newRelation, setNewRelation] = useState({
+    name: "",
+    relation: "",
+    customRelation: "",
+    category: "family",
+    type: "manual",
+    selectedMemberId: null,
+  })
+
+  // Search state for member/lead search
+  const [personSearchQuery, setPersonSearchQuery] = useState("")
+  const [showPersonDropdown, setShowPersonDropdown] = useState(false)
+  const personSearchRef = useRef(null)
+
+  // Default available members/leads if not provided
+  const defaultAvailableMembers = [
+    { id: 101, name: "Anna Doe", type: "member" },
+    { id: 102, name: "Peter Doe", type: "lead" },
+    { id: 103, name: "Lisa Doe", type: "member" },
+    { id: 201, name: "Max Miller", type: "member" },
+    { id: 301, name: "Marie Smith", type: "member" },
+    { id: 401, name: "Tom Wilson", type: "lead" },
+  ]
+
+  const membersLeads = availableMembersLeadsMain?.length > 0 ? availableMembersLeadsMain : defaultAvailableMembers
+
+  useEffect(() => {
+    if (show) {
+      setActiveTab(tempMemberModalTab || "details")
+      // Reset local states when modal opens
+      setLocalNotes(tempMemberForm.notes || [])
+      setLocalRelations(tempMemberForm.relations || {
+        family: [],
+        friendship: [],
+        relationship: [],
+        work: [],
+        other: [],
+      })
+    }
+  }, [tempMemberModalTab, show, tempMemberForm.notes, tempMemberForm.relations])
+
+  // Auto-focus special note textarea when note tab is active
+  useEffect(() => {
+    if (show && activeTab === "note" && specialNoteTextareaRef.current) {
+      setTimeout(() => {
+        specialNoteTextareaRef.current?.focus()
+      }, 100)
+    }
+  }, [show, activeTab])
+
+  // Close person dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (personSearchRef.current && !personSearchRef.current.contains(event.target)) {
+        setShowPersonDropdown(false)
+      }
+    }
+
+    if (showPersonDropdown) {
+      document.addEventListener("mousedown", handleClickOutside)
+      return () => document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [showPersonDropdown])
+
+  // Note functions
+  const handleAddNote = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    if (!newNote.text.trim()) {
+      toast.error("Please enter note text")
+      return
+    }
+
+    const note = {
+      id: Date.now(),
+      status: newNote.status,
+      text: newNote.text.trim(),
+      isImportant: newNote.isImportant,
+      startDate: newNote.startDate || "",
+      endDate: newNote.endDate || "",
+      createdAt: new Date().toISOString(),
+    }
+
+    setLocalNotes((prev) => [note, ...prev])
+    setNewNote({
+      status: "general",
+      text: "",
+      isImportant: false,
+      startDate: "",
+      endDate: "",
+    })
+    setIsAddingNote(false)
+    toast.success("Note added")
+  }
+
+  const handleDeleteNote = (noteId, e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setLocalNotes((prev) => prev.filter((n) => n.id !== noteId))
+    toast.success("Note removed")
+  }
+
+  const handleEditNoteClick = (note, e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setEditingNoteId(note.id)
+    setNewNote({
+      status: note.status,
+      text: note.text,
+      isImportant: note.isImportant,
+      startDate: note.startDate || "",
+      endDate: note.endDate || "",
+    })
+    setIsAddingNote(true)
+  }
+
+  const handleUpdateNote = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    if (!newNote.text.trim()) {
+      toast.error("Please enter note text")
+      return
+    }
+
+    setLocalNotes((prev) =>
+      prev.map((n) =>
+        n.id === editingNoteId
+          ? {
+              ...n,
+              status: newNote.status,
+              text: newNote.text.trim(),
+              isImportant: newNote.isImportant,
+              startDate: newNote.startDate || "",
+              endDate: newNote.endDate || "",
+            }
+          : n
+      )
+    )
+
+    setNewNote({
+      status: "general",
+      text: "",
+      isImportant: false,
+      startDate: "",
+      endDate: "",
+    })
+    setEditingNoteId(null)
+    setIsAddingNote(false)
+    toast.success("Note updated")
+  }
+
+  const getStatusInfo = (statusId) => {
+    return NOTE_STATUSES.find((s) => s.id === statusId) || NOTE_STATUSES.find((s) => s.id === "general")
+  }
+
+  // Relation functions
+  const handleAddRelation = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    const finalRelation = newRelation.relation === "custom" ? newRelation.customRelation : newRelation.relation
+
+    if (!newRelation.name || !finalRelation) {
+      toast.error("Please fill in all fields")
+      return
+    }
+
+    const relationId = Date.now()
+
+    setLocalRelations((prev) => {
+      const updated = { ...prev }
+      if (!updated[newRelation.category]) {
+        updated[newRelation.category] = []
+      }
+      updated[newRelation.category] = [
+        ...updated[newRelation.category],
+        {
+          id: relationId,
+          name: newRelation.name,
+          relation: finalRelation,
+          type: newRelation.type,
+        },
+      ]
+      return updated
+    })
+
+    setNewRelation({
+      name: "",
+      relation: "",
+      customRelation: "",
+      category: "family",
+      type: "manual",
+      selectedMemberId: null,
+    })
+    setPersonSearchQuery("")
+    toast.success("Relation added")
+  }
+
+  const handleDeleteRelation = (category, relationId, e) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    setLocalRelations((prev) => ({
+      ...prev,
+      [category]: prev[category].filter((rel) => rel.id !== relationId),
+    }))
+    toast.success("Relation removed")
   }
 
   const handleFormSubmit = (e) => {
@@ -40,557 +299,809 @@ const CreateTempMemberModal = ({
     // Validate required fields from details section
     if (!tempMemberForm.firstName || !tempMemberForm.firstName.trim()) {
       toast.error("First Name is required")
-      setTempMemberModalTab("details")
+      setActiveTab("details")
       return
     }
 
     if (!tempMemberForm.lastName || !tempMemberForm.lastName.trim()) {
       toast.error("Last Name is required")
-      setTempMemberModalTab("details")
+      setActiveTab("details")
       return
     }
 
     if (!tempMemberForm.email || !tempMemberForm.email.trim()) {
       toast.error("Email is required")
-      setTempMemberModalTab("details")
+      setActiveTab("details")
       return
     }
 
-    if (!tempMemberForm.phone || !tempMemberForm.phone.trim()) {
-      toast.error("Phone is required")
-      setTempMemberModalTab("details")
-      return
-    }
+    // Build notes for the form
+    const importantNote = localNotes.find((n) => n.isImportant)
+    const firstNote = localNotes[0]
+    const primaryNote = importantNote || firstNote
 
-    // If validation passes, proceed with creation
-    handleCreateTempMember(e)
+    // Update form with notes data
+    setTempMemberForm((prev) => ({
+      ...prev,
+      notes: localNotes,
+      note: primaryNote ? primaryNote.text : "",
+      noteImportance: primaryNote?.isImportant ? "important" : "unimportant",
+      noteStartDate: primaryNote?.startDate || "",
+      noteEndDate: primaryNote?.endDate || "",
+      relations: localRelations,
+    }))
+
+    // Call the create handler
+    handleCreateTempMember(e, localRelations, localNotes)
+  }
+
+  // Handle tab clicks
+  const handleTabClick = (tabName, e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setActiveTab(tabName)
+    setTempMemberModalTab(tabName)
+  }
+
+  // Handle close button click
+  const handleCloseClick = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    onClose()
+  }
+
+  // Image upload handler
+  const handleImageUpload = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0]
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        handleTempMemberInputChange({ target: { name: "img", value: reader.result } })
+        toast.success("Avatar selected successfully")
+      }
+      reader.readAsDataURL(file)
+    }
   }
 
   if (!show) return null
 
   return (
-    <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000] overflow-y-auto">
-      <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md my-8 relative">
-        <div className="p-6">
-          {/* Header */}
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-white open_sans_font_700 text-lg font-semibold">Create Temporary Member</h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-white">
-              <X size={20} className="cursor-pointer" />
-            </button>
-          </div>
+    <div className="fixed inset-0 bg-black/50 flex p-2 justify-center items-center z-50 overflow-y-auto">
+      <div className="bg-[#1C1C1C] p-6 rounded-xl w-full max-w-md my-8">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl text-white font-bold">Create Temporary Member</h2>
+          <button onClick={handleCloseClick} className="text-gray-400 hover:text-white">
+            <X size={24} />
+          </button>
+        </div>
 
-          {/* Info Box */}
-          <div className="bg-yellow-900/20 border border-yellow-600/30 rounded-xl p-4 mb-6">
-            <div className="flex items-start gap-3">
-              <Info className="text-yellow-500 " size={50} />
-              <div>
-                <p className="text-yellow-200 text-sm font-medium mb-1">Temporary Member Information</p>
-                <p className="text-yellow-300/80 text-xs">
-                  Temporary members are members without a contract and are not included in payment runs. They will be
-                  automatically archived after the specified period.
-                </p>
-              </div>
+        {/* Info Box */}
+        <div className="bg-yellow-900/20 border border-yellow-600/30 rounded-xl p-4 mb-6">
+          <div className="flex items-start gap-3">
+            <Info className="text-yellow-500 flex-shrink-0" size={24} />
+            <div>
+              <p className="text-yellow-200 text-sm font-medium mb-1">Temporary Member Information</p>
+              <p className="text-yellow-300/80 text-xs">
+                Temporary members are members without a contract and are not included in payment runs. They will be
+                automatically archived after the specified period.
+              </p>
             </div>
           </div>
+        </div>
 
-          {/* Tabs */}
-          <div className="flex border-b border-gray-700 mb-6">
-            <button
-              onClick={() => setTempMemberModalTab("details")}
-              className={`px-4 py-2 text-sm font-medium ${
-                tempMemberModalTab === "details"
-                  ? "text-blue-400 border-b-2 border-blue-400"
-                  : "text-gray-400 hover:text-white"
-              }`}
-            >
-              Details
-            </button>
-            <button
-              onClick={() => setTempMemberModalTab("note")}
-              className={`px-4 py-2 text-sm font-medium ${
-                tempMemberModalTab === "note"
-                  ? "text-blue-400 border-b-2 border-blue-400"
-                  : "text-gray-400 hover:text-white"
-              }`}
-            >
-              Special Note
-            </button>
-            <button
-              onClick={() => setTempMemberModalTab("relations")}
-              className={`px-4 py-2 text-sm font-medium ${
-                tempMemberModalTab === "relations"
-                  ? "text-blue-400 border-b-2 border-blue-400"
-                  : "text-gray-400 hover:text-white"
-              }`}
-            >
-              Relations
-            </button>
-          </div>
+        {/* Tab Navigation */}
+        <div className="flex border-b border-gray-700 mb-6">
+          <button
+            onClick={(e) => handleTabClick("details", e)}
+            className={`px-4 py-2 text-sm font-medium ${
+              activeTab === "details" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400 hover:text-white"
+            }`}
+          >
+            Details
+          </button>
+          <button
+            onClick={(e) => handleTabClick("note", e)}
+            className={`px-4 py-2 text-sm font-medium ${
+              activeTab === "note" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400 hover:text-white"
+            }`}
+          >
+            Special Notes
+          </button>
+          <button
+            onClick={(e) => handleTabClick("relations", e)}
+            className={`px-4 py-2 text-sm font-medium ${
+              activeTab === "relations" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400 hover:text-white"
+            }`}
+          >
+            Relations
+          </button>
+        </div>
 
-          {/* Form */}
-          <form onSubmit={handleFormSubmit} className="space-y-4 custom-scrollbar overflow-y-auto max-h-[50vh]">
-            {/* ---- Tab: DETAILS ---- */}
-            {tempMemberModalTab === "details" && (
+        <form onSubmit={handleFormSubmit} className="space-y-4">
+          <div className="max-h-[50vh] overflow-y-auto custom-scrollbar space-y-4">
+            {/* Details Tab */}
+            {activeTab === "details" && (
               <>
                 {/* Avatar Upload */}
                 <div className="flex flex-col items-start">
                   <div className="w-24 h-24 rounded-xl overflow-hidden mb-4">
                     <img
-                      src={tempMemberForm.img || Avatar}
+                      src={tempMemberForm.img || DefaultAvatar}
                       alt="Profile"
-                      width={96}
-                      height={96}
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImgUpload}
-                    className="hidden"
-                    id="avatar-upload"
-                  />
+                  <input type="file" id="avatar-upload" className="hidden" accept="image/*" onChange={handleImageUpload} />
                   <label
                     htmlFor="avatar-upload"
-                    className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 transition-colors text-white px-6 py-2 rounded-xl text-sm cursor-pointer"
+                    className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 px-6 py-2 rounded-xl text-sm cursor-pointer text-white"
                   >
                     Upload picture
                   </label>
                 </div>
 
-                {/* Name Fields */}
-                <div className="grid grid-cols-2 gap-4">
+                {/* Personal Information */}
+                <div className="space-y-4">
+                  <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Personal Information</div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm text-gray-200 block mb-2">
+                        First Name<span className="text-red-500 ml-1">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        name="firstName"
+                        value={tempMemberForm.firstName}
+                        onChange={handleTempMemberInputChange}
+                        className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm text-gray-200 block mb-2">
+                        Last Name<span className="text-red-500 ml-1">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        name="lastName"
+                        value={tempMemberForm.lastName}
+                        onChange={handleTempMemberInputChange}
+                        className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm text-gray-200 block mb-2">Gender</label>
+                      <select
+                        name="gender"
+                        value={tempMemberForm.gender || ""}
+                        onChange={handleTempMemberInputChange}
+                        className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                      >
+                        <option value="">Select Gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-sm text-gray-200 block mb-2">Birthday</label>
+                      <input
+                        type="date"
+                        name="dateOfBirth"
+                        value={tempMemberForm.dateOfBirth || ""}
+                        onChange={handleTempMemberInputChange}
+                        className="w-full bg-[#141414] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Contact Information */}
+                <div className="space-y-4 pt-4 border-t border-gray-700">
+                  <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Contact Information</div>
+
                   <div>
                     <label className="text-sm text-gray-200 block mb-2">
-                      First Name <span className="text-red-400">*</span>
+                      Email<span className="text-red-500 ml-1">*</span>
                     </label>
                     <input
-                      type="text"
-                      name="firstName"
-                      value={tempMemberForm.firstName}
+                      type="email"
+                      name="email"
+                      value={tempMemberForm.email}
                       onChange={handleTempMemberInputChange}
-                      className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                      className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
                       required
                     />
                   </div>
-                  <div>
-                    <label className="text-sm text-gray-200 block mb-2">
-                      Last Name <span className="text-red-400">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      name="lastName"
-                      value={tempMemberForm.lastName}
-                      onChange={handleTempMemberInputChange}
-                      className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                      required
-                    />
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm text-gray-200 block mb-2">
+                        Mobile Number
+                      </label>
+                      <input
+                        type="tel"
+                        name="phone"
+                        value={tempMemberForm.phone}
+                        onChange={(e) => {
+                          const sanitized = e.target.value.replace(/[^0-9+]/g, "")
+                          handleTempMemberInputChange({ target: { name: "phone", value: sanitized } })
+                        }}
+                        placeholder="+49 123 456789"
+                        className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm text-gray-200 block mb-2">Telephone Number</label>
+                      <input
+                        type="tel"
+                        name="telephoneNumber"
+                        value={tempMemberForm.telephoneNumber || ""}
+                        onChange={(e) => {
+                          const sanitized = e.target.value.replace(/[^0-9+]/g, "")
+                          handleTempMemberInputChange({ target: { name: "telephoneNumber", value: sanitized } })
+                        }}
+                        placeholder="030 12345678"
+                        className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                      />
+                    </div>
                   </div>
                 </div>
 
-                {/* Email */}
-                <div>
-                  <label className="text-sm text-gray-200 block mb-2">
-                    Email <span className="text-red-400">*</span>
-                  </label>
-                  <input
-                    type="email"
-                    name="email"
-                    value={tempMemberForm.email}
-                    onChange={handleTempMemberInputChange}
-                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                    required
-                  />
-                </div>
+                {/* Address Information */}
+                <div className="space-y-4 pt-4 border-t border-gray-700">
+                  <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Address</div>
 
-                {/* Phone */}
-                <div>
-                  <label className="text-sm text-gray-200 block mb-2">
-                    Phone <span className="text-red-400">*</span>
-                  </label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    value={tempMemberForm.phone}
-                    onChange={handleTempMemberInputChange}
-                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm text-gray-200 block mb-2">Gender</label>
-                  <select
-                    name="gender"
-                    value={tempMemberForm.gender || ""}
-                    onChange={handleTempMemberInputChange}
-                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                  >
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-
-                <div>
-            <label className="text-sm text-gray-200 block mb-2">Country</label>
-            <select
-              name="country"
-              value={countryInput}
-              onChange={handleCountryChange}
-              className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
-              required
-            >
-              <option value="">Select a country</option>
-              {loading ? (
-                <option value="" disabled>Loading countries...</option>
-              ) : (
-                countries.map((country) => (
-                  <option key={country.code} value={country.name}>
-                    {country.name}
-                  </option>
-                ))
-              )}
-            </select>
-          </div>
-
-                {/* Street */}
-                <div>
-                  <label className="text-sm text-gray-200 block mb-2">Street</label>
-                  <input
-                    type="text"
-                    name="street"
-                    value={tempMemberForm.street}
-                    onChange={handleTempMemberInputChange}
-                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                  />
-                </div>
-
-                {/* Zip + City */}
-                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">ZIP Code</label>
+                    <label className="text-sm text-gray-200 block mb-2">Street & Number</label>
                     <input
                       type="text"
-                      name="zipCode"
-                      value={tempMemberForm.zipCode}
+                      name="street"
+                      value={tempMemberForm.street || ""}
                       onChange={handleTempMemberInputChange}
-                      className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                      className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                      placeholder="Main Street 123"
                     />
                   </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm text-gray-200 block mb-2">ZIP Code</label>
+                      <input
+                        type="text"
+                        name="zipCode"
+                        value={tempMemberForm.zipCode || ""}
+                        onChange={handleTempMemberInputChange}
+                        className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                        placeholder="12345"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm text-gray-200 block mb-2">City</label>
+                      <input
+                        type="text"
+                        name="city"
+                        value={tempMemberForm.city || ""}
+                        onChange={handleTempMemberInputChange}
+                        className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                        placeholder="Berlin"
+                      />
+                    </div>
+                  </div>
+
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">City</label>
-                    <input
-                      type="text"
-                      name="city"
-                      value={tempMemberForm.city}
+                    <label className="text-sm text-gray-200 block mb-2">Country</label>
+                    <select
+                      name="country"
+                      value={tempMemberForm.country || ""}
                       onChange={handleTempMemberInputChange}
-                      className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                    />
+                      className="w-full bg-[#141414] text-sm rounded-xl px-4 py-2 text-white outline-none"
+                    >
+                      <option value="">Select a country</option>
+                      {loading ? (
+                        <option value="" disabled>
+                          Loading countries...
+                        </option>
+                      ) : (
+                        countries.map((country) => (
+                          <option key={country.code} value={country.name}>
+                            {country.name}
+                          </option>
+                        ))
+                      )}
+                    </select>
                   </div>
                 </div>
 
-                {/* Date of Birth */}
-                <div>
-                  <label className="text-sm text-gray-200 block mb-2">Date of Birth</label>
-                  <input
-                    type="date"
-                    name="dateOfBirth"
-                    value={tempMemberForm.dateOfBirth}
-                    onChange={handleTempMemberInputChange}
-                    className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
-                  />
-                </div>
+                {/* Additional Information */}
+                <div className="space-y-4 pt-4 border-t border-gray-700">
+                  <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Additional Information</div>
 
-                {/* About */}
-                <div>
-                  <label className="text-sm text-gray-200 block mb-2">About</label>
-                  <textarea
-                    name="about"
-                    value={tempMemberForm.about}
-                    onChange={handleTempMemberInputChange}
-                    className="w-full bg-[#101010] resize-none rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px]"
-                  />
-                </div>
+                  <div>
+                    <label className="text-sm text-gray-200 block mb-2">About</label>
+                    <textarea
+                      name="about"
+                      value={tempMemberForm.about || ""}
+                      onChange={handleTempMemberInputChange}
+                      className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm resize-none min-h-[100px]"
+                      placeholder="Enter more details..."
+                    />
+                  </div>
 
-                {/* Auto Archive */}
-                <div>
-                  <label className="text-sm text-gray-200 block mb-2">Auto-Archive Period (weeks)</label>
-                  <input
-                    type="number"
-                    name="autoArchivePeriod"
-                    value={tempMemberForm.autoArchivePeriod}
-                    onChange={handleTempMemberInputChange}
-                    min="1"
-                    max="52"
-                    className="w-full bg-[#101010] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                  />
-                  <p className="text-xs text-gray-400 mt-1">Member will be automatically archived after this period</p>
+                  <div>
+                    <label className="text-sm text-gray-200 block mb-2">Auto-Archive Due Date</label>
+                    <input
+                      type="date"
+                      name="autoArchiveDate"
+                      value={tempMemberForm.autoArchiveDate || ""}
+                      onChange={handleTempMemberInputChange}
+                      className="w-full bg-[#141414] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      The temporary member will be automatically archived after this date.
+                    </p>
+                  </div>
                 </div>
               </>
             )}
 
-            {/* ---- Tab: NOTE ---- */}
-            {tempMemberModalTab === "note" && (
+            {/* Notes Tab */}
+            {activeTab === "note" && (
               <div className="border border-slate-700 rounded-xl p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <label className="text-sm text-gray-200 font-medium">Special Note</label>
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="tempNoteImportance"
-                      checked={tempMemberForm.noteImportance === "important"}
-                      onChange={(e) => {
-                        setTempMemberForm({
-                          ...tempMemberForm,
-                          noteImportance: e.target.checked ? "important" : "unimportant",
-                        })
-                      }}
-                      className="mr-2 h-4 w-4 accent-[#FF843E]"
-                    />
-                    <label htmlFor="tempNoteImportance" className="text-sm text-gray-200">
-                      Important
-                    </label>
-                  </div>
-                </div>
-                <textarea
-                  name="note"
-                  value={tempMemberForm.note}
-                  onChange={handleTempMemberInputChange}
-                  className="w-full bg-[#101010] resize-none rounded-xl px-4 py-2 text-white outline-none text-sm min-h-[100px] mb-4"
-                  placeholder="Enter special note..."
-                />
-                <div className="grid grid-cols-2 gap-4">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-700">
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">Start Date</label>
-                    <input
-                      type="date"
-                      name="noteStartDate"
-                      value={tempMemberForm.noteStartDate}
-                      onChange={handleTempMemberInputChange}
-                      className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
-                    />
+                    <p className="text-xs text-gray-400 uppercase tracking-wider">Special Notes for</p>
+                    <p className="text-white font-medium">
+                      {tempMemberForm.firstName || "New"} {tempMemberForm.lastName || "Member"}
+                    </p>
                   </div>
-                  <div>
-                    <label className="text-sm text-gray-200 block mb-2">End Date</label>
-                    <input
-                      type="date"
-                      name="noteEndDate"
-                      value={tempMemberForm.noteEndDate}
-                      onChange={handleTempMemberInputChange}
-                      className="w-full bg-[#101010] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* ---- Tab: RELATIONS ---- */}
-            {tempMemberModalTab === "relations" && (
-              <div className="border border-slate-700 rounded-xl p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <label className="text-sm text-gray-200 font-medium">Relations</label>
                   <button
                     type="button"
-                    onClick={() => setEditingRelationsMain(!editingRelationsMain)}
-                    className="text-sm text-blue-400 hover:text-blue-300"
+                    onClick={() => {
+                      if (isAddingNote) {
+                        setEditingNoteId(null)
+                        setNewNote({
+                          status: "general",
+                          text: "",
+                          isImportant: false,
+                          startDate: "",
+                          endDate: "",
+                        })
+                      }
+                      setIsAddingNote(!isAddingNote)
+                    }}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium ${
+                      isAddingNote ? "bg-gray-600 text-white" : "bg-blue-600 text-white"
+                    }`}
                   >
-                    {editingRelationsMain ? "Done" : "Edit"}
+                    {isAddingNote ? <>Cancel</> : <><Plus size={14} /> Add Note</>}
                   </button>
                 </div>
-                {editingRelationsMain && (
-                  <div className="mb-4 p-3 bg-[#101010] rounded-xl">
-                    <div className="grid grid-cols-1 gap-2 mb-2">
+
+                {/* Add/Edit Note Form */}
+                {isAddingNote && (
+                  <div className="mb-4 p-4 bg-[#101010] rounded-xl space-y-3">
+                    {/* Status Selection */}
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1.5">Status</label>
                       <select
-                        value={newRelationMain.type}
-                        onChange={(e) => {
-                          const type = e.target.value
-                          setNewRelationMain({ ...newRelationMain, type, name: "", selectedMemberId: null })
-                        }}
-                        className="bg-[#222] text-white rounded px-3 py-2 text-sm"
+                        value={newNote.status}
+                        onChange={(e) => setNewNote({ ...newNote, status: e.target.value })}
+                        className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500"
                       >
-                        <option value="manual">Manual Entry</option>
-                        <option value="member">Select Member</option>
-                        <option value="lead">Select Lead</option>
-                      </select>
-                      {newRelationMain.type === "manual" ? (
-                        <input
-                          type="text"
-                          placeholder="Name"
-                          value={newRelationMain.name}
-                          onChange={(e) => setNewRelationMain({ ...newRelationMain, name: e.target.value })}
-                          className="bg-[#222] text-white rounded px-3 py-2 text-sm"
-                        />
-                      ) : (
-                        <select
-                          value={newRelationMain.selectedMemberId || ""}
-                          onChange={(e) => {
-                            const selectedId = e.target.value
-                            const selectedPerson = availableMembersLeadsMain.find((p) => p.id.toString() === selectedId)
-                            setNewRelationMain({
-                              ...newRelationMain,
-                              selectedMemberId: selectedId,
-                              name: selectedPerson ? selectedPerson.name : "",
-                            })
-                          }}
-                          className="bg-[#222] text-white rounded px-3 py-2 text-sm"
-                        >
-                          <option value="">Select {newRelationMain.type}</option>
-                          {availableMembersLeadsMain
-                            .filter((p) => p.type === newRelationMain.type)
-                            .map((person) => (
-                              <option key={person.id} value={person.id}>
-                                {person.name} ({person.type})
-                              </option>
-                            ))}
-                        </select>
-                      )}
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 mb-2">
-                      <select
-                        value={newRelationMain.category}
-                        onChange={(e) =>
-                          setNewRelationMain({ ...newRelationMain, category: e.target.value, relation: "" })
-                        }
-                        className="bg-[#222] text-white rounded px-3 py-2 text-sm"
-                      >
-                        <option value="family">Family</option>
-                        <option value="friendship">Friendship</option>
-                        <option value="relationship">Relationship</option>
-                        <option value="work">Work</option>
-                        <option value="other">Other</option>
-                      </select>
-                      <select
-                        value={newRelationMain.relation}
-                        onChange={(e) => setNewRelationMain({ ...newRelationMain, relation: e.target.value })}
-                        className="bg-[#222] text-white rounded px-3 py-2 text-sm"
-                      >
-                        <option value="">Select Relation</option>
-                        {relationOptionsMain[newRelationMain.category]?.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
+                        {NOTE_STATUSES.map((status) => (
+                          <option key={status.id} value={status.id}>
+                            {status.label}
                           </option>
                         ))}
                       </select>
                     </div>
+
+                    {/* Note Text */}
+                    <div>
+                      <label className="text-xs text-gray-400 block mb-1.5">Note</label>
+                      <textarea
+                        ref={specialNoteTextareaRef}
+                        value={newNote.text}
+                        onChange={(e) => setNewNote({ ...newNote, text: e.target.value })}
+                        className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500 resize-none min-h-[80px]"
+                        placeholder="Enter note..."
+                      />
+                    </div>
+
+                    {/* Important Checkbox */}
+                    <div className="flex items-center gap-4">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={newNote.isImportant}
+                          onChange={(e) => setNewNote({ ...newNote, isImportant: e.target.checked })}
+                          className="h-4 w-4 accent-blue-500"
+                        />
+                        <span className="text-sm text-gray-300">Important</span>
+                      </label>
+                    </div>
+
+                    {/* Optional Date Range */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs text-gray-400 block mb-1.5">Valid From (optional)</label>
+                        <input
+                          type="date"
+                          value={newNote.startDate}
+                          onChange={(e) => setNewNote({ ...newNote, startDate: e.target.value })}
+                          className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500 white-calendar-icon"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-gray-400 block mb-1.5">Valid Until (optional)</label>
+                        <input
+                          type="date"
+                          value={newNote.endDate}
+                          onChange={(e) => setNewNote({ ...newNote, endDate: e.target.value })}
+                          className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500 white-calendar-icon"
+                        />
+                      </div>
+                    </div>
+
                     <button
                       type="button"
-                      onClick={() => {
-                        if (!newRelationMain.name || !newRelationMain.relation) {
-                          toast.error("Please fill in all fields")
-                          return
-                        }
-                        // Add relation to tempMemberForm instead of memberRelations
-                        const relationId = Date.now()
-                        const newRel = {
-                          id: relationId,
-                          name: newRelationMain.name,
-                          relation: newRelationMain.relation,
-                          type: newRelationMain.type,
-                        }
+                      onClick={editingNoteId ? handleUpdateNote : handleAddNote}
+                      disabled={!newNote.text.trim()}
+                      className={`w-full py-2 rounded-lg text-sm font-medium ${
+                        !newNote.text.trim()
+                          ? "bg-blue-600/50 text-white/50 cursor-not-allowed"
+                          : "bg-blue-600 text-white"
+                      }`}
+                    >
+                      {editingNoteId ? "Update Note" : "Add Note"}
+                    </button>
+                  </div>
+                )}
 
-                        // Initialize relations if not exists
-                        if (!tempMemberForm.relations) {
-                          setTempMemberForm((prev) => ({
-                            ...prev,
-                            relations: {
-                              family: [],
-                              friendship: [],
-                              relationship: [],
-                              work: [],
-                              other: [],
-                            },
-                          }))
-                        }
+                {/* Notes List */}
+                {!isAddingNote && (
+                  <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                    {localNotes.length > 0 ? (
+                      [...localNotes]
+                        .sort((a, b) => (b.isImportant ? 1 : 0) - (a.isImportant ? 1 : 0))
+                        .map((note) => {
+                          const statusInfo = getStatusInfo(note.status)
+                          const isExpanded = expandedNoteId === note.id
 
-                        // Add the new relation
-                        setTempMemberForm((prev) => ({
-                          ...prev,
-                          relations: {
-                            ...prev.relations,
-                            [newRelationMain.category]: [...(prev.relations?.[newRelationMain.category] || []), newRel],
-                          },
-                        }))
+                          return (
+                            <div key={note.id} className="bg-[#101010] rounded-lg overflow-hidden">
+                              {/* Note Header */}
+                              <div
+                                className="flex items-center justify-between p-3 cursor-pointer"
+                                onClick={() => setExpandedNoteId(isExpanded ? null : note.id)}
+                              >
+                                <div className="flex items-center gap-2 flex-1 min-w-0">
+                                  <span className="text-xs font-medium px-2 py-0.5 rounded bg-gray-700 text-gray-300">
+                                    {statusInfo.label}
+                                  </span>
+                                  {note.isImportant && (
+                                    <span className="text-xs font-medium px-2 py-0.5 rounded bg-red-900/50 text-red-400">
+                                      Important
+                                    </span>
+                                  )}
+                                  <span className="text-white text-sm truncate">{note.text}</span>
+                                </div>
+                                <div className="flex items-center gap-1 ml-2">
+                                  <button
+                                    type="button"
+                                    onClick={(e) => handleEditNoteClick(note, e)}
+                                    className="p-1 text-gray-400 hover:text-white"
+                                  >
+                                    <Pencil size={14} />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => handleDeleteNote(note.id, e)}
+                                    className="p-1 text-gray-400 hover:text-red-400"
+                                  >
+                                    <Trash2 size={14} />
+                                  </button>
+                                  {isExpanded ? (
+                                    <ChevronUp size={16} className="text-gray-400" />
+                                  ) : (
+                                    <ChevronDown size={16} className="text-gray-400" />
+                                  )}
+                                </div>
+                              </div>
 
-                        setNewRelationMain({
-                          name: "",
-                          relation: "",
-                          category: "family",
-                          type: "manual",
-                          selectedMemberId: null,
+                              {/* Expanded Content */}
+                              {isExpanded && (
+                                <div className="px-3 pb-3 border-t border-gray-800">
+                                  <p className="text-white text-sm mt-2 whitespace-pre-wrap">{note.text}</p>
+                                  {(note.startDate || note.endDate) && (
+                                    <p className="text-gray-500 text-xs mt-2">
+                                      {note.startDate && note.endDate ? (
+                                        <>
+                                          Valid: {note.startDate} - {note.endDate}
+                                        </>
+                                      ) : note.startDate ? (
+                                        <>Valid from: {note.startDate}</>
+                                      ) : (
+                                        <>Valid until: {note.endDate}</>
+                                      )}
+                                    </p>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          )
                         })
-                        toast.success("Relation added successfully")
-                      }}
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm w-full"
+                    ) : (
+                      <div className="text-gray-500 text-sm text-center py-8">
+                        No notes yet. Click "Add Note" to create one.
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Relations Tab */}
+            {activeTab === "relations" && (
+              <div className="border border-slate-700 rounded-xl p-4">
+                <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-700">
+                  <div>
+                    <p className="text-xs text-gray-400 uppercase tracking-wider">Relations for</p>
+                    <p className="text-white font-medium">
+                      {tempMemberForm.firstName || "New"} {tempMemberForm.lastName || "Member"}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setEditingRelations(!editingRelations)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium ${
+                      editingRelations ? "bg-gray-600 text-white" : "bg-blue-600 text-white"
+                    }`}
+                  >
+                    {editingRelations ? <>Done</> : <><Pencil size={14} /> Edit</>}
+                  </button>
+                </div>
+
+                {/* Add Relation Form */}
+                {editingRelations && (
+                  <div className="mb-4 p-4 bg-[#101010] rounded-xl space-y-3">
+                    {/* Step 1: Type & Name */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs text-gray-400 block mb-1.5">Entry Type</label>
+                        <select
+                          value={newRelation.type}
+                          onChange={(e) =>
+                            setNewRelation({
+                              ...newRelation,
+                              type: e.target.value,
+                              name: "",
+                              selectedMemberId: null,
+                            })
+                          }
+                          className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500"
+                        >
+                          <option value="manual">Manual Entry</option>
+                          <option value="member">Existing Member</option>
+                          <option value="lead">Existing Lead</option>
+                        </select>
+                      </div>
+
+                      {newRelation.type === "manual" ? (
+                        <div>
+                          <label className="text-xs text-gray-400 block mb-1.5">Name</label>
+                          <input
+                            type="text"
+                            placeholder="Enter name..."
+                            value={newRelation.name}
+                            onChange={(e) => setNewRelation({ ...newRelation, name: e.target.value })}
+                            className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500"
+                          />
+                        </div>
+                      ) : (
+                        <div className="relative" ref={personSearchRef}>
+                          <label className="text-xs text-gray-400 block mb-1.5">
+                            Search {newRelation.type === "member" ? "Member" : "Lead"}
+                          </label>
+                          <div className="relative">
+                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                            <input
+                              type="text"
+                              placeholder={`Search ${newRelation.type}s...`}
+                              value={newRelation.name || personSearchQuery}
+                              onChange={(e) => {
+                                setPersonSearchQuery(e.target.value)
+                                setNewRelation({ ...newRelation, name: "", selectedMemberId: null })
+                                setShowPersonDropdown(true)
+                              }}
+                              onFocus={() => setShowPersonDropdown(true)}
+                              className="w-full bg-[#222] text-white rounded-lg pl-9 pr-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500"
+                            />
+                          </div>
+
+                          {showPersonDropdown && (
+                            <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a1a] border border-gray-700 rounded-lg max-h-40 overflow-y-auto z-10">
+                              {membersLeads
+                                .filter(
+                                  (p) =>
+                                    p.type === newRelation.type &&
+                                    p.name.toLowerCase().includes(personSearchQuery.toLowerCase())
+                                )
+                                .map((person) => (
+                                  <button
+                                    key={person.id}
+                                    type="button"
+                                    onClick={() => {
+                                      setNewRelation({
+                                        ...newRelation,
+                                        selectedMemberId: person.id,
+                                        name: person.name,
+                                      })
+                                      setPersonSearchQuery("")
+                                      setShowPersonDropdown(false)
+                                    }}
+                                    className="w-full text-left px-3 py-2 text-sm text-white hover:bg-[#222] transition-colors"
+                                  >
+                                    {person.name}
+                                  </button>
+                                ))}
+                              {membersLeads.filter(
+                                (p) =>
+                                  p.type === newRelation.type &&
+                                  p.name.toLowerCase().includes(personSearchQuery.toLowerCase())
+                              ).length === 0 && <div className="px-3 py-2 text-sm text-gray-500">No results found</div>}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Step 2: Category & Relation */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs text-gray-400 block mb-1.5">Category</label>
+                        <select
+                          value={newRelation.category}
+                          onChange={(e) =>
+                            setNewRelation({
+                              ...newRelation,
+                              category: e.target.value,
+                              relation: "",
+                              customRelation: "",
+                            })
+                          }
+                          className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500"
+                        >
+                          <option value="family">Family</option>
+                          <option value="friendship">Friendship</option>
+                          <option value="relationship">Relationship</option>
+                          <option value="work">Work</option>
+                          <option value="other">Other</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="text-xs text-gray-400 block mb-1.5">Relation Type</label>
+                        <select
+                          value={newRelation.relation}
+                          onChange={(e) =>
+                            setNewRelation({
+                              ...newRelation,
+                              relation: e.target.value,
+                              customRelation: e.target.value === "custom" ? newRelation.customRelation : "",
+                            })
+                          }
+                          className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500"
+                        >
+                          <option value="">Select...</option>
+                          {relationOptionsMain[newRelation.category]?.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
+                          <option disabled>────────────</option>
+                          <option value="custom">Custom...</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Custom Relation Input */}
+                    {newRelation.relation === "custom" && (
+                      <div>
+                        <label className="text-xs text-gray-400 block mb-1.5">Custom Relation</label>
+                        <input
+                          type="text"
+                          placeholder="Enter custom relation..."
+                          value={newRelation.customRelation}
+                          onChange={(e) => setNewRelation({ ...newRelation, customRelation: e.target.value })}
+                          className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500"
+                        />
+                      </div>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={handleAddRelation}
+                      disabled={
+                        !newRelation.name ||
+                        !newRelation.relation ||
+                        (newRelation.relation === "custom" && !newRelation.customRelation)
+                      }
+                      className={`w-full py-2 rounded-lg text-sm font-medium transition-colors ${
+                        !newRelation.name ||
+                        !newRelation.relation ||
+                        (newRelation.relation === "custom" && !newRelation.customRelation)
+                          ? "bg-blue-600/50 text-white/50 cursor-not-allowed"
+                          : "bg-blue-600 hover:bg-blue-700 text-white"
+                      }`}
                     >
                       Add Relation
                     </button>
                   </div>
                 )}
-                <div className="space-y-2 max-h-32 overflow-y-auto">
-                  {tempMemberForm.relations &&
-                    Object.entries(tempMemberForm.relations).map(([category, relations]) =>
+
+                {/* Relations List */}
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {localRelations &&
+                    Object.entries(localRelations).map(([category, relations]) =>
                       relations.map((relation) => (
                         <div
                           key={relation.id}
-                          className="flex items-center justify-between bg-[#101010] rounded px-3 py-2"
+                          className="flex items-center justify-between bg-[#101010] rounded-lg px-3 py-2"
                         >
-                          <div className="text-sm">
-                            <span className="text-white">{relation.name}</span>
-                            <span className="text-gray-400 ml-2">({relation.relation})</span>
-                            <span className="text-blue-400 ml-2 capitalize">- {category}</span>
-                            <span
-                              className={`ml-2 text-xs px-2 py-0.5 rounded ${
-                                relation.type === "member"
-                                  ? "bg-green-600 text-green-100"
-                                  : relation.type === "lead"
-                                    ? "bg-blue-600 text-blue-100"
-                                    : "bg-gray-600 text-gray-100"
-                              }`}
-                            >
+                          <div className="text-sm flex items-center flex-wrap gap-1.5">
+                            <span className="text-white font-medium">{relation.name}</span>
+                            <span className="text-gray-400">({relation.relation})</span>
+                            <span className="text-gray-500">•</span>
+                            <span className="text-gray-400 capitalize">{category}</span>
+                            <span className="bg-gray-700 text-gray-300 text-xs px-2 py-0.5 rounded capitalize">
                               {relation.type}
                             </span>
                           </div>
-                          {editingRelationsMain && (
+                          {editingRelations && (
                             <button
                               type="button"
-                              onClick={() => {
-                                // Remove relation from tempMemberForm
-                                setTempMemberForm((prev) => ({
-                                  ...prev,
-                                  relations: {
-                                    ...prev.relations,
-                                    [category]: prev.relations[category].filter((rel) => rel.id !== relation.id),
-                                  },
-                                }))
-                                toast.success("Relation deleted successfully")
-                              }}
-                              className="text-red-400 hover:text-red-300"
+                              onClick={(e) => handleDeleteRelation(category, relation.id, e)}
+                              className="text-red-400 hover:text-red-300 ml-2"
                             >
                               <Trash2 size={14} />
                             </button>
                           )}
                         </div>
-                      )),
+                      ))
                     )}
-                  {(!tempMemberForm.relations ||
-                    Object.values(tempMemberForm.relations).every((arr) => arr.length === 0)) && (
+
+                  {(!localRelations || Object.values(localRelations || {}).every((arr) => arr.length === 0)) && (
                     <div className="text-gray-500 text-sm text-center py-4">No relations added yet</div>
                   )}
                 </div>
               </div>
             )}
+          </div>
 
-            {/* Submit */}
+          {/* Footer with action buttons */}
+          <div className="flex justify-end gap-2 pt-4">
             <button
-              type="submit"
-              className="w-full bg-gray-700 hover:bg-gray-600 text-white rounded-xl py-2 text-sm cursor-pointer transition-colors"
+              type="button"
+              onClick={handleCloseClick}
+              className="px-4 py-2 text-sm bg-gray-600 text-white rounded-xl hover:bg-gray-700"
             >
+              Cancel
+            </button>
+
+            <button type="submit" className="px-4 py-2 text-sm text-white rounded-xl bg-blue-600 hover:bg-blue-700 flex items-center gap-2">
+              <Plus size={16} />
               Create Temporary Member
             </button>
-          </form>
-        </div>
+          </div>
+        </form>
       </div>
     </div>
   )

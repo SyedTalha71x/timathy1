@@ -132,9 +132,6 @@ const MediaLibrary = () => {
         design.name.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
-    if (selectedFolderId === 'all' || selectedFolderId === 'default') {
-      return myCreations;
-    }
     return myCreations.filter(design => design.folderId === selectedFolderId);
   }, [myCreations, searchQuery, selectedFolderId]);
 
@@ -546,8 +543,7 @@ const MediaLibrary = () => {
           prev.map(d => d.id === design.id ? { ...d, folderId } : d)
         );
         
-        // Select the target folder to show the moved design
-        setSelectedFolderId(folderId);
+        // DO NOT switch to target folder - stay in current folder
       }
     } catch (error) {
       console.error('Drop error:', error);

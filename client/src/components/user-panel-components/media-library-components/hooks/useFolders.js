@@ -5,7 +5,7 @@ import { folderColors } from '../constants/platformSizes';
 const defaultFolders = [
   { 
     id: "default", 
-    name: "All Designs", 
+    name: "General", 
     color: "#6B7280", 
     isExpanded: true, 
     isDefault: true 

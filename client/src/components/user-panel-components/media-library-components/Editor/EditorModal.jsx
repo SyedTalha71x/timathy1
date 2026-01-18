@@ -56,6 +56,9 @@ const EditorModal = ({
   const [showSizeDropdown, setShowSizeDropdown] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
+  
+  // Crop state - managed at EditorModal level
+  const [croppingElementId, setCroppingElementId] = useState(null);
 
   const {
     elements,
@@ -141,16 +144,29 @@ const EditorModal = ({
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (!isOpen) return;
+      
+      // Cancel crop on Escape
+      if (e.key === 'Escape') {
+        if (croppingElementId) {
+          setCroppingElementId(null);
+          return;
+        }
+        setActiveElementId(null);
+      }
 
-      if ((e.key === 'Delete' || e.key === 'Backspace') && activeElementId) {
-        if (!lockedElements.has(activeElementId)) {
+      if (e.key === 'Delete' && activeElementId && !croppingElementId) {
+        // Don't delete if focus is on an input, textarea, or contenteditable element
+        const activeElement = document.activeElement;
+        const isInputFocused = activeElement && (
+          activeElement.tagName === 'INPUT' ||
+          activeElement.tagName === 'TEXTAREA' ||
+          activeElement.isContentEditable
+        );
+        
+        if (!isInputFocused && !lockedElements.has(activeElementId)) {
           e.preventDefault();
           deleteElement(activeElementId);
         }
-      }
-
-      if (e.key === 'Escape') {
-        setActiveElementId(null);
       }
 
       if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
@@ -176,7 +192,7 @@ const EditorModal = ({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, activeElementId, lockedElements, deleteElement, undo, redo, duplicateElement]);
+  }, [isOpen, activeElementId, lockedElements, deleteElement, undo, redo, duplicateElement, croppingElementId]);
 
   // Mouse wheel zoom
   const handleWheel = useCallback((e) => {
@@ -193,6 +209,31 @@ const EditorModal = ({
       return () => window.removeEventListener('wheel', handleWheel);
     }
   }, [isOpen, handleWheel]);
+
+  // Crop handlers
+  const handleStartCrop = useCallback((elementId) => {
+    const element = elements.find(el => el.id === elementId);
+    if (element && element.type === 'image') {
+      setCroppingElementId(elementId);
+      setActiveElementId(elementId);
+    }
+  }, [elements, setActiveElementId]);
+
+  const handleApplyCrop = useCallback((cropData) => {
+    if (croppingElementId && cropData) {
+      updateElementWithHistory(croppingElementId, {
+        cropX: cropData.x,
+        cropY: cropData.y,
+        cropWidth: cropData.width,
+        cropHeight: cropData.height
+      });
+    }
+    setCroppingElementId(null);
+  }, [croppingElementId, updateElementWithHistory]);
+
+  const handleCancelCrop = useCallback(() => {
+    setCroppingElementId(null);
+  }, []);
 
   // Add text
   const handleAddText = useCallback(() => {
@@ -310,6 +351,11 @@ const EditorModal = ({
   const handleSave = async () => {
     if (isSaving) return;
     
+    // Cancel any active crop before saving
+    if (croppingElementId) {
+      setCroppingElementId(null);
+    }
+    
     setIsSaving(true);
     try {
       const elementsToSave = JSON.parse(JSON.stringify(elements));
@@ -366,6 +412,11 @@ const EditorModal = ({
 
   // Close handling
   const handleClose = () => {
+    // Cancel crop before closing
+    if (croppingElementId) {
+      setCroppingElementId(null);
+    }
+    
     if (elements.length > 0 && !designId) {
       setShowCloseConfirm(true);
     } else {
@@ -579,6 +630,9 @@ const EditorModal = ({
             onDeselectAll={() => setActiveElementId(null)}
             onDuplicateElement={duplicateElement}
             onDeleteElement={deleteElement}
+            croppingElementId={croppingElementId}
+            onApplyCrop={handleApplyCrop}
+            onCancelCrop={handleCancelCrop}
           />
         </div>
 
@@ -589,14 +643,22 @@ const EditorModal = ({
             onUpdate={(updates) => updateElementWithHistory(activeElementId, updates)}
             isLocked={lockedElements.has(activeElementId)}
             onToggleLock={() => toggleLock(activeElementId)}
+            onStartCrop={handleStartCrop}
+            isCropping={croppingElementId === activeElementId}
           />
         </div>
       </div>
 
       {/* Custom Size Modal */}
       {showCustomSize && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-          <div className="bg-[#1C1C1C] rounded-xl p-5 w-full max-w-xs border border-[#333333]">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center" style={{ zIndex: 99999 }}>
+          <div className="bg-[#1C1C1C] rounded-xl p-5 w-full max-w-xs border border-[#333333] relative">
+            <button
+              onClick={() => setShowCustomSize(false)}
+              className="absolute top-3 right-3 p-1 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded-lg transition-colors"
+            >
+              <X size={16} />
+            </button>
             <h3 className="text-white font-medium text-base mb-4">Custom Size</h3>
             <div className="space-y-3">
               <div className="flex gap-2">
@@ -644,8 +706,14 @@ const EditorModal = ({
 
       {/* Close Confirm Modal */}
       {showCloseConfirm && (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-          <div className="bg-[#1C1C1C] rounded-xl p-5 w-full max-w-xs border border-[#333333]">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center" style={{ zIndex: 99999 }}>
+          <div className="bg-[#1C1C1C] rounded-xl p-5 w-full max-w-xs border border-[#333333] relative">
+            <button
+              onClick={() => setShowCloseConfirm(false)}
+              className="absolute top-3 right-3 p-1 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded-lg transition-colors"
+            >
+              <X size={16} />
+            </button>
             <h3 className="text-white font-medium text-base mb-2">Save as Draft?</h3>
             <p className="text-gray-400 text-sm mb-4">You have unsaved changes.</p>
             <div className="flex flex-col gap-2">

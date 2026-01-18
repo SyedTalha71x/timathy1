@@ -451,53 +451,188 @@ const TemplateGallery = ({
   );
 };
 
-// Template Preview Component with correct aspect ratio - ALWAYS applies personalization
+// Template Preview Component - Render elements exactly like Canvas.jsx
 const TemplatePreview = ({ template, personalization }) => {
   const [width, height] = template.size.split('x').map(Number);
   
-  // Calculate dimensions to fit within container while maintaining aspect ratio
   const maxWidth = 160;
   const maxHeight = 140;
   const aspectRatio = width / height;
   
   let previewWidth, previewHeight;
   if (aspectRatio > maxWidth / maxHeight) {
-    // Wider than container ratio - fit to width
     previewWidth = maxWidth;
     previewHeight = maxWidth / aspectRatio;
   } else {
-    // Taller than container ratio - fit to height
     previewHeight = maxHeight;
     previewWidth = maxHeight * aspectRatio;
   }
   
-  const scale = previewWidth / width;
+  // This is equivalent to displayScale in Canvas.jsx
+  const displayScale = previewWidth / width;
   
-  // ALWAYS apply personalization to elements - use defaults if not provided
   const elements = useMemo(() => {
     if (!template.elements) return [];
-    
     const clonedElements = deepClone(template.elements);
-    
-    // Always apply personalization with either custom colors or defaults
-    const effectivePersonalization = personalization || {
-      primaryColor: '#F97316',
-      secondaryColor: '#1A1A2E'
-    };
-    
-    return applyPersonalization(clonedElements, effectivePersonalization);
+    if (personalization) {
+      return applyPersonalization(clonedElements, personalization)
+        .sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
+    }
+    return clonedElements.sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
   }, [template.elements, personalization]);
   
-  // Get background color from personalized elements
+  // Find background element and get its color
   const backgroundColor = useMemo(() => {
-    // Find background element
     const bgElement = elements.find(el => el.isBackground);
-    if (bgElement?.color) {
-      return bgElement.color;
+    if (!bgElement) return '#1a1a1a';
+    
+    if (bgElement.type === 'gradient' && bgElement.gradientColors) {
+      // Return first gradient color as fallback background
+      return bgElement.gradientColors[0] || '#1a1a1a';
     }
-    // Fallback to personalization secondary color
-    return personalization?.secondaryColor || '#1a1a1a';
-  }, [elements, personalization]);
+    return bgElement.color || '#1a1a1a';
+  }, [elements]);
+
+  // Render shape - exactly like Canvas.jsx
+  const renderShape = (element) => {
+    const color = element.color || '#CCCCCC';
+    const borderRadius = element.borderRadius ? element.borderRadius * displayScale : 0;
+    
+    const style = { 
+      width: '100%', 
+      height: '100%', 
+      backgroundColor: color,
+      borderRadius: borderRadius > 0 ? `${borderRadius}px` : undefined
+    };
+
+    switch (element.shape) {
+      case 'rectangle':
+        return <div style={style} />;
+      case 'rounded-rectangle':
+        return <div style={{ ...style, borderRadius: '12px' }} />;
+      case 'circle':
+        return <div style={{ ...style, borderRadius: '50%' }} />;
+      case 'triangle':
+        return (
+          <div style={{
+            ...style,
+            backgroundColor: 'transparent',
+            clipPath: 'polygon(50% 0%, 0% 100%, 100% 100%)',
+            background: color
+          }} />
+        );
+      case 'star':
+        return (
+          <svg width="100%" height="100%" viewBox="0 0 24 24" fill={color}>
+            <polygon points="12,2 15,9 22,9 16,14 19,21 12,17 5,21 8,14 2,9 9,9" />
+          </svg>
+        );
+      case 'heart':
+        return (
+          <svg width="100%" height="100%" viewBox="0 0 24 24" fill={color}>
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+          </svg>
+        );
+      case 'hexagon':
+        return (
+          <svg width="100%" height="100%" viewBox="0 0 24 24" fill={color}>
+            <polygon points="12,2 22,7 22,17 12,22 2,17 2,7" />
+          </svg>
+        );
+      case 'diamond':
+        return (
+          <div style={{
+            ...style,
+            backgroundColor: 'transparent',
+            clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
+            background: color
+          }} />
+        );
+      default:
+        return <div style={style} />;
+    }
+  };
+
+  // Render line - exactly like Canvas.jsx
+  const renderLine = (element, scaledWidth, scaledHeight) => {
+    const strokeWidth = (element.strokeWidth || 2) * displayScale;
+    const color = element.color || '#FFFFFF';
+    
+    let strokeDasharray = '';
+    if (element.lineStyle === 'dashed') strokeDasharray = `${strokeWidth * 4} ${strokeWidth * 2}`;
+    if (element.lineStyle === 'dotted') strokeDasharray = `${strokeWidth} ${strokeWidth * 2}`;
+    
+    return (
+      <svg width={scaledWidth} height={scaledHeight} style={{ overflow: 'visible' }}>
+        <line
+          x1="0"
+          y1={scaledHeight / 2}
+          x2={scaledWidth}
+          y2={scaledHeight / 2}
+          stroke={color}
+          strokeWidth={strokeWidth}
+          strokeDasharray={strokeDasharray}
+          strokeLinecap="round"
+        />
+      </svg>
+    );
+  };
+
+  // Render gradient - exactly like Canvas.jsx
+  const renderGradient = (element) => {
+    const colors = element.gradientColors || ['#FF6B6B', '#FFA500'];
+    const angle = element.gradientAngle || 135;
+    const borderRadius = element.borderRadius ? element.borderRadius * displayScale : 0;
+    
+    return (
+      <div
+        style={{
+          width: '100%',
+          height: '100%',
+          background: `linear-gradient(${angle}deg, ${colors.join(', ')})`,
+          borderRadius: borderRadius > 0 ? `${borderRadius}px` : undefined
+        }}
+      />
+    );
+  };
+
+  // Render divider - exactly like Canvas.jsx
+  const renderDivider = (element) => {
+    const strokeWidth = (element.strokeWidth || 2) * displayScale;
+    const color = element.color || '#FFFFFF';
+    
+    if (element.dividerStyle === 'double') {
+      return (
+        <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: `${strokeWidth}px` }}>
+          <div style={{ height: `${strokeWidth}px`, backgroundColor: color }} />
+          <div style={{ height: `${strokeWidth}px`, backgroundColor: color }} />
+        </div>
+      );
+    }
+    
+    let borderStyle = 'solid';
+    if (element.dividerStyle === 'dashed') borderStyle = 'dashed';
+    if (element.dividerStyle === 'dotted') borderStyle = 'dotted';
+    
+    return (
+      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }}>
+        <div style={{ width: '100%', borderTop: `${strokeWidth}px ${borderStyle} ${color}` }} />
+      </div>
+    );
+  };
+  
+  // Render background element (can be shape or gradient)
+  const renderBackground = () => {
+    const bgElement = elements.find(el => el.isBackground);
+    if (!bgElement) return null;
+    
+    if (bgElement.type === 'gradient') {
+      return renderGradient(bgElement);
+    }
+    
+    // Shape background is handled by backgroundColor style
+    return null;
+  };
   
   return (
     <div 
@@ -509,74 +644,108 @@ const TemplatePreview = ({ template, personalization }) => {
         flexShrink: 0
       }}
     >
-      {elements.slice(0, 6).map((element, index) => {
-        const scaledX = element.x * scale;
-        const scaledY = element.y * scale;
-        const scaledWidth = element.width * scale;
-        const scaledHeight = element.height * scale;
+      {/* Render gradient background if exists */}
+      {(() => {
+        const bgElement = elements.find(el => el.isBackground && el.type === 'gradient');
+        if (bgElement) {
+          return (
+            <div 
+              className="absolute inset-0"
+              style={{ zIndex: 0 }}
+            >
+              {renderGradient(bgElement)}
+            </div>
+          );
+        }
+        return null;
+      })()}
+      
+      {elements.map((element, index) => {
+        if (element.isBackground) return null;
+        
+        const scaledX = element.x * displayScale;
+        const scaledY = element.y * displayScale;
+        const scaledWidth = element.width * displayScale;
+        const scaledHeight = element.height * displayScale;
+        
+        const baseStyle = {
+          position: 'absolute',
+          left: `${scaledX}px`,
+          top: `${scaledY}px`,
+          width: `${scaledWidth}px`,
+          height: `${scaledHeight}px`,
+          opacity: element.opacity !== undefined ? element.opacity : 1,
+          zIndex: index + 1
+        };
         
         if (element.type === 'shape') {
-          let borderRadius = '0';
-          if (element.shape === 'circle') borderRadius = '50%';
-          else if (element.shape === 'rounded-rectangle') borderRadius = `${Math.min(scaledWidth, scaledHeight) * 0.1}px`;
-          
           return (
-            <div
-              key={index}
-              className="absolute"
-              style={{
-                left: `${scaledX}px`,
-                top: `${scaledY}px`,
-                width: `${scaledWidth}px`,
-                height: `${scaledHeight}px`,
-                backgroundColor: element.color,
-                borderRadius
-              }}
-            />
+            <div key={element.id || index} style={baseStyle}>
+              {renderShape(element)}
+            </div>
           );
         }
         
         if (element.type === 'gradient') {
-          const colors = element.gradientColors || ['#FF6B6B', '#FFA500'];
-          const angle = element.gradientAngle || 135;
-          
           return (
-            <div
-              key={index}
-              className="absolute"
-              style={{
-                left: `${scaledX}px`,
-                top: `${scaledY}px`,
-                width: `${scaledWidth}px`,
-                height: `${scaledHeight}px`,
-                background: `linear-gradient(${angle}deg, ${colors.join(', ')})`
-              }}
-            />
+            <div key={element.id || index} style={baseStyle}>
+              {renderGradient(element)}
+            </div>
           );
         }
         
         if (element.type === 'text') {
-          const fontSize = Math.max(3, element.size * scale);
+          const fontSize = (element.size || 24) * displayScale;
+          const padding = 4 * displayScale;
           return (
             <div
-              key={index}
-              className="absolute overflow-hidden"
+              key={element.id || index}
               style={{
-                left: `${scaledX}px`,
-                top: `${scaledY}px`,
-                width: `${scaledWidth}px`,
-                height: `${scaledHeight}px`,
-                color: element.color,
+                ...baseStyle,
+                color: element.color || '#FFFFFF',
                 fontSize: `${fontSize}px`,
-                fontFamily: element.font,
+                fontFamily: element.font || 'Inter, sans-serif',
                 fontWeight: element.bold ? 'bold' : 'normal',
                 fontStyle: element.italic ? 'italic' : 'normal',
+                textDecoration: element.underline ? 'underline' : 'none',
                 textAlign: element.align || 'left',
-                lineHeight: 1.1,
-                whiteSpace: 'pre-wrap'
+                lineHeight: 1.2,
+                whiteSpace: 'pre-wrap',
+                wordWrap: 'break-word',
+                padding: `${padding}px`,
+                boxSizing: 'border-box',
+                overflow: 'hidden'
               }}
             >
               {element.content}
+            </div>
+          );
+        }
+        
+        if (element.type === 'line') {
+          return (
+            <div key={element.id || index} style={baseStyle}>
+              {renderLine(element, scaledWidth, scaledHeight)}
+            </div>
+          );
+        }
+        
+        if (element.type === 'divider') {
+          return (
+            <div key={element.id || index} style={baseStyle}>
+              {renderDivider(element)}
+            </div>
+          );
+        }
+        
+        if (element.type === 'image' && element.content) {
+          return (
+            <div key={element.id || index} style={{ ...baseStyle, overflow: 'hidden' }}>
+              <img
+                src={element.content}
+                alt=""
+                style={{ width: '100%', height: '100%', objectFit: 'fill' }}
+              />
             </div>
           );
         }

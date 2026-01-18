@@ -99,7 +99,7 @@ const SortableColumn = ({
     >
       {/* Column Header */}
       <div 
-        className="p-2 sm:p-3 flex justify-between items-center rounded-t-xl overflow-visible relative z-10" 
+        className="p-2 sm:p-3 flex justify-between items-center rounded-t-xl overflow-visible" 
         style={{ backgroundColor: `${color}20` }}
       >
         <div className="flex items-center min-w-0 flex-1 gap-2">
@@ -189,7 +189,7 @@ const SortableColumn = ({
             </div>
           )}
 
-          {/* Edit Column Button (3-Punkte-MenÃ¼) with Tooltip */}
+          {/* Edit Column Button (3-Punkte-MenÃƒÂ¼) with Tooltip */}
           {isEditable && (
             <div className="relative group hover:z-[100]">
               <button

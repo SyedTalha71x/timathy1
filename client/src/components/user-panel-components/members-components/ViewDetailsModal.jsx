@@ -1,8 +1,19 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import React, { useEffect, useState } from 'react';
-import { X, Clock, AlertTriangle, Info, FileText } from 'lucide-react';
-import { toast } from 'react-toastify';
+import { X, Copy, Check, ChevronDown, ChevronUp } from 'lucide-react';
+
+// Note Status Options - same as leads
+const NOTE_STATUSES = [
+  { id: "contact_attempt", label: "Contact Attempt" },
+  { id: "callback_requested", label: "Callback Requested" },
+  { id: "interest", label: "Interest" },
+  { id: "objection", label: "Objection" },
+  { id: "personal_info", label: "Personal Info" },
+  { id: "health", label: "Health" },
+  { id: "follow_up", label: "Follow-up" },
+  { id: "general", label: "General" },
+]
 
 const ViewDetailsModal = ({
   isOpen,
@@ -15,223 +26,657 @@ const ViewDetailsModal = ({
   handleEditMember,
   setEditModalTabMain,
   DefaultAvatar1,
-  initialTab = "details"
+  initialTab = "details",
+  onEditMemberNote
 }) => {
   const [activeTab, setActiveTab] = useState("details");
+  const [expandedNoteId, setExpandedNoteId] = useState(null);
+  
+  // Copy states - matching leads exactly
+  const [copiedEmail, setCopiedEmail] = useState(false);
+  const [copiedPhone, setCopiedPhone] = useState(false);
+  const [copiedTelephone, setCopiedTelephone] = useState(false);
+  const [copiedStreet, setCopiedStreet] = useState(false);
+  const [copiedZipCity, setCopiedZipCity] = useState(false);
+  const [copiedFirstName, setCopiedFirstName] = useState(false);
+  const [copiedLastName, setCopiedLastName] = useState(false);
+  const [copiedGender, setCopiedGender] = useState(false);
+  const [copiedBirthday, setCopiedBirthday] = useState(false);
+  const [copiedCountry, setCopiedCountry] = useState(false);
+  const [copiedAbout, setCopiedAbout] = useState(false);
+  const [copiedMemberId, setCopiedMemberId] = useState(false);
 
-  useEffect(() => {
-    if (isOpen) {
-      setActiveTab(initialTab);
+  const getStatusInfo = (statusId) => {
+    return NOTE_STATUSES.find(s => s.id === statusId) || NOTE_STATUSES.find(s => s.id === "general")
+  }
+
+  const formatNoteDate = (dateString) => {
+    if (!dateString) return ""
+    return new Date(dateString).toLocaleDateString("de-DE", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    })
+  }
+
+  // Get notes array (support both old and new format)
+  const getNotes = () => {
+    if (!selectedMemberMain) return []
+    if (selectedMemberMain.notes && Array.isArray(selectedMemberMain.notes)) {
+      return selectedMemberMain.notes
     }
-  }, [isOpen, initialTab]);
+    // Convert old single note format to array
+    if (selectedMemberMain.note && selectedMemberMain.note.trim()) {
+      return [{
+        id: 1,
+        status: "general",
+        text: selectedMemberMain.note,
+        isImportant: selectedMemberMain.noteImportance === "important",
+        startDate: selectedMemberMain.noteStartDate || "",
+        endDate: selectedMemberMain.noteEndDate || "",
+        createdAt: selectedMemberMain.joinDate || new Date().toISOString(),
+      }]
+    }
+    return []
+  }
+
+  // IMPORTANT: Update tab whenever initialTab changes
+  useEffect(() => {
+    setActiveTab(initialTab);
+  }, [initialTab]);
+
+  // Reset when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setActiveTab("details");
+      setExpandedNoteId(null);
+    }
+  }, [isOpen]);
 
   if (!isOpen || !selectedMemberMain) return null;
 
-  const handleEditAndOpenTab = (tab) => {
+  const handleEditRelations = () => {
     onClose();
-    handleEditMember(selectedMemberMain);
-    setEditModalTabMain(tab);
+    handleEditMember(selectedMemberMain, "relations");
+  };
+
+  const handleEditNote = () => {
+    onClose();
+    handleEditMember(selectedMemberMain, "note");
+  };
+
+  // Copy handlers - identical to leads
+  const handleCopyEmail = async () => {
+    try {
+      await navigator.clipboard.writeText(selectedMemberMain.email || "");
+      setCopiedEmail(true);
+      setTimeout(() => setCopiedEmail(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy email:', err);
+    }
+  };
+
+  const handleCopyPhone = async () => {
+    try {
+      await navigator.clipboard.writeText(selectedMemberMain.phone || selectedMemberMain.phoneNumber || "");
+      setCopiedPhone(true);
+      setTimeout(() => setCopiedPhone(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy phone:', err);
+    }
+  };
+
+  const handleCopyTelephone = async () => {
+    try {
+      await navigator.clipboard.writeText(selectedMemberMain.telephoneNumber || "");
+      setCopiedTelephone(true);
+      setTimeout(() => setCopiedTelephone(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy telephone:', err);
+    }
+  };
+
+  const handleCopyStreet = async () => {
+    try {
+      await navigator.clipboard.writeText(selectedMemberMain.street || "");
+      setCopiedStreet(true);
+      setTimeout(() => setCopiedStreet(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy street:', err);
+    }
+  };
+
+  const handleCopyZipCity = async () => {
+    try {
+      const zipCity = `${selectedMemberMain.zipCode || ""} ${selectedMemberMain.city || ""}`.trim();
+      await navigator.clipboard.writeText(zipCity);
+      setCopiedZipCity(true);
+      setTimeout(() => setCopiedZipCity(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy zip/city:', err);
+    }
+  };
+
+  const handleCopyFirstName = async () => {
+    try {
+      await navigator.clipboard.writeText(selectedMemberMain.firstName || "");
+      setCopiedFirstName(true);
+      setTimeout(() => setCopiedFirstName(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy first name:', err);
+    }
+  };
+
+  const handleCopyLastName = async () => {
+    try {
+      await navigator.clipboard.writeText(selectedMemberMain.lastName || "");
+      setCopiedLastName(true);
+      setTimeout(() => setCopiedLastName(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy last name:', err);
+    }
+  };
+
+  const handleCopyGender = async () => {
+    try {
+      await navigator.clipboard.writeText(selectedMemberMain.gender || "");
+      setCopiedGender(true);
+      setTimeout(() => setCopiedGender(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy gender:', err);
+    }
+  };
+
+  const handleCopyBirthday = async () => {
+    try {
+      await navigator.clipboard.writeText(selectedMemberMain.dateOfBirth || selectedMemberMain.birthday || "");
+      setCopiedBirthday(true);
+      setTimeout(() => setCopiedBirthday(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy birthday:', err);
+    }
+  };
+
+  const handleCopyCountry = async () => {
+    try {
+      await navigator.clipboard.writeText(selectedMemberMain.country || "");
+      setCopiedCountry(true);
+      setTimeout(() => setCopiedCountry(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy country:', err);
+    }
+  };
+
+  const handleCopyAbout = async () => {
+    try {
+      await navigator.clipboard.writeText(selectedMemberMain.about || selectedMemberMain.details || "");
+      setCopiedAbout(true);
+      setTimeout(() => setCopiedAbout(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy about:', err);
+    }
+  };
+
+  const handleCopyMemberId = async () => {
+    try {
+      await navigator.clipboard.writeText(String(selectedMemberMain.id || selectedMemberMain.memberNumber) || "");
+      setCopiedMemberId(true);
+      setTimeout(() => setCopiedMemberId(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy member ID:', err);
+    }
   };
 
   return (
-    <div className="fixed inset-0 w-full open_sans_font h-full bg-black/50 flex items-center p-2 md:p-4 justify-center z-[1000] overflow-y-auto">
-      <div className="bg-[#1C1C1C] rounded-xl w-full max-w-4xl max-h-[95vh] md:max-h-[90vh] relative flex flex-col">
-        {/* Header - Fixed */}
-        <div className="flex-shrink-0 p-4 md:p-6 border-b border-gray-700">
-          <div className="flex justify-between items-center">
-            <h2 className="text-white open_sans_font_700 text-lg font-semibold">Member Details</h2>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-white"
-            >
+    <div className="fixed inset-0 w-full h-full bg-black/50 flex items-center p-2 md:p-0 justify-center z-[1000]">
+      <div className="bg-[#1C1C1C] rounded-xl w-full max-w-4xl max-h-[90vh] md:max-h-[85vh] my-2 md:my-8 relative flex flex-col">
+        {/* Sticky Header */}
+        <div className="p-4 md:p-6 pb-0 flex-shrink-0">
+          <div className="flex justify-between items-center mb-4 md:mb-6">
+            <h2 className="text-white text-lg font-semibold">Member Details</h2>
+            <button onClick={onClose} className="text-gray-400 hover:text-white">
               <X size={20} className="cursor-pointer" />
             </button>
           </div>
 
           {/* Tab Navigation */}
-          <div className="flex border-b border-gray-700 mt-4 -mb-4">
+          <div className="flex border-b border-gray-700">
             <button
               onClick={() => setActiveTab("details")}
-              className={`px-4 py-2 text-sm font-medium ${activeTab === "details"
-                  ? "text-blue-400 border-b-2 border-blue-400"
-                  : "text-gray-400 hover:text-white"
-                }`}
+              className={`px-4 py-2 text-sm font-medium ${
+                activeTab === "details" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400 hover:text-white"
+              }`}
             >
               Details
             </button>
             <button
               onClick={() => setActiveTab("note")}
-              className={`px-4 py-2 text-sm font-medium ${activeTab === "note"
-                  ? "text-blue-400 border-b-2 border-blue-400"
-                  : "text-gray-400 hover:text-white"
-                }`}
+              className={`px-4 py-2 text-sm font-medium ${
+                activeTab === "note" ? "text-blue-400 border-b-2 border-blue-400" : "text-gray-400 hover:text-white"
+              }`}
             >
-              Special Note
+              Special Notes
             </button>
             <button
               onClick={() => setActiveTab("relations")}
-              className={`px-4 py-2 text-sm font-medium ${activeTab === "relations"
+              className={`px-4 py-2 text-sm font-medium ${
+                activeTab === "relations"
                   ? "text-blue-400 border-b-2 border-blue-400"
                   : "text-gray-400 hover:text-white"
-                }`}
+              }`}
             >
               Relations
             </button>
           </div>
         </div>
 
-        {/* Content - Scrollable */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="p-4 md:p-6">
-            {/* Tab Content */}
-            {activeTab === "details" && (
-              <div className="space-y-4 text-white">
-                <div className="flex flex-col md:flex-row items-center gap-4">
-                  <img
-                    src={selectedMemberMain.image || DefaultAvatar1}
-                    alt="Profile"
-                    className="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover flex-shrink-0"
-                  />
-                  <div className="text-center md:text-left">
-                    <h3 className="text-lg md:text-xl font-semibold">
-                      {selectedMemberMain.title} ({calculateAgeMain(selectedMemberMain.dateOfBirth)})
-                    </h3>
-                    <p className="text-gray-400 mt-1 text-sm">
-                      {selectedMemberMain.memberType === "full" ? (
-                        <>
-                          Contract: {selectedMemberMain.contractStart} -
-                          <span className={isContractExpiringSoonMain(selectedMemberMain.contractEnd) ? "text-red-500" : ""}>
-                            {selectedMemberMain.contractEnd}
-                          </span>
-                        </>
-                      ) : (
-                        <>Auto-archive date: {selectedMemberMain.autoArchiveDate}</>
-                      )}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-gray-400">Member Type</p>
-                    <p className="text-sm">{selectedMemberMain.memberType === "full" ? "Full Member (with contract)" : "Temporary Member (without contract)"}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-400">Member Number</p>
-                    <p className="text-sm">{selectedMemberMain.memberNumber}</p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-gray-400">Email</p>
-                    <p className="text-sm break-all">{selectedMemberMain.email}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-400">Phone</p>
-                    <p className="text-sm">{selectedMemberMain.phone}</p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-gray-400">Country</p>
-                    <p className="text-sm">{selectedMemberMain.country}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-400">Join Date</p>
-                    <p className="text-sm">{selectedMemberMain.joinDate}</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-
+        {/* Scrollable Content */}
+        <div className="p-4 md:p-6 pt-4 md:pt-6 overflow-y-auto flex-1">
+          {/* Tab Content */}
+          {activeTab === "details" && (
+            <div className="space-y-4 text-white">
+              {/* Personal Information */}
+              <div className="space-y-4">
+                <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Personal Information</div>
                 
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-
-                    <p className="text-sm text-gray-400">Address</p>
-                    <p className="text-sm">{`${selectedMemberMain.street}, ${selectedMemberMain.zipCode} ${selectedMemberMain.city}`}</p>
+                    <p className="text-sm text-gray-400">First Name</p>
+                    <div className="flex items-center gap-3">
+                      <p>{selectedMemberMain.firstName || "-"}</p>
+                      {selectedMemberMain.firstName && (
+                        <button
+                          onClick={handleCopyFirstName}
+                          className="p-1 hover:bg-gray-700 rounded transition-colors"
+                          title="Copy first name"
+                        >
+                          {copiedFirstName ? (
+                            <Check size={14} className="text-green-500" />
+                          ) : (
+                            <Copy size={14} className="text-gray-400 hover:text-white" />
+                          )}
+                        </button>
+                      )}
+                    </div>
                   </div>
+                  <div>
+                    <p className="text-sm text-gray-400">Last Name</p>
+                    <div className="flex items-center gap-3">
+                      <p>{selectedMemberMain.lastName || "-"}</p>
+                      {selectedMemberMain.lastName && (
+                        <button
+                          onClick={handleCopyLastName}
+                          className="p-1 hover:bg-gray-700 rounded transition-colors"
+                          title="Copy last name"
+                        >
+                          {copiedLastName ? (
+                            <Check size={14} className="text-green-500" />
+                          ) : (
+                            <Copy size={14} className="text-gray-400 hover:text-white" />
+                          )}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-400">Gender</p>
-                    <p className="text-sm">{selectedMemberMain?.gender || ""}</p>
+                    <p className="capitalize">{selectedMemberMain.gender || "-"}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-400">Birthday</p>
+                    <div className="flex items-center gap-3">
+                      <p>
+                        {(selectedMemberMain.dateOfBirth || selectedMemberMain.birthday)
+                          ? (() => {
+                              const birthDate = new Date(selectedMemberMain.dateOfBirth || selectedMemberMain.birthday)
+                              const today = new Date()
+                              let age = today.getFullYear() - birthDate.getFullYear()
+                              const monthDiff = today.getMonth() - birthDate.getMonth()
+                              if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                                age--
+                              }
+                              return `${birthDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} (Age: ${age})`
+                            })()
+                          : "-"}
+                      </p>
+                      {(selectedMemberMain.dateOfBirth || selectedMemberMain.birthday) && (
+                        <button
+                          onClick={handleCopyBirthday}
+                          className="p-1 hover:bg-gray-700 rounded transition-colors"
+                          title="Copy birthday"
+                        >
+                          {copiedBirthday ? (
+                            <Check size={14} className="text-green-500" />
+                          ) : (
+                            <Copy size={14} className="text-gray-400 hover:text-white" />
+                          )}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
-                <div className="grid grid-cols-1 gap-4">
+              </div>
+
+              {/* Contact Information */}
+              <div className="space-y-4 pt-4 border-t border-gray-700">
+                <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Contact Information</div>
+                
+                <div>
+                  <p className="text-sm text-gray-400">Email</p>
+                  <div className="flex items-center gap-3">
+                    <p>{selectedMemberMain.email || "-"}</p>
+                    {selectedMemberMain.email && (
+                      <button
+                        onClick={handleCopyEmail}
+                        className="p-1 hover:bg-gray-700 rounded transition-colors"
+                        title="Copy email"
+                      >
+                        {copiedEmail ? (
+                          <Check size={14} className="text-green-500" />
+                        ) : (
+                          <Copy size={14} className="text-gray-400 hover:text-white" />
+                        )}
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-400">Date of Birth</p>
-                    <p className="text-sm">
-                      {selectedMemberMain.dateOfBirth} (Age: {calculateAgeMain(selectedMemberMain.dateOfBirth)})
+                    <p className="text-sm text-gray-400">Mobile Number</p>
+                    <div className="flex items-center gap-3">
+                      <p>{selectedMemberMain.phone || selectedMemberMain.phoneNumber || "-"}</p>
+                      {(selectedMemberMain.phone || selectedMemberMain.phoneNumber) && (
+                        <button
+                          onClick={handleCopyPhone}
+                          className="p-1 hover:bg-gray-700 rounded transition-colors"
+                          title="Copy mobile number"
+                        >
+                          {copiedPhone ? (
+                            <Check size={14} className="text-green-500" />
+                          ) : (
+                            <Copy size={14} className="text-gray-400 hover:text-white" />
+                          )}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-400">Telephone Number</p>
+                    <div className="flex items-center gap-3">
+                      <p>{selectedMemberMain.telephoneNumber || "-"}</p>
+                      {selectedMemberMain.telephoneNumber && (
+                        <button
+                          onClick={handleCopyTelephone}
+                          className="p-1 hover:bg-gray-700 rounded transition-colors"
+                          title="Copy telephone number"
+                        >
+                          {copiedTelephone ? (
+                            <Check size={14} className="text-green-500" />
+                          ) : (
+                            <Copy size={14} className="text-gray-400 hover:text-white" />
+                          )}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Address */}
+              <div className="space-y-4 pt-4 border-t border-gray-700">
+                <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Address</div>
+                
+                <div>
+                  <p className="text-sm text-gray-400">Street & Number</p>
+                  <div className="flex items-center gap-3">
+                    <p>{selectedMemberMain.street || "-"}</p>
+                    {selectedMemberMain.street && (
+                      <button
+                        onClick={handleCopyStreet}
+                        className="p-1 hover:bg-gray-700 rounded transition-colors"
+                        title="Copy street address"
+                      >
+                        {copiedStreet ? (
+                          <Check size={14} className="text-green-500" />
+                        ) : (
+                          <Copy size={14} className="text-gray-400 hover:text-white" />
+                        )}
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-400">ZIP Code & City</p>
+                    <div className="flex items-center gap-3">
+                      <p>
+                        {selectedMemberMain.zipCode && selectedMemberMain.city 
+                          ? `${selectedMemberMain.zipCode} ${selectedMemberMain.city}` 
+                          : selectedMemberMain.zipCode || selectedMemberMain.city || "-"}
+                      </p>
+                      {(selectedMemberMain.zipCode || selectedMemberMain.city) && (
+                        <button
+                          onClick={handleCopyZipCity}
+                          className="p-1 hover:bg-gray-700 rounded transition-colors"
+                          title="Copy ZIP code and city"
+                        >
+                          {copiedZipCity ? (
+                            <Check size={14} className="text-green-500" />
+                          ) : (
+                            <Copy size={14} className="text-gray-400 hover:text-white" />
+                          )}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-400">Country</p>
+                    <div className="flex items-center gap-3">
+                      <p>{selectedMemberMain.country || "-"}</p>
+                      {selectedMemberMain.country && (
+                        <button
+                          onClick={handleCopyCountry}
+                          className="p-1 hover:bg-gray-700 rounded transition-colors"
+                          title="Copy country"
+                        >
+                          {copiedCountry ? (
+                            <Check size={14} className="text-green-500" />
+                          ) : (
+                            <Copy size={14} className="text-gray-400 hover:text-white" />
+                          )}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-sm text-gray-400">Member ID</p>
+                  <div className="flex items-center gap-3">
+                    <p>{selectedMemberMain.id || selectedMemberMain.memberNumber || "-"}</p>
+                    {(selectedMemberMain.id || selectedMemberMain.memberNumber) && (
+                      <button
+                        onClick={handleCopyMemberId}
+                        className="p-1 hover:bg-gray-700 rounded transition-colors"
+                        title="Copy member ID"
+                      >
+                        {copiedMemberId ? (
+                          <Check size={14} className="text-green-500" />
+                        ) : (
+                          <Copy size={14} className="text-gray-400 hover:text-white" />
+                        )}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+              
+              {/* About section */}
+              {(selectedMemberMain.about || selectedMemberMain.details) && (
+                <div className="pt-4 border-t border-gray-700">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-sm text-gray-400">About</p>
+                    <button
+                      onClick={handleCopyAbout}
+                      className="p-1 hover:bg-gray-700 rounded transition-colors"
+                      title="Copy about text"
+                    >
+                      {copiedAbout ? (
+                        <Check size={14} className="text-green-500" />
+                      ) : (
+                        <Copy size={14} className="text-gray-400 hover:text-white" />
+                      )}
+                    </button>
+                  </div>
+                  <div className="bg-[#141414] rounded-xl px-4 py-3 text-sm break-words overflow-wrap-anywhere">
+                    <p className="whitespace-pre-wrap">{selectedMemberMain.about || selectedMemberMain.details}</p>
+                  </div>
+                </div>
+              )}
+              
+              {/* Created Date */}
+              <div className="pt-4 border-t border-gray-700">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm text-gray-400">Join Date</p>
+                    <p>
+                      {selectedMemberMain.joinDate || selectedMemberMain.createdAt
+                        ? new Date(selectedMemberMain.joinDate || selectedMemberMain.createdAt).toLocaleDateString('en-US', { 
+                            month: 'short', 
+                            day: 'numeric', 
+                            year: 'numeric' 
+                          })
+                        : "-"}
                     </p>
                   </div>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-400">About</p>
-                  <p className="text-sm">{selectedMemberMain.about}</p>
-                  {selectedMemberMain.memberType === "temporary" && selectedMemberMain.autoArchiveDate && (
-                    <div className="mt-2 p-2 bg-orange-900/20 border border-orange-600/30 rounded-lg">
-                      <p className="text-orange-200 text-sm">
-                        <Clock size={14} className="inline mr-1" />
-                        Auto-archive due date: {selectedMemberMain.autoArchiveDate}
-                      </p>
-                    </div>
-                  )}
-                </div>
               </div>
-            )}
+            </div>
+          )}
 
-            {activeTab === "note" && (
-              <div className="space-y-4 text-white">
-                <h3 className="text-lg font-semibold mb-4">Special Note</h3>
-                {selectedMemberMain.note ? (
-                  <div className="border border-slate-700 rounded-xl p-4">
-                    <div className="flex items-center gap-2 mb-4">
-                      {selectedMemberMain.noteImportance === "important" ? (
-                        <AlertTriangle className="text-yellow-500" size={20} />
-                      ) : (
-                        <Info className="text-blue-500" size={20} />
-                      )}
-                      <p className="font-medium">
-                        {selectedMemberMain.noteImportance === "important" ? "Important Note" : "Unimportant Note"}
-                      </p>
-                    </div>
-                    <p className="text-sm leading-relaxed">{selectedMemberMain.note}</p>
-                    {selectedMemberMain.noteStartDate && selectedMemberMain.noteEndDate && (
-                      <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
-                        <p className="text-xs text-gray-300">
-                          Valid from {selectedMemberMain.noteStartDate} to {selectedMemberMain.noteEndDate}
-                        </p>
+          {activeTab === "note" && (
+            <div className="space-y-4 text-white pb-16">
+              {/* Member Name Header */}
+              <div className="mb-2 pb-3 border-b border-slate-700">
+                <p className="text-xs text-gray-400 uppercase tracking-wider">Special Notes for</p>
+                <p className="text-white font-medium">{selectedMemberMain.firstName} {selectedMemberMain.lastName}</p>
+              </div>
+              
+              {/* Notes List */}
+              <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                {getNotes().length > 0 ? (
+                  [...getNotes()]
+                    .sort((a, b) => (b.isImportant ? 1 : 0) - (a.isImportant ? 1 : 0))
+                    .map((note) => {
+                    const statusInfo = getStatusInfo(note.status)
+                    const isExpanded = expandedNoteId === note.id
+                    
+                    return (
+                      <div
+                        key={note.id}
+                        className="bg-[#1a1a1a] rounded-lg overflow-hidden"
+                      >
+                        {/* Note Header */}
+                        <div 
+                          className="flex items-center justify-between p-3 cursor-pointer"
+                          onClick={() => setExpandedNoteId(isExpanded ? null : note.id)}
+                        >
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <span className="text-xs font-medium px-2 py-0.5 rounded bg-gray-700 text-gray-300">
+                              {statusInfo.label}
+                            </span>
+                            {note.isImportant && (
+                              <span className="text-xs font-medium px-2 py-0.5 rounded bg-gray-700 text-red-500">
+                                Important
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center">
+                            {isExpanded ? (
+                              <ChevronUp size={16} className="text-gray-400" />
+                            ) : (
+                              <ChevronDown size={16} className="text-gray-400" />
+                            )}
+                          </div>
+                        </div>
+                        
+                        {/* Preview & Valid Date (always visible when collapsed) */}
+                        {!isExpanded && (
+                          <div className="px-3 pb-2">
+                            <p className="text-gray-400 text-sm truncate">
+                              {note.text}
+                            </p>
+                            {(note.startDate || note.endDate) && (
+                              <p className="text-xs text-gray-600 mt-1">
+                                {note.startDate && note.endDate ? (
+                                  <>Valid: {note.startDate} - {note.endDate}</>
+                                ) : note.startDate ? (
+                                  <>Valid from: {note.startDate}</>
+                                ) : (
+                                  <>Valid until: {note.endDate}</>
+                                )}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                        
+                        {/* Note Content (expandable) */}
+                        {isExpanded && (
+                          <div className="px-3 pb-3 border-t border-gray-800">
+                            <p className="text-white text-sm mt-2 whitespace-pre-wrap break-words">
+                              {note.text}
+                            </p>
+                            {(note.startDate || note.endDate) && (
+                              <div className="mt-2 text-xs text-gray-500">
+                                {note.startDate && note.endDate ? (
+                                  <>Valid: {note.startDate} - {note.endDate}</>
+                                ) : note.startDate ? (
+                                  <>Valid from: {note.startDate}</>
+                                ) : (
+                                  <>Valid until: {note.endDate}</>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
+                    )
+                  })
                 ) : (
-                  <div className="text-gray-400 text-center py-8">No special note for this member.</div>
+                  <div className="text-gray-400 text-center py-8">No special notes for this member.</div>
                 )}
               </div>
-            )}
+            </div>
+          )}
 
-            {activeTab === "relations" && (
-              <div className="space-y-6">
+          {activeTab === "relations" && (
+            <>
+              <div className="space-y-6 max-h-[60vh] overflow-y-auto pb-16">
                 {/* Relations Tree Visualization */}
-                <div className="bg-[#161616] rounded-xl p-4 md:p-6">
+                <div className="bg-[#161616] rounded-xl p-6">
                   <h3 className="text-lg font-semibold text-white mb-4 text-center">Relationship Tree</h3>
-                  <div className="flex flex-col items-center space-y-6 md:space-y-8">
+                  <div className="flex flex-col items-center space-y-8">
                     {/* Central Member */}
-                    <div className="bg-blue-600 text-white px-3 py-2 md:px-4 md:py-2 rounded-lg border-2 border-blue-400 font-semibold text-sm md:text-base">
-                      {selectedMemberMain.title}
+                    <div className="bg-blue-600 text-white px-4 py-2 rounded-lg border-2 border-blue-400 font-semibold">
+                      {selectedMemberMain.firstName} {selectedMemberMain.lastName}
                     </div>
                     {/* Connection Lines and Categories */}
                     <div className="relative w-full">
-                      {/* Horizontal line */}
                       <div className="absolute top-0 left-0 right-0 h-0.5 bg-gray-600"></div>
-                      {/* Category sections */}
-                      <div className="grid grid-cols-2 md:grid-cols-5 gap-2 md:gap-4 pt-6 md:pt-8">
+                      <div className="grid grid-cols-5 gap-4 pt-8">
                         {Object.entries(memberRelationsMain[selectedMemberMain.id] || {}).map(([category, relations]) => (
-                          <div key={category} className="flex flex-col items-center space-y-3 md:space-y-4">
-                            {/* Vertical line */}
-                            <div className="w-0.5 h-6 md:h-8 bg-gray-600"></div>
-                            {/* Category header */}
+                          <div key={category} className="flex flex-col items-center space-y-4">
+                            <div className="w-0.5 h-8 bg-gray-600"></div>
                             <div
-                              className={`px-2 py-1 md:px-3 md:py-1 rounded-lg text-xs md:text-sm font-medium capitalize ${category === "family"
+                              className={`px-3 py-1 rounded-lg text-sm font-medium capitalize ${
+                                category === "family"
                                   ? "bg-yellow-600 text-yellow-100"
                                   : category === "friendship"
                                     ? "bg-green-600 text-green-100"
@@ -240,35 +685,23 @@ const ViewDetailsModal = ({
                                       : category === "work"
                                         ? "bg-blue-600 text-blue-100"
                                         : "bg-gray-600 text-gray-100"
-                                }`}
+                              }`}
                             >
                               {category}
                             </div>
-                            {/* Relations in this category */}
                             <div className="space-y-2">
                               {relations.map((relation) => (
                                 <div
                                   key={relation.id}
-                                  className={`bg-[#2F2F2F] rounded-lg p-2 text-center min-w-[100px] md:min-w-[120px] cursor-pointer hover:bg-[#3F3F3F] ${relation.type === "member" || relation.type === "lead"
+                                  className={`bg-[#2F2F2F] rounded-lg p-2 text-center min-w-[120px] cursor-pointer hover:bg-[#3F3F3F] ${
+                                    relation.type === "member" || relation.type === "lead"
                                       ? "border border-blue-500/30"
                                       : ""
-                                    }`}
-                                  onClick={() => {
-                                    if (relation.type === "member" || relation.type === "lead") {
-                                      toast.info(`Clicked on ${relation.name} (${relation.type})`);
-                                    }
-                                  }}
+                                  }`}
                                 >
-                                  <div className="text-white text-xs md:text-sm font-medium">{relation.name}</div>
+                                  <div className="text-white text-sm font-medium">{relation.name}</div>
                                   <div className="text-gray-400 text-xs">({relation.relation})</div>
-                                  <div
-                                    className={`text-xs mt-1 px-1 py-0.5 rounded ${relation.type === "member"
-                                        ? "bg-green-600 text-green-100"
-                                        : relation.type === "lead"
-                                          ? "bg-blue-600 text-blue-100"
-                                          : "bg-gray-600 text-gray-100"
-                                      }`}
-                                  >
+                                  <div className="bg-gray-700 text-gray-300 text-xs mt-1 px-1.5 py-0.5 rounded capitalize inline-block">
                                     {relation.type}
                                   </div>
                                 </div>
@@ -283,40 +716,28 @@ const ViewDetailsModal = ({
                     </div>
                   </div>
                 </div>
-
                 {/* Relations List */}
-                <div className="bg-[#161616] rounded-xl p-4 md:p-6">
+                <div className="bg-[#161616] rounded-xl p-6">
                   <h3 className="text-lg font-semibold text-white mb-4">All Relations</h3>
                   <div className="space-y-4">
                     {Object.entries(memberRelationsMain[selectedMemberMain.id] || {}).map(([category, relations]) => (
                       <div key={category}>
                         <h4 className="text-md font-medium text-gray-300 capitalize mb-2">{category}</h4>
-                        <div className="space-y-2 ml-2 md:ml-4">
+                        <div className="space-y-2 ml-4">
                           {relations.length > 0 ? (
                             relations.map((relation) => (
                               <div
                                 key={relation.id}
-                                className={`flex items-center justify-between bg-[#2F2F2F] rounded-lg p-3 ${relation.type === "member" || relation.type === "lead"
+                                className={`flex items-center justify-between bg-[#2F2F2F] rounded-lg p-3 ${
+                                  relation.type === "member" || relation.type === "lead"
                                     ? "cursor-pointer hover:bg-[#3F3F3F] border border-blue-500/30"
                                     : ""
-                                  }`}
-                                onClick={() => {
-                                  if (relation.type === "member" || relation.type === "lead") {
-                                    toast.info(`Clicked on ${relation.name} (${relation.type})`);
-                                  }
-                                }}
+                                }`}
                               >
-                                <div>
-                                  <span className="text-white font-medium text-sm md:text-base">{relation.name}</span>
-                                  <span className="text-gray-400 ml-2 text-sm">- {relation.relation}</span>
-                                  <span
-                                    className={`ml-2 text-xs px-2 py-0.5 rounded ${relation.type === "member"
-                                        ? "bg-green-600 text-green-100"
-                                        : relation.type === "lead"
-                                          ? "bg-blue-600 text-blue-100"
-                                          : "bg-gray-600 text-gray-100"
-                                      }`}
-                                  >
+                                <div className="flex items-center flex-wrap gap-1.5">
+                                  <span className="text-white font-medium">{relation.name}</span>
+                                  <span className="text-gray-400">- {relation.relation}</span>
+                                  <span className="bg-gray-700 text-gray-300 text-xs px-2 py-0.5 rounded capitalize">
                                     {relation.type}
                                   </span>
                                 </div>
@@ -331,61 +752,45 @@ const ViewDetailsModal = ({
                   </div>
                 </div>
               </div>
-            )}
-          </div>
+            </>
+          )}
         </div>
 
-        {/* Footer - Fixed for relations tab only */}
-        {activeTab === "relations" && (
-          <div className="flex-shrink-0 bg-[#1C1C1C] p-4 md:p-6 border-t border-gray-700">
-            <button
-              onClick={() => handleEditAndOpenTab("relations")}
-              className="w-full bg-[#FF843E] text-sm text-white px-4 py-2 rounded-xl hover:bg-[#FF843E]/90"
-            >
-              Edit Relations
-            </button>
-          </div>
-        )}
-
-        {/* Footer for details tab */}
-        {activeTab === "details" && (
-          <div className="flex-shrink-0 p-4 md:p-6 border-t border-gray-700">
-            <div className="flex flex-col md:flex-row justify-end gap-4">
-              {selectedMemberMain.memberType === "full" && (
-                <button
-                  onClick={redirectToContract}
-                  className="flex items-center justify-center gap-2 text-sm bg-[#3F74FF] text-white px-4 py-2 rounded-xl hover:bg-[#3F74FF]/90"
-                >
-                  <FileText size={16} />
-                  View Contract
-                </button>
-              )}
+        {/* Sticky Footer with Edit Buttons */}
+        <div className="flex-shrink-0 bg-[#1C1C1C] px-4 md:px-6 py-4 border-t border-gray-700">
+          <div className="flex justify-end">
+            {activeTab === "details" && (
               <button
-                onClick={() => handleEditAndOpenTab("details")}
-                className="bg-[#FF843E] text-sm text-white px-4 py-2 rounded-xl hover:bg-[#FF843E]/90"
+                onClick={() => {
+                  onClose()
+                  handleEditMember(selectedMemberMain)
+                }}
+                className="bg-orange-500 text-sm text-white px-4 py-2 rounded-xl hover:bg-orange-600"
               >
                 Edit Member
               </button>
-            </div>
-          </div>
-        )}
-
-        {/* Footer for note tab */}
-        {activeTab === "note" && (
-          <div className="flex-shrink-0 p-4 md:p-6 border-t border-gray-700">
-            <div className="flex justify-end">
+            )}
+            {activeTab === "note" && (
               <button
-                onClick={() => handleEditAndOpenTab("note")}
-                className="bg-[#FF843E] text-sm text-white px-4 py-2 rounded-xl hover:bg-[#FF843E]/90"
+                onClick={handleEditNote}
+                className="bg-orange-500 text-sm text-white px-4 py-2 rounded-xl"
               >
-                Edit Note
+                Edit Special Notes
               </button>
-            </div>
+            )}
+            {activeTab === "relations" && (
+              <button
+                onClick={handleEditRelations}
+                className="bg-orange-500 text-sm text-white px-4 py-2 rounded-xl hover:bg-orange-600"
+              >
+                Edit Relations
+              </button>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
 export default ViewDetailsModal;

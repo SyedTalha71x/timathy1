@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight,
   Lock, Unlock, Palette, Type, Maximize2, Image as ImageIcon, Move,
-  PenTool, ChevronRight, ChevronDown, Frame, Droplet, Minus, Sun, Crop
+  PenTool, ChevronRight, ChevronDown, Frame, Droplet, Minus, Sun, Crop, RotateCcw
 } from 'lucide-react';
 import { fontFamilies } from '../constants/platformSizes';
 
@@ -11,7 +11,8 @@ const PropertiesPanel = ({
   onUpdate,
   isLocked,
   onToggleLock,
-  onStartCrop
+  onStartCrop,
+  isCropping = false
 }) => {
   const [expandedSections, setExpandedSections] = useState({
     content: true,
@@ -52,6 +53,21 @@ const PropertiesPanel = ({
       case 'gradient': return 'bg-pink-500/10';
       case 'divider': return 'bg-yellow-500/10';
       default: return 'bg-gray-500/10';
+    }
+  };
+
+  // Check if image has been cropped
+  const hasCrop = element?.type === 'image' && element?.cropWidth && element?.cropHeight;
+
+  // Reset crop to full image
+  const handleResetCrop = () => {
+    if (element?.type === 'image') {
+      onUpdate({
+        cropX: undefined,
+        cropY: undefined,
+        cropWidth: undefined,
+        cropHeight: undefined
+      });
     }
   };
 
@@ -176,10 +192,10 @@ const PropertiesPanel = ({
                     <div className="flex gap-2">
                       <button onClick={() => onUpdate({ arrowStart: !element.arrowStart })} disabled={isLocked}
                         className={`flex-1 p-1.5 rounded text-[10px] ${element.arrowStart ? 'bg-orange-500/10 text-orange-500 border border-orange-500/30' : 'bg-[#0a0a0a] text-gray-400'}`}
-                      >← Start</button>
+                      >&lt;- Start</button>
                       <button onClick={() => onUpdate({ arrowEnd: !element.arrowEnd })} disabled={isLocked}
                         className={`flex-1 p-1.5 rounded text-[10px] ${element.arrowEnd ? 'bg-orange-500/10 text-orange-500 border border-orange-500/30' : 'bg-[#0a0a0a] text-gray-400'}`}
-                      >End →</button>
+                      >End -&gt;</button>
                     </div>
                   </div>
                 </div>
@@ -325,13 +341,51 @@ const PropertiesPanel = ({
             {element.type === 'image' && (
               <CollapsibleSection title="Image" icon={ImageIcon} isExpanded={expandedSections.image} onToggle={() => toggleSection('image')}>
                 <div className="space-y-3">
+                  {/* Crop Controls */}
                   {onStartCrop && (
-                    <button onClick={() => onStartCrop(element.id)} disabled={isLocked}
-                      className="w-full flex items-center justify-center gap-2 py-2 bg-[#0a0a0a] hover:bg-[#1a1a1a] text-white text-sm rounded-lg border border-[#333] disabled:opacity-50"
-                    >
-                      <Crop size={14} /> Crop Image
-                    </button>
+                    <div className="space-y-2">
+                      {isCropping ? (
+                        <div className="p-2 bg-orange-500/10 border border-orange-500/30 rounded-lg text-center">
+                          <p className="text-orange-400 text-xs font-medium flex items-center justify-center gap-2">
+                            <Crop size={14} />
+                            Cropping active
+                          </p>
+                          <p className="text-orange-400/70 text-[10px] mt-1">
+                            Drag handles on canvas to adjust
+                          </p>
+                        </div>
+                      ) : (
+                        <button 
+                          onClick={() => onStartCrop(element.id)} 
+                          disabled={isLocked}
+                          className="w-full flex items-center justify-center gap-2 py-2 bg-[#0a0a0a] hover:bg-[#1a1a1a] text-white text-sm rounded-lg border border-[#333] disabled:opacity-50 transition-colors"
+                        >
+                          <Crop size={14} /> 
+                          Crop Image
+                        </button>
+                      )}
+                      
+                      {/* Reset Crop Button */}
+                      {hasCrop && !isCropping && (
+                        <button 
+                          onClick={handleResetCrop} 
+                          disabled={isLocked}
+                          className="w-full flex items-center justify-center gap-2 py-2 bg-[#0a0a0a] hover:bg-red-500/10 text-gray-400 hover:text-red-400 text-sm rounded-lg border border-[#333] hover:border-red-500/30 disabled:opacity-50 transition-colors"
+                        >
+                          <RotateCcw size={14} /> 
+                          Reset Crop
+                        </button>
+                      )}
+                      
+                      {/* Crop Info */}
+                      {hasCrop && !isCropping && (
+                        <div className="text-[10px] text-gray-500 bg-[#0a0a0a] rounded p-2">
+                          <span className="text-gray-400">Cropped region:</span> {Math.round(element.cropWidth)}x{Math.round(element.cropHeight)}px
+                        </div>
+                      )}
+                    </div>
                   )}
+                  
                   <div>
                     <label className="text-[10px] text-gray-500 mb-1 block uppercase">Blur</label>
                     <div className="flex items-center gap-2">
