@@ -268,23 +268,6 @@ const EditorModal = ({
     setSelectedTool('gradient');
   }, [imageSize, addElement]);
 
-  // Add divider
-  const handleAddDivider = useCallback(() => {
-    const { width, height } = getOriginalDimensions(imageSize);
-    addElement({
-      type: 'divider',
-      color: '#FFFFFF',
-      dividerStyle: 'solid',
-      strokeWidth: 2,
-      x: width / 4,
-      y: height / 2,
-      width: width / 2,
-      height: 20,
-      opacity: 1
-    });
-    setSelectedTool('divider');
-  }, [imageSize, addElement]);
-
   // Add image
   const handleAddImage = useCallback(() => {
     const input = document.createElement('input');
@@ -571,7 +554,6 @@ const EditorModal = ({
           onAddImage={handleAddImage}
           onAddLine={handleAddLine}
           onAddGradient={handleAddGradient}
-          onAddDivider={handleAddDivider}
           elements={elements}
           activeElementId={activeElementId}
           lockedElements={lockedElements}

@@ -189,7 +189,7 @@ const SortableColumn = ({
             </div>
           )}
 
-          {/* Edit Column Button (3-Punkte-Menü) with Tooltip */}
+          {/* Edit Column Button (3-Punkte-MenÃ¼) with Tooltip */}
           {isEditable && (
             <div className="relative group hover:z-[100]">
               <button
@@ -227,7 +227,22 @@ const SortableColumn = ({
                 onClick={onToggleCollapse}
                 className="text-gray-400 hover:text-white p-1 hover:bg-gray-800 rounded-lg ml-1"
               >
-                <ChevronLeft size={14} />
+                {/* ChevronUp on mobile, ChevronLeft on desktop */}
+                <ChevronLeft size={14} className="hidden md:block" />
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="14" 
+                  height="14" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                  className="md:hidden"
+                >
+                  <path d="m18 15-6-6-6 6"/>
+                </svg>
               </button>
               {/* Tooltip - nach links ausgerichtet damit es nicht abgeschnitten wird */}
               <div className="absolute right-0 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[1000] shadow-lg pointer-events-none">

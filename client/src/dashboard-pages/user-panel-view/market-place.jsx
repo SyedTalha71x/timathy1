@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import { useState, useRef, useEffect } from "react"
-import { ChevronDown, ChevronUp, ExternalLink, Search, ArrowUpDown, ArrowUp, ArrowDown, Info, Heart } from "lucide-react"
+import { ChevronDown, ChevronUp, ExternalLink, Search, ArrowUpDown, ArrowUp, ArrowDown, Info, Heart, Tag } from "lucide-react"
 import { IoIosMenu } from "react-icons/io"
 import { useNavigate } from "react-router-dom"
 
@@ -16,32 +16,16 @@ import EditAppointmentModalV2 from "../../components/myarea-components/EditAppoi
 import { Toaster } from "react-hot-toast"
 import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
 
+// Import marketplace data from states file
+import { 
+  defaultProducts, 
+  defaultCategories, 
+  defaultBrands,
+  formatPrice, 
+  calculateDiscountPercentage, 
+  isOnSale 
+} from "../../utils/user-panel-states/marketplace-states"
 
-const marketplaceProducts = [
-  {
-    id: 1,
-    name: "Mens Jordan Trainer",
-    brand: "JORDAN",
-    articleNo: "456",
-    price: "5,00 â‚¬",
-    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSV1xUYD-Gqa5d08aoyqp4g1i6vs4lySrH4cA&s",
-    link: "https://example.com/product/1",
-    pinned: true,
-    infoText: "Premium basketball shoes with enhanced ankle support and cushioning. Made from breathable materials."
-  },
-  {
-    id: 2,
-    name: "Snickers Off-White 2024",
-    brand: "NIKE",
-    articleNo: "123",
-    price: "5,00 â‚¬",
-    image: "https://image.goat.com/transform/v1/attachments/product_template_additional_pictures/images/105/365/563/original/1507255_01.jpg.jpeg?action=crop&width=750",
-    link: "https://example.com/product/2",
-    pinned: false,
-    infoText: "Limited edition collaboration with Off-White. Features deconstructed design elements."
-  },
-  // Add more products with pinned and infoText fields as needed
-];
 
 // Info Tooltip Component with hover and click support
 const InfoTooltip = ({ product }) => {
@@ -236,6 +220,46 @@ const AffiliateLinkButton = ({ link, onOpenModal }) => {
   );
 };
 
+// Discount Badge Component
+const DiscountBadge = ({ percentage }) => {
+  return (
+    <div className="absolute top-3 right-3 bg-blue-500 text-white px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1 z-10">
+      <Tag size={12} />
+      -{percentage}%
+    </div>
+  );
+};
+
+// Price Display Component with sale formatting
+const PriceDisplay = ({ product }) => {
+  const hasDiscount = isOnSale(product);
+  const discountPercentage = hasDiscount ? calculateDiscountPercentage(product.originalPrice, product.price) : 0;
+  
+  if (hasDiscount) {
+    return (
+      <div className="flex flex-col">
+        <div className="flex items-center gap-2">
+          <span className="text-lg font-bold text-blue-400">
+            {formatPrice(product.price, product.currency)}
+          </span>
+          <span className="text-sm text-gray-500 line-through">
+            {formatPrice(product.originalPrice, product.currency)}
+          </span>
+        </div>
+        <span className="text-xs text-blue-400 font-medium">
+          You save {formatPrice(product.originalPrice - product.price, product.currency)} ({discountPercentage}%)
+        </span>
+      </div>
+    );
+  }
+  
+  return (
+    <p className="text-lg font-bold text-white">
+      {formatPrice(product.price, product.currency)}
+    </p>
+  );
+};
+
 
 export default function MarketplacePage() {
   const sidebarSystem = useSidebarSystem();
@@ -243,6 +267,9 @@ export default function MarketplacePage() {
   const [searchQuery, setSearchQuery] = useState("")
 
   const trainingVideos = trainingVideosData
+
+  // Products state - initialized from states file
+  const [products, setProducts] = useState(defaultProducts);
 
   const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
   const [productForInfo, setProductForInfo] = useState(null);
@@ -272,6 +299,9 @@ export default function MarketplacePage() {
     return saved ? JSON.parse(saved) : [];
   });
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  
+  // Sale filter state
+  const [showSaleOnly, setShowSaleOnly] = useState(false);
 
   // Save favorites to localStorage
   useEffect(() => {
@@ -331,9 +361,11 @@ export default function MarketplacePage() {
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
+  // Count sale items
+  const saleItemsCount = products.filter(p => isOnSale(p)).length;
 
   const getFilteredProducts = () => {
-    let products = marketplaceProducts.filter(
+    let filteredProducts = products.filter(
       (product) =>
         product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         product.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -342,25 +374,28 @@ export default function MarketplacePage() {
     
     // Filter by favorites if enabled
     if (showFavoritesOnly) {
-      products = products.filter(product => favorites.includes(product.id));
+      filteredProducts = filteredProducts.filter(product => favorites.includes(product.id));
     }
     
-    return products;
+    // Filter by sale items if enabled
+    if (showSaleOnly) {
+      filteredProducts = filteredProducts.filter(product => isOnSale(product));
+    }
+    
+    return filteredProducts;
   }
 
 
 
-  const sortProducts = (products) => {
-    return [...products].sort((a, b) => {
+  const sortProducts = (productsToSort) => {
+    return [...productsToSort].sort((a, b) => {
       let aValue = a[sortBy];
       let bValue = b[sortBy];
 
-      // Special handling for price
+      // Special handling for price - use numeric price field
       if (sortBy === "price") {
-        const parsePrice = (priceStr) =>
-          parseFloat(priceStr.replace("â‚¬", "").replace(",", ".").trim());
-        aValue = parsePrice(aValue);
-        bValue = parsePrice(bValue);
+        aValue = a.price;
+        bValue = b.price;
       } else {
         // Normalize strings
         if (typeof aValue === "string") aValue = aValue.toLowerCase();
@@ -689,19 +724,43 @@ export default function MarketplacePage() {
 
           {/* Filter and Sort Controls - matching assessment.jsx style */}
           <div className="flex flex-wrap gap-2 sm:gap-3 mb-6">
-            {/* All / Favorites filter */}
+            {/* All filter */}
             <button
-              onClick={() => setShowFavoritesOnly(false)}
+              onClick={() => {
+                setShowFavoritesOnly(false);
+                setShowSaleOnly(false);
+              }}
               className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${
-                !showFavoritesOnly
+                !showFavoritesOnly && !showSaleOnly
                   ? "bg-blue-600 text-white"
                   : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
               }`}
             >
               All
             </button>
+            
+            {/* Sale filter */}
             <button
-              onClick={() => setShowFavoritesOnly(true)}
+              onClick={() => {
+                setShowSaleOnly(!showSaleOnly);
+                if (!showSaleOnly) setShowFavoritesOnly(false);
+              }}
+              className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors flex items-center gap-2 ${
+                showSaleOnly
+                  ? "bg-blue-600 text-white"
+                  : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+              }`}
+            >
+              <Tag size={14} />
+              Sale ({saleItemsCount})
+            </button>
+            
+            {/* Favorites filter */}
+            <button
+              onClick={() => {
+                setShowFavoritesOnly(!showFavoritesOnly);
+                if (!showFavoritesOnly) setShowSaleOnly(false);
+              }}
               className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors flex items-center gap-2 ${
                 showFavoritesOnly
                   ? "bg-orange-500 text-white"
@@ -775,6 +834,11 @@ export default function MarketplacePage() {
                     draggable="false"
                   />
 
+                  {/* Discount Badge - top right corner of image */}
+                  {isOnSale(product) && (
+                    <DiscountBadge percentage={calculateDiscountPercentage(product.originalPrice, product.price)} />
+                  )}
+
                   {/* Favorite button - top left */}
                   <button
                     onClick={() => toggleFavorite(product.id)}
@@ -791,8 +855,8 @@ export default function MarketplacePage() {
                     />
                   </button>
 
-                  {/* Top-right action buttons */}
-                  <div className="absolute top-3 right-3 flex gap-2">
+                  {/* Bottom-right action buttons (moved from top-right to avoid overlap with discount badge) */}
+                  <div className="absolute bottom-3 right-3 flex gap-2">
                     {/* Info Tooltip Component */}
                     <InfoTooltip product={product} />
 
@@ -805,7 +869,9 @@ export default function MarketplacePage() {
                   <h3 className="text-base font-medium mb-1">{product.name}</h3>
                   <p className="text-sm text-gray-300 mb-1">{product.brand}</p>
                   <p className="text-sm text-gray-400 mb-2">Art. No: {product.articleNo}</p>
-                  <p className="text-lg font-bold text-white">{product.price}</p>
+                  
+                  {/* Price Display with sale formatting */}
+                  <PriceDisplay product={product} />
                 </div>
               </div>
             ))}
@@ -816,7 +882,9 @@ export default function MarketplacePage() {
               <p className="text-gray-400 text-lg">
                 {showFavoritesOnly 
                   ? "No favorites yet. Click the heart icon to add products to your favorites."
-                  : "No products found matching your search."
+                  : showSaleOnly
+                    ? "No sale items available at the moment."
+                    : "No products found matching your search."
                 }
               </p>
             </div>

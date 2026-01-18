@@ -16,9 +16,14 @@ import {
   Settings,
   ChevronDown,
   ChevronRight,
-  Bookmark
+  Bookmark,
+  AlertTriangle,
+  Lock,
+  Zap,
+  Clock
 } from 'lucide-react';
 import { templates, templateCategories } from '../constants/templates';
+import { applyPersonalization, deepClone } from '../utils/canvasUtils';
 
 const iconMap = {
   Grid3X3,
@@ -29,10 +34,14 @@ const iconMap = {
   Quote,
   Bell,
   Minus,
-  Bookmark
+  Bookmark,
+  AlertTriangle,
+  Lock,
+  Zap,
+  Clock
 };
 
-// Extended blank templates with standard social media sizes (no Universal)
+// Extended blank templates with standard social media sizes
 const blankTemplates = [
   // Instagram
   { id: "ig-feed-square", name: "Instagram Feed", size: "1080x1080", category: "Instagram" },
@@ -52,7 +61,8 @@ const TemplateGallery = ({
   onClose, 
   onSelectTemplate, 
   onSelectBlank,
-  customTemplates = []
+  customTemplates = [],
+  personalization = null
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -203,6 +213,17 @@ const TemplateGallery = ({
               </h3>
               <p className="text-gray-500 text-sm">{filteredTemplates.length} templates available</p>
             </div>
+            
+            {/* Color Preview - Show selected colors */}
+            {personalization && (
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-[#0a0a0a] rounded-lg border border-[#333]">
+                <span className="text-xs text-gray-500">Your colors:</span>
+                <div className="flex h-5 w-12 rounded overflow-hidden border border-[#444]">
+                  <div className="flex-1" style={{ backgroundColor: personalization.primaryColor }} />
+                  <div className="flex-1" style={{ backgroundColor: personalization.secondaryColor }} />
+                </div>
+              </div>
+            )}
           </div>
         </div>
         
@@ -308,7 +329,7 @@ const TemplateGallery = ({
                     >
                       {/* Preview area with correct aspect ratio */}
                       <div className="w-full h-[160px] bg-[#0a0a0a] flex items-center justify-center p-3">
-                        <TemplatePreview template={template} />
+                        <TemplatePreview template={template} personalization={personalization} />
                       </div>
                       
                       {/* Hover Overlay */}
@@ -430,8 +451,8 @@ const TemplateGallery = ({
   );
 };
 
-// Simplified Template Preview Component with correct aspect ratio
-const TemplatePreview = ({ template }) => {
+// Template Preview Component with correct aspect ratio - ALWAYS applies personalization
+const TemplatePreview = ({ template, personalization }) => {
   const [width, height] = template.size.split('x').map(Number);
   
   // Calculate dimensions to fit within container while maintaining aspect ratio
@@ -452,17 +473,43 @@ const TemplatePreview = ({ template }) => {
   
   const scale = previewWidth / width;
   
+  // ALWAYS apply personalization to elements - use defaults if not provided
+  const elements = useMemo(() => {
+    if (!template.elements) return [];
+    
+    const clonedElements = deepClone(template.elements);
+    
+    // Always apply personalization with either custom colors or defaults
+    const effectivePersonalization = personalization || {
+      primaryColor: '#F97316',
+      secondaryColor: '#1A1A2E'
+    };
+    
+    return applyPersonalization(clonedElements, effectivePersonalization);
+  }, [template.elements, personalization]);
+  
+  // Get background color from personalized elements
+  const backgroundColor = useMemo(() => {
+    // Find background element
+    const bgElement = elements.find(el => el.isBackground);
+    if (bgElement?.color) {
+      return bgElement.color;
+    }
+    // Fallback to personalization secondary color
+    return personalization?.secondaryColor || '#1a1a1a';
+  }, [elements, personalization]);
+  
   return (
     <div 
       className="relative overflow-hidden rounded-lg shadow-lg"
       style={{ 
         width: `${previewWidth}px`,
         height: `${previewHeight}px`,
-        backgroundColor: template.colors?.secondary || '#1a1a1a',
+        backgroundColor: backgroundColor,
         flexShrink: 0
       }}
     >
-      {template.elements?.slice(0, 6).map((element, index) => {
+      {elements.slice(0, 6).map((element, index) => {
         const scaledX = element.x * scale;
         const scaledY = element.y * scale;
         const scaledWidth = element.width * scale;
@@ -484,6 +531,25 @@ const TemplatePreview = ({ template }) => {
                 height: `${scaledHeight}px`,
                 backgroundColor: element.color,
                 borderRadius
+              }}
+            />
+          );
+        }
+        
+        if (element.type === 'gradient') {
+          const colors = element.gradientColors || ['#FF6B6B', '#FFA500'];
+          const angle = element.gradientAngle || 135;
+          
+          return (
+            <div
+              key={index}
+              className="absolute"
+              style={{
+                left: `${scaledX}px`,
+                top: `${scaledY}px`,
+                width: `${scaledWidth}px`,
+                height: `${scaledHeight}px`,
+                background: `linear-gradient(${angle}deg, ${colors.join(', ')})`
               }}
             />
           );

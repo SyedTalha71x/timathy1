@@ -820,7 +820,7 @@ const SelectedDateTimeDisplay = ({ date, time, onClear }) => {
     <div className="flex items-center gap-2 bg-[#2F2F2F] rounded-lg px-3 py-1 text-sm mr-2">
       <span className="text-white whitespace-nowrap">
         {date && formatDate(date)}
-        {date && time && " â€¢ "}
+        {date && time && " • "}
         {time && formatTime(time)}
       </span>
       <button onClick={onClear} className="text-gray-400 hover:text-white ml-1" title="Clear date and time">
@@ -1793,71 +1793,72 @@ export default function TodoApp() {
           <div className="flex-shrink-0 p-4 md:p-6 pb-0">
             <div className="flex justify-between items-center mb-4">
               <h1 className="text-xl md:text-2xl font-bold text-white">To-Do</h1>
-              {isRightSidebarOpen ? (
-                <div onClick={toggleRightSidebar} className="cursor-pointer p-2 hover:bg-gray-800 rounded-lg transition-colors">
-                  <img src="/expand-sidebar mirrored.svg" className="h-5 w-5" alt="" />
-                </div>
-              ) : (
-                <div onClick={toggleRightSidebar} className="cursor-pointer p-2 hover:bg-gray-800 rounded-lg transition-colors">
-                  <img src="/icon.svg" className="h-5 w-5" alt="" />
-                </div>
-              )}
-            </div>
-
-            {/* Mobile: Action Buttons */}
-            <div className="flex gap-2 mb-4 md:hidden">
-              {/* Mobile: Staff Filter */}
-              <div className="relative" ref={mobileFilterRef}>
-                <button
-                  onClick={() => setShowMobileFilterMenu(!showMobileFilterMenu)}
-                  className={`p-3 rounded-xl transition-colors active:scale-95 ${
-                    selectedStaffFilter.length > 0 ? 'bg-blue-600 text-white' : 'bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]'
-                  }`}
-                >
-                  <Users size={18} />
-                </button>
-                
-                {showMobileFilterMenu && (
-                  <div className="absolute left-0 top-full mt-2 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[220px] overflow-hidden">
-                    <div className="p-2 border-b border-gray-700">
-                      <p className="text-xs text-gray-500 font-medium px-2">Filter by Staff</p>
-                    </div>
-                    <button
-                      onClick={() => {
-                        setSelectedStaffFilter([])
-                      }}
-                      className={`w-full text-left px-4 py-3 text-sm transition-colors flex items-center gap-2 ${
-                        selectedStaffFilter.length === 0 ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-800'
-                      }`}
-                    >
-                      All Tasks
-                    </button>
-                    {availableAssignees.map((staff) => (
+              
+              <div className="flex items-center gap-2">
+                {/* Mobile: Staff Filter - Now in header */}
+                <div className="relative md:hidden" ref={mobileFilterRef}>
+                  <button
+                    onClick={() => setShowMobileFilterMenu(!showMobileFilterMenu)}
+                    className={`p-2 rounded-lg transition-colors active:scale-95 ${
+                      selectedStaffFilter.length > 0 ? 'bg-blue-600 text-white' : 'bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]'
+                    }`}
+                  >
+                    <Users size={18} />
+                  </button>
+                  
+                  {showMobileFilterMenu && (
+                    <div className="absolute right-0 top-full mt-2 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[220px] overflow-hidden">
+                      <div className="p-2 border-b border-gray-700">
+                        <p className="text-xs text-gray-500 font-medium px-2">Filter by Staff</p>
+                      </div>
                       <button
-                        key={staff.id}
                         onClick={() => {
-                          toggleStaffFilter(staff.id)
+                          setSelectedStaffFilter([])
                         }}
                         className={`w-full text-left px-4 py-3 text-sm transition-colors flex items-center gap-2 ${
-                          selectedStaffFilter.includes(staff.id) ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-800'
+                          selectedStaffFilter.length === 0 ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-800'
                         }`}
                       >
-                        <UserCheck size={14} />
-                        {staff.firstName} {staff.lastName}
+                        All Tasks
                       </button>
-                    ))}
+                      {availableAssignees.map((staff) => (
+                        <button
+                          key={staff.id}
+                          onClick={() => {
+                            toggleStaffFilter(staff.id)
+                          }}
+                          className={`w-full text-left px-4 py-3 text-sm transition-colors flex items-center gap-2 ${
+                            selectedStaffFilter.includes(staff.id) ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-800'
+                          }`}
+                        >
+                          <UserCheck size={14} />
+                          {staff.firstName} {staff.lastName}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Mobile: Tags Button - Now in header */}
+                <button
+                  onClick={() => setIsTagManagerOpen(true)}
+                  className="md:hidden bg-[#2F2F2F] text-gray-300 p-2 rounded-lg hover:bg-[#3F3F3F] transition-colors active:scale-95"
+                  title="Manage Tags (T)"
+                >
+                  <Tag size={18} />
+                </button>
+
+                {/* Sidebar Toggle */}
+                {isRightSidebarOpen ? (
+                  <div onClick={toggleRightSidebar} className="cursor-pointer p-2 hover:bg-gray-800 rounded-lg transition-colors">
+                    <img src="/expand-sidebar mirrored.svg" className="h-5 w-5" alt="" />
+                  </div>
+                ) : (
+                  <div onClick={toggleRightSidebar} className="cursor-pointer p-2 hover:bg-gray-800 rounded-lg transition-colors">
+                    <img src="/icon.svg" className="h-5 w-5" alt="" />
                   </div>
                 )}
               </div>
-
-              {/* Mobile: Tags Button */}
-              <button
-                onClick={() => setIsTagManagerOpen(true)}
-                className="bg-[#2F2F2F] text-gray-300 p-3 rounded-xl hover:bg-[#3F3F3F] transition-colors active:scale-95"
-                title="Manage Tags (T)"
-              >
-                <Tag size={18} />
-              </button>
             </div>
 
             {/* Desktop: Task Input Area */}
@@ -1868,7 +1869,7 @@ export default function TodoApp() {
                   value={newTaskInput}
                   onChange={handleTextareaChange}
                   onEnter={handleAddTaskFromInputOptimized}
-                  placeholder="New taskâ€¦ (Press Enter to add)"
+                  placeholder="New task… (Press Enter to add)"
                   maxLines={4}
                 />
                 <SelectedDateTimeDisplay date={selectedDate} time={selectedTime} onClear={handleClearDateTime} />
@@ -2094,20 +2095,20 @@ export default function TodoApp() {
               {/* Ongoing Tasks */}
               <div className="bg-[#141414] rounded-2xl overflow-hidden">
                 <div 
-                  className="px-3 py-3 flex items-center w-full text-left"
+                  className="px-3 py-2 flex items-center w-full text-left"
                   style={{ backgroundColor: 'rgba(245, 158, 11, 0.125)' }}
                 >
                   <button
                     onClick={() => toggleColumnCollapse('ongoing')}
-                    className="flex items-center gap-2 flex-1"
+                    className="flex items-center gap-1.5 flex-1"
                   >
                     <ChevronDown 
-                      size={16} 
+                      size={14} 
                       className={`text-gray-400 transition-transform ${collapsedColumns.ongoing ? '-rotate-90' : ''}`} 
                     />
-                    <div className="w-3 h-3 rounded-full bg-amber-500"></div>
-                    <span className="font-medium text-white text-sm">Ongoing</span>
-                    <span className="text-xs bg-white text-black px-2 py-0.5 rounded-full font-medium">
+                    <div className="w-2.5 h-2.5 rounded-full bg-amber-500"></div>
+                    <span className="font-medium text-white text-xs">Ongoing</span>
+                    <span className="text-[10px] bg-white text-black px-1.5 py-0.5 rounded-full font-medium">
                       {filteredTasks.ongoing.length}
                     </span>
                   </button>
@@ -2118,9 +2119,9 @@ export default function TodoApp() {
                         e.stopPropagation()
                         setMobileSortMenuOpen(mobileSortMenuOpen === 'ongoing' ? null : 'ongoing')
                       }}
-                      className="p-2 text-gray-400 hover:text-white rounded-lg"
+                      className="p-1.5 text-gray-400 hover:text-white rounded-lg"
                     >
-                      <ArrowUpDown size={14} />
+                      <ArrowUpDown size={16} />
                     </button>
                     {mobileSortMenuOpen === 'ongoing' && (
                       <div className="absolute right-0 top-full mt-1 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[200px] overflow-hidden">
@@ -2239,20 +2240,20 @@ export default function TodoApp() {
               {/* Completed Tasks */}
               <div className="bg-[#141414] rounded-2xl overflow-hidden">
                 <div 
-                  className="px-3 py-3 flex items-center w-full text-left"
+                  className="px-3 py-2 flex items-center w-full text-left"
                   style={{ backgroundColor: 'rgba(16, 185, 129, 0.125)' }}
                 >
                   <button
                     onClick={() => toggleColumnCollapse('completed')}
-                    className="flex items-center gap-2 flex-1"
+                    className="flex items-center gap-1.5 flex-1"
                   >
                     <ChevronDown 
-                      size={16} 
+                      size={14} 
                       className={`text-gray-400 transition-transform ${collapsedColumns.completed ? '-rotate-90' : ''}`} 
                     />
-                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                    <span className="font-medium text-white text-sm">Completed</span>
-                    <span className="text-xs bg-white text-black px-2 py-0.5 rounded-full font-medium">
+                    <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+                    <span className="font-medium text-white text-xs">Completed</span>
+                    <span className="text-[10px] bg-white text-black px-1.5 py-0.5 rounded-full font-medium">
                       {filteredTasks.completed.length}
                     </span>
                   </button>
@@ -2263,9 +2264,9 @@ export default function TodoApp() {
                         e.stopPropagation()
                         setMobileSortMenuOpen(mobileSortMenuOpen === 'completed' ? null : 'completed')
                       }}
-                      className="p-2 text-gray-400 hover:text-white rounded-lg"
+                      className="p-1.5 text-gray-400 hover:text-white rounded-lg"
                     >
-                      <ArrowUpDown size={14} />
+                      <ArrowUpDown size={16} />
                     </button>
                     {mobileSortMenuOpen === 'completed' && (
                       <div className="absolute right-0 top-full mt-1 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[200px] overflow-hidden">
@@ -2350,20 +2351,20 @@ export default function TodoApp() {
               {/* Canceled Tasks */}
               <div className="bg-[#141414] rounded-2xl overflow-hidden">
                 <div 
-                  className="px-3 py-3 flex items-center w-full text-left"
+                  className="px-3 py-2 flex items-center w-full text-left"
                   style={{ backgroundColor: 'rgba(239, 68, 68, 0.125)' }}
                 >
                   <button
                     onClick={() => toggleColumnCollapse('canceled')}
-                    className="flex items-center gap-2 flex-1"
+                    className="flex items-center gap-1.5 flex-1"
                   >
                     <ChevronDown 
-                      size={16} 
+                      size={14} 
                       className={`text-gray-400 transition-transform ${collapsedColumns.canceled ? '-rotate-90' : ''}`} 
                     />
-                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                    <span className="font-medium text-white text-sm">Canceled</span>
-                    <span className="text-xs bg-white text-black px-2 py-0.5 rounded-full font-medium">
+                    <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
+                    <span className="font-medium text-white text-xs">Canceled</span>
+                    <span className="text-[10px] bg-white text-black px-1.5 py-0.5 rounded-full font-medium">
                       {filteredTasks.canceled.length}
                     </span>
                   </button>
@@ -2374,9 +2375,9 @@ export default function TodoApp() {
                         e.stopPropagation()
                         setMobileSortMenuOpen(mobileSortMenuOpen === 'canceled' ? null : 'canceled')
                       }}
-                      className="p-2 text-gray-400 hover:text-white rounded-lg"
+                      className="p-1.5 text-gray-400 hover:text-white rounded-lg"
                     >
-                      <ArrowUpDown size={14} />
+                      <ArrowUpDown size={16} />
                     </button>
                     {mobileSortMenuOpen === 'canceled' && (
                       <div className="absolute right-0 top-full mt-1 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[200px] overflow-hidden">

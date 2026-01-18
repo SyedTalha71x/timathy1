@@ -31,7 +31,7 @@ import EditorModal from '../../components/user-panel-components/media-library-co
 
 // Hooks & Utils
 import useFolders from '../../components/user-panel-components/media-library-components/hooks/useFolders';
-import { generateThumbnail, generateId, deepClone } from '../../components/user-panel-components/media-library-components/utils/canvasUtils';
+import { generateThumbnail, generateId, deepClone, applyPersonalization } from '../../components/user-panel-components/media-library-components/utils/canvasUtils';
 import { folderColors } from '../../components/user-panel-components/media-library-components/constants/platformSizes';
 import { templates } from '../../components/user-panel-components/media-library-components/constants/templates';
 
@@ -57,6 +57,7 @@ const MediaLibrary = () => {
   const [designToDelete, setDesignToDelete] = useState(null);
   const [pendingDesignName, setPendingDesignName] = useState('');
   const [pendingFolderId, setPendingFolderId] = useState(null);
+  const [pendingPersonalization, setPendingPersonalization] = useState(null);
   const [editorKey, setEditorKey] = useState(0);
   
   // Section visibility
@@ -151,9 +152,10 @@ const MediaLibrary = () => {
   const isSearching = searchQuery.trim() !== '';
 
   // Handle create new design
-  const handleCreateDesign = (name, folderId) => {
+  const handleCreateDesign = (name, folderId, personalization) => {
     setPendingDesignName(name || 'Untitled Design');
     setPendingFolderId(folderId || defaultFolder?.id);
+    setPendingPersonalization(personalization || null);
     setShowCreateModal(false);
     setShowTemplateGallery(true);
   };
@@ -251,11 +253,19 @@ const MediaLibrary = () => {
       });
     }
     
+    // Apply personalization if provided
+    if (pendingPersonalization) {
+      elements = applyPersonalization(elements, pendingPersonalization);
+    }
+    
     // Constrain all elements to stay within canvas bounds
     elements = elements.map(el => constrainElementToBounds(el, targetWidth, targetHeight));
     
+    // Determine design name - use custom title if provided, otherwise template name
+    const designName = (pendingPersonalization?.titleText?.trim()) || pendingDesignName || template.name;
+    
     setCurrentDesign({
-      name: pendingDesignName || template.name,
+      name: designName,
       size: targetSize,
       elements: elements,
       folderId: pendingFolderId || selectedFolderId || defaultFolder?.id
@@ -263,6 +273,9 @@ const MediaLibrary = () => {
     setEditorKey(prev => prev + 1);
     setShowTemplateGallery(false);
     setShowEditor(true);
+    
+    // Clear pending personalization after use
+    setPendingPersonalization(null);
   };
 
   // Handle select blank
@@ -276,6 +289,9 @@ const MediaLibrary = () => {
     setEditorKey(prev => prev + 1);
     setShowTemplateGallery(false);
     setShowEditor(true);
+    
+    // Clear pending personalization
+    setPendingPersonalization(null);
   };
 
   // Handle save design
@@ -861,6 +877,7 @@ const MediaLibrary = () => {
         onSelectTemplate={handleSelectTemplate}
         onSelectBlank={handleSelectBlank}
         customTemplates={customTemplates}
+        personalization={pendingPersonalization}
       />
 
       {showEditor && currentDesign && (

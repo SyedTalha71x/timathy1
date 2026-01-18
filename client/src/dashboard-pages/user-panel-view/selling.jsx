@@ -211,14 +211,22 @@ const Selling = () => {
   }, [showMemberResults, dropdownOpen])
 
   useEffect(() => {
+    // Set initial state based on screen size (only on mount)
+    if (window.innerWidth >= 768) {
+      setIsRightSidebarOpen(true)
+    } else {
+      setIsRightSidebarOpen(false)
+    }
+    
+    // Only auto-open when resizing TO desktop, never auto-close
+    // This prevents the sidebar from closing when mobile keyboard opens
     const handleResize = () => {
       if (window.innerWidth >= 768) {
         setIsRightSidebarOpen(true)
-      } else {
-        setIsRightSidebarOpen(false)
       }
+      // Don't auto-close on mobile - sidebar should only close via explicit user action (X button or checkout)
     }
-    handleResize()
+    
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [])

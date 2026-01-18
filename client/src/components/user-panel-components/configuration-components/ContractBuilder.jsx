@@ -20,7 +20,7 @@ import { usePDFProcessor } from './contract-builder-components/hooks/usePDFProce
 import { useElementManagement } from './contract-builder-components/hooks/useElementManagement';
 import { useFolderManagement } from './contract-builder-components/hooks/useFolderManagement.jsx';
 import { usePageManagement } from './contract-builder-components/hooks/usePageManagement';
-import { useResize } from './contract-builder-components/hooks/useResize'; // NEW: Import resize hook
+import { useResize } from './contract-builder-components/hooks/useResize';
 import { renderElementContent, renderBuilderElement } from './contract-builder-components/utils/elementRenderer.jsx';
 
 import Sidebar from './contract-builder-components/components/Sidebar';
@@ -30,7 +30,47 @@ import CanvasArea from './contract-builder-components/components/CanvasArea';
 import PropertiesPanel from './contract-builder-components/components/PropertiesPanel';
 import Modals from './contract-builder-components/components/Modals';
 
-const ContractBuilder = ({ contractForm, onUpdate }) => {
+// Custom Scrollbar Styles - Applied globally within ContractBuilder
+const scrollbarStyles = `
+  /* Custom scrollbar for all scrollable areas in ContractBuilder */
+  .contract-builder-container *::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .contract-builder-container *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .contract-builder-container *::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+  }
+  .contract-builder-container *::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+  
+  /* Firefox scrollbar */
+  .contract-builder-container * {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+  }
+  
+  /* Specific fix for Properties Panel scrollbar */
+  .contract-builder-container .overflow-y-auto::-webkit-scrollbar {
+    width: 6px;
+  }
+  .contract-builder-container .overflow-y-auto::-webkit-scrollbar-track {
+    background: #f8fafc;
+  }
+  .contract-builder-container .overflow-y-auto::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+  }
+  .contract-builder-container .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+`;
+
+const ContractBuilder = ({ contractForm, onUpdate, onClose }) => {
   // Initial State
   const [contractPages, setContractPages] = useState(
     contractForm?.pages || [
@@ -48,6 +88,7 @@ const ContractBuilder = ({ contractForm, onUpdate }) => {
   const [selectedElement, setSelectedElement] = useState(null);
   const [selectedFolder, setSelectedFolder] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showCloseConfirmModal, setShowCloseConfirmModal] = useState(false);
   const [activeTab, setActiveTab] = useState('properties');
   const [showPreview, setShowPreview] = useState(false);
   const [headerFooterSettingsOpen, setHeaderFooterSettingsOpen] = useState(false);
@@ -77,7 +118,7 @@ const ContractBuilder = ({ contractForm, onUpdate }) => {
   });
   const [measuredHeaderHeight, setMeasuredHeaderHeight] = useState(0);
   const [measuredFooterHeight, setMeasuredFooterHeight] = useState(0);
-  const [showHotkeysModal, setShowHotkeysModal] = useState(false);  // NEU: Hotkeys Modal
+  const [showHotkeysModal, setShowHotkeysModal] = useState(false);
 
   // Global Header/Footer State
   const [globalHeader, setGlobalHeader] = useState(
@@ -115,7 +156,7 @@ const ContractBuilder = ({ contractForm, onUpdate }) => {
   const newPageNameInputRef = useRef();
   const canvasContainerRef = useRef();
   const imageInputRefs = useRef({});
-  const pdfInputRef = useRef(null); // NEU: Ref für PDF-Input (Hotkey A)
+  const pdfInputRef = useRef(null);
 
   // Custom Hooks
   const { saveToHistory, undo, redo, history, historyIndex } = useHistory(
@@ -132,7 +173,7 @@ const ContractBuilder = ({ contractForm, onUpdate }) => {
     nextPageId
   );
 
-  // NEW: Calculate dynamic content area as useMemo
+  // Calculate dynamic content area
   const dynamicContentArea = useMemo(() => 
     calculateDynamicContentArea(
       globalHeader,
@@ -145,31 +186,31 @@ const ContractBuilder = ({ contractForm, onUpdate }) => {
     [globalHeader, globalFooter, currentPage, contractPages, measuredHeaderHeight, measuredFooterHeight]
   );
 
-  // UPDATED: useElementManagement with dynamicContentArea
-const { 
-  addElement,
-  updateElement,
-  removeElement,
-  removeAllElements,
-  toggleElementVisibility,
-  toggleAllElementsVisibility,
-  showAllElements,
-  setShowAllElements
-} = useElementManagement(
-  contractPages,
-  currentPage,
-  setContractPages,
-  setSelectedElement,
-  saveToHistory,
-  nextElementId,
-  selectedElement,
-  globalHeader,
-  globalFooter,
-  dynamicContentArea,
-   folders,   // Pass folders for sortIndex calculation
-  setFolders, // Pass setFolders to enable folder deletion
-  setSelectedFolder // NEU: Hier setSelectedFolder übergeben!
-);
+  // useElementManagement with dynamicContentArea
+  const { 
+    addElement,
+    updateElement,
+    removeElement,
+    removeAllElements,
+    toggleElementVisibility,
+    toggleAllElementsVisibility,
+    showAllElements,
+    setShowAllElements
+  } = useElementManagement(
+    contractPages,
+    currentPage,
+    setContractPages,
+    setSelectedElement,
+    saveToHistory,
+    nextElementId,
+    selectedElement,
+    globalHeader,
+    globalFooter,
+    dynamicContentArea,
+    folders,
+    setFolders,
+    setSelectedFolder
+  );
 
   const {
     createFolder: createFolderBase,
@@ -208,7 +249,7 @@ const {
     setNewPageName
   );
 
-  // NEW: useResize Hook
+  // useResize Hook
   const {
     isResizing,
     resizeHandle,
@@ -268,7 +309,7 @@ const {
     dynamicContentArea
   );
 
-  // NEW: Event Listeners for Resize
+  // Event Listeners for Resize
   useEffect(() => {
     if (isResizing) {
       const handleMouseMove = (e) => handleResize(e);
@@ -334,7 +375,7 @@ const {
     return vars;
   }, [contractPages]);
 
-  // Update-Funktionen für globalen Header/Footer
+  // Update functions for global header/footer
   const updateGlobalHeader = (updates) => {
     const newHeader = { ...globalHeader, ...updates };
     setGlobalHeader(newHeader);
@@ -347,7 +388,7 @@ const {
     saveToHistory(contractPages, folders, 'update_global_footer');
   };
 
-  // Validierungs- und Save-Funktionen
+  // Validation and Save functions
   const validateVariables = useCallback(() => {
     const warnings = {
       unassignedVariables: [],
@@ -435,112 +476,109 @@ const {
     setShowValidationWarning(false);
   }, [contractPages, folders, globalHeader, globalFooter, contractName, contractForm, onUpdate]);
 
-  // Bild-Upload Handler
+  // Handler for close button - opens confirmation modal
+  const handleCloseClick = useCallback(() => {
+    setShowCloseConfirmModal(true);
+  }, []);
+
+  // Image Upload Handler
   const handleImageUpload = useCallback((elementId, file) => {
-  if (!file) return;
-  
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const dataUrl = e.target.result;
-    const img = new Image();
+    if (!file) return;
     
-    img.onload = () => {
-      const aspectRatio = img.width / img.height;
-      let newWidth = 200;
-      let newHeight = newWidth / aspectRatio;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const dataUrl = e.target.result;
+      const img = new Image();
       
-      if (newHeight > CONTENT_HEIGHT_PX) {
-        newHeight = CONTENT_HEIGHT_PX;
-        newWidth = newHeight * aspectRatio;
-      }
-      
-      if (newWidth > CONTENT_WIDTH_PX) {
-        newWidth = CONTENT_WIDTH_PX;
-        newHeight = newWidth / aspectRatio;
-      }
-      
-      // Update all properties at once to avoid race conditions
-      const newPages = contractPages.map((page, pIdx) => {
-        if (pIdx !== currentPage) return page;
-        const newElements = page.elements.map(el => {
-          if (el.id !== elementId) return el;
-          return {
-            ...el,
-            src: dataUrl,
-            fileName: file.name,
-            width: newWidth,
-            height: newHeight,
-            // Store original dimensions for cropping calculations
-            originalWidth: img.width,
-            originalHeight: img.height,
-            // 🖼️ FIX: Set preCropWidth/Height to the initial display size
-            preCropWidth: newWidth,
-            preCropHeight: newHeight,
-            cropLeft: 0,
-            cropTop: 0,
-            cropRight: 0,
-            cropBottom: 0
-          };
+      img.onload = () => {
+        const aspectRatio = img.width / img.height;
+        let newWidth = 200;
+        let newHeight = newWidth / aspectRatio;
+        
+        if (newHeight > CONTENT_HEIGHT_PX) {
+          newHeight = CONTENT_HEIGHT_PX;
+          newWidth = newHeight * aspectRatio;
+        }
+        
+        if (newWidth > CONTENT_WIDTH_PX) {
+          newWidth = CONTENT_WIDTH_PX;
+          newHeight = newWidth / aspectRatio;
+        }
+        
+        const newPages = contractPages.map((page, pIdx) => {
+          if (pIdx !== currentPage) return page;
+          const newElements = page.elements.map(el => {
+            if (el.id !== elementId) return el;
+            return {
+              ...el,
+              src: dataUrl,
+              fileName: file.name,
+              width: newWidth,
+              height: newHeight,
+              originalWidth: img.width,
+              originalHeight: img.height,
+              preCropWidth: newWidth,
+              preCropHeight: newHeight,
+              cropLeft: 0,
+              cropTop: 0,
+              cropRight: 0,
+              cropBottom: 0
+            };
+          });
+          return { ...page, elements: newElements };
         });
-        return { ...page, elements: newElements };
-      });
+        
+        setContractPages(newPages);
+        saveToHistory(newPages, folders, 'upload_image');
+        
+        const uploadedElement = newPages[currentPage].elements.find(el => el.id === elementId);
+        if (uploadedElement) {
+          setCropImageElement(uploadedElement);
+          setShowImageCropModal(true);
+        }
+      };
       
-      setContractPages(newPages);
-      saveToHistory(newPages, folders, 'upload_image');
+      img.onerror = () => {
+        console.error('Failed to load image for dimensions');
+        const newPages = contractPages.map((page, pIdx) => {
+          if (pIdx !== currentPage) return page;
+          const newElements = page.elements.map(el => {
+            if (el.id !== elementId) return el;
+            return {
+              ...el,
+              src: dataUrl,
+              fileName: file.name,
+              cropLeft: 0,
+              cropTop: 0,
+              cropRight: 0,
+              cropBottom: 0
+            };
+          });
+          return { ...page, elements: newElements };
+        });
+        
+        setContractPages(newPages);
+        saveToHistory(newPages, folders, 'upload_image');
+      };
       
-
-      // Auto-open crop modal after upload
-      const uploadedElement = newPages[currentPage].elements.find(el => el.id === elementId);
-      if (uploadedElement) {
-        setCropImageElement(uploadedElement);
-        setShowImageCropModal(true);
-      }
+      img.src = dataUrl;
     };
     
-    img.onerror = () => {
-      console.error('Failed to load image for dimensions');
-      // Even if we can't get dimensions, still upload the image
-      const newPages = contractPages.map((page, pIdx) => {
-        if (pIdx !== currentPage) return page;
-        const newElements = page.elements.map(el => {
-          if (el.id !== elementId) return el;
-          return {
-            ...el,
-            src: dataUrl,
-            fileName: file.name,
-            cropLeft: 0,
-            cropTop: 0,
-            cropRight: 0,
-            cropBottom: 0
-          };
-        });
-        return { ...page, elements: newElements };
-      });
-      
-      setContractPages(newPages);
-      saveToHistory(newPages, folders, 'upload_image');
-      
-  
+    reader.onerror = () => {
+      console.error('Failed to read file');
     };
     
-    img.src = dataUrl;
-  };
-  
-  reader.onerror = () => {
-    console.error('Failed to read file');
-  };
-  
-  reader.readAsDataURL(file);
-}, [contractPages, currentPage, setContractPages, saveToHistory, folders, setCropImageElement, setShowImageCropModal]);
+    reader.readAsDataURL(file);
+  }, [contractPages, currentPage, setContractPages, saveToHistory, folders, setCropImageElement, setShowImageCropModal]);
 
-  // Initialisiere Historie
+  // Initialize history
   useEffect(() => {
     if (contractPages.length > 0 && history.length === 0) {
       saveToHistory(contractPages, folders, 'initial');
     }
   }, [contractPages, folders, history.length, saveToHistory]);
 
-  // Sync mit Props
+  // Sync with props
   useEffect(() => {
     if (contractForm?.pages) {
       setContractPages(contractForm.pages);
@@ -554,7 +592,7 @@ const {
     }
   }, [contractForm?.pages]);
 
-  // Update Callback
+  // Update callback
   useEffect(() => {
     if (!onUpdate) return;
     
@@ -572,28 +610,39 @@ const {
   // Keyboard Shortcuts
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // Prüfe ob ein Modal geöffnet ist
+      // Check if a modal is open
       const isModalOpen = showPreview || 
                          showAddPageModal || 
                          showCreateFolderModal || 
                          headerFooterSettingsOpen || 
                          showImageCropModal || 
                          showValidationWarning ||
-                         showHotkeysModal;
+                         showHotkeysModal ||
+                         showCloseConfirmModal;
       
-      // Prüfe ob ein Input-Feld fokussiert ist
+      // Check if an input field is focused
       const isInputFocused = e.target.closest('input, textarea, select');
       
-      // Prüfe ob aktuelle Seite eine PDF-Seite ist
+      // Check if current page is a PDF page
       const isPdfPage = contractPages?.[currentPage]?.locked;
       
-      // N - Neue Seite hinzufügen
+      // ESC - Close builder or close modal
+      if (e.key === 'Escape' && !isInputFocused) {
+        e.preventDefault();
+        if (showCloseConfirmModal) {
+          setShowCloseConfirmModal(false);
+        } else if (!isModalOpen && onClose) {
+          setShowCloseConfirmModal(true);
+        }
+      }
+      
+      // N - New page
       if ((e.key === 'n' || e.key === 'N') && !isInputFocused && !isModalOpen && !e.ctrlKey && !e.metaKey) {
         e.preventDefault();
         setShowAddPageModal(true);
       }
       
-      // P - Preview öffnen
+      // P - Preview
       if ((e.key === 'p' || e.key === 'P') && !isInputFocused && !isModalOpen && !e.ctrlKey && !e.metaKey) {
         e.preventDefault();
         setShowPreview(true);
@@ -601,13 +650,13 @@ const {
         setPreviewZoom(0.7);
       }
       
-      // H - Header/Footer Settings öffnen
+      // H - Header/Footer Settings
       if ((e.key === 'h' || e.key === 'H') && !isInputFocused && !isModalOpen && !isPdfPage && !e.ctrlKey && !e.metaKey) {
         e.preventDefault();
         setHeaderFooterSettingsOpen(true);
       }
 
-      // A - PDF hinzufügen (NEU)
+      // A - Add PDF
       if ((e.key === 'a' || e.key === 'A') && !isInputFocused && !isModalOpen && !e.ctrlKey && !e.metaKey) {
         e.preventDefault();
         if (pdfInputRef.current) {
@@ -615,59 +664,52 @@ const {
         }
       }
 
-      // Pfeiltaste Rechts - Nächste Seite (NEU) - Zirkulär
-      // Funktioniert in Preview UND im Canvas (aber nicht in anderen Modals)
+      // Arrow keys for page navigation (circular)
       const isModalOpenExceptPreview = showAddPageModal || 
                                        showCreateFolderModal || 
                                        headerFooterSettingsOpen || 
                                        showImageCropModal || 
                                        showValidationWarning ||
-                                       showHotkeysModal;
+                                       showHotkeysModal ||
+                                       showCloseConfirmModal;
       
       if (e.key === 'ArrowRight' && !isInputFocused && !isModalOpenExceptPreview) {
         e.preventDefault();
         if (showPreview) {
-          // In der Preview - zirkulär
           setPreviewPage(prev => (prev + 1) % contractPages.length);
         } else {
-          // Im Canvas - zirkulär
           setCurrentPage(prev => (prev + 1) % contractPages.length);
         }
       }
 
-      // Pfeiltaste Links - Vorherige Seite (NEU) - Zirkulär
       if (e.key === 'ArrowLeft' && !isInputFocused && !isModalOpenExceptPreview) {
         e.preventDefault();
         if (showPreview) {
-          // In der Preview - zirkulär
           setPreviewPage(prev => (prev - 1 + contractPages.length) % contractPages.length);
         } else {
-          // Im Canvas - zirkulär
           setCurrentPage(prev => (prev - 1 + contractPages.length) % contractPages.length);
         }
       }
       
-      // Ctrl+S - Speichern
+      // Ctrl+S - Save
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault();
         handleSave();
       }
       
-      // Delete/Backspace nur wenn kein Modal geöffnet ist
+      // Delete/Backspace
       if ((e.key === 'Delete' || e.key === 'Backspace') && selectedElement && !isInputFocused && !isModalOpen && !e.repeat) {
         e.preventDefault();
         removeElement(selectedElement);
       }
       
-      // Copy mit "C" Taste (verhindere Key-Repeat)
+      // Copy with "C" key
       if ((e.key === 'c' || e.key === 'C') && selectedElement && !isInputFocused && !isModalOpen && !e.ctrlKey && !e.metaKey && !e.repeat) {
         e.preventDefault();
-        // Element finden und duplizieren
         const currentPageData = contractPages[currentPage];
         const element = currentPageData?.elements.find(el => el.id === selectedElement);
         
         if (element) {
-          // Erstelle neues Element mit Offset
           let newElement = {
             ...element,
             id: nextElementId.current++,
@@ -676,7 +718,6 @@ const {
             variable: (element.type === 'text' || element.type === 'system-text') ? null : element.variable
           };
           
-          // Stelle sicher, dass das Element innerhalb der Grenzen bleibt
           const clampedBounds = clampElementBounds(
             newElement,
             CONTENT_WIDTH_PX,
@@ -698,13 +739,13 @@ const {
         }
       }
       
-      // Undo (verhindere Key-Repeat)
+      // Undo
       if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey && !e.repeat) {
         e.preventDefault();
         undo();
       }
       
-      // Redo - Ctrl+Y (ohne Shift) ODER Ctrl+Shift+Z (verhindere Key-Repeat)
+      // Redo
       if ((e.ctrlKey || e.metaKey) && ((e.key === 'y' && !e.shiftKey) || (e.key === 'Z' && e.shiftKey)) && !e.repeat) {
         e.preventDefault();
         redo();
@@ -725,6 +766,7 @@ const {
     showImageCropModal, 
     showValidationWarning, 
     showHotkeysModal,
+    showCloseConfirmModal,
     contractPages, 
     currentPage, 
     setContractPages, 
@@ -739,47 +781,41 @@ const {
     setPreviewZoom,
     setHeaderFooterSettingsOpen,
     handleSave,
-    setCurrentPage
+    setCurrentPage,
+    onClose
   ]);
 
   // Zoom with Ctrl + Mouse Wheel
   useEffect(() => {
     const handleWheel = (e) => {
-      // Prüfe ob ein Modal geöffnet ist
       const isModalOpen = showPreview || 
                          showAddPageModal || 
                          showCreateFolderModal || 
                          headerFooterSettingsOpen || 
                          showImageCropModal || 
                          showValidationWarning ||
-                         showHotkeysModal;
+                         showHotkeysModal ||
+                         showCloseConfirmModal;
       
-      // Prüfe ob ein Input-Feld fokussiert ist
       const isInputFocused = document.activeElement && 
                             (document.activeElement.tagName === 'INPUT' || 
                              document.activeElement.tagName === 'TEXTAREA' || 
                              document.activeElement.tagName === 'SELECT');
       
-      // Nur wenn Ctrl/Cmd gedrückt ist UND kein Modal/Input aktiv
       if ((e.ctrlKey || e.metaKey) && !isModalOpen && !isInputFocused) {
-        e.preventDefault(); // Verhindert Browser-Zoom
+        e.preventDefault();
         
-        // deltaY > 0 = runter scrollen = Zoom Out
-        // deltaY < 0 = hoch scrollen = Zoom In
         if (e.deltaY < 0) {
-          // Zoom In
           setCanvasZoom(prev => Math.min(1.2, prev + 0.05));
         } else if (e.deltaY > 0) {
-          // Zoom Out
           setCanvasZoom(prev => Math.max(0.5, prev - 0.05));
         }
       }
     };
 
-    // Passive: false ist wichtig für preventDefault()
     document.addEventListener('wheel', handleWheel, { passive: false });
     return () => document.removeEventListener('wheel', handleWheel);
-  }, [setCanvasZoom, showPreview, showAddPageModal, showCreateFolderModal, headerFooterSettingsOpen, showImageCropModal, showValidationWarning]);
+  }, [setCanvasZoom, showPreview, showAddPageModal, showCreateFolderModal, headerFooterSettingsOpen, showImageCropModal, showValidationWarning, showCloseConfirmModal]);
 
   // Close page title editing when clicking outside
   useEffect(() => {
@@ -832,221 +868,262 @@ const {
   }, [contractPages, currentPage]);
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      {/* Sidebar */}
-      <Sidebar
-        sidebarOpen={sidebarOpen}
-        setSidebarOpen={setSidebarOpen}
-        ELEMENT_CATEGORIES={ELEMENT_CATEGORIES}
-        addElement={addElement}
-        contractName={contractName}
-        setContractName={setContractName}
-        editingContractName={editingContractName}
-        setEditingContractName={setEditingContractName}
-        contractNameInputRef={contractNameInputRef}
-        contractPages={contractPages}
-        currentPage={currentPage}
-        setShowHotkeysModal={setShowHotkeysModal}  // NEU: Hotkeys Modal
-      />
-
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Top Toolbar */}
-        <TopToolbar
-          setShowAddPageModal={setShowAddPageModal}
-          setPdfInputRef={(ref) => {
-            setPdfInputRef(ref);
-            pdfInputRef.current = ref;
-          }}
-          handlePdfUpload={handlePdfUpload}
-          isPdfProcessing={isPdfProcessing}
-          canvasZoom={canvasZoom}
-          setCanvasZoom={setCanvasZoom}
-          setHeaderFooterSettingsOpen={setHeaderFooterSettingsOpen}
-          setShowPreview={setShowPreview}
-          setPreviewPage={setPreviewPage}
-          setPreviewZoom={setPreviewZoom}
-          undo={undo}
-          redo={redo}
-          historyIndex={historyIndex}
-          history={history}
+    <>
+      <style>{scrollbarStyles}</style>
+      <div className="contract-builder-container flex h-screen bg-gray-100">
+        {/* Sidebar */}
+        <Sidebar
+          sidebarOpen={sidebarOpen}
+          setSidebarOpen={setSidebarOpen}
+          ELEMENT_CATEGORIES={ELEMENT_CATEGORIES}
+          addElement={addElement}
+          contractName={contractName}
+          setContractName={setContractName}
+          editingContractName={editingContractName}
+          setEditingContractName={setEditingContractName}
+          contractNameInputRef={contractNameInputRef}
           contractPages={contractPages}
           currentPage={currentPage}
-          handleSave={handleSave}
+          setShowHotkeysModal={setShowHotkeysModal}
         />
 
-        {/* Pages Tabs */}
-        <PageTabs
-          contractPages={contractPages}
-          currentPage={currentPage}
-          setCurrentPage={setCurrentPage}
-          editingPageTitle={editingPageTitle}
-          setEditingPageTitle={setEditingPageTitle}
-          updatePageTitle={updatePageTitle}
-          removePage={removePage}
-          pageTitleInputRef={pageTitleInputRef}
-          isDraggingPage={isDraggingPage}
-          dragOverPageIndex={dragOverPageIndex}
-          dropPosition={dropPosition}
-          handlePageDragStart={handlePageDragStart}
-          handlePageDragOver={handlePageDragOver}
-          handlePageDragLeave={handlePageDragLeave}
-          handlePageDrop={handlePageDrop}
-          handlePageDragEnd={handlePageDragEnd}
-        />
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col min-w-0">
+          {/* Top Toolbar - with onClose prop for integrated X button */}
+          <TopToolbar
+            setShowAddPageModal={setShowAddPageModal}
+            setPdfInputRef={(ref) => {
+              setPdfInputRef(ref);
+              pdfInputRef.current = ref;
+            }}
+            handlePdfUpload={handlePdfUpload}
+            isPdfProcessing={isPdfProcessing}
+            canvasZoom={canvasZoom}
+            setCanvasZoom={setCanvasZoom}
+            setHeaderFooterSettingsOpen={setHeaderFooterSettingsOpen}
+            setShowPreview={setShowPreview}
+            setPreviewPage={setPreviewPage}
+            setPreviewZoom={setPreviewZoom}
+            undo={undo}
+            redo={redo}
+            historyIndex={historyIndex}
+            history={history}
+            contractPages={contractPages}
+            currentPage={currentPage}
+            handleSave={handleSave}
+            onClose={onClose ? handleCloseClick : undefined}
+          />
 
-        {/* Canvas Bereich */}
-        <CanvasArea
-          containerRef={containerRef}
+          {/* Pages Tabs */}
+          <PageTabs
+            contractPages={contractPages}
+            currentPage={currentPage}
+            setCurrentPage={setCurrentPage}
+            editingPageTitle={editingPageTitle}
+            setEditingPageTitle={setEditingPageTitle}
+            updatePageTitle={updatePageTitle}
+            removePage={removePage}
+            pageTitleInputRef={pageTitleInputRef}
+            isDraggingPage={isDraggingPage}
+            dragOverPageIndex={dragOverPageIndex}
+            dropPosition={dropPosition}
+            handlePageDragStart={handlePageDragStart}
+            handlePageDragOver={handlePageDragOver}
+            handlePageDragLeave={handlePageDragLeave}
+            handlePageDrop={handlePageDrop}
+            handlePageDragEnd={handlePageDragEnd}
+          />
+
+          {/* Canvas Area */}
+          <CanvasArea
+            containerRef={containerRef}
+            contractPages={contractPages}
+            currentPage={currentPage}
+            canvasZoom={canvasZoom}
+            snapLines={snapLines}
+            selectedElement={selectedElement}
+            setSelectedElement={setSelectedElement}
+            setSelectedFolder={setSelectedFolder}
+            handleDragStart={handleDragStart}
+            isDragging={isDragging}
+            renderBuilderElement={(element, selectedEl, setSelectedEl, handleDragStartParam, isDraggingParam) => renderBuilderElement(
+              element,
+              selectedEl,
+              setSelectedEl,
+              handleDragStartParam,
+              isDraggingParam,
+              removeElement,
+              nextElementId,
+              contractPages,
+              currentPage,
+              setContractPages,
+              saveToHistory,
+              folders,
+              handleResizeStart,
+              isResizing,
+              dynamicContentArea
+            )}
+            globalHeader={globalHeader}
+            globalFooter={globalFooter}
+            imageInputRefs={imageInputRefs}
+            handleImageUpload={handleImageUpload}
+            updateElement={updateElement}
+            removeElement={removeElement}
+            nextElementId={nextElementId}
+            setContractPages={setContractPages}
+            saveToHistory={saveToHistory}
+            folders={folders}
+            measuredHeaderHeight={measuredHeaderHeight}
+            setMeasuredHeaderHeight={setMeasuredHeaderHeight}
+            measuredFooterHeight={measuredFooterHeight}
+            setMeasuredFooterHeight={setMeasuredFooterHeight}
+            dynamicContentArea={dynamicContentArea}
+            handleResizeStart={handleResizeStart}
+            isResizing={isResizing}
+          />
+        </div>
+
+        {/* Desktop Properties Panel with Tabs */}
+        <PropertiesPanel
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
           contractPages={contractPages}
           currentPage={currentPage}
-          canvasZoom={canvasZoom}
-          snapLines={snapLines}
           selectedElement={selectedElement}
+          selectedFolder={selectedFolder}
           setSelectedElement={setSelectedElement}
           setSelectedFolder={setSelectedFolder}
-          handleDragStart={handleDragStart}
-          isDragging={isDragging}
-          renderBuilderElement={(element, selectedEl, setSelectedEl, handleDragStartParam, isDraggingParam) => renderBuilderElement(
-            element,
-            selectedEl,
-            setSelectedEl,
-            handleDragStartParam,
-            isDraggingParam,
-            removeElement,
-            nextElementId,
-            contractPages,
-            currentPage,
-            setContractPages,
-            saveToHistory,
-            folders,
-            handleResizeStart,      // NEW: Pass resize handler
-            isResizing,             // NEW: Pass resize state
-            dynamicContentArea      // NEW: Pass dynamic content area for bounds checking
-          )}
-          globalHeader={globalHeader}
-          globalFooter={globalFooter}
-          imageInputRefs={imageInputRefs}
-          handleImageUpload={handleImageUpload}
+          folders={folders}
           updateElement={updateElement}
           removeElement={removeElement}
-          nextElementId={nextElementId}
-          setContractPages={setContractPages}
-          saveToHistory={saveToHistory}
-          folders={folders}
-          measuredHeaderHeight={measuredHeaderHeight}
-          setMeasuredHeaderHeight={setMeasuredHeaderHeight}
-          measuredFooterHeight={measuredFooterHeight}
-          setMeasuredFooterHeight={setMeasuredFooterHeight}
-          dynamicContentArea={dynamicContentArea}
-          handleResizeStart={handleResizeStart}  // NEW: Resize handler
-          isResizing={isResizing}                // NEW: Resize state
+          toggleElementVisibility={toggleElementVisibility}
+          usedVariables={usedVariables}
+          SYSTEM_VARIABLES={SYSTEM_VARIABLES}
+          USER_VARIABLES={USER_VARIABLES}
+          CONTENT_WIDTH_PX={CONTENT_WIDTH_PX}
+          CONTENT_HEIGHT_PX={dynamicContentArea.height}
+          editingFolderId={editingFolderId}
+          editingFolderName={editingFolderName}
+          editingFolderColor={editingFolderColor}
+          setEditingFolderName={setEditingFolderName}
+          setEditingFolderColor={setEditingFolderColor}
+          saveEditFolder={saveEditFolder}
+          setEditingFolderId={setEditingFolderId}
+          startEditFolder={startEditFolder}
+          deleteFolder={deleteFolder}
+          toggleFolder={toggleFolder}
+          removeElementFromFolder={removeElementFromFolder}
+          draggedElementIndex={draggedElementIndex}
+          dragOverElementIndex={dragOverElementIndex}
+          handleElementDragStart={handleElementDragStart}
+          handleElementDragOver={handleElementDragOver}
+          handleElementDragLeave={handleElementDragLeave}
+          handleElementDrop={handleElementDrop}
+          handleElementDragEnd={handleElementDragEnd}
+          removeAllElements={removeAllElements}
+          setShowCreateFolderModal={setShowCreateFolderModal}
+          setShowEditFolderModal={setShowEditFolderModal}
+          cleanElements={cleanElements}
+          imageInputRefs={imageInputRefs}
+          handleImageUpload={handleImageUpload}
         />
+
+        {/* Modals */}
+        <Modals
+          showPreview={showPreview}
+          setShowPreview={setShowPreview}
+          previewPage={previewPage}
+          setPreviewPage={setPreviewPage}
+          contractPages={contractPages}
+          setContractPages={setContractPages}
+          previewZoom={previewZoom}
+          setPreviewZoom={setPreviewZoom}
+          globalHeader={globalHeader}
+          globalFooter={globalFooter}
+          renderElementContent={renderElementContent}
+          showAddPageModal={showAddPageModal}
+          setShowAddPageModal={setShowAddPageModal}
+          newPageName={newPageName}
+          setNewPageName={setNewPageName}
+          addPage={addPage}
+          newPageNameInputRef={newPageNameInputRef}
+          showCreateFolderModal={showCreateFolderModal}
+          setShowCreateFolderModal={setShowCreateFolderModal}
+          newFolderName={newFolderName}
+          setNewFolderName={setNewFolderName}
+          newFolderColor={newFolderColor}
+          setNewFolderColor={setNewFolderColor}
+          createFolder={createFolder}
+          showEditFolderModal={showEditFolderModal}
+          setShowEditFolderModal={setShowEditFolderModal}
+          editingFolderId={editingFolderId}
+          setEditingFolderId={setEditingFolderId}
+          editingFolderName={editingFolderName}
+          setEditingFolderName={setEditingFolderName}
+          editingFolderColor={editingFolderColor}
+          setEditingFolderColor={setEditingFolderColor}
+          saveEditFolder={saveEditFolder}
+          headerFooterSettingsOpen={headerFooterSettingsOpen}
+          setHeaderFooterSettingsOpen={setHeaderFooterSettingsOpen}
+          updateGlobalHeader={updateGlobalHeader}
+          updateGlobalFooter={updateGlobalFooter}
+          headerSettingsExpanded={headerSettingsExpanded}
+          setHeaderSettingsExpanded={setHeaderSettingsExpanded}
+          footerSettingsExpanded={footerSettingsExpanded}
+          setFooterSettingsExpanded={setFooterSettingsExpanded}
+          showImageCropModal={showImageCropModal}
+          setShowImageCropModal={setShowImageCropModal}
+          cropImageElement={cropImageElement}
+          updateElement={updateElement}
+          currentPage={currentPage}
+          showValidationWarning={showValidationWarning}
+          setShowValidationWarning={setShowValidationWarning}
+          validationWarnings={validationWarnings}
+          handleSaveAnyway={performSave}
+          folders={folders}
+          saveToHistory={saveToHistory}
+          showHotkeysModal={showHotkeysModal}
+          setShowHotkeysModal={setShowHotkeysModal}
+        />
+
+        {/* Close Confirmation Modal */}
+        {showCloseConfirmModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60]">
+            <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4 shadow-2xl">
+              <h3 className="text-lg font-bold text-gray-900 mb-2">Close Contract Builder?</h3>
+              <p className="text-gray-600 mb-6">Do you want to save your changes before closing?</p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowCloseConfirmModal(false)}
+                  className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    setShowCloseConfirmModal(false);
+                    onClose?.();
+                  }}
+                  className="flex-1 px-4 py-2.5 bg-red-500 text-white text-sm font-medium rounded-lg hover:bg-red-600 transition-colors"
+                >
+                  Discard
+                </button>
+                <button
+                  onClick={() => {
+                    performSave();
+                    setShowCloseConfirmModal(false);
+                    onClose?.();
+                  }}
+                  className="flex-1 px-4 py-2.5 bg-blue-500 text-white text-sm font-medium rounded-lg hover:bg-blue-600 transition-colors"
+                >
+                  Save & Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-
-      {/* Desktop Properties Panel mit Tabs */}
-      <PropertiesPanel
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        contractPages={contractPages}
-        currentPage={currentPage}
-        selectedElement={selectedElement}
-        selectedFolder={selectedFolder}
-        setSelectedElement={setSelectedElement}
-        setSelectedFolder={setSelectedFolder}
-        folders={folders}
-        updateElement={updateElement}
-        removeElement={removeElement}
-        toggleElementVisibility={toggleElementVisibility}
-        usedVariables={usedVariables}
-        SYSTEM_VARIABLES={SYSTEM_VARIABLES}
-        USER_VARIABLES={USER_VARIABLES}
-        CONTENT_WIDTH_PX={CONTENT_WIDTH_PX}
-        CONTENT_HEIGHT_PX={dynamicContentArea.height}
-        editingFolderId={editingFolderId}
-        editingFolderName={editingFolderName}
-        editingFolderColor={editingFolderColor}
-        setEditingFolderName={setEditingFolderName}
-        setEditingFolderColor={setEditingFolderColor}
-        saveEditFolder={saveEditFolder}
-        setEditingFolderId={setEditingFolderId}
-        startEditFolder={startEditFolder}
-        deleteFolder={deleteFolder}
-        toggleFolder={toggleFolder}
-        removeElementFromFolder={removeElementFromFolder}
-        draggedElementIndex={draggedElementIndex}
-        dragOverElementIndex={dragOverElementIndex}
-        handleElementDragStart={handleElementDragStart}
-        handleElementDragOver={handleElementDragOver}
-        handleElementDragLeave={handleElementDragLeave}
-        handleElementDrop={handleElementDrop}
-        handleElementDragEnd={handleElementDragEnd}
-        removeAllElements={removeAllElements}
-        setShowCreateFolderModal={setShowCreateFolderModal}
-        setShowEditFolderModal={setShowEditFolderModal}
-        cleanElements={cleanElements}
-        imageInputRefs={imageInputRefs}
-        handleImageUpload={handleImageUpload}
-      />
-
-      {/* Modals */}
-      <Modals
-        showPreview={showPreview}
-        setShowPreview={setShowPreview}
-        previewPage={previewPage}
-        setPreviewPage={setPreviewPage}
-        contractPages={contractPages}
-        setContractPages={setContractPages}
-        previewZoom={previewZoom}
-        setPreviewZoom={setPreviewZoom}
-        globalHeader={globalHeader}
-        globalFooter={globalFooter}
-        renderElementContent={renderElementContent}
-        showAddPageModal={showAddPageModal}
-        setShowAddPageModal={setShowAddPageModal}
-        newPageName={newPageName}
-        setNewPageName={setNewPageName}
-        addPage={addPage}
-        newPageNameInputRef={newPageNameInputRef}
-        showCreateFolderModal={showCreateFolderModal}
-        setShowCreateFolderModal={setShowCreateFolderModal}
-        newFolderName={newFolderName}
-        setNewFolderName={setNewFolderName}
-        newFolderColor={newFolderColor}
-        setNewFolderColor={setNewFolderColor}
-        createFolder={createFolder}
-        showEditFolderModal={showEditFolderModal}
-        setShowEditFolderModal={setShowEditFolderModal}
-        editingFolderId={editingFolderId}
-        setEditingFolderId={setEditingFolderId}
-        editingFolderName={editingFolderName}
-        setEditingFolderName={setEditingFolderName}
-        editingFolderColor={editingFolderColor}
-        setEditingFolderColor={setEditingFolderColor}
-        saveEditFolder={saveEditFolder}
-        headerFooterSettingsOpen={headerFooterSettingsOpen}
-        setHeaderFooterSettingsOpen={setHeaderFooterSettingsOpen}
-        updateGlobalHeader={updateGlobalHeader}
-        updateGlobalFooter={updateGlobalFooter}
-        headerSettingsExpanded={headerSettingsExpanded}
-        setHeaderSettingsExpanded={setHeaderSettingsExpanded}
-        footerSettingsExpanded={footerSettingsExpanded}
-        setFooterSettingsExpanded={setFooterSettingsExpanded}
-        showImageCropModal={showImageCropModal}
-        setShowImageCropModal={setShowImageCropModal}
-        cropImageElement={cropImageElement}
-        updateElement={updateElement}
-        currentPage={currentPage}
-        showValidationWarning={showValidationWarning}
-        setShowValidationWarning={setShowValidationWarning}
-        validationWarnings={validationWarnings}
-        handleSaveAnyway={performSave}
-        folders={folders}
-        saveToHistory={saveToHistory}
-        showHotkeysModal={showHotkeysModal}  // NEU: Hotkeys Modal
-        setShowHotkeysModal={setShowHotkeysModal}  // NEU: Hotkeys Modal
-      />
-    </div>
+    </>
   );
 };
 

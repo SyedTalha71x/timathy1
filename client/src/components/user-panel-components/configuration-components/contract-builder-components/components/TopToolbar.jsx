@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   PlusIcon, FilePlusIcon, SaveIcon, EyeIcon,
-  UndoIcon, RedoIcon, ZoomInIcon, ZoomOutIcon
+  UndoIcon, RedoIcon, ZoomInIcon, ZoomOutIcon, XIcon
 } from 'lucide-react';
 
 // YouTube-style Tooltip Component
@@ -18,7 +18,7 @@ const KeyboardTooltip = ({ label, shortcut, children, disabled = false }) => {
       {showTooltip && !disabled && (
         <div style={{
           position: 'absolute',
-          top: 'calc(100% + 8px)',  // Unter dem Button statt darüber
+          top: 'calc(100% + 8px)',
           left: '50%',
           transform: 'translateX(-50%)',
           backgroundColor: 'rgba(0, 0, 0, 0.9)',
@@ -49,17 +49,16 @@ const KeyboardTooltip = ({ label, shortcut, children, disabled = false }) => {
               {shortcut}
             </span>
           )}
-          {/* Tooltip arrow - zeigt nach OBEN */}
           <div style={{
             position: 'absolute',
-            top: '-4px',  // Oben am Tooltip
+            top: '-4px',
             left: '50%',
             transform: 'translateX(-50%)',
             width: 0,
             height: 0,
             borderLeft: '4px solid transparent',
             borderRight: '4px solid transparent',
-            borderBottom: '4px solid rgba(0, 0, 0, 0.9)'  // Pfeil zeigt nach oben
+            borderBottom: '4px solid rgba(0, 0, 0, 0.9)'
           }} />
         </div>
       )}
@@ -84,7 +83,8 @@ const TopToolbar = ({
   history,
   contractPages,
   currentPage,
-  handleSave
+  handleSave,
+  onClose // NEW: Close handler
 }) => {
   const isPdfPage = contractPages?.[currentPage]?.locked;
   
@@ -208,6 +208,20 @@ const TopToolbar = ({
               </button>
             </KeyboardTooltip>
           </div>
+
+          {/* Close Button - only shown when onClose is provided */}
+          {onClose && (
+            <div className="border-l border-gray-300 pl-2 ml-1">
+              <KeyboardTooltip label="Close" shortcut="Esc">
+                <button
+                  onClick={onClose}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors bg-gray-100 text-gray-800 hover:bg-red-100 hover:text-red-600"
+                >
+                  <XIcon size={18} />
+                </button>
+              </KeyboardTooltip>
+            </div>
+          )}
         </div>
       </div>
     </div>

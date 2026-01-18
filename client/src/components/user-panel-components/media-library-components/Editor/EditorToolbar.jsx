@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   Type, 
   Square, 
@@ -13,7 +14,6 @@ import {
   ChevronRight,
   ChevronDown,
   Keyboard,
-  HelpCircle,
   Layers as LayersIcon,
   Eye,
   EyeOff,
@@ -54,6 +54,66 @@ const gradientPresets = [
   { id: 'candy', name: 'Candy', colors: ['#EC4899', '#8B5CF6'] },
 ];
 
+// Portal-based Popup component that renders outside overflow:hidden containers
+const PortalPopup = ({ isOpen, onClose, triggerRef, children, width = 160 }) => {
+  const [position, setPosition] = useState({ top: 0, left: 0 });
+  const popupRef = useRef(null);
+
+  useEffect(() => {
+    if (isOpen && triggerRef?.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      const popupHeight = popupRef.current?.offsetHeight || 200;
+      
+      // Position to the right of the trigger
+      let top = rect.top;
+      let left = rect.right + 8;
+      
+      // Check if popup would go off screen bottom
+      if (top + popupHeight > window.innerHeight - 20) {
+        top = window.innerHeight - popupHeight - 20;
+      }
+      
+      // Check if popup would go off screen right
+      if (left + width > window.innerWidth - 20) {
+        left = rect.left - width - 8;
+      }
+      
+      setPosition({ top: Math.max(10, top), left: Math.max(10, left) });
+    }
+  }, [isOpen, triggerRef, width]);
+
+  if (!isOpen) return null;
+
+  return createPortal(
+    <>
+      {/* Backdrop */}
+      <div 
+        style={{ 
+          position: 'fixed', 
+          inset: 0, 
+          zIndex: 99998 
+        }}
+        onClick={onClose} 
+      />
+      {/* Popup */}
+      <div 
+        ref={popupRef}
+        style={{ 
+          position: 'fixed',
+          top: `${position.top}px`,
+          left: `${position.left}px`,
+          zIndex: 99999,
+          minWidth: `${width}px`
+        }}
+        className="bg-[#1C1C1C] border border-[#333333] rounded-lg p-2 shadow-2xl"
+      >
+        {children}
+      </div>
+    </>,
+    document.body
+  );
+};
+
 const EditorToolbar = ({
   selectedTool,
   onSelectTool,
@@ -62,7 +122,6 @@ const EditorToolbar = ({
   onAddImage,
   onAddLine,
   onAddGradient,
-  onAddDivider,
   elements = [],
   activeElementId,
   lockedElements = new Set(),
@@ -81,6 +140,11 @@ const EditorToolbar = ({
   
   const [draggedId, setDraggedId] = useState(null);
   const [dragOverId, setDragOverId] = useState(null);
+
+  // Refs for popup positioning
+  const shapeButtonRef = useRef(null);
+  const lineButtonRef = useRef(null);
+  const gradientButtonRef = useRef(null);
 
   const sortedElements = [...elements].sort((a, b) => (b.zIndex || 0) - (a.zIndex || 0));
 
@@ -116,7 +180,6 @@ const EditorToolbar = ({
       case 'image': return <ImageIcon size={12} className="text-purple-400" />;
       case 'line': return <Minus size={12} className="text-cyan-400" />;
       case 'gradient': return <Droplet size={12} className="text-pink-400" />;
-      case 'divider': return <Minus size={12} className="text-yellow-400" />;
       default: return <LayersIcon size={12} className="text-gray-400" />;
     }
   };
@@ -129,7 +192,6 @@ const EditorToolbar = ({
       case 'image': return 'bg-purple-500/10';
       case 'line': return 'bg-cyan-500/10';
       case 'gradient': return 'bg-pink-500/10';
-      case 'divider': return 'bg-yellow-500/10';
       default: return 'bg-gray-500/10';
     }
   };
@@ -141,7 +203,6 @@ const EditorToolbar = ({
     if (el.type === 'image') return 'Image';
     if (el.type === 'line') return 'Line';
     if (el.type === 'gradient') return 'Gradient';
-    if (el.type === 'divider') return 'Divider';
     return 'Layer';
   };
 
@@ -154,7 +215,7 @@ const EditorToolbar = ({
   };
 
   return (
-    <div className="w-[280px] min-w-[280px] h-full bg-[#141414] border-r border-[#333333] flex flex-col overflow-hidden relative z-10">
+    <div className="w-[280px] min-w-[280px] h-full bg-[#141414] border-r border-[#333333] flex flex-col overflow-hidden">
       {/* Tools Section */}
       <div className="p-2 border-b border-[#333333]">
         <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1.5 px-2">Tools</p>
@@ -182,120 +243,49 @@ const EditorToolbar = ({
           />
           
           {/* Shapes */}
-          <div className="relative">
+          <div ref={shapeButtonRef}>
             <ToolButton
               icon={Square}
               label="Shapes"
-              onClick={() => setShowShapeMenu(!showShapeMenu)}
+              onClick={() => {
+                setShowLineMenu(false);
+                setShowGradientMenu(false);
+                setShowShapeMenu(!showShapeMenu);
+              }}
               hasDropdown
+              isActive={showShapeMenu}
             />
-            {showShapeMenu && (
-              <>
-                <div className="fixed inset-0 z-[100]" onClick={() => setShowShapeMenu(false)} />
-                <div className="absolute left-full top-0 ml-1 bg-[#1C1C1C] border border-[#333333] rounded-lg p-2 shadow-2xl z-[110] min-w-[160px]">
-                  <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1.5 px-1">Shapes</p>
-                  <div className="grid grid-cols-4 gap-1">
-                    {shapes.map(shape => {
-                      const Icon = shape.icon;
-                      return (
-                        <button
-                          key={shape.id}
-                          onClick={() => {
-                            onAddShape(shape.id);
-                            setShowShapeMenu(false);
-                          }}
-                          className="p-2 rounded hover:bg-[#2F2F2F] transition-colors group"
-                          title={shape.name}
-                        >
-                          <Icon size={16} className="text-gray-400 group-hover:text-orange-500 mx-auto" />
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              </>
-            )}
           </div>
           
           {/* Lines */}
-          <div className="relative">
+          <div ref={lineButtonRef}>
             <ToolButton
               icon={Minus}
               label="Lines"
-              onClick={() => setShowLineMenu(!showLineMenu)}
+              onClick={() => {
+                setShowShapeMenu(false);
+                setShowGradientMenu(false);
+                setShowLineMenu(!showLineMenu);
+              }}
               hasDropdown
+              isActive={showLineMenu}
             />
-            {showLineMenu && (
-              <>
-                <div className="fixed inset-0 z-[100]" onClick={() => setShowLineMenu(false)} />
-                <div className="absolute left-full top-0 ml-1 bg-[#1C1C1C] border border-[#333333] rounded-lg p-2 shadow-2xl z-[110] min-w-[140px]">
-                  <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1.5 px-1">Lines</p>
-                  <div className="space-y-0.5">
-                    {lineStyles.map(style => (
-                      <button
-                        key={style.id}
-                        onClick={() => handleAddLine(style.id)}
-                        className="w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-[#2F2F2F] transition-colors text-left"
-                      >
-                        <div className="w-8 h-3 flex items-center">
-                          {style.id === 'solid' && <div className="w-full h-0.5 bg-gray-400" />}
-                          {style.id === 'dashed' && <div className="w-full h-0.5 bg-gray-400" style={{ backgroundImage: 'repeating-linear-gradient(90deg, currentColor, currentColor 4px, transparent 4px, transparent 8px)' }} />}
-                          {style.id === 'dotted' && <div className="w-full h-0.5" style={{ backgroundImage: 'repeating-linear-gradient(90deg, #9ca3af, #9ca3af 2px, transparent 2px, transparent 6px)' }} />}
-                          {style.id === 'arrow' && <ArrowRight size={14} className="text-gray-400" />}
-                          {style.id === 'double-arrow' && <div className="flex items-center text-gray-400"><span className="text-[10px]">←</span><span className="text-[10px]">→</span></div>}
-                        </div>
-                        <span className="text-xs text-gray-300">{style.name}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </>
-            )}
           </div>
           
           {/* Gradients */}
-          <div className="relative">
+          <div ref={gradientButtonRef}>
             <ToolButton
               icon={Droplet}
               label="Gradients"
-              onClick={() => setShowGradientMenu(!showGradientMenu)}
+              onClick={() => {
+                setShowShapeMenu(false);
+                setShowLineMenu(false);
+                setShowGradientMenu(!showGradientMenu);
+              }}
               hasDropdown
+              isActive={showGradientMenu}
             />
-            {showGradientMenu && (
-              <>
-                <div className="fixed inset-0 z-[100]" onClick={() => setShowGradientMenu(false)} />
-                <div className="absolute left-full top-0 ml-1 bg-[#1C1C1C] border border-[#333333] rounded-lg p-2 shadow-2xl z-[110] min-w-[160px]">
-                  <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1.5 px-1">Gradients</p>
-                  <div className="grid grid-cols-2 gap-1.5">
-                    {gradientPresets.map(gradient => (
-                      <button
-                        key={gradient.id}
-                        onClick={() => {
-                          onAddGradient?.(gradient.colors);
-                          setShowGradientMenu(false);
-                        }}
-                        className="p-1 rounded hover:ring-2 hover:ring-orange-500 transition-all"
-                        title={gradient.name}
-                      >
-                        <div 
-                          className="w-full h-8 rounded"
-                          style={{ background: `linear-gradient(135deg, ${gradient.colors.join(', ')})` }}
-                        />
-                        <span className="text-[9px] text-gray-500 block mt-0.5 truncate">{gradient.name}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </>
-            )}
           </div>
-          
-          {/* Divider */}
-          <ToolButton
-            icon={Minus}
-            label="Divider"
-            onClick={() => onAddDivider?.()}
-          />
           
           {/* Image */}
           <ToolButton
@@ -305,6 +295,89 @@ const EditorToolbar = ({
           />
         </div>
       </div>
+
+      {/* Portal-based Popups */}
+      <PortalPopup 
+        isOpen={showShapeMenu} 
+        onClose={() => setShowShapeMenu(false)}
+        triggerRef={shapeButtonRef}
+        width={180}
+      >
+        <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1.5 px-1">Shapes</p>
+        <div className="grid grid-cols-4 gap-1">
+          {shapes.map(shape => {
+            const Icon = shape.icon;
+            return (
+              <button
+                key={shape.id}
+                onClick={() => {
+                  onAddShape(shape.id);
+                  setShowShapeMenu(false);
+                }}
+                className="p-2 rounded hover:bg-[#2F2F2F] transition-colors group"
+                title={shape.name}
+              >
+                <Icon size={16} className="text-gray-400 group-hover:text-orange-500 mx-auto" />
+              </button>
+            );
+          })}
+        </div>
+      </PortalPopup>
+
+      <PortalPopup 
+        isOpen={showLineMenu} 
+        onClose={() => setShowLineMenu(false)}
+        triggerRef={lineButtonRef}
+        width={160}
+      >
+        <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1.5 px-1">Lines</p>
+        <div className="space-y-0.5">
+          {lineStyles.map(style => (
+            <button
+              key={style.id}
+              onClick={() => handleAddLine(style.id)}
+              className="w-full flex items-center gap-2 px-2 py-1.5 rounded hover:bg-[#2F2F2F] transition-colors text-left"
+            >
+              <div className="w-8 h-3 flex items-center">
+                {style.id === 'solid' && <div className="w-full h-0.5 bg-gray-400" />}
+                {style.id === 'dashed' && <div className="w-full h-0.5 bg-gray-400" style={{ backgroundImage: 'repeating-linear-gradient(90deg, currentColor, currentColor 4px, transparent 4px, transparent 8px)' }} />}
+                {style.id === 'dotted' && <div className="w-full h-0.5" style={{ backgroundImage: 'repeating-linear-gradient(90deg, #9ca3af, #9ca3af 2px, transparent 2px, transparent 6px)' }} />}
+                {style.id === 'arrow' && <ArrowRight size={14} className="text-gray-400" />}
+                {style.id === 'double-arrow' && <div className="flex items-center text-gray-400 text-[10px]">←→</div>}
+              </div>
+              <span className="text-xs text-gray-300">{style.name}</span>
+            </button>
+          ))}
+        </div>
+      </PortalPopup>
+
+      <PortalPopup 
+        isOpen={showGradientMenu} 
+        onClose={() => setShowGradientMenu(false)}
+        triggerRef={gradientButtonRef}
+        width={180}
+      >
+        <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-1.5 px-1">Gradients</p>
+        <div className="grid grid-cols-2 gap-1.5">
+          {gradientPresets.map(gradient => (
+            <button
+              key={gradient.id}
+              onClick={() => {
+                onAddGradient?.(gradient.colors);
+                setShowGradientMenu(false);
+              }}
+              className="p-1 rounded hover:ring-2 hover:ring-orange-500 transition-all"
+              title={gradient.name}
+            >
+              <div 
+                className="w-full h-8 rounded"
+                style={{ background: `linear-gradient(135deg, ${gradient.colors.join(', ')})` }}
+              />
+              <span className="text-[9px] text-gray-500 block mt-0.5 truncate">{gradient.name}</span>
+            </button>
+          ))}
+        </div>
+      </PortalPopup>
 
       {/* Layers Section */}
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -369,7 +442,7 @@ const EditorToolbar = ({
                         {getElementName(el)}
                       </span>
 
-                      {(el.type === 'shape' || el.type === 'text' || el.type === 'line' || el.type === 'divider') && (
+                      {(el.type === 'shape' || el.type === 'text' || el.type === 'line') && (
                         <div className="w-3 h-3 rounded border border-[#333] flex-shrink-0" style={{ backgroundColor: el.color }} />
                       )}
 
@@ -407,7 +480,7 @@ const EditorToolbar = ({
           <span className="text-xs">Shortcuts</span>
           
           {showShortcutsTooltip && (
-            <div className="absolute bottom-full left-0 right-0 mb-2 bg-[#1C1C1C] border border-[#333333] rounded-lg p-2 shadow-xl z-50">
+            <div className="absolute bottom-full left-0 right-0 mb-2 bg-[#1C1C1C] border border-[#333333] rounded-lg p-2 shadow-xl z-[99999]">
               <div className="text-[10px] text-gray-300 space-y-1">
                 <div className="flex justify-between"><span>Delete</span><kbd className="bg-[#0a0a0a] px-1 rounded text-gray-500">Del</kbd></div>
                 <div className="flex justify-between"><span>Undo</span><kbd className="bg-[#0a0a0a] px-1 rounded text-gray-500">Ctrl+Z</kbd></div>

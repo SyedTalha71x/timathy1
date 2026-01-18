@@ -59,6 +59,10 @@ export const applyPersonalization = (elements, personalization) => {
 
   const { primaryColor, secondaryColor, titleText, subtitleText } = personalization;
   
+  // Track if we've already replaced title and subtitle
+  let titleReplaced = false;
+  let subtitleReplaced = false;
+  
   return elements.map(element => {
     const newElement = { ...element };
     
@@ -100,11 +104,13 @@ export const applyPersonalization = (elements, personalization) => {
       const isTitle = (element.size || 24) >= 48;
       const isSubtitle = (element.size || 24) < 48 && (element.size || 24) >= 16;
       
-      // Apply text content if provided
-      if (isTitle && titleText) {
+      // Apply text content if provided - only replace FIRST occurrence
+      if (isTitle && titleText && !titleReplaced) {
         newElement.content = titleText;
-      } else if (isSubtitle && subtitleText) {
+        titleReplaced = true;
+      } else if (isSubtitle && subtitleText && !subtitleReplaced) {
         newElement.content = subtitleText;
+        subtitleReplaced = true;
       }
       
       // Apply colors based on background

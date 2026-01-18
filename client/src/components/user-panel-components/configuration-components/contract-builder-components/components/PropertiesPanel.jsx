@@ -10,7 +10,24 @@ import {
 } from 'lucide-react';
 
 // Enhanced CSS for full cross-browser range input support including Edge
+// Plus custom scrollbar styles
 const rangeInputStyles = `
+  /* Custom Scrollbar Styles for Properties Panel */
+  .properties-panel-scroll::-webkit-scrollbar {
+    width: 6px;
+  }
+  .properties-panel-scroll::-webkit-scrollbar-track {
+    background: #f8fafc;
+  }
+  .properties-panel-scroll::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+  }
+  .properties-panel-scroll::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+  
+
   /* Base styling - remove default appearance */
   input[type="range"] {
     -webkit-appearance: none;
@@ -2330,7 +2347,7 @@ const PropertiesPanel = ({
             </div>
           </div>
           
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto properties-panel-scroll" style={{ scrollbarWidth: "thin", scrollbarColor: "#cbd5e1 transparent" }}>
             {activeTab === 'properties' ? renderPropertyPanel() : renderContentPanel()}
           </div>
         </div>
