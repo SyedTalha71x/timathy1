@@ -287,7 +287,7 @@ const DashboardHeader = ({ onToggleSidebar, isSidebarOpen }) => {
       )}
       
       {/* ===== MOBILE HEADER (lg:hidden) ===== */}
-      <div className="fixed top-0 left-0 w-full bg-[#111111] border-b border-zinc-800 p-2 flex items-center justify-between lg:hidden z-[60]">
+      <div className="fixed top-0 left-0 w-full bg-[#111111] border-b border-zinc-800 p-2 flex items-center justify-between lg:hidden z-40">
         <div className="flex items-center gap-2">
           <div className="bg-orange-500 p-2 rounded-md">
             <img src={OrgaGymLogoWihoutText} className="h-6 w-6" alt="Orgagym Logo" />

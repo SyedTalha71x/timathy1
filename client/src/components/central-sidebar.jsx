@@ -559,7 +559,7 @@ const Sidebar = ({
     <>
      <aside
   className={`
-    fixed top-0 right-0 h-full text-white w-full sm:w-96 lg:w-88 bg-[#181818] border-l border-gray-700 z-[70]
+    fixed top-0 right-0 h-full text-white w-full sm:w-96 lg:w-88 bg-[#181818] border-l border-gray-700 z-[50]
     transform transition-transform duration-500 ease-in-out
     ${isRightSidebarOpen ? "translate-x-0" : "translate-x-full"}
   `}
