@@ -61,26 +61,9 @@ const DashboardHeader = ({ onToggleSidebar, isSidebarOpen }) => {
   ]
   
   // ============================================
-  // Click Outside Handler
+  // Click Outside Handler - using overlay approach for mobile compatibility
   // ============================================
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (isLanguageDropdownOpen && languageDropdownRef.current && !languageDropdownRef.current.contains(event.target)) {
-        setIsLanguageDropdownOpen(false)
-      }
-      if (isDropdownOpen && profileDropdownRef.current && !profileDropdownRef.current.contains(event.target)) {
-        setIsDropdownOpen(false)
-      }
-    }
-    
-    document.addEventListener('mousedown', handleClickOutside)
-    document.addEventListener('touchstart', handleClickOutside)
-    
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-      document.removeEventListener('touchstart', handleClickOutside)
-    }
-  }, [isLanguageDropdownOpen, isDropdownOpen])
+  // No document-level event listeners needed - we use an overlay instead
   
   // Close dropdowns on scroll (mobile)
   useEffect(() => {
@@ -184,22 +167,31 @@ const DashboardHeader = ({ onToggleSidebar, isSidebarOpen }) => {
         <Globe size={isMobile ? 18 : 20} />
       </button>
       {isLanguageDropdownOpen && (
-        <div className={`absolute right-0 ${isMobile ? "top-10 w-36" : "top-12 w-40"} bg-[#222222]/50 backdrop-blur-3xl rounded-lg shadow-lg z-[90]`}>
-          <div className={isMobile ? "py-1" : "py-2"} role="menu">
-            {languages.map((language) => (
-              <button
-                key={language.code}
-                onClick={() => handleLanguageSelect(language)}
-                className={`w-full ${isMobile ? "px-3 py-1.5 text-xs" : "px-4 py-2 text-sm"} text-left hover:bg-zinc-700 flex items-center gap-${isMobile ? "2" : "3"} ${
-                  selectedLanguage === language.name ? "text-white bg-zinc-600" : "text-zinc-300"
-                }`}
-              >
-                <img src={language.flag} className={`rounded-sm ${isMobile ? "h-5 w-6" : "w-8"}`} alt={language.name} />
-                <span>{language.name}</span>
-              </button>
-            ))}
+        <>
+          {/* Invisible overlay to catch outside clicks */}
+          <div 
+            className="fixed inset-0 z-[99]" 
+            onClick={() => setIsLanguageDropdownOpen(false)}
+          />
+          <div 
+            className={`absolute right-0 ${isMobile ? "top-10 w-36" : "top-12 w-40"} bg-[#222222]/50 backdrop-blur-3xl rounded-lg shadow-lg z-[100]`}
+          >
+            <div className={isMobile ? "py-1" : "py-2"} role="menu">
+              {languages.map((language) => (
+                <button
+                  key={language.code}
+                  onClick={() => handleLanguageSelect(language)}
+                  className={`w-full ${isMobile ? "px-3 py-1.5 text-xs" : "px-4 py-2 text-sm"} text-left hover:bg-zinc-700 flex items-center gap-${isMobile ? "2" : "3"} ${
+                    selectedLanguage === language.name ? "text-white bg-zinc-600" : "text-zinc-300"
+                  }`}
+                >
+                  <img src={language.flag} className={`rounded-sm ${isMobile ? "h-5 w-6" : "w-8"}`} alt={language.name} />
+                  <span>{language.name}</span>
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   )
@@ -217,55 +209,64 @@ const DashboardHeader = ({ onToggleSidebar, isSidebarOpen }) => {
       </div>
       
       {isDropdownOpen && (
-        <div className={`absolute right-0 ${isMobile ? "top-11 w-40" : "top-12 w-48"} bg-[#222222]/50 backdrop-blur-3xl rounded-lg shadow-lg z-[90]`}>
-          {/* Mobile shows user info in dropdown */}
-          {isMobile && (
-            <div className="p-1.5">
-              <div className="flex flex-col">
-                <h2 className="font-semibold text-white text-xs leading-tight">{fullName}</h2>
-                <div className="flex items-center mt-2 gap-1 bg-black py-1 px-2 rounded w-fit">
-                  <Building2 size={12} className="text-white" />
-                  <p className="text-xs font-medium text-white">{studioName}</p>
+        <>
+          {/* Invisible overlay to catch outside clicks */}
+          <div 
+            className="fixed inset-0 z-[99]" 
+            onClick={() => setIsDropdownOpen(false)}
+          />
+          <div 
+            className={`absolute right-0 ${isMobile ? "top-11 w-40" : "top-12 w-48"} bg-[#222222]/50 backdrop-blur-3xl rounded-lg shadow-lg z-[100]`}
+          >
+            {/* Mobile shows user info in dropdown */}
+            {isMobile && (
+              <div className="p-1.5">
+                <div className="flex flex-col">
+                  <h2 className="font-semibold text-white text-xs leading-tight">{fullName}</h2>
+                  <div className="flex items-center mt-2 gap-1 bg-black py-1 px-2 rounded w-fit">
+                    <Building2 size={12} className="text-white" />
+                    <p className="text-xs font-medium text-white">{studioName}</p>
+                  </div>
                 </div>
               </div>
+            )}
+            
+            <div className={isMobile ? "py-1" : "py-2"} role="menu">
+              <button
+                onClick={handleEditProfile}
+                className={`block w-full ${isMobile ? "px-3 py-1.5 text-xs" : "px-4 py-2 text-sm"} text-white hover:bg-zinc-700 text-left`}
+              >
+                Edit Profile
+              </button>
+              <hr className="border-zinc-600 my-1" />
+              <button
+                onClick={handlePrivacyPolicy}
+                className={`block w-full ${isMobile ? "px-3 py-1.5 text-xs" : "px-4 py-2 text-sm"} text-white hover:bg-zinc-700 text-left`}
+              >
+                Privacy Policy
+              </button>
+              <button
+                onClick={handleTermsOfUse}
+                className={`block w-full ${isMobile ? "px-3 py-1.5 text-xs" : "px-4 py-2 text-sm"} text-white hover:bg-zinc-700 text-left`}
+              >
+                Terms & Conditions
+              </button>
+              <button
+                onClick={handleChangelog}
+                className={`block w-full ${isMobile ? "px-3 py-1.5 text-xs" : "px-4 py-2 text-sm"} text-white hover:bg-zinc-700 text-left`}
+              >
+                Changelog
+              </button>
+              <hr className="border-zinc-600 my-1" />
+              <button
+                onClick={handleLogout}
+                className={`block w-full ${isMobile ? "px-3 py-1.5 text-xs" : "px-4 py-2 text-xs"} text-white hover:bg-zinc-700 text-left`}
+              >
+                Logout
+              </button>
             </div>
-          )}
-          
-          <div className={isMobile ? "py-1" : "py-2"} role="menu">
-            <button
-              onClick={handleEditProfile}
-              className={`block w-full ${isMobile ? "px-3 py-1.5 text-xs" : "px-4 py-2 text-sm"} text-white hover:bg-zinc-700 text-left`}
-            >
-              Edit Profile
-            </button>
-            <hr className="border-zinc-600 my-1" />
-            <button
-              onClick={handlePrivacyPolicy}
-              className={`block w-full ${isMobile ? "px-3 py-1.5 text-xs" : "px-4 py-2 text-sm"} text-white hover:bg-zinc-700 text-left`}
-            >
-              Privacy Policy
-            </button>
-            <button
-              onClick={handleTermsOfUse}
-              className={`block w-full ${isMobile ? "px-3 py-1.5 text-xs" : "px-4 py-2 text-sm"} text-white hover:bg-zinc-700 text-left`}
-            >
-              Terms & Conditions
-            </button>
-            <button
-              onClick={handleChangelog}
-              className={`block w-full ${isMobile ? "px-3 py-1.5 text-xs" : "px-4 py-2 text-sm"} text-white hover:bg-zinc-700 text-left`}
-            >
-              Changelog
-            </button>
-            <hr className="border-zinc-600 my-1" />
-            <button
-              onClick={handleLogout}
-              className={`block w-full ${isMobile ? "px-3 py-1.5 text-xs" : "px-4 py-2 text-xs"} text-white hover:bg-zinc-700 text-left`}
-            >
-              Logout
-            </button>
           </div>
-        </div>
+        </>
       )}
     </div>
   )
@@ -276,7 +277,7 @@ const DashboardHeader = ({ onToggleSidebar, isSidebarOpen }) => {
   return (
     <>
       {/* ===== MOBILE HEADER (lg:hidden) ===== */}
-      <div className="fixed top-0 left-0 w-full bg-[#111111] border-b border-zinc-800 p-2 flex items-center justify-between lg:hidden z-40">
+      <div className="fixed top-0 left-0 w-full bg-[#111111] border-b border-zinc-800 p-2 flex items-center justify-between lg:hidden z-[60]">
         {isSidebarOpen && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={onToggleSidebar} />}
         
         <div className="flex items-center gap-2">
