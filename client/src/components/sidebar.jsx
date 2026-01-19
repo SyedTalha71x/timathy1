@@ -342,7 +342,7 @@ const Sidebar = () => {
       icon: Users, label: "Member Area", to: "#", hasSubmenu: true,
       submenu: [
         { label: "Members", to: "/dashboard/members", icon: HiOutlineUsers },
-        { label: "Check In", to: "/dashboard/members-checkin", icon: IoIosCheckmarkCircleOutline },
+        { label: "Check-In", to: "/dashboard/members-checkin", icon: IoIosCheckmarkCircleOutline },
         { label: "Contracts", to: "/dashboard/contract", icon: RiContractLine },
       ],
     },

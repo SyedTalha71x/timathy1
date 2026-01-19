@@ -1,9 +1,9 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useState, useRef, useEffect } from "react"
-import { X, Upload, Trash, Edit2, File, FileText, FilePlus, Eye, Download, Check, Plus, Tag, FileSignature, Pencil, ClipboardList } from "lucide-react"
+import { X, Upload, Trash, Edit2, File, FileText, FilePlus, Eye, Download, Check, Tag, FileSignature, Pencil, ClipboardList, Printer } from "lucide-react"
 import { toast } from "react-hot-toast"
-import { Printer } from "lucide-react"
+import TagManagerModal from "../../shared/TagManagerModal"
 
 export function LeadDocumentModal({ 
   lead, 
@@ -22,8 +22,6 @@ export function LeadDocumentModal({
   const [viewingDocument, setViewingDocument] = useState(null)
   const [activeSection, setActiveSection] = useState("general")
   const [isTagManagerOpen, setIsTagManagerOpen] = useState(false)
-  const [newTagName, setNewTagName] = useState("")
-  const [newTagColor, setNewTagColor] = useState("#FF843E")
   const [configuredTags, setConfiguredTags] = useState([
     { id: "tag-1", name: "Contract", color: "#EF4444" },
     { id: "tag-2", name: "Proposal", color: "#F59E0B" },
@@ -247,22 +245,13 @@ export function LeadDocumentModal({
     return categoryObj ? categoryObj.label : ""
   }
 
-  const addTag = () => {
-    if (!newTagName.trim()) return
-    
-    const newTag = {
-      id: `tag-${Date.now()}`,
-      name: newTagName.trim(),
-      color: newTagColor
-    }
-    
+  const handleAddTag = (newTag) => {
+    if (!newTag || !newTag.name) return
     setConfiguredTags([...configuredTags, newTag])
-    setNewTagName("")
-    setNewTagColor("#FF843E")
     toast.success("Tag created successfully")
   }
 
-  const deleteTag = (tagId) => {
+  const handleDeleteTag = (tagId) => {
     setConfiguredTags(configuredTags.filter(tag => tag.id !== tagId))
     toast.success("Tag deleted successfully")
   }
@@ -272,9 +261,16 @@ export function LeadDocumentModal({
     if (!doc) return
 
     const currentTags = doc.tags || []
-    const newTags = currentTags.includes(tagId)
-      ? currentTags.filter(id => id !== tagId)
-      : [...currentTags, tagId]
+    // Konvertiere tagId zu gleichem Typ für Vergleich (kann String oder Number sein)
+    const normalizedTagId = typeof tagId === 'string' && !isNaN(tagId) ? Number(tagId) : tagId
+    
+    const tagExists = currentTags.some(id => 
+      id === normalizedTagId || String(id) === String(tagId)
+    )
+    
+    const newTags = tagExists
+      ? currentTags.filter(id => String(id) !== String(tagId))
+      : [...currentTags, normalizedTagId]
 
     setDocuments(documents.map(doc => 
       doc.id === docId ? { ...doc, tags: newTags } : doc
@@ -329,72 +325,13 @@ export function LeadDocumentModal({
       )}
 
       {/* Tag Manager Modal */}
-      {isTagManagerOpen && (
-        <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-[80]">
-          <div className="bg-[#1C1C1C] rounded-2xl w-full max-w-md p-6 mx-4 max-h-[80vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-white text-lg font-semibold">Manage Tags</h3>
-              <button
-                onClick={() => setIsTagManagerOpen(false)}
-                className="text-gray-400 hover:text-white"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="mb-6">
-              <h4 className="text-white text-sm font-medium mb-3">Create New Tag</h4>
-              <div className="flex gap-2 mb-2">
-                <input
-                  type="text"
-                  value={newTagName}
-                  onChange={(e) => setNewTagName(e.target.value)}
-                  placeholder="Tag name"
-                  className="flex-1 bg-[#2a2a2a] text-white rounded-lg px-3 py-2 text-sm border border-gray-700 focus:border-orange-500 outline-none"
-                />
-                <input
-                  type="color"
-                  value={newTagColor}
-                  onChange={(e) => setNewTagColor(e.target.value)}
-                  className="w-12 h-10 bg-[#2a2a2a] rounded-lg border border-gray-700 cursor-pointer"
-                />
-              </div>
-              <button
-                onClick={addTag}
-                className="w-full py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm"
-              >
-                Add Tag
-              </button>
-            </div>
-
-            <div>
-              <h4 className="text-white text-sm font-medium mb-3">Existing Tags</h4>
-              <div className="space-y-2">
-                {configuredTags.map((tag) => (
-                  <div
-                    key={tag.id}
-                    className="flex items-center justify-between bg-[#2a2a2a] p-3 rounded-lg"
-                  >
-                    <div 
-                      className="px-3 py-1.5 rounded-md text-sm flex items-center gap-2 text-white"
-                      style={{ backgroundColor: tag.color }}
-                    >
-                      <Tag size={14} />
-                      {tag.name}
-                    </div>
-                    <button
-                      onClick={() => deleteTag(tag.id)}
-                      className="text-red-400 hover:text-red-300"
-                    >
-                      <Trash className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <TagManagerModal
+        isOpen={isTagManagerOpen}
+        onClose={() => setIsTagManagerOpen(false)}
+        tags={configuredTags}
+        onAddTag={handleAddTag}
+        onDeleteTag={handleDeleteTag}
+      />
 
       {/* Viewing Document Modal */}
       {viewingDocument && (
@@ -605,7 +542,7 @@ export function LeadDocumentModal({
                             {doc.tags && doc.tags.length > 0 && (
                               <div className="flex flex-wrap gap-1 mt-2">
                                 {doc.tags.map((tagId) => {
-                                  const tag = configuredTags.find(t => t.id === tagId)
+                                  const tag = configuredTags.find(t => String(t.id) === String(tagId))
                                   return tag ? (
                                     <span
                                       key={tagId}
@@ -648,7 +585,7 @@ export function LeadDocumentModal({
                           title="Add tag"
                         >
                           <option value="">+ Tag</option>
-                          {configuredTags.filter(tag => !doc.tags?.includes(tag.id)).map((tag) => (
+                          {configuredTags.filter(tag => !doc.tags?.some(id => String(id) === String(tag.id))).map((tag) => (
                             <option key={tag.id} value={tag.id}>
                               {tag.name}
                             </option>

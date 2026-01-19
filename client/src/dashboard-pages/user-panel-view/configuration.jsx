@@ -23,6 +23,7 @@ import {
   Download,
   ChevronRight,
   ChevronDown,
+  ChevronLeft,
   Plus,
   Trash2,
   Copy,
@@ -32,7 +33,6 @@ import {
   Edit,
   Settings,
   BookOpen,
-  Save,
   BadgeDollarSign,
   MessageCircle,
 } from "lucide-react"
@@ -46,6 +46,9 @@ import { PERMISSION_DATA, PermissionModal } from "../../components/user-panel-co
 import { WysiwygEditor } from "../../components/user-panel-components/configuration-components/WysiwygEditor"
 import { RoleItem } from "../../components/user-panel-components/configuration-components/RoleItem"
 import { StaffAssignmentModal } from "../../components/user-panel-components/configuration-components/StaffAssignmentModal"
+import ImageSourceModal from "../../components/shared/ImageSourceModal"
+import ImageCropModal from "../../components/shared/ImageCropModal"
+import MediaLibraryPickerModal from "../../components/shared/MediaLibraryPickerModal"
 import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'
 
 // ============================================
@@ -65,7 +68,7 @@ const navigationItems = [
   {
     id: "appointments",
     label: "Appointments",
-    icon: Calendar, // Same as sidebar
+    icon: Calendar,
     sections: [
       { id: "capacity", label: "Capacity Settings" },
       { id: "appointment-types", label: "Appointment Types" },
@@ -76,7 +79,7 @@ const navigationItems = [
   {
     id: "staff",
     label: "Staff",
-    icon: BsPersonWorkspace, // Same as sidebar
+    icon: BsPersonWorkspace,
     sections: [
       { id: "staff-defaults", label: "Default Settings" },
       { id: "staff-roles", label: "Roles & Permissions" },
@@ -85,7 +88,7 @@ const navigationItems = [
   {
     id: "members",
     label: "Members",
-    icon: Users, // Same as sidebar
+    icon: Users,
     sections: [
       { id: "qr-checkin", label: "QR Code Check-In" },
       { id: "lead-sources", label: "Lead Sources" },
@@ -95,7 +98,7 @@ const navigationItems = [
   {
     id: "contracts",
     label: "Contracts",
-    icon: RiContractLine, // Same as sidebar
+    icon: RiContractLine,
     sections: [
       { id: "contract-general", label: "General Settings" },
       { id: "contract-forms", label: "Contract Forms" },
@@ -106,7 +109,7 @@ const navigationItems = [
   {
     id: "communication",
     label: "Communication",
-    icon: MessageCircle, // Same as sidebar
+    icon: MessageCircle,
     sections: [
       { id: "comm-general", label: "General Settings" },
       { id: "email-notifications", label: "Email Notifications" },
@@ -119,7 +122,7 @@ const navigationItems = [
   {
     id: "finances",
     label: "Finances",
-    icon: BadgeDollarSign, // Same as sidebar
+    icon: BadgeDollarSign,
     sections: [
       { id: "currency", label: "Currency" },
       { id: "vat-rates", label: "VAT Rates" },
@@ -152,8 +155,8 @@ const navigationItems = [
 const SectionHeader = ({ title, description, action }) => (
   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
     <div>
-      <h2 className="text-xl font-semibold text-white">{title}</h2>
-      {description && <p className="text-sm text-gray-400 mt-1">{description}</p>}
+      <h2 className="text-lg sm:text-xl font-semibold text-white">{title}</h2>
+      {description && <p className="text-xs sm:text-sm text-gray-400 mt-1">{description}</p>}
     </div>
     {action}
   </div>
@@ -312,7 +315,10 @@ const NumberInput = ({ label, value, onChange, min = 0, max, step = 1, suffix, h
       <input
         type="number"
         value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
+        onChange={(e) => onChange(Math.floor(Number(e.target.value)))}
+        onKeyDown={(e) => {
+          if (e.key === '.' || e.key === ',') e.preventDefault()
+        }}
         min={min}
         max={max}
         step={step}
@@ -333,14 +339,8 @@ const ColorPickerField = ({ label, value, onChange }) => (
         type="color"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-10 h-10 rounded-lg cursor-pointer bg-transparent border-0"
+        className="w-10 h-10 rounded-lg cursor-pointer bg-transparent border border-[#333333] p-1"
       />
-      <div
-        className="w-16 h-10 rounded-lg flex items-center justify-center text-white text-xs font-mono"
-        style={{ backgroundColor: value }}
-      >
-        {value}
-      </div>
     </div>
   </div>
 )
@@ -373,12 +373,13 @@ const DatePickerField = ({ label, value, onChange }) => (
 )
 
 // Tooltip Component
-const Tooltip = ({ children, content }) => (
+const Tooltip = ({ children, content, position = "left" }) => (
   <div className="relative group inline-flex">
     {children}
-    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-[#2F2F2F] text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50 max-w-xs">
-      {content}
-      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#2F2F2F]" />
+    <div className={`absolute top-full mt-2 px-3 py-2 bg-[#1F1F1F] text-gray-300 text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] w-64 border border-[#333333] shadow-xl pointer-events-none ${position === "right" ? "right-0" : "left-0"}`}>
+      <div className={`absolute bottom-full border-4 border-transparent border-b-[#333333] ${position === "right" ? "right-4" : "left-4"}`} />
+      <div className={`absolute bottom-full mb-[-1px] border-4 border-transparent border-b-[#1F1F1F] ${position === "right" ? "right-4" : "left-4"}`} />
+      <div className="break-words leading-relaxed">{content}</div>
     </div>
   </div>
 )
@@ -398,7 +399,7 @@ const ConfigurationPage = () => {
   const [activeCategory, setActiveCategory] = useState("studio")
   const [activeSection, setActiveSection] = useState("studio-info")
   const [searchQuery, setSearchQuery] = useState("")
-  const [mobileNavOpen, setMobileNavOpen] = useState(false)
+  const [mobileShowContent, setMobileShowContent] = useState(false)
   const [expandedCategories, setExpandedCategories] = useState(["studio"])
 
   // ============================================
@@ -408,6 +409,9 @@ const ConfigurationPage = () => {
   // Basic studio information
   const [studioName, setStudioName] = useState("")
   const [studioOperator, setStudioOperator] = useState("")
+  const [studioOperatorEmail, setStudioOperatorEmail] = useState("")
+  const [studioOperatorPhone, setStudioOperatorPhone] = useState("")
+  const [studioOperatorMobile, setStudioOperatorMobile] = useState("")
   const [studioStreet, setStudioStreet] = useState("")
   const [studioZipCode, setStudioZipCode] = useState("")
   const [studioCity, setStudioCity] = useState("")
@@ -415,7 +419,7 @@ const ConfigurationPage = () => {
   const [studioPhoneNo, setStudioPhoneNo] = useState("")
   const [studioEmail, setStudioEmail] = useState("")
   const [studioWebsite, setStudioWebsite] = useState("")
-  const [currency, setCurrency] = useState("â‚¬")
+  const [currency, setCurrency] = useState("€")
   const [logo, setLogo] = useState([])
   const [logoUrl, setLogoUrl] = useState("")
 
@@ -452,18 +456,89 @@ const ConfigurationPage = () => {
   ])
 
   // Appointments
-  const [appointmentTypes, setAppointmentTypes] = useState([])
+  const [appointmentTypes, setAppointmentTypes] = useState([
+    {
+      id: 1,
+      name: "EMS Strength",
+      description: "High-intensity strength training with EMS technology",
+      duration: 30,
+      maxParallel: 2,
+      slotsRequired: 1,
+      color: "#FF843E",
+      interval: 30,
+      category: "Personal Training",
+      image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80",
+    },
+    {
+      id: 2,
+      name: "EMS Cardio",
+      description: "Cardiovascular training enhanced with EMS",
+      duration: 30,
+      maxParallel: 2,
+      slotsRequired: 1,
+      color: "#10B981",
+      interval: 30,
+      category: "Personal Training",
+      image: "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&q=80",
+    },
+    {
+      id: 3,
+      name: "EMP Chair",
+      description: "Relaxing electromagnetic pulse therapy session",
+      duration: 30,
+      maxParallel: 1,
+      slotsRequired: 0,
+      color: "#8B5CF6",
+      interval: 30,
+      category: "Wellness",
+      image: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=800&q=80",
+    },
+    {
+      id: 4,
+      name: "Body Check",
+      description: "Comprehensive body analysis and measurements",
+      duration: 30,
+      maxParallel: 1,
+      slotsRequired: 2,
+      color: "#3B82F6",
+      interval: 30,
+      category: "Health Check",
+      image: null,
+    },
+  ])
   const [appointmentCategories, setAppointmentCategories] = useState([
     "Health Check", "Personal Training", "Wellness", "Recovery", "Mindfulness", "Group Class"
   ])
-  const [maxCapacity, setMaxCapacity] = useState(10)
+  const [studioCapacity, setStudioCapacity] = useState(3)
   const [trialTraining, setTrialTraining] = useState({
     name: "Trial Training",
     duration: 60,
-    capacity: 1,
-    color: "#1890ff",
+    maxParallel: 1,
+    slotsRequired: 3,
+    color: "#3B82F6",
   })
   const [editingCategory, setEditingCategory] = useState({ index: null, value: "" })
+  
+  // Appointment Type Modal States
+  const [showAppointmentTypeModal, setShowAppointmentTypeModal] = useState(false)
+  const [editingAppointmentType, setEditingAppointmentType] = useState(null)
+  const [appointmentTypeForm, setAppointmentTypeForm] = useState({
+    name: "",
+    description: "",
+    duration: 30,
+    capacity: 1,
+    color: "#3B82F6",
+    interval: 30,
+    category: "",
+    image: null,
+  })
+  
+  // Image Upload States for Appointment Types
+  const [showImageSourceModal, setShowImageSourceModal] = useState(false)
+  const [showImageCropModal, setShowImageCropModal] = useState(false)
+  const [showMediaLibraryModal, setShowMediaLibraryModal] = useState(false)
+  const [tempImage, setTempImage] = useState(null)
+  const appointmentImageInputRef = useRef(null)
 
   // Members
   const [allowMemberQRCheckIn, setAllowMemberQRCheckIn] = useState(false)
@@ -545,12 +620,12 @@ const ConfigurationPage = () => {
 
   // Countries
   const [countries, setCountries] = useState([
-    { code: "AT", name: "Austria", currency: "â‚¬" },
-    { code: "BE", name: "Belgium", currency: "â‚¬" },
+    { code: "AT", name: "Austria", currency: "€" },
+    { code: "BE", name: "Belgium", currency: "€" },
     { code: "CA", name: "Canada", currency: "$" },
-    { code: "DE", name: "Germany", currency: "â‚¬" },
-    { code: "FR", name: "France", currency: "â‚¬" },
-    { code: "GB", name: "United Kingdom", currency: "Â£" },
+    { code: "DE", name: "Germany", currency: "€" },
+    { code: "FR", name: "France", currency: "€" },
+    { code: "GB", name: "United Kingdom", currency: "£" },
     { code: "US", name: "United States", currency: "$" },
   ])
 
@@ -561,6 +636,15 @@ const ConfigurationPage = () => {
   const rescheduledTextareaRef = useRef(null)
   const reminderTextareaRef = useRef(null)
   const registrationTextareaRef = useRef(null)
+
+  // Get current section title for mobile header
+  const getCurrentSectionTitle = () => {
+    for (const cat of navigationItems) {
+      const section = cat.sections.find(s => s.id === activeSection)
+      if (section) return section.label
+    }
+    return "Settings"
+  }
 
   // ============================================
   // Effects
@@ -589,7 +673,7 @@ const ConfigurationPage = () => {
         const data = await response.json()
         const formattedCountries = data.map(country => {
           const currencyCode = country.currencies ? Object.keys(country.currencies)[0] : 'USD'
-          const symbols = { USD: '$', EUR: 'â‚¬', GBP: 'Â£', JPY: 'Â¥', CHF: 'Fr', CAD: 'C$', AUD: 'A$' }
+          const symbols = { USD: '$', EUR: '€', GBP: '£', JPY: '¥', CHF: 'Fr', CAD: 'C$', AUD: 'A$' }
           return {
             code: country.cca2,
             name: country.name.common,
@@ -659,14 +743,6 @@ const ConfigurationPage = () => {
     }
   }
 
-  const handleSaveConfiguration = () => {
-    if (!studioName || !studioStreet || !studioZipCode || !studioCity) {
-      notification.error({ message: "Please fill in all required fields" })
-      return
-    }
-    notification.success({ message: "Configuration saved successfully!" })
-  }
-
   // Role handlers
   const handleAddRole = () => {
     setRoles([...roles, {
@@ -726,16 +802,111 @@ const ConfigurationPage = () => {
   }
 
   // Appointment handlers
+  const handleOpenAppointmentTypeModal = (type = null) => {
+    if (type) {
+      // Editing existing
+      setEditingAppointmentType(type)
+      setAppointmentTypeForm({
+        name: type.name || "",
+        description: type.description || "",
+        duration: type.duration || 30,
+        maxParallel: type.maxParallel || 1,
+        slotsRequired: type.slotsRequired ?? 1,
+        color: type.color || "#FF843E",
+        interval: type.interval || 30,
+        category: type.category || "",
+        image: type.image || null,
+      })
+    } else {
+      // Creating new
+      setEditingAppointmentType(null)
+      setAppointmentTypeForm({
+        name: "",
+        description: "",
+        duration: 30,
+        maxParallel: 1,
+        slotsRequired: 1,
+        color: "#FF843E",
+        interval: 30,
+        category: "",
+        image: null,
+      })
+    }
+    setShowAppointmentTypeModal(true)
+  }
+
+  const handleSaveAppointmentType = () => {
+    if (!appointmentTypeForm.name.trim()) {
+      notification.error({ message: "Please enter a name for the appointment type" })
+      return
+    }
+    
+    if (editingAppointmentType) {
+      // Update existing
+      setAppointmentTypes(appointmentTypes.map(t => 
+        t.id === editingAppointmentType.id 
+          ? { ...t, ...appointmentTypeForm }
+          : t
+      ))
+      notification.success({ message: "Appointment type updated" })
+    } else {
+      // Create new
+      setAppointmentTypes([...appointmentTypes, {
+        id: Date.now(),
+        ...appointmentTypeForm
+      }])
+      notification.success({ message: "Appointment type created" })
+    }
+    
+    setShowAppointmentTypeModal(false)
+    setEditingAppointmentType(null)
+  }
+
+  const handleDeleteAppointmentType = (id) => {
+    Modal.confirm({
+      title: "Delete Appointment Type",
+      content: "Are you sure you want to delete this appointment type? This cannot be undone.",
+      okText: "Delete",
+      okType: "danger",
+      onOk: () => {
+        setAppointmentTypes(appointmentTypes.filter(t => t.id !== id))
+        notification.success({ message: "Appointment type deleted" })
+      }
+    })
+  }
+
+  // Image upload handlers for appointment types
+  const handleAppointmentImageSelect = (e) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        setTempImage(event.target.result)
+        setShowImageCropModal(true)
+      }
+      reader.readAsDataURL(file)
+    }
+    // Reset input
+    if (appointmentImageInputRef.current) {
+      appointmentImageInputRef.current.value = ""
+    }
+  }
+
+  const handleCroppedImage = (croppedImage) => {
+    setAppointmentTypeForm({ ...appointmentTypeForm, image: croppedImage })
+    setShowImageCropModal(false)
+    setTempImage(null)
+  }
+
+  const handleMediaLibrarySelect = (imageUrl) => {
+    // Set the image from media library - it will go through crop modal
+    setTempImage(imageUrl)
+    setShowMediaLibraryModal(false)
+    setShowImageCropModal(true)
+  }
+
   const handleAddAppointmentType = () => {
-    setAppointmentTypes([...appointmentTypes, {
-      name: "",
-      duration: 30,
-      capacity: 1,
-      color: "#3B82F6",
-      interval: 30,
-      images: [],
-      category: "",
-    }])
+    handleOpenAppointmentTypeModal(null)
   }
 
   const handleUpdateAppointmentType = (index, field, value) => {
@@ -797,10 +968,10 @@ const ConfigurationPage = () => {
       createdAt: new Date().toISOString()
     }
     setContractForms([...contractForms, newForm])
-    setSelectedContractForm(newForm) // Select the new form
+    setSelectedContractForm(newForm)
     setNewContractFormName("")
     setShowCreateFormModal(false)
-    setContractBuilderModalVisible(true) // Open builder directly
+    setContractBuilderModalVisible(true)
   }
 
   // Lead source handlers
@@ -828,7 +999,7 @@ const ConfigurationPage = () => {
     if (!expandedCategories.includes(categoryId)) {
       setExpandedCategories([...expandedCategories, categoryId])
     }
-    setMobileNavOpen(false)
+    setMobileShowContent(true)
   }
 
   // Toggle category expansion
@@ -907,12 +1078,12 @@ const ConfigurationPage = () => {
             {/* Logo Upload */}
             <SettingsCard>
               <div className="flex flex-col sm:flex-row items-center gap-6">
-                <div className="w-28 h-28 rounded-2xl overflow-hidden bg-[#141414] flex-shrink-0">
+                <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden bg-[#141414] flex-shrink-0">
                   <img src={logoUrl || DefaultAvatar} alt="Logo" className="w-full h-full object-cover" />
                 </div>
                 <div className="flex-1 text-center sm:text-left">
                   <h3 className="text-white font-medium mb-2">Studio Logo</h3>
-                  <p className="text-sm text-gray-400 mb-4">Upload your studio logo (recommended: 200x200px)</p>
+                  <p className="text-xs sm:text-sm text-gray-400 mb-4">Upload your studio logo (recommended: 1000x1000px)</p>
                   <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
                     <label className="px-4 py-2 bg-[#2F2F2F] text-white text-sm rounded-xl hover:bg-[#3F3F3F] cursor-pointer transition-colors">
                       <Upload className="w-4 h-4 inline-block mr-2" />
@@ -934,20 +1105,13 @@ const ConfigurationPage = () => {
 
             {/* Studio Details */}
             <SettingsCard>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <h3 className="text-white font-medium mb-4">Studio Details</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <InputField
                   label="Studio Name"
                   value={studioName}
                   onChange={setStudioName}
                   placeholder="Enter studio name"
-                  required
-                  maxLength={50}
-                />
-                <InputField
-                  label="Studio Operator"
-                  value={studioOperator}
-                  onChange={setStudioOperator}
-                  placeholder="Enter operator name"
                   required
                   maxLength={50}
                 />
@@ -966,6 +1130,20 @@ const ConfigurationPage = () => {
                   type="email"
                   maxLength={60}
                 />
+                <InputField
+                  label="Website"
+                  value={studioWebsite}
+                  onChange={setStudioWebsite}
+                  placeholder="https://your-studio.com"
+                  maxLength={50}
+                />
+              </div>
+            </SettingsCard>
+
+            {/* Studio Address */}
+            <SettingsCard>
+              <h3 className="text-white font-medium mb-4">Studio Address</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <InputField
                   label="Street & Number"
                   value={studioStreet}
@@ -999,15 +1177,45 @@ const ConfigurationPage = () => {
                   required
                   searchable
                 />
-                <div className="md:col-span-2">
+              </div>
+            </SettingsCard>
+
+            {/* Studio Operator */}
+            <SettingsCard>
+              <h3 className="text-white font-medium mb-4">Studio Operator</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="sm:col-span-2">
                   <InputField
-                    label="Website"
-                    value={studioWebsite}
-                    onChange={setStudioWebsite}
-                    placeholder="https://your-studio.com"
+                    label="Operator Name"
+                    value={studioOperator}
+                    onChange={setStudioOperator}
+                    placeholder="Enter operator name"
+                    required
                     maxLength={50}
                   />
                 </div>
+                <InputField
+                  label="Email"
+                  value={studioOperatorEmail}
+                  onChange={setStudioOperatorEmail}
+                  placeholder="Enter operator email"
+                  type="email"
+                  maxLength={60}
+                />
+                <InputField
+                  label="Phone Number"
+                  value={studioOperatorPhone}
+                  onChange={(v) => setStudioOperatorPhone(v.replace(/\D/g, ""))}
+                  placeholder="Enter phone number"
+                  maxLength={15}
+                />
+                <InputField
+                  label="Mobile Number"
+                  value={studioOperatorMobile}
+                  onChange={(v) => setStudioOperatorMobile(v.replace(/\D/g, ""))}
+                  placeholder="Enter mobile number"
+                  maxLength={15}
+                />
               </div>
             </SettingsCard>
           </div>
@@ -1027,20 +1235,18 @@ const ConfigurationPage = () => {
                   return (
                     <div key={day} className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 bg-[#141414] rounded-xl">
                       <div className="flex items-center justify-between sm:w-32">
-                        <span className="text-white font-medium">{day}</span>
+                        <span className="text-white font-medium text-sm sm:text-base">{day}</span>
                       </div>
-                      <div className="flex items-center gap-3 flex-1">
+                      <div className="flex items-center gap-3 flex-1 flex-wrap sm:flex-nowrap">
                         <button
                           type="button"
                           onClick={() => {
                             const newClosed = !isClosed
                             if (existingHour) {
-                              // Update existing entry
                               setOpeningHours(openingHours.map(h =>
                                 h.day === day ? { ...h, closed: newClosed } : h
                               ))
                             } else {
-                              // Add new entry
                               setOpeningHours([...openingHours, { 
                                 day, 
                                 startTime: newClosed ? null : '09:00', 
@@ -1062,7 +1268,7 @@ const ConfigurationPage = () => {
                         <span className="text-sm text-gray-400 w-12">{isClosed ? "Closed" : "Open"}</span>
                         
                         {!isClosed && (
-                          <div className="flex items-center gap-2 flex-1">
+                          <div className="flex items-center gap-2 flex-1 w-full sm:w-auto">
                             <input
                               type="time"
                               value={hour.startTime || ""}
@@ -1080,9 +1286,9 @@ const ConfigurationPage = () => {
                                   }])
                                 }
                               }}
-                              className="bg-[#1F1F1F] text-white rounded-lg px-3 py-2 text-sm border border-[#333333]"
+                              className="bg-[#1F1F1F] text-white rounded-lg px-2 sm:px-3 py-2 text-sm border border-[#333333] flex-1 sm:flex-none"
                             />
-                            <span className="text-gray-400">to</span>
+                            <span className="text-gray-400 text-sm">to</span>
                             <input
                               type="time"
                               value={hour.endTime || ""}
@@ -1100,7 +1306,7 @@ const ConfigurationPage = () => {
                                   }])
                                 }
                               }}
-                              className="bg-[#1F1F1F] text-white rounded-lg px-3 py-2 text-sm border border-[#333333]"
+                              className="bg-[#1F1F1F] text-white rounded-lg px-2 sm:px-3 py-2 text-sm border border-[#333333] flex-1 sm:flex-none"
                             />
                           </div>
                         )}
@@ -1120,12 +1326,12 @@ const ConfigurationPage = () => {
               title="Closing Days"
               description="Define days when your studio is closed"
               action={
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   {studioCountry && (
                     <button
                       onClick={addPublicHolidaysToClosingDays}
                       disabled={isLoadingHolidays}
-                      className="px-4 py-2 bg-[#2F2F2F] text-white text-sm rounded-xl hover:bg-[#3F3F3F] transition-colors flex items-center gap-2"
+                      className="px-3 sm:px-4 py-2 bg-[#2F2F2F] text-white text-sm rounded-xl hover:bg-[#3F3F3F] transition-colors flex items-center justify-center gap-2"
                     >
                       <Calendar className="w-4 h-4" />
                       Import Holidays
@@ -1133,7 +1339,7 @@ const ConfigurationPage = () => {
                   )}
                   <button
                     onClick={() => setClosingDays([...closingDays, { date: "", description: "" }])}
-                    className="px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
+                    className="px-3 sm:px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
                   >
                     <Plus className="w-4 h-4" />
                     Add Day
@@ -1169,7 +1375,7 @@ const ConfigurationPage = () => {
                           updated[index].date = e.target.value
                           setClosingDays(updated)
                         }}
-                        className="bg-[#1F1F1F] text-white rounded-lg px-3 py-2 text-sm border border-[#333333] sm:w-40"
+                        className="bg-[#1F1F1F] text-white rounded-lg px-3 py-2 text-sm border border-[#333333] w-full sm:w-40"
                       />
                       <input
                         type="text"
@@ -1184,7 +1390,7 @@ const ConfigurationPage = () => {
                       />
                       <button
                         onClick={() => setClosingDays(closingDays.filter((_, i) => i !== index))}
-                        className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                        className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors self-end sm:self-center"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -1202,22 +1408,86 @@ const ConfigurationPage = () => {
       case "capacity":
         return (
           <div className="space-y-6">
-            <SectionHeader title="Capacity Settings" description="Configure default capacity for appointments" />
+            <SectionHeader title="Capacity Settings" description="Control how many appointments can run simultaneously" />
+            
             <SettingsCard>
-              <div className="flex items-start gap-4">
-                <div className="flex-1">
-                  <NumberInput
-                    label="Default Maximum Capacity"
-                    value={maxCapacity}
-                    onChange={setMaxCapacity}
-                    min={1}
-                    max={100}
-                    helpText="Total parallel appointments allowed across all types"
-                  />
+              <div className="space-y-6">
+                <div>
+                  <label className="text-sm font-medium text-gray-300 mb-2 block">Total Studio Capacity</label>
+                  <div className="flex items-center gap-4">
+                    <input
+                      type="number"
+                      value={studioCapacity}
+                      onChange={(e) => setStudioCapacity(Math.max(1, Math.floor(parseInt(e.target.value) || 1)))}
+                      onKeyDown={(e) => {
+                        if (e.key === '.' || e.key === ',') e.preventDefault()
+                      }}
+                      min={1}
+                      max={100}
+                      step={1}
+                      className="w-24 bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                    />
+                    <span className="text-sm text-gray-400">slots</span>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">
+                    The maximum number of slots that can be used at the same time across all appointments.
+                  </p>
                 </div>
-                <InfoTooltip content="If capacity is 3, up to 3 appointments can run simultaneously, depending on each type's capacity requirement." />
               </div>
             </SettingsCard>
+
+            <SettingsCard className="bg-[#181818]">
+              <h4 className="text-white font-medium mb-3">How Capacity Works</h4>
+              <div className="space-y-3 text-sm text-gray-400">
+                <div className="flex gap-3">
+                  <span className="text-orange-400 font-medium w-32 flex-shrink-0">Slots Required</span>
+                  <span>How many capacity slots each appointment uses. Set to 0 if the appointment doesn't block any capacity.</span>
+                </div>
+                <div className="flex gap-3">
+                  <span className="text-orange-400 font-medium w-32 flex-shrink-0">Max Parallel</span>
+                  <span>The maximum number of this appointment type that can run at the same time.</span>
+                </div>
+              </div>
+              <div className="mt-4 p-4 bg-[#141414] rounded-xl">
+                <p className="text-sm text-gray-300 font-medium mb-2">Example with 3 total slots:</p>
+                <div className="space-y-1.5 text-xs text-gray-500">
+                  <p>• <span className="text-gray-300">EMS Strength</span> (1 slot, max 2×) — Can run twice in parallel, uses 2 slots total</p>
+                  <p>• <span className="text-gray-300">Body Check</span> (2 slots, max 1×) — Uses 2 slots, only 1 slot left for other appointments</p>
+                  <p>• <span className="text-gray-300">Trial Training</span> (3 slots, max 1×) — Uses all capacity, blocks all other bookings</p>
+                  <p>• <span className="text-gray-300">EMP Chair</span> (0 slots, max 1×) — Doesn't use any capacity, runs independently</p>
+                </div>
+              </div>
+            </SettingsCard>
+
+            {appointmentTypes.length > 0 && (
+              <SettingsCard>
+                <h4 className="text-white font-medium mb-4">Current Configuration</h4>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between px-3 py-2 text-xs text-gray-500 border-b border-[#333333]">
+                    <span>Appointment Type</span>
+                    <div className="flex items-center gap-8">
+                      <span className="w-20 text-center">Slots</span>
+                      <span className="w-20 text-center">Max Parallel</span>
+                    </div>
+                  </div>
+                  {appointmentTypes.map((type) => (
+                    <div key={type.id} className="flex items-center justify-between p-3 bg-[#141414] rounded-xl">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: type.color }}
+                        />
+                        <span className="text-white">{type.name}</span>
+                      </div>
+                      <div className="flex items-center gap-8 text-sm">
+                        <span className="w-20 text-center text-gray-400">{type.slotsRequired ?? 1}</span>
+                        <span className="w-20 text-center text-gray-400">{type.maxParallel || 1}×</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </SettingsCard>
+            )}
           </div>
         )
 
@@ -1226,10 +1496,10 @@ const ConfigurationPage = () => {
           <div className="space-y-6">
             <SectionHeader
               title="Appointment Types"
-              description="Configure the types of appointments available"
+              description="Configure the types of appointments members can book"
               action={
                 <button
-                  onClick={handleAddAppointmentType}
+                  onClick={() => handleOpenAppointmentTypeModal(null)}
                   className="px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
@@ -1240,78 +1510,111 @@ const ConfigurationPage = () => {
             
             {appointmentTypes.length === 0 ? (
               <SettingsCard>
-                <div className="text-center py-8 text-gray-400">
-                  <Calendar className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>No appointment types configured</p>
+                <div className="text-center py-12 text-gray-400">
+                  <Calendar className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                  <h3 className="text-lg font-medium text-white mb-2">No appointment types yet</h3>
+                  <p className="text-sm mb-6">Create your first appointment type that members can book</p>
                   <button
-                    onClick={handleAddAppointmentType}
-                    className="mt-4 px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors"
+                    onClick={() => handleOpenAppointmentTypeModal(null)}
+                    className="px-6 py-2.5 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors inline-flex items-center gap-2"
                   >
-                    Add First Type
+                    <Plus className="w-4 h-4" />
+                    Create Appointment Type
                   </button>
                 </div>
               </SettingsCard>
             ) : (
-              <div className="space-y-4">
-                {appointmentTypes.map((type, index) => (
-                  <SettingsCard key={index}>
-                    <div className="space-y-4">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-4 h-4 rounded" style={{ backgroundColor: type.color }} />
-                          <h3 className="text-white font-medium">{type.name || "New Appointment Type"}</h3>
+              <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
+                {appointmentTypes.map((type) => (
+                  <div
+                    key={type.id}
+                    className="bg-[#1F1F1F] rounded-xl overflow-hidden border border-[#333333] hover:border-[#444444] transition-colors group"
+                  >
+                    {/* Image */}
+                    <div className="relative aspect-video bg-[#141414]">
+                      {type.image ? (
+                        <img
+                          src={type.image}
+                          alt={type.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Calendar className="w-12 h-12 text-gray-600" />
                         </div>
+                      )}
+                      {/* Gradient overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                      
+                      {/* Category badge - blue like member view */}
+                      {type.category && (
+                        <div className="absolute top-3 left-3 px-2.5 py-1 bg-blue-500/90 backdrop-blur-sm text-white text-xs font-medium rounded-full">
+                          {type.category}
+                        </div>
+                      )}
+                      
+                      {/* Info button with popup - shows on hover and click */}
+                      {type.description && (
+                        <div className="absolute top-3 right-3 group/info">
+                          <button
+                            className="flex items-center justify-center bg-orange-500 w-7 h-7 rounded-full hover:bg-orange-600 transition-colors"
+                          >
+                            <Info className="w-4 h-4 text-white" />
+                          </button>
+                          {/* Popup - shows on hover or focus */}
+                          <div className="absolute top-full right-0 mt-2 w-64 p-3 bg-[#1F1F1F] border border-[#333333] rounded-xl shadow-xl opacity-0 invisible group-hover/info:opacity-100 group-hover/info:visible group-focus-within/info:opacity-100 group-focus-within/info:visible transition-all z-50">
+                            <p className="text-gray-300 text-sm">{type.description}</p>
+                            <div className="absolute -top-2 right-3 w-3 h-3 bg-[#1F1F1F] border-l border-t border-[#333333] rotate-45" />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Content */}
+                    <div className="p-4">
+                      {/* Title with color indicator */}
+                      <div className="flex items-center gap-2 mb-2">
+                        <div
+                          className="w-3 h-3 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: type.color }}
+                          title="Calendar color"
+                        />
+                        <h3 className="text-white font-medium truncate">{type.name || "Untitled"}</h3>
+                      </div>
+                      
+                      <div className="flex items-center flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 mb-4">
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3.5 h-3.5" />
+                          {type.duration} min
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Settings className="w-3.5 h-3.5" />
+                          {type.slotsRequired ?? 1} {(type.slotsRequired ?? 1) === 1 ? 'slot' : 'slots'}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Users className="w-3.5 h-3.5" />
+                          {type.maxParallel || 1}× parallel
+                        </span>
+                      </div>
+                      
+                      {/* Actions */}
+                      <div className="flex gap-2">
                         <button
-                          onClick={() => handleRemoveAppointmentType(index)}
-                          className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                          onClick={() => handleOpenAppointmentTypeModal(type)}
+                          className="flex-1 px-3 py-2 bg-[#2F2F2F] text-white text-sm rounded-lg hover:bg-[#3F3F3F] transition-colors flex items-center justify-center gap-2"
+                        >
+                          <Edit className="w-4 h-4" />
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDeleteAppointmentType(type.id)}
+                          className="px-3 py-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
-                      
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <InputField
-                          label="Name"
-                          value={type.name}
-                          onChange={(v) => handleUpdateAppointmentType(index, "name", v)}
-                          placeholder="Appointment name"
-                        />
-                        <SelectField
-                          label="Category"
-                          value={type.category}
-                          onChange={(v) => handleUpdateAppointmentType(index, "category", v)}
-                          options={appointmentCategories.map(c => ({ value: c, label: c }))}
-                          placeholder="Select category"
-                        />
-                        <NumberInput
-                          label="Duration (min)"
-                          value={type.duration}
-                          onChange={(v) => handleUpdateAppointmentType(index, "duration", v)}
-                          min={5}
-                          max={480}
-                        />
-                        <NumberInput
-                          label="Capacity"
-                          value={type.capacity}
-                          onChange={(v) => handleUpdateAppointmentType(index, "capacity", v)}
-                          min={1}
-                          max={maxCapacity}
-                        />
-                        <NumberInput
-                          label="Interval (min)"
-                          value={type.interval}
-                          onChange={(v) => handleUpdateAppointmentType(index, "interval", v)}
-                          min={5}
-                          max={120}
-                        />
-                        <ColorPickerField
-                          label="Color"
-                          value={type.color}
-                          onChange={(v) => handleUpdateAppointmentType(index, "color", v)}
-                        />
-                      </div>
                     </div>
-                  </SettingsCard>
+                  </div>
                 ))}
               </div>
             )}
@@ -1327,10 +1630,10 @@ const ConfigurationPage = () => {
               action={
                 <button
                   onClick={handleAddCategory}
-                  className="px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
+                  className="px-3 sm:px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
-                  Add Category
+                  <span className="hidden sm:inline">Add</span> Category
                 </button>
               }
             />
@@ -1408,26 +1711,81 @@ const ConfigurationPage = () => {
           <div className="space-y-6">
             <SectionHeader title="Trial Training" description="Configure trial training settings for new members" />
             <SettingsCard>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <NumberInput
-                  label="Duration (minutes)"
-                  value={trialTraining.duration}
-                  onChange={(v) => setTrialTraining({ ...trialTraining, duration: v })}
-                  min={15}
-                  max={180}
-                />
-                <NumberInput
-                  label="Capacity"
-                  value={trialTraining.capacity}
-                  onChange={(v) => setTrialTraining({ ...trialTraining, capacity: v })}
-                  min={1}
-                  max={maxCapacity}
-                />
-                <ColorPickerField
-                  label="Calendar Color"
-                  value={trialTraining.color}
-                  onChange={(v) => setTrialTraining({ ...trialTraining, color: v })}
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-gray-500" />
+                    Duration
+                    <Tooltip content="How long the trial training session lasts in minutes">
+                      <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                    </Tooltip>
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      value={trialTraining.duration}
+                      onChange={(e) => setTrialTraining({ ...trialTraining, duration: Math.floor(Number(e.target.value)) })}
+                      onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault() }}
+                      min={15}
+                      max={180}
+                      className="w-24 bg-[#141414] text-white rounded-xl px-3 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                    />
+                    <span className="text-sm text-gray-400">min</span>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                    <Settings className="w-4 h-4 text-gray-500" />
+                    Slots
+                    <Tooltip content="How many capacity slots the trial training uses. Set to max to block all other bookings.">
+                      <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                    </Tooltip>
+                  </label>
+                  <input
+                    type="number"
+                    value={trialTraining.slotsRequired}
+                    onChange={(e) => setTrialTraining({ ...trialTraining, slotsRequired: Math.floor(Number(e.target.value)) })}
+                    onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault() }}
+                    min={0}
+                    max={studioCapacity}
+                    className="w-24 bg-[#141414] text-white rounded-xl px-3 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                    <Users className="w-4 h-4 text-gray-500" />
+                    Max Parallel
+                    <Tooltip content="Maximum number of trial trainings that can run at the same time">
+                      <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                    </Tooltip>
+                  </label>
+                  <input
+                    type="number"
+                    value={trialTraining.maxParallel}
+                    onChange={(e) => setTrialTraining({ ...trialTraining, maxParallel: Math.floor(Number(e.target.value)) })}
+                    onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault() }}
+                    min={1}
+                    max={studioCapacity}
+                    className="w-24 bg-[#141414] text-white rounded-xl px-3 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                    Calendar Color
+                    <Tooltip content="The color used to display trial trainings in the calendar" position="right">
+                      <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                    </Tooltip>
+                  </label>
+                  <input
+                    type="color"
+                    value={trialTraining.color}
+                    onChange={(e) => setTrialTraining({ ...trialTraining, color: e.target.value })}
+                    className="w-10 h-10 rounded-lg cursor-pointer bg-transparent border border-[#333333] p-1"
+                  />
+                </div>
               </div>
             </SettingsCard>
           </div>
@@ -1482,10 +1840,10 @@ const ConfigurationPage = () => {
               action={
                 <button
                   onClick={handleAddRole}
-                  className="px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
+                  className="px-3 sm:px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
-                  Add Role
+                  <span className="hidden sm:inline">Add</span> Role
                 </button>
               }
             />
@@ -1497,7 +1855,7 @@ const ConfigurationPage = () => {
                       <div className="flex items-center gap-3">
                         <div className="w-4 h-4 rounded" style={{ backgroundColor: role.color }} />
                         <div>
-                          <h3 className="text-white font-medium">
+                          <h3 className="text-white font-medium text-sm sm:text-base">
                             {role.name || "New Role"}
                             {role.isAdmin && <span className="ml-2 text-xs text-orange-400">(Admin)</span>}
                           </h3>
@@ -1550,20 +1908,20 @@ const ConfigurationPage = () => {
                               setSelectedRoleIndex(index)
                               setPermissionModalVisible(true)
                             }}
-                            className="flex-1 px-3 py-2 bg-[#2F2F2F] text-white text-sm rounded-xl hover:bg-[#3F3F3F] transition-colors flex items-center justify-center gap-2"
+                            className="flex-1 px-2 sm:px-3 py-2 bg-[#2F2F2F] text-white text-xs sm:text-sm rounded-xl hover:bg-[#3F3F3F] transition-colors flex items-center justify-center gap-1 sm:gap-2"
                           >
                             <Shield className="w-4 h-4" />
-                            Permissions
+                            <span className="hidden sm:inline">Permissions</span>
                           </button>
                           <button
                             onClick={() => {
                               setSelectedRoleForAssignment(index)
                               setStaffAssignmentModalVisible(true)
                             }}
-                            className="flex-1 px-3 py-2 bg-[#2F2F2F] text-white text-sm rounded-xl hover:bg-[#3F3F3F] transition-colors flex items-center justify-center gap-2"
+                            className="flex-1 px-2 sm:px-3 py-2 bg-[#2F2F2F] text-white text-xs sm:text-sm rounded-xl hover:bg-[#3F3F3F] transition-colors flex items-center justify-center gap-1 sm:gap-2"
                           >
                             <Users className="w-4 h-4" />
-                            Staff
+                            <span className="hidden sm:inline">Staff</span>
                           </button>
                         </div>
                       </div>
@@ -1598,11 +1956,11 @@ const ConfigurationPage = () => {
                   <div className="p-4 bg-white rounded-xl">
                     <QRCode
                       value={memberQRCodeUrl || "https://your-studio-app.com/member-checkin"}
-                      size={200}
+                      size={180}
                     />
                   </div>
-                  <div className="flex gap-3">
-                    <button className="px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2">
+                  <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                    <button className="px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center justify-center gap-2">
                       <Download className="w-4 h-4" />
                       Download QR
                     </button>
@@ -1625,10 +1983,10 @@ const ConfigurationPage = () => {
               action={
                 <button
                   onClick={handleAddLeadSource}
-                  className="px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
+                  className="px-3 sm:px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
-                  Add Source
+                  <span className="hidden sm:inline">Add</span> Source
                 </button>
               }
             />
@@ -1646,18 +2004,18 @@ const ConfigurationPage = () => {
                         type="color"
                         value={source.color}
                         onChange={(e) => handleUpdateLeadSource(source.id, "color", e.target.value)}
-                        className="w-8 h-8 rounded cursor-pointer"
+                        className="w-8 h-8 rounded cursor-pointer flex-shrink-0"
                       />
                       <input
                         type="text"
                         value={source.name}
                         onChange={(e) => handleUpdateLeadSource(source.id, "name", e.target.value)}
                         placeholder="Source name"
-                        className="flex-1 bg-transparent text-white text-sm outline-none"
+                        className="flex-1 bg-transparent text-white text-sm outline-none min-w-0"
                       />
                       <button
                         onClick={() => handleRemoveLeadSource(source.id)}
-                        className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                        className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -1682,10 +2040,10 @@ const ConfigurationPage = () => {
                     name: "",
                     pages: [{ id: Date.now(), content: "", elements: [] }]
                   }])}
-                  className="px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
+                  className="px-3 sm:px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
-                  Add Material
+                  <span className="hidden sm:inline">Add</span> Material
                 </button>
               }
             />
@@ -1694,16 +2052,18 @@ const ConfigurationPage = () => {
                 <SettingsCard key={material.id}>
                   <div className="space-y-4">
                     <div className="flex items-start justify-between gap-4">
-                      <InputField
-                        label="Material Name"
-                        value={material.name}
-                        onChange={(v) => {
-                          const updated = [...introductoryMaterials]
-                          updated[index].name = v
-                          setIntroductoryMaterials(updated)
-                        }}
-                        placeholder="e.g., Welcome Guide"
-                      />
+                      <div className="flex-1">
+                        <InputField
+                          label="Material Name"
+                          value={material.name}
+                          onChange={(v) => {
+                            const updated = [...introductoryMaterials]
+                            updated[index].name = v
+                            setIntroductoryMaterials(updated)
+                          }}
+                          placeholder="e.g., Welcome Guide"
+                        />
+                      </div>
                       <button
                         onClick={() => setIntroductoryMaterials(introductoryMaterials.filter((_, i) => i !== index))}
                         className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors mt-6"
@@ -1771,10 +2131,10 @@ const ConfigurationPage = () => {
               action={
                 <button
                   onClick={() => setShowCreateFormModal(true)}
-                  className="px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
+                  className="px-3 sm:px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
-                  Create Form
+                  <span className="hidden sm:inline">Create</span> Form
                 </button>
               }
             />
@@ -1787,12 +2147,12 @@ const ConfigurationPage = () => {
                 </div>
               </SettingsCard>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {contractForms.map((form) => (
                   <SettingsCard key={form.id}>
                     <div className="space-y-3">
                       <div className="flex items-start justify-between">
-                        <h3 className="text-white font-medium">{form.name}</h3>
+                        <h3 className="text-white font-medium text-sm sm:text-base">{form.name}</h3>
                         <div className="flex gap-1">
                           <button
                             onClick={() => setContractForms([...contractForms, {
@@ -1846,10 +2206,10 @@ const ConfigurationPage = () => {
               action={
                 <button
                   onClick={handleAddContractType}
-                  className="px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
+                  className="px-3 sm:px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
-                  Add Type
+                  <span className="hidden sm:inline">Add</span> Type
                 </button>
               }
             />
@@ -1867,7 +2227,7 @@ const ConfigurationPage = () => {
                   <SettingsCard key={index}>
                     <div className="space-y-4">
                       <div className="flex items-start justify-between gap-4">
-                        <h3 className="text-white font-medium">{type.name || "New Contract Type"}</h3>
+                        <h3 className="text-white font-medium text-sm sm:text-base">{type.name || "New Contract Type"}</h3>
                         <button
                           onClick={() => setContractTypes(contractTypes.filter((_, i) => i !== index))}
                           className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
@@ -2017,10 +2377,10 @@ const ConfigurationPage = () => {
               action={
                 <button
                   onClick={() => setContractPauseReasons([...contractPauseReasons, { name: "", maxDays: 30 }])}
-                  className="px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
+                  className="px-3 sm:px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
-                  Add Reason
+                  <span className="hidden sm:inline">Add</span> Reason
                 </button>
               }
             />
@@ -2043,11 +2403,11 @@ const ConfigurationPage = () => {
                           setContractPauseReasons(updated)
                         }}
                         placeholder="Reason name"
-                        className="flex-1 bg-transparent text-white text-sm outline-none"
+                        className="flex-1 bg-transparent text-white text-sm outline-none min-w-0"
                       />
                       <button
                         onClick={() => setContractPauseReasons(contractPauseReasons.filter((_, i) => i !== index))}
-                        className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                        className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -2107,7 +2467,7 @@ const ConfigurationPage = () => {
                     
                     {settings.birthdayMessageEnabled && (
                       <div className="space-y-4 pl-4 border-l-2 border-orange-500">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 flex-wrap">
                           <span className="text-sm text-gray-300">Send time:</span>
                           <input
                             type="time"
@@ -2177,7 +2537,7 @@ const ConfigurationPage = () => {
                                   {config.sendEmail && (
                                     <>
                                       {type === "reminder" && (
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-2 flex-wrap">
                                           <span className="text-sm text-gray-300">Send</span>
                                           <input
                                             type="number"
@@ -2344,7 +2704,7 @@ const ConfigurationPage = () => {
           <div className="space-y-6">
             <SectionHeader title="SMTP Setup" description="Configure your email server" />
             <SettingsCard>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <InputField
                   label="Display Name"
                   value={settings.senderName}
@@ -2370,13 +2730,13 @@ const ConfigurationPage = () => {
                   onChange={(v) => setSettings({ ...settings, smtpUser: v })}
                   placeholder="your-email@example.com"
                 />
-                <div className="md:col-span-2">
+                <div className="sm:col-span-2">
                   <InputField
                     label="Password"
                     value={settings.smtpPass}
                     onChange={(v) => setSettings({ ...settings, smtpPass: v })}
                     type="password"
-                    placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                    placeholder="••••••••"
                   />
                 </div>
               </div>
@@ -2474,10 +2834,10 @@ const ConfigurationPage = () => {
                 value={currency}
                 onChange={setCurrency}
                 options={[
-                  { value: "â‚¬", label: "â‚¬ Euro" },
+                  { value: "€", label: "€ Euro" },
                   { value: "$", label: "$ US Dollar" },
-                  { value: "Â£", label: "Â£ British Pound" },
-                  { value: "Â¥", label: "Â¥ Japanese Yen" },
+                  { value: "£", label: "£ British Pound" },
+                  { value: "¥", label: "¥ Japanese Yen" },
                   { value: "Fr", label: "Fr Swiss Franc" },
                   { value: "A$", label: "A$ Australian Dollar" },
                   { value: "C$", label: "C$ Canadian Dollar" },
@@ -2497,10 +2857,10 @@ const ConfigurationPage = () => {
               action={
                 <button
                   onClick={handleAddVatRate}
-                  className="px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
+                  className="px-3 sm:px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
-                  Add Rate
+                  <span className="hidden sm:inline">Add</span> Rate
                 </button>
               }
             />
@@ -2530,11 +2890,11 @@ const ConfigurationPage = () => {
                         setVatRates(updated)
                       }}
                       placeholder="Description"
-                      className="flex-1 bg-transparent text-white text-sm outline-none"
+                      className="flex-1 bg-transparent text-white text-sm outline-none min-w-0"
                     />
                     <button
                       onClick={() => setVatRates(vatRates.filter((_, i) => i !== index))}
-                      className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                      className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors self-end sm:self-center flex-shrink-0"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -2550,7 +2910,7 @@ const ConfigurationPage = () => {
           <div className="space-y-6">
             <SectionHeader title="Payment Settings" description="Configure payment and billing information" />
             <SettingsCard>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <InputField
                   label="Creditor ID"
                   value={creditorId}
@@ -2565,7 +2925,7 @@ const ConfigurationPage = () => {
                   placeholder="Enter VAT number"
                   maxLength={30}
                 />
-                <div className="md:col-span-2">
+                <div className="sm:col-span-2">
                   <InputField
                     label="Bank Name"
                     value={bankName}
@@ -2591,10 +2951,10 @@ const ConfigurationPage = () => {
               <div className="space-y-6">
                 <div>
                   <label className="text-sm font-medium text-gray-300 mb-3 block">Default Theme</label>
-                  <div className="flex gap-4">
+                  <div className="flex flex-col sm:flex-row gap-4">
                     <button
                       onClick={() => setAppearance({ ...appearance, theme: "light" })}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors ${
+                      className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors flex-1 sm:flex-none ${
                         appearance.theme === "light"
                           ? "border-orange-500 bg-orange-500/10"
                           : "border-[#333333] hover:border-[#444444]"
@@ -2607,7 +2967,7 @@ const ConfigurationPage = () => {
                     </button>
                     <button
                       onClick={() => setAppearance({ ...appearance, theme: "dark" })}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors ${
+                      className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors flex-1 sm:flex-none ${
                         appearance.theme === "dark"
                           ? "border-orange-500 bg-orange-500/10"
                           : "border-[#333333] hover:border-[#444444]"
@@ -2666,7 +3026,7 @@ const ConfigurationPage = () => {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {[
                 { icon: Users, title: "Member Data", desc: "Import member profiles and contact information" },
                 { icon: FileText, title: "Contracts", desc: "Import contract templates and existing contracts" },
@@ -2679,9 +3039,9 @@ const ConfigurationPage = () => {
                       <div className="p-2 bg-[#2F2F2F] rounded-lg">
                         <item.icon className="w-5 h-5 text-orange-400" />
                       </div>
-                      <h3 className="text-white font-medium">{item.title}</h3>
+                      <h3 className="text-white font-medium text-sm sm:text-base">{item.title}</h3>
                     </div>
-                    <p className="text-sm text-gray-400">{item.desc}</p>
+                    <p className="text-xs sm:text-sm text-gray-400">{item.desc}</p>
                     <label className="block">
                       <span className="px-4 py-2 bg-[#2F2F2F] text-white text-sm rounded-xl hover:bg-[#3F3F3F] cursor-pointer transition-colors inline-flex items-center gap-2">
                         <Upload className="w-4 h-4" />
@@ -2732,25 +3092,9 @@ const ConfigurationPage = () => {
   // Main Render
   // ============================================
   return (
-    <div className="flex flex-col lg:flex-row h-screen bg-[#1C1C1C] text-white overflow-hidden rounded-3xl">
-      {/* Mobile Header */}
-      <div className="lg:hidden flex items-center justify-between p-4 border-b border-[#333333] flex-shrink-0">
-        <h1 className="text-xl font-bold">Settings</h1>
-        <button
-          onClick={() => setMobileNavOpen(!mobileNavOpen)}
-          className="p-2 hover:bg-[#2F2F2F] rounded-xl transition-colors"
-        >
-          {mobileNavOpen ? <X className="w-5 h-5" /> : <Settings className="w-5 h-5" />}
-        </button>
-      </div>
-
-      {/* Sidebar Navigation */}
-      <div className={`
-        ${mobileNavOpen ? "flex" : "hidden"} lg:flex
-        lg:w-72 flex-shrink-0 border-r border-[#333333] bg-[#181818]
-        fixed lg:relative inset-0 top-[65px] lg:top-0 lg:inset-auto z-40 lg:z-0
-        flex-col min-h-0
-      `}>
+    <div className="flex flex-col lg:flex-row h-full bg-[#1C1C1C] text-white overflow-hidden rounded-3xl">
+      {/* Sidebar Navigation - Desktop */}
+      <div className="hidden lg:flex lg:w-72 flex-shrink-0 border-r border-[#333333] bg-[#181818] flex-col min-h-0">
         {/* Search */}
         <div className="p-4 border-b border-[#333333] flex-shrink-0">
           <div className="relative">
@@ -2785,7 +3129,6 @@ const ConfigurationPage = () => {
         <div className="flex-1 overflow-y-auto p-2 min-h-0">
           {filteredNavItems.map((category) => {
             const categoryMatches = matchesSearch(category.label)
-            const hasMatchingSections = category.sections.some(s => matchesSearch(s.label))
             
             return (
               <div key={category.id} className="mb-1">
@@ -2840,46 +3183,122 @@ const ConfigurationPage = () => {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-        {/* Desktop Header */}
-        <div className="hidden lg:flex items-center justify-between p-6 border-b border-[#333333]">
-          <h1 className="text-2xl font-bold">Configuration</h1>
-          <button
-            onClick={handleSaveConfiguration}
-            className="px-5 py-2.5 bg-orange-500 text-white text-sm font-medium rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
-          >
-            <Save className="w-4 h-4" />
-            Save Changes
-          </button>
+      {/* Mobile Navigation List */}
+      <div className={`lg:hidden flex flex-col h-full ${mobileShowContent ? 'hidden' : 'flex'}`}>
+        {/* Mobile Header */}
+        <div className="flex items-center justify-between p-4 border-b border-[#333333] flex-shrink-0">
+          <h1 className="text-xl font-bold">Configuration</h1>
         </div>
 
-        {/* Content Area */}
-        <div className="flex-1 overflow-y-auto p-4 lg:p-6">
-          <div className="max-w-4xl">
-            {renderSectionContent()}
+        {/* Mobile Search */}
+        <div className="p-3 border-b border-[#333333]">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search settings..."
+              className="w-full bg-[#141414] text-white rounded-xl pl-10 pr-10 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF] transition-colors"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 text-gray-500 hover:text-white transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Mobile Save Button */}
-        <div className="lg:hidden p-4 border-t border-[#333333]">
-          <button
-            onClick={handleSaveConfiguration}
-            className="w-full px-5 py-3 bg-orange-500 text-white text-sm font-medium rounded-xl hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
-          >
-            <Save className="w-4 h-4" />
-            Save Changes
-          </button>
+        {/* Mobile Navigation Items */}
+        <div className="flex-1 overflow-y-auto p-2">
+          {filteredNavItems.map((category) => {
+            const categoryMatches = matchesSearch(category.label)
+            
+            return (
+              <div key={category.id} className="mb-1">
+                <button
+                  onClick={() => toggleCategory(category.id)}
+                  className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left transition-colors ${
+                    activeCategory === category.id
+                      ? "bg-[#2F2F2F] text-white"
+                      : categoryMatches
+                        ? "bg-orange-500/10 text-orange-300"
+                        : "text-gray-400 hover:text-white hover:bg-[#252525]"
+                  }`}
+                >
+                  <category.icon className="w-5 h-5 flex-shrink-0" />
+                  <span className="flex-1 font-medium">{highlightText(category.label)}</span>
+                  <ChevronRight className={`w-4 h-4 transition-transform ${
+                    expandedCategories.includes(category.id) ? "rotate-90" : ""
+                  }`} />
+                </button>
+
+                {expandedCategories.includes(category.id) && (
+                  <div className="ml-8 mt-1 space-y-0.5">
+                    {category.sections.map((section) => {
+                      const sectionMatches = matchesSearch(section.label)
+                      
+                      return (
+                        <button
+                          key={section.id}
+                          onClick={() => navigateToSection(category.id, section.id)}
+                          className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors flex items-center justify-between ${
+                            sectionMatches
+                              ? "text-orange-300 bg-orange-500/10"
+                              : "text-gray-500 hover:text-white hover:bg-[#252525]"
+                          }`}
+                        >
+                          <span>{highlightText(section.label)}</span>
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
       </div>
 
-      {/* Mobile Nav Overlay */}
-      {mobileNavOpen && (
-        <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-30"
-          onClick={() => setMobileNavOpen(false)}
-        />
-      )}
+      {/* Mobile Content View */}
+      <div className={`lg:hidden flex flex-col h-full ${mobileShowContent ? 'flex' : 'hidden'}`}>
+        {/* Mobile Content Header with Back Button */}
+        <div className="flex items-center gap-3 p-4 border-b border-[#333333] flex-shrink-0">
+          <button
+            onClick={() => setMobileShowContent(false)}
+            className="p-2 -ml-2 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded-lg transition-colors"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <h1 className="text-lg font-semibold">{getCurrentSectionTitle()}</h1>
+        </div>
+
+        {/* Mobile Content Area */}
+        <div className="flex-1 overflow-y-auto p-4">
+          <div>
+            {renderSectionContent()}
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop Main Content */}
+      <div className="hidden lg:flex flex-1 flex-col min-h-0 overflow-hidden">
+        {/* Desktop Header */}
+        <div className="flex items-center justify-between p-6 border-b border-[#333333] flex-shrink-0">
+          <h1 className="text-2xl font-bold">Configuration</h1>
+        </div>
+
+        {/* Content Area */}
+        <div className="flex-1 overflow-y-auto p-6">
+          <div>
+            {renderSectionContent()}
+          </div>
+        </div>
+      </div>
 
       {/* Modals */}
       <PermissionModal
@@ -2943,6 +3362,270 @@ const ConfigurationPage = () => {
           />
         </div>
       )}
+
+      {/* Appointment Type Modal */}
+      {showAppointmentTypeModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-[#1C1C1C] rounded-2xl w-full max-w-2xl my-8">
+            {/* Header */}
+            <div className="flex items-center justify-between p-5 border-b border-[#333333]">
+              <h2 className="text-lg font-semibold text-white">
+                {editingAppointmentType ? "Edit Appointment Type" : "Create Appointment Type"}
+              </h2>
+              <button
+                onClick={() => setShowAppointmentTypeModal(false)}
+                className="p-2 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-5 space-y-6 max-h-[calc(100vh-200px)] overflow-y-auto overflow-x-hidden">
+              {/* Image Upload */}
+              <div>
+                <label className="text-sm font-medium text-gray-300 mb-3 block">
+                  Appointment Image <span className="text-gray-500">(16:9, shown in member app)</span>
+                </label>
+                <div
+                  className="relative aspect-video bg-[#141414] rounded-xl border-2 border-dashed border-[#333333] hover:border-[#444444] transition-colors cursor-pointer overflow-hidden group"
+                  onClick={() => setShowImageSourceModal(true)}
+                >
+                  {appointmentTypeForm.image ? (
+                    <>
+                      <img
+                        src={appointmentTypeForm.image}
+                        alt="Preview"
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <span className="text-white text-sm font-medium">Change Image</span>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setAppointmentTypeForm({ ...appointmentTypeForm, image: null })
+                        }}
+                        className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </>
+                  ) : (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
+                      <Upload className="w-10 h-10 mb-2" />
+                      <span className="text-sm">Click to upload image</span>
+                      <span className="text-xs mt-1">Recommended: 1920x1080px</span>
+                    </div>
+                  )}
+                </div>
+                <input
+                  ref={appointmentImageInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAppointmentImageSelect}
+                  className="hidden"
+                />
+              </div>
+
+              {/* Name & Category */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                    Name
+                    <span className="text-red-400">*</span>
+                    <Tooltip content="The name members will see when booking this appointment">
+                      <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                    </Tooltip>
+                  </label>
+                  <input
+                    type="text"
+                    value={appointmentTypeForm.name}
+                    onChange={(e) => setAppointmentTypeForm({ ...appointmentTypeForm, name: e.target.value })}
+                    placeholder="e.g., Personal Training"
+                    className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                    Category
+                    <Tooltip content="Group similar appointments together for easier organization">
+                      <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                    </Tooltip>
+                  </label>
+                  <SelectField
+                    value={appointmentTypeForm.category}
+                    onChange={(v) => setAppointmentTypeForm({ ...appointmentTypeForm, category: v })}
+                    options={appointmentCategories.map(c => ({ value: c, label: c }))}
+                    placeholder="Select category"
+                  />
+                </div>
+              </div>
+
+              {/* Description */}
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                  Description
+                  <Tooltip content="Optional details about what this appointment includes. Shown to members.">
+                    <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                  </Tooltip>
+                </label>
+                <textarea
+                  value={appointmentTypeForm.description}
+                  onChange={(e) => setAppointmentTypeForm({ ...appointmentTypeForm, description: e.target.value })}
+                  placeholder="Describe what this appointment includes..."
+                  rows={3}
+                  className="w-full bg-[#141414] text-white rounded-xl px-4 py-3 text-sm outline-none border border-[#333333] focus:border-[#3F74FF] resize-none"
+                />
+              </div>
+
+              {/* Duration, Slots Required, Max Parallel, Interval */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-gray-500" />
+                    Duration
+                    <Tooltip content="How long the appointment lasts in minutes">
+                      <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                    </Tooltip>
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      value={appointmentTypeForm.duration}
+                      onChange={(e) => setAppointmentTypeForm({ ...appointmentTypeForm, duration: Math.floor(Number(e.target.value)) })}
+                      onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault() }}
+                      min={5}
+                      max={480}
+                      className="w-24 bg-[#141414] text-white rounded-xl px-3 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                    />
+                    <span className="text-sm text-gray-400">min</span>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-gray-500" />
+                    Interval
+                    <Tooltip content="Time between available booking slots (e.g., 30 = bookings at :00 and :30)">
+                      <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                    </Tooltip>
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      value={appointmentTypeForm.interval}
+                      onChange={(e) => setAppointmentTypeForm({ ...appointmentTypeForm, interval: Math.floor(Number(e.target.value)) })}
+                      onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault() }}
+                      min={5}
+                      max={120}
+                      className="w-24 bg-[#141414] text-white rounded-xl px-3 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                    />
+                    <span className="text-sm text-gray-400">min</span>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                    <Settings className="w-4 h-4 text-gray-500" />
+                    Slots
+                    <Tooltip content="How many capacity slots this appointment uses. Set to 0 if it doesn't block any capacity.">
+                      <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                    </Tooltip>
+                  </label>
+                  <input
+                    type="number"
+                    value={appointmentTypeForm.slotsRequired}
+                    onChange={(e) => setAppointmentTypeForm({ ...appointmentTypeForm, slotsRequired: Math.floor(Number(e.target.value)) })}
+                    onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault() }}
+                    min={0}
+                    max={studioCapacity}
+                    className="w-24 bg-[#141414] text-white rounded-xl px-3 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                    <Users className="w-4 h-4 text-gray-500" />
+                    Max Parallel
+                    <Tooltip content="Maximum number of this appointment type that can run at the same time" position="right">
+                      <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                    </Tooltip>
+                  </label>
+                  <input
+                    type="number"
+                    value={appointmentTypeForm.maxParallel}
+                    onChange={(e) => setAppointmentTypeForm({ ...appointmentTypeForm, maxParallel: Math.floor(Number(e.target.value)) })}
+                    onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault() }}
+                    min={1}
+                    max={studioCapacity}
+                    className="w-24 bg-[#141414] text-white rounded-xl px-3 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                  />
+                </div>
+              </div>
+
+              {/* Color */}
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                  Calendar Color
+                  <Tooltip content="The color used to display this appointment type in the calendar">
+                    <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                  </Tooltip>
+                </label>
+                <input
+                  type="color"
+                  value={appointmentTypeForm.color}
+                  onChange={(e) => setAppointmentTypeForm({ ...appointmentTypeForm, color: e.target.value })}
+                  className="w-10 h-10 rounded-lg cursor-pointer bg-transparent border border-[#333333] p-1"
+                />
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex gap-3 p-5 border-t border-[#333333]">
+              <button
+                onClick={() => setShowAppointmentTypeModal(false)}
+                className="flex-1 px-4 py-2.5 bg-[#2F2F2F] text-white text-sm rounded-xl hover:bg-[#3F3F3F] transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveAppointmentType}
+                className="flex-1 px-4 py-2.5 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors"
+              >
+                {editingAppointmentType ? "Save Changes" : "Create"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Image Source Modal */}
+      <ImageSourceModal
+        isOpen={showImageSourceModal}
+        onClose={() => setShowImageSourceModal(false)}
+        onSelectFile={() => appointmentImageInputRef.current?.click()}
+        onSelectMediaLibrary={() => setShowMediaLibraryModal(true)}
+      />
+
+      {/* Media Library Picker Modal */}
+      <MediaLibraryPickerModal
+        isOpen={showMediaLibraryModal}
+        onClose={() => setShowMediaLibraryModal(false)}
+        onSelectImage={handleMediaLibrarySelect}
+      />
+
+      {/* Image Crop Modal */}
+      <ImageCropModal
+        isOpen={showImageCropModal}
+        onClose={() => {
+          setShowImageCropModal(false)
+          setTempImage(null)
+        }}
+        imageSrc={tempImage}
+        onCropComplete={handleCroppedImage}
+        aspectRatio={16 / 9}
+      />
     </div>
   )
 }

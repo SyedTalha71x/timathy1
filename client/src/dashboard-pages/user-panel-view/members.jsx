@@ -36,14 +36,14 @@ import { useNavigate } from "react-router-dom"
 
 import HistoryModalMain from "../../components/user-panel-components/members-components/HistoryModal"
 import NotifyMemberModalMain from "../../components/user-panel-components/members-components/NotifyMemberModal"
-import CreateTempMemberModal from "../../components/user-panel-components/members-components/CreateTempMemberModal"
+import CreateTempMemberModal from "../../components/shared/CreateTempMemberModal"
+import useCountries from "../../hooks/useCountries"
 import EditMemberModalMain from "../../components/user-panel-components/members-components/EditMemberModal"
 import AddBillingPeriodModalMain from "../../components/user-panel-components/members-components/AddBillingPeriodModal"
 import ContingentModalMain from "../../components/user-panel-components/members-components/ShowContigentModal"
 import ViewDetailsModal from "../../components/user-panel-components/members-components/ViewDetailsModal"
-import { MemberSpecialNoteModal } from "../../components/user-panel-components/members-components/MemberSpecialNoteModal"
+import { MemberSpecialNoteModal } from '../../components/shared/shared-special-note-modal'
 import AppointmentModalMain from "../../components/user-panel-components/members-components/AppointmentModal"
-import FilterModal from "../../components/user-panel-components/members-components/FilterModal"
 import { MemberDocumentModal } from "../../components/user-panel-components/members-components/MemberDocumentModal"
 import { appointmentsMainData, appointmentTypeMainData, availableMembersLeadsMain, freeAppointmentsMainData, memberHistoryMainData, memberRelationsMainData, membersData, relationOptionsMain } from "../../utils/user-panel-states/members-states"
 import AddAppointmentModal from "../../components/user-panel-components/members-components/AddAppointmentModal"
@@ -63,7 +63,7 @@ import { trainingVideosData } from "../../utils/user-panel-states/training-state
 import ChatPopup from "../../components/user-panel-components/members-components/ChatPopup"
 import TrainingPlansModalMain from "../../components/user-panel-components/members-components/TrainingPlanModal"
 import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
-import MemberSpecialNoteIcon from "../../components/user-panel-components/members-components/MemberSpecialNoteIcon"
+import { MemberSpecialNoteIcon } from '../../components/shared/shared-special-note-icon'
 
 const StatusTag = ({ status, reason = "", compact = false }) => {
   const getStatusColor = (status, isArchived) => {
@@ -113,7 +113,6 @@ export default function Members() {
   const [expandedMemberId, setExpandedMemberId] = useState(null);
 
   const [activeNoteIdMain, setActiveNoteIdMain] = useState(null)
-  const [tempMemberModalTab, setTempMemberModalTab] = useState("details")
   // 
   const [editModalTabMain, setEditModalTabMain] = useState("details")
   const [isDirectionDropdownOpen, setIsDirectionDropdownOpen] = useState(false)
@@ -138,7 +137,6 @@ export default function Members() {
 
 
   const [showCreateTempMemberModal, setShowCreateTempMemberModal] = useState(false)
-  const [showFilterModal, setShowFilterModal] = useState(false)
   const [memberTypeFilter, setMemberTypeFilter] = useState("all")
   const [archivedFilter, setArchivedFilter] = useState("active")
   const [filterStatus, setFilterStatus] = useState("all")
@@ -231,34 +229,12 @@ export default function Members() {
     type: "manual",
     selectedMemberId: null,
   })
-  // 
+  // memberRelationsMain wird für EditMember Modal verwendet
   const [memberRelationsMain, setMemberRelationsMain] = useState(memberRelationsMainData)
 
-  const [tempMemberForm, setTempMemberForm] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    street: "",
-    zipCode: "",
-    img: null,
-    city: "",
-    dateOfBirth: "",
-    gender: "",
-    about: "",
-    note: "",
-    noteStartDate: "",
-    noteEndDate: "",
-    noteImportance: "unimportant",
-    autoArchivePeriod: 6,
-    relations: {
-      family: [],
-      friendship: [],
-      relationship: [],
-      work: [],
-      other: [],
-    },
-  })
+  // Countries hook für CreateTempMemberModal
+  const { countries, loading: countriesLoading } = useCountries()
+
   // 
   const [editFormMain, setEditFormMain] = useState({
     firstName: "",
@@ -334,70 +310,59 @@ export default function Members() {
     }))
   }
 
-  const handleTempMemberInputChange = (e) => {
-    const { name, value } = e.target
-    setTempMemberForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
+  // Handler für erfolgreiche Erstellung eines temporären Members (Shared Modal)
+  const handleTempMemberCreated = (newMemberData) => {
+    const newId = Math.max(...members.map((m) => m.id), 0) + 1
+    const newTempMember = {
+      id: newId,
+      ...newMemberData,
+      image: newMemberData.img || null,
+    }
+    setMembers((prev) => [...prev, newTempMember])
   }
 
   // 
-  const handleEditSubmitMain = (e) => {
+  const handleEditSubmitMain = (e, localRelations = null, localNotes = null) => {
     e.preventDefault()
+    
     const updatedMembers = members.map((member) => {
       if (member.id === selectedMemberMain.id) {
+        // Use passed localNotes if available, otherwise fall back to editFormMain
+        const notesToSave = localNotes || editFormMain.notes || []
+        
+        // Find primary note for backward compatibility
+        const importantNote = notesToSave.find(n => n.isImportant)
+        const primaryNote = importantNote || notesToSave[0]
+        
         return {
           ...member,
           ...editFormMain,
           title: `${editFormMain.firstName} ${editFormMain.lastName}`,
+          // Save notes array
+          notes: notesToSave,
+          // Keep single note fields for backwards compatibility
+          note: primaryNote ? primaryNote.text : "",
+          noteImportance: primaryNote?.isImportant ? "important" : "unimportant",
+          noteStartDate: primaryNote?.startDate || "",
+          noteEndDate: primaryNote?.endDate || "",
+          noteStatus: primaryNote?.status || "general",
         }
       }
       return member
     })
+    
+    // Update relations if provided
+    if (localRelations && selectedMemberMain?.id) {
+      setMemberRelationsMain(prev => ({
+        ...prev,
+        [selectedMemberMain.id]: localRelations
+      }))
+    }
+    
     setMembers(updatedMembers)
     setIsEditModalOpenMain(false)
     setSelectedMemberMain(null)
     toast.success("Member details have been updated successfully")
-  }
-
-  const handleCreateTempMember = (e) => {
-    e.preventDefault()
-    const newId = Math.max(...members.map((m) => m.id)) + 1
-    const autoArchiveDate = new Date()
-    autoArchiveDate.setDate(autoArchiveDate.getDate() + tempMemberForm.autoArchivePeriod * 7)
-    const newTempMember = {
-      id: newId,
-      ...tempMemberForm,
-      title: `${tempMemberForm.firstName} ${tempMemberForm.lastName}`,
-      isActive: true,
-      isArchived: false,
-      memberType: "temporary",
-      joinDate: new Date().toISOString().split("T")[0],
-      contractStart: "",
-      contractEnd: "",
-      autoArchiveDate: autoArchiveDate.toISOString().split("T")[0],
-      image: null,
-    }
-    setMembers((prev) => [...prev, newTempMember])
-    setShowCreateTempMemberModal(false)
-    setTempMemberForm({
-      firstName: "",
-      lastName: "",
-      email: "",
-      phone: "",
-      street: "",
-      zipCode: "",
-      city: "",
-      dateOfBirth: "",
-      about: "",
-      note: "",
-      noteStartDate: "",
-      noteEndDate: "",
-      noteImportance: "unimportant",
-      autoArchivePeriod: 6,
-    })
-    toast.success("Temporary member created successfully")
   }
 
   // 
@@ -729,18 +694,6 @@ export default function Members() {
     const today = new Date()
     const birthDate = new Date(dateOfBirth)
     return today.getMonth() === birthDate.getMonth() && today.getDate() === birthDate.getDate()
-  }
-
-
-  const handleImgUpload = (e) => {
-    const file = e.target.files[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setTempMemberForm((prev) => ({ ...prev, img: reader.result }))
-      }
-      reader.readAsDataURL(file)
-    }
   }
 
   const [showTrainingPlansModalMain, setShowTrainingPlansModalMain] = useState(false)
@@ -2307,33 +2260,17 @@ export default function Members() {
               )}
           </div>
 
-          {/* Your existing modals */}
-          <FilterModal
-            isOpen={showFilterModal}
-            onClose={() => setShowFilterModal(false)}
-            filterOptions={filterOptions}
-            filterStatus={filterStatus}
-            setFilterStatus={setFilterStatus}
-            memberTypeFilter={memberTypeFilter}
-            setMemberTypeFilter={setMemberTypeFilter}
-          />
+         
 
           <CreateTempMemberModal
             show={showCreateTempMemberModal}
             onClose={() => setShowCreateTempMemberModal(false)}
-            tempMemberForm={tempMemberForm}
-            setTempMemberForm={setTempMemberForm}
-            tempMemberModalTab={tempMemberModalTab}
-            setTempMemberModalTab={setTempMemberModalTab}
-            handleCreateTempMember={handleCreateTempMember}
-            handleTempMemberInputChange={handleTempMemberInputChange}
-            handleImgUpload={handleImgUpload}
-            editingRelationsMain={editingRelationsMain}
-            setEditingRelationsMain={setEditingRelationsMain}
-            newRelationMain={newRelationMain}
-            setNewRelationMain={setNewRelationMain}
-            availableMembersLeadsMain={availableMembersLeadsMain}
-            relationOptionsMain={relationOptionsMain}
+            onSuccess={handleTempMemberCreated}
+            availableMembersLeads={availableMembersLeadsMain}
+            relationOptions={relationOptionsMain}
+            countries={countries}
+            countriesLoading={countriesLoading}
+            context="members"
           />
 
           <EditMemberModalMain

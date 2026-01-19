@@ -1,28 +1,13 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { AlertTriangle, Calendar, CalendarIcon, Edit, FileText, Info, MoreVertical, Plus, Trash2, Users, X, StickyNote, Pencil, ChevronDown, ChevronUp } from 'lucide-react'
+import { Calendar, CalendarIcon, Edit, FileText, Info, MoreVertical, Plus, Trash2, Users, X, Pencil, ChevronDown, ChevronUp } from 'lucide-react'
 import { useEffect, useRef, useState } from "react"
 import { MdHistory } from "react-icons/md"
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
-import { createPortal } from "react-dom"
 
-// Note Status Options
-const NOTE_STATUSES = [
-  { id: "contact_attempt", label: "Contact Attempt" },
-  { id: "callback_requested", label: "Callback Requested" },
-  { id: "interest", label: "Interest" },
-  { id: "objection", label: "Objection" },
-  { id: "personal_info", label: "Personal Info" },
-  { id: "health", label: "Health" },
-  { id: "follow_up", label: "Follow-up" },
-  { id: "general", label: "General" },
-]
-
-const getStatusLabel = (statusId) => {
-  const status = NOTE_STATUSES.find(s => s.id === statusId)
-  return status ? status.label : "General"
-}
+// Import shared special note icon component
+import { LeadSpecialNoteIcon, extractNotes } from '../../shared/shared-special-note-icon'
 
 const SortableLeadCard = ({
   lead,
@@ -45,14 +30,7 @@ const SortableLeadCard = ({
   expandedLeadId = null,
   setExpandedLeadId = () => {},
 }) => {
-  const [isNoteOpen, setIsNoteOpen] = useState(false)
-  const [notePosition, setNotePosition] = useState({ top: 0, left: 0 })
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [hoveredNoteId, setHoveredNoteId] = useState(null)
-  const [hoverTimeout, setHoverTimeout] = useState(null)
-  const [leaveTimeout, setLeaveTimeout] = useState(null)
-
-  const noteRef = useRef(null)
   const menuRef = useRef(null)
 
   // @dnd-kit sortable hook
@@ -82,54 +60,17 @@ const SortableLeadCard = ({
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (noteRef.current && !noteRef.current.contains(event.target)) {
-        setIsNoteOpen(false)
-      }
       if (menuRef.current && !menuRef.current.contains(event.target)) {
         setIsMenuOpen(false)
       }
     }
-    if (isNoteOpen || isMenuOpen) {
+    if (isMenuOpen) {
       document.addEventListener("mousedown", handleClickOutside)
       return () => {
         document.removeEventListener("mousedown", handleClickOutside)
       }
     }
-  }, [isNoteOpen, isMenuOpen])
-
-  // Cleanup timeouts on unmount
-  useEffect(() => {
-    return () => {
-      if (hoverTimeout) clearTimeout(hoverTimeout)
-      if (leaveTimeout) clearTimeout(leaveTimeout)
-    }
-  }, [hoverTimeout, leaveTimeout])
-
-  // Close popup on scroll - only listen when popup is actually open
-  useEffect(() => {
-    // Only add listener if popup is open
-    if (!isNoteOpen && hoveredNoteId !== lead.id) {
-      return
-    }
-
-    const handleScroll = (event) => {
-      // Don't close if scrolling inside the popup itself
-      if (noteRef.current && noteRef.current.contains(event.target)) {
-        return
-      }
-      
-      setIsNoteOpen(false)
-      setHoveredNoteId(null)
-      if (hoverTimeout) clearTimeout(hoverTimeout)
-      if (leaveTimeout) clearTimeout(leaveTimeout)
-    }
-
-    // Listen to scroll on window and any scrollable parent
-    window.addEventListener('scroll', handleScroll, { capture: true, passive: true })
-    return () => {
-      window.removeEventListener('scroll', handleScroll, { capture: true, passive: true })
-    }
-  }, [isNoteOpen, hoveredNoteId, lead.id, hoverTimeout, leaveTimeout])
+  }, [isMenuOpen])
 
   const formatDate = (timestamp) => {
     const date = new Date(timestamp)
@@ -147,26 +88,8 @@ const SortableLeadCard = ({
     return phoneNumber || telephoneNumber || "-"
   }
 
-  // Get notes array (support both old specialNote and new notes array)
-  const getNotes = () => {
-    if (lead.notes && Array.isArray(lead.notes) && lead.notes.length > 0) {
-      return lead.notes
-    }
-    if (lead.specialNote && lead.specialNote.text && lead.specialNote.text.trim() !== "") {
-      return [{
-        id: 1,
-        status: "general",
-        text: lead.specialNote.text,
-        isImportant: lead.specialNote.isImportant || false,
-        startDate: lead.specialNote.startDate || "",
-        endDate: lead.specialNote.endDate || "",
-        createdAt: lead.createdAt || "",
-      }]
-    }
-    return []
-  }
-  
-  const leadNotes = getNotes()
+  // Use shared extractNotes helper
+  const leadNotes = extractNotes(lead, "lead")
   const hasValidNote = leadNotes.length > 0
   const hasImportantNote = leadNotes.some(n => n.isImportant)
   const hasRelationsCount = Object.values(memberRelationsLead[lead.id] || {}).flat().length
@@ -193,97 +116,6 @@ const SortableLeadCard = ({
   // Show calendar icon if in trial column OR has trial appointments
   const shouldShowCalendarIcon = isInTrialColumn || hasTrialAppointments
 
-  const handleNoteClick = (e) => {
-    e.stopPropagation()
-    const rect = e.currentTarget.getBoundingClientRect()
-    const viewportHeight = window.innerHeight
-    const spaceBelow = viewportHeight - rect.bottom - 16 // 16px margin from bottom
-    
-    setNotePosition({
-      top: rect.bottom + 8,
-      left: rect.left,
-      maxHeight: Math.min(spaceBelow, viewportHeight * 0.6), // Use available space or 60vh, whichever is smaller
-    })
-    setIsNoteOpen(!isNoteOpen)
-  }
-
-  const handleNoteMouseEnter = (e) => {
-    e.stopPropagation()
-    
-    // Clear any existing timeouts
-    if (hoverTimeout) {
-      clearTimeout(hoverTimeout)
-      setHoverTimeout(null)
-    }
-    if (leaveTimeout) {
-      clearTimeout(leaveTimeout)
-      setLeaveTimeout(null)
-    }
-    
-    const rect = e.currentTarget.getBoundingClientRect()
-    const viewportHeight = window.innerHeight
-    const spaceBelow = viewportHeight - rect.bottom - 16 // 16px margin from bottom
-    
-    setNotePosition({
-      top: rect.bottom + 8,
-      left: rect.left,
-      maxHeight: Math.min(spaceBelow, viewportHeight * 0.6), // Use available space or 60vh, whichever is smaller
-    })
-    
-    const timeout = setTimeout(() => {
-      setHoveredNoteId(lead.id)
-    }, 300)
-    setHoverTimeout(timeout)
-  }
-
-  const handleNoteMouseLeave = (e) => {
-    e.stopPropagation()
-    
-    // Clear enter timeout if still pending
-    if (hoverTimeout) {
-      clearTimeout(hoverTimeout)
-      setHoverTimeout(null)
-    }
-    
-    // Don't hide if mouse is moving to popup (increased delay for popups above icon)
-    const timeout = setTimeout(() => {
-      // Only hide if not hovering over popup
-      if (!noteRef.current || !noteRef.current.matches(':hover')) {
-        setHoveredNoteId(null)
-      }
-    }, 300) // Increased from 200 to 300ms
-    setLeaveTimeout(timeout)
-  }
-
-  const handlePopupMouseEnter = (e) => {
-    e.stopPropagation()
-    // Cancel any pending leave timeout when hovering over popup
-    if (leaveTimeout) {
-      clearTimeout(leaveTimeout)
-      setLeaveTimeout(null)
-    }
-  }
-
-  const handlePopupMouseLeave = (e) => {
-    e.stopPropagation()
-    // Hide popup when leaving the popup area
-    const timeout = setTimeout(() => {
-      setHoveredNoteId(null)
-    }, 100)
-    setLeaveTimeout(timeout)
-  }
-
-  const handleEditNote = (e) => {
-    e.stopPropagation()
-    if (hoverTimeout) clearTimeout(hoverTimeout)
-    if (leaveTimeout) clearTimeout(leaveTimeout)
-    if (onEditLead) {
-      onEditLead(lead, "note")
-    }
-    setIsNoteOpen(false)
-    setHoveredNoteId(null)
-  }
-
   const handleOpenDocuments = (e) => {
     e.stopPropagation()
     if (onOpenDocuments) {
@@ -299,8 +131,6 @@ const SortableLeadCard = ({
     }
   }
 
-  const shouldShowNotePopover = isNoteOpen || hoveredNoteId === lead.id
-  
   const isCompactCollapsed = isCompactView && expandedLeadId !== lead.id
 
   // If this is the drag overlay, render without sortable functionality
@@ -312,26 +142,13 @@ const SortableLeadCard = ({
           data-lead-id={lead.id}
         >
           <div className="flex items-center gap-3">
-            {/* Special Note Icon */}
-            {hasValidNote ? (
-              <div
-                className={`${
-                  hasImportantNote 
-                    ? "bg-red-500" 
-                    : "bg-blue-500"
-                } rounded-full p-1 border-[2.5px] border-white shadow-lg flex-shrink-0`}
-              >
-                {hasImportantNote ? (
-                  <AlertTriangle size={12} className="text-white" />
-                ) : (
-                  <Info size={12} className="text-white" />
-                )}
-              </div>
-            ) : (
-              <div className="bg-transparent border-[2.5px] border-dashed border-gray-400 rounded-full p-1 shadow-lg flex-shrink-0">
-                <StickyNote size={12} className="text-gray-400" />
-              </div>
-            )}
+            {/* Special Note Icon - Using shared component */}
+            <LeadSpecialNoteIcon
+              lead={lead}
+              onEditLead={onEditLead}
+              size="sm"
+              position="relative"
+            />
             
             <span className="text-white font-medium text-sm truncate">
               {lead.firstName} {lead.surname}
@@ -347,27 +164,13 @@ const SortableLeadCard = ({
         data-lead-id={lead.id}
       >
         <div className="flex items-center mb-2 sm:mb-3 relative">
-          {hasValidNote ? (
-            <div
-              className={`absolute -top-2 -left-2 ${
-                hasImportantNote 
-                  ? "bg-red-500" 
-                  : "bg-blue-500"
-              } rounded-full p-1 border-[2.5px] border-white shadow-lg z-10`}
-            >
-              {hasImportantNote ? (
-                <AlertTriangle size={14} className="text-white" />
-              ) : (
-                <Info size={14} className="text-white" />
-              )}
-            </div>
-          ) : (
-            <div
-              className="absolute -top-2 -left-2 bg-transparent border border-dashed border-gray-400 rounded-full p-1 shadow-lg z-10"
-            >
-              <StickyNote size={14} className="text-gray-400" />
-            </div>
-          )}
+          {/* Special Note Icon - Using shared component */}
+          <LeadSpecialNoteIcon
+            lead={lead}
+            onEditLead={onEditLead}
+            size="md"
+            position="absolute"
+          />
           
           <div className="flex-1 mt-6">
             <h4 className="font-medium text-white text-lg mb-1">{`${lead.firstName} ${lead.surname}`}</h4>
@@ -396,43 +199,13 @@ const SortableLeadCard = ({
               {...listeners}
               style={{ WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'none' }}
             >
-              {/* Special Note Icon - Inside card */}
-              {hasValidNote ? (
-                <div
-                  className={`${
-                    hasImportantNote 
-                      ? "bg-red-500 hover:bg-red-400" 
-                      : "bg-blue-500 hover:bg-blue-400"
-                  } rounded-full p-1 border-[2.5px] border-white shadow-lg cursor-pointer transition-all duration-200 hover:scale-110 active:scale-95 flex-shrink-0`}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleNoteClick(e)
-                  }}
-                  onMouseEnter={handleNoteMouseEnter}
-                  onMouseLeave={handleNoteMouseLeave}
-                  onPointerDown={(e) => e.stopPropagation()}
-                >
-                  {hasImportantNote ? (
-                    <AlertTriangle size={12} className="text-white" />
-                  ) : (
-                    <Info size={12} className="text-white" />
-                  )}
-                </div>
-              ) : (
-                <div
-                  className="bg-transparent border-[2.5px] border-dashed border-gray-400 hover:border-gray-300 rounded-full p-1 shadow-lg cursor-pointer transition-all duration-200 hover:scale-110 active:scale-95 flex-shrink-0"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    if (onEditLead) {
-                      onEditLead(lead, "note")
-                    }
-                  }}
-                  onPointerDown={(e) => e.stopPropagation()}
-                  title="Add special note"
-                >
-                  <StickyNote size={12} className="text-gray-400" />
-                </div>
-              )}
+              {/* Special Note Icon - Using shared component */}
+              <LeadSpecialNoteIcon
+                lead={lead}
+                onEditLead={onEditLead}
+                size="sm"
+                position="relative"
+              />
               
               <div className="flex-1 min-w-0">
                 <span className="text-white font-medium text-sm truncate block">
@@ -485,39 +258,13 @@ const SortableLeadCard = ({
           {...listeners}
           style={{ WebkitUserSelect: 'none', userSelect: 'none', touchAction: 'none' }}
         >
-          {hasValidNote ? (
-            <div
-              className={`absolute -top-2 -left-2 ${
-                hasImportantNote 
-                  ? "bg-red-500 hover:bg-red-400" 
-                  : "bg-blue-500 hover:bg-blue-400"
-              } rounded-full p-1 border-[2.5px] border-white shadow-lg z-10 cursor-pointer transition-all duration-200 hover:scale-110 active:scale-95`}
-              onClick={handleNoteClick}
-              onMouseEnter={handleNoteMouseEnter}
-              onMouseLeave={handleNoteMouseLeave}
-              onPointerDown={(e) => e.stopPropagation()}
-            >
-              {hasImportantNote ? (
-                <AlertTriangle size={14} className="text-white" />
-              ) : (
-                <Info size={14} className="text-white" />
-              )}
-            </div>
-          ) : (
-            <div
-              className="absolute -top-2 -left-2 bg-transparent border border-dashed border-gray-400 hover:border-gray-300 rounded-full p-1 shadow-lg z-10 cursor-pointer transition-all duration-200 hover:scale-110 active:scale-95"
-              onClick={(e) => {
-                e.stopPropagation()
-                if (onEditLead) {
-                  onEditLead(lead, "note")
-                }
-              }}
-              onPointerDown={(e) => e.stopPropagation()}
-              title="Add special note"
-            >
-              <StickyNote size={14} className="text-gray-400" />
-            </div>
-          )}
+          {/* Special Note Icon - Using shared component */}
+          <LeadSpecialNoteIcon
+            lead={lead}
+            onEditLead={onEditLead}
+            size="md"
+            position="absolute"
+          />
           
           <div className="flex-1 mt-6">
             <h4 className="font-medium text-white text-lg mb-1">{`${lead.firstName} ${lead.surname}`}</h4>
@@ -676,114 +423,6 @@ const SortableLeadCard = ({
         </div>
       </div>
       )}
-      
-      {/* Note Popover - Available in both compact and detailed views */}
-      {shouldShowNotePopover && hasValidNote &&
-        createPortal(
-          <div
-            ref={noteRef}
-            className="fixed w-72 sm:w-80 bg-black/95 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-[99999] flex flex-col"
-            style={{
-              top: notePosition.top,
-              left: notePosition.left,
-              maxHeight: notePosition.maxHeight || '60vh',
-            }}
-            onMouseEnter={handlePopupMouseEnter}
-            onMouseLeave={handlePopupMouseLeave}
-          >
-            {/* Header */}
-            <div className="bg-gray-800 p-2 sm:p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2 flex-shrink-0">
-              <h4 className="text-white flex gap-2 items-center font-medium text-sm">
-                <span>Special Notes</span>
-                <span className="text-xs text-gray-500">({leadNotes.length})</span>
-              </h4>
-              <button
-                onClick={handleEditNote}
-                className="ml-auto text-gray-400 p-1"
-                title="Edit notes"
-              >
-                <Edit size={14} />
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  if (hoverTimeout) clearTimeout(hoverTimeout)
-                  if (leaveTimeout) clearTimeout(leaveTimeout)
-                  setIsNoteOpen(false)
-                  setHoveredNoteId(null)
-                }}
-                className="text-gray-400 p-1"
-              >
-                <X size={16} />
-              </button>
-            </div>
-            
-            {/* Scrollable Content - Notes List */}
-            <style>{`
-              .special-note-scrollable::-webkit-scrollbar {
-                width: 6px;
-              }
-              .special-note-scrollable::-webkit-scrollbar-track {
-                background: #1F2937;
-                border-radius: 4px;
-              }
-              .special-note-scrollable::-webkit-scrollbar-thumb {
-                background: #4B5563;
-                border-radius: 4px;
-              }
-            `}</style>
-            <div 
-              className="p-2 overflow-y-auto flex-1 min-h-0 special-note-scrollable space-y-2"
-              style={{
-                scrollbarWidth: 'thin',
-                scrollbarColor: '#4B5563 #1F2937'
-              }}
-            >
-              {[...leadNotes]
-                .sort((a, b) => (b.isImportant ? 1 : 0) - (a.isImportant ? 1 : 0))
-                .slice(0, 5)
-                .map((note, index) => (
-                <div key={note.id || index} className="bg-gray-800/50 rounded-lg p-2.5">
-                  <div className="flex items-center gap-1.5 mb-1.5">
-                    <span className="text-xs px-1.5 py-0.5 rounded bg-gray-700 text-gray-300">
-                      {getStatusLabel(note.status)}
-                    </span>
-                    {note.isImportant && (
-                      <span className="text-xs px-1.5 py-0.5 rounded bg-gray-700 text-red-500">
-                        Important
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-white text-xs leading-relaxed whitespace-pre-wrap">
-                    {note.text}
-                  </p>
-                  {(note.startDate || note.endDate) && (
-                    <p className="text-gray-500 text-xs mt-1.5 flex items-center gap-1">
-                      <Calendar size={10} />
-                      {note.startDate && note.endDate ? (
-                        <>Valid: {note.startDate} - {note.endDate}</>
-                      ) : note.startDate ? (
-                        <>Valid from: {note.startDate}</>
-                      ) : (
-                        <>Valid until: {note.endDate}</>
-                      )}
-                    </p>
-                  )}
-                </div>
-              ))}
-              {leadNotes.length > 5 && (
-                <button
-                  onClick={handleEditNote}
-                  className="w-full text-center text-xs text-blue-400 py-1"
-                >
-                  +{leadNotes.length - 5} more notes...
-                </button>
-              )}
-            </div>
-          </div>,
-          document.body
-        )
-      }
     </>
   )
 }

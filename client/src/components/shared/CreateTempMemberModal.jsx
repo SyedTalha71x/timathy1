@@ -3,8 +3,7 @@
 import { Trash2, X, Search, Plus, ChevronDown, ChevronUp, Pencil, Info } from "lucide-react"
 import { useEffect, useState, useRef } from "react"
 import toast from "react-hot-toast"
-import useCountries from "../../../hooks/useCountries"
-import DefaultAvatar from "../../../../public/gray-avatar-fotor-20250912192528.png"
+import DefaultAvatar from "../../../public/gray-avatar-fotor-20250912192528.png"
 
 // Note Status Options
 const NOTE_STATUSES = [
@@ -18,49 +17,73 @@ const NOTE_STATUSES = [
   { id: "general", label: "General" },
 ]
 
+// Default relation options
+const DEFAULT_RELATION_OPTIONS = {
+  family: ["Father", "Mother", "Brother", "Sister", "Son", "Daughter", "Uncle", "Aunt", "Cousin", "Grandfather", "Grandmother", "Nephew", "Niece", "Stepfather", "Stepmother", "Father-in-law", "Mother-in-law", "Brother-in-law", "Sister-in-law"],
+  friendship: ["Best Friend", "Close Friend", "Friend", "Acquaintance", "Childhood Friend"],
+  relationship: ["Partner", "Spouse", "Fiancé/Fiancée", "Ex-Partner", "Boyfriend", "Girlfriend"],
+  work: ["Colleague", "Boss", "Manager", "Employee", "Business Partner", "Client", "Mentor", "Cofounder"],
+  other: ["Neighbor", "Doctor", "Trainer", "Coach", "Teacher", "Therapist", "Roommate"],
+}
+
+// Default empty form state
+const getDefaultFormState = () => ({
+  firstName: "",
+  lastName: "",
+  email: "",
+  phone: "",
+  telephoneNumber: "",
+  street: "",
+  zipCode: "",
+  city: "",
+  country: "",
+  dateOfBirth: "",
+  gender: "",
+  about: "",
+  img: null,
+  autoArchiveDate: "",
+  autoArchivePeriod: 6,
+  notes: [],
+  relations: {
+    family: [],
+    friendship: [],
+    relationship: [],
+    work: [],
+    other: [],
+  },
+})
+
+/**
+ * Shared CreateTempMemberModal Component
+ * 
+ * This modal can be used in both Members page and Selling page
+ * 
+ * @param {boolean} show - Whether the modal is visible
+ * @param {function} onClose - Callback when modal is closed
+ * @param {function} onSuccess - Callback when member is created successfully, receives the new member data
+ * @param {array} availableMembersLeads - Optional list of existing members/leads for relations (default: empty array)
+ * @param {object} relationOptions - Optional custom relation options (default: DEFAULT_RELATION_OPTIONS)
+ * @param {array} countries - Optional list of countries for dropdown (default: empty array)
+ * @param {boolean} countriesLoading - Whether countries are loading
+ * @param {string} initialTab - Optional initial tab ("details", "note", "relations")
+ * @param {string} context - Optional context identifier ("members" | "selling") for customization
+ */
 const CreateTempMemberModal = ({
   show,
   onClose,
-  tempMemberForm,
-  setTempMemberForm,
-  tempMemberModalTab,
-  setTempMemberModalTab,
-  handleCreateTempMember,
-  handleTempMemberInputChange,
-  handleImgUpload,
-  editingRelationsMain,
-  setEditingRelationsMain,
-  newRelationMain,
-  setNewRelationMain,
-  availableMembersLeadsMain,
-  relationOptionsMain = {
-    family: ["Father", "Mother", "Brother", "Sister", "Son", "Daughter", "Uncle", "Aunt", "Cousin", "Grandfather", "Grandmother", "Nephew", "Niece", "Stepfather", "Stepmother", "Father-in-law", "Mother-in-law", "Brother-in-law", "Sister-in-law"],
-    friendship: ["Best Friend", "Close Friend", "Friend", "Acquaintance", "Childhood Friend"],
-    relationship: ["Partner", "Spouse", "Fiancé/Fiancée", "Ex-Partner", "Boyfriend", "Girlfriend"],
-    work: ["Colleague", "Boss", "Manager", "Employee", "Business Partner", "Client", "Mentor", "Cofounder"],
-    other: ["Neighbor", "Doctor", "Trainer", "Coach", "Teacher", "Therapist", "Roommate"],
-  },
+  onSuccess,
+  availableMembersLeads = [],
+  relationOptions = DEFAULT_RELATION_OPTIONS,
+  countries = [],
+  countriesLoading = false,
+  initialTab = "details",
+  context = "members",
 }) => {
-  const [activeTab, setActiveTab] = useState(tempMemberModalTab || "details")
-  const [editingRelations, setEditingRelations] = useState(false)
-  const { countries, loading } = useCountries()
-  const specialNoteTextareaRef = useRef(null)
-
-  // Calculate default auto-archive date (6 weeks from now)
-  const getDefaultAutoArchiveDate = () => {
-    const date = new Date()
-    date.setDate(date.getDate() + 42) // 6 weeks = 42 days
-    return date.toISOString().split('T')[0]
-  }
-
-  // Set default auto-archive date when modal opens
-  useEffect(() => {
-    if (show && !tempMemberForm.autoArchiveDate) {
-      handleTempMemberInputChange({ target: { name: "autoArchiveDate", value: getDefaultAutoArchiveDate() } })
-    }
-  }, [show])
-
-  // Local copy of notes for editing
+  // Form state
+  const [formData, setFormData] = useState(getDefaultFormState())
+  const [activeTab, setActiveTab] = useState(initialTab)
+  
+  // Notes state
   const [localNotes, setLocalNotes] = useState([])
   const [isAddingNote, setIsAddingNote] = useState(false)
   const [editingNoteId, setEditingNoteId] = useState(null)
@@ -72,8 +95,8 @@ const CreateTempMemberModal = ({
     startDate: "",
     endDate: "",
   })
-
-  // Local copy of relations for editing
+  
+  // Relations state
   const [localRelations, setLocalRelations] = useState({
     family: [],
     friendship: [],
@@ -81,7 +104,7 @@ const CreateTempMemberModal = ({
     work: [],
     other: [],
   })
-
+  const [editingRelations, setEditingRelations] = useState(false)
   const [newRelation, setNewRelation] = useState({
     name: "",
     relation: "",
@@ -90,38 +113,46 @@ const CreateTempMemberModal = ({
     type: "manual",
     selectedMemberId: null,
   })
-
+  
   // Search state for member/lead search
   const [personSearchQuery, setPersonSearchQuery] = useState("")
   const [showPersonDropdown, setShowPersonDropdown] = useState(false)
+  
+  // Refs
   const personSearchRef = useRef(null)
+  const specialNoteTextareaRef = useRef(null)
 
-  // Default available members/leads if not provided
-  const defaultAvailableMembers = [
-    { id: 101, name: "Anna Doe", type: "member" },
-    { id: 102, name: "Peter Doe", type: "lead" },
-    { id: 103, name: "Lisa Doe", type: "member" },
-    { id: 201, name: "Max Miller", type: "member" },
-    { id: 301, name: "Marie Smith", type: "member" },
-    { id: 401, name: "Tom Wilson", type: "lead" },
-  ]
+  // Calculate default auto-archive date (6 weeks from now)
+  const getDefaultAutoArchiveDate = () => {
+    const date = new Date()
+    date.setDate(date.getDate() + 42) // 6 weeks = 42 days
+    return date.toISOString().split('T')[0]
+  }
 
-  const membersLeads = availableMembersLeadsMain?.length > 0 ? availableMembersLeadsMain : defaultAvailableMembers
-
+  // Reset form when modal opens
   useEffect(() => {
     if (show) {
-      setActiveTab(tempMemberModalTab || "details")
-      // Reset local states when modal opens
-      setLocalNotes(tempMemberForm.notes || [])
-      setLocalRelations(tempMemberForm.relations || {
+      setFormData(getDefaultFormState())
+      setActiveTab(initialTab)
+      setLocalNotes([])
+      setLocalRelations({
         family: [],
         friendship: [],
         relationship: [],
         work: [],
         other: [],
       })
+      setIsAddingNote(false)
+      setEditingNoteId(null)
+      setEditingRelations(false)
+      
+      // Set default auto-archive date
+      setFormData(prev => ({
+        ...prev,
+        autoArchiveDate: getDefaultAutoArchiveDate()
+      }))
     }
-  }, [tempMemberModalTab, show, tempMemberForm.notes, tempMemberForm.relations])
+  }, [show, initialTab])
 
   // Auto-focus special note textarea when note tab is active
   useEffect(() => {
@@ -145,6 +176,28 @@ const CreateTempMemberModal = ({
       return () => document.removeEventListener("mousedown", handleClickOutside)
     }
   }, [showPersonDropdown])
+
+  // Handle input change
+  const handleInputChange = (e) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }))
+  }
+
+  // Image upload handler
+  const handleImageUpload = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0]
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setFormData(prev => ({ ...prev, img: reader.result }))
+        toast.success("Avatar selected successfully")
+      }
+      reader.readAsDataURL(file)
+    }
+  }
 
   // Note functions
   const handleAddNote = (e) => {
@@ -293,46 +346,59 @@ const CreateTempMemberModal = ({
     toast.success("Relation removed")
   }
 
+  // Form submission
   const handleFormSubmit = (e) => {
     e.preventDefault()
 
-    // Validate required fields from details section
-    if (!tempMemberForm.firstName || !tempMemberForm.firstName.trim()) {
+    // Validate required fields
+    if (!formData.firstName || !formData.firstName.trim()) {
       toast.error("First Name is required")
       setActiveTab("details")
       return
     }
 
-    if (!tempMemberForm.lastName || !tempMemberForm.lastName.trim()) {
+    if (!formData.lastName || !formData.lastName.trim()) {
       toast.error("Last Name is required")
       setActiveTab("details")
       return
     }
 
-    if (!tempMemberForm.email || !tempMemberForm.email.trim()) {
+    if (!formData.email || !formData.email.trim()) {
       toast.error("Email is required")
       setActiveTab("details")
       return
     }
 
-    // Build notes for the form
+    // Build the complete member data
     const importantNote = localNotes.find((n) => n.isImportant)
     const firstNote = localNotes[0]
     const primaryNote = importantNote || firstNote
 
-    // Update form with notes data
-    setTempMemberForm((prev) => ({
-      ...prev,
+    const newMemberData = {
+      ...formData,
+      title: `${formData.firstName} ${formData.lastName}`,
       notes: localNotes,
       note: primaryNote ? primaryNote.text : "",
       noteImportance: primaryNote?.isImportant ? "important" : "unimportant",
       noteStartDate: primaryNote?.startDate || "",
       noteEndDate: primaryNote?.endDate || "",
       relations: localRelations,
-    }))
+      isActive: true,
+      isArchived: false,
+      memberType: "temporary",
+      joinDate: new Date().toISOString().split("T")[0],
+      contractStart: "",
+      contractEnd: "",
+    }
 
-    // Call the create handler
-    handleCreateTempMember(e, localRelations, localNotes)
+    // Call success callback
+    if (onSuccess) {
+      onSuccess(newMemberData)
+    }
+
+    // Close modal
+    onClose()
+    toast.success("Temporary member created successfully")
   }
 
   // Handle tab clicks
@@ -340,7 +406,6 @@ const CreateTempMemberModal = ({
     e.preventDefault()
     e.stopPropagation()
     setActiveTab(tabName)
-    setTempMemberModalTab(tabName)
   }
 
   // Handle close button click
@@ -350,23 +415,10 @@ const CreateTempMemberModal = ({
     onClose()
   }
 
-  // Image upload handler
-  const handleImageUpload = (e) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0]
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        handleTempMemberInputChange({ target: { name: "img", value: reader.result } })
-        toast.success("Avatar selected successfully")
-      }
-      reader.readAsDataURL(file)
-    }
-  }
-
   if (!show) return null
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex p-2 justify-center items-center z-50 overflow-y-auto">
+    <div className="fixed inset-0 bg-black/50 flex p-2 justify-center items-center z-[10000] overflow-y-auto">
       <div className="bg-[#1C1C1C] p-6 rounded-xl w-full max-w-md my-8">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl text-white font-bold">Create Temporary Member</h2>
@@ -424,16 +476,16 @@ const CreateTempMemberModal = ({
               <>
                 {/* Avatar Upload */}
                 <div className="flex flex-col items-start">
-                  <div className="w-24 h-24 rounded-xl overflow-hidden mb-4">
+                  <div className="w-24 h-24 rounded-xl overflow-hidden mb-4 bg-gray-700">
                     <img
-                      src={tempMemberForm.img || DefaultAvatar}
+                      src={formData.img || DefaultAvatar}
                       alt="Profile"
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  <input type="file" id="avatar-upload" className="hidden" accept="image/*" onChange={handleImageUpload} />
+                  <input type="file" id="avatar-upload-temp" className="hidden" accept="image/*" onChange={handleImageUpload} />
                   <label
-                    htmlFor="avatar-upload"
+                    htmlFor="avatar-upload-temp"
                     className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 px-6 py-2 rounded-xl text-sm cursor-pointer text-white"
                   >
                     Upload picture
@@ -452,8 +504,8 @@ const CreateTempMemberModal = ({
                       <input
                         type="text"
                         name="firstName"
-                        value={tempMemberForm.firstName}
-                        onChange={handleTempMemberInputChange}
+                        value={formData.firstName}
+                        onChange={handleInputChange}
                         className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
                         required
                       />
@@ -465,8 +517,8 @@ const CreateTempMemberModal = ({
                       <input
                         type="text"
                         name="lastName"
-                        value={tempMemberForm.lastName}
-                        onChange={handleTempMemberInputChange}
+                        value={formData.lastName}
+                        onChange={handleInputChange}
                         className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
                         required
                       />
@@ -478,8 +530,8 @@ const CreateTempMemberModal = ({
                       <label className="text-sm text-gray-200 block mb-2">Gender</label>
                       <select
                         name="gender"
-                        value={tempMemberForm.gender || ""}
-                        onChange={handleTempMemberInputChange}
+                        value={formData.gender || ""}
+                        onChange={handleInputChange}
                         className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
                       >
                         <option value="">Select Gender</option>
@@ -493,8 +545,8 @@ const CreateTempMemberModal = ({
                       <input
                         type="date"
                         name="dateOfBirth"
-                        value={tempMemberForm.dateOfBirth || ""}
-                        onChange={handleTempMemberInputChange}
+                        value={formData.dateOfBirth || ""}
+                        onChange={handleInputChange}
                         className="w-full bg-[#141414] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
                       />
                     </div>
@@ -512,8 +564,8 @@ const CreateTempMemberModal = ({
                     <input
                       type="email"
                       name="email"
-                      value={tempMemberForm.email}
-                      onChange={handleTempMemberInputChange}
+                      value={formData.email}
+                      onChange={handleInputChange}
                       className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
                       required
                     />
@@ -521,16 +573,14 @@ const CreateTempMemberModal = ({
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">
-                        Mobile Number
-                      </label>
+                      <label className="text-sm text-gray-200 block mb-2">Mobile Number</label>
                       <input
                         type="tel"
                         name="phone"
-                        value={tempMemberForm.phone}
+                        value={formData.phone}
                         onChange={(e) => {
                           const sanitized = e.target.value.replace(/[^0-9+]/g, "")
-                          handleTempMemberInputChange({ target: { name: "phone", value: sanitized } })
+                          handleInputChange({ target: { name: "phone", value: sanitized } })
                         }}
                         placeholder="+49 123 456789"
                         className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
@@ -541,10 +591,10 @@ const CreateTempMemberModal = ({
                       <input
                         type="tel"
                         name="telephoneNumber"
-                        value={tempMemberForm.telephoneNumber || ""}
+                        value={formData.telephoneNumber || ""}
                         onChange={(e) => {
                           const sanitized = e.target.value.replace(/[^0-9+]/g, "")
-                          handleTempMemberInputChange({ target: { name: "telephoneNumber", value: sanitized } })
+                          handleInputChange({ target: { name: "telephoneNumber", value: sanitized } })
                         }}
                         placeholder="030 12345678"
                         className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
@@ -562,8 +612,8 @@ const CreateTempMemberModal = ({
                     <input
                       type="text"
                       name="street"
-                      value={tempMemberForm.street || ""}
-                      onChange={handleTempMemberInputChange}
+                      value={formData.street || ""}
+                      onChange={handleInputChange}
                       className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
                       placeholder="Main Street 123"
                     />
@@ -575,8 +625,8 @@ const CreateTempMemberModal = ({
                       <input
                         type="text"
                         name="zipCode"
-                        value={tempMemberForm.zipCode || ""}
-                        onChange={handleTempMemberInputChange}
+                        value={formData.zipCode || ""}
+                        onChange={handleInputChange}
                         className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
                         placeholder="12345"
                       />
@@ -586,36 +636,38 @@ const CreateTempMemberModal = ({
                       <input
                         type="text"
                         name="city"
-                        value={tempMemberForm.city || ""}
-                        onChange={handleTempMemberInputChange}
+                        value={formData.city || ""}
+                        onChange={handleInputChange}
                         className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
                         placeholder="Berlin"
                       />
                     </div>
                   </div>
 
-                  <div>
-                    <label className="text-sm text-gray-200 block mb-2">Country</label>
-                    <select
-                      name="country"
-                      value={tempMemberForm.country || ""}
-                      onChange={handleTempMemberInputChange}
-                      className="w-full bg-[#141414] text-sm rounded-xl px-4 py-2 text-white outline-none"
-                    >
-                      <option value="">Select a country</option>
-                      {loading ? (
-                        <option value="" disabled>
-                          Loading countries...
-                        </option>
-                      ) : (
-                        countries.map((country) => (
-                          <option key={country.code} value={country.name}>
-                            {country.name}
+                  {countries.length > 0 && (
+                    <div>
+                      <label className="text-sm text-gray-200 block mb-2">Country</label>
+                      <select
+                        name="country"
+                        value={formData.country || ""}
+                        onChange={handleInputChange}
+                        className="w-full bg-[#141414] text-sm rounded-xl px-4 py-2 text-white outline-none"
+                      >
+                        <option value="">Select a country</option>
+                        {countriesLoading ? (
+                          <option value="" disabled>
+                            Loading countries...
                           </option>
-                        ))
-                      )}
-                    </select>
-                  </div>
+                        ) : (
+                          countries.map((country) => (
+                            <option key={country.code || country.name} value={country.name}>
+                              {country.name}
+                            </option>
+                          ))
+                        )}
+                      </select>
+                    </div>
+                  )}
                 </div>
 
                 {/* Additional Information */}
@@ -626,8 +678,8 @@ const CreateTempMemberModal = ({
                     <label className="text-sm text-gray-200 block mb-2">About</label>
                     <textarea
                       name="about"
-                      value={tempMemberForm.about || ""}
-                      onChange={handleTempMemberInputChange}
+                      value={formData.about || ""}
+                      onChange={handleInputChange}
                       className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm resize-none min-h-[100px]"
                       placeholder="Enter more details..."
                     />
@@ -638,8 +690,8 @@ const CreateTempMemberModal = ({
                     <input
                       type="date"
                       name="autoArchiveDate"
-                      value={tempMemberForm.autoArchiveDate || ""}
-                      onChange={handleTempMemberInputChange}
+                      value={formData.autoArchiveDate || ""}
+                      onChange={handleInputChange}
                       className="w-full bg-[#141414] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
                     />
                     <p className="text-xs text-gray-500 mt-1">
@@ -658,7 +710,7 @@ const CreateTempMemberModal = ({
                   <div>
                     <p className="text-xs text-gray-400 uppercase tracking-wider">Special Notes for</p>
                     <p className="text-white font-medium">
-                      {tempMemberForm.firstName || "New"} {tempMemberForm.lastName || "Member"}
+                      {formData.firstName || "New"} {formData.lastName || "Member"}
                     </p>
                   </div>
                   <button
@@ -855,7 +907,7 @@ const CreateTempMemberModal = ({
                   <div>
                     <p className="text-xs text-gray-400 uppercase tracking-wider">Relations for</p>
                     <p className="text-white font-medium">
-                      {tempMemberForm.firstName || "New"} {tempMemberForm.lastName || "Member"}
+                      {formData.firstName || "New"} {formData.lastName || "Member"}
                     </p>
                   </div>
                   <button
@@ -889,8 +941,12 @@ const CreateTempMemberModal = ({
                           className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500"
                         >
                           <option value="manual">Manual Entry</option>
-                          <option value="member">Existing Member</option>
-                          <option value="lead">Existing Lead</option>
+                          {availableMembersLeads.length > 0 && (
+                            <>
+                              <option value="member">Existing Member</option>
+                              <option value="lead">Existing Lead</option>
+                            </>
+                          )}
                         </select>
                       </div>
 
@@ -928,7 +984,7 @@ const CreateTempMemberModal = ({
 
                           {showPersonDropdown && (
                             <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a1a] border border-gray-700 rounded-lg max-h-40 overflow-y-auto z-10">
-                              {membersLeads
+                              {availableMembersLeads
                                 .filter(
                                   (p) =>
                                     p.type === newRelation.type &&
@@ -952,7 +1008,7 @@ const CreateTempMemberModal = ({
                                     {person.name}
                                   </button>
                                 ))}
-                              {membersLeads.filter(
+                              {availableMembersLeads.filter(
                                 (p) =>
                                   p.type === newRelation.type &&
                                   p.name.toLowerCase().includes(personSearchQuery.toLowerCase())
@@ -1001,7 +1057,7 @@ const CreateTempMemberModal = ({
                           className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500"
                         >
                           <option value="">Select...</option>
-                          {relationOptionsMain[newRelation.category]?.map((option) => (
+                          {relationOptions[newRelation.category]?.map((option) => (
                             <option key={option} value={option}>
                               {option}
                             </option>

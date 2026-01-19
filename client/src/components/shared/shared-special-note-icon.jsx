@@ -4,8 +4,8 @@ import { AlertTriangle, Calendar, Edit, Info, StickyNote, X } from 'lucide-react
 import { useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
 
-// Note Status Options - same as Leads
-const NOTE_STATUSES = [
+// Note Status Options - Shared constant
+export const NOTE_STATUSES = [
   { id: "contact_attempt", label: "Contact Attempt" },
   { id: "callback_requested", label: "Callback Requested" },
   { id: "interest", label: "Interest" },
@@ -16,25 +16,69 @@ const NOTE_STATUSES = [
   { id: "general", label: "General" },
 ]
 
-const getStatusLabel = (statusId) => {
+export const getStatusLabel = (statusId) => {
   const status = NOTE_STATUSES.find(s => s.id === statusId)
   return status ? status.label : "General"
 }
 
 /**
- * MemberSpecialNoteIcon - Identical to Lead's special note icon
+ * Helper function to extract notes from different entity structures
+ * Supports both Lead and Member data structures
+ */
+export const extractNotes = (entity, entityType = "member") => {
+  if (!entity) return []
+  
+  // Check for notes array first (new format)
+  if (entity.notes && Array.isArray(entity.notes) && entity.notes.length > 0) {
+    return entity.notes
+  }
+  
+  // Lead legacy format - specialNote object
+  if (entityType === "lead" && entity.specialNote?.text?.trim()) {
+    return [{
+      id: 1,
+      status: "general",
+      text: entity.specialNote.text,
+      isImportant: entity.specialNote.isImportant || false,
+      startDate: entity.specialNote.startDate || "",
+      endDate: entity.specialNote.endDate || "",
+      createdAt: entity.createdAt || "",
+    }]
+  }
+  
+  // Member legacy format - note string
+  if (entityType === "member" && entity.note?.trim()) {
+    return [{
+      id: 1,
+      status: entity.noteStatus || "general",
+      text: entity.note,
+      isImportant: entity.noteImportance === "important",
+      startDate: entity.noteStartDate || "",
+      endDate: entity.noteEndDate || "",
+    }]
+  }
+  
+  return []
+}
+
+/**
+ * SharedSpecialNoteIcon - Works for both Leads and Members
  * 
  * Props:
- * - member: The member object
- * - onEditMember: Function to open edit modal with tab (member, "note")
+ * - entity: The lead or member object
+ * - entityType: "lead" or "member"
+ * - onEdit: Function to open edit modal (entity, "note")
  * - size: Icon size ("sm" | "md") - default "md"
  * - position: Position style ("absolute" | "relative") - default "absolute"
+ * - maxVisibleNotes: Maximum notes to show in popover - default 5
  */
-const MemberSpecialNoteIcon = ({
-  member,
-  onEditMember,
+const SharedSpecialNoteIcon = ({
+  entity,
+  entityType = "member",
+  onEdit,
   size = "md",
   position = "absolute",
+  maxVisibleNotes = 5,
 }) => {
   const [isNoteOpen, setIsNoteOpen] = useState(false)
   const [notePosition, setNotePosition] = useState({ top: 0, left: 0 })
@@ -45,27 +89,10 @@ const MemberSpecialNoteIcon = ({
   const noteRef = useRef(null)
   const iconRef = useRef(null)
 
-  // Get notes array (support both old single note and new notes array)
-  const getNotes = () => {
-    if (member.notes && Array.isArray(member.notes) && member.notes.length > 0) {
-      return member.notes
-    }
-    if (member.note && member.note.trim() !== "") {
-      return [{
-        id: 1,
-        status: member.noteStatus || "general",
-        text: member.note,
-        isImportant: member.noteImportance === "important",
-        startDate: member.noteStartDate || "",
-        endDate: member.noteEndDate || "",
-      }]
-    }
-    return []
-  }
-  
-  const memberNotes = getNotes()
-  const hasValidNote = memberNotes.length > 0
-  const hasImportantNote = memberNotes.some(n => n.isImportant)
+  // Get notes array using the helper
+  const entityNotes = extractNotes(entity, entityType)
+  const hasValidNote = entityNotes.length > 0
+  const hasImportantNote = entityNotes.some(n => n.isImportant)
 
   // Icon sizes
   const iconSize = size === "sm" ? 12 : 14
@@ -97,7 +124,7 @@ const MemberSpecialNoteIcon = ({
 
   // Close popup on scroll
   useEffect(() => {
-    if (!isNoteOpen && hoveredNoteId !== member.id) {
+    if (!isNoteOpen && hoveredNoteId !== entity?.id) {
       return
     }
 
@@ -116,28 +143,32 @@ const MemberSpecialNoteIcon = ({
     return () => {
       window.removeEventListener('scroll', handleScroll, { capture: true, passive: true })
     }
-  }, [isNoteOpen, hoveredNoteId, member.id, hoverTimeout, leaveTimeout])
+  }, [isNoteOpen, hoveredNoteId, entity?.id, hoverTimeout, leaveTimeout])
+
+  const calculatePosition = (rect) => {
+    const viewportHeight = window.innerHeight
+    const spaceBelow = viewportHeight - rect.bottom - 16
+    
+    return {
+      top: rect.bottom + 8,
+      left: rect.left,
+      maxHeight: Math.min(spaceBelow, viewportHeight * 0.6),
+    }
+  }
 
   const handleNoteClick = (e) => {
     e.stopPropagation()
     
     if (!hasValidNote) {
       // No notes - open edit modal to add note
-      if (onEditMember) {
-        onEditMember(member, "note")
+      if (onEdit) {
+        onEdit(entity, "note")
       }
       return
     }
     
     const rect = e.currentTarget.getBoundingClientRect()
-    const viewportHeight = window.innerHeight
-    const spaceBelow = viewportHeight - rect.bottom - 16
-    
-    setNotePosition({
-      top: rect.bottom + 8,
-      left: rect.left,
-      maxHeight: Math.min(spaceBelow, viewportHeight * 0.6),
-    })
+    setNotePosition(calculatePosition(rect))
     setIsNoteOpen(!isNoteOpen)
   }
 
@@ -156,17 +187,10 @@ const MemberSpecialNoteIcon = ({
     }
     
     const rect = e.currentTarget.getBoundingClientRect()
-    const viewportHeight = window.innerHeight
-    const spaceBelow = viewportHeight - rect.bottom - 16
-    
-    setNotePosition({
-      top: rect.bottom + 8,
-      left: rect.left,
-      maxHeight: Math.min(spaceBelow, viewportHeight * 0.6),
-    })
+    setNotePosition(calculatePosition(rect))
     
     const timeout = setTimeout(() => {
-      setHoveredNoteId(member.id)
+      setHoveredNoteId(entity.id)
     }, 300)
     setHoverTimeout(timeout)
   }
@@ -207,19 +231,29 @@ const MemberSpecialNoteIcon = ({
     e.stopPropagation()
     if (hoverTimeout) clearTimeout(hoverTimeout)
     if (leaveTimeout) clearTimeout(leaveTimeout)
-    if (onEditMember) {
-      onEditMember(member, "note")
+    if (onEdit) {
+      onEdit(entity, "note")
     }
     setIsNoteOpen(false)
     setHoveredNoteId(null)
   }
 
-  const shouldShowNotePopover = isNoteOpen || hoveredNoteId === member.id
+  const closePopover = (e) => {
+    e.stopPropagation()
+    if (hoverTimeout) clearTimeout(hoverTimeout)
+    if (leaveTimeout) clearTimeout(leaveTimeout)
+    setIsNoteOpen(false)
+    setHoveredNoteId(null)
+  }
+
+  const shouldShowNotePopover = isNoteOpen || hoveredNoteId === entity?.id
 
   // Position classes
   const positionClasses = position === "absolute" 
     ? "absolute -top-2 -left-2 z-10" 
     : "flex-shrink-0"
+
+  if (!entity) return null
 
   return (
     <>
@@ -273,7 +307,7 @@ const MemberSpecialNoteIcon = ({
             <div className="bg-gray-800 p-2 sm:p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2 flex-shrink-0">
               <h4 className="text-white flex gap-2 items-center font-medium text-sm">
                 <span>Special Notes</span>
-                <span className="text-xs text-gray-500">({memberNotes.length})</span>
+                <span className="text-xs text-gray-500">({entityNotes.length})</span>
               </h4>
               <button
                 onClick={handleEditNote}
@@ -283,13 +317,7 @@ const MemberSpecialNoteIcon = ({
                 <Edit size={14} />
               </button>
               <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  if (hoverTimeout) clearTimeout(hoverTimeout)
-                  if (leaveTimeout) clearTimeout(leaveTimeout)
-                  setIsNoteOpen(false)
-                  setHoveredNoteId(null)
-                }}
+                onClick={closePopover}
                 className="text-gray-400 p-1 hover:text-white"
               >
                 <X size={16} />
@@ -298,28 +326,28 @@ const MemberSpecialNoteIcon = ({
             
             {/* Scrollable Content - Notes List */}
             <style>{`
-              .member-note-scrollable::-webkit-scrollbar {
+              .special-note-scrollable::-webkit-scrollbar {
                 width: 6px;
               }
-              .member-note-scrollable::-webkit-scrollbar-track {
+              .special-note-scrollable::-webkit-scrollbar-track {
                 background: #1F2937;
                 border-radius: 4px;
               }
-              .member-note-scrollable::-webkit-scrollbar-thumb {
+              .special-note-scrollable::-webkit-scrollbar-thumb {
                 background: #4B5563;
                 border-radius: 4px;
               }
             `}</style>
             <div 
-              className="p-2 overflow-y-auto flex-1 min-h-0 member-note-scrollable space-y-2"
+              className="p-2 overflow-y-auto flex-1 min-h-0 special-note-scrollable space-y-2"
               style={{
                 scrollbarWidth: 'thin',
                 scrollbarColor: '#4B5563 #1F2937'
               }}
             >
-              {[...memberNotes]
+              {[...entityNotes]
                 .sort((a, b) => (b.isImportant ? 1 : 0) - (a.isImportant ? 1 : 0))
-                .slice(0, 5)
+                .slice(0, maxVisibleNotes)
                 .map((note, index) => (
                 <div key={note.id || index} className="bg-gray-800/50 rounded-lg p-2.5">
                   <div className="flex items-center gap-1.5 mb-1.5">
@@ -349,12 +377,12 @@ const MemberSpecialNoteIcon = ({
                   )}
                 </div>
               ))}
-              {memberNotes.length > 5 && (
+              {entityNotes.length > maxVisibleNotes && (
                 <button
                   onClick={handleEditNote}
                   className="w-full text-center text-xs text-blue-400 py-1"
                 >
-                  +{memberNotes.length - 5} more notes...
+                  +{entityNotes.length - maxVisibleNotes} more notes...
                 </button>
               )}
             </div>
@@ -366,4 +394,23 @@ const MemberSpecialNoteIcon = ({
   )
 }
 
-export default MemberSpecialNoteIcon
+// Backward compatible wrapper components
+export const LeadSpecialNoteIcon = ({ lead, onEditLead, ...props }) => (
+  <SharedSpecialNoteIcon
+    entity={lead}
+    entityType="lead"
+    onEdit={onEditLead}
+    {...props}
+  />
+)
+
+export const MemberSpecialNoteIcon = ({ member, onEditMember, ...props }) => (
+  <SharedSpecialNoteIcon
+    entity={member}
+    entityType="member"
+    onEdit={onEditMember}
+    {...props}
+  />
+)
+
+export default SharedSpecialNoteIcon

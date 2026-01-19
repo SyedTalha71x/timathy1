@@ -36,7 +36,7 @@ import AssessmentFormModal from "../../components/user-panel-components/lead-use
 import AssessmentSelectionModal from "../../components/user-panel-components/lead-user-panel-components/medical-history-selection-modal"
 import ContractPromptModal from "../../components/user-panel-components/lead-user-panel-components/contract-prompt-modal"
 import MedicalHistoryPromptModal from "../../components/user-panel-components/lead-user-panel-components/medical-history-prompt-modal"
-import { LeadSpecialNoteModal } from "../../components/user-panel-components/lead-user-panel-components/special-note-modal"
+import { LeadSpecialNoteModal } from '../../components/shared/shared-special-note-modal'
 
 // New DnD components
 import SortableColumn from "../../components/user-panel-components/lead-user-panel-components/sortable-column"

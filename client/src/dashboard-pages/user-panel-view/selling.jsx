@@ -7,7 +7,7 @@ import { RiServiceFill } from "react-icons/ri"
 import SidebarAreaSelling from "../../components/user-panel-components/selling-components/custom-sidebar-selling"
 import { MdOutlineProductionQuantityLimits } from "react-icons/md"
 import { toast, Toaster } from "react-hot-toast"
-import CreateTempMemberModal from "../../components/user-panel-components/selling-components/create-temp-member-modal"
+import CreateTempMemberModal from "../../components/shared/CreateTempMemberModal"
 import DeleteConfirmationModal from "../../components/user-panel-components/selling-components/delete-confirmation-modal"
 import SalesJournalModal from "../../components/user-panel-components/selling-components/sales-journal-modal"
 import CheckoutConfirmationModal from "../../components/user-panel-components/selling-components/checkout-confirmation-modal"
@@ -112,24 +112,6 @@ const Selling = () => {
     vatSelectable: false,
   })
 
-  // New temporary member form state
-  const [tempMemberForm, setTempMemberForm] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    street: "",
-    zipCode: "",
-    city: "",
-    dateOfBirth: "",
-    autoArchivePeriod: "4",
-    about: "",
-    note: "",
-    noteImportance: "unimportant",
-    noteStartDate: "",
-    noteEndDate: "",
-  })
-  const [tempMemberModalTab, setTempMemberModalTab] = useState("details")
   const [selectedImage, setSelectedImage] = useState(null)
   const fileInputRef = useRef(null)
   const [searchQuery, setSearchQuery] = useState("")
@@ -377,56 +359,30 @@ const Selling = () => {
     setIsModalOpen(false)
   }
 
-  const handleTempMemberInputChange = (e) => {
-    const { name, value } = e.target
-    setTempMemberForm({
-      ...tempMemberForm,
-      [name]: value,
-    })
-  }
-
-  const handleCreateTempMember = (e) => {
-    e.preventDefault()
+  // Handler für erfolgreiche Erstellung eines temporären Members (Shared Modal)
+  const handleTempMemberCreated = (newMemberData) => {
     const newMember = {
       id: Date.now(),
-      name: `${tempMemberForm.firstName} ${tempMemberForm.lastName}`,
-      email: tempMemberForm.email,
-      phone: tempMemberForm.phone,
-      street: tempMemberForm.street,
-      zipCode: tempMemberForm.zipCode,
-      city: tempMemberForm.city,
-      dateOfBirth: tempMemberForm.dateOfBirth,
-      autoArchivePeriod: tempMemberForm.autoArchivePeriod,
-      about: tempMemberForm.about,
-      note: tempMemberForm.note,
-      noteImportance: tempMemberForm.noteImportance,
-      noteStartDate: tempMemberForm.noteStartDate,
-      noteEndDate: tempMemberForm.noteEndDate,
+      name: `${newMemberData.firstName} ${newMemberData.lastName}`,
+      firstName: newMemberData.firstName,
+      lastName: newMemberData.lastName,
+      email: newMemberData.email,
+      phone: newMemberData.phone,
+      street: newMemberData.street,
+      zipCode: newMemberData.zipCode,
+      city: newMemberData.city,
+      dateOfBirth: newMemberData.dateOfBirth,
+      about: newMemberData.about,
       isTemp: true,
       type: "Temporary Member",
+      memberType: "temporary",
+      ...newMemberData,
     }
     setMembers([...members, newMember])
     setSelectedMemberMain(newMember.id)
     setMemberSearchQuery(newMember.name)
     setShowMemberResults(false)
-    setTempMemberForm({
-      firstName: "",
-      lastName: "",
-      email: "",
-      phone: "",
-      street: "",
-      zipCode: "",
-      city: "",
-      dateOfBirth: "",
-      autoArchivePeriod: "4",
-      about: "",
-      note: "",
-      noteImportance: "unimportant",
-      noteStartDate: "",
-      noteEndDate: "",
-    })
-    setTempMemberModalTab("details")
-    setShowCreateTempMemberModal(false)
+    setSellWithoutMember(false)
   }
 
   const handleInputChangeMain = (e) => {
@@ -1161,12 +1117,8 @@ Payment: ${sale.paymentMethod}
         <CreateTempMemberModal
           show={showCreateTempMemberModal}
           onClose={() => setShowCreateTempMemberModal(false)}
-          onSubmit={handleCreateTempMember}
-          tempMemberModalTab={tempMemberModalTab}
-          setTempMemberModalTab={setTempMemberModalTab}
-          tempMemberForm={tempMemberForm}
-          handleTempMemberInputChange={handleTempMemberInputChange}
-          setTempMemberForm={setTempMemberForm}
+          onSuccess={handleTempMemberCreated}
+          context="selling"
         />
 
         <DeleteConfirmationModal
