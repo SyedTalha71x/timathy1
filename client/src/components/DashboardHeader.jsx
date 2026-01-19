@@ -276,10 +276,18 @@ const DashboardHeader = ({ onToggleSidebar, isSidebarOpen }) => {
   // ============================================
   return (
     <>
+      {/* ===== MOBILE OVERLAY - MUST be outside header for proper z-index stacking ===== */}
+      {/* FIX: Moved overlay outside the header so it has its own stacking context */}
+      {/* This prevents the overlay from blocking the left sidebar (z-50) */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden" 
+          onClick={onToggleSidebar} 
+        />
+      )}
+      
       {/* ===== MOBILE HEADER (lg:hidden) ===== */}
       <div className="fixed top-0 left-0 w-full bg-[#111111] border-b border-zinc-800 p-2 flex items-center justify-between lg:hidden z-[60]">
-        {isSidebarOpen && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={onToggleSidebar} />}
-        
         <div className="flex items-center gap-2">
           <div className="bg-orange-500 p-2 rounded-md">
             <img src={OrgaGymLogoWihoutText} className="h-6 w-6" alt="Orgagym Logo" />
