@@ -1,12 +1,13 @@
 /* eslint-disable react/prop-types */
 import { useState, useEffect } from "react"
-import { X, Search, Info, Check } from "lucide-react"
+import { X, Search, Info, Check, AlertCircle } from "lucide-react"
 
 export const StaffAssignmentModal = ({
   visible,
   onClose,
   role,
   allStaff = [],
+  allRoles = [],
   onStaffAssignmentChange
 }) => {
   const [assignedStaff, setAssignedStaff] = useState([])
@@ -19,6 +20,26 @@ export const StaffAssignmentModal = ({
     }
   }, [role])
 
+  // Get the admin role
+  const adminRole = allRoles.find(r => r.isAdmin)
+
+  // Check if a staff member is the last admin
+  const isLastAdmin = (staffId) => {
+    if (!adminRole) return false
+    const adminStaff = adminRole.assignedStaff || []
+    return adminStaff.length === 1 && adminStaff.includes(staffId)
+  }
+
+  // Get current role for a staff member
+  const getStaffCurrentRole = (staffId) => {
+    for (const r of allRoles) {
+      if (r.id !== role?.id && r.assignedStaff?.includes(staffId)) {
+        return r
+      }
+    }
+    return null
+  }
+
   // Filter staff based on search
   const filteredStaff = allStaff.filter(staff =>
     staff.name.toLowerCase().includes(searchText.toLowerCase()) ||
@@ -26,8 +47,13 @@ export const StaffAssignmentModal = ({
   )
 
   const handleToggleStaff = (staffId) => {
-    // Prevent removing last admin
+    // Prevent removing last admin from admin role
     if (role?.isAdmin && assignedStaff.length === 1 && assignedStaff.includes(staffId)) {
+      return
+    }
+
+    // Prevent assigning last admin to non-admin role
+    if (!role?.isAdmin && isLastAdmin(staffId) && !assignedStaff.includes(staffId)) {
       return
     }
 
@@ -63,9 +89,9 @@ export const StaffAssignmentModal = ({
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-[#333333]">
           <div>
-            <h2 className="text-lg font-semibold text-white">Assign Staff</h2>
+            <h2 className="text-lg font-semibold text-white">Assign Staff to Role</h2>
             <p className="text-sm text-gray-400 mt-0.5">
-              {role?.name || "Role"} • {assignedStaff.length} assigned
+              <span style={{ color: role?.color }}>{role?.name || "Role"}</span> • {assignedStaff.length} assigned
             </p>
           </div>
           <button
@@ -90,6 +116,16 @@ export const StaffAssignmentModal = ({
           </div>
         </div>
 
+        {/* Info Notice */}
+        <div className="mx-4 mt-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+          <div className="flex items-start gap-2">
+            <Info className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-blue-300">
+              Each staff member can only have one role. Selecting a staff member will automatically remove them from their current role.
+            </p>
+          </div>
+        </div>
+
         {/* Staff List */}
         <div className="flex-1 overflow-y-auto p-4 space-y-2">
           {filteredStaff.length === 0 ? (
@@ -99,21 +135,28 @@ export const StaffAssignmentModal = ({
           ) : (
             filteredStaff.map((staff) => {
               const isAssigned = assignedStaff.includes(staff.id)
-              const isLastAdmin = role?.isAdmin && assignedStaff.length === 1 && isAssigned
+              const currentRole = getStaffCurrentRole(staff.id)
+              const isLastAdminStaff = isLastAdmin(staff.id)
+              const isLastAdminInCurrentRole = role?.isAdmin && assignedStaff.length === 1 && isAssigned
+              
+              // Can't select last admin for non-admin role
+              const isDisabled = isLastAdminInCurrentRole || (!role?.isAdmin && isLastAdminStaff && !isAssigned)
 
               return (
                 <button
                   key={staff.id}
                   onClick={() => handleToggleStaff(staff.id)}
-                  disabled={isLastAdmin}
+                  disabled={isDisabled}
                   className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${
-                    isLastAdmin
+                    isDisabled
                       ? "cursor-not-allowed opacity-60"
                       : "cursor-pointer hover:border-[#444444]"
                   } ${
                     isAssigned
                       ? "bg-orange-500/10 border-orange-500/30"
-                      : "bg-[#141414] border-[#333333]"
+                      : currentRole
+                        ? "bg-[#1a1a1a] border-[#333333]"
+                        : "bg-[#141414] border-[#333333]"
                   }`}
                 >
                   {/* Checkbox */}
@@ -128,7 +171,7 @@ export const StaffAssignmentModal = ({
                   {/* Avatar */}
                   <div 
                     className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 text-white font-medium text-sm"
-                    style={{ backgroundColor: role?.color || "#FF843E" }}
+                    style={{ backgroundColor: isAssigned ? (role?.color || "#FF843E") : (currentRole?.color || "#444444") }}
                   >
                     {staff.avatar ? (
                       <img 
@@ -144,13 +187,37 @@ export const StaffAssignmentModal = ({
                   {/* Info */}
                   <div className="flex-1 min-w-0">
                     <p className="text-white font-medium text-sm truncate">{staff.name}</p>
-                    <p className="text-gray-500 text-xs truncate">{staff.email}</p>
+                    {isLastAdminStaff && !role?.isAdmin ? (
+                      <p className="text-xs text-orange-400 truncate">
+                        Last Admin - cannot be reassigned
+                      </p>
+                    ) : currentRole && !isAssigned ? (
+                      <p className="text-xs truncate" style={{ color: currentRole.color }}>
+                        Currently: {currentRole.name}
+                      </p>
+                    ) : (
+                      <p className="text-gray-500 text-xs truncate">{staff.email}</p>
+                    )}
                   </div>
 
-                  {/* Last Admin Warning */}
-                  {isLastAdmin && (
+                  {/* Current Role Badge or Warning */}
+                  {isLastAdminStaff && !role?.isAdmin ? (
+                    <div className="flex-shrink-0" title="Last admin cannot be reassigned">
+                      <AlertCircle className="w-4 h-4 text-orange-400" />
+                    </div>
+                  ) : currentRole && !isAssigned ? (
+                    <div 
+                      className="flex-shrink-0 px-2 py-1 rounded text-xs"
+                      style={{ backgroundColor: `${currentRole.color}20`, color: currentRole.color }}
+                    >
+                      {currentRole.name}
+                    </div>
+                  ) : null}
+
+                  {/* Last Admin Warning in Admin Role */}
+                  {isLastAdminInCurrentRole && (
                     <div className="flex-shrink-0" title="Cannot remove the last admin">
-                      <Info className="w-4 h-4 text-orange-400" />
+                      <AlertCircle className="w-4 h-4 text-orange-400" />
                     </div>
                   )}
                 </button>
@@ -163,7 +230,7 @@ export const StaffAssignmentModal = ({
         {role?.isAdmin && (
           <div className="mx-4 mb-4 p-3 bg-orange-500/10 border border-orange-500/20 rounded-xl">
             <div className="flex items-start gap-2">
-              <Info className="w-4 h-4 text-orange-400 flex-shrink-0 mt-0.5" />
+              <AlertCircle className="w-4 h-4 text-orange-400 flex-shrink-0 mt-0.5" />
               <p className="text-xs text-orange-300">
                 At least one staff member must remain assigned to the Admin role.
               </p>

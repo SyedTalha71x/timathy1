@@ -4,92 +4,42 @@ import { useState, useEffect } from "react"
 import { X, Shield, Check, ChevronDown, ChevronUp, Info } from "lucide-react"
 import { 
   Calendar,
-  Mail,
   MessageCircle,
-  FileSearch,
   CheckSquare,
   FileText,
   Users,
-  UserPlus,
-  FileCheck,
   ShoppingCart,
-  DollarSign,
-  BookOpen,
-  BarChart3,
+  BadgeDollarSign,
   Settings
 } from "lucide-react"
+import { BsPersonWorkspace } from "react-icons/bs"
+import { RiContractLine } from "react-icons/ri"
+import { TbBrandGoogleAnalytics } from "react-icons/tb"
+import { CiMonitor } from "react-icons/ci"
+import { FaUsers } from "react-icons/fa6"
+import { CgGym } from "react-icons/cg"
+import { PERMISSION_GROUPS, PERMISSION_DATA } from "../../../utils/user-panel-states/configuration-states"
 
-// Icon mapping
+// Icon mapping - using sidebar icons where applicable
 const GROUP_ICONS = {
   CalendarOutlined: Calendar,
-  MailOutlined: Mail,
+  MailOutlined: MessageCircle,
   MessageOutlined: MessageCircle,
-  FileSearchOutlined: FileSearch,
+  FileSearchOutlined: CiMonitor,
   CheckSquareOutlined: CheckSquare,
   FileTextOutlined: FileText,
   TeamOutlined: Users,
-  UserAddOutlined: UserPlus,
-  FileProtectOutlined: FileCheck,
+  UserOutlined: BsPersonWorkspace,
+  UserAddOutlined: FaUsers,
+  FileProtectOutlined: RiContractLine,
   ShoppingCartOutlined: ShoppingCart,
-  DollarOutlined: DollarSign,
-  ReadOutlined: BookOpen,
-  LineChartOutlined: BarChart3,
+  DollarOutlined: BadgeDollarSign,
+  ReadOutlined: CgGym,
+  LineChartOutlined: TbBrandGoogleAnalytics,
   SettingOutlined: Settings,
 }
 
-// Permission groups - this should match your existing PERMISSION_GROUPS structure
-const PERMISSION_GROUPS = [
-  {
-    group: "Appointments",
-    icon: "CalendarOutlined",
-    items: ["View Appointments", "Create Appointments", "Edit Appointments", "Delete Appointments", "Manage Calendar"]
-  },
-  {
-    group: "Communication",
-    icon: "MailOutlined",
-    items: ["Send Messages", "View Messages", "Manage Newsletters", "Manage Templates"]
-  },
-  {
-    group: "Members",
-    icon: "TeamOutlined",
-    items: ["View Members", "Create Members", "Edit Members", "Delete Members", "Export Members"]
-  },
-  {
-    group: "Contracts",
-    icon: "FileProtectOutlined",
-    items: ["View Contracts", "Create Contracts", "Edit Contracts", "Delete Contracts", "Manage Contract Types"]
-  },
-  {
-    group: "Staff",
-    icon: "UserAddOutlined",
-    items: ["View Staff", "Create Staff", "Edit Staff", "Delete Staff", "Manage Roles"]
-  },
-  {
-    group: "Finances",
-    icon: "DollarOutlined",
-    items: ["View Finances", "Create Invoices", "Process Payments", "Manage VAT", "Export Reports"]
-  },
-  {
-    group: "Analytics",
-    icon: "LineChartOutlined",
-    items: ["View Analytics", "Export Analytics", "Manage Reports"]
-  },
-  {
-    group: "Configuration",
-    icon: "SettingOutlined",
-    items: ["View Settings", "Edit Settings", "Manage Integrations", "System Administration"]
-  }
-]
-
-// Generate flat permission data
-export const PERMISSION_DATA = PERMISSION_GROUPS.flatMap((g) =>
-  g.items.map((perm) => ({
-    key: perm,
-    title: perm,
-    group: g.group,
-    iconName: g.icon,
-  }))
-)
+export { PERMISSION_DATA }
 
 export const PermissionModal = ({ 
   visible, 
@@ -113,31 +63,32 @@ export const PermissionModal = ({
     }
   }, [visible, role, isAdminRole])
 
-  const handlePermissionToggle = (permission) => {
+  const handlePermissionToggle = (permissionKey) => {
     if (isAdminRole) return
 
-    const newPermissions = selectedPermissions.includes(permission)
-      ? selectedPermissions.filter(p => p !== permission)
-      : [...selectedPermissions, permission]
+    const newPermissions = selectedPermissions.includes(permissionKey)
+      ? selectedPermissions.filter(p => p !== permissionKey)
+      : [...selectedPermissions, permissionKey]
     setSelectedPermissions(newPermissions)
   }
 
   const handleGroupToggle = (groupItems) => {
     if (isAdminRole) return
 
-    const allGroupSelected = groupItems.every(item =>
-      selectedPermissions.includes(item)
+    const groupKeys = groupItems.map(item => item.key)
+    const allGroupSelected = groupKeys.every(key =>
+      selectedPermissions.includes(key)
     )
 
     if (allGroupSelected) {
       setSelectedPermissions(selectedPermissions.filter(
-        p => !groupItems.includes(p)
+        p => !groupKeys.includes(p)
       ))
     } else {
       const newPermissions = [...selectedPermissions]
-      groupItems.forEach(item => {
-        if (!newPermissions.includes(item)) {
-          newPermissions.push(item)
+      groupKeys.forEach(key => {
+        if (!newPermissions.includes(key)) {
+          newPermissions.push(key)
         }
       })
       setSelectedPermissions(newPermissions)
@@ -176,7 +127,8 @@ export const PermissionModal = ({
     ? PERMISSION_GROUPS.map(group => ({
         ...group,
         items: group.items.filter(item =>
-          item.toLowerCase().includes(searchQuery.toLowerCase())
+          item.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.key.toLowerCase().includes(searchQuery.toLowerCase())
         )
       })).filter(group => group.items.length > 0)
     : PERMISSION_GROUPS
@@ -196,9 +148,7 @@ export const PermissionModal = ({
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-[#333333]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center">
-              <Shield className="w-5 h-5 text-white" />
-            </div>
+            <Shield className="w-6 h-6 text-gray-400" />
             <div>
               <h2 className="text-lg font-semibold text-white">Manage Permissions</h2>
               <div className="flex items-center gap-2 mt-0.5">
@@ -221,10 +171,10 @@ export const PermissionModal = ({
 
         {/* Admin Notice */}
         {isAdminRole && (
-          <div className="mx-5 mt-5 p-3 bg-orange-500/10 border border-orange-500/20 rounded-xl">
+          <div className="mx-5 mt-5 p-3 bg-[#2F2F2F] border border-[#444444] rounded-xl">
             <div className="flex items-start gap-2">
-              <Info className="w-4 h-4 text-orange-400 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-orange-300">
+              <Info className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-gray-300">
                 This is the Admin role with all permissions. Permissions cannot be modified.
               </p>
             </div>
@@ -240,7 +190,7 @@ export const PermissionModal = ({
               className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
                 isAdminRole
                   ? "bg-[#2F2F2F] text-gray-500 cursor-not-allowed"
-                  : "bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500/20"
+                  : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F] hover:text-white"
               }`}
             >
               Clear All
@@ -251,16 +201,14 @@ export const PermissionModal = ({
               className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
                 isAdminRole
                   ? "bg-[#2F2F2F] text-gray-500 cursor-not-allowed"
-                  : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20"
+                  : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F] hover:text-white"
               }`}
             >
               Select All
             </button>
 
             <div className="ml-auto flex items-center gap-2">
-              <span className={`px-3 py-1 rounded-lg text-sm font-medium ${
-                isAdminRole ? "bg-orange-500" : "bg-blue-600"
-              } text-white`}>
+              <span className="px-3 py-1 rounded-lg text-sm font-medium bg-[#333333] text-white">
                 {selectedPermissions.length}
               </span>
               <span className="text-sm text-gray-400">of {PERMISSION_DATA.length} selected</span>
@@ -273,15 +221,16 @@ export const PermissionModal = ({
           {filteredGroups.map((group) => {
             const IconComponent = GROUP_ICONS[group.icon] || Settings
             const groupItems = group.items
-            const allGroupSelected = isAdminRole ? true : groupItems.every(item =>
-              selectedPermissions.includes(item)
+            const groupKeys = groupItems.map(item => item.key)
+            const allGroupSelected = isAdminRole ? true : groupKeys.every(key =>
+              selectedPermissions.includes(key)
             )
-            const someGroupSelected = isAdminRole ? false : groupItems.some(item =>
-              selectedPermissions.includes(item)
+            const someGroupSelected = isAdminRole ? false : groupKeys.some(key =>
+              selectedPermissions.includes(key)
             )
             const selectedCount = isAdminRole 
               ? groupItems.length 
-              : groupItems.filter(item => selectedPermissions.includes(item)).length
+              : groupKeys.filter(key => selectedPermissions.includes(key)).length
             const isExpanded = expandedGroups.includes(group.group)
 
             return (
@@ -295,9 +244,7 @@ export const PermissionModal = ({
                     onClick={() => toggleGroupExpand(group.group)}
                     className="flex items-center gap-3 flex-1"
                   >
-                    <div className="w-8 h-8 bg-orange-500/20 rounded-lg flex items-center justify-center">
-                      <IconComponent className="w-4 h-4 text-orange-400" />
-                    </div>
+                    <IconComponent className="w-5 h-5 text-gray-400" />
                     <div className="text-left">
                       <h3 className="text-white font-medium">{group.group}</h3>
                       <p className="text-xs text-gray-500">
@@ -316,19 +263,13 @@ export const PermissionModal = ({
                     disabled={isAdminRole}
                     className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                       isAdminRole
-                        ? "bg-orange-500/20 text-orange-300 cursor-not-allowed"
+                        ? "bg-[#333333] text-gray-500 cursor-not-allowed"
                         : allGroupSelected
-                          ? "bg-emerald-600 text-white hover:bg-emerald-700"
-                          : someGroupSelected
-                            ? "bg-yellow-600 text-white hover:bg-yellow-700"
-                            : "bg-[#333333] text-gray-300 hover:bg-[#444444]"
+                          ? "bg-[#444444] text-white hover:bg-[#555555]"
+                          : "bg-[#333333] text-gray-300 hover:bg-[#444444]"
                     }`}
                   >
-                    {isAdminRole 
-                      ? "Required" 
-                      : allGroupSelected 
-                        ? "Deselect All" 
-                        : "Select All"}
+                    {allGroupSelected ? "Deselect All" : "Select All"}
                   </button>
                 </div>
 
@@ -337,12 +278,12 @@ export const PermissionModal = ({
                   <div className="p-4 bg-[#141414]">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                       {groupItems.map((permission) => {
-                        const isSelected = isAdminRole ? true : selectedPermissions.includes(permission)
+                        const isSelected = isAdminRole ? true : selectedPermissions.includes(permission.key)
                         
                         return (
                           <button
-                            key={permission}
-                            onClick={() => handlePermissionToggle(permission)}
+                            key={permission.key}
+                            onClick={() => handlePermissionToggle(permission.key)}
                             disabled={isAdminRole}
                             className={`flex items-center gap-3 p-3 rounded-xl border transition-all text-left ${
                               isAdminRole
@@ -350,29 +291,21 @@ export const PermissionModal = ({
                                 : "cursor-pointer hover:border-[#444444]"
                             } ${
                               isSelected
-                                ? isAdminRole
-                                  ? "bg-orange-500/10 border-orange-500/30"
-                                  : "bg-[#1F1F1F] border-[#444444]"
+                                ? "bg-[#1F1F1F] border-[#444444]"
                                 : "bg-[#181818] border-[#333333]"
                             }`}
                           >
                             <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
                               isSelected
-                                ? isAdminRole
-                                  ? "bg-orange-500 border-orange-500"
-                                  : "bg-blue-600 border-blue-600"
+                                ? "bg-orange-500 border-orange-500"
                                 : "border-[#444444]"
                             }`}>
                               {isSelected && <Check className="w-3 h-3 text-white" />}
                             </div>
                             <span className={`text-sm ${
-                              isSelected
-                                ? isAdminRole
-                                  ? "text-orange-300"
-                                  : "text-white"
-                                : "text-gray-400"
+                              isSelected ? "text-white" : "text-gray-400"
                             }`}>
-                              {permission}
+                              {permission.label}
                             </span>
                           </button>
                         )
@@ -398,7 +331,7 @@ export const PermissionModal = ({
             className="flex-1 px-4 py-2.5 bg-orange-500 text-white text-sm font-medium rounded-xl hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
           >
             <Check className="w-4 h-4" />
-            {isAdminRole ? "Confirm" : "Save Permissions"}
+            Save Permissions
           </button>
         </div>
       </div>

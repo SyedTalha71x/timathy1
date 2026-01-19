@@ -1,7 +1,8 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useMemo } from "react"
+import { useSearchParams } from "react-router-dom"
 import {
   Search,
   Building2,
@@ -35,26 +36,734 @@ import {
   BookOpen,
   BadgeDollarSign,
   MessageCircle,
+  Printer,
+  Clipboard,
+  Smartphone,
+  User,
+  Eye,
+  EyeOff,
 } from "lucide-react"
 import { BsPersonWorkspace } from "react-icons/bs"
 import { RiContractLine } from "react-icons/ri"
 import { Modal, notification, QRCode } from "antd"
 import dayjs from "dayjs"
+import ReactQuill, { Quill } from "react-quill"
+import "react-quill/dist/quill.snow.css"
 
 import ContractBuilder from "../../components/user-panel-components/configuration-components/ContractBuilder"
 import { PERMISSION_DATA, PermissionModal } from "../../components/user-panel-components/configuration-components/PermissionModal"
-import { WysiwygEditor } from "../../components/user-panel-components/configuration-components/WysiwygEditor"
 import { RoleItem } from "../../components/user-panel-components/configuration-components/RoleItem"
 import { StaffAssignmentModal } from "../../components/user-panel-components/configuration-components/StaffAssignmentModal"
 import ImageSourceModal from "../../components/shared/ImageSourceModal"
 import ImageCropModal from "../../components/shared/ImageCropModal"
+import IntroMaterialEditorModal from "../../components/user-panel-components/configuration-components/IntroMaterialEditorModal"
 import MediaLibraryPickerModal from "../../components/shared/MediaLibraryPickerModal"
 import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'
+
+// ============================================
+// Simple WYSIWYG Editor Component
+// ============================================
+const ConfigWysiwygEditor = ({ value, onChange, placeholder, minHeight = 120 }) => {
+  const editorId = useRef(`editor-${Math.random().toString(36).substr(2, 9)}`).current
+  const quillRef = useRef(null)
+  const containerRef = useRef(null)
+  const [showLinkModal, setShowLinkModal] = useState(false)
+  const [showImageModal, setShowImageModal] = useState(false)
+  const [linkUrl, setLinkUrl] = useState('')
+  const [linkText, setLinkText] = useState('')
+  const [imageUrl, setImageUrl] = useState('')
+  const [savedRange, setSavedRange] = useState(null)
+  const [selectedImage, setSelectedImage] = useState(null)
+  const [imageRect, setImageRect] = useState(null)
+  
+  // Track the last known value to detect external changes
+  const lastValueRef = useRef(value)
+  const isInternalUpdate = useRef(false)
+  
+  // Sync external value changes to editor (but not our own changes)
+  useEffect(() => {
+    if (quillRef.current && value !== lastValueRef.current && !isInternalUpdate.current) {
+      const quill = quillRef.current.getEditor()
+      const selection = quill.getSelection()
+      // Only update if value actually changed from outside
+      if (quill.root.innerHTML !== value) {
+        quill.root.innerHTML = value || ''
+        // Restore selection if possible
+        if (selection) {
+          try {
+            quill.setSelection(selection)
+          } catch (e) {
+            // Ignore selection errors
+          }
+        }
+      }
+      lastValueRef.current = value
+    }
+  }, [value])
+  
+  // Handle changes from the editor
+  const handleChange = (content, delta, source, editor) => {
+    if (source === 'user') {
+      isInternalUpdate.current = true
+      lastValueRef.current = content
+      onChange(content)
+      // Reset flag after a tick
+      setTimeout(() => {
+        isInternalUpdate.current = false
+      }, 0)
+    }
+  }
+  
+  // Custom link handler
+  const linkHandler = () => {
+    const quill = quillRef.current?.getEditor()
+    if (quill) {
+      const range = quill.getSelection(true)
+      setSavedRange(range)
+      const selectedText = range.length > 0 ? quill.getText(range.index, range.length) : ''
+      setLinkText(selectedText)
+      setLinkUrl('')
+      setShowLinkModal(true)
+    }
+  }
+
+  // Custom image handler
+  const imageHandler = () => {
+    const quill = quillRef.current?.getEditor()
+    if (quill) {
+      const range = quill.getSelection(true)
+      setSavedRange(range)
+      setImageUrl('')
+      setShowImageModal(true)
+    }
+  }
+
+  // Insert link
+  const insertLink = () => {
+    if (!linkUrl) return
+    const quill = quillRef.current?.getEditor()
+    if (quill && savedRange !== null) {
+      if (savedRange.length > 0) {
+        quill.formatText(savedRange.index, savedRange.length, 'link', linkUrl)
+      } else if (linkText) {
+        quill.insertText(savedRange.index, linkText, 'link', linkUrl)
+      } else {
+        quill.insertText(savedRange.index, linkUrl, 'link', linkUrl)
+      }
+      // Trigger onChange after insert
+      const newHtml = quill.root.innerHTML
+      isInternalUpdate.current = true
+      lastValueRef.current = newHtml
+      onChange(newHtml)
+      setTimeout(() => {
+        isInternalUpdate.current = false
+      }, 0)
+    }
+    setShowLinkModal(false)
+    setLinkUrl('')
+    setLinkText('')
+  }
+
+  // Insert image
+  const insertImage = () => {
+    if (!imageUrl) return
+    const quill = quillRef.current?.getEditor()
+    if (quill && savedRange !== null) {
+      quill.insertEmbed(savedRange.index, 'image', imageUrl)
+      quill.setSelection(savedRange.index + 1)
+      // Trigger onChange after insert
+      const newHtml = quill.root.innerHTML
+      isInternalUpdate.current = true
+      lastValueRef.current = newHtml
+      onChange(newHtml)
+      setTimeout(() => {
+        isInternalUpdate.current = false
+      }, 0)
+    }
+    setShowImageModal(false)
+    setImageUrl('')
+  }
+
+  // Update image rect position for resize handles
+  const updateImageRect = (img) => {
+    if (!img || !containerRef.current) {
+      setImageRect(null)
+      return
+    }
+    const containerRect = containerRef.current.getBoundingClientRect()
+    const imgRect = img.getBoundingClientRect()
+    setImageRect({
+      top: imgRect.top - containerRect.top,
+      left: imgRect.left - containerRect.left,
+      width: imgRect.width,
+      height: imgRect.height
+    })
+  }
+
+  // Handle image click for selection
+  const handleContainerClick = (e) => {
+    const img = e.target.closest('img')
+    if (img && containerRef.current?.contains(img)) {
+      e.preventDefault()
+      e.stopPropagation()
+      setSelectedImage(img)
+      updateImageRect(img)
+    } else if (!e.target.classList?.contains('resize-handle')) {
+      setSelectedImage(null)
+      setImageRect(null)
+    }
+  }
+
+  // Start resizing
+  const startResize = (e, direction) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!selectedImage) return
+    
+    const startX = e.clientX
+    const startWidth = selectedImage.offsetWidth
+    const img = selectedImage
+    
+    const doResize = (moveEvent) => {
+      let newWidth = startWidth
+      const deltaX = moveEvent.clientX - startX
+      
+      if (direction.includes('e')) {
+        newWidth = startWidth + deltaX
+      } else if (direction.includes('w')) {
+        newWidth = startWidth - deltaX
+      }
+      
+      // Constraints
+      const editor = containerRef.current?.querySelector('.ql-editor')
+      const maxWidth = editor?.offsetWidth || 500
+      newWidth = Math.max(50, Math.min(newWidth, maxWidth - 40))
+      
+      // Apply size directly
+      img.style.width = `${Math.round(newWidth)}px`
+      img.style.height = 'auto'
+      img.setAttribute('width', String(Math.round(newWidth)))
+      
+      updateImageRect(img)
+    }
+    
+    const stopResize = () => {
+      document.removeEventListener('mousemove', doResize)
+      document.removeEventListener('mouseup', stopResize)
+      
+      // Get the HTML and call onChange
+      if (quillRef.current) {
+        const quill = quillRef.current.getEditor()
+        const newHtml = quill.root.innerHTML
+        isInternalUpdate.current = true
+        lastValueRef.current = newHtml
+        onChange(newHtml)
+        setTimeout(() => {
+          isInternalUpdate.current = false
+        }, 0)
+      }
+    }
+    
+    document.addEventListener('mousemove', doResize)
+    document.addEventListener('mouseup', stopResize)
+  }
+
+  // Click outside to deselect
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setSelectedImage(null)
+        setImageRect(null)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  // Update rect on scroll/window resize
+  useEffect(() => {
+    if (!selectedImage) return
+    const handleUpdate = () => updateImageRect(selectedImage)
+    window.addEventListener('resize', handleUpdate)
+    return () => window.removeEventListener('resize', handleUpdate)
+  }, [selectedImage])
+
+  const modules = useMemo(() => ({
+    toolbar: {
+      container: [
+        ['undo', 'redo'],
+        [{ 'size': ['small', false, 'large', 'huge'] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ 'color': [] }, { 'background': [] }],
+        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+        [{ 'align': [] }],
+        ['blockquote'],
+        ['link', 'image'],
+        ['clean']
+      ],
+      handlers: {
+        link: linkHandler,
+        image: imageHandler,
+        undo: function() {
+          this.quill.history.undo()
+        },
+        redo: function() {
+          this.quill.history.redo()
+        }
+      }
+    },
+    history: {
+      delay: 1000,
+      maxStack: 50,
+      userOnly: true
+    }
+  }), [])
+
+  const formats = [
+    'size',
+    'bold', 'italic', 'underline', 'strike',
+    'color', 'background',
+    'list', 'bullet',
+    'align',
+    'blockquote',
+    'link', 'image'
+  ]
+
+  useEffect(() => {
+    const style = document.createElement('style')
+    style.id = `wysiwyg-style-${editorId}`
+    style.textContent = `
+      .config-wysiwyg-${editorId} .ql-editor.ql-blank::before {
+        color: #9ca3af !important;
+        font-style: normal !important;
+      }
+      .config-wysiwyg-${editorId} .ql-editor {
+        color: #ffffff !important;
+        min-height: ${minHeight}px;
+        max-height: 300px;
+        overflow-y: auto;
+        font-size: 14px;
+        line-height: 1.4;
+        position: relative;
+      }
+      .config-wysiwyg-${editorId} .ql-editor p {
+        margin-bottom: 0.25em;
+      }
+      .config-wysiwyg-${editorId} .ql-editor p:last-child {
+        margin-bottom: 0;
+      }
+      .config-wysiwyg-${editorId} .ql-editor img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
+        margin: 8px 0;
+        cursor: pointer;
+      }
+      .config-wysiwyg-${editorId} .ql-editor img:hover {
+        outline: 2px solid rgba(255, 132, 62, 0.5);
+        outline-offset: 2px;
+      }
+      .config-wysiwyg-${editorId} .ql-editor blockquote {
+        border-left: 4px solid #FF843E;
+        padding-left: 16px;
+        margin: 10px 0;
+        color: #d1d5db;
+        font-style: italic;
+      }
+      .config-wysiwyg-${editorId} .ql-toolbar {
+        border: none !important;
+        border-bottom: 1px solid #333333 !important;
+        background-color: #1a1a1a !important;
+        padding: 8px !important;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 2px;
+      }
+      .config-wysiwyg-${editorId} .ql-toolbar .ql-formats {
+        margin-right: 8px !important;
+        display: flex;
+        align-items: center;
+      }
+      .config-wysiwyg-${editorId} .ql-undo,
+      .config-wysiwyg-${editorId} .ql-redo {
+        width: 28px !important;
+        height: 28px !important;
+        padding: 4px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+      }
+      .config-wysiwyg-${editorId} .ql-undo::before {
+        content: '';
+        display: block;
+        width: 18px;
+        height: 18px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 7v6h6'/%3E%3Cpath d='M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: center;
+      }
+      .config-wysiwyg-${editorId} .ql-redo::before {
+        content: '';
+        display: block;
+        width: 18px;
+        height: 18px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 7v6h-6'/%3E%3Cpath d='M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: center;
+      }
+      .config-wysiwyg-${editorId} .ql-undo:hover::before {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 7v6h6'/%3E%3Cpath d='M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13'/%3E%3C/svg%3E");
+      }
+      .config-wysiwyg-${editorId} .ql-redo:hover::before {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 7v6h-6'/%3E%3Cpath d='M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7'/%3E%3C/svg%3E");
+      }
+      .config-wysiwyg-${editorId} .ql-container {
+        border: none !important;
+        background-color: #141414 !important;
+        font-family: inherit;
+      }
+      .config-wysiwyg-${editorId} .ql-snow .ql-stroke {
+        stroke: #9ca3af !important;
+      }
+      .config-wysiwyg-${editorId} .ql-snow .ql-fill {
+        fill: #9ca3af !important;
+      }
+      .config-wysiwyg-${editorId} .ql-snow .ql-picker-label {
+        color: #9ca3af !important;
+      }
+      .config-wysiwyg-${editorId} .ql-snow .ql-picker-label::before {
+        color: #9ca3af !important;
+      }
+      .config-wysiwyg-${editorId} .ql-snow .ql-picker-options {
+        background-color: #1f1f1f !important;
+        border: 1px solid #333333 !important;
+        border-radius: 8px !important;
+        padding: 4px !important;
+        z-index: 9999 !important;
+      }
+      .config-wysiwyg-${editorId} .ql-snow .ql-picker-item {
+        color: #ffffff !important;
+        padding: 4px 8px !important;
+        border-radius: 4px !important;
+      }
+      .config-wysiwyg-${editorId} .ql-snow .ql-picker-item:hover {
+        background-color: #2f2f2f !important;
+      }
+      .config-wysiwyg-${editorId} .ql-snow .ql-color-picker .ql-picker-options,
+      .config-wysiwyg-${editorId} .ql-snow .ql-background .ql-picker-options {
+        padding: 8px !important;
+        width: 192px !important;
+      }
+      .config-wysiwyg-${editorId} .ql-snow .ql-color-picker .ql-picker-item,
+      .config-wysiwyg-${editorId} .ql-snow .ql-background .ql-picker-item {
+        width: 20px !important;
+        height: 20px !important;
+        border-radius: 4px !important;
+        margin: 2px !important;
+        padding: 0 !important;
+      }
+      .config-wysiwyg-${editorId} .ql-snow .ql-tooltip {
+        display: none !important;
+      }
+      .config-wysiwyg-${editorId} .ql-snow button {
+        width: 28px !important;
+        height: 28px !important;
+        padding: 4px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+      }
+      .config-wysiwyg-${editorId} .ql-snow button:hover {
+        background-color: #2f2f2f !important;
+        border-radius: 4px !important;
+      }
+      .config-wysiwyg-${editorId} .ql-snow button.ql-active {
+        background-color: #3b82f6 !important;
+        border-radius: 4px !important;
+      }
+      .config-wysiwyg-${editorId} .ql-snow button.ql-active .ql-stroke {
+        stroke: #ffffff !important;
+      }
+      .config-wysiwyg-${editorId} .ql-snow button.ql-active .ql-fill {
+        fill: #ffffff !important;
+      }
+      .config-wysiwyg-${editorId} .ql-snow .ql-picker {
+        height: 28px !important;
+      }
+      .config-wysiwyg-${editorId} .ql-snow .ql-picker-label {
+        padding: 4px 8px !important;
+        border: none !important;
+        border-radius: 4px !important;
+      }
+      .config-wysiwyg-${editorId} .ql-snow .ql-picker-label:hover {
+        background-color: #2f2f2f !important;
+      }
+      .config-wysiwyg-${editorId} .ql-snow .ql-picker.ql-expanded .ql-picker-label {
+        background-color: #2f2f2f !important;
+      }
+      .config-wysiwyg-${editorId} .ql-snow svg {
+        width: 18px !important;
+        height: 18px !important;
+      }
+      .config-wysiwyg-${editorId} .ql-snow .ql-size .ql-picker-label::before,
+      .config-wysiwyg-${editorId} .ql-snow .ql-size .ql-picker-item::before {
+        content: 'Normal' !important;
+      }
+      .config-wysiwyg-${editorId} .ql-snow .ql-size .ql-picker-label[data-value="small"]::before,
+      .config-wysiwyg-${editorId} .ql-snow .ql-size .ql-picker-item[data-value="small"]::before {
+        content: 'Small' !important;
+      }
+      .config-wysiwyg-${editorId} .ql-snow .ql-size .ql-picker-label[data-value="large"]::before,
+      .config-wysiwyg-${editorId} .ql-snow .ql-size .ql-picker-item[data-value="large"]::before {
+        content: 'Large' !important;
+      }
+      .config-wysiwyg-${editorId} .ql-snow .ql-size .ql-picker-label[data-value="huge"]::before,
+      .config-wysiwyg-${editorId} .ql-snow .ql-size .ql-picker-item[data-value="huge"]::before {
+        content: 'Huge' !important;
+      }
+    `
+    document.head.appendChild(style)
+
+    return () => {
+      const existingStyle = document.getElementById(`wysiwyg-style-${editorId}`)
+      if (existingStyle) {
+        document.head.removeChild(existingStyle)
+      }
+    }
+  }, [editorId, minHeight])
+
+  // Custom Modal Component
+  const EditorModal = ({ show, onClose, title, children, onSubmit, submitText }) => {
+    if (!show) return null
+    return (
+      <div 
+        className="fixed inset-0 bg-black/60 flex items-center justify-center z-[10000]"
+        onClick={onClose}
+      >
+        <div 
+          className="bg-[#1F1F1F] rounded-2xl p-5 w-full max-w-md mx-4 border border-[#333333] shadow-2xl"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-white">{title}</h3>
+            <button
+              onClick={onClose}
+              className="p-1.5 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded-lg transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          {children}
+          <div className="flex gap-3 mt-5">
+            <button
+              onClick={onClose}
+              className="flex-1 px-4 py-2.5 bg-[#2F2F2F] text-white text-sm font-medium rounded-xl hover:bg-[#3F3F3F] transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={onSubmit}
+              className="flex-1 px-4 py-2.5 bg-orange-500 text-white text-sm font-medium rounded-xl hover:bg-orange-600 transition-colors"
+            >
+              {submitText}
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <>
+      <div 
+        ref={containerRef}
+        className={`config-wysiwyg-${editorId} rounded-xl border border-[#333333] relative`}
+        onClick={handleContainerClick}
+        style={{ overflow: 'visible' }}
+      >
+        <ReactQuill
+          ref={quillRef}
+          defaultValue={value}
+          onChange={handleChange}
+          modules={modules}
+          formats={formats}
+          placeholder={placeholder}
+          theme="snow"
+          preserveWhitespace
+        />
+        
+        {/* Image Resize Handles */}
+        {selectedImage && imageRect && (
+          <div 
+            className="absolute pointer-events-none"
+            style={{
+              top: imageRect.top,
+              left: imageRect.left,
+              width: imageRect.width,
+              height: imageRect.height,
+              zIndex: 1000,
+            }}
+          >
+            {/* Selection border */}
+            <div className="absolute inset-0 border-2 border-orange-500 rounded" />
+            
+            {/* Corner handles */}
+            {['nw', 'ne', 'sw', 'se'].map((dir) => (
+              <div
+                key={dir}
+                className="resize-handle"
+                onMouseDown={(e) => startResize(e, dir)}
+                style={{
+                  position: 'absolute',
+                  width: 12,
+                  height: 12,
+                  backgroundColor: '#FF843E',
+                  border: '2px solid white',
+                  borderRadius: 2,
+                  pointerEvents: 'auto',
+                  top: dir.includes('n') ? -6 : 'auto',
+                  bottom: dir.includes('s') ? -6 : 'auto',
+                  left: dir.includes('w') ? -6 : 'auto',
+                  right: dir.includes('e') ? -6 : 'auto',
+                  cursor: dir === 'nw' || dir === 'se' ? 'nwse-resize' : 'nesw-resize'
+                }}
+              />
+            ))}
+            
+            {/* Edge handles - east and west */}
+            <div
+              className="resize-handle"
+              onMouseDown={(e) => startResize(e, 'e')}
+              style={{
+                position: 'absolute',
+                width: 8,
+                height: 30,
+                backgroundColor: '#FF843E',
+                border: '2px solid white',
+                borderRadius: 2,
+                pointerEvents: 'auto',
+                top: '50%',
+                right: -5,
+                transform: 'translateY(-50%)',
+                cursor: 'ew-resize'
+              }}
+            />
+            <div
+              className="resize-handle"
+              onMouseDown={(e) => startResize(e, 'w')}
+              style={{
+                position: 'absolute',
+                width: 8,
+                height: 30,
+                backgroundColor: '#FF843E',
+                border: '2px solid white',
+                borderRadius: 2,
+                pointerEvents: 'auto',
+                top: '50%',
+                left: -5,
+                transform: 'translateY(-50%)',
+                cursor: 'ew-resize'
+              }}
+            />
+            
+            {/* Size indicator */}
+            <div 
+              className="absolute -bottom-7 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-orange-500 text-white rounded text-xs font-medium whitespace-nowrap pointer-events-none"
+            >
+              {Math.round(imageRect.width)} × {Math.round(imageRect.height)}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Link Modal */}
+      <EditorModal
+        show={showLinkModal}
+        onClose={() => setShowLinkModal(false)}
+        title="Insert Link"
+        onSubmit={insertLink}
+        submitText="Insert Link"
+      >
+        <div className="space-y-4">
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-gray-300">Link Text</label>
+            <input
+              type="text"
+              value={linkText}
+              onChange={(e) => setLinkText(e.target.value)}
+              placeholder="Text to display"
+              className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF] transition-colors"
+              autoFocus
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-gray-300">URL</label>
+            <input
+              type="url"
+              value={linkUrl}
+              onChange={(e) => setLinkUrl(e.target.value)}
+              placeholder="https://example.com"
+              className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF] transition-colors"
+            />
+          </div>
+        </div>
+      </EditorModal>
+
+      {/* Image Modal */}
+      <EditorModal
+        show={showImageModal}
+        onClose={() => setShowImageModal(false)}
+        title="Insert Image"
+        onSubmit={insertImage}
+        submitText="Insert Image"
+      >
+        <div className="space-y-4">
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-gray-300">Image URL</label>
+            <input
+              type="url"
+              value={imageUrl}
+              onChange={(e) => setImageUrl(e.target.value)}
+              placeholder="https://example.com/image.jpg"
+              className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF] transition-colors"
+              autoFocus
+            />
+          </div>
+          
+          {/* Image Preview */}
+          {imageUrl && (
+            <div className="p-3 bg-[#141414] rounded-xl border border-[#333333]">
+              <img 
+                src={imageUrl} 
+                alt="Preview" 
+                className="max-h-40 mx-auto rounded-lg object-contain"
+                onError={(e) => e.target.style.display = 'none'}
+              />
+            </div>
+          )}
+          
+          <p className="text-xs text-gray-500">
+            💡 Tip: After inserting, click on the image to resize it by dragging the handles.
+          </p>
+        </div>
+      </EditorModal>
+    </>
+  )
+}
 
 // ============================================
 // Navigation Items Configuration
 // ============================================
 const navigationItems = [
+  {
+    id: "profile",
+    label: "Profile",
+    icon: User,
+    sections: [
+      { id: "profile-details", label: "Personal Details" },
+      { id: "profile-access", label: "Access Data" },
+    ],
+  },
   {
     id: "studio",
     label: "Studio",
@@ -87,7 +796,7 @@ const navigationItems = [
   },
   {
     id: "members",
-    label: "Members",
+    label: "Members & Leads",
     icon: Users,
     sections: [
       { id: "qr-checkin", label: "QR Code Check-In" },
@@ -116,7 +825,7 @@ const navigationItems = [
       { id: "app-notifications", label: "App Notifications" },
       { id: "smtp-setup", label: "SMTP Setup" },
       { id: "email-signature", label: "Email Signature" },
-      { id: "invoice-template", label: "Invoice Template" },
+      { id: "e-invoice-template", label: "E-Invoice Template" },
     ],
   },
   {
@@ -124,7 +833,6 @@ const navigationItems = [
     label: "Finances",
     icon: BadgeDollarSign,
     sections: [
-      { id: "currency", label: "Currency" },
       { id: "vat-rates", label: "VAT Rates" },
       { id: "payment-settings", label: "Payment Settings" },
     ],
@@ -385,8 +1093,8 @@ const Tooltip = ({ children, content, position = "left" }) => (
 )
 
 // Info Icon with Tooltip
-const InfoTooltip = ({ content }) => (
-  <Tooltip content={content}>
+const InfoTooltip = ({ content, position = "left" }) => (
+  <Tooltip content={content} position={position}>
     <Info className="w-4 h-4 text-gray-500 hover:text-gray-300 cursor-help" />
   </Tooltip>
 )
@@ -395,30 +1103,92 @@ const InfoTooltip = ({ content }) => (
 // Main Configuration Page Component
 // ============================================
 const ConfigurationPage = () => {
+  // URL Search Params
+  const [searchParams] = useSearchParams()
+  
   // Navigation State
-  const [activeCategory, setActiveCategory] = useState("studio")
-  const [activeSection, setActiveSection] = useState("studio-info")
+  const [activeCategory, setActiveCategory] = useState("profile")
+  const [activeSection, setActiveSection] = useState("profile-details")
   const [searchQuery, setSearchQuery] = useState("")
   const [mobileShowContent, setMobileShowContent] = useState(false)
-  const [expandedCategories, setExpandedCategories] = useState(["studio"])
+  const [expandedCategories, setExpandedCategories] = useState(["profile"])
+
+  // Handle URL section parameter on mount
+  useEffect(() => {
+    const sectionParam = searchParams.get("section")
+    if (sectionParam) {
+      // Find the category that contains this section
+      const category = navigationItems.find(cat => 
+        cat.sections.some(sec => sec.id === sectionParam)
+      )
+      if (category) {
+        setActiveCategory(category.id)
+        setActiveSection(sectionParam)
+        setMobileShowContent(true)
+        setExpandedCategories(prev => 
+          prev.includes(category.id) ? prev : [...prev, category.id]
+        )
+      }
+    }
+  }, [searchParams])
+
+  // ============================================
+  // Profile State Variables
+  // ============================================
+  const [profileData, setProfileData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    mobile: "",
+    street: "",
+    zipCode: "",
+    city: "",
+    country: "",
+    birthday: "",
+    username: "",
+    password: "",
+    profilePicture: null,
+  })
+  const [profilePreviewUrl, setProfilePreviewUrl] = useState(null)
+  const [showPassword, setShowPassword] = useState(false)
+  const profileFileInputRef = useRef(null)
+
+  const handleProfileInputChange = (field, value) => {
+    setProfileData((prev) => ({ ...prev, [field]: value }))
+  }
+
+  const handleProfileImageChange = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      setProfileData((prev) => ({ ...prev, profilePicture: file }))
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setProfilePreviewUrl(reader.result)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
 
   // ============================================
   // All State Variables (preserved from original)
   // ============================================
   
   // Basic studio information
-  const [studioName, setStudioName] = useState("")
-  const [studioOperator, setStudioOperator] = useState("")
-  const [studioOperatorEmail, setStudioOperatorEmail] = useState("")
-  const [studioOperatorPhone, setStudioOperatorPhone] = useState("")
-  const [studioOperatorMobile, setStudioOperatorMobile] = useState("")
-  const [studioStreet, setStudioStreet] = useState("")
-  const [studioZipCode, setStudioZipCode] = useState("")
-  const [studioCity, setStudioCity] = useState("")
-  const [studioCountry, setStudioCountry] = useState("")
-  const [studioPhoneNo, setStudioPhoneNo] = useState("")
-  const [studioEmail, setStudioEmail] = useState("")
-  const [studioWebsite, setStudioWebsite] = useState("")
+  const [studioName, setStudioName] = useState("FitnessPro Studio")
+  const [studioId] = useState("STU-2024-001847") // Read-only studio ID
+  const [studioOperator, setStudioOperator] = useState("Max Mustermann")
+  const [studioOperatorEmail, setStudioOperatorEmail] = useState("operator@fitnesspro.de")
+  const [studioOperatorPhone, setStudioOperatorPhone] = useState("+49 30 12345678")
+  const [studioOperatorMobile, setStudioOperatorMobile] = useState("+49 170 1234567")
+  const [studioStreet, setStudioStreet] = useState("Musterstraße 123")
+  const [studioZipCode, setStudioZipCode] = useState("10115")
+  const [studioCity, setStudioCity] = useState("Berlin")
+  const [studioCountry, setStudioCountry] = useState("DE")
+  const [studioPhoneNo, setStudioPhoneNo] = useState("+49 30 12345678")
+  const [studioMobileNo, setStudioMobileNo] = useState("+49 170 1234567")
+  const [studioEmail, setStudioEmail] = useState("info@fitnesspro.de")
+  const [studioWebsite, setStudioWebsite] = useState("https://fitnesspro.de")
   const [currency, setCurrency] = useState("€")
   const [logo, setLogo] = useState([])
   const [logoUrl, setLogoUrl] = useState("")
@@ -436,14 +1206,78 @@ const ConfigurationPage = () => {
       name: "Admin",
       permissions: PERMISSION_DATA.map(p => p.key),
       color: "#FF843E",
-      defaultVacationDays: 20,
       isAdmin: true,
       staffCount: 1,
       assignedStaff: [1]
+    },
+    {
+      id: 2,
+      name: "Trainer",
+      permissions: [
+        "appointments.view",
+        "appointments.create",
+        "appointments.edit",
+        "appointments.cancel",
+        "communication.view",
+        "chat.member_send",
+        "members.view",
+        "members.history_view",
+        "notes.view",
+        "notes.personal_create",
+        "notes.studio_create",
+        "training.view",
+        "training_plans.create",
+        "training_plans.assign",
+        "profile.edit_own",
+      ],
+      color: "#10B981",
+      isAdmin: false,
+      staffCount: 0,
+      assignedStaff: []
+    },
+    {
+      id: 3,
+      name: "Studio Operator",
+      permissions: [
+        "appointments.view",
+        "appointments.create",
+        "appointments.edit",
+        "appointments.cancel",
+        "appointments.manage_contingent",
+        "communication.view",
+        "emails.send",
+        "chat.member_send",
+        "chat.studio_send",
+        "broadcasts.send",
+        "activity_monitor.view",
+        "activity_monitor.take_actions",
+        "todos.view",
+        "todos.create",
+        "todos.edit",
+        "notes.view",
+        "notes.personal_create",
+        "notes.studio_create",
+        "members.view",
+        "members.create",
+        "members.edit",
+        "members.history_view",
+        "leads.view",
+        "leads.create",
+        "leads.edit",
+        "contracts.view",
+        "contracts.create",
+        "selling.view",
+        "products.manage",
+        "profile.edit_own",
+      ],
+      color: "#3B82F6",
+      isAdmin: false,
+      staffCount: 0,
+      assignedStaff: []
     }
   ])
-  const [defaultVacationDays, setDefaultVacationDays] = useState(20)
-  const [defaultStaffRole, setDefaultStaffRole] = useState(null)
+  const [defaultVacationDays, setDefaultVacationDays] = useState(30)
+  const [defaultStaffRole, setDefaultStaffRole] = useState(2)
   const [defaultStaffCountry, setDefaultStaffCountry] = useState("studio")
   const [permissionModalVisible, setPermissionModalVisible] = useState(false)
   const [selectedRoleIndex, setSelectedRoleIndex] = useState(null)
@@ -468,6 +1302,7 @@ const ConfigurationPage = () => {
       interval: 30,
       category: "Personal Training",
       image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80",
+      contingentUsage: 1,
     },
     {
       id: 2,
@@ -480,6 +1315,7 @@ const ConfigurationPage = () => {
       interval: 30,
       category: "Personal Training",
       image: "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&q=80",
+      contingentUsage: 1,
     },
     {
       id: 3,
@@ -492,6 +1328,7 @@ const ConfigurationPage = () => {
       interval: 30,
       category: "Wellness",
       image: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=800&q=80",
+      contingentUsage: 0,
     },
     {
       id: 4,
@@ -504,6 +1341,7 @@ const ConfigurationPage = () => {
       interval: 30,
       category: "Health Check",
       image: null,
+      contingentUsage: 1,
     },
   ])
   const [appointmentCategories, setAppointmentCategories] = useState([
@@ -531,6 +1369,7 @@ const ConfigurationPage = () => {
     interval: 30,
     category: "",
     image: null,
+    contingentUsage: 1,
   })
   
   // Image Upload States for Appointment Types
@@ -551,53 +1390,224 @@ const ConfigurationPage = () => {
     {
       id: 1,
       name: "Welcome Guide",
-      pages: [{ id: 1, content: "Welcome to our studio!", elements: [] }]
+      pages: [{ id: 1, title: "Welcome", content: "<p>Welcome to our studio!</p>", elements: [] }]
     }
   ])
+  const [introMaterialEditorVisible, setIntroMaterialEditorVisible] = useState(false)
+  const [editingIntroMaterial, setEditingIntroMaterial] = useState(null)
+  const [editingIntroMaterialIndex, setEditingIntroMaterialIndex] = useState(null)
+  const [deletingIntroMaterialIndex, setDeletingIntroMaterialIndex] = useState(null)
+
+  // Contract Form States
+  const [deletingContractFormId, setDeletingContractFormId] = useState(null)
+  const [editingContractFormName, setEditingContractFormName] = useState({ id: null, value: "" })
+
+  // Contract Type Modal States
+  const [contractTypeModalVisible, setContractTypeModalVisible] = useState(false)
+  const [editingContractType, setEditingContractType] = useState(null)
+  const [editingContractTypeIndex, setEditingContractTypeIndex] = useState(null)
 
   // Contracts
   const [allowMemberSelfCancellation, setAllowMemberSelfCancellation] = useState(true)
   const [noticePeriod, setNoticePeriod] = useState(30)
   const [extensionPeriod, setExtensionPeriod] = useState(12)
-  const [contractTypes, setContractTypes] = useState([])
-  const [contractForms, setContractForms] = useState([])
+  const [defaultBillingPeriod, setDefaultBillingPeriod] = useState("monthly")
+  const [defaultAutoRenewal, setDefaultAutoRenewal] = useState(true)
+  const [defaultRenewalIndefinite, setDefaultRenewalIndefinite] = useState(true)
+  const [defaultRenewalPeriod, setDefaultRenewalPeriod] = useState(1)
+  const [defaultAppointmentLimit, setDefaultAppointmentLimit] = useState(8)
+  const [contractTypes, setContractTypes] = useState([
+    {
+      id: 1,
+      name: "Basic Monthly",
+      description: "Entry-level membership with essential features",
+      duration: 12,
+      cost: 79,
+      billingPeriod: "monthly",
+      userCapacity: 4,
+      autoRenewal: true,
+      renewalIndefinite: true,
+      renewalPeriod: null,
+      renewalPrice: 79,
+      cancellationPeriod: 30,
+      contractFormId: 1,
+    },
+    {
+      id: 2,
+      name: "Standard Monthly",
+      description: "Our most popular membership option",
+      duration: 12,
+      cost: 99,
+      billingPeriod: "monthly",
+      userCapacity: 8,
+      autoRenewal: true,
+      renewalIndefinite: true,
+      renewalPeriod: null,
+      renewalPrice: 99,
+      cancellationPeriod: 30,
+      contractFormId: 1,
+    },
+    {
+      id: 3,
+      name: "Premium Unlimited",
+      description: "Full access with unlimited training sessions",
+      duration: 12,
+      cost: 149,
+      billingPeriod: "monthly",
+      userCapacity: 0,
+      autoRenewal: true,
+      renewalIndefinite: true,
+      renewalPeriod: null,
+      renewalPrice: 149,
+      cancellationPeriod: 30,
+      contractFormId: 2,
+    },
+    {
+      id: 4,
+      name: "Flex 10er Card",
+      description: "10 training credits, use anytime within 6 months",
+      duration: 6,
+      cost: 199,
+      billingPeriod: "monthly",
+      userCapacity: 10,
+      autoRenewal: false,
+      renewalIndefinite: false,
+      renewalPeriod: null,
+      renewalPrice: 0,
+      cancellationPeriod: 0,
+      contractFormId: 1,
+    },
+    {
+      id: 5,
+      name: "Annual Premium",
+      description: "Best value - pay annually, save 2 months",
+      duration: 12,
+      cost: 1490,
+      billingPeriod: "annually",
+      userCapacity: 0,
+      autoRenewal: true,
+      renewalIndefinite: false,
+      renewalPeriod: 12,
+      renewalPrice: 1490,
+      cancellationPeriod: 60,
+      contractFormId: 2,
+    },
+    {
+      id: 6,
+      name: "Trial Week",
+      description: "7-day trial membership to experience our studio",
+      duration: 1,
+      cost: 29,
+      billingPeriod: "weekly",
+      userCapacity: 3,
+      autoRenewal: false,
+      renewalIndefinite: false,
+      renewalPeriod: null,
+      renewalPrice: 0,
+      cancellationPeriod: 0,
+      contractFormId: 3,
+    },
+  ])
+  const [contractForms, setContractForms] = useState([
+    {
+      id: 1,
+      name: "Standard Membership Agreement",
+      pages: [
+        {
+          id: 1,
+          title: "Terms & Conditions",
+          elements: [
+            { id: 1, type: "heading", content: "Membership Agreement" },
+            { id: 2, type: "paragraph", content: "This agreement is entered into between {Studio_Name} and the member." },
+          ]
+        }
+      ],
+      createdAt: "2024-01-15T10:00:00Z",
+    },
+    {
+      id: 2,
+      name: "Premium Membership Contract",
+      pages: [
+        {
+          id: 1,
+          title: "Premium Terms",
+          elements: [
+            { id: 1, type: "heading", content: "Premium Membership Agreement" },
+            { id: 2, type: "paragraph", content: "Welcome to our Premium Membership program." },
+          ]
+        },
+        {
+          id: 2,
+          title: "Signatures",
+          elements: [
+            { id: 1, type: "field", fieldType: "signature", label: "Member Signature", required: true },
+          ]
+        }
+      ],
+      createdAt: "2024-02-01T14:30:00Z",
+    },
+    {
+      id: 3,
+      name: "Trial Membership Form",
+      pages: [
+        {
+          id: 1,
+          title: "Trial Agreement",
+          elements: [
+            { id: 1, type: "heading", content: "Trial Membership" },
+            { id: 2, type: "paragraph", content: "This trial membership allows you to experience our studio for a limited time." },
+          ]
+        }
+      ],
+      createdAt: "2024-03-01T08:00:00Z",
+    },
+  ])
   const [selectedContractForm, setSelectedContractForm] = useState(null)
   const [contractBuilderModalVisible, setContractBuilderModalVisible] = useState(false)
   const [newContractFormName, setNewContractFormName] = useState("")
   const [showCreateFormModal, setShowCreateFormModal] = useState(false)
   const [contractPauseReasons, setContractPauseReasons] = useState([
-    { name: "Vacation", maxDays: 30 },
-    { name: "Medical", maxDays: 90 },
+    { id: 1, name: "Vacation", maxDays: 30, requiresProof: false },
+    { id: 2, name: "Medical / Illness", maxDays: 90, requiresProof: true },
+    { id: 3, name: "Injury / Rehabilitation", maxDays: 120, requiresProof: true },
+    { id: 4, name: "Pregnancy", maxDays: 180, requiresProof: true },
+    { id: 5, name: "Parental Leave", maxDays: 365, requiresProof: true },
+    { id: 6, name: "Work Relocation", maxDays: 90, requiresProof: true },
+    { id: 7, name: "Military / Civil Service", maxDays: 365, requiresProof: true },
+    { id: 8, name: "Personal Reasons", maxDays: 30, requiresProof: false },
   ])
 
   // Communication Settings
   const [settings, setSettings] = useState({
     autoArchiveDuration: 30,
-    emailNotificationEnabled: false,
-    birthdayMessageEnabled: false,
-    birthdayMessageTemplate: "",
+    // Birthday notification
+    birthdayNotificationEnabled: true,
+    birthdaySendEmail: true,
+    birthdaySendApp: true,
+    birthdaySubject: "🎂 Happy Birthday, {Member_First_Name}!",
+    birthdayTemplate: "<p>Dear {Member_First_Name},</p><p>The entire team at <strong>{Studio_Name}</strong> wishes you a wonderful birthday! 🎉</p><p>As a special gift, enjoy a <strong>free training session</strong> this week.</p><p>We look forward to seeing you!</p>",
     birthdaySendTime: "09:00",
-    appointmentNotificationEnabled: false,
-    appNotificationEnabled: false,
-    birthdayAppNotificationEnabled: false,
-    appointmentAppNotificationEnabled: false,
-    notificationSubTab: "email",
-    smtpHost: "",
+    // SMTP
+    smtpHost: "smtp.gmail.com",
     smtpPort: 587,
-    smtpUser: "",
+    smtpUser: "noreply@fitnesspro.de",
     smtpPass: "",
-    senderName: "",
-    emailSignature: "Best regards,\n{Studio_Name} Team",
-    einvoiceSubject: "",
-    einvoiceTemplate: "",
+    smtpSecure: true,
+    smtpFromEmail: "noreply@fitnesspro.de",
+    senderName: "FitnessPro Studio",
+    // Email signature
+    emailSignature: "<p>Best regards,<br><strong>FitnessPro Studio Team</strong></p><p>📞 +49 30 12345678<br>📧 info@fitnesspro.de<br>🌐 www.fitnesspro.de</p><p style=\"color: #666; font-size: 12px;\">Musterstraße 123, 10115 Berlin</p>",
+    // E-Invoice
+    einvoiceSubject: "Invoice {Invoice_Number} - {Selling_Date}",
+    einvoiceTemplate: "<p>Dear {Member_First_Name} {Member_Last_Name},</p><p>Please find attached your invoice <strong>#{Invoice_Number}</strong> dated {Selling_Date}.</p><p><strong>Total Amount: {Total_Amount}</strong></p><p>Thank you for your continued membership!</p>",
   })
 
   const [appointmentNotificationTypes, setAppointmentNotificationTypes] = useState({
-    confirmation: { enabled: false, template: "", sendApp: false, sendEmail: false, hoursBefore: 24 },
-    cancellation: { enabled: false, template: "", sendApp: false, sendEmail: false, hoursBefore: 24 },
-    rescheduled: { enabled: false, template: "", sendApp: false, sendEmail: false, hoursBefore: 24 },
-    reminder: { enabled: false, template: "", sendApp: false, sendEmail: false, hoursBefore: 24 },
-    registration: { enabled: false, template: "", sendApp: false, sendEmail: false },
+    confirmation: { enabled: true, subject: "✅ Appointment Confirmed - {Appointment_Type}", template: "<p>Dear {Member_First_Name},</p><p>Your appointment has been confirmed:</p><p><strong>{Appointment_Type}</strong><br>📅 {Booked_Date}<br>🕐 {Booked_Time}</p><p>We look forward to seeing you!</p>", sendApp: true, sendEmail: true, hoursBefore: 24 },
+    cancellation: { enabled: true, subject: "❌ Appointment Cancelled - {Appointment_Type}", template: "<p>Dear {Member_First_Name},</p><p>Your appointment has been cancelled:</p><p><strong>{Appointment_Type}</strong><br>📅 {Booked_Date}<br>🕐 {Booked_Time}</p><p>Please book a new appointment if needed.</p>", sendApp: true, sendEmail: true, hoursBefore: 24 },
+    rescheduled: { enabled: true, subject: "🔄 Appointment Rescheduled - {Appointment_Type}", template: "<p>Dear {Member_First_Name},</p><p>Your appointment has been rescheduled to:</p><p><strong>{Appointment_Type}</strong><br>📅 {Booked_Date}<br>🕐 {Booked_Time}</p>", sendApp: true, sendEmail: true, hoursBefore: 24 },
+    reminder: { enabled: true, subject: "⏰ Reminder: {Appointment_Type} tomorrow", template: "<p>Dear {Member_First_Name},</p><p>This is a reminder for your upcoming appointment:</p><p><strong>{Appointment_Type}</strong><br>📅 {Booked_Date}<br>🕐 {Booked_Time}</p><p>See you soon!</p>", sendApp: true, sendEmail: true, hoursBefore: 24 },
+    registration: { enabled: true, subject: "🎉 Welcome to {Studio_Name}!", template: "<p>Dear {Member_First_Name} {Member_Last_Name},</p><p>Welcome to <strong>{Studio_Name}</strong>! We're excited to have you as a member.</p><p>Click the link below to complete your registration:</p><p>{Registration_Link}</p><p>If you have any questions, feel free to contact us.</p>", sendApp: false, sendEmail: true },
   })
 
   // Finances
@@ -605,9 +1615,11 @@ const ConfigurationPage = () => {
     { name: "Standard", percentage: 19, description: "Standard VAT rate" },
     { name: "Reduced", percentage: 7, description: "Reduced VAT rate" },
   ])
-  const [vatNumber, setVatNumber] = useState("")
-  const [bankName, setBankName] = useState("")
-  const [creditorId, setCreditorId] = useState("")
+  const [vatNumber, setVatNumber] = useState("DE123456789")
+  const [bankName, setBankName] = useState("Deutsche Bank")
+  const [creditorId, setCreditorId] = useState("DE98ZZZ09999999999")
+  const [creditorName, setCreditorName] = useState("FitnessPro GmbH")
+  const [iban, setIban] = useState("DE89 3704 0044 0532 0130 00")
 
   // Appearance
   const [appearance, setAppearance] = useState({
@@ -636,6 +1648,93 @@ const ConfigurationPage = () => {
   const rescheduledTextareaRef = useRef(null)
   const reminderTextareaRef = useRef(null)
   const registrationTextareaRef = useRef(null)
+  const qrCodeRef = useRef(null)
+
+  // Create branded QR image with studio name
+  const createBrandedQRImage = (callback) => {
+    if (!qrCodeRef.current) return
+    
+    const qrCanvas = qrCodeRef.current.querySelector('canvas')
+    if (!qrCanvas) return
+
+    // Create a new canvas for the branded image
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')
+    const padding = 40
+    const titleHeight = 60
+    const subtitleHeight = 40
+    const qrSize = qrCanvas.width
+    
+    canvas.width = qrSize + (padding * 2)
+    canvas.height = qrSize + (padding * 2) + titleHeight + subtitleHeight
+    
+    // White background
+    ctx.fillStyle = '#FFFFFF'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+    
+    // Studio name title
+    ctx.fillStyle = '#1C1C1C'
+    ctx.font = 'bold 24px system-ui, -apple-system, sans-serif'
+    ctx.textAlign = 'center'
+    ctx.fillText(studioName || 'Studio', canvas.width / 2, padding + 30)
+    
+    // Draw QR code
+    ctx.drawImage(qrCanvas, padding, padding + titleHeight)
+    
+    // Subtitle
+    ctx.fillStyle = '#666666'
+    ctx.font = '16px system-ui, -apple-system, sans-serif'
+    ctx.fillText('Scan to check in', canvas.width / 2, padding + titleHeight + qrSize + 30)
+    
+    callback(canvas)
+  }
+
+  // QR Code download handler
+  const handleDownloadQRCode = () => {
+    createBrandedQRImage((canvas) => {
+      const url = canvas.toDataURL('image/png')
+      const link = document.createElement('a')
+      link.download = `${studioName || 'studio'}-checkin-qr.png`
+      link.href = url
+      link.click()
+    })
+  }
+
+  // QR Code print handler
+  const handlePrintQRCode = () => {
+    createBrandedQRImage((canvas) => {
+      const dataUrl = canvas.toDataURL('image/png')
+      const printWindow = window.open('', '_blank')
+      if (printWindow) {
+        printWindow.document.write(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <title>QR Code - ${studioName || 'Studio'} Check-In</title>
+              <style>
+                body {
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  min-height: 100vh;
+                  margin: 0;
+                  font-family: system-ui, -apple-system, sans-serif;
+                }
+                img { max-width: 400px; }
+              </style>
+            </head>
+            <body>
+              <img src="${dataUrl}" alt="Check-In QR Code" />
+            </body>
+          </html>
+        `)
+        printWindow.document.close()
+        printWindow.onload = () => {
+          printWindow.print()
+        }
+      }
+    })
+  }
 
   // Get current section title for mobile header
   const getCurrentSectionTitle = () => {
@@ -688,11 +1787,9 @@ const ConfigurationPage = () => {
     fetchCountries()
   }, [])
 
-  // Update currency when country changes
+  // Fetch public holidays when country changes
   useEffect(() => {
     if (studioCountry) {
-      const country = countries.find(c => c.code === studioCountry)
-      if (country) setCurrency(country.currency)
       fetchPublicHolidays(studioCountry)
     }
   }, [studioCountry])
@@ -750,7 +1847,6 @@ const ConfigurationPage = () => {
       name: "",
       permissions: [],
       color: "#3B82F6",
-      defaultVacationDays: defaultVacationDays,
       isAdmin: false,
       staffCount: 0,
       assignedStaff: []
@@ -796,9 +1892,38 @@ const ConfigurationPage = () => {
   }
 
   const handleStaffAssignmentChange = (roleId, assignedStaffIds) => {
-    setRoles(roles.map(role => 
-      role.id === roleId ? { ...role, assignedStaff: assignedStaffIds, staffCount: assignedStaffIds.length } : role
-    ))
+    // Find the admin role
+    const adminRole = roles.find(r => r.isAdmin)
+    const targetRole = roles.find(r => r.id === roleId)
+    
+    // If we're assigning to a non-admin role, check if any of the staff are the last admin
+    if (adminRole && !targetRole?.isAdmin) {
+      const adminStaff = adminRole.assignedStaff || []
+      const staffBeingMovedFromAdmin = assignedStaffIds.filter(id => adminStaff.includes(id))
+      
+      // Check if this would remove all admins
+      const remainingAdmins = adminStaff.filter(id => !staffBeingMovedFromAdmin.includes(id))
+      
+      if (staffBeingMovedFromAdmin.length > 0 && remainingAdmins.length === 0) {
+        notification.error({ 
+          message: "Cannot remove last admin", 
+          description: "At least one staff member must remain in the Admin role." 
+        })
+        return
+      }
+    }
+    
+    // Remove assigned staff from all other roles, then add to the target role
+    setRoles(roles.map(role => {
+      if (role.id === roleId) {
+        // This is the target role - assign the staff
+        return { ...role, assignedStaff: assignedStaffIds, staffCount: assignedStaffIds.length }
+      } else {
+        // Remove any of the assigned staff from this role
+        const filteredStaff = (role.assignedStaff || []).filter(staffId => !assignedStaffIds.includes(staffId))
+        return { ...role, assignedStaff: filteredStaff, staffCount: filteredStaff.length }
+      }
+    }))
   }
 
   // Appointment handlers
@@ -816,6 +1941,7 @@ const ConfigurationPage = () => {
         interval: type.interval || 30,
         category: type.category || "",
         image: type.image || null,
+        contingentUsage: type.contingentUsage ?? 1,
       })
     } else {
       // Creating new
@@ -830,6 +1956,7 @@ const ConfigurationPage = () => {
         interval: 30,
         category: "",
         image: null,
+        contingentUsage: 1,
       })
     }
     setShowAppointmentTypeModal(true)
@@ -838,6 +1965,26 @@ const ConfigurationPage = () => {
   const handleSaveAppointmentType = () => {
     if (!appointmentTypeForm.name.trim()) {
       notification.error({ message: "Please enter a name for the appointment type" })
+      return
+    }
+    if (!appointmentTypeForm.duration || appointmentTypeForm.duration < 5) {
+      notification.error({ message: "Please enter a valid duration (min. 5 minutes)" })
+      return
+    }
+    if (!appointmentTypeForm.interval || appointmentTypeForm.interval < 5) {
+      notification.error({ message: "Please enter a valid interval (min. 5 minutes)" })
+      return
+    }
+    if (appointmentTypeForm.slotsRequired === undefined || appointmentTypeForm.slotsRequired === null || appointmentTypeForm.slotsRequired === "") {
+      notification.error({ message: "Please enter the slots required" })
+      return
+    }
+    if (!appointmentTypeForm.maxParallel || appointmentTypeForm.maxParallel < 1) {
+      notification.error({ message: "Please enter max parallel (min. 1)" })
+      return
+    }
+    if (appointmentTypeForm.contingentUsage === undefined || appointmentTypeForm.contingentUsage === null || appointmentTypeForm.contingentUsage === "") {
+      notification.error({ message: "Please enter the contingent usage" })
       return
     }
     
@@ -942,18 +2089,83 @@ const ConfigurationPage = () => {
 
   // Contract handlers
   const handleAddContractType = () => {
-    setContractTypes([...contractTypes, {
+    setEditingContractType({
+      id: Date.now(),
       name: "",
       duration: 12,
       cost: 0,
-      billingPeriod: "monthly",
-      userCapacity: 0,
-      autoRenewal: false,
-      renewalPeriod: 1,
+      billingPeriod: defaultBillingPeriod,
+      userCapacity: defaultAppointmentLimit,
+      autoRenewal: defaultAutoRenewal,
+      renewalPeriod: defaultRenewalPeriod,
       renewalPrice: 0,
-      cancellationPeriod: 30,
+      renewalIndefinite: defaultRenewalIndefinite,
+      cancellationPeriod: noticePeriod,
       contractFormId: null,
-    }])
+    })
+    setEditingContractTypeIndex(null)
+    setContractTypeModalVisible(true)
+  }
+
+  const handleEditContractType = (type, index) => {
+    setEditingContractType({ ...type })
+    setEditingContractTypeIndex(index)
+    setContractTypeModalVisible(true)
+  }
+
+  const handleSaveContractType = () => {
+    if (!editingContractType.name.trim()) {
+      notification.error({ message: "Please enter a contract name" })
+      return
+    }
+    if (!editingContractType.duration || editingContractType.duration < 1) {
+      notification.error({ message: "Please enter a valid duration" })
+      return
+    }
+    if (!editingContractType.billingPeriod) {
+      notification.error({ message: "Please select a billing period" })
+      return
+    }
+    if (editingContractType.userCapacity === undefined || editingContractType.userCapacity === null || editingContractType.userCapacity === "") {
+      notification.error({ message: "Please enter a contingent value (0 for unlimited)" })
+      return
+    }
+    if (contractForms.length === 0) {
+      notification.error({ message: "Please create a contract form first" })
+      return
+    }
+    if (!editingContractType.contractFormId) {
+      notification.error({ message: "Please select a contract form" })
+      return
+    }
+    
+    if (editingContractTypeIndex !== null) {
+      const updated = [...contractTypes]
+      updated[editingContractTypeIndex] = editingContractType
+      setContractTypes(updated)
+      notification.success({ message: "Contract type updated" })
+    } else {
+      setContractTypes([...contractTypes, editingContractType])
+      notification.success({ message: "Contract type created" })
+    }
+    
+    setContractTypeModalVisible(false)
+    setEditingContractType(null)
+    setEditingContractTypeIndex(null)
+  }
+
+  const handleDeleteContractType = (index) => {
+    const type = contractTypes[index]
+    Modal.confirm({
+      title: "Delete Contract Type",
+      content: `Are you sure you want to delete "${type.name || 'this contract type'}"?`,
+      okText: "Delete",
+      okType: "danger",
+      onOk: () => {
+        setContractTypes(contractTypes.filter((_, i) => i !== index))
+        notification.success({ message: "Contract type deleted" })
+      }
+    })
   }
 
   const handleCreateContractForm = () => {
@@ -1068,6 +2280,184 @@ const ConfigurationPage = () => {
   const renderSectionContent = () => {
     switch (activeSection) {
       // ========================
+      // PROFILE SECTIONS
+      // ========================
+      case "profile-details":
+        return (
+          <div className="space-y-6">
+            <SectionHeader title="Personal Details" description="Manage your personal information" />
+            
+            {/* Profile Picture Upload */}
+            <SettingsCard>
+              <div className="flex flex-col items-center gap-4">
+                <div className="relative">
+                  <img
+                    src={profilePreviewUrl || DefaultAvatar}
+                    alt="Profile Preview"
+                    className="w-24 h-24 rounded-xl object-cover"
+                  />
+                </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  ref={profileFileInputRef}
+                  onChange={handleProfileImageChange}
+                  className="hidden"
+                />
+                <button
+                  onClick={() => profileFileInputRef.current?.click()}
+                  className="px-6 py-2 bg-[#3F74FF] text-white text-sm rounded-xl hover:bg-blue-600 transition-colors"
+                >
+                  Upload Picture
+                </button>
+              </div>
+            </SettingsCard>
+
+            {/* Personal Information */}
+            <SettingsCard>
+              <h3 className="text-white font-medium mb-4">Personal Information</h3>
+              <div className="space-y-4">
+                {/* First + Last Name */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <InputField
+                    label="First Name"
+                    value={profileData.firstName}
+                    onChange={(v) => handleProfileInputChange("firstName", v)}
+                    placeholder="Enter first name"
+                  />
+                  <InputField
+                    label="Last Name"
+                    value={profileData.lastName}
+                    onChange={(v) => handleProfileInputChange("lastName", v)}
+                    placeholder="Enter last name"
+                  />
+                </div>
+
+                {/* Birthday */}
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-gray-300">Birthday</label>
+                  <input
+                    type="date"
+                    value={profileData.birthday}
+                    onChange={(e) => handleProfileInputChange("birthday", e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl bg-[#141414] border border-[#333333] outline-none text-sm text-white focus:border-[#3F74FF]"
+                  />
+                </div>
+
+                {/* Email + Phone */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <InputField
+                    label="Email"
+                    value={profileData.email}
+                    onChange={(v) => handleProfileInputChange("email", v)}
+                    placeholder="Enter email"
+                    type="email"
+                  />
+                  <InputField
+                    label="Telephone Number"
+                    value={profileData.phone}
+                    onChange={(v) => handleProfileInputChange("phone", v)}
+                    placeholder="Enter telephone number"
+                  />
+                </div>
+
+                {/* Mobile Number */}
+                <InputField
+                  label="Mobile Number"
+                  value={profileData.mobile}
+                  onChange={(v) => handleProfileInputChange("mobile", v)}
+                  placeholder="Enter mobile number"
+                />
+
+                {/* Street */}
+                <InputField
+                  label="Street"
+                  value={profileData.street}
+                  onChange={(v) => handleProfileInputChange("street", v)}
+                  placeholder="Enter street address"
+                />
+
+                {/* ZIP + City */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <InputField
+                    label="ZIP Code"
+                    value={profileData.zipCode}
+                    onChange={(v) => handleProfileInputChange("zipCode", v)}
+                    placeholder="Enter ZIP code"
+                  />
+                  <InputField
+                    label="City"
+                    value={profileData.city}
+                    onChange={(v) => handleProfileInputChange("city", v)}
+                    placeholder="Enter city"
+                  />
+                </div>
+
+                {/* Country */}
+                <SelectField
+                  label="Country"
+                  value={profileData.country}
+                  onChange={(v) => handleProfileInputChange("country", v)}
+                  options={countries.map(c => ({ value: c.code, label: c.name }))}
+                  placeholder="Select country"
+                  searchable
+                />
+              </div>
+            </SettingsCard>
+          </div>
+        )
+
+      case "profile-access":
+        return (
+          <div className="space-y-6">
+            <SectionHeader title="Access Data" description="Manage your login credentials" />
+            
+            <SettingsCard>
+              <div className="space-y-4">
+                <InputField
+                  label="Username"
+                  value={profileData.username}
+                  onChange={(v) => handleProfileInputChange("username", v)}
+                  placeholder="Enter username"
+                />
+
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-gray-300">Password</label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={profileData.password}
+                      onChange={(e) => handleProfileInputChange("password", e.target.value)}
+                      className="w-full px-4 py-2.5 pr-12 rounded-xl bg-[#141414] border border-[#333333] outline-none text-sm text-white focus:border-[#3F74FF]"
+                      placeholder="Enter password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </SettingsCard>
+
+            <SettingsCard>
+              <div className="space-y-4">
+                <h3 className="text-white font-medium">Security</h3>
+                <p className="text-sm text-gray-400">
+                  For your security, we recommend changing your password regularly and using a strong, unique password.
+                </p>
+                <button className="px-4 py-2 bg-[#2F2F2F] text-white text-sm rounded-xl hover:bg-[#3F3F3F] transition-colors">
+                  Change Password
+                </button>
+              </div>
+            </SettingsCard>
+          </div>
+        )
+
+      // ========================
       // STUDIO SECTIONS
       // ========================
       case "studio-info":
@@ -1107,6 +2497,15 @@ const ConfigurationPage = () => {
             <SettingsCard>
               <h3 className="text-white font-medium mb-4">Studio Details</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-gray-300">Studio ID</label>
+                  <input
+                    type="text"
+                    value={studioId}
+                    disabled
+                    className="w-full bg-[#0a0a0a] text-gray-500 rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] cursor-not-allowed"
+                  />
+                </div>
                 <InputField
                   label="Studio Name"
                   value={studioName}
@@ -1116,10 +2515,17 @@ const ConfigurationPage = () => {
                   maxLength={50}
                 />
                 <InputField
-                  label="Phone Number"
+                  label="Telephone Number"
                   value={studioPhoneNo}
                   onChange={(v) => setStudioPhoneNo(v.replace(/\D/g, ""))}
-                  placeholder="Enter phone number"
+                  placeholder="Enter telephone number"
+                  maxLength={15}
+                />
+                <InputField
+                  label="Mobile Number"
+                  value={studioMobileNo}
+                  onChange={(v) => setStudioMobileNo(v.replace(/\D/g, ""))}
+                  placeholder="Enter mobile number"
                   maxLength={15}
                 />
                 <InputField
@@ -1203,10 +2609,10 @@ const ConfigurationPage = () => {
                   maxLength={60}
                 />
                 <InputField
-                  label="Phone Number"
+                  label="Telephone Number"
                   value={studioOperatorPhone}
                   onChange={(v) => setStudioOperatorPhone(v.replace(/\D/g, ""))}
-                  placeholder="Enter phone number"
+                  placeholder="Enter telephone number"
                   maxLength={15}
                 />
                 <InputField
@@ -1595,6 +3001,10 @@ const ConfigurationPage = () => {
                           <Users className="w-3.5 h-3.5" />
                           {type.maxParallel || 1}× parallel
                         </span>
+                        <span className="flex items-center gap-1">
+                          <BadgeDollarSign className="w-3.5 h-3.5" />
+                          {type.contingentUsage ?? 1} credit{(type.contingentUsage ?? 1) !== 1 ? 's' : ''}
+                        </span>
                       </div>
                       
                       {/* Actions */}
@@ -1798,6 +3208,19 @@ const ConfigurationPage = () => {
         return (
           <div className="space-y-6">
             <SectionHeader title="Staff Default Settings" description="Default values for new staff members" />
+            
+            {/* Info Box */}
+            <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+              <div className="flex items-start gap-3">
+                <Info className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm text-blue-300">
+                    These settings are automatically applied when creating new staff members. You can always adjust them individually for each staff member later.
+                  </p>
+                </div>
+              </div>
+            </div>
+
             <SettingsCard>
               <div className="space-y-6">
                 <NumberInput
@@ -1807,13 +3230,12 @@ const ConfigurationPage = () => {
                   min={0}
                   max={365}
                   suffix="days per year"
-                  helpText="Automatically assigned to new staff"
                 />
                 <SelectField
                   label="Default Staff Role"
                   value={defaultStaffRole}
                   onChange={setDefaultStaffRole}
-                  options={roles.map(r => ({ value: r.id, label: r.name }))}
+                  options={roles.filter(r => !r.isAdmin).map(r => ({ value: r.id, label: r.name }))}
                   placeholder="Select default role"
                 />
                 <SelectField
@@ -1847,84 +3269,77 @@ const ConfigurationPage = () => {
                 </button>
               }
             />
-            <div className="space-y-4">
+            <div className="space-y-3">
               {roles.map((role, index) => (
                 <SettingsCard key={role.id}>
-                  <div className="space-y-4">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-4 h-4 rounded" style={{ backgroundColor: role.color }} />
-                        <div>
-                          <h3 className="text-white font-medium text-sm sm:text-base">
-                            {role.name || "New Role"}
-                            {role.isAdmin && <span className="ml-2 text-xs text-orange-400">(Admin)</span>}
-                          </h3>
-                          <p className="text-xs text-gray-500">{role.staffCount} staff assigned</p>
-                        </div>
-                      </div>
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                    {/* Color Picker */}
+                    <input
+                      type="color"
+                      value={role.color || "#3B82F6"}
+                      onChange={(e) => handleUpdateRole(index, "color", e.target.value)}
+                      className="w-10 h-10 rounded-lg cursor-pointer bg-transparent border border-[#333333] p-1 flex-shrink-0"
+                    />
+                    
+                    {/* Role Name */}
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => handleCopyRole(index)}
-                          className="p-2 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded-lg transition-colors"
-                          title="Duplicate"
-                        >
-                          <Copy className="w-4 h-4" />
-                        </button>
-                        {!role.isAdmin && (
-                          <button
-                            onClick={() => handleDeleteRole(index)}
-                            className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                        <input
+                          type="text"
+                          value={role.name}
+                          onChange={(e) => handleUpdateRole(index, "name", e.target.value)}
+                          placeholder="Enter role name"
+                          className="w-full bg-transparent text-white text-lg font-medium outline-none border-b border-transparent hover:border-[#333333] focus:border-orange-500 transition-colors pb-1"
+                        />
+                        {role.isAdmin && (
+                          <span className="text-xs bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded flex-shrink-0">Admin</span>
                         )}
                       </div>
                     </div>
                     
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                      <InputField
-                        label="Role Name"
-                        value={role.name}
-                        onChange={(v) => handleUpdateRole(index, "name", v)}
-                        placeholder="Enter role name"
-                      />
-                      <ColorPickerField
-                        label="Color"
-                        value={role.color}
-                        onChange={(v) => handleUpdateRole(index, "color", v)}
-                      />
-                      <NumberInput
-                        label="Vacation Days"
-                        value={role.defaultVacationDays}
-                        onChange={(v) => handleUpdateRole(index, "defaultVacationDays", v)}
-                        min={0}
-                        max={365}
-                      />
-                      <div className="space-y-1.5">
-                        <label className="text-sm font-medium text-gray-300">Actions</label>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => {
-                              setSelectedRoleIndex(index)
-                              setPermissionModalVisible(true)
-                            }}
-                            className="flex-1 px-2 sm:px-3 py-2 bg-[#2F2F2F] text-white text-xs sm:text-sm rounded-xl hover:bg-[#3F3F3F] transition-colors flex items-center justify-center gap-1 sm:gap-2"
-                          >
-                            <Shield className="w-4 h-4" />
-                            <span className="hidden sm:inline">Permissions</span>
-                          </button>
-                          <button
-                            onClick={() => {
-                              setSelectedRoleForAssignment(index)
-                              setStaffAssignmentModalVisible(true)
-                            }}
-                            className="flex-1 px-2 sm:px-3 py-2 bg-[#2F2F2F] text-white text-xs sm:text-sm rounded-xl hover:bg-[#3F3F3F] transition-colors flex items-center justify-center gap-1 sm:gap-2"
-                          >
-                            <Users className="w-4 h-4" />
-                            <span className="hidden sm:inline">Staff</span>
-                          </button>
-                        </div>
-                      </div>
+                    {/* Actions */}
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <button
+                        onClick={() => {
+                          setSelectedRoleIndex(index)
+                          setPermissionModalVisible(true)
+                        }}
+                        className="px-3 py-2 bg-[#2F2F2F] text-white text-sm rounded-xl hover:bg-[#3F3F3F] transition-colors flex items-center gap-2"
+                      >
+                        <Shield className="w-4 h-4" />
+                        <span className="hidden sm:inline">Permissions</span>
+                        <span className="bg-[#444444] px-1.5 py-0.5 rounded text-xs">{role.permissions?.length || 0}</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSelectedRoleForAssignment(index)
+                          setStaffAssignmentModalVisible(true)
+                        }}
+                        className="px-3 py-2 bg-[#2F2F2F] text-white text-sm rounded-xl hover:bg-[#3F3F3F] transition-colors flex items-center gap-2"
+                      >
+                        <Users className="w-4 h-4" />
+                        <span className="hidden sm:inline">Staff</span>
+                        <span className="bg-[#444444] px-1.5 py-0.5 rounded text-xs">{role.staffCount || 0}</span>
+                      </button>
+                      <button
+                        onClick={() => handleCopyRole(index)}
+                        className="p-2 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded-lg transition-colors"
+                        title="Duplicate role"
+                      >
+                        <Copy className="w-4 h-4" />
+                      </button>
+                      {/* Delete button - invisible placeholder for admin to keep alignment */}
+                      {role.isAdmin ? (
+                        <div className="w-9 h-9" />
+                      ) : (
+                        <button
+                          onClick={() => handleDeleteRole(index)}
+                          className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                          title="Delete role"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 </SettingsCard>
@@ -1952,22 +3367,39 @@ const ConfigurationPage = () => {
             {allowMemberQRCheckIn && (
               <SettingsCard>
                 <div className="flex flex-col items-center gap-6">
-                  <h3 className="text-white font-medium">Member Check-In QR Code</h3>
-                  <div className="p-4 bg-white rounded-xl">
+                  <h3 className="text-white font-medium">{studioName || "Studio"}</h3>
+                  <div ref={qrCodeRef} className="p-6 bg-white rounded-2xl shadow-lg">
                     <QRCode
                       value={memberQRCodeUrl || "https://your-studio-app.com/member-checkin"}
-                      size={180}
+                      size={220}
+                      icon={logoUrl || DefaultAvatar}
+                      iconSize={55}
+                      errorLevel="H"
+                      color="#1a1a2e"
                     />
                   </div>
+                  <p className="text-sm text-gray-400 text-center">
+                    Scan to check in
+                  </p>
                   <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-                    <button className="px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center justify-center gap-2">
+                    <button 
+                      onClick={handleDownloadQRCode}
+                      className="px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
+                    >
                       <Download className="w-4 h-4" />
-                      Download QR
+                      Download
                     </button>
-                    <button className="px-4 py-2 bg-[#2F2F2F] text-white text-sm rounded-xl hover:bg-[#3F3F3F] transition-colors">
-                      Print QR
+                    <button 
+                      onClick={handlePrintQRCode}
+                      className="px-4 py-2 bg-[#2F2F2F] text-white text-sm rounded-xl hover:bg-[#3F3F3F] transition-colors flex items-center justify-center gap-2"
+                    >
+                      <Printer className="w-4 h-4" />
+                      Print
                     </button>
                   </div>
+                  <p className="text-xs text-gray-500 text-center mt-2">
+                    The downloaded and printed QR code will include your studio name and branding.
+                  </p>
                 </div>
               </SettingsCard>
             )}
@@ -2035,11 +3467,17 @@ const ConfigurationPage = () => {
               description="Create welcome guides and onboarding content for new members"
               action={
                 <button
-                  onClick={() => setIntroductoryMaterials([...introductoryMaterials, {
-                    id: Date.now(),
-                    name: "",
-                    pages: [{ id: Date.now(), content: "", elements: [] }]
-                  }])}
+                  onClick={() => {
+                    const newMaterial = {
+                      id: Date.now(),
+                      name: "",
+                      pages: [{ id: Date.now(), title: "Page 1", content: "" }]
+                    }
+                    // Don't add to list yet - only add when saved
+                    setEditingIntroMaterial(newMaterial)
+                    setEditingIntroMaterialIndex(null) // null = new material
+                    setIntroMaterialEditorVisible(true)
+                  }}
                   className="px-3 sm:px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
@@ -2047,42 +3485,115 @@ const ConfigurationPage = () => {
                 </button>
               }
             />
-            <div className="space-y-4">
-              {introductoryMaterials.map((material, index) => (
-                <SettingsCard key={material.id}>
-                  <div className="space-y-4">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <InputField
-                          label="Material Name"
-                          value={material.name}
-                          onChange={(v) => {
-                            const updated = [...introductoryMaterials]
-                            updated[index].name = v
-                            setIntroductoryMaterials(updated)
-                          }}
-                          placeholder="e.g., Welcome Guide"
-                        />
+            
+            {introductoryMaterials.length === 0 ? (
+              <SettingsCard>
+                <div className="text-center py-8 text-gray-400">
+                  <BookOpen className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>No introductory materials created</p>
+                  <p className="text-sm mt-1">Create welcome guides for new members</p>
+                </div>
+              </SettingsCard>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {introductoryMaterials.map((material, index) => (
+                  <SettingsCard key={material.id}>
+                    <div className="space-y-4">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-white font-medium truncate">
+                            {material.name || "Untitled Material"}
+                          </h3>
+                          <div className="flex items-center gap-2 text-sm text-gray-400 mt-1">
+                            <BookOpen className="w-4 h-4" />
+                            {material.pages.length} page{material.pages.length !== 1 ? "s" : ""}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => setDeletingIntroMaterialIndex(index)}
+                          className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
-                      <button
-                        onClick={() => setIntroductoryMaterials(introductoryMaterials.filter((_, i) => i !== index))}
-                        className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors mt-6"
+                      
+                      {/* Page previews */}
+                      <div className="flex gap-1 overflow-x-auto pb-1">
+                        {material.pages.slice(0, 5).map((page, pageIndex) => (
+                          <div 
+                            key={page.id} 
+                            className="w-12 h-16 bg-[#141414] border border-[#333333] rounded flex-shrink-0 flex items-center justify-center text-xs text-gray-500"
+                          >
+                            {pageIndex + 1}
+                          </div>
+                        ))}
+                        {material.pages.length > 5 && (
+                          <div className="w-12 h-16 bg-[#141414] border border-[#333333] rounded flex-shrink-0 flex items-center justify-center text-xs text-gray-500">
+                            +{material.pages.length - 5}
+                          </div>
+                        )}
+                      </div>
+                      
+                      <button 
+                        onClick={() => {
+                          // Deep copy the material including pages
+                          const deepCopy = {
+                            ...material,
+                            pages: material.pages.map(p => ({ ...p }))
+                          }
+                          setEditingIntroMaterial(deepCopy)
+                          setEditingIntroMaterialIndex(index)
+                          setIntroMaterialEditorVisible(true)
+                        }}
+                        className="w-full px-4 py-2 bg-[#2F2F2F] text-white text-sm rounded-xl hover:bg-[#3F3F3F] transition-colors flex items-center justify-center gap-2"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Edit className="w-4 h-4" />
+                        Edit Content
                       </button>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-400">
-                      <BookOpen className="w-4 h-4" />
-                      {material.pages.length} page{material.pages.length !== 1 ? "s" : ""}
+                  </SettingsCard>
+                ))}
+              </div>
+            )}
+
+            {/* Delete Confirmation Dialog */}
+            {deletingIntroMaterialIndex !== null && (
+              <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50">
+                <div className="bg-[#1C1C1C] rounded-2xl p-6 w-full max-w-sm shadow-2xl border border-[#333333]">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2 bg-red-500/20 rounded-xl">
+                      <Trash2 className="w-6 h-6 text-red-400" />
                     </div>
-                    <button className="px-4 py-2 bg-[#2F2F2F] text-white text-sm rounded-xl hover:bg-[#3F3F3F] transition-colors flex items-center gap-2">
-                      <Edit className="w-4 h-4" />
-                      Edit Content
+                    <h3 className="text-lg font-semibold text-white">Delete Material</h3>
+                  </div>
+                  <p className="text-gray-400 mb-2">
+                    Are you sure you want to delete <span className="text-white font-medium">&quot;{introductoryMaterials[deletingIntroMaterialIndex]?.name || "Untitled Material"}&quot;</span>?
+                  </p>
+                  <p className="text-gray-500 text-sm mb-6">
+                    This will permanently delete all {introductoryMaterials[deletingIntroMaterialIndex]?.pages?.length || 0} page(s). This action cannot be undone.
+                  </p>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setDeletingIntroMaterialIndex(null)}
+                      className="flex-1 px-4 py-2.5 bg-[#2F2F2F] text-white text-sm font-medium rounded-xl hover:bg-[#3F3F3F] transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => {
+                        setIntroductoryMaterials(introductoryMaterials.filter((_, i) => i !== deletingIntroMaterialIndex))
+                        setDeletingIntroMaterialIndex(null)
+                        notification.success({ message: "Material deleted successfully" })
+                      }}
+                      className="flex-1 px-4 py-2.5 bg-red-500 text-white text-sm font-medium rounded-xl hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Delete
                     </button>
                   </div>
-                </SettingsCard>
-              ))}
-            </div>
+                </div>
+              </div>
+            )}
           </div>
         )
 
@@ -2092,31 +3603,134 @@ const ConfigurationPage = () => {
       case "contract-general":
         return (
           <div className="space-y-6">
-            <SectionHeader title="Contract General Settings" description="Default settings for contracts" />
+            <SectionHeader title="Contract General Settings" description="Default settings for new contracts" />
+            
+            {/* Member Settings */}
             <SettingsCard>
-              <div className="space-y-6">
+              <div className="space-y-4">
+                <h3 className="text-white font-medium">Member Permissions</h3>
                 <Toggle
                   label="Allow Member Self-Cancellation"
                   checked={allowMemberSelfCancellation}
                   onChange={setAllowMemberSelfCancellation}
                   helpText="Members can cancel their contracts without staff assistance"
                 />
-                <NumberInput
-                  label="Default Notice Period"
-                  value={noticePeriod}
-                  onChange={setNoticePeriod}
-                  min={0}
-                  max={365}
-                  suffix="days"
+              </div>
+            </SettingsCard>
+
+            {/* Contract Defaults */}
+            <SettingsCard>
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-white font-medium mb-1">Contract Defaults</h3>
+                  <p className="text-xs text-gray-500">Applied when creating new contract types</p>
+                </div>
+                
+                {/* Info Box */}
+                <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+                  <div className="flex items-start gap-3">
+                    <Info className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                    <p className="text-sm text-blue-300">
+                      These settings are automatically applied when creating new contract types. You can always adjust them individually for each contract type.
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <SelectField
+                    label="Default Billing Period"
+                    value={defaultBillingPeriod}
+                    onChange={setDefaultBillingPeriod}
+                    options={[
+                      { value: "weekly", label: "Weekly" },
+                      { value: "monthly", label: "Monthly" },
+                      { value: "annually", label: "Annually" }
+                    ]}
+                  />
+                  <NumberInput
+                    label="Default Notice Period"
+                    value={noticePeriod}
+                    onChange={setNoticePeriod}
+                    min={0}
+                    max={365}
+                    suffix="days"
+                    helpText="Days before contract end to cancel"
+                  />
+                </div>
+                
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                    Default Contingent
+                    <Tooltip content="The number of appointment credits members receive per billing period. Each appointment type can deduct a different amount from this contingent. Set to 0 for unlimited.">
+                      <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                    </Tooltip>
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      value={defaultAppointmentLimit}
+                      onChange={(e) => setDefaultAppointmentLimit(Number(e.target.value))}
+                      min={0}
+                      placeholder="0 = Unlimited"
+                      className="w-32 bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                    />
+                    <span className="text-gray-400 text-sm">credits per billing period</span>
+                  </div>
+                  <p className="text-xs text-gray-500">0 = Unlimited contingent</p>
+                </div>
+              </div>
+            </SettingsCard>
+
+            {/* Renewal Defaults */}
+            <SettingsCard>
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-white font-medium mb-1">Renewal Defaults</h3>
+                  <p className="text-xs text-gray-500">Settings for contract renewal after minimum duration</p>
+                </div>
+                
+                <Toggle
+                  label="Enable Automatic Renewal by Default"
+                  checked={defaultAutoRenewal}
+                  onChange={setDefaultAutoRenewal}
+                  helpText="New contracts will have automatic renewal enabled"
                 />
-                <NumberInput
-                  label="Default Extension Period"
-                  value={extensionPeriod}
-                  onChange={setExtensionPeriod}
-                  min={1}
-                  max={60}
-                  suffix="months"
-                />
+                
+                <div className="pt-4 border-t border-[#333333] space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                      Default Renewal Duration
+                      <Tooltip content="How long contracts continue after the minimum duration. Choose 'Indefinite' for open-ended contracts that run until cancelled.">
+                        <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                      </Tooltip>
+                    </label>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <select
+                        value={defaultRenewalIndefinite ? "indefinite" : "fixed"}
+                        onChange={(e) => setDefaultRenewalIndefinite(e.target.value === "indefinite")}
+                        className="bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                      >
+                        <option value="fixed">Fixed period</option>
+                        <option value="indefinite">Indefinite</option>
+                      </select>
+                      {!defaultRenewalIndefinite && (
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            value={defaultRenewalPeriod}
+                            onChange={(e) => setDefaultRenewalPeriod(Number(e.target.value))}
+                            min={1}
+                            className="w-20 bg-[#141414] text-white rounded-xl px-3 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                          />
+                          <span className="text-gray-400">months</span>
+                        </div>
+                      )}
+                    </div>
+                    {defaultRenewalIndefinite && (
+                      <p className="text-xs text-gray-500 mt-1">Contracts will run indefinitely until cancelled</p>
+                    )}
+                  </div>
+                </div>
               </div>
             </SettingsCard>
           </div>
@@ -2141,9 +3755,17 @@ const ConfigurationPage = () => {
             
             {contractForms.length === 0 ? (
               <SettingsCard>
-                <div className="text-center py-8 text-gray-400">
-                  <FileText className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>No contract forms created</p>
+                <div className="text-center py-12 text-gray-400">
+                  <FileText className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                  <h3 className="text-lg font-medium text-white mb-2">No contract forms yet</h3>
+                  <p className="text-sm mb-6">Create your first contract form template</p>
+                  <button
+                    onClick={() => setShowCreateFormModal(true)}
+                    className="px-6 py-2.5 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors inline-flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Create Contract Form
+                  </button>
                 </div>
               </SettingsCard>
             ) : (
@@ -2151,8 +3773,54 @@ const ConfigurationPage = () => {
                 {contractForms.map((form) => (
                   <SettingsCard key={form.id}>
                     <div className="space-y-3">
-                      <div className="flex items-start justify-between">
-                        <h3 className="text-white font-medium text-sm sm:text-base">{form.name}</h3>
+                      <div className="flex items-start justify-between gap-2">
+                        {editingContractFormName.id === form.id ? (
+                          <div className="flex items-center gap-2 flex-1">
+                            <input
+                              type="text"
+                              value={editingContractFormName.value}
+                              onChange={(e) => setEditingContractFormName({ ...editingContractFormName, value: e.target.value })}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  setContractForms(contractForms.map(f => 
+                                    f.id === form.id ? { ...f, name: editingContractFormName.value.trim() || form.name } : f
+                                  ))
+                                  setEditingContractFormName({ id: null, value: "" })
+                                }
+                                if (e.key === 'Escape') {
+                                  setEditingContractFormName({ id: null, value: "" })
+                                }
+                              }}
+                              autoFocus
+                              className="flex-1 bg-[#141414] text-white text-sm font-medium outline-none border border-[#3F74FF] focus:border-orange-500 rounded-lg px-2 py-1"
+                            />
+                            <button
+                              onClick={() => {
+                                setContractForms(contractForms.map(f => 
+                                  f.id === form.id ? { ...f, name: editingContractFormName.value.trim() || form.name } : f
+                                ))
+                                setEditingContractFormName({ id: null, value: "" })
+                              }}
+                              className="p-1 text-green-400 hover:bg-green-500/10 rounded"
+                            >
+                              <Check className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => setEditingContractFormName({ id: null, value: "" })}
+                              className="p-1 text-red-400 hover:bg-red-500/10 rounded"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          <h3 
+                            className="text-white font-medium text-sm sm:text-base cursor-pointer hover:text-orange-400 transition-colors"
+                            onClick={() => setEditingContractFormName({ id: form.id, value: form.name })}
+                            title="Click to edit name"
+                          >
+                            {form.name}
+                          </h3>
+                        )}
                         <div className="flex gap-1">
                           <button
                             onClick={() => setContractForms([...contractForms, {
@@ -2162,12 +3830,14 @@ const ConfigurationPage = () => {
                               createdAt: new Date().toISOString()
                             }])}
                             className="p-1.5 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded transition-colors"
+                            title="Duplicate"
                           >
                             <Copy className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => setContractForms(contractForms.filter(f => f.id !== form.id))}
+                            onClick={() => setDeletingContractFormId(form.id)}
                             className="p-1.5 text-red-400 hover:bg-red-500/10 rounded transition-colors"
+                            title="Delete"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -2194,6 +3864,45 @@ const ConfigurationPage = () => {
                 ))}
               </div>
             )}
+
+            {/* Delete Contract Form Confirmation */}
+            {deletingContractFormId !== null && (
+              <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50">
+                <div className="bg-[#1C1C1C] rounded-2xl p-6 w-full max-w-md shadow-2xl border border-[#333333]">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2 bg-red-500/20 rounded-xl">
+                      <Trash2 className="w-6 h-6 text-red-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-white">Delete Contract Form</h3>
+                  </div>
+                  <p className="text-gray-400 mb-2">
+                    Are you sure you want to delete <span className="text-white font-medium">&quot;{contractForms.find(f => f.id === deletingContractFormId)?.name || "this form"}&quot;</span>?
+                  </p>
+                  <p className="text-sm text-red-400/80 mb-6">
+                    This will permanently delete all pages and content. This action cannot be undone.
+                  </p>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setDeletingContractFormId(null)}
+                      className="flex-1 px-4 py-2.5 bg-[#2F2F2F] text-white text-sm font-medium rounded-xl hover:bg-[#3F3F3F] transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => {
+                        setContractForms(contractForms.filter(f => f.id !== deletingContractFormId))
+                        setDeletingContractFormId(null)
+                        notification.success({ message: "Contract form deleted" })
+                      }}
+                      className="flex-1 px-4 py-2.5 bg-red-500 text-white text-sm font-medium rounded-xl hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )
 
@@ -2202,7 +3911,7 @@ const ConfigurationPage = () => {
           <div className="space-y-6">
             <SectionHeader
               title="Contract Types"
-              description="Define different membership contracts"
+              description="Define different membership contracts for your studio"
               action={
                 <button
                   onClick={handleAddContractType}
@@ -2216,153 +3925,357 @@ const ConfigurationPage = () => {
             
             {contractTypes.length === 0 ? (
               <SettingsCard>
-                <div className="text-center py-8 text-gray-400">
-                  <FileText className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>No contract types configured</p>
+                <div className="text-center py-12 text-gray-400">
+                  <RiContractLine className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                  <h3 className="text-lg font-medium text-white mb-2">No contract types yet</h3>
+                  <p className="text-sm mb-6">Create your first membership contract type</p>
+                  <button
+                    onClick={handleAddContractType}
+                    className="px-6 py-2.5 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors inline-flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Create Contract Type
+                  </button>
                 </div>
               </SettingsCard>
             ) : (
-              <div className="space-y-4">
+              <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
                 {contractTypes.map((type, index) => (
-                  <SettingsCard key={index}>
-                    <div className="space-y-4">
-                      <div className="flex items-start justify-between gap-4">
-                        <h3 className="text-white font-medium text-sm sm:text-base">{type.name || "New Contract Type"}</h3>
-                        <button
-                          onClick={() => setContractTypes(contractTypes.filter((_, i) => i !== index))}
-                          className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <InputField
-                          label="Contract Name"
-                          value={type.name}
-                          onChange={(v) => {
-                            const updated = [...contractTypes]
-                            updated[index].name = v
-                            setContractTypes(updated)
-                          }}
-                          placeholder="e.g., Monthly Membership"
-                        />
-                        <SelectField
-                          label="Contract Form"
-                          value={type.contractFormId}
-                          onChange={(v) => {
-                            const updated = [...contractTypes]
-                            updated[index].contractFormId = v
-                            setContractTypes(updated)
-                          }}
-                          options={[
-                            { value: null, label: "No form selected" },
-                            ...contractForms.map(f => ({ value: f.id, label: f.name }))
-                          ]}
-                        />
-                        <NumberInput
-                          label="Duration"
-                          value={type.duration}
-                          onChange={(v) => {
-                            const updated = [...contractTypes]
-                            updated[index].duration = v
-                            setContractTypes(updated)
-                          }}
-                          min={1}
-                          max={60}
-                          suffix="months"
-                        />
-                        <NumberInput
-                          label="Cost"
-                          value={type.cost}
-                          onChange={(v) => {
-                            const updated = [...contractTypes]
-                            updated[index].cost = v
-                            setContractTypes(updated)
-                          }}
-                          min={0}
-                          suffix={currency}
-                        />
-                        <SelectField
-                          label="Billing Period"
-                          value={type.billingPeriod}
-                          onChange={(v) => {
-                            const updated = [...contractTypes]
-                            updated[index].billingPeriod = v
-                            setContractTypes(updated)
-                          }}
-                          options={[
-                            { value: "weekly", label: "Weekly" },
-                            { value: "monthly", label: "Monthly" },
-                            { value: "annually", label: "Annually" }
-                          ]}
-                        />
-                        <NumberInput
-                          label="User Contingent"
-                          value={type.userCapacity}
-                          onChange={(v) => {
-                            const updated = [...contractTypes]
-                            updated[index].userCapacity = v
-                            setContractTypes(updated)
-                          }}
-                          min={0}
-                          helpText="Max appointments per billing period"
-                        />
-                      </div>
-
-                      <div className="pt-4 border-t border-[#333333]">
-                        <Toggle
-                          label="Automatic Renewal"
-                          checked={type.autoRenewal || false}
-                          onChange={(v) => {
-                            const updated = [...contractTypes]
-                            updated[index].autoRenewal = v
-                            setContractTypes(updated)
-                          }}
-                        />
-                        
+                  <div
+                    key={index}
+                    className="bg-[#1F1F1F] rounded-xl overflow-hidden border border-[#333333] hover:border-[#444444] transition-colors group"
+                  >
+                    {/* Header */}
+                    <div className="p-4">
+                      <div className="flex items-start justify-between gap-2 mb-3">
+                        <h3 className="text-white font-medium truncate">{type.name || "Untitled"}</h3>
                         {type.autoRenewal && (
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-                            <NumberInput
-                              label="Renewal Period"
-                              value={type.renewalPeriod || 1}
-                              onChange={(v) => {
-                                const updated = [...contractTypes]
-                                updated[index].renewalPeriod = v
-                                setContractTypes(updated)
-                              }}
-                              min={1}
-                              suffix="months"
-                            />
-                            <NumberInput
-                              label="Renewal Price"
-                              value={type.renewalPrice || 0}
-                              onChange={(v) => {
-                                const updated = [...contractTypes]
-                                updated[index].renewalPrice = v
-                                setContractTypes(updated)
-                              }}
-                              min={0}
-                              suffix={currency}
-                            />
-                          </div>
+                          <span className="px-2.5 py-1 bg-blue-500/90 text-white text-xs font-medium rounded-full flex-shrink-0">
+                            Auto-Renew
+                          </span>
                         )}
                       </div>
+                      
+                      {/* Price highlight */}
+                      <div className="mb-4">
+                        <span className="text-2xl font-bold text-white">{type.cost}{currency}</span>
+                        <span className="text-gray-500 text-sm">/{type.billingPeriod === 'monthly' ? 'month' : type.billingPeriod === 'weekly' ? 'week' : 'year'}</span>
+                      </div>
+                      
+                      {/* Key info */}
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center justify-between text-gray-400">
+                          <span className="flex items-center gap-2">
+                            <Clock className="w-4 h-4" />
+                            Duration
+                          </span>
+                          <span className="text-white">{type.duration} months</span>
+                        </div>
+                        <div className="flex items-center justify-between text-gray-400">
+                          <span className="flex items-center gap-2">
+                            <BadgeDollarSign className="w-4 h-4" />
+                            Contingent
+                          </span>
+                          <span className="text-white">{type.userCapacity || '∞'} credits / {type.billingPeriod === 'monthly' ? 'month' : type.billingPeriod === 'weekly' ? 'week' : 'year'}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-gray-400">
+                          <span className="flex items-center gap-2">
+                            <FileText className="w-4 h-4" />
+                            Form
+                          </span>
+                          <span className="text-white truncate max-w-[120px]">
+                            {type.contractFormId ? contractForms.find(f => String(f.id) === String(type.contractFormId))?.name || 'Unknown' : 'None'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Actions */}
+                    <div className="px-4 py-3 bg-[#141414] border-t border-[#333333] flex gap-2">
+                      <button
+                        onClick={() => handleEditContractType(type, index)}
+                        className="flex-1 px-3 py-2 bg-[#2F2F2F] text-white text-sm rounded-lg hover:bg-[#3F3F3F] transition-colors flex items-center justify-center gap-2"
+                      >
+                        <Edit className="w-4 h-4" />
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteContractType(index)}
+                        className="px-3 py-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
-                      <NumberInput
-                        label="Cancellation Period"
-                        value={type.cancellationPeriod || 30}
-                        onChange={(v) => {
-                          const updated = [...contractTypes]
-                          updated[index].cancellationPeriod = v
-                          setContractTypes(updated)
-                        }}
-                        min={0}
-                        suffix="days"
+            {/* Contract Type Edit Modal */}
+            {contractTypeModalVisible && editingContractType && (
+              <div className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4 bg-black/50 overflow-hidden">
+                <div className="bg-[#1C1C1C] rounded-2xl w-full max-w-lg max-h-[90vh] overflow-hidden shadow-2xl border border-[#333333] flex flex-col">
+                  {/* Modal Header */}
+                  <div className="flex items-center justify-between p-4 border-b border-[#333333] flex-shrink-0">
+                    <h3 className="text-lg font-semibold text-white">
+                      {editingContractTypeIndex !== null ? 'Edit Contract Type' : 'New Contract Type'}
+                    </h3>
+                    <button
+                      onClick={() => {
+                        setContractTypeModalVisible(false)
+                        setEditingContractType(null)
+                        setEditingContractTypeIndex(null)
+                      }}
+                      className="p-2 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded-lg transition-colors"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                  
+                  {/* Modal Content */}
+                  <div className="p-4 overflow-y-auto overflow-x-hidden flex-1 space-y-4">
+                    {/* Name */}
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                        Contract Name
+                        <span className="text-red-400">*</span>
+                        <Tooltip content="The name of this contract type that members will see when signing up">
+                          <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                        </Tooltip>
+                      </label>
+                      <input
+                        type="text"
+                        value={editingContractType.name}
+                        onChange={(e) => setEditingContractType({ ...editingContractType, name: e.target.value })}
+                        placeholder="e.g., Premium Membership"
+                        className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
                       />
                     </div>
-                  </SettingsCard>
-                ))}
+                    
+                    {/* Price & Duration */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                          Cost
+                          <span className="text-red-400">*</span>
+                          <Tooltip content="The price charged to the member per billing period (weekly, monthly, or annually)">
+                            <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                          </Tooltip>
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            value={editingContractType.cost}
+                            onChange={(e) => setEditingContractType({ ...editingContractType, cost: Number(e.target.value) })}
+                            min={0}
+                            className="flex-1 min-w-0 bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                          />
+                          <span className="text-gray-400 flex-shrink-0">{currency}</span>
+                        </div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                          Minimum Duration
+                          <span className="text-red-400">*</span>
+                          <Tooltip content="The minimum commitment period. After this period, the contract can be renewed or terminated." position="right">
+                            <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                          </Tooltip>
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            value={editingContractType.duration}
+                            onChange={(e) => setEditingContractType({ ...editingContractType, duration: Number(e.target.value) })}
+                            min={1}
+                            max={60}
+                            className="flex-1 min-w-0 bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                          />
+                          <span className="text-gray-400 flex-shrink-0">months</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Billing & Contingent */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                          Billing Period
+                          <span className="text-red-400">*</span>
+                          <Tooltip content="How often the member is charged. The cost above is charged once per billing period.">
+                            <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                          </Tooltip>
+                        </label>
+                        <select
+                          value={editingContractType.billingPeriod}
+                          onChange={(e) => setEditingContractType({ ...editingContractType, billingPeriod: e.target.value })}
+                          className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                        >
+                          <option value="weekly">Weekly</option>
+                          <option value="monthly">Monthly</option>
+                          <option value="annually">Annually</option>
+                        </select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                          Contingent
+                          <span className="text-red-400">*</span>
+                          <Tooltip content="The number of appointment credits members receive per billing period. Each appointment type deducts from this contingent based on its 'Contingent Usage' setting. Set to 0 for unlimited." position="right">
+                            <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                          </Tooltip>
+                        </label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            value={editingContractType.userCapacity}
+                            onChange={(e) => setEditingContractType({ ...editingContractType, userCapacity: Number(e.target.value) })}
+                            min={0}
+                            placeholder="0 = Unlimited"
+                            className="flex-1 min-w-0 bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                          />
+                          <span className="text-gray-400 flex-shrink-0">credits</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Contract Form */}
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                        Contract Form
+                        <span className="text-red-400">*</span>
+                        <Tooltip content="The document template used when a member signs this contract. Create forms in the 'Contract Forms' section.">
+                          <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                        </Tooltip>
+                      </label>
+                      {contractForms.length === 0 ? (
+                        <div className="p-3 bg-[#141414] rounded-xl border border-yellow-500/30">
+                          <p className="text-sm text-yellow-400">No contract forms available.</p>
+                          <p className="text-xs text-gray-500 mt-1">Please create a contract form first in the "Contract Forms" section.</p>
+                        </div>
+                      ) : (
+                        <select
+                          value={editingContractType.contractFormId || ""}
+                          onChange={(e) => setEditingContractType({ ...editingContractType, contractFormId: e.target.value ? Number(e.target.value) : null })}
+                          className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                        >
+                          <option value="">Select a form...</option>
+                          {contractForms.map(f => (
+                            <option key={f.id} value={f.id}>{f.name}</option>
+                          ))}
+                        </select>
+                      )}
+                    </div>
+                    
+                    {/* Notice Period */}
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                        Notice Period
+                        <Tooltip content="How many days before the contract end date the member must cancel. After this deadline, the contract will auto-renew (if enabled).">
+                          <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                        </Tooltip>
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          value={editingContractType.cancellationPeriod}
+                          onChange={(e) => setEditingContractType({ ...editingContractType, cancellationPeriod: Number(e.target.value) })}
+                          min={0}
+                          className="w-20 sm:w-24 bg-[#141414] text-white rounded-xl px-3 sm:px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                        />
+                        <span className="text-gray-400 text-sm">days before end</span>
+                      </div>
+                    </div>
+                    
+                    {/* Auto Renewal Section */}
+                    <div className="p-4 bg-[#141414] rounded-xl space-y-4">
+                      <Toggle
+                        label="Automatic Renewal"
+                        checked={editingContractType.autoRenewal}
+                        onChange={(v) => setEditingContractType({ ...editingContractType, autoRenewal: v })}
+                        helpText="Contract continues automatically after the minimum duration ends"
+                      />
+                      
+                      {editingContractType.autoRenewal && (
+                        <div className="space-y-4 pt-3 border-t border-[#333333]">
+                          {/* Renewal Duration */}
+                          <div className="space-y-1.5">
+                            <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                              Renewal Duration
+                              <Tooltip content="How long the contract continues after the minimum duration. Choose 'Indefinite' for an open-ended contract that runs until cancelled.">
+                                <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                              </Tooltip>
+                            </label>
+                            <div className="flex items-center gap-2">
+                              <select
+                                value={editingContractType.renewalIndefinite ? "indefinite" : "fixed"}
+                                onChange={(e) => setEditingContractType({ 
+                                  ...editingContractType, 
+                                  renewalIndefinite: e.target.value === "indefinite"
+                                })}
+                                className={`${editingContractType.renewalIndefinite ? 'flex-1' : ''} bg-[#141414] text-white rounded-xl px-3 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]`}
+                              >
+                                <option value="fixed">Fixed period</option>
+                                <option value="indefinite">Indefinite</option>
+                              </select>
+                              {!editingContractType.renewalIndefinite && (
+                                <>
+                                  <input
+                                    type="number"
+                                    value={editingContractType.renewalPeriod}
+                                    onChange={(e) => setEditingContractType({ ...editingContractType, renewalPeriod: Number(e.target.value) })}
+                                    min={1}
+                                    className="flex-1 min-w-0 bg-[#141414] text-white rounded-xl px-3 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                                  />
+                                  <span className="text-gray-400 flex-shrink-0">months</span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Price After Renewal */}
+                          <div className="space-y-1.5">
+                            <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                              Price After Renewal
+                              <Tooltip content="The new price per billing period after the contract renews.">
+                                <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                              </Tooltip>
+                            </label>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="number"
+                                value={editingContractType.renewalPrice}
+                                onChange={(e) => setEditingContractType({ ...editingContractType, renewalPrice: Number(e.target.value) })}
+                                min={0}
+                                className="w-32 bg-[#141414] text-white rounded-xl px-3 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                              />
+                              <span className="text-gray-400 flex-shrink-0">{currency}</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Modal Footer */}
+                  <div className="flex gap-3 p-4 border-t border-[#333333] flex-shrink-0">
+                    <button
+                      onClick={() => {
+                        setContractTypeModalVisible(false)
+                        setEditingContractType(null)
+                        setEditingContractTypeIndex(null)
+                      }}
+                      className="flex-1 px-4 py-2.5 bg-[#2F2F2F] text-white text-sm font-medium rounded-xl hover:bg-[#3F3F3F] transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleSaveContractType}
+                      className="flex-1 px-4 py-2.5 bg-orange-500 text-white text-sm font-medium rounded-xl hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <Check className="w-4 h-4" />
+                      {editingContractTypeIndex !== null ? 'Save' : 'Create'}
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -2427,15 +4340,23 @@ const ConfigurationPage = () => {
           <div className="space-y-6">
             <SectionHeader title="Communication Settings" description="General communication preferences" />
             <SettingsCard>
-              <NumberInput
-                label="Auto-Archive Duration"
-                value={settings.autoArchiveDuration}
-                onChange={(v) => setSettings({ ...settings, autoArchiveDuration: v })}
-                min={1}
-                max={365}
-                suffix="days"
-                helpText="Member chats are automatically archived after this period of inactivity"
-              />
+              <div className="space-y-4">
+                <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+                  <p className="text-blue-400 text-sm flex items-start gap-2">
+                    <Info className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                    <span>Archiving only affects member chats in the Messenger. Archived chats are hidden from the main view but are not deleted — they remain accessible and can be retrieved at any time.</span>
+                  </p>
+                </div>
+                <NumberInput
+                  label="Auto-Archive Duration"
+                  value={settings.autoArchiveDuration}
+                  onChange={(v) => setSettings({ ...settings, autoArchiveDuration: v })}
+                  min={1}
+                  max={365}
+                  suffix="days"
+                  helpText="Chats are archived after this period of inactivity"
+                />
+              </div>
             </SettingsCard>
           </div>
         )
@@ -2445,292 +4366,505 @@ const ConfigurationPage = () => {
           <div className="space-y-6">
             <SectionHeader title="Email Notifications" description="Configure automated email notifications" />
             
+            {/* Birthday Email Notification */}
             <SettingsCard>
-              <Toggle
-                label="Enable Email Notifications"
-                checked={settings.emailNotificationEnabled}
-                onChange={(v) => setSettings({ ...settings, emailNotificationEnabled: v })}
-              />
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-white font-medium">Birthday Email</h3>
+                    <p className="text-sm text-gray-400">Send birthday greetings via email</p>
+                  </div>
+                  <Toggle
+                    checked={settings.birthdayEmailEnabled}
+                    onChange={(v) => setSettings({ ...settings, birthdayEmailEnabled: v })}
+                  />
+                </div>
+                
+                {settings.birthdayEmailEnabled && (
+                  <div className="space-y-4 pt-4 border-t border-[#333333]">
+                    {/* Send Time */}
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <span className="text-sm text-gray-300">Send time:</span>
+                      <input
+                        type="time"
+                        value={settings.birthdaySendTime || "09:00"}
+                        onChange={(e) => setSettings({ ...settings, birthdaySendTime: e.target.value })}
+                        className="bg-[#141414] text-white rounded-lg px-3 py-2 text-sm border border-[#333333]"
+                      />
+                    </div>
+                    
+                    {/* Subject */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-300">Subject</label>
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        <span className="text-xs text-gray-500 mr-2">Variables:</span>
+                        {["{Studio_Name}", "{Member_First_Name}"].map(v => (
+                          <button
+                            key={v}
+                            onClick={() => setSettings({ ...settings, birthdayEmailSubject: (settings.birthdayEmailSubject || "") + " " + v })}
+                            className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
+                          >
+                            {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                          </button>
+                        ))}
+                      </div>
+                      <input
+                        type="text"
+                        value={settings.birthdayEmailSubject || ""}
+                        onChange={(e) => setSettings({ ...settings, birthdayEmailSubject: e.target.value })}
+                        placeholder="🎂 Happy Birthday, {Member_First_Name}!"
+                        className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                      />
+                    </div>
+                    
+                    {/* Message */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-300">Message</label>
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
+                        <span className="text-xs text-gray-500 mr-1">Variables:</span>
+                        {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}"].map(v => (
+                          <button
+                            key={v}
+                            onClick={() => setSettings({ ...settings, birthdayEmailTemplate: (settings.birthdayEmailTemplate || "") + v })}
+                            className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
+                          >
+                            {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                          </button>
+                        ))}
+                        <span className="text-xs text-gray-500 mx-2">|</span>
+                        <span className="text-xs text-gray-500 mr-1">Insert:</span>
+                        <button
+                          onClick={() => {
+                            if (settings.emailSignature) {
+                              setSettings({ ...settings, birthdayEmailTemplate: (settings.birthdayEmailTemplate || "") + settings.emailSignature })
+                            } else {
+                              notification.warning({ message: "No email signature configured", description: "Please set up your email signature first." })
+                            }
+                          }}
+                          className="px-2 py-1 bg-orange-500 text-white text-xs rounded-lg hover:bg-orange-600 flex items-center gap-1"
+                        >
+                          <FileText className="w-3 h-3" />
+                          Email Signature
+                        </button>
+                      </div>
+                      <ConfigWysiwygEditor
+                        value={settings.birthdayEmailTemplate || ""}
+                        onChange={(v) => setSettings({ ...settings, birthdayEmailTemplate: v })}
+                        placeholder="Happy Birthday, {Member_First_Name}! We hope you have a wonderful day..."
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
             </SettingsCard>
 
-            {settings.emailNotificationEnabled && (
-              <>
-                {/* Birthday Emails */}
-                <SettingsCard>
+            {/* Appointment Email Notifications */}
+            {["confirmation", "cancellation", "rescheduled", "reminder", "registration"].map(type => {
+              const config = appointmentNotificationTypes[type] || {}
+              const titles = {
+                confirmation: "Appointment Confirmation",
+                cancellation: "Appointment Cancellation", 
+                rescheduled: "Appointment Rescheduled",
+                reminder: "Appointment Reminder",
+                registration: "New Member Registration"
+              }
+              const descriptions = {
+                confirmation: "Email sent when an appointment is booked",
+                cancellation: "Email sent when an appointment is cancelled",
+                rescheduled: "Email sent when an appointment time is changed",
+                reminder: "Email sent before an upcoming appointment",
+                registration: "Email sent when a new member registers"
+              }
+              const subjectVariables = type === "registration" 
+                ? ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}"]
+                : ["{Studio_Name}", "{Member_First_Name}", "{Appointment_Type}", "{Booked_Date}"]
+              const messageVariables = type === "registration" 
+                ? ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Registration_Link}"]
+                : ["{Studio_Name}", "{Member_First_Name}", "{Appointment_Type}", "{Booked_Time}", "{Booked_Date}"]
+              
+              return (
+                <SettingsCard key={type}>
                   <div className="space-y-4">
-                    <Toggle
-                      label="Birthday Messages"
-                      checked={settings.birthdayMessageEnabled}
-                      onChange={(v) => setSettings({ ...settings, birthdayMessageEnabled: v })}
-                      helpText="Send automatic birthday greetings"
-                    />
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-white font-medium">{titles[type]} Email</h3>
+                        <p className="text-sm text-gray-400">{descriptions[type]}</p>
+                      </div>
+                      <Toggle
+                        checked={config.emailEnabled || false}
+                        onChange={(v) => setAppointmentNotificationTypes({
+                          ...appointmentNotificationTypes,
+                          [type]: { ...config, emailEnabled: v }
+                        })}
+                      />
+                    </div>
                     
-                    {settings.birthdayMessageEnabled && (
-                      <div className="space-y-4 pl-4 border-l-2 border-orange-500">
-                        <div className="flex items-center gap-3 flex-wrap">
-                          <span className="text-sm text-gray-300">Send time:</span>
+                    {config.emailEnabled && (
+                      <div className="space-y-4 pt-4 border-t border-[#333333]">
+                        {/* Reminder timing */}
+                        {type === "reminder" && (
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-sm text-gray-300">Send</span>
+                            <input
+                              type="number"
+                              value={config.hoursBefore || 24}
+                              onChange={(e) => setAppointmentNotificationTypes({
+                                ...appointmentNotificationTypes,
+                                [type]: { ...config, hoursBefore: Number(e.target.value) }
+                              })}
+                              className="w-20 bg-[#141414] text-white rounded-lg px-3 py-2 text-sm border border-[#333333]"
+                            />
+                            <span className="text-sm text-gray-300">hours before appointment</span>
+                          </div>
+                        )}
+                        
+                        {/* Subject */}
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-gray-300">Subject</label>
+                          <div className="flex flex-wrap gap-2 mb-2">
+                            <span className="text-xs text-gray-500 mr-2">Variables:</span>
+                            {subjectVariables.map(v => (
+                              <button
+                                key={v}
+                                onClick={() => setAppointmentNotificationTypes({
+                                  ...appointmentNotificationTypes,
+                                  [type]: { ...config, emailSubject: (config.emailSubject || "") + " " + v }
+                                })}
+                                className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
+                              >
+                                {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                              </button>
+                            ))}
+                          </div>
                           <input
-                            type="time"
-                            value={settings.birthdaySendTime || "09:00"}
-                            onChange={(e) => setSettings({ ...settings, birthdaySendTime: e.target.value })}
-                            className="bg-[#141414] text-white rounded-lg px-3 py-2 text-sm border border-[#333333]"
+                            type="text"
+                            value={config.emailSubject || ""}
+                            onChange={(e) => setAppointmentNotificationTypes({
+                              ...appointmentNotificationTypes,
+                              [type]: { ...config, emailSubject: e.target.value }
+                            })}
+                            placeholder={`${titles[type]} - {Appointment_Type}`}
+                            className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
                           />
                         </div>
-                        <div className="flex flex-wrap gap-2">
-                          {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}"].map(v => (
-                            <button
-                              key={v}
-                              onClick={() => setSettings({ ...settings, birthdayMessageTemplate: (settings.birthdayMessageTemplate || "") + v })}
-                              className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
-                            >
-                              {v.replace(/{|}/g, "").replace(/_/g, " ")}
-                            </button>
-                          ))}
-                        </div>
-                        <textarea
-                          value={settings.birthdayMessageTemplate || ""}
-                          onChange={(e) => setSettings({ ...settings, birthdayMessageTemplate: e.target.value })}
-                          placeholder="Happy Birthday, {Member_First_Name}!"
-                          rows={4}
-                          className="w-full bg-[#141414] text-white rounded-xl px-4 py-3 text-sm outline-none border border-[#333333] focus:border-[#3F74FF] resize-none"
-                        />
-                      </div>
-                    )}
-                  </div>
-                </SettingsCard>
-
-                {/* Appointment Emails */}
-                <SettingsCard>
-                  <div className="space-y-4">
-                    <Toggle
-                      label="Appointment Notifications"
-                      checked={settings.appointmentNotificationEnabled}
-                      onChange={(v) => setSettings({ ...settings, appointmentNotificationEnabled: v })}
-                    />
-                    
-                    {settings.appointmentNotificationEnabled && (
-                      <div className="space-y-4 pl-4 border-l-2 border-blue-500">
-                        {["confirmation", "cancellation", "rescheduled", "reminder"].map(type => {
-                          const config = appointmentNotificationTypes[type] || {}
-                          return (
-                            <div key={type} className="space-y-3 p-4 bg-[#141414] rounded-xl">
-                              <Toggle
-                                label={`Appointment ${type.charAt(0).toUpperCase() + type.slice(1)}`}
-                                checked={config.enabled || false}
-                                onChange={(v) => setAppointmentNotificationTypes({
+                        
+                        {/* Message */}
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-gray-300">Message</label>
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                            <span className="text-xs text-gray-500 mr-1">Variables:</span>
+                            {messageVariables.map(v => (
+                              <button
+                                key={v}
+                                onClick={() => setAppointmentNotificationTypes({
                                   ...appointmentNotificationTypes,
-                                  [type]: { ...config, enabled: v }
+                                  [type]: { ...config, emailTemplate: (config.emailTemplate || "") + v }
                                 })}
-                              />
-                              
-                              {config.enabled && (
-                                <div className="space-y-3 ml-4">
-                                  <Toggle
-                                    label="Send Email"
-                                    checked={config.sendEmail || false}
-                                    onChange={(v) => setAppointmentNotificationTypes({
-                                      ...appointmentNotificationTypes,
-                                      [type]: { ...config, sendEmail: v }
-                                    })}
-                                  />
-                                  
-                                  {config.sendEmail && (
-                                    <>
-                                      {type === "reminder" && (
-                                        <div className="flex items-center gap-2 flex-wrap">
-                                          <span className="text-sm text-gray-300">Send</span>
-                                          <input
-                                            type="number"
-                                            value={config.hoursBefore || 24}
-                                            onChange={(e) => setAppointmentNotificationTypes({
-                                              ...appointmentNotificationTypes,
-                                              [type]: { ...config, hoursBefore: Number(e.target.value) }
-                                            })}
-                                            className="w-20 bg-[#1F1F1F] text-white rounded-lg px-3 py-2 text-sm border border-[#333333]"
-                                          />
-                                          <span className="text-sm text-gray-300">hours before</span>
-                                        </div>
-                                      )}
-                                      <div className="flex flex-wrap gap-2">
-                                        {["{Studio_Name}", "{Member_First_Name}", "{Appointment_Type}", "{Booked_Time}"].map(v => (
-                                          <button
-                                            key={v}
-                                            onClick={() => setAppointmentNotificationTypes({
-                                              ...appointmentNotificationTypes,
-                                              [type]: { ...config, template: (config.template || "") + v }
-                                            })}
-                                            className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
-                                          >
-                                            {v.replace(/{|}/g, "").replace(/_/g, " ")}
-                                          </button>
-                                        ))}
-                                      </div>
-                                      <textarea
-                                        value={config.template || ""}
-                                        onChange={(e) => setAppointmentNotificationTypes({
-                                          ...appointmentNotificationTypes,
-                                          [type]: { ...config, template: e.target.value }
-                                        })}
-                                        placeholder={`Enter ${type} message template...`}
-                                        rows={3}
-                                        className="w-full bg-[#1F1F1F] text-white rounded-xl px-4 py-3 text-sm outline-none border border-[#333333] focus:border-[#3F74FF] resize-none"
-                                      />
-                                    </>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          )
-                        })}
-
-                        {/* Registration Email */}
-                        <div className="space-y-3 p-4 bg-[#141414] rounded-xl">
-                          <Toggle
-                            label="Registration Notification"
-                            checked={appointmentNotificationTypes.registration?.enabled || false}
+                                className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
+                              >
+                                {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                              </button>
+                            ))}
+                            <span className="text-xs text-gray-500 mx-2">|</span>
+                            <span className="text-xs text-gray-500 mr-1">Insert:</span>
+                            <button
+                              onClick={() => {
+                                if (settings.emailSignature) {
+                                  setAppointmentNotificationTypes({
+                                    ...appointmentNotificationTypes,
+                                    [type]: { ...config, emailTemplate: (config.emailTemplate || "") + settings.emailSignature }
+                                  })
+                                } else {
+                                  notification.warning({ message: "No email signature configured", description: "Please set up your email signature first." })
+                                }
+                              }}
+                              className="px-2 py-1 bg-orange-500 text-white text-xs rounded-lg hover:bg-orange-600 flex items-center gap-1"
+                            >
+                              <FileText className="w-3 h-3" />
+                              Email Signature
+                            </button>
+                          </div>
+                          <ConfigWysiwygEditor
+                            value={config.emailTemplate || ""}
                             onChange={(v) => setAppointmentNotificationTypes({
                               ...appointmentNotificationTypes,
-                              registration: { ...appointmentNotificationTypes.registration, enabled: v }
+                              [type]: { ...config, emailTemplate: v }
                             })}
+                            placeholder={`Enter ${type} email message...`}
                           />
-                          
-                          {appointmentNotificationTypes.registration?.enabled && (
-                            <div className="space-y-3 ml-4">
-                              <Toggle
-                                label="Send Email"
-                                checked={appointmentNotificationTypes.registration?.sendEmail || false}
-                                onChange={(v) => setAppointmentNotificationTypes({
-                                  ...appointmentNotificationTypes,
-                                  registration: { ...appointmentNotificationTypes.registration, sendEmail: v }
-                                })}
-                              />
-                              
-                              {appointmentNotificationTypes.registration?.sendEmail && (
-                                <>
-                                  <div className="flex flex-wrap gap-2">
-                                    {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Registration_Link}"].map(v => (
-                                      <button
-                                        key={v}
-                                        onClick={() => setAppointmentNotificationTypes({
-                                          ...appointmentNotificationTypes,
-                                          registration: {
-                                            ...appointmentNotificationTypes.registration,
-                                            template: (appointmentNotificationTypes.registration?.template || "") + v
-                                          }
-                                        })}
-                                        className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
-                                      >
-                                        {v.replace(/{|}/g, "").replace(/_/g, " ")}
-                                      </button>
-                                    ))}
-                                  </div>
-                                  <textarea
-                                    value={appointmentNotificationTypes.registration?.template || ""}
-                                    onChange={(e) => setAppointmentNotificationTypes({
-                                      ...appointmentNotificationTypes,
-                                      registration: { ...appointmentNotificationTypes.registration, template: e.target.value }
-                                    })}
-                                    placeholder="Welcome {Member_First_Name}! Complete your registration..."
-                                    rows={3}
-                                    className="w-full bg-[#1F1F1F] text-white rounded-xl px-4 py-3 text-sm outline-none border border-[#333333] focus:border-[#3F74FF] resize-none"
-                                  />
-                                </>
-                              )}
-                            </div>
-                          )}
                         </div>
                       </div>
                     )}
                   </div>
                 </SettingsCard>
-              </>
-            )}
+              )
+            })}
           </div>
         )
 
       case "app-notifications":
         return (
           <div className="space-y-6">
-            <SectionHeader title="App Notifications" description="Configure push notifications" />
+            <SectionHeader title="App Notifications" description="Configure push notifications for the mobile app" />
             
+            {/* Birthday App Notification */}
             <SettingsCard>
-              <Toggle
-                label="Enable App Notifications"
-                checked={settings.appNotificationEnabled}
-                onChange={(v) => setSettings({ ...settings, appNotificationEnabled: v })}
-              />
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-white font-medium">Birthday Push Notification</h3>
+                    <p className="text-sm text-gray-400">Send birthday greetings via app push notification</p>
+                  </div>
+                  <Toggle
+                    checked={settings.birthdayAppEnabled}
+                    onChange={(v) => setSettings({ ...settings, birthdayAppEnabled: v })}
+                  />
+                </div>
+                
+                {settings.birthdayAppEnabled && (
+                  <div className="space-y-4 pt-4 border-t border-[#333333]">
+                    {/* Send Time */}
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <span className="text-sm text-gray-300">Send time:</span>
+                      <input
+                        type="time"
+                        value={settings.birthdayAppSendTime || "09:00"}
+                        onChange={(e) => setSettings({ ...settings, birthdayAppSendTime: e.target.value })}
+                        className="bg-[#141414] text-white rounded-lg px-3 py-2 text-sm border border-[#333333]"
+                      />
+                    </div>
+                    
+                    {/* Title */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-300">Title</label>
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        <span className="text-xs text-gray-500 mr-2">Variables:</span>
+                        {["{Studio_Name}", "{Member_First_Name}"].map(v => (
+                          <button
+                            key={v}
+                            onClick={() => setSettings({ ...settings, birthdayAppTitle: (settings.birthdayAppTitle || "") + " " + v })}
+                            className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
+                          >
+                            {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                          </button>
+                        ))}
+                      </div>
+                      <input
+                        type="text"
+                        value={settings.birthdayAppTitle || ""}
+                        onChange={(e) => setSettings({ ...settings, birthdayAppTitle: e.target.value })}
+                        placeholder="🎂 Happy Birthday!"
+                        className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                      />
+                    </div>
+                    
+                    {/* Message */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-300">Message</label>
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        <span className="text-xs text-gray-500 mr-2">Variables:</span>
+                        {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}"].map(v => (
+                          <button
+                            key={v}
+                            onClick={() => setSettings({ ...settings, birthdayAppMessage: (settings.birthdayAppMessage || "") + v })}
+                            className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
+                          >
+                            {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                          </button>
+                        ))}
+                      </div>
+                      <textarea
+                        value={settings.birthdayAppMessage || ""}
+                        onChange={(e) => setSettings({ ...settings, birthdayAppMessage: e.target.value })}
+                        placeholder="Happy Birthday, {Member_First_Name}! We wish you a wonderful day."
+                        rows={3}
+                        className="w-full bg-[#141414] text-white rounded-xl px-4 py-3 text-sm outline-none border border-[#333333] focus:border-[#3F74FF] resize-none"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
             </SettingsCard>
 
-            {settings.appNotificationEnabled && (
-              <SettingsCard>
-                <div className="space-y-4">
-                  <Toggle
-                    label="Birthday App Notifications"
-                    checked={settings.birthdayAppNotificationEnabled}
-                    onChange={(v) => setSettings({ ...settings, birthdayAppNotificationEnabled: v })}
-                  />
-                  <Toggle
-                    label="Appointment App Notifications"
-                    checked={settings.appointmentAppNotificationEnabled}
-                    onChange={(v) => setSettings({ ...settings, appointmentAppNotificationEnabled: v })}
-                  />
-                  
-                  {settings.appointmentAppNotificationEnabled && (
-                    <div className="space-y-3 pl-4 border-l-2 border-purple-500">
-                      {["confirmation", "cancellation", "rescheduled", "reminder", "registration"].map(type => {
-                        const config = appointmentNotificationTypes[type] || {}
-                        return (
-                          <Toggle
-                            key={type}
-                            label={`${type.charAt(0).toUpperCase() + type.slice(1)} Notification`}
-                            checked={config.sendApp || false}
-                            onChange={(v) => setAppointmentNotificationTypes({
-                              ...appointmentNotificationTypes,
-                              [type]: { ...config, sendApp: v }
-                            })}
-                          />
-                        )
-                      })}
+            {/* Appointment App Notifications - No registration */}
+            {["confirmation", "cancellation", "rescheduled", "reminder"].map(type => {
+              const config = appointmentNotificationTypes[type] || {}
+              const titles = {
+                confirmation: "Appointment Confirmation",
+                cancellation: "Appointment Cancellation", 
+                rescheduled: "Appointment Rescheduled",
+                reminder: "Appointment Reminder"
+              }
+              const descriptions = {
+                confirmation: "Push notification when an appointment is booked",
+                cancellation: "Push notification when an appointment is cancelled",
+                rescheduled: "Push notification when an appointment time is changed",
+                reminder: "Push notification before an upcoming appointment"
+              }
+              const titleVariables = ["{Studio_Name}", "{Member_First_Name}", "{Appointment_Type}"]
+              const messageVariables = ["{Studio_Name}", "{Member_First_Name}", "{Appointment_Type}", "{Booked_Time}", "{Booked_Date}"]
+              
+              return (
+                <SettingsCard key={type}>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-white font-medium">{titles[type]} Push</h3>
+                        <p className="text-sm text-gray-400">{descriptions[type]}</p>
+                      </div>
+                      <Toggle
+                        checked={config.appEnabled || false}
+                        onChange={(v) => setAppointmentNotificationTypes({
+                          ...appointmentNotificationTypes,
+                          [type]: { ...config, appEnabled: v }
+                        })}
+                      />
                     </div>
-                  )}
-                </div>
-              </SettingsCard>
-            )}
+                    
+                    {config.appEnabled && (
+                      <div className="space-y-4 pt-4 border-t border-[#333333]">
+                        {/* Reminder timing */}
+                        {type === "reminder" && (
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-sm text-gray-300">Send</span>
+                            <input
+                              type="number"
+                              value={config.appHoursBefore || 24}
+                              onChange={(e) => setAppointmentNotificationTypes({
+                                ...appointmentNotificationTypes,
+                                [type]: { ...config, appHoursBefore: Number(e.target.value) }
+                              })}
+                              className="w-20 bg-[#141414] text-white rounded-lg px-3 py-2 text-sm border border-[#333333]"
+                            />
+                            <span className="text-sm text-gray-300">hours before appointment</span>
+                          </div>
+                        )}
+                        
+                        {/* Title */}
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-gray-300">Title</label>
+                          <div className="flex flex-wrap gap-2 mb-2">
+                            <span className="text-xs text-gray-500 mr-2">Variables:</span>
+                            {titleVariables.map(v => (
+                              <button
+                                key={v}
+                                onClick={() => setAppointmentNotificationTypes({
+                                  ...appointmentNotificationTypes,
+                                  [type]: { ...config, appTitle: (config.appTitle || "") + " " + v }
+                                })}
+                                className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
+                              >
+                                {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                              </button>
+                            ))}
+                          </div>
+                          <input
+                            type="text"
+                            value={config.appTitle || ""}
+                            onChange={(e) => setAppointmentNotificationTypes({
+                              ...appointmentNotificationTypes,
+                              [type]: { ...config, appTitle: e.target.value }
+                            })}
+                            placeholder={`${titles[type]}`}
+                            className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                          />
+                        </div>
+                        
+                        {/* Message */}
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-gray-300">Message</label>
+                          <div className="flex flex-wrap gap-2 mb-2">
+                            <span className="text-xs text-gray-500 mr-2">Variables:</span>
+                            {messageVariables.map(v => (
+                              <button
+                                key={v}
+                                onClick={() => setAppointmentNotificationTypes({
+                                  ...appointmentNotificationTypes,
+                                  [type]: { ...config, appMessage: (config.appMessage || "") + v }
+                                })}
+                                className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
+                              >
+                                {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                              </button>
+                            ))}
+                          </div>
+                          <textarea
+                            value={config.appMessage || ""}
+                            onChange={(e) => setAppointmentNotificationTypes({
+                              ...appointmentNotificationTypes,
+                              [type]: { ...config, appMessage: e.target.value }
+                            })}
+                            placeholder={`Enter ${type} push notification message...`}
+                            rows={3}
+                            className="w-full bg-[#141414] text-white rounded-xl px-4 py-3 text-sm outline-none border border-[#333333] focus:border-[#3F74FF] resize-none"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </SettingsCard>
+              )
+            })}
           </div>
         )
 
       case "smtp-setup":
         return (
           <div className="space-y-6">
-            <SectionHeader title="SMTP Setup" description="Configure your email server" />
+            <SectionHeader title="SMTP Setup" description="Configure your email server for sending notifications" />
             <SettingsCard>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <InputField
-                  label="Display Name"
-                  value={settings.senderName}
-                  onChange={(v) => setSettings({ ...settings, senderName: v })}
-                  placeholder="Your Studio Name"
-                />
-                <InputField
-                  label="SMTP Host"
-                  value={settings.smtpHost}
-                  onChange={(v) => setSettings({ ...settings, smtpHost: v })}
-                  placeholder="smtp.example.com"
-                />
-                <NumberInput
-                  label="SMTP Port"
-                  value={settings.smtpPort}
-                  onChange={(v) => setSettings({ ...settings, smtpPort: v })}
-                  min={1}
-                  max={65535}
-                />
-                <InputField
-                  label="Username"
-                  value={settings.smtpUser}
-                  onChange={(v) => setSettings({ ...settings, smtpUser: v })}
-                  placeholder="your-email@example.com"
-                />
-                <div className="sm:col-span-2">
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <InputField
+                    label="Display Name"
+                    value={settings.senderName}
+                    onChange={(v) => setSettings({ ...settings, senderName: v })}
+                    placeholder="Your Studio Name"
+                    helpText="Name shown as sender"
+                  />
+                  <InputField
+                    label="From Email"
+                    value={settings.smtpFromEmail}
+                    onChange={(v) => setSettings({ ...settings, smtpFromEmail: v })}
+                    placeholder="noreply@yourstudio.com"
+                    type="email"
+                    helpText="Email address shown as sender"
+                  />
+                  <InputField
+                    label="SMTP Host"
+                    value={settings.smtpHost}
+                    onChange={(v) => setSettings({ ...settings, smtpHost: v })}
+                    placeholder="smtp.example.com"
+                  />
+                  <div className="flex gap-4">
+                    <div className="flex-1">
+                      <NumberInput
+                        label="Port"
+                        value={settings.smtpPort}
+                        onChange={(v) => setSettings({ ...settings, smtpPort: v })}
+                        min={1}
+                        max={65535}
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="text-sm font-medium text-gray-300 mb-1.5 block">Security</label>
+                      <select
+                        value={settings.smtpSecure ? "tls" : "none"}
+                        onChange={(e) => setSettings({ ...settings, smtpSecure: e.target.value === "tls" })}
+                        className="w-full bg-[#141414] text-white rounded-xl px-3 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                      >
+                        <option value="tls">TLS/SSL</option>
+                        <option value="none">None</option>
+                      </select>
+                    </div>
+                  </div>
+                  <InputField
+                    label="Username"
+                    value={settings.smtpUser}
+                    onChange={(v) => setSettings({ ...settings, smtpUser: v })}
+                    placeholder="your-email@example.com"
+                    helpText="Email/account for SMTP authentication"
+                  />
                   <InputField
                     label="Password"
                     value={settings.smtpPass}
@@ -2739,14 +4873,49 @@ const ConfigurationPage = () => {
                     placeholder="••••••••"
                   />
                 </div>
+                <div className="flex flex-wrap gap-3">
+                  <button
+                    onClick={() => {
+                      if (!settings.smtpHost || !settings.smtpUser) {
+                        notification.error({ message: "Missing SMTP Settings", description: "Please fill in SMTP Host and Username" })
+                        return
+                      }
+                      notification.loading({ message: "Testing connection...", key: "smtp-test" })
+                      setTimeout(() => {
+                        notification.success({ 
+                          message: "Connection successful!", 
+                          description: `Connected to ${settings.smtpHost}:${settings.smtpPort}`,
+                          key: "smtp-test"
+                        })
+                      }, 1500)
+                    }}
+                    className="px-4 py-2 bg-[#2F2F2F] text-white text-sm rounded-xl hover:bg-[#3F3F3F] transition-colors flex items-center gap-2"
+                  >
+                    <Mail className="w-4 h-4" />
+                    Test Connection
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (!settings.smtpHost || !settings.smtpUser || !settings.smtpFromEmail) {
+                        notification.error({ message: "Missing SMTP Settings", description: "Please fill in all SMTP fields" })
+                        return
+                      }
+                      notification.loading({ message: "Sending test email...", key: "smtp-send" })
+                      setTimeout(() => {
+                        notification.success({ 
+                          message: "Test email sent!", 
+                          description: `From: ${settings.senderName} <${settings.smtpFromEmail}>`,
+                          key: "smtp-send"
+                        })
+                      }, 2000)
+                    }}
+                    className="px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
+                  >
+                    <Mail className="w-4 h-4" />
+                    Send Test Email
+                  </button>
+                </div>
               </div>
-              <button
-                onClick={() => notification.info({ message: "Testing connection..." })}
-                className="mt-4 px-4 py-2 bg-[#2F2F2F] text-white text-sm rounded-xl hover:bg-[#3F3F3F] transition-colors flex items-center gap-2"
-              >
-                <Mail className="w-4 h-4" />
-                Test Connection
-              </button>
             </SettingsCard>
           </div>
         )
@@ -2754,32 +4923,47 @@ const ConfigurationPage = () => {
       case "email-signature":
         return (
           <div className="space-y-6">
-            <SectionHeader title="Email Signature" description="Default signature for all outgoing emails" />
+            <SectionHeader title="Email Signature" description="Default signature appended to all outgoing emails" />
             <SettingsCard>
-              <textarea
-                value={settings.emailSignature}
-                onChange={(e) => setSettings({ ...settings, emailSignature: e.target.value })}
-                placeholder="Best regards,&#10;{Studio_Name} Team"
-                rows={6}
-                className="w-full bg-[#141414] text-white rounded-xl px-4 py-3 text-sm outline-none border border-[#333333] focus:border-[#3F74FF] resize-none"
-              />
+              <div className="space-y-3">
+                <p className="text-sm text-gray-400">
+                  This signature can be inserted into your email notification templates using the orange "Email Signature" button.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {["{Studio_Name}", "{Studio_Phone}", "{Studio_Email}", "{Studio_Website}", "{Studio_Address}"].map(v => (
+                    <button
+                      key={v}
+                      onClick={() => setSettings({ ...settings, emailSignature: (settings.emailSignature || "") + v })}
+                      className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
+                    >
+                      {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                    </button>
+                  ))}
+                </div>
+                <ConfigWysiwygEditor
+                  value={settings.emailSignature || ""}
+                  onChange={(v) => setSettings({ ...settings, emailSignature: v })}
+                  placeholder="Best regards,&#10;{Studio_Name} Team&#10;{Studio_Phone} | {Studio_Email}"
+                />
+              </div>
             </SettingsCard>
           </div>
         )
 
-      case "invoice-template":
+      case "e-invoice-template":
         return (
           <div className="space-y-6">
-            <SectionHeader title="Invoice Email Template" description="Template for invoice emails" />
+            <SectionHeader title="E-Invoice Template" description="Email template for sending invoices to members" />
             <SettingsCard>
               <div className="space-y-4">
                 <div>
                   <label className="text-sm font-medium text-gray-300 mb-2 block">Subject</label>
                   <div className="flex flex-wrap gap-2 mb-2">
-                    {["{Invoice_Number}", "{Selling_Date}"].map(v => (
+                    <span className="text-xs text-gray-500 mr-2">Variables:</span>
+                    {["{Invoice_Number}", "{Selling_Date}", "{Member_First_Name}"].map(v => (
                       <button
                         key={v}
-                        onClick={() => setSettings({ ...settings, einvoiceSubject: (settings.einvoiceSubject || "") + v })}
+                        onClick={() => setSettings({ ...settings, einvoiceSubject: (settings.einvoiceSubject || "") + " " + v })}
                         className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
                       >
                         {v.replace(/{|}/g, "").replace(/_/g, " ")}
@@ -2796,8 +4980,9 @@ const ConfigurationPage = () => {
                 </div>
                 
                 <div>
-                  <label className="text-sm font-medium text-gray-300 mb-2 block">Message Template</label>
-                  <div className="flex flex-wrap gap-2 mb-2">
+                  <label className="text-sm font-medium text-gray-300 mb-2 block">Message</label>
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                    <span className="text-xs text-gray-500 mr-1">Variables:</span>
                     {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Invoice_Number}", "{Total_Amount}", "{Selling_Date}"].map(v => (
                       <button
                         key={v}
@@ -2807,13 +4992,26 @@ const ConfigurationPage = () => {
                         {v.replace(/{|}/g, "").replace(/_/g, " ")}
                       </button>
                     ))}
+                    <span className="text-xs text-gray-500 mx-2">|</span>
+                    <span className="text-xs text-gray-500 mr-1">Insert:</span>
+                    <button
+                      onClick={() => {
+                        if (settings.emailSignature) {
+                          setSettings({ ...settings, einvoiceTemplate: (settings.einvoiceTemplate || "") + settings.emailSignature })
+                        } else {
+                          notification.warning({ message: "No email signature configured", description: "Please set up your email signature first." })
+                        }
+                      }}
+                      className="px-2 py-1 bg-orange-500 text-white text-xs rounded-lg hover:bg-orange-600 flex items-center gap-1"
+                    >
+                      <FileText className="w-3 h-3" />
+                      Email Signature
+                    </button>
                   </div>
-                  <textarea
+                  <ConfigWysiwygEditor
                     value={settings.einvoiceTemplate || ""}
-                    onChange={(e) => setSettings({ ...settings, einvoiceTemplate: e.target.value })}
-                    placeholder="Dear {Member_First_Name}, please find your invoice..."
-                    rows={6}
-                    className="w-full bg-[#141414] text-white rounded-xl px-4 py-3 text-sm outline-none border border-[#333333] focus:border-[#3F74FF] resize-none"
+                    onChange={(v) => setSettings({ ...settings, einvoiceTemplate: v })}
+                    placeholder="Dear {Member_First_Name}, please find attached your invoice #{Invoice_Number}..."
                   />
                 </div>
               </div>
@@ -2824,30 +5022,6 @@ const ConfigurationPage = () => {
       // ========================
       // FINANCE SECTIONS
       // ========================
-      case "currency":
-        return (
-          <div className="space-y-6">
-            <SectionHeader title="Currency" description="Set your studio's default currency" />
-            <SettingsCard>
-              <SelectField
-                label="Currency"
-                value={currency}
-                onChange={setCurrency}
-                options={[
-                  { value: "€", label: "€ Euro" },
-                  { value: "$", label: "$ US Dollar" },
-                  { value: "£", label: "£ British Pound" },
-                  { value: "¥", label: "¥ Japanese Yen" },
-                  { value: "Fr", label: "Fr Swiss Franc" },
-                  { value: "A$", label: "A$ Australian Dollar" },
-                  { value: "C$", label: "C$ Canadian Dollar" },
-                  { value: "kr", label: "kr Swedish Krona" },
-                ]}
-              />
-            </SettingsCard>
-          </div>
-        )
-
       case "vat-rates":
         return (
           <div className="space-y-6">
@@ -2909,31 +5083,56 @@ const ConfigurationPage = () => {
         return (
           <div className="space-y-6">
             <SectionHeader title="Payment Settings" description="Configure payment and billing information" />
+            
             <SettingsCard>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Currency - Disabled/Read-only */}
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-gray-300">Currency</label>
+                  <input
+                    type="text"
+                    value={currency}
+                    disabled
+                    className="w-full bg-[#141414] text-gray-400 rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] cursor-not-allowed"
+                  />
+                </div>
+                <InputField
+                  label="Creditor Name"
+                  value={creditorName}
+                  onChange={setCreditorName}
+                  placeholder="Company name for invoices"
+                  maxLength={100}
+                />
                 <InputField
                   label="Creditor ID"
                   value={creditorId}
                   onChange={setCreditorId}
-                  placeholder="Enter Creditor ID"
+                  placeholder="e.g., DE98ZZZ09999999999"
                   maxLength={50}
+                  helpText="SEPA Creditor Identifier"
                 />
                 <InputField
                   label="VAT Number"
                   value={vatNumber}
                   onChange={setVatNumber}
-                  placeholder="Enter VAT number"
+                  placeholder="e.g., DE123456789"
                   maxLength={30}
                 />
-                <div className="sm:col-span-2">
-                  <InputField
-                    label="Bank Name"
-                    value={bankName}
-                    onChange={setBankName}
-                    placeholder="Enter bank name"
-                    maxLength={50}
-                  />
-                </div>
+                <InputField
+                  label="Bank Name"
+                  value={bankName}
+                  onChange={setBankName}
+                  placeholder="Enter bank name"
+                  maxLength={50}
+                />
+                <InputField
+                  label="IBAN"
+                  value={iban}
+                  onChange={setIban}
+                  placeholder="e.g., DE89 3704 0044 0532 0130 00"
+                  maxLength={34}
+                  helpText="International Bank Account Number"
+                />
               </div>
             </SettingsCard>
           </div>
@@ -2994,16 +5193,75 @@ const ConfigurationPage = () => {
 
                 <div className="pt-4 border-t border-[#333333]">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <ColorPickerField
-                      label="Primary Color"
-                      value={appearance.primaryColor}
-                      onChange={(v) => setAppearance({ ...appearance, primaryColor: v })}
-                    />
-                    <ColorPickerField
-                      label="Secondary Color"
-                      value={appearance.secondaryColor}
-                      onChange={(v) => setAppearance({ ...appearance, secondaryColor: v })}
-                    />
+                    {/* Primary Color */}
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-gray-300">Primary Color</label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          value={appearance.primaryColor}
+                          onChange={(e) => setAppearance({ ...appearance, primaryColor: e.target.value })}
+                          className="w-10 h-10 rounded-lg cursor-pointer bg-transparent border border-[#333333]"
+                        />
+                        <input
+                          type="text"
+                          value={appearance.primaryColor}
+                          onChange={(e) => {
+                            const val = e.target.value
+                            if (/^#[0-9A-Fa-f]{0,6}$/.test(val)) {
+                              setAppearance({ ...appearance, primaryColor: val })
+                            }
+                          }}
+                          className="flex-1 bg-[#141414] text-white rounded-lg px-3 py-2 text-sm font-mono border border-[#333333] uppercase"
+                          maxLength={7}
+                        />
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(appearance.primaryColor)
+                            notification.success({ message: "Copied!", duration: 1.5 })
+                          }}
+                          className="p-2 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-lg transition-colors"
+                          title="Copy color code"
+                        >
+                          <Clipboard className="w-4 h-4 text-gray-400" />
+                        </button>
+                      </div>
+                    </div>
+                    
+                    {/* Secondary Color */}
+                    <div className="space-y-1.5">
+                      <label className="text-sm font-medium text-gray-300">Secondary Color</label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          value={appearance.secondaryColor}
+                          onChange={(e) => setAppearance({ ...appearance, secondaryColor: e.target.value })}
+                          className="w-10 h-10 rounded-lg cursor-pointer bg-transparent border border-[#333333]"
+                        />
+                        <input
+                          type="text"
+                          value={appearance.secondaryColor}
+                          onChange={(e) => {
+                            const val = e.target.value
+                            if (/^#[0-9A-Fa-f]{0,6}$/.test(val)) {
+                              setAppearance({ ...appearance, secondaryColor: val })
+                            }
+                          }}
+                          className="flex-1 bg-[#141414] text-white rounded-lg px-3 py-2 text-sm font-mono border border-[#333333] uppercase"
+                          maxLength={7}
+                        />
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(appearance.secondaryColor)
+                            notification.success({ message: "Copied!", duration: 1.5 })
+                          }}
+                          className="p-2 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-lg transition-colors"
+                          title="Copy color code"
+                        >
+                          <Clipboard className="w-4 h-4 text-gray-400" />
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -3314,6 +5572,7 @@ const ConfigurationPage = () => {
         onClose={() => setStaffAssignmentModalVisible(false)}
         role={selectedRoleForAssignment !== null ? roles[selectedRoleForAssignment] : null}
         allStaff={allStaff}
+        allRoles={roles}
         onStaffAssignmentChange={handleStaffAssignmentChange}
       />
 
@@ -3485,6 +5744,7 @@ const ConfigurationPage = () => {
                   <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
                     <Clock className="w-4 h-4 text-gray-500" />
                     Duration
+                    <span className="text-red-400">*</span>
                     <Tooltip content="How long the appointment lasts in minutes">
                       <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
                     </Tooltip>
@@ -3507,6 +5767,7 @@ const ConfigurationPage = () => {
                   <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
                     <Clock className="w-4 h-4 text-gray-500" />
                     Interval
+                    <span className="text-red-400">*</span>
                     <Tooltip content="Time between available booking slots (e.g., 30 = bookings at :00 and :30)">
                       <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
                     </Tooltip>
@@ -3529,6 +5790,7 @@ const ConfigurationPage = () => {
                   <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
                     <Settings className="w-4 h-4 text-gray-500" />
                     Slots
+                    <span className="text-red-400">*</span>
                     <Tooltip content="How many capacity slots this appointment uses. Set to 0 if it doesn't block any capacity.">
                       <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
                     </Tooltip>
@@ -3548,6 +5810,7 @@ const ConfigurationPage = () => {
                   <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
                     <Users className="w-4 h-4 text-gray-500" />
                     Max Parallel
+                    <span className="text-red-400">*</span>
                     <Tooltip content="Maximum number of this appointment type that can run at the same time" position="right">
                       <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
                     </Tooltip>
@@ -3562,6 +5825,30 @@ const ConfigurationPage = () => {
                     className="w-24 bg-[#141414] text-white rounded-xl px-3 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
                   />
                 </div>
+              </div>
+
+              {/* Contingent Usage */}
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                  <BadgeDollarSign className="w-4 h-4 text-gray-500" />
+                  Contingent Usage
+                  <span className="text-red-400">*</span>
+                  <Tooltip content="How many credits are deducted from the member's contract contingent when booking this appointment. For example, if set to 2, a member with 10 credits will have 8 left after booking.">
+                    <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                  </Tooltip>
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    value={appointmentTypeForm.contingentUsage}
+                    onChange={(e) => setAppointmentTypeForm({ ...appointmentTypeForm, contingentUsage: Math.floor(Number(e.target.value)) })}
+                    onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault() }}
+                    min={0}
+                    className="w-24 bg-[#141414] text-white rounded-xl px-3 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                  />
+                  <span className="text-sm text-gray-400">per booking</span>
+                </div>
+                <p className="text-xs text-gray-500">0 = No deduction from member's contingent</p>
               </div>
 
               {/* Color */}
@@ -3625,6 +5912,32 @@ const ConfigurationPage = () => {
         imageSrc={tempImage}
         onCropComplete={handleCroppedImage}
         aspectRatio={16 / 9}
+      />
+
+      {/* Introductory Material Editor Modal */}
+      <IntroMaterialEditorModal
+        visible={introMaterialEditorVisible}
+        onClose={() => {
+          setIntroMaterialEditorVisible(false)
+          setEditingIntroMaterial(null)
+          setEditingIntroMaterialIndex(null)
+        }}
+        material={editingIntroMaterial}
+        onSave={(updatedMaterial) => {
+          if (editingIntroMaterialIndex !== null) {
+            // Editing existing material
+            const updated = [...introductoryMaterials]
+            updated[editingIntroMaterialIndex] = updatedMaterial
+            setIntroductoryMaterials(updated)
+          } else {
+            // Adding new material
+            setIntroductoryMaterials(prev => [...prev, updatedMaterial])
+          }
+          setIntroMaterialEditorVisible(false)
+          setEditingIntroMaterial(null)
+          setEditingIntroMaterialIndex(null)
+          notification.success({ message: "Material saved successfully" })
+        }}
       />
     </div>
   )

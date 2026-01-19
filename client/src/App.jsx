@@ -4,23 +4,19 @@ import Footer from "./components/footer";
 import Header from "./components/navbar";
 import Login from './pages/login';
 import Register from './pages/register'
-import Profile from './pages/profile'
 
 // User Panel Dashboard
 import Dashboardlayout from "./layouts/dashboard-layout";
 import MyArea from './dashboard-pages/user-panel-view/my-area'
-import ProfileDashboard from './dashboard-pages/user-panel-view/profile'
 import Appointments from "./dashboard-pages/user-panel-view/appointments";
 import ToDo from './dashboard-pages/user-panel-view/todo'
 import Members from './dashboard-pages/user-panel-view/members'
 import Staff from './dashboard-pages/user-panel-view/staff'
 import MediaLibrary from './dashboard-pages/user-panel-view/media-library'
 import Communication from "./dashboard-pages/user-panel-view/communications";
-import Payment from "./dashboard-pages/user-panel-view/payment"
 import Contract from './dashboard-pages/user-panel-view/contract'
 import Configuration from './dashboard-pages/user-panel-view/configuration'
 import Leads from './dashboard-pages/user-panel-view/leads'
-import TrialTraining from "./dashboard-pages/user-panel-view/trialtraining";
 import Selling from "./dashboard-pages/user-panel-view/selling";
 import Finances from "./dashboard-pages/user-panel-view/finances";
 import Training from "./dashboard-pages/user-panel-view/training";
@@ -76,7 +72,7 @@ import Tickets from "./dashboard-pages/user-panel-view/tickets";
 
 function App() {
   const location = useLocation();
-  const isAuthOrDashboardPage = ["/login", "/register", "/profile"].includes(location.pathname) || location.pathname.startsWith("/dashboard") || location.pathname.startsWith("/admin-dashboard") || location.pathname.startsWith("/member-view");
+  const isAuthOrDashboardPage = ["/login", "/register"].includes(location.pathname) || location.pathname.startsWith("/dashboard") || location.pathname.startsWith("/admin-dashboard") || location.pathname.startsWith("/member-view");
 
   // useEffect(() => {
   //   const observer = startModalWatcher();
@@ -89,23 +85,19 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="login" element={<Login />} />
         <Route path="register" element={<Register />} />
-        <Route path="profile" element={<Profile />} />
 
 
         <Route path="/dashboard" element={<Dashboardlayout />}>
           <Route path="my-area" element={<MyArea />} />
-          <Route path="edit-profile" element={<ProfileDashboard />} />
           <Route path="appointments" element={<Appointments />} />
           <Route path="to-do" element={<ToDo />} />
           <Route path="members" element={<Members />} />
           <Route path="staff" element={<Staff />} />
           <Route path="media-library" element={<MediaLibrary />} />
           <Route path="communication" element={<Communication />} />
-          <Route path="payment" element={<Payment />} />
           <Route path="contract" element={<Contract />} />
           <Route path="configuration" element={<Configuration />} />
           <Route path="leads" element={<Leads />} />
-          <Route path="trialtraining" element={<TrialTraining />} />
           <Route path="selling" element={<Selling />} />
           <Route path="finances" element={<Finances />} />
           <Route path="training" element={<Training />} />
@@ -125,7 +117,6 @@ function App() {
 
         <Route path="/admin-dashboard" element={<AdminDashboardLayout />}>
           <Route path="my-area" element={<AdminMyArea />} />
-          <Route path="edit-profile" element={<ProfileDashboard />} />
           <Route path="to-do" element={<AdminTodo />} />
           <Route path="contract" element={<AdminContracts />} />
           <Route path="configuration" element={<AdminConfiguration />} />

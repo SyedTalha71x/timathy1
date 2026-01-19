@@ -196,10 +196,11 @@ export const DEFAULT_APPOINTMENT_TYPES = [
     name: "EMS Strength",
     description: "High-intensity strength training with EMS technology",
     duration: 30,
-    maxParallel: 2,
-    slotsRequired: 1,
-    color: "#FF843E",
     interval: 30,
+    slotsRequired: 1,
+    maxParallel: 2,
+    contingentUsage: 1,
+    color: "#FF843E",
     category: "Personal Training",
     image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80",
   },
@@ -208,10 +209,11 @@ export const DEFAULT_APPOINTMENT_TYPES = [
     name: "EMS Cardio",
     description: "Cardiovascular training enhanced with EMS",
     duration: 30,
-    maxParallel: 2,
-    slotsRequired: 1,
-    color: "#10B981",
     interval: 30,
+    slotsRequired: 1,
+    maxParallel: 2,
+    contingentUsage: 1,
+    color: "#10B981",
     category: "Personal Training",
     image: "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&q=80",
   },
@@ -220,10 +222,11 @@ export const DEFAULT_APPOINTMENT_TYPES = [
     name: "EMP Chair",
     description: "Relaxing electromagnetic pulse therapy session",
     duration: 30,
-    maxParallel: 1,
-    slotsRequired: 0,
-    color: "#8B5CF6",
     interval: 30,
+    slotsRequired: 0,
+    maxParallel: 1,
+    contingentUsage: 0, // Free add-on, no credit deduction
+    color: "#8B5CF6",
     category: "Wellness",
     image: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=800&q=80",
   },
@@ -232,10 +235,11 @@ export const DEFAULT_APPOINTMENT_TYPES = [
     name: "Body Check",
     description: "Comprehensive body analysis and measurements",
     duration: 30,
-    maxParallel: 1,
-    slotsRequired: 2,
-    color: "#3B82F6",
     interval: 30,
+    slotsRequired: 2,
+    maxParallel: 1,
+    contingentUsage: 1,
+    color: "#3B82F6",
     category: "Health Check",
     image: null,
   },
@@ -245,8 +249,10 @@ export const DEFAULT_APPOINTMENT_TYPES = [
 export const DEFAULT_TRIAL_TRAINING = {
   name: "Trial Training",
   duration: 60,
-  maxParallel: 1,
+  interval: 30,
   slotsRequired: 3,
+  maxParallel: 1,
+  contingentUsage: 0, // Trial sessions are free
   color: "#3B82F6",
 }
 
@@ -257,12 +263,82 @@ export const DEFAULT_STAFF_ROLES = [
     name: "Admin",
     permissions: ALL_PERMISSION_KEYS,
     color: "#FF843E",
-    defaultVacationDays: 20,
     isAdmin: true,
     staffCount: 1,
     assignedStaff: [1]
+  },
+  {
+    id: 2,
+    name: "Trainer",
+    permissions: [
+      "appointments.view",
+      "appointments.create",
+      "appointments.edit",
+      "appointments.cancel",
+      "communication.view",
+      "chat.member_send",
+      "members.view",
+      "members.history_view",
+      "notes.view",
+      "notes.personal_create",
+      "notes.studio_create",
+      "training.view",
+      "training_plans.create",
+      "training_plans.assign",
+      "profile.edit_own",
+    ],
+    color: "#10B981",
+    isAdmin: false,
+    staffCount: 0,
+    assignedStaff: []
+  },
+  {
+    id: 3,
+    name: "Studio Operator",
+    permissions: [
+      "appointments.view",
+      "appointments.create",
+      "appointments.edit",
+      "appointments.cancel",
+      "appointments.manage_contingent",
+      "communication.view",
+      "emails.send",
+      "chat.member_send",
+      "chat.studio_send",
+      "broadcasts.send",
+      "activity_monitor.view",
+      "activity_monitor.take_actions",
+      "todos.view",
+      "todos.create",
+      "todos.edit",
+      "notes.view",
+      "notes.personal_create",
+      "notes.studio_create",
+      "members.view",
+      "members.create",
+      "members.edit",
+      "members.history_view",
+      "leads.view",
+      "leads.create",
+      "leads.edit",
+      "contracts.view",
+      "contracts.create",
+      "selling.view",
+      "products.manage",
+      "profile.edit_own",
+    ],
+    color: "#3B82F6",
+    isAdmin: false,
+    staffCount: 0,
+    assignedStaff: []
   }
 ]
+
+// Default Vacation Days
+export const DEFAULT_VACATION_DAYS = 30
+
+// Default Staff Role ID (Trainer)
+export const DEFAULT_STAFF_ROLE_ID = 2
 
 // Default Lead Sources
 export const DEFAULT_LEAD_SOURCES = [
@@ -280,10 +356,201 @@ export const DEFAULT_VAT_RATES = [
 
 // Default Contract Pause Reasons
 export const DEFAULT_CONTRACT_PAUSE_REASONS = [
-  { name: "Vacation", maxDays: 30 },
-  { name: "Medical", maxDays: 90 },
-  { name: "Parental Leave", maxDays: 180 },
+  { id: 1, name: "Vacation", maxDays: 30, requiresProof: false },
+  { id: 2, name: "Medical / Illness", maxDays: 90, requiresProof: true },
+  { id: 3, name: "Injury / Rehabilitation", maxDays: 120, requiresProof: true },
+  { id: 4, name: "Pregnancy", maxDays: 180, requiresProof: true },
+  { id: 5, name: "Parental Leave", maxDays: 365, requiresProof: true },
+  { id: 6, name: "Work Relocation", maxDays: 90, requiresProof: true },
+  { id: 7, name: "Military / Civil Service", maxDays: 365, requiresProof: true },
+  { id: 8, name: "Personal Reasons", maxDays: 30, requiresProof: false },
 ]
+
+// Default Contract Forms
+export const DEFAULT_CONTRACT_FORMS = [
+  {
+    id: 1,
+    name: "Standard Membership Agreement",
+    description: "General membership contract for all regular memberships",
+    pages: [
+      {
+        id: 1,
+        title: "Terms & Conditions",
+        elements: [
+          { id: 1, type: "heading", content: "Membership Agreement" },
+          { id: 2, type: "paragraph", content: "This agreement is entered into between {Studio_Name} and the member." },
+          { id: 3, type: "field", fieldType: "signature", label: "Member Signature", required: true },
+          { id: 4, type: "field", fieldType: "date", label: "Date", required: true },
+        ]
+      }
+    ],
+    createdAt: "2024-01-15T10:00:00Z",
+    updatedAt: "2024-01-15T10:00:00Z",
+  },
+  {
+    id: 2,
+    name: "Premium Membership Contract",
+    description: "Extended contract for premium memberships with additional clauses",
+    pages: [
+      {
+        id: 1,
+        title: "Premium Terms",
+        elements: [
+          { id: 1, type: "heading", content: "Premium Membership Agreement" },
+          { id: 2, type: "paragraph", content: "Welcome to our Premium Membership program at {Studio_Name}." },
+          { id: 3, type: "paragraph", content: "As a premium member, you are entitled to unlimited training sessions and exclusive benefits." },
+        ]
+      },
+      {
+        id: 2,
+        title: "Signatures",
+        elements: [
+          { id: 1, type: "field", fieldType: "signature", label: "Member Signature", required: true },
+          { id: 2, type: "field", fieldType: "signature", label: "Studio Representative", required: true },
+          { id: 3, type: "field", fieldType: "date", label: "Contract Date", required: true },
+        ]
+      }
+    ],
+    createdAt: "2024-02-01T14:30:00Z",
+    updatedAt: "2024-03-10T09:15:00Z",
+  },
+  {
+    id: 3,
+    name: "Trial Membership Form",
+    description: "Short-term trial membership agreement",
+    pages: [
+      {
+        id: 1,
+        title: "Trial Agreement",
+        elements: [
+          { id: 1, type: "heading", content: "Trial Membership" },
+          { id: 2, type: "paragraph", content: "This trial membership allows you to experience our studio for a limited time." },
+          { id: 3, type: "field", fieldType: "checkbox", label: "I agree to the trial terms", required: true },
+          { id: 4, type: "field", fieldType: "signature", label: "Signature", required: true },
+        ]
+      }
+    ],
+    createdAt: "2024-03-01T08:00:00Z",
+    updatedAt: "2024-03-01T08:00:00Z",
+  },
+]
+
+// Default Contract Types
+export const DEFAULT_CONTRACT_TYPES = [
+  {
+    id: 1,
+    name: "Basic Monthly",
+    description: "Entry-level membership with essential features",
+    duration: 12, // months (minimum commitment)
+    cost: 79,
+    billingPeriod: "monthly",
+    userCapacity: 4, // 4 credits per month
+    autoRenewal: true,
+    renewalIndefinite: true,
+    renewalPeriod: null,
+    renewalPrice: 79,
+    cancellationPeriod: 30, // days
+    contractFormId: 1,
+    isActive: true,
+    createdAt: "2024-01-01T00:00:00Z",
+  },
+  {
+    id: 2,
+    name: "Standard Monthly",
+    description: "Our most popular membership option",
+    duration: 12,
+    cost: 99,
+    billingPeriod: "monthly",
+    userCapacity: 8, // 8 credits per month
+    autoRenewal: true,
+    renewalIndefinite: true,
+    renewalPeriod: null,
+    renewalPrice: 99,
+    cancellationPeriod: 30,
+    contractFormId: 1,
+    isActive: true,
+    createdAt: "2024-01-01T00:00:00Z",
+  },
+  {
+    id: 3,
+    name: "Premium Unlimited",
+    description: "Full access with unlimited training sessions",
+    duration: 12,
+    cost: 149,
+    billingPeriod: "monthly",
+    userCapacity: 0, // Unlimited (0 = no limit)
+    autoRenewal: true,
+    renewalIndefinite: true,
+    renewalPeriod: null,
+    renewalPrice: 149,
+    cancellationPeriod: 30,
+    contractFormId: 2,
+    isActive: true,
+    createdAt: "2024-01-01T00:00:00Z",
+  },
+  {
+    id: 4,
+    name: "Flex 10er Card",
+    description: "10 training credits, use anytime within 6 months",
+    duration: 6,
+    cost: 199,
+    billingPeriod: "monthly", // One-time payment displayed as monthly equivalent
+    userCapacity: 10, // 10 total credits
+    autoRenewal: false,
+    renewalIndefinite: false,
+    renewalPeriod: null,
+    renewalPrice: 0,
+    cancellationPeriod: 0,
+    contractFormId: 1,
+    isActive: true,
+    createdAt: "2024-02-15T00:00:00Z",
+  },
+  {
+    id: 5,
+    name: "Annual Premium",
+    description: "Best value - pay annually, save 2 months",
+    duration: 12,
+    cost: 1490, // 10 months worth
+    billingPeriod: "annually",
+    userCapacity: 0, // Unlimited
+    autoRenewal: true,
+    renewalIndefinite: false,
+    renewalPeriod: 12,
+    renewalPrice: 1490,
+    cancellationPeriod: 60,
+    contractFormId: 2,
+    isActive: true,
+    createdAt: "2024-01-01T00:00:00Z",
+  },
+  {
+    id: 6,
+    name: "Trial Week",
+    description: "7-day trial membership to experience our studio",
+    duration: 1, // 1 month max
+    cost: 29,
+    billingPeriod: "weekly",
+    userCapacity: 3, // 3 sessions during trial
+    autoRenewal: false,
+    renewalIndefinite: false,
+    renewalPeriod: null,
+    renewalPrice: 0,
+    cancellationPeriod: 0,
+    contractFormId: 3,
+    isActive: true,
+    createdAt: "2024-03-01T00:00:00Z",
+  },
+]
+
+// Default Contract Settings
+export const DEFAULT_CONTRACT_SETTINGS = {
+  allowMemberSelfCancellation: true,
+  defaultNoticePeriod: 30, // days
+  defaultBillingPeriod: "monthly",
+  defaultContingent: 8, // credits per billing period
+  defaultAutoRenewal: true,
+  defaultRenewalIndefinite: true,
+  defaultRenewalPeriod: 1, // months (if not indefinite)
+}
 
 // Default Opening Hours
 export const DEFAULT_OPENING_HOURS = [
@@ -329,8 +596,69 @@ export const DEFAULT_APPEARANCE_SETTINGS = {
 
 // Default Staff Members (for role assignment demo)
 export const DEFAULT_STAFF_MEMBERS = [
-  { id: 1, name: "John Doe", email: "john@studio.com", avatar: null },
-  { id: 2, name: "Jane Smith", email: "jane@studio.com", avatar: null },
-  { id: 3, name: "Mike Johnson", email: "mike@studio.com", avatar: null },
+  { id: 1, name: "John Doe", email: "john@studio.com", avatar: null, roleId: 1 },
+  { id: 2, name: "Jane Smith", email: "jane@studio.com", avatar: null, roleId: 2 },
+  { id: 3, name: "Mike Johnson", email: "mike@studio.com", avatar: null, roleId: 3 },
 ]
 
+// Default Introductory Materials
+export const DEFAULT_INTRODUCTORY_MATERIALS = [
+  {
+    id: 1,
+    name: "Welcome Guide",
+    description: "Introduction to our studio for new members",
+    pages: [
+      {
+        id: 1,
+        title: "Welcome",
+        content: "<h1>Welcome to Our Studio!</h1><p>We're excited to have you join us.</p>",
+        elements: []
+      }
+    ],
+    createdAt: "2024-01-01T00:00:00Z",
+  }
+]
+
+// ============================================
+// Helper Functions for Backend Integration
+// ============================================
+
+/**
+ * Generate a unique ID (for demo purposes, backend should use UUID/DB IDs)
+ */
+export const generateId = () => Date.now()
+
+/**
+ * Format currency based on locale and currency symbol
+ */
+export const formatCurrency = (amount, currency = "€", locale = "de-DE") => {
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency: currency === "€" ? "EUR" : currency === "$" ? "USD" : currency === "£" ? "GBP" : "EUR",
+  }).format(amount)
+}
+
+/**
+ * Calculate contract end date based on start date and duration
+ */
+export const calculateContractEndDate = (startDate, durationMonths) => {
+  const date = new Date(startDate)
+  date.setMonth(date.getMonth() + durationMonths)
+  return date.toISOString()
+}
+
+/**
+ * Check if a member has enough contingent for an appointment
+ */
+export const hasEnoughContingent = (memberContingent, appointmentContingentUsage) => {
+  if (memberContingent === 0) return true // Unlimited
+  return memberContingent >= appointmentContingentUsage
+}
+
+/**
+ * Deduct contingent from member's available credits
+ */
+export const deductContingent = (currentContingent, usage) => {
+  if (currentContingent === 0) return 0 // Unlimited stays unlimited
+  return Math.max(0, currentContingent - usage)
+}
