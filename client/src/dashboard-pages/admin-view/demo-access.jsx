@@ -1,14 +1,17 @@
 /* eslint-disable no-constant-binary-expression */
 /* eslint-disable no-unused-vars */
 import { useState, useEffect } from "react";
-import { IoIosArrowBack, IoIosSend, IoIosClock, IoIosBuild, IoIosCreate } from "react-icons/io";
+import { IoIosArrowBack, IoIosSend, IoIosClock, IoIosBuild, IoIosCreate, IoIosJournal } from "react-icons/io";
 import { MdPerson, MdEmail, MdBusiness, MdPhotoCamera } from "react-icons/md";
 import { RiShieldKeyholeLine } from "react-icons/ri";
+import { FaHistory } from "react-icons/fa";
 import toast, { Toaster } from "react-hot-toast";
 import LeadSelectionModal from "../../components/admin-dashboard-components/demo-access-components/LeadSelectionModal";
 import TemplateSelectionModal from "../../components/admin-dashboard-components/demo-access-components/TemplateSelectionModal";
 import DemoConfiguratorModal from "../../components/admin-dashboard-components/demo-access-components/DemoConfiguratorModal";
 import SendEmailModal from "../../components/admin-dashboard-components/demo-access-components/SendEmailModal";
+import CustomConfirmationModal from "../../components/admin-dashboard-components/demo-access-components/CustomConfirmationModal";
+import JournalModal from "../../components/admin-dashboard-components/demo-access-components/JournalModal";
 
 // Mock data for leads and templates
 const mockLeads = [
@@ -57,6 +60,14 @@ const mockTemplates = [
   }
 ];
 
+// Mock journal data
+const mockJournalData = [
+  { id: 1, action: "Demo Created", timestamp: "2024-01-20 10:30:00", user: "Admin", details: "Created demo for John Smith" },
+  { id: 2, action: "Email Sent", timestamp: "2024-01-20 10:35:00", user: "System", details: "Access email sent to john.smith@example.com" },
+  { id: 3, action: "Demo Accessed", timestamp: "2024-01-20 11:15:00", user: "John Smith", details: "User logged in for the first time" },
+  { id: 4, action: "Configuration Changed", timestamp: "2024-01-20 14:20:00", user: "Admin", details: "Changed demo duration from 7 to 14 days" },
+];
+
 export default function DemoCreationPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedLead, setSelectedLead] = useState(null);
@@ -74,7 +85,12 @@ export default function DemoCreationPage() {
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
+  const [isJournalModalOpen, setIsJournalModalOpen] = useState(false);
   const [editingDemo, setEditingDemo] = useState(null);
+  const [demoToResend, setDemoToResend] = useState(null);
+  const [journalData, setJournalData] = useState(mockJournalData);
+  const [selectedDemoForJournal, setSelectedDemoForJournal] = useState(null);
 
   // Initialize with empty demo config
   useEffect(() => {
@@ -96,7 +112,15 @@ export default function DemoCreationPage() {
       config: demoConfig,
       createdAt: new Date().toISOString(),
       status: 'active',
-      expiryDate: new Date(Date.now() + demoConfig.demoDuration * 24 * 60 * 60 * 1000).toISOString()
+      expiryDate: new Date(Date.now() + demoConfig.demoDuration * 24 * 60 * 60 * 1000).toISOString(),
+      journal: [
+        {
+          action: "Demo Created",
+          timestamp: new Date().toISOString(),
+          user: "Admin",
+          details: `Created demo for ${demoConfig.studioName}`
+        }
+      ]
     };
 
     setCreatedDemos(prev => [newDemo, ...prev]);
@@ -116,28 +140,96 @@ export default function DemoCreationPage() {
     toast.success("Demo created successfully!");
   };
 
-  const handleUpdateDemo = (updatedConfig) => {
-    setCreatedDemos(prev => 
-      prev.map(demo => 
-        demo.id === editingDemo.id 
-          ? { 
-              ...demo, 
-              config: updatedConfig,
-              expiryDate: new Date(Date.now() + updatedConfig.demoDuration * 24 * 60 * 60 * 1000).toISOString()
-            } 
-          : demo
-      )
-    );
+  const handleUpdateDemo = (updatedConfig, updatedTemplate) => {
+    const updatedDemos = createdDemos.map(demo => {
+      if (demo.id === editingDemo.id) {
+        const updatedExpiryDate = demo.status === 'active' 
+          ? new Date(Date.now() + updatedConfig.demoDuration * 24 * 60 * 60 * 1000).toISOString()
+          : demo.expiryDate;
+        
+        return {
+          ...demo,
+          template: updatedTemplate || demo.template,
+          config: updatedConfig,
+          expiryDate: updatedExpiryDate,
+          journal: [
+            ...demo.journal,
+            {
+              action: "Demo Updated",
+              timestamp: new Date().toISOString(),
+              user: "Admin",
+              details: `Updated configuration for ${updatedConfig.studioName}`
+            }
+          ]
+        };
+      }
+      return demo;
+    });
+    
+    setCreatedDemos(updatedDemos);
     setEditingDemo(null);
+    setIsConfigModalOpen(false);
+    toast.success("Demo updated successfully!");
+  };
+
+  const handleToggleDemoStatus = (demoId) => {
+    const updatedDemos = createdDemos.map(demo => {
+      if (demo.id === demoId) {
+        const newStatus = demo.status === 'active' ? 'inactive' : 'active';
+        
+        return {
+          ...demo,
+          status: newStatus,
+          // Remove expiry date when set to inactive
+          expiryDate: newStatus === 'inactive' ? null : demo.expiryDate,
+          journal: [
+            ...demo.journal,
+            {
+              action: `Demo ${newStatus === 'active' ? 'Activated' : 'Deactivated'}`,
+              timestamp: new Date().toISOString(),
+              user: "Admin",
+              details: `Demo status changed to ${newStatus}`
+            }
+          ]
+        };
+      }
+      return demo;
+    });
+    
+    setCreatedDemos(updatedDemos);
+    toast.success(`Demo status updated to ${updatedDemos.find(d => d.id === demoId).status}`);
   };
 
   const handleSendEmail = (demoId, shouldSend) => {
     if (shouldSend) {
+      // Add journal entry
+      const demo = createdDemos.find(d => d.id === demoId);
+      if (demo) {
+        const updatedDemos = createdDemos.map(d => {
+          if (d.id === demoId) {
+            return {
+              ...d,
+              journal: [
+                ...d.journal,
+                {
+                  action: "Email Sent",
+                  timestamp: new Date().toISOString(),
+                  user: "System",
+                  details: `Access email sent to ${d.config.email}`
+                }
+              ]
+            };
+          }
+          return d;
+        });
+        setCreatedDemos(updatedDemos);
+      }
       toast.success("Demo access email sent successfully!");
     } else {
       toast.success("Demo created without email notification");
     }
     setIsEmailModalOpen(false);
+    setIsConfirmationModalOpen(false);
   };
 
   const handleSkipLead = () => {
@@ -149,6 +241,23 @@ export default function DemoCreationPage() {
     });
     setIsLeadModalOpen(false);
     setCurrentStep(2);
+  };
+
+  const handleResendEmail = (demoId) => {
+    setDemoToResend(demoId);
+    setIsConfirmationModalOpen(true);
+  };
+
+  const handleConfirmResend = () => {
+    if (demoToResend) {
+      handleSendEmail(demoToResend, true);
+      setDemoToResend(null);
+    }
+  };
+
+  const handleViewJournal = (demo) => {
+    setSelectedDemoForJournal(demo);
+    setIsJournalModalOpen(true);
   };
 
   const canProceedToStep2 = selectedLead !== null;
@@ -171,7 +280,6 @@ export default function DemoCreationPage() {
       {/* Header */}
       <div className="mb-6 md:mb-8">
         <div className="flex items-center gap-3 md:gap-4 mb-2">
-          
           <h1 className="text-xl md:text-2xl font-bold oxanium_font">Demo Access</h1>
         </div>
       </div>
@@ -364,7 +472,7 @@ export default function DemoCreationPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Contact Email
+                  Access Email
                 </label>
                 <div className="relative">
                   <input
@@ -379,19 +487,6 @@ export default function DemoCreationPage() {
               </div>
             </div>
 
-            <div className="flex items-center mb-4 md:mb-6">
-              <input
-                type="checkbox"
-                id="sendEmail"
-                checked={demoConfig.sendEmail}
-                onChange={(e) => setDemoConfig({...demoConfig, sendEmail: e.target.checked})}
-                className="mr-2 md:mr-3 w-4 h-4 md:w-5 md:h-5"
-              />
-              <label htmlFor="sendEmail" className="text-gray-300 text-sm md:text-base">
-                Send setup email to user for password creation
-              </label>
-            </div>
-
             <div className="flex flex-col-reverse md:flex-row justify-between gap-3 md:gap-0">
               <button
                 onClick={() => setCurrentStep(2)}
@@ -402,7 +497,7 @@ export default function DemoCreationPage() {
               <button
                 onClick={handleCreateDemo}
                 disabled={!canCreateDemo}
-                className="bg-orange-500  text-white px-6 py-2 md:px-8 md:py-3 rounded-lg font-medium hover:bg-green-700 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed flex items-center justify-center gap-1 md:gap-2 text-sm  w-full md:w-auto"
+                className="bg-orange-500 text-white px-6 py-2 md:px-8 md:py-3 rounded-lg font-medium hover:bg-orange-600 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed flex items-center justify-center gap-1 md:gap-2 text-sm  w-full md:w-auto"
               >
                 Create Demo
               </button>
@@ -420,9 +515,18 @@ export default function DemoCreationPage() {
               <div key={demo.id} className="bg-[#2A2A2A] rounded-xl p-4 md:p-6 border border-gray-700">
                 <div className="flex justify-between items-start mb-3 md:mb-4">
                   <h3 className="font-semibold text-base md:text-lg truncate mr-2">{demo.config.studioName}</h3>
-                  <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-full whitespace-nowrap">
-                    {demo.status}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleToggleDemoStatus(demo.id)}
+                      className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${
+                        demo.status === 'active' 
+                          ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30' 
+                          : 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
+                      }`}
+                    >
+                      {demo.status}
+                    </button>
+                  </div>
                 </div>
                 
                 <div className="space-y-1 md:space-y-2 text-xs md:text-sm text-gray-400 mb-3 md:mb-4">
@@ -430,10 +534,21 @@ export default function DemoCreationPage() {
                   <p className="truncate">Email: {demo.config.email}</p>
                   <p className="truncate">Template: {demo.template.name}</p>
                   <p>Duration: {demo.config.demoDuration} days</p>
-                  <p className="text-xs">Expires: {new Date(demo.expiryDate).toLocaleDateString()}</p>
+                  {demo.status === 'active' && demo.expiryDate ? (
+                    <p className="text-xs">Expires: {new Date(demo.expiryDate).toLocaleDateString()}</p>
+                  ) : (
+                    <p className="text-xs text-red-400">Inactive - No expiry date</p>
+                  )}
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => handleViewJournal(demo)}
+                    className="flex-1 bg-purple-600 text-white py-1.5 md:py-2 px-2 md:px-3 rounded-lg text-xs md:text-sm hover:bg-purple-700 transition-colors flex items-center justify-center gap-1"
+                  >
+                    {/* <IoIosJournal size={12} className="md:w-3.5 md:h-3.5" /> */}
+                    Journal
+                  </button>
                   <button
                     onClick={() => {
                       setEditingDemo(demo);
@@ -441,14 +556,14 @@ export default function DemoCreationPage() {
                     }}
                     className="flex-1 bg-blue-600 text-white py-1.5 md:py-2 px-2 md:px-3 rounded-lg text-xs md:text-sm hover:bg-blue-700 transition-colors flex items-center justify-center gap-1"
                   >
-                    <IoIosBuild size={12} className="md:w-3.5 md:h-3.5" />
+                    {/* <IoIosBuild size={12} className="md:w-3.5 md:h-3.5" /> */}
                     Edit
                   </button>
                   <button
-                    onClick={() => handleSendEmail(demo.id, true)}
-                    className="flex-1 bg-green-600 text-white py-1.5 md:py-2 px-2 md:px-3 rounded-lg text-xs md:text-sm hover:bg-green-700 transition-colors flex items-center justify-center gap-1"
+                    onClick={() => handleResendEmail(demo.id)}
+                    className="flex-1 bg-orange-600 text-white py-1.5 md:py-2 px-2 md:px-3 rounded-lg text-xs md:text-sm hover:bg-orange-700 transition-colors flex items-center justify-center gap-1"
                   >
-                    <IoIosSend size={12} className="md:w-3.5 md:h-3.5" />
+                    {/* <IoIosSend size={12} className="md:w-3.5 md:h-3.5" /> */}
                     Resend Email
                   </button>
                 </div>
@@ -483,6 +598,7 @@ export default function DemoCreationPage() {
           }}
           demo={editingDemo}
           onUpdate={handleUpdateDemo}
+          availableTemplates={mockTemplates}
         />
       )}
 
@@ -494,6 +610,28 @@ export default function DemoCreationPage() {
           onSend={(shouldSend) => handleSendEmail(createdDemos[0].id, shouldSend)}
         />
       )}
+
+      <CustomConfirmationModal
+        isOpen={isConfirmationModalOpen}
+        onClose={() => {
+          setIsConfirmationModalOpen(false);
+          setDemoToResend(null);
+        }}
+        onConfirm={handleConfirmResend}
+        title="Resend Email"
+        message="Are you sure you want to send the email again?"
+        confirmText="Yes, Send Email"
+        confirmColor="orange"
+      />
+
+      <JournalModal
+        isOpen={isJournalModalOpen}
+        onClose={() => {
+          setIsJournalModalOpen(false);
+          setSelectedDemoForJournal(null);
+        }}
+        demo={selectedDemoForJournal}
+      />
     </div>
   );
 }

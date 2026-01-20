@@ -47,7 +47,7 @@ const SendEmailModal = ({ isOpen, onClose, demo, onSend }) => {
           <div className="space-y-3">
             <button
               onClick={handleSend}
-              className="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2 font-medium"
+              className="w-full bg-orange-500 text-white py-3 px-4 rounded-lg  transition-colors flex items-center justify-center gap-2 font-medium"
             >
               <IoIosSend />
               Yes, Send Email Now
@@ -59,13 +59,7 @@ const SendEmailModal = ({ isOpen, onClose, demo, onSend }) => {
             >
               Skip for Now
             </button>
-            
-            <button
-              onClick={onClose}
-              className="w-full bg-transparent text-gray-400 py-2 px-4 rounded-lg hover:text-white transition-colors text-sm"
-            >
-              I'll do this later
-            </button>
+
           </div>
         </div>
       </div>
