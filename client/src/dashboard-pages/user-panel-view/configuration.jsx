@@ -861,7 +861,7 @@ const navigationItems = [
 
 // Section Header Component
 const SectionHeader = ({ title, description, action }) => (
-  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+  <div className="hidden md:flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
     <div>
       <h2 className="text-lg sm:text-xl font-semibold text-white">{title}</h2>
       {description && <p className="text-xs sm:text-sm text-gray-400 mt-1">{description}</p>}
@@ -1620,6 +1620,7 @@ const ConfigurationPage = () => {
   const [creditorId, setCreditorId] = useState("DE98ZZZ09999999999")
   const [creditorName, setCreditorName] = useState("FitnessPro GmbH")
   const [iban, setIban] = useState("DE89 3704 0044 0532 0130 00")
+  const [bic, setBic] = useState("COBADEFFXXX")
 
   // Appearance
   const [appearance, setAppearance] = useState({
@@ -1807,7 +1808,6 @@ const ConfigurationPage = () => {
       if (!response.ok) throw new Error("Failed to fetch holidays")
       const data = await response.json()
       setPublicHolidays(data.map(h => ({ date: h.date, name: h.name, countryCode: h.countryCode })))
-      notification.success({ message: "Holidays Loaded", description: `Loaded ${data.length} public holidays` })
     } catch (error) {
       notification.error({ message: "Error", description: "Could not load public holidays" })
     } finally {
@@ -2289,36 +2289,44 @@ const ConfigurationPage = () => {
             
             {/* Profile Picture Upload */}
             <SettingsCard>
-              <div className="flex flex-col items-center gap-4">
-                <div className="relative">
-                  <img
-                    src={profilePreviewUrl || DefaultAvatar}
-                    alt="Profile Preview"
-                    className="w-24 h-24 rounded-xl object-cover"
-                  />
+              <div className="flex flex-col sm:flex-row items-center gap-6">
+                <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden bg-[#141414] flex-shrink-0">
+                  <img src={profilePreviewUrl || DefaultAvatar} alt="Profile Preview" className="w-full h-full object-cover" />
                 </div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  ref={profileFileInputRef}
-                  onChange={handleProfileImageChange}
-                  className="hidden"
-                />
-                <button
-                  onClick={() => profileFileInputRef.current?.click()}
-                  className="px-6 py-2 bg-[#3F74FF] text-white text-sm rounded-xl hover:bg-blue-600 transition-colors"
-                >
-                  Upload Picture
-                </button>
+                <div className="flex-1 text-center sm:text-left">
+                  <h3 className="text-white font-medium mb-2">Profile Picture</h3>
+                  <p className="text-xs sm:text-sm text-gray-400 mb-4">Upload your profile picture</p>
+                  <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
+                    <label className="px-4 py-2 bg-[#3F74FF] text-white text-sm rounded-xl hover:bg-blue-600 cursor-pointer transition-colors">
+                      <Upload className="w-4 h-4 inline-block mr-2" />
+                      Upload Picture
+                      <input
+                        type="file"
+                        accept="image/*"
+                        ref={profileFileInputRef}
+                        onChange={handleProfileImageChange}
+                        className="hidden"
+                      />
+                    </label>
+                    {profilePreviewUrl && (
+                      <button
+                        onClick={() => { setProfileData(prev => ({ ...prev, profilePicture: null })); setProfilePreviewUrl(null) }}
+                        className="px-4 py-2 text-red-400 text-sm hover:bg-red-500/10 rounded-xl transition-colors"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
             </SettingsCard>
 
             {/* Personal Information */}
             <SettingsCard>
               <h3 className="text-white font-medium mb-4">Personal Information</h3>
-              <div className="space-y-4">
+              <div className="max-w-2xl space-y-4">
                 {/* First + Last Name */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <InputField
                     label="First Name"
                     value={profileData.firstName}
@@ -2333,19 +2341,17 @@ const ConfigurationPage = () => {
                   />
                 </div>
 
-                {/* Birthday */}
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-gray-300">Birthday</label>
-                  <input
-                    type="date"
-                    value={profileData.birthday}
-                    onChange={(e) => handleProfileInputChange("birthday", e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl bg-[#141414] border border-[#333333] outline-none text-sm text-white focus:border-[#3F74FF]"
-                  />
-                </div>
-
-                {/* Email + Phone */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Birthday + Email */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-gray-300">Birthday</label>
+                    <input
+                      type="date"
+                      value={profileData.birthday}
+                      onChange={(e) => handleProfileInputChange("birthday", e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-xl bg-[#141414] border border-[#333333] outline-none text-sm text-white focus:border-[#3F74FF]"
+                    />
+                  </div>
                   <InputField
                     label="Email"
                     value={profileData.email}
@@ -2353,55 +2359,59 @@ const ConfigurationPage = () => {
                     placeholder="Enter email"
                     type="email"
                   />
+                </div>
+
+                {/* Phone + Mobile */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <InputField
                     label="Telephone Number"
                     value={profileData.phone}
                     onChange={(v) => handleProfileInputChange("phone", v)}
                     placeholder="Enter telephone number"
                   />
+                  <InputField
+                    label="Mobile Number"
+                    value={profileData.mobile}
+                    onChange={(v) => handleProfileInputChange("mobile", v)}
+                    placeholder="Enter mobile number"
+                  />
                 </div>
 
-                {/* Mobile Number */}
-                <InputField
-                  label="Mobile Number"
-                  value={profileData.mobile}
-                  onChange={(v) => handleProfileInputChange("mobile", v)}
-                  placeholder="Enter mobile number"
-                />
-
-                {/* Street */}
-                <InputField
-                  label="Street"
-                  value={profileData.street}
-                  onChange={(v) => handleProfileInputChange("street", v)}
-                  placeholder="Enter street address"
-                />
-
-                {/* ZIP + City */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Street + ZIP */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="sm:col-span-2">
+                    <InputField
+                      label="Street"
+                      value={profileData.street}
+                      onChange={(v) => handleProfileInputChange("street", v)}
+                      placeholder="Enter street address"
+                    />
+                  </div>
                   <InputField
                     label="ZIP Code"
                     value={profileData.zipCode}
                     onChange={(v) => handleProfileInputChange("zipCode", v)}
-                    placeholder="Enter ZIP code"
+                    placeholder="ZIP"
                   />
+                </div>
+
+                {/* City + Country */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <InputField
                     label="City"
                     value={profileData.city}
                     onChange={(v) => handleProfileInputChange("city", v)}
                     placeholder="Enter city"
                   />
+                  <SelectField
+                    label="Country"
+                    value={profileData.country}
+                    onChange={(v) => handleProfileInputChange("country", v)}
+                    options={countries.map(c => ({ value: c.code, label: c.name }))}
+                    placeholder="Select country"
+                    searchable
+                  />
                 </div>
-
-                {/* Country */}
-                <SelectField
-                  label="Country"
-                  value={profileData.country}
-                  onChange={(v) => handleProfileInputChange("country", v)}
-                  options={countries.map(c => ({ value: c.code, label: c.name }))}
-                  placeholder="Select country"
-                  searchable
-                />
               </div>
             </SettingsCard>
           </div>
@@ -2413,7 +2423,7 @@ const ConfigurationPage = () => {
             <SectionHeader title="Access Data" description="Manage your login credentials" />
             
             <SettingsCard>
-              <div className="space-y-4">
+              <div className="max-w-md space-y-4">
                 <InputField
                   label="Username"
                   value={profileData.username}
@@ -2444,7 +2454,7 @@ const ConfigurationPage = () => {
             </SettingsCard>
 
             <SettingsCard>
-              <div className="space-y-4">
+              <div className="max-w-md space-y-4">
                 <h3 className="text-white font-medium">Security</h3>
                 <p className="text-sm text-gray-400">
                   For your security, we recommend changing your password regularly and using a strong, unique password.
@@ -5132,6 +5142,14 @@ const ConfigurationPage = () => {
                   placeholder="e.g., DE89 3704 0044 0532 0130 00"
                   maxLength={34}
                   helpText="International Bank Account Number"
+                />
+                <InputField
+                  label="BIC"
+                  value={bic}
+                  onChange={setBic}
+                  placeholder="e.g., COBADEFFXXX"
+                  maxLength={11}
+                  helpText="Bank Identifier Code"
                 />
               </div>
             </SettingsCard>

@@ -28,6 +28,7 @@ import {
   StickyNote,
   Edit,
   Pencil,
+  ClipboardList,
 } from "lucide-react"
 import DefaultAvatar1 from "../../../public/gray-avatar-fotor-20250912192528.png"
 import toast, { Toaster } from "react-hot-toast"
@@ -44,7 +45,9 @@ import ContingentModalMain from "../../components/user-panel-components/members-
 import ViewDetailsModal from "../../components/user-panel-components/members-components/ViewDetailsModal"
 import { MemberSpecialNoteModal } from '../../components/shared/shared-special-note-modal'
 import AppointmentModalMain from "../../components/user-panel-components/members-components/AppointmentModal"
-import { MemberDocumentModal } from "../../components/user-panel-components/members-components/MemberDocumentModal"
+import DocumentManagementModal from "../../components/shared/DocumentManagementModal"
+import AssessmentFormModal from "../../components/shared/medical-history-form-modal"
+import AssessmentSelectionModal from "../../components/shared/medical-history-selection-modal"
 import { appointmentsMainData, appointmentTypeMainData, availableMembersLeadsMain, freeAppointmentsMainData, memberHistoryMainData, memberRelationsMainData, membersData, relationOptionsMain } from "../../utils/user-panel-states/members-states"
 import AddAppointmentModal from "../../components/user-panel-components/members-components/AddAppointmentModal"
 import EditAppointmentModalMain from "../../components/user-panel-components/members-components/EditAppointmentModal"
@@ -213,10 +216,122 @@ export default function Members() {
   const [showDocumentModal, setShowDocumentModal] = useState(false)
   const [selectedMemberForDocuments, setSelectedMemberForDocuments] = useState(null)
 
+  // Assessment states (same as leads)
+  const [isAssessmentSelectionModalOpen, setIsAssessmentSelectionModalOpen] = useState(false)
+  const [isAssessmentFormModalOpen, setIsAssessmentFormModalOpen] = useState(false)
+  const [selectedAssessment, setSelectedAssessment] = useState(null)
+  const [assessmentFromDocumentManagement, setAssessmentFromDocumentManagement] = useState(false)
+  const [editingAssessmentDocument, setEditingAssessmentDocument] = useState(null)
+  const [isEditingAssessment, setIsEditingAssessment] = useState(false)
+  const [isViewingAssessment, setIsViewingAssessment] = useState(false)
+
 
   const handleDocumentClick = (member) => {
     setSelectedMemberForDocuments(member)
     setShowDocumentModal(true)
+  }
+
+  // Handler for document updates from DocumentManagementModal
+  const handleDocumentsUpdate = (memberId, documents) => {
+    setMembers(prevMembers => 
+      prevMembers.map(member => 
+        member.id === memberId ? { ...member, documents } : member
+      )
+    )
+  }
+
+  // Assessment handlers (same as leads)
+  const handleCreateAssessmentClick = (member, fromDocManagement = false) => {
+    setSelectedMemberMain(member)
+    setAssessmentFromDocumentManagement(fromDocManagement)
+    
+    if (fromDocManagement) {
+      setShowDocumentModal(false)
+    }
+    
+    setIsAssessmentSelectionModalOpen(true)
+  }
+
+  const handleAssessmentSelect = (assessment) => {
+    setSelectedAssessment(assessment)
+    setIsAssessmentSelectionModalOpen(false)
+    setIsAssessmentFormModalOpen(true)
+  }
+
+  const handleAssessmentComplete = (documentData) => {
+    setMembers(prevMembers => 
+      prevMembers.map(member => {
+        if (member.id === selectedMemberMain.id) {
+          const existingDocuments = member.documents || []
+          
+          if (documentData.isEdit) {
+            return {
+              ...member,
+              documents: existingDocuments.map(doc => 
+                doc.id === documentData.id ? documentData : doc
+              ),
+              hasAssessment: true
+            }
+          } else {
+            return {
+              ...member,
+              documents: [...existingDocuments, documentData],
+              hasAssessment: true
+            }
+          }
+        }
+        return member
+      })
+    )
+    
+    setIsAssessmentFormModalOpen(false)
+    setSelectedAssessment(null)
+    setIsEditingAssessment(false)
+    setEditingAssessmentDocument(null)
+    setIsViewingAssessment(false)
+    
+    if (assessmentFromDocumentManagement) {
+      if (selectedMemberForDocuments && selectedMemberForDocuments.id === selectedMemberMain.id) {
+        const existingDocuments = selectedMemberForDocuments.documents || []
+        let updatedDocuments
+        if (documentData.isEdit) {
+          updatedDocuments = existingDocuments.map(doc => 
+            doc.id === documentData.id ? documentData : doc
+          )
+        } else {
+          updatedDocuments = [...existingDocuments, documentData]
+        }
+        setSelectedMemberForDocuments({
+          ...selectedMemberForDocuments,
+          documents: updatedDocuments,
+          hasAssessment: true
+        })
+      }
+      setShowDocumentModal(true)
+      setAssessmentFromDocumentManagement(false)
+    }
+    
+    toast.success("Medical history saved successfully")
+  }
+
+  const handleEditAssessmentClick = (member, doc) => {
+    setSelectedMemberMain(member)
+    setIsEditingAssessment(true)
+    setEditingAssessmentDocument(doc)
+    setAssessmentFromDocumentManagement(true)
+    setSelectedAssessment({ id: doc.templateId, title: doc.name })
+    setShowDocumentModal(false)
+    setIsAssessmentFormModalOpen(true)
+  }
+
+  const handleViewAssessmentClick = (member, doc) => {
+    setSelectedMemberMain(member)
+    setEditingAssessmentDocument(doc)
+    setIsViewingAssessment(true)
+    setAssessmentFromDocumentManagement(true)
+    setSelectedAssessment({ id: doc.templateId, title: doc.name })
+    setShowDocumentModal(false)
+    setIsAssessmentFormModalOpen(true)
   }
 
   //  
@@ -2383,14 +2498,59 @@ export default function Members() {
           onDelete={handleDeleteAppointmentMain}
         />
       )}
-      <MemberDocumentModal
-        member={selectedMemberForDocuments}
+      <DocumentManagementModal
+        entity={selectedMemberForDocuments}
+        entityType="member"
         isOpen={showDocumentModal}
         onClose={() => {
           setShowDocumentModal(false)
           setSelectedMemberForDocuments(null)
         }}
+        onCreateAssessment={() => handleCreateAssessmentClick(selectedMemberForDocuments, true)}
+        onEditAssessment={(doc) => handleEditAssessmentClick(selectedMemberForDocuments, doc)}
+        onViewAssessment={(doc) => handleViewAssessmentClick(selectedMemberForDocuments, doc)}
+        onDocumentsUpdate={handleDocumentsUpdate}
+        sections={[
+          { id: "general", label: "General", icon: File },
+          { id: "medicalHistory", label: "Medical History", icon: ClipboardList },
+        ]}
       />
+
+      <AssessmentSelectionModal
+        isOpen={isAssessmentSelectionModalOpen}
+        onClose={() => {
+          setIsAssessmentSelectionModalOpen(false)
+          if (assessmentFromDocumentManagement) {
+            setShowDocumentModal(true)
+          }
+        }}
+        onSelectAssessment={handleAssessmentSelect}
+        selectedLead={selectedMemberMain}
+        fromDocumentManagement={assessmentFromDocumentManagement}
+      />
+
+      <AssessmentFormModal
+        isOpen={isAssessmentFormModalOpen}
+        onClose={() => {
+          setIsAssessmentFormModalOpen(false)
+          setSelectedAssessment(null)
+          setIsEditingAssessment(false)
+          setEditingAssessmentDocument(null)
+          setIsViewingAssessment(false)
+          if (assessmentFromDocumentManagement) {
+            setShowDocumentModal(true)
+            setAssessmentFromDocumentManagement(false)
+          }
+        }}
+        assessment={selectedAssessment}
+        selectedLead={selectedMemberMain}
+        onComplete={handleAssessmentComplete}
+        fromDocumentManagement={assessmentFromDocumentManagement}
+        existingDocument={editingAssessmentDocument}
+        isEditMode={isEditingAssessment}
+        isViewMode={isViewingAssessment}
+      />
+
       <ContingentModalMain
         showContingentModalMain={showContingentModalMain}
         setShowContingentModalMain={setShowContingentModalMain}
