@@ -4,7 +4,29 @@ import { Trash2, X, Search, Plus, ChevronDown, ChevronUp, Pencil, Archive, Archi
 import { useEffect, useState, useRef } from "react"
 import toast from "react-hot-toast"
 import useCountries from "../../../hooks/useCountries"
-import DefaultAvatar from "../../../../public/gray-avatar-fotor-20250912192528.png"
+
+// Initials Avatar Component - Orange background with initials
+const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) => {
+  const getInitials = () => {
+    const firstInitial = firstName?.charAt(0)?.toUpperCase() || ""
+    const lastInitial = lastName?.charAt(0)?.toUpperCase() || ""
+    return `${firstInitial}${lastInitial}` || "?"
+  }
+
+  const sizeClasses = {
+    sm: "w-9 h-9 text-sm",
+    md: "w-12 h-12 text-lg",
+    lg: "w-24 h-24 text-3xl",
+  }
+
+  return (
+    <div 
+      className={`bg-orange-500 rounded-xl flex items-center justify-center text-white font-semibold ${sizeClasses[size]} ${className}`}
+    >
+      {getInitials()}
+    </div>
+  )
+}
 
 // Note Status Options
 const NOTE_STATUSES = [
@@ -435,11 +457,19 @@ const EditMemberModalMain = ({
                 {/* Avatar Upload */}
                 <div className="flex flex-col items-start">
                   <div className="w-24 h-24 rounded-xl overflow-hidden mb-4">
-                    <img
-                      src={editFormMain.image || DefaultAvatar}
-                      alt="Profile"
-                      className="w-full h-full object-cover"
-                    />
+                    {editFormMain.image ? (
+                      <img
+                        src={editFormMain.image}
+                        alt="Profile"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <InitialsAvatar 
+                        firstName={editFormMain.firstName} 
+                        lastName={editFormMain.lastName} 
+                        size="lg"
+                      />
+                    )}
                   </div>
                   <input type="file" id="avatar" className="hidden" accept="image/*" onChange={handleImageUpload} />
                   <label

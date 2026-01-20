@@ -2,7 +2,7 @@
 /* eslint-disable react/prop-types */
 import { useState, useRef, useEffect } from "react"
 import { X, FolderPlus, Search, Send, Plus, Edit, Trash2 } from "lucide-react"
-import { WysiwygEditor } from "../configuration-components/WysiwygEditor"
+import { WysiwygEditor } from "../../shared/WysiwygEditor"
 import DeleteConfirmationModal from "./broadcast-modal-components/DeleteConfirmationModal"
 import MessageModal from "./broadcast-modal-components/MessageModal"
 import FolderModal from "./broadcast-modal-components/FolderModal"

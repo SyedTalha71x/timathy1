@@ -2,7 +2,24 @@ import { X, Smile, Send, MoreVertical } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
-import DefaultAvatar from '../../../../public/gray-avatar-fotor-20250912192528.png'
+
+// Initials Avatar Component
+const InitialsAvatar = ({ firstName, lastName, size = 40, className = "" }) => {
+  const getInitials = () => {
+    const firstInitial = firstName?.charAt(0)?.toUpperCase() || ""
+    const lastInitial = lastName?.charAt(0)?.toUpperCase() || ""
+    return `${firstInitial}${lastInitial}` || "?"
+  }
+
+  return (
+    <div 
+      className={`bg-orange-500 rounded-lg flex items-center justify-center text-white font-semibold ${className}`}
+      style={{ width: size, height: size, fontSize: size * 0.4 }}
+    >
+      {getInitials()}
+    </div>
+  )
+}
 
 /* eslint-disable react/prop-types */
 const ChatPopup = ({ member, isOpen, onClose, onOpenFullMessenger }) => {
@@ -34,7 +51,6 @@ const ChatPopup = ({ member, isOpen, onClose, onOpenFullMessenger }) => {
     { name: 'angry', emoji: '😠' }
   ];
 
-  // Close emoji picker when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target)) {
@@ -70,7 +86,6 @@ const ChatPopup = ({ member, isOpen, onClose, onOpenFullMessenger }) => {
       setMessage('');
       setShowEmojiPicker(false);
       
-      // Reset textarea height
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
       }
@@ -141,13 +156,21 @@ const ChatPopup = ({ member, isOpen, onClose, onOpenFullMessenger }) => {
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-700">
           <div className="flex items-center gap-3">
-            <img
-              src={member.image || DefaultAvatar}
-              width={40}
-              height={40}
-              className="rounded-lg"
-              alt={`${member.firstName} ${member.lastName}`}
-            />
+            {member.image ? (
+              <img
+                src={member.image}
+                width={40}
+                height={40}
+                className="rounded-lg"
+                alt={`${member.firstName} ${member.lastName}`}
+              />
+            ) : (
+              <InitialsAvatar 
+                firstName={member.firstName} 
+                lastName={member.lastName} 
+                size={40}
+              />
+            )}
             <div>
               <h3 className="text-white font-semibold">
                 {member.firstName} {member.lastName}
@@ -182,14 +205,13 @@ const ChatPopup = ({ member, isOpen, onClose, onOpenFullMessenger }) => {
               <div
                   className={`rounded-xl p-3 text-sm relative ${
                     msg.sender === 'user' 
-                      ? "bg-blue-500 text-white rounded-br-none"  // Changed from #005c4b to blue-500
-                      : "bg-black text-white rounded-bl-none"  // Changed from #202c33 to gray-200 and text to black
+                      ? "bg-blue-500 text-white rounded-br-none"
+                      : "bg-black text-white rounded-bl-none"
                   }`}
                 >
                   <div className="flex items-start gap-2">
                     <p style={{ whiteSpace: 'pre-wrap' }} className="flex-1">{msg.text}</p>
                     
-                    {/* Message menu button */}
                     <button
                       onClick={() => setActiveMessageMenu(activeMessageMenu === msg.id ? null : msg.id)}
                       className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-white/10 rounded"
@@ -198,7 +220,6 @@ const ChatPopup = ({ member, isOpen, onClose, onOpenFullMessenger }) => {
                     </button>
                   </div>
 
-                  {/* Message menu */}
                   {activeMessageMenu === msg.id && (
                     <div 
                       ref={messageMenuRef}
@@ -213,7 +234,6 @@ const ChatPopup = ({ member, isOpen, onClose, onOpenFullMessenger }) => {
                     </div>
                   )}
                   
-                  {/* Reaction picker - positioned properly */}
                   {showReactionPicker === msg.id && (
                     <div 
                       className={`absolute ${msg.sender === 'user' ? 'left-0 -translate-x-40' : 'right-0 translate-x-4'} top-[-10px] bg-gray-800 rounded-full shadow-lg p-2 flex gap-1 z-30 border border-gray-600`}
@@ -230,7 +250,6 @@ const ChatPopup = ({ member, isOpen, onClose, onOpenFullMessenger }) => {
                     </div>
                   )}
                   
-                  {/* Display reactions */}
                   {messageReactions[msg.id] && (
                     <div className={`flex gap-1 mt-2 flex-wrap ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                       {Object.entries(messageReactions[msg.id]).map(([reactionName, count]) => {
@@ -265,7 +284,6 @@ const ChatPopup = ({ member, isOpen, onClose, onOpenFullMessenger }) => {
         {/* Input */}
         <div className="p-4 border-t border-gray-800 flex-shrink-0 relative">
           <div className="flex items-end gap-2 bg-black rounded-lg p-2">
-            {/* Emoji button */}
             <button
               className="p-2 hover:bg-gray-700 rounded-full flex items-center justify-center transition-colors"
               aria-label="Add emoji"
@@ -274,7 +292,6 @@ const ChatPopup = ({ member, isOpen, onClose, onOpenFullMessenger }) => {
               <Smile className="w-5 h-5 text-gray-300" />
             </button>
 
-            {/* Textarea */}
             <textarea
               ref={textareaRef}
               placeholder="Type your message..."
@@ -282,7 +299,6 @@ const ChatPopup = ({ member, isOpen, onClose, onOpenFullMessenger }) => {
               rows={1}
               value={message}
               onInput={(e) => {
-                // auto-grow textarea
                 e.target.style.height = "auto";
                 e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
               }}
@@ -290,18 +306,16 @@ const ChatPopup = ({ member, isOpen, onClose, onOpenFullMessenger }) => {
               onChange={(e) => setMessage(e.target.value)}
             />
 
-            {/* Send button */}
             <button
               className="p-2 rounded-full flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               aria-label="Send message"
               onClick={handleSendMessage}
               disabled={!message.trim()}
             >
-              <Send className="w-5 h-5 text-white" />  {/* White icon, no background */}
+              <Send className="w-5 h-5 text-white" />
             </button>
           </div>
 
-          {/* Emoji Picker */}
           {showEmojiPicker && (
             <div 
               ref={emojiPickerRef}

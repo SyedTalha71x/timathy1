@@ -4,7 +4,7 @@
 /* eslint-disable react/prop-types */
 import React, { useState, useEffect, useRef } from "react";
 import { Mail, Search, Send, X, Paperclip, Type, User, Building, Check, AtSign, Calendar, Hash, Eye, Signature, UserCircle, IdCard, Mail as MailIcon, CalendarDays, Building as BuildingIcon } from "lucide-react";
-import { WysiwygEditor } from "../configuration-components/WysiwygEditor";
+import { WysiwygEditor } from "../../shared/WysiwygEditor";
 
 const EmailModal = ({
   show,

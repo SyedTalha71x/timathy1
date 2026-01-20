@@ -37,7 +37,7 @@ import AppointmentModalMain from "../../components/user-panel-components/members
 import { MemberDocumentModal } from "../../components/user-panel-components/members-components/MemberDocumentModal"
 import AddAppointmentModal from "../../components/user-panel-components/members-components/AddAppointmentModal"
 import EditAppointmentModalMain from "../../components/user-panel-components/members-components/EditAppointmentModal"
-import ChatPopup from "../../components/user-panel-components/members-components/ChatPopup"
+import ChatPopup from "../../components/shared/ChatPopup"
 import TrainingPlansModalMain from "../../components/user-panel-components/members-components/TrainingPlanModal"
 
 // Importing data states

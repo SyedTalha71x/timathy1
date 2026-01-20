@@ -29,7 +29,7 @@ import ConfirmationModal from "../../components/admin-dashboard-components/myare
 import Sidebar from "../../components/admin-dashboard-components/central-sidebar"
 import BroadcastModal from "../../components/admin-dashboard-components/email-components/BroadcastModal"
 import SendEmailModal from "../../components/admin-dashboard-components/email-components/SendEmail"
-import { WysiwygEditor } from "../../components/user-panel-components/configuration-components/WysiwygEditor"
+import { WysiwygEditor } from "../../components/shared/WysiwygEditor"
 
 const emailListNew = {
   inbox: [

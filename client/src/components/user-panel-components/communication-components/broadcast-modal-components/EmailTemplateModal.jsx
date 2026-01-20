@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useState, useEffect } from "react"
 import { X } from "lucide-react"
-import { WysiwygEditor } from "../configuration-components/WysiwygEditor"
+import { WysiwygEditor } from "../../shared/WysiwygEditor"
 
 const EmailTemplateModal = ({
   isOpen,

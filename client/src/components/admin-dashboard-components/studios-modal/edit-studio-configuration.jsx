@@ -60,7 +60,7 @@ import { QRCode, Typography } from "antd"
 import { QrcodeOutlined, ImportOutlined } from "@ant-design/icons"
 
 import ContractBuilder from "../../../components/user-panel-components/configuration-components/ContractBuilder"
-import { WysiwygEditor } from "../../../components/user-panel-components/configuration-components/WysiwygEditor"
+import { WysiwygEditor } from "../../../components/shared/WysiwygEditor"
 import { PermissionModal } from "./permission-modal"
 
 const { Title } = Typography

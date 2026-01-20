@@ -2,7 +2,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { Mail, Search, Send, X, Type, Building, Users, Plus } from "lucide-react"
-import { WysiwygEditor } from "../../user-panel-components/configuration-components/WysiwygEditor"
+import { WysiwygEditor } from "../../shared/WysiwygEditor"
 import { useState, useRef, useEffect } from "react"
 
 const SendEmailModal = ({

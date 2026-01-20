@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useState, useEffect } from "react"
 import { X, Type, Hash, User } from "lucide-react"
-import { WysiwygEditor } from "../../user-panel-components/configuration-components/WysiwygEditor"
+import { WysiwygEditor } from "../../shared/WysiwygEditor"
 
 const MessageModal = ({ 
   isOpen, 

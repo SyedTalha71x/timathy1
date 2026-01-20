@@ -1,11 +1,8 @@
-// reference code of activity monitor that how i used hook and central sidebar for widgets 
-
 /* eslint-disable no-unused-vars */
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import {
-  Bell,
+  Calendar,
   Clock,
-  AlertTriangle,
   CheckCircle,
   XCircle,
   Eye,
@@ -14,18 +11,25 @@ import {
   Search,
   RefreshCw,
   Archive,
-  AlertCircle,
-  Activity,
+  AlertTriangle,
+  CalendarCheck,
+  FileText,
+  Mail,
+  MailWarning,
+  User,
+  ChevronDown,
+  Filter,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  Palmtree,
+  UserCheck,
+  Bell,
 } from "lucide-react"
 import toast, { Toaster } from "react-hot-toast"
-import { IoIosMenu } from "react-icons/io"
 
-import { activitiesData, activityTypes } from "../../utils/user-panel-states/activity-monitor-states"
-import { trainingVideosData } from "../../utils/user-panel-states/training-states"
+// Sidebar imports
 import { useSidebarSystem } from "../../hooks/useSidebarSystem"
-
-
-// sidebar related import
 import EditTaskModal from "../../components/user-panel-components/todo-components/edit-task-modal"
 import { WidgetSelectionModal } from "../../components/widget-selection-modal"
 import NotifyMemberModal from "../../components/myarea-components/NotifyMemberModal"
@@ -34,117 +38,513 @@ import AppointmentActionModalV2 from "../../components/myarea-components/Appoint
 import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
 import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
 
+// ============================================
+// Sample Data for Activity Monitor
+// ============================================
+const initialVacationRequests = [
+  {
+    id: "vac-1",
+    employeeFirstName: "Max",
+    employeeLastName: "Mustermann",
+    department: "Fitness",
+    startDate: "2026-02-15",
+    endDate: "2026-02-22",
+    days: 6,
+    reason: "Family vacation",
+    status: "pending",
+    submittedAt: "2026-01-18T10:30:00",
+  },
+  {
+    id: "vac-2",
+    employeeFirstName: "Anna",
+    employeeLastName: "Schmidt",
+    department: "Reception",
+    startDate: "2026-03-01",
+    endDate: "2026-03-05",
+    days: 5,
+    reason: "Personal matters",
+    status: "pending",
+    submittedAt: "2026-01-19T14:15:00",
+  },
+  {
+    id: "vac-3",
+    employeeFirstName: "Thomas",
+    employeeLastName: "Weber",
+    department: "Personal Training",
+    startDate: "2026-01-25",
+    endDate: "2026-01-26",
+    days: 2,
+    reason: "Medical appointment",
+    status: "approved",
+    submittedAt: "2026-01-15T09:00:00",
+  },
+]
+
+const initialAppointmentRequests = [
+  {
+    id: "app-1",
+    memberFirstName: "Lisa",
+    memberLastName: "Müller",
+    appointmentType: "Trial Training",
+    requestedDate: "2026-01-22",
+    requestedTimeStart: "14:00",
+    requestedTimeEnd: "15:00",
+    trainer: "Max Mustermann",
+    status: "pending",
+    submittedAt: "2026-01-19T16:45:00",
+  },
+  {
+    id: "app-2",
+    memberFirstName: "Peter",
+    memberLastName: "Klein",
+    appointmentType: "Nutrition Consultation",
+    requestedDate: "2026-01-23",
+    requestedTimeStart: "10:00",
+    requestedTimeEnd: "10:30",
+    trainer: "Anna Schmidt",
+    status: "pending",
+    submittedAt: "2026-01-18T11:20:00",
+  },
+  {
+    id: "app-3",
+    memberFirstName: "Sarah",
+    memberLastName: "Wagner",
+    appointmentType: "Personal Training",
+    requestedDate: "2026-01-21",
+    requestedTimeStart: "09:00",
+    requestedTimeEnd: "10:00",
+    trainer: "Thomas Weber",
+    status: "approved",
+    submittedAt: "2026-01-17T08:30:00",
+  },
+]
+
+const initialExpiringContracts = [
+  {
+    id: "con-1",
+    memberFirstName: "Julia",
+    memberLastName: "Hoffmann",
+    membershipType: "Premium",
+    contractStart: "2025-02-01",
+    contractEnd: "2026-01-31",
+    daysRemaining: 11,
+    monthlyFee: 79.99,
+    autoRenewal: false,
+  },
+  {
+    id: "con-2",
+    memberFirstName: "Michael",
+    memberLastName: "Braun",
+    membershipType: "Standard",
+    contractStart: "2024-08-15",
+    contractEnd: "2026-02-14",
+    daysRemaining: 25,
+    monthlyFee: 49.99,
+    autoRenewal: true,
+  },
+  {
+    id: "con-3",
+    memberFirstName: "Elena",
+    memberLastName: "Fischer",
+    membershipType: "Premium Plus",
+    contractStart: "2025-03-01",
+    contractEnd: "2026-02-28",
+    daysRemaining: 39,
+    monthlyFee: 99.99,
+    autoRenewal: false,
+  },
+]
+
+const initialFailedEmails = [
+  {
+    id: "mail-1",
+    recipient: "customer@example.com",
+    recipientFirstName: "Martin",
+    recipientLastName: "Schulz",
+    subject: "Your Membership Confirmation",
+    sentAt: "2026-01-19T08:00:00",
+    errorType: "bounced",
+    errorMessage: "Mailbox not found",
+    retryCount: 2,
+  },
+  {
+    id: "mail-2",
+    recipient: "info@company.de",
+    recipientFirstName: "Corporate",
+    recipientLastName: "Client",
+    subject: "Invoice January 2026",
+    sentAt: "2026-01-18T14:30:00",
+    errorType: "rejected",
+    errorMessage: "Blocked by spam filter",
+    retryCount: 1,
+  },
+]
+
+// ============================================
+// Tab Configuration - Only Orange and Blue
+// ============================================
+const tabs = [
+  { 
+    id: "vacation", 
+    label: "Vacation Requests", 
+    icon: Palmtree,
+    color: "bg-blue-500",
+    lightColor: "bg-blue-500/10",
+    textColor: "text-blue-400"
+  },
+  { 
+    id: "appointments", 
+    label: "Appointment Requests", 
+    icon: CalendarCheck,
+    color: "bg-orange-500",
+    lightColor: "bg-orange-500/10",
+    textColor: "text-orange-400"
+  },
+  { 
+    id: "contracts", 
+    label: "Expiring Contracts", 
+    icon: FileText,
+    color: "bg-orange-500",
+    lightColor: "bg-orange-500/10",
+    textColor: "text-orange-400"
+  },
+  { 
+    id: "emails", 
+    label: "Email Errors", 
+    icon: MailWarning,
+    color: "bg-orange-500",
+    lightColor: "bg-orange-500/10",
+    textColor: "text-orange-400"
+  },
+]
+
+// ============================================
+// Status Filter Options
+// ============================================
+const statusFilters = {
+  vacation: [
+    { id: "all", label: "All" },
+    { id: "pending", label: "Pending" },
+    { id: "approved", label: "Approved" },
+    { id: "rejected", label: "Rejected" },
+  ],
+  appointments: [
+    { id: "all", label: "All" },
+    { id: "pending", label: "Pending" },
+    { id: "approved", label: "Confirmed" },
+    { id: "rejected", label: "Rejected" },
+  ],
+  contracts: [
+    { id: "all", label: "All" },
+    { id: "critical", label: "Critical (< 14 days)" },
+    { id: "soon", label: "Soon (14-30 days)" },
+    { id: "upcoming", label: "Upcoming (> 30 days)" },
+  ],
+  emails: [
+    { id: "all", label: "All" },
+    { id: "bounced", label: "Bounced" },
+    { id: "rejected", label: "Rejected" },
+  ],
+}
+
 export default function ActivityMonitor() {
-  const sidebarSystem = useSidebarSystem();
-  const [selectedFilter, setSelectedFilter] = useState("all")
+  const sidebarSystem = useSidebarSystem()
+  
+  // Tab & Filter States
+  const [activeTab, setActiveTab] = useState("vacation")
   const [searchQuery, setSearchQuery] = useState("")
-  const [selectedActivity, setSelectedActivity] = useState(null)
-  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
-  const [lastRefresh, setLastRefresh] = useState(new Date())
+  const [statusFilter, setStatusFilter] = useState("all")
   const [showArchived, setShowArchived] = useState(false)
-  const [activities, setActivities] = useState(activitiesData)
+  const [lastRefresh, setLastRefresh] = useState(new Date())
+  
+  // Sort States
+  const [sortBy, setSortBy] = useState("date")
+  const [sortDirection, setSortDirection] = useState("desc")
+  const [showSortDropdown, setShowSortDropdown] = useState(false)
+  const sortDropdownRef = useRef(null)
+  
+  // Data States
+  const [vacationRequests, setVacationRequests] = useState(initialVacationRequests)
+  const [appointmentRequests, setAppointmentRequests] = useState(initialAppointmentRequests)
+  const [expiringContracts, setExpiringContracts] = useState(initialExpiringContracts)
+  const [failedEmails, setFailedEmails] = useState(initialFailedEmails)
+  
+  // Modal States
+  const [selectedItem, setSelectedItem] = useState(null)
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false)
+  const filterDropdownRef = useRef(null)
 
-
-  const getActivityCounts = () => {
-    const activeActivities = activities.filter((a) => !a.isArchived)
-    const counts = {
-      total: activeActivities.length,
-      pending: activeActivities.filter((a) => a.actionRequired && a.status === "pending").length,
-      failed: activeActivities.filter((a) => a.status === "failed").length,
-      archived: activities.filter((a) => a.isArchived).length,
+  // Close dropdowns on outside click
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target)) {
+        setShowSortDropdown(false)
+      }
+      if (filterDropdownRef.current && !filterDropdownRef.current.contains(event.target)) {
+        setShowFilterDropdown(false)
+      }
     }
-    const typeCounts = {}
-    Object.keys(activityTypes).forEach((type) => {
-      typeCounts[type] = activeActivities.filter((a) => a.type === type).length
+    document.addEventListener("click", handleClickOutside)
+    return () => document.removeEventListener("click", handleClickOutside)
+  }, [])
+
+  // Reset filter when tab changes
+  useEffect(() => {
+    setStatusFilter("all")
+    setSearchQuery("")
+  }, [activeTab])
+
+  // ============================================
+  // Count Functions
+  // ============================================
+  const getCounts = () => {
+    return {
+      vacation: {
+        total: vacationRequests.length,
+        pending: vacationRequests.filter(r => r.status === "pending").length,
+      },
+      appointments: {
+        total: appointmentRequests.length,
+        pending: appointmentRequests.filter(r => r.status === "pending").length,
+      },
+      contracts: {
+        total: expiringContracts.length,
+        critical: expiringContracts.filter(c => c.daysRemaining <= 14).length,
+      },
+      emails: {
+        total: failedEmails.length,
+      },
+    }
+  }
+  const counts = getCounts()
+
+  // ============================================
+  // Filter & Sort Functions
+  // ============================================
+  const getFilteredData = () => {
+    let data = []
+    
+    switch (activeTab) {
+      case "vacation":
+        data = [...vacationRequests]
+        if (statusFilter !== "all") {
+          data = data.filter(r => r.status === statusFilter)
+        }
+        if (searchQuery) {
+          const query = searchQuery.toLowerCase()
+          data = data.filter(r => 
+            `${r.employeeFirstName} ${r.employeeLastName}`.toLowerCase().includes(query) ||
+            r.department.toLowerCase().includes(query)
+          )
+        }
+        break
+        
+      case "appointments":
+        data = [...appointmentRequests]
+        if (statusFilter !== "all") {
+          data = data.filter(r => r.status === statusFilter)
+        }
+        if (searchQuery) {
+          const query = searchQuery.toLowerCase()
+          data = data.filter(r => 
+            `${r.memberFirstName} ${r.memberLastName}`.toLowerCase().includes(query) ||
+            r.appointmentType.toLowerCase().includes(query) ||
+            r.trainer.toLowerCase().includes(query)
+          )
+        }
+        break
+        
+      case "contracts":
+        data = [...expiringContracts]
+        if (statusFilter === "critical") {
+          data = data.filter(c => c.daysRemaining <= 14)
+        } else if (statusFilter === "soon") {
+          data = data.filter(c => c.daysRemaining > 14 && c.daysRemaining <= 30)
+        } else if (statusFilter === "upcoming") {
+          data = data.filter(c => c.daysRemaining > 30)
+        }
+        if (searchQuery) {
+          const query = searchQuery.toLowerCase()
+          data = data.filter(c => 
+            `${c.memberFirstName} ${c.memberLastName}`.toLowerCase().includes(query) ||
+            c.membershipType.toLowerCase().includes(query)
+          )
+        }
+        break
+        
+      case "emails":
+        data = [...failedEmails]
+        if (statusFilter !== "all") {
+          data = data.filter(e => e.errorType === statusFilter)
+        }
+        if (searchQuery) {
+          const query = searchQuery.toLowerCase()
+          data = data.filter(e => 
+            e.recipient.toLowerCase().includes(query) ||
+            `${e.recipientFirstName} ${e.recipientLastName}`.toLowerCase().includes(query) ||
+            e.subject.toLowerCase().includes(query)
+          )
+        }
+        break
+    }
+    
+    // Sort
+    data.sort((a, b) => {
+      let comparison = 0
+      switch (sortBy) {
+        case "date":
+          const dateA = a.submittedAt || a.sentAt || a.contractEnd
+          const dateB = b.submittedAt || b.sentAt || b.contractEnd
+          comparison = new Date(dateA) - new Date(dateB)
+          break
+        case "name":
+          const nameA = `${a.employeeFirstName || a.memberFirstName || a.recipientFirstName} ${a.employeeLastName || a.memberLastName || a.recipientLastName}`
+          const nameB = `${b.employeeFirstName || b.memberFirstName || b.recipientFirstName} ${b.employeeLastName || b.memberLastName || b.recipientLastName}`
+          comparison = nameA.localeCompare(nameB)
+          break
+        case "urgency":
+          if (activeTab === "contracts") {
+            comparison = a.daysRemaining - b.daysRemaining
+          }
+          break
+      }
+      return sortDirection === "asc" ? comparison : -comparison
     })
-    return { ...counts, ...typeCounts }
+    
+    return data
   }
-  const counts = getActivityCounts()
 
-  // Filter activities
-  const filteredActivities = activities.filter((activity) => {
-    const matchesArchivedStatus = showArchived ? activity.isArchived : !activity.isArchived
-    const matchesFilter = selectedFilter === "all" || activity.type === selectedFilter
-    const matchesSearch =
-      activity.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      activity.description.toLowerCase().includes(searchQuery.toLowerCase())
-    return matchesArchivedStatus && matchesFilter && matchesSearch
-  })
-
-  // Sort activities by timestamp
-  const sortedActivities = filteredActivities.sort((a, b) => {
-    return new Date(b.timestamp) - new Date(a.timestamp)
-  })
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case "completed":
-        return <CheckCircle className="text-green-400" size={16} />
-      case "failed":
-        return <XCircle className="text-red-400" size={16} />
-      case "pending":
-        return <Clock className="text-yellow-400" size={16} />
-      case "warning":
-        return <AlertTriangle className="text-orange-400" size={16} />
-      case "cancelled":
-        return <XCircle className="text-gray-400" size={16} />
-      case "investigating":
-        return <AlertCircle className="text-blue-400" size={16} />
-      case "approved":
-        return <CheckCircle className="text-green-400" size={16} />
-      case "rejected":
-        return <XCircle className="text-red-400" size={16} />
-      default:
-        return <Clock className="text-gray-400" size={16} />
+  // ============================================
+  // Action Handlers
+  // ============================================
+  const handleApprove = (id, type) => {
+    if (type === "vacation") {
+      setVacationRequests(prev => 
+        prev.map(r => r.id === id ? { ...r, status: "approved" } : r)
+      )
+      toast.success("Vacation request approved")
+    } else if (type === "appointment") {
+      setAppointmentRequests(prev => 
+        prev.map(r => r.id === id ? { ...r, status: "approved" } : r)
+      )
+      toast.success("Appointment request confirmed")
     }
   }
 
-  const formatTimeAgo = (timestamp) => {
+  const handleReject = (id, type) => {
+    if (type === "vacation") {
+      setVacationRequests(prev => 
+        prev.map(r => r.id === id ? { ...r, status: "rejected" } : r)
+      )
+      toast.success("Vacation request rejected")
+    } else if (type === "appointment") {
+      setAppointmentRequests(prev => 
+        prev.map(r => r.id === id ? { ...r, status: "rejected" } : r)
+      )
+      toast.success("Appointment request rejected")
+    }
+  }
+
+  const handleRetryEmail = (id) => {
+    toast.success("Resending email...")
+    // In production: trigger email resend
+  }
+
+  const handleContactMember = (contract) => {
+    toast.success(`Contacting ${contract.memberFirstName} ${contract.memberLastName}...`)
+    // In production: open communication modal or redirect
+  }
+
+  const handleRefresh = () => {
+    setLastRefresh(new Date())
+    toast.success("Data refreshed")
+  }
+
+  // ============================================
+  // Format Helpers
+  // ============================================
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "N/A"
+    return new Date(dateStr).toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric"
+    })
+  }
+
+  const formatDateTime = (dateStr) => {
+    if (!dateStr) return "N/A"
+    return new Date(dateStr).toLocaleString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    })
+  }
+
+  const formatTimeAgo = (dateStr) => {
     const now = new Date()
-    const time = new Date(timestamp)
-    const diffInMinutes = Math.floor((now - time) / (1000 * 60))
+    const date = new Date(dateStr)
+    const diffInMinutes = Math.floor((now - date) / (1000 * 60))
+    
     if (diffInMinutes < 1) return "Just now"
     if (diffInMinutes < 60) return `${diffInMinutes}m ago`
     if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`
     return `${Math.floor(diffInMinutes / 1440)}d ago`
   }
 
-  const handleActivityAction = (activity, action) => {
-    setActivities((prevActivities) =>
-      prevActivities.map((a) => {
-        if (a.id === activity.id) {
-          if (action === "approve") {
-            toast.success("Request approved successfully")
-            return { ...a, status: "approved", actionRequired: false }
-          } else if (action === "reject") {
-            toast.success("Request rejected and archived")
-            return { ...a, status: "rejected", actionRequired: false, isArchived: true }
-          } else if (action === "resolve") {
-            toast.success("Issue resolved")
-            return { ...a, status: "resolved", actionRequired: false }
-          } else if (action === "archive") {
-            toast.success("Activity archived")
-            return { ...a, isArchived: true }
-          }
-        }
-        return a
-      }),
+  const getInitials = (firstName, lastName) => {
+    return `${firstName?.charAt(0) || ''}${lastName?.charAt(0) || ''}`.toUpperCase()
+  }
+
+  const getStatusBadge = (status) => {
+    const styles = {
+      pending: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
+      approved: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
+      rejected: "bg-red-500/20 text-red-400 border-red-500/30",
+      bounced: "bg-orange-500/20 text-orange-400 border-orange-500/30",
+    }
+    const labels = {
+      pending: "Pending",
+      approved: "Approved",
+      rejected: "Rejected",
+      bounced: "Bounced",
+    }
+    return (
+      <span className={`px-2.5 py-1 rounded-lg text-xs font-medium border ${styles[status] || styles.pending}`}>
+        {labels[status] || status}
+      </span>
     )
   }
 
-  const handleRefresh = () => {
-    setLastRefresh(new Date())
-    toast.success("Activity feed refreshed")
+  const getUrgencyBadge = (days) => {
+    if (days <= 7) {
+      return <span className="px-2.5 py-1 rounded-lg text-xs font-medium bg-red-500/20 text-red-400 border border-red-500/30">Critical</span>
+    }
+    if (days <= 14) {
+      return <span className="px-2.5 py-1 rounded-lg text-xs font-medium bg-orange-500/20 text-orange-400 border border-orange-500/30">Urgent</span>
+    }
+    if (days <= 30) {
+      return <span className="px-2.5 py-1 rounded-lg text-xs font-medium bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">Soon</span>
+    }
+    return <span className="px-2.5 py-1 rounded-lg text-xs font-medium bg-blue-500/20 text-blue-400 border border-blue-500/30">Upcoming</span>
   }
 
-  const handleViewDetails = (activity) => {
-    setSelectedActivity(activity)
-    setIsDetailModalOpen(true)
-  }
+  // Sort options based on active tab
+  const sortOptions = [
+    { value: "date", label: "Date" },
+    { value: "name", label: "Name" },
+    ...(activeTab === "contracts" ? [{ value: "urgency", label: "Urgency" }] : []),
+  ]
 
-  // Extract all states and functions from the hook
+  const filteredData = getFilteredData()
+
+  // ============================================
+  // Extract sidebar system values
+  // ============================================
   const {
-    // States
     isRightSidebarOpen,
     isSidebarEditing,
     isRightWidgetModalOpen,
@@ -158,9 +558,6 @@ export default function ActivityMonitor() {
     isTodoFilterDropdownOpen,
     taskToCancel,
     taskToDelete,
-    isBirthdayMessageModalOpen,
-    selectedBirthdayPerson,
-    birthdayMessage,
     activeNoteId,
     isSpecialNoteModalOpen,
     selectedAppointmentForNote,
@@ -173,9 +570,6 @@ export default function ActivityMonitor() {
     isNotifyMemberOpen,
     notifyAction,
     rightSidebarWidgets,
-    notePopoverRef,
-
-    // Setters
     setIsRightWidgetModalOpen,
     setSelectedMemberType,
     setIsChartDropdownOpen,
@@ -186,9 +580,6 @@ export default function ActivityMonitor() {
     setIsTodoFilterDropdownOpen,
     setTaskToCancel,
     setTaskToDelete,
-    setIsBirthdayMessageModalOpen,
-    setSelectedBirthdayPerson,
-    setBirthdayMessage,
     setActiveNoteId,
     setIsSpecialNoteModalOpen,
     setSelectedAppointmentForNote,
@@ -197,11 +588,8 @@ export default function ActivityMonitor() {
     setSelectedAppointment,
     setIsEditAppointmentModalOpen,
     setShowAppointmentOptionsModal,
-   
     setIsNotifyMemberOpen,
     setNotifyAction,
-
-    // Functions
     toggleRightSidebar,
     closeSidebar,
     toggleSidebarEditing,
@@ -231,622 +619,718 @@ export default function ActivityMonitor() {
     handleNotifyMember,
     truncateUrl,
     renderSpecialNoteIcon,
-
-    // new states 
-    customLinks, setCustomLinks, communications, setCommunications,
-    todos, setTodos, expiringContracts, setExpiringContracts,
-    birthdays, setBirthdays, notifications, setNotifications,
-    appointments, setAppointments,
-   
-
+    customLinks,
+    communications,
+    todos,
+    setTodos,
+    expiringContracts: sidebarExpiringContracts,
+    birthdays,
+    notifications,
+    appointments,
+    setAppointments,
     memberTypes,
-
-
     todoFilterOptions,
     appointmentTypes,
-
     handleAssignTrainingPlan,
     handleRemoveTrainingPlan,
     memberTrainingPlans,
-    setMemberTrainingPlans, availableTrainingPlans, setAvailableTrainingPlans
-  } = sidebarSystem;
+    availableTrainingPlans,
+  } = sidebarSystem
 
-  // Wrapper functions to pass local state to hook functions
-  const handleTaskCompleteWrapper = (taskId) => {
-    handleTaskComplete(taskId, todos, setTodos);
-  };
-
-  const handleUpdateTaskWrapper = (updatedTask) => {
-    handleUpdateTask(updatedTask, setTodos);
-  };
-
-  const handleCancelTaskWrapper = (taskId) => {
-    handleCancelTask(taskId, setTodos);
-  };
-
-  const handleDeleteTaskWrapper = (taskId) => {
-    handleDeleteTask(taskId, setTodos);
-  };
-
-  const handleEditNoteWrapper = (appointmentId, currentNote) => {
-    handleEditNote(appointmentId, currentNote, appointments);
-  };
-
-  const handleCheckInWrapper = (appointmentId) => {
-    handleCheckIn(appointmentId, appointments, setAppointments);
-  };
-
-  const handleSaveSpecialNoteWrapper = (appointmentId, updatedNote) => {
-    handleSaveSpecialNote(appointmentId, updatedNote, setAppointments);
-  };
-
-  const actuallyHandleCancelAppointmentWrapper = (shouldNotify) => {
-    actuallyHandleCancelAppointment(shouldNotify, appointments, setAppointments);
-  };
-
-  const handleDeleteAppointmentWrapper = (id) => {
-    handleDeleteAppointment(id, appointments, setAppointments);
-  };
-
+  // Wrapper functions
+  const handleTaskCompleteWrapper = (taskId) => handleTaskComplete(taskId, todos, setTodos)
+  const handleUpdateTaskWrapper = (updatedTask) => handleUpdateTask(updatedTask, setTodos)
+  const handleCancelTaskWrapper = (taskId) => handleCancelTask(taskId, setTodos)
+  const handleDeleteTaskWrapper = (taskId) => handleDeleteTask(taskId, setTodos)
+  const handleEditNoteWrapper = (appointmentId, currentNote) => handleEditNote(appointmentId, currentNote, appointments)
+  const handleCheckInWrapper = (appointmentId) => handleCheckIn(appointmentId, appointments, setAppointments)
+  const handleSaveSpecialNoteWrapper = (appointmentId, updatedNote) => handleSaveSpecialNote(appointmentId, updatedNote, setAppointments)
+  const actuallyHandleCancelAppointmentWrapper = (shouldNotify) => actuallyHandleCancelAppointment(shouldNotify, appointments, setAppointments)
+  const handleDeleteAppointmentWrapper = (id) => handleDeleteAppointment(id, appointments, setAppointments)
 
   return (
     <>
-      <style>
-        {`
-          @keyframes wobble {
-            0%, 100% { transform: rotate(0deg); }
-            15% { transform: rotate(-1deg); }
-            30% { transform: rotate(1deg); }
-            45% { transform: rotate(-1deg); }
-            60% { transform: rotate(1deg); }
-            75% { transform: rotate(-1deg); }
-            90% { transform: rotate(1deg); }
-          }
-          .animate-wobble {
-            animation: wobble 0.5s ease-in-out infinite;
-          }
-          .dragging {
-            opacity: 0.5;
-            border: 2px dashed #fff;
-          }
-          .drag-over {
-            border: 2px dashed #888;
-          }
-        `}
-      </style>
       <Toaster
         position="top-right"
         toastOptions={{
           duration: 2000,
-          style: {
-            background: "#333",
-            color: "#fff",
-          },
+          style: { background: "#333", color: "#fff" },
         }}
       />
+      
       <div className={`
-          min-h-screen rounded-3xl bg-[#1C1C1C] text-white md:p-6 p-3
-          transition-all duration-500 ease-in-out flex-1
-          ${isRightSidebarOpen
-          ? 'lg:mr-86 mr-0' // Adjust right margin when sidebar is open on larger screens
-          : 'mr-0'
-        }
-        `}>
-        <div className="w-full mx-auto">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 sm:mb-8">
-            {/* Left side - Heading */}
-            <h1 className="text-xl sm:text-2xl font-bold text-white">Activity Monitor</h1>
-
-            {/* Right side - Buttons and timestamp */}
-            <div className="flex items-center gap-3 sm:gap-4">
-              <div className="text-xs sm:text-sm text-gray-400">
-                Last updated: {lastRefresh.toLocaleTimeString()}
-              </div>
-
-              <button
-                onClick={handleRefresh}
-                className="flex items-center justify-center gap-2 px-4 py-2 bg-[#161616] hover:bg-[#2F2F2F] rounded-xl transition-colors text-sm"
-              >
-                <RefreshCw size={16} />
-                <span className="hidden sm:inline">Refresh</span>
-              </button>
-
-              {isRightSidebarOpen ? (<div onClick={toggleRightSidebar} className="block ">
-                <img src='/expand-sidebar mirrored.svg' className="h-5 w-5 cursor-pointer" alt="" />
-              </div>
-              ) : (<div onClick={toggleRightSidebar} className="block ">
-                <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
-              </div>
-              )}
-
-            </div>
+        min-h-screen rounded-3xl bg-[#1C1C1C] text-white md:p-6 p-3
+        transition-all duration-500 ease-in-out flex-1
+        ${isRightSidebarOpen ? 'lg:mr-86 mr-0' : 'mr-0'}
+      `}>
+        {/* ============================================ */}
+        {/* Header */}
+        {/* ============================================ */}
+        <div className="flex sm:items-center justify-between mb-6 sm:mb-8 gap-4">
+          <div className="flex items-center gap-3">
+            <h1 className="text-white oxanium_font text-xl md:text-2xl">Activity Monitor</h1>
           </div>
-
-
-          {/* Summary Cards - Mobile Optimized */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
-            <div className="bg-[#161616] rounded-xl p-4 sm:p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-400 text-sm">Total Activities</p>
-                  <p className="text-xl sm:text-2xl font-bold text-white">{counts.total}</p>
-                </div>
-                <div className="bg-blue-600 p-2 sm:p-3 rounded-xl">
-                  <Activity size={20} className="text-white sm:w-6 sm:h-6" />
-                </div>
+          
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-gray-400 hidden sm:block">
+              Updated: {lastRefresh.toLocaleTimeString("en-GB")}
+            </span>
+            
+            <button
+              onClick={handleRefresh}
+              className="p-2.5 bg-[#161616] hover:bg-[#2F2F2F] rounded-xl transition-colors"
+              title="Refresh"
+            >
+              <RefreshCw size={18} />
+            </button>
+            
+            {isRightSidebarOpen ? (
+              <div onClick={toggleRightSidebar} className="cursor-pointer">
+                <img src='/expand-sidebar mirrored.svg' className="h-5 w-5" alt="" />
               </div>
-            </div>
-            <div className="bg-[#161616] rounded-xl p-4 sm:p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-400 text-sm">Archived Activities</p>
-                  <p className="text-xl sm:text-2xl font-bold text-gray-400">{counts.archived}</p>
-                </div>
-                <div className="bg-gray-600 p-2 sm:p-3 rounded-xl">
-                  <Archive size={20} className="text-white sm:w-6 sm:h-6" />
-                </div>
+            ) : (
+              <div onClick={toggleRightSidebar} className="cursor-pointer">
+                <img src="/icon.svg" className="h-5 w-5" alt="" />
               </div>
-            </div>
-          </div>
-
-          {/* Filters and Search - Mobile Optimized */}
-          <div className="flex flex-col gap-4 mb-6 sm:mb-8">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-              <input
-                type="text"
-                placeholder="Search activities..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-[#161616] pl-10 pr-4 py-3 text-sm rounded-xl text-white placeholder-gray-500 border border-gray-700 outline-none focus:border-blue-500 transition-colors"
-              />
-            </div>
-
-            {/* Filter Buttons - Mobile Optimized */}
-            <div className="flex flex-col gap-3">
-              {/* Primary Filters */}
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={() => {
-                    setSelectedFilter("all")
-                    setShowArchived(false)
-                  }}
-                  className={`px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-colors flex-shrink-0 ${selectedFilter === "all" && !showArchived
-                    ? "bg-blue-600 text-white"
-                    : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
-                    }`}
-                >
-                  All Active ({counts.total})
-                </button>
-                <button
-                  onClick={() => {
-                    setSelectedFilter("all")
-                    setShowArchived(true)
-                  }}
-                  className={`px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-colors flex items-center gap-1 flex-shrink-0 ${showArchived ? "bg-gray-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
-                    }`}
-                >
-                  <Archive size={12} />
-                  Archived ({counts.archived})
-                </button>
-              </div>
-
-              {/* Type Filters */}
-              <div className="flex flex-wrap gap-2">
-                {Object.entries(activityTypes).map(([type, config]) => (
-                  <button
-                    key={type}
-                    onClick={() => {
-                      setSelectedFilter(type)
-                      setShowArchived(false)
-                    }}
-                    className={`px-3 py-2 rounded-xl text-xs sm:text-sm font-medium transition-colors flex items-center gap-1 flex-shrink-0 ${selectedFilter === type && !showArchived
-                      ? `${config.color} text-white`
-                      : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
-                      }`}
-                  >
-                    <config.icon size={12} />
-                    <span className="hidden sm:inline">{config.name}</span>
-                    <span className="sm:hidden">{config.name.split(" ")[0]}</span>({counts[type] || 0})
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Activity Feed - Mobile Optimized */}
-          <div className="bg-[#161616] rounded-xl">
-            <div className="p-4 sm:p-6 border-b border-gray-700">
-              <h2 className="text-lg font-semibold text-white">
-                {showArchived ? "Archived Activities" : "Activity Feed"}
-              </h2>
-            </div>
-            <div className="divide-y divide-gray-700">
-              {sortedActivities.length === 0 ? (
-                <div className="p-6 sm:p-8 text-center">
-                  <Bell size={40} className="mx-auto mb-4 text-gray-400 sm:w-12 sm:h-12" />
-                  <p className="text-gray-400">No activities found</p>
-                </div>
-              ) : (
-                sortedActivities.map((activity) => {
-                  const config = activityTypes[activity.type]
-                  const Icon = config ? config.icon : Bell
-                  return (
-                    <div key={activity.id} className="p-4 sm:p-6 hover:bg-[#1F1F1F] transition-colors">
-                      <div className="flex items-start gap-3 sm:gap-4">
-                        {/* Activity Icon */}
-                        <div className={`${config ? config.color : "bg-gray-600"} p-2 sm:p-3 rounded-xl flex-shrink-0`}>
-                          <Icon size={16} className="text-white sm:w-5 sm:h-5" />
-                        </div>
-
-                        {/* Activity Content */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
-                            <div className="min-w-0 flex-1">
-                              <h3 className="font-semibold text-white mb-1 text-sm sm:text-base leading-tight">
-                                {activity.title}
-                              </h3>
-                              <p className="text-gray-400 text-xs sm:text-sm leading-relaxed">{activity.description}</p>
-                            </div>
-                            <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-500 flex-shrink-0">
-                              {getStatusIcon(activity.status)}
-                              <span>{formatTimeAgo(activity.timestamp)}</span>
-                            </div>
-                          </div>
-
-                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                            <div className="flex items-center gap-2">
-                              {activity.actionRequired && (
-                                <span className="px-2 py-1 rounded text-xs font-medium bg-yellow-600 text-white">
-                                  ACTION REQUIRED
-                                </span>
-                              )}
-                            </div>
-
-                            {/* Action Buttons - Mobile Optimized */}
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <button
-                                onClick={() => handleViewDetails(activity)}
-                                className="p-2 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-lg transition-colors"
-                                title="View Details"
-                              >
-                                <Eye size={14} className="text-gray-400" />
-                              </button>
-
-                              {!activity.isArchived && activity.actionRequired && activity.status === "pending" && (
-                                <>
-                                  {activity.type === "vacation" && (
-                                    <>
-                                      <button
-                                        onClick={() => handleActivityAction(activity, "approve")}
-                                        className="p-2 bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
-                                        title="Approve"
-                                      >
-                                        <Check size={14} className="text-white" />
-                                      </button>
-                                      <button
-                                        onClick={() => handleActivityAction(activity, "reject")}
-                                        className="p-2 bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
-                                        title="Reject"
-                                      >
-                                        <X size={14} className="text-white" />
-                                      </button>
-                                    </>
-                                  )}
-                                  {(activity.type === "email" ||
-                                    activity.type === "contract" ||
-                                    activity.type === "appointment") && (
-                                      <button
-                                        onClick={() => handleActivityAction(activity, "resolve")}
-                                        className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
-                                        title="Mark as Resolved"
-                                      >
-                                        <Check size={14} className="text-white" />
-                                      </button>
-                                    )}
-                                </>
-                              )}
-
-                              {!activity.isArchived && (
-                                <button
-                                  onClick={() => handleActivityAction(activity, "archive")}
-                                  className="p-2 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-lg transition-colors"
-                                  title="Archive"
-                                >
-                                  <Archive size={14} className="text-gray-400" />
-                                </button>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })
-              )}
-            </div>
+            )}
           </div>
         </div>
-      </div>
 
-      {/* Activity Detail Modal - Mobile Optimized */}
-      {isDetailModalOpen && selectedActivity && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3 sm:p-4">
-          <div className="bg-[#1C1C1C] rounded-xl w-full max-w-2xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
-            <div className="p-4 sm:p-6">
-              {/* Modal Header - Mobile Optimized */}
-              <div className="flex items-start justify-between mb-6 gap-4">
-                <div className="flex items-start gap-3 sm:gap-4 min-w-0 flex-1">
-                  <div
-                    className={`${activityTypes[selectedActivity.type] ? activityTypes[selectedActivity.type].color : "bg-gray-600"} p-2 sm:p-3 rounded-xl flex-shrink-0`}
-                  >
-                    {(() => {
-                      const Icon = activityTypes[selectedActivity.type]
-                        ? activityTypes[selectedActivity.type].icon
-                        : Bell
-                      return <Icon size={20} className="text-white sm:w-6 sm:h-6" />
-                    })()}
+        {/* ============================================ */}
+        {/* Stats Overview Cards */}
+        {/* ============================================ */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
+          {tabs.map((tab) => {
+            const count = counts[tab.id]
+            const pendingCount = count.pending || count.critical || 0
+            const isActive = activeTab === tab.id
+            
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`
+                  relative p-4 md:p-5 rounded-2xl transition-all duration-200 text-left
+                  ${isActive 
+                    ? `${tab.color} shadow-lg` 
+                    : 'bg-[#161616] hover:bg-[#1F1F1F]'
+                  }
+                `}
+              >
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className={`text-xs md:text-sm ${isActive ? 'text-white/80' : 'text-gray-400'}`}>
+                      {tab.label}
+                    </p>
+                    <p className={`text-2xl md:text-3xl font-bold mt-1 ${isActive ? 'text-white' : 'text-white'}`}>
+                      {count.total}
+                    </p>
+                    {pendingCount > 0 && (
+                      <p className={`text-xs mt-1 ${isActive ? 'text-white/70' : tab.textColor}`}>
+                        {pendingCount} {tab.id === "contracts" ? "critical" : "pending"}
+                      </p>
+                    )}
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <h2 className="text-lg sm:text-xl font-bold text-white mb-1 leading-tight">
-                      {selectedActivity.title}
-                    </h2>
-                    <p className="text-gray-400 text-sm leading-relaxed">{selectedActivity.description}</p>
+                  <div className={`
+                    p-2.5 rounded-xl
+                    ${isActive ? 'bg-white/20' : tab.lightColor}
+                  `}>
+                    <tab.icon size={20} className={isActive ? 'text-white' : tab.textColor} />
                   </div>
                 </div>
-                <button
-                  onClick={() => setIsDetailModalOpen(false)}
-                  className="p-2 hover:bg-[#2F2F2F] rounded-lg transition-colors flex-shrink-0"
-                >
-                  <X size={20} className="text-gray-400" />
-                </button>
-              </div>
+                
+                {/* Active indicator */}
+                {isActive && (
+                  <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-white/50 rounded-t-full" />
+                )}
+              </button>
+            )
+          })}
+        </div>
 
-              <div className="space-y-4 sm:space-y-6">
-                {/* Basic Info - Mobile Optimized */}
-                <div className="bg-[#161616] rounded-xl p-4">
-                  <h3 className="text-base sm:text-lg font-semibold text-white mb-4">Activity Information</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-gray-400 text-sm">Type</p>
-                      <p className="text-white text-sm sm:text-base">
-                        {activityTypes[selectedActivity.type] ? activityTypes[selectedActivity.type].name : "Unknown"}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-gray-400 text-sm">Status</p>
-                      <div className="flex items-center gap-2">
-                        {getStatusIcon(selectedActivity.status)}
-                        <span className="text-white capitalize text-sm sm:text-base">{selectedActivity.status}</span>
+        {/* ============================================ */}
+        {/* Search & Filter Bar */}
+        {/* ============================================ */}
+        <div className="flex flex-col sm:flex-row gap-3 mb-6">
+          {/* Search */}
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+            <input
+              type="text"
+              placeholder={`Search ${tabs.find(t => t.id === activeTab)?.label || ''}...`}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-[#161616] pl-10 pr-4 py-3 text-sm rounded-xl text-white placeholder-gray-500 border border-gray-700/50 outline-none focus:border-orange-500/50 transition-colors"
+            />
+          </div>
+          
+          {/* Filter Dropdown */}
+          <div className="relative" ref={filterDropdownRef}>
+            <button
+              onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+              className="flex items-center gap-2 px-4 py-3 bg-[#161616] border border-gray-700/50 rounded-xl text-sm hover:bg-[#1F1F1F] transition-colors min-w-[140px]"
+            >
+              <Filter size={16} className="text-gray-400" />
+              <span className="text-gray-300">
+                {statusFilters[activeTab]?.find(f => f.id === statusFilter)?.label || "All"}
+              </span>
+              <ChevronDown size={14} className="text-gray-400 ml-auto" />
+            </button>
+            
+            {showFilterDropdown && (
+              <div className="absolute right-0 mt-2 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-xl z-50 min-w-[180px] overflow-hidden">
+                <div className="py-1">
+                  <div className="px-3 py-2 text-xs text-gray-500 font-medium border-b border-gray-700">
+                    Filter by Status
+                  </div>
+                  {statusFilters[activeTab]?.map((filter) => (
+                    <button
+                      key={filter.id}
+                      onClick={() => {
+                        setStatusFilter(filter.id)
+                        setShowFilterDropdown(false)
+                      }}
+                      className={`w-full text-left px-3 py-2.5 text-sm hover:bg-gray-800 transition-colors ${
+                        statusFilter === filter.id ? 'text-white bg-gray-800/50' : 'text-gray-300'
+                      }`}
+                    >
+                      {filter.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          
+          {/* Sort Dropdown */}
+          <div className="relative" ref={sortDropdownRef}>
+            <button
+              onClick={() => setShowSortDropdown(!showSortDropdown)}
+              className="flex items-center gap-2 px-4 py-3 bg-[#161616] border border-gray-700/50 rounded-xl text-sm hover:bg-[#1F1F1F] transition-colors min-w-[130px]"
+            >
+              {sortDirection === "asc" ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
+              <span className="text-gray-300">
+                {sortOptions.find(s => s.value === sortBy)?.label || "Date"}
+              </span>
+              <ChevronDown size={14} className="text-gray-400 ml-auto" />
+            </button>
+            
+            {showSortDropdown && (
+              <div className="absolute right-0 mt-2 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-xl z-50 min-w-[160px] overflow-hidden">
+                <div className="py-1">
+                  <div className="px-3 py-2 text-xs text-gray-500 font-medium border-b border-gray-700">
+                    Sort by
+                  </div>
+                  {sortOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => {
+                        if (sortBy === option.value) {
+                          setSortDirection(sortDirection === "asc" ? "desc" : "asc")
+                        } else {
+                          setSortBy(option.value)
+                          setSortDirection("desc")
+                        }
+                        setShowSortDropdown(false)
+                      }}
+                      className={`w-full text-left px-3 py-2.5 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${
+                        sortBy === option.value ? 'text-white bg-gray-800/50' : 'text-gray-300'
+                      }`}
+                    >
+                      <span>{option.label}</span>
+                      {sortBy === option.value && (
+                        sortDirection === "asc" ? <ArrowUp size={14} /> : <ArrowDown size={14} />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ============================================ */}
+        {/* Content Area */}
+        {/* ============================================ */}
+        <div className="space-y-3">
+          {filteredData.length === 0 ? (
+            <div className="bg-[#161616] rounded-2xl p-12 text-center">
+              <div className="w-16 h-16 bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                {activeTab === "vacation" && <Palmtree size={28} className="text-gray-500" />}
+                {activeTab === "appointments" && <CalendarCheck size={28} className="text-gray-500" />}
+                {activeTab === "contracts" && <FileText size={28} className="text-gray-500" />}
+                {activeTab === "emails" && <MailWarning size={28} className="text-gray-500" />}
+              </div>
+              <p className="text-gray-400 text-lg">No entries found</p>
+              <p className="text-gray-500 text-sm mt-1">
+                {searchQuery ? "Try a different search term" : "No open requests at the moment"}
+              </p>
+            </div>
+          ) : (
+            <>
+              {/* ============================================ */}
+              {/* Vacation Requests */}
+              {/* ============================================ */}
+              {activeTab === "vacation" && filteredData.map((request) => (
+                <div
+                  key={request.id}
+                  className="bg-[#161616] rounded-2xl p-4 md:p-5 hover:bg-[#1A1A1A] transition-colors"
+                >
+                  {/* Grid Layout für perfektes Alignment */}
+                  <div className="hidden md:grid md:grid-cols-[280px_240px_100px_1fr] gap-4 items-center">
+                    {/* Col 1: Employee Info */}
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
+                        {getInitials(request.employeeFirstName, request.employeeLastName)}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-medium text-white truncate">{request.employeeFirstName} {request.employeeLastName}</h3>
+                          {getStatusBadge(request.status)}
+                        </div>
+                        <p className="text-gray-400 text-sm mt-0.5 truncate">{request.department}</p>
                       </div>
                     </div>
-                    <div className="sm:col-span-2">
-                      <p className="text-gray-400 text-sm">Timestamp</p>
-                      <p className="text-white text-sm sm:text-base">
-                        {new Date(selectedActivity.timestamp).toLocaleString()}
+                    
+                    {/* Col 2: Date Range */}
+                    <div className="flex items-center gap-2 text-sm">
+                      <Calendar size={16} className="text-gray-500 flex-shrink-0" />
+                      <span className="text-gray-300">
+                        {formatDate(request.startDate)} - {formatDate(request.endDate)}
+                      </span>
+                    </div>
+                    
+                    {/* Col 3: Days */}
+                    <div className="flex items-center justify-center">
+                      <div className="px-3 py-1.5 bg-blue-500/10 rounded-lg">
+                        <span className="text-blue-400 font-medium text-sm">{request.days} days</span>
+                      </div>
+                    </div>
+                    
+                    {/* Col 4: Actions */}
+                    <div className="flex items-center gap-2 justify-end">
+                      {request.status === "pending" ? (
+                        <>
+                          <button
+                            onClick={() => handleApprove(request.id, "vacation")}
+                            className="flex items-center gap-2 px-4 py-2.5 bg-blue-500 hover:bg-blue-600 rounded-xl text-white text-sm font-medium transition-colors"
+                          >
+                            <Check size={16} />
+                            <span>Approve</span>
+                          </button>
+                          <button
+                            onClick={() => handleReject(request.id, "vacation")}
+                            className="flex items-center gap-2 px-4 py-2.5 bg-red-500/20 hover:bg-red-500/30 rounded-xl text-red-400 text-sm font-medium transition-colors"
+                          >
+                            <X size={16} />
+                            <span>Reject</span>
+                          </button>
+                        </>
+                      ) : (
+                        <span className="text-xs text-gray-500">
+                          {formatTimeAgo(request.submittedAt)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Mobile Layout */}
+                  <div className="md:hidden flex flex-col gap-3">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
+                        {getInitials(request.employeeFirstName, request.employeeLastName)}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-medium text-white">{request.employeeFirstName} {request.employeeLastName}</h3>
+                          {getStatusBadge(request.status)}
+                        </div>
+                        <p className="text-gray-400 text-sm mt-0.5">{request.department}</p>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-4 text-sm">
+                      <div className="flex items-center gap-2">
+                        <Calendar size={16} className="text-gray-500" />
+                        <span className="text-gray-300">{formatDate(request.startDate)} - {formatDate(request.endDate)}</span>
+                      </div>
+                      <div className="px-3 py-1.5 bg-blue-500/10 rounded-lg">
+                        <span className="text-blue-400 font-medium">{request.days} days</span>
+                      </div>
+                    </div>
+                    {request.status === "pending" && (
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleApprove(request.id, "vacation")}
+                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-500 hover:bg-blue-600 rounded-xl text-white text-sm font-medium transition-colors"
+                        >
+                          <Check size={16} />
+                          <span>Approve</span>
+                        </button>
+                        <button
+                          onClick={() => handleReject(request.id, "vacation")}
+                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-red-500/20 hover:bg-red-500/30 rounded-xl text-red-400 text-sm font-medium transition-colors"
+                        >
+                          <X size={16} />
+                          <span>Reject</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Reason */}
+                  {request.reason && (
+                    <div className="mt-3 pt-3 border-t border-gray-800">
+                      <p className="text-gray-400 text-sm">
+                        <span className="text-gray-500">Reason:</span> {request.reason}
                       </p>
                     </div>
-                    {selectedActivity.isArchived && (
-                      <div>
-                        <p className="text-gray-400 text-sm">Archived</p>
-                        <p className="text-white text-sm sm:text-base">Yes</p>
+                  )}
+                </div>
+              ))}
+
+              {/* ============================================ */}
+              {/* Appointment Requests */}
+              {/* ============================================ */}
+              {activeTab === "appointments" && filteredData.map((request) => (
+                <div
+                  key={request.id}
+                  className="bg-[#161616] rounded-2xl p-4 md:p-5 hover:bg-[#1A1A1A] transition-colors"
+                >
+                  {/* Grid Layout für perfektes Alignment */}
+                  <div className="hidden md:grid md:grid-cols-[280px_130px_150px_160px_1fr] gap-4 items-center">
+                    {/* Col 1: Member Info */}
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
+                        {getInitials(request.memberFirstName, request.memberLastName)}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-medium text-white truncate">{request.memberFirstName} {request.memberLastName}</h3>
+                          {getStatusBadge(request.status)}
+                        </div>
+                        <p className="text-gray-400 text-sm mt-0.5 truncate">
+                          {request.appointmentType}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* Col 2: Date */}
+                    <div className="flex items-center gap-2 text-sm">
+                      <Calendar size={16} className="text-gray-500 flex-shrink-0" />
+                      <span className="text-gray-300">{formatDate(request.requestedDate)}</span>
+                    </div>
+                    
+                    {/* Col 3: Time */}
+                    <div className="flex items-center gap-2 text-sm">
+                      <Clock size={16} className="text-gray-500 flex-shrink-0" />
+                      <span className="text-gray-300">{request.requestedTimeStart} - {request.requestedTimeEnd}</span>
+                    </div>
+                    
+                    {/* Col 4: Trainer */}
+                    <div className="flex items-center gap-2 text-sm">
+                      <User size={16} className="text-gray-500 flex-shrink-0" />
+                      <span className="text-gray-300 truncate">{request.trainer}</span>
+                    </div>
+                    
+                    {/* Col 5: Actions */}
+                    <div className="flex items-center gap-2 justify-end">
+                      {request.status === "pending" ? (
+                        <>
+                          <button
+                            onClick={() => handleApprove(request.id, "appointment")}
+                            className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 rounded-xl text-white text-sm font-medium transition-colors"
+                          >
+                            <Check size={16} />
+                            <span>Confirm</span>
+                          </button>
+                          <button
+                            onClick={() => handleReject(request.id, "appointment")}
+                            className="flex items-center gap-2 px-4 py-2.5 bg-red-500/20 hover:bg-red-500/30 rounded-xl text-red-400 text-sm font-medium transition-colors"
+                          >
+                            <X size={16} />
+                            <span>Reject</span>
+                          </button>
+                        </>
+                      ) : (
+                        <span className="text-xs text-gray-500">
+                          {formatTimeAgo(request.submittedAt)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Mobile Layout */}
+                  <div className="md:hidden flex flex-col gap-3">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
+                        {getInitials(request.memberFirstName, request.memberLastName)}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-medium text-white">{request.memberFirstName} {request.memberLastName}</h3>
+                          {getStatusBadge(request.status)}
+                        </div>
+                        <p className="text-gray-400 text-sm mt-0.5">{request.appointmentType}</p>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-4 text-sm">
+                      <div className="flex items-center gap-2">
+                        <Calendar size={16} className="text-gray-500" />
+                        <span className="text-gray-300">{formatDate(request.requestedDate)}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Clock size={16} className="text-gray-500" />
+                        <span className="text-gray-300">{request.requestedTimeStart} - {request.requestedTimeEnd}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <User size={16} className="text-gray-500" />
+                        <span className="text-gray-300">{request.trainer}</span>
+                      </div>
+                    </div>
+                    {request.status === "pending" && (
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleApprove(request.id, "appointment")}
+                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 rounded-xl text-white text-sm font-medium transition-colors"
+                        >
+                          <Check size={16} />
+                          <span>Confirm</span>
+                        </button>
+                        <button
+                          onClick={() => handleReject(request.id, "appointment")}
+                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-red-500/20 hover:bg-red-500/30 rounded-xl text-red-400 text-sm font-medium transition-colors"
+                        >
+                          <X size={16} />
+                          <span>Reject</span>
+                        </button>
                       </div>
                     )}
                   </div>
                 </div>
+              ))}
 
-                {/* Detailed Information - Mobile Optimized */}
-                <div className="bg-[#161616] rounded-xl p-4">
-                  <h3 className="text-base sm:text-lg font-semibold text-white mb-4">Details</h3>
-
-                  {selectedActivity.type === "vacation" && (
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-gray-400 text-sm">Employee</p>
-                          <p className="text-white text-sm sm:text-base">{selectedActivity.details.employee}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-400 text-sm">Department</p>
-                          <p className="text-white text-sm sm:text-base">{selectedActivity.details.department}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-400 text-sm">Dates</p>
-                          <p className="text-white text-sm sm:text-base">{selectedActivity.details.dates}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-400 text-sm">Days</p>
-                          <p className="text-white text-sm sm:text-base">{selectedActivity.details.days} days</p>
-                        </div>
+              {/* ============================================ */}
+              {/* Expiring Contracts */}
+              {/* ============================================ */}
+              {activeTab === "contracts" && filteredData.map((contract) => (
+                <div
+                  key={contract.id}
+                  className="bg-[#161616] rounded-2xl p-4 md:p-5 hover:bg-[#1A1A1A] transition-colors"
+                >
+                  {/* Grid Layout für perfektes Alignment */}
+                  <div className="hidden md:grid md:grid-cols-[280px_120px_100px_90px_140px_1fr] gap-4 items-center">
+                    {/* Col 1: Member Info */}
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
+                        {getInitials(contract.memberFirstName, contract.memberLastName)}
                       </div>
-                      <div>
-                        <p className="text-gray-400 text-sm">Reason</p>
-                        <p className="text-white text-sm sm:text-base">{selectedActivity.details.reason}</p>
-                      </div>
-                      <div>
-                        <p className="text-gray-400 text-sm">Coverage</p>
-                        <p className="text-white text-sm sm:text-base">{selectedActivity.details.coverage}</p>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-medium text-white truncate">{contract.memberFirstName} {contract.memberLastName}</h3>
+                          {getUrgencyBadge(contract.daysRemaining)}
+                        </div>
+                        <p className="text-gray-400 text-sm mt-0.5 truncate">{contract.membershipType}</p>
                       </div>
                     </div>
-                  )}
-
-                  {selectedActivity.type === "email" && (
-                    <div className="space-y-4">
-                      <div>
-                        <p className="text-gray-400 text-sm mb-3">
-                          Failed Emails ({selectedActivity.details.failedEmails.length})
-                        </p>
-                        <div className="space-y-3">
-                          {selectedActivity.details.failedEmails.map((email, index) => (
-                            <div key={index} className="bg-[#2F2F2F] rounded-lg p-3">
-                              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
-                                <div className="min-w-0 flex-1">
-                                  <p className="text-white font-medium text-sm sm:text-base">{email.member}</p>
-                                  <p className="text-gray-400 text-xs sm:text-sm break-all">{email.email}</p>
-                                </div>
-                                <span className="text-red-400 text-xs flex-shrink-0">{email.reason}</span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
+                    
+                    {/* Col 2: Contract End */}
+                    <div className="text-sm">
+                      <p className="text-gray-500 text-xs">Contract End</p>
+                      <p className="text-gray-300">{formatDate(contract.contractEnd)}</p>
                     </div>
-                  )}
-
-                  {selectedActivity.type === "contract" && (
-                    <div className="space-y-4">
-                      <p className="text-gray-400 text-sm mb-3">
-                        Expiring Contracts ({selectedActivity.details.expiringContracts.length})
+                    
+                    {/* Col 3: Remaining */}
+                    <div className="text-sm">
+                      <p className="text-gray-500 text-xs">Remaining</p>
+                      <p className={`font-medium ${
+                        contract.daysRemaining <= 7 ? 'text-red-400' :
+                        contract.daysRemaining <= 14 ? 'text-orange-400' :
+                        'text-white'
+                      }`}>
+                        {contract.daysRemaining} days
                       </p>
-                      <div className="space-y-3">
-                        {selectedActivity.details.expiringContracts.map((contract, index) => (
-                          <div key={index} className="bg-[#2F2F2F] rounded-lg p-3">
-                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-                              <div className="min-w-0 flex-1">
-                                <p className="text-white font-medium text-sm sm:text-base">{contract.member}</p>
-                                <p className="text-gray-400 text-xs sm:text-sm">Expires: {contract.expiryDate}</p>
-                              </div>
-                              <span
-                                className={`px-2 py-1 rounded text-xs font-medium flex-shrink-0 ${contract.daysLeft <= 7
-                                  ? "bg-red-600"
-                                  : contract.daysLeft <= 14
-                                    ? "bg-yellow-600"
-                                    : "bg-orange-600"
-                                  } text-white`}
-                              >
-                                {contract.daysLeft} days left
-                              </span>
-                            </div>
-                          </div>
-                        ))}
+                    </div>
+                    
+                    {/* Col 4: Monthly */}
+                    <div className="text-sm">
+                      <p className="text-gray-500 text-xs">Monthly</p>
+                      <p className="text-white font-medium">€{contract.monthlyFee.toFixed(2)}</p>
+                    </div>
+                    
+                    {/* Col 5: Auto-Renewal */}
+                    <div className="text-sm">
+                      {contract.autoRenewal ? (
+                        <span className="flex items-center gap-1 text-emerald-400 text-xs">
+                          <CheckCircle size={14} />
+                          Auto-Renewal
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1 text-gray-500 text-xs">
+                          <XCircle size={14} />
+                          No Auto-Renewal
+                        </span>
+                      )}
+                    </div>
+                    
+                    {/* Col 6: Actions */}
+                    <div className="flex items-center gap-2 justify-end">
+                      <button
+                        onClick={() => handleContactMember(contract)}
+                        className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 rounded-xl text-white text-sm font-medium transition-colors"
+                      >
+                        <Mail size={16} />
+                        <span>Contact</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSelectedItem(contract)
+                          setIsDetailModalOpen(true)
+                        }}
+                        className="p-2.5 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-xl transition-colors"
+                      >
+                        <Eye size={16} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Mobile Layout */}
+                  <div className="md:hidden flex flex-col gap-3">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center text-white font-semibold text-sm flex-shrink-0">
+                        {getInitials(contract.memberFirstName, contract.memberLastName)}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-medium text-white">{contract.memberFirstName} {contract.memberLastName}</h3>
+                          {getUrgencyBadge(contract.daysRemaining)}
+                        </div>
+                        <p className="text-gray-400 text-sm mt-0.5">{contract.membershipType}</p>
                       </div>
                     </div>
-                  )}
-
-                  {selectedActivity.type === "appointment" && (
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-gray-400 text-sm">Name</p>
-                          <p className="text-white text-sm sm:text-base">{selectedActivity.details.name}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-400 text-sm">Request Type</p>
-                          <p className="text-white text-sm sm:text-base">{selectedActivity.details.requestType}</p>
-                        </div>
-                        <div className="sm:col-span-2">
-                          <p className="text-gray-400 text-sm">Email</p>
-                          <p className="text-white text-sm sm:text-base break-all">{selectedActivity.details.email}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-400 text-sm">Phone</p>
-                          <p className="text-white text-sm sm:text-base">{selectedActivity.details.phone}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-400 text-sm">Preferred Date</p>
-                          <p className="text-white text-sm sm:text-base">{selectedActivity.details.preferredDate}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-400 text-sm">Preferred Time</p>
-                          <p className="text-white text-sm sm:text-base">{selectedActivity.details.preferredTime}</p>
-                        </div>
+                    <div className="grid grid-cols-3 gap-4 text-sm">
+                      <div>
+                        <p className="text-gray-500 text-xs">Contract End</p>
+                        <p className="text-gray-300">{formatDate(contract.contractEnd)}</p>
                       </div>
                       <div>
-                        <p className="text-gray-400 text-sm mb-2">Interests</p>
-                        <div className="flex flex-wrap gap-2">
-                          {selectedActivity.details.interests.map((interest, index) => (
-                            <span key={index} className="bg-blue-600 text-white px-2 py-1 rounded text-xs">
-                              {interest}
-                            </span>
-                          ))}
-                        </div>
+                        <p className="text-gray-500 text-xs">Remaining</p>
+                        <p className={`font-medium ${contract.daysRemaining <= 14 ? 'text-orange-400' : 'text-white'}`}>
+                          {contract.daysRemaining} days
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500 text-xs">Monthly</p>
+                        <p className="text-white font-medium">€{contract.monthlyFee.toFixed(2)}</p>
                       </div>
                     </div>
-                  )}
-
-                  {selectedActivity.type === "communication" && (
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="sm:col-span-2">
-                          <p className="text-gray-400 text-sm">Campaign</p>
-                          <p className="text-white text-sm sm:text-base">{selectedActivity.details.campaign}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-400 text-sm">Total Recipients</p>
-                          <p className="text-white text-sm sm:text-base">{selectedActivity.details.totalRecipients}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-400 text-sm">Delivered</p>
-                          <p className="text-white text-sm sm:text-base">{selectedActivity.details.delivered}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-400 text-sm">Opened</p>
-                          <p className="text-white text-sm sm:text-base">{selectedActivity.details.opened}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-400 text-sm">Clicked</p>
-                          <p className="text-white text-sm sm:text-base">{selectedActivity.details.clicked}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-400 text-sm">Bounced</p>
-                          <p className="text-white text-sm sm:text-base">{selectedActivity.details.bounced}</p>
-                        </div>
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleContactMember(contract)}
+                        className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 rounded-xl text-white text-sm font-medium transition-colors"
+                      >
+                        <Mail size={16} />
+                        <span>Contact</span>
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSelectedItem(contract)
+                          setIsDetailModalOpen(true)
+                        }}
+                        className="p-2.5 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-xl transition-colors"
+                      >
+                        <Eye size={16} />
+                      </button>
                     </div>
-                  )}
+                  </div>
                 </div>
+              ))}
 
-                {/* Action Buttons - Mobile Optimized */}
-                {!selectedActivity.isArchived &&
-                  selectedActivity.actionRequired &&
-                  selectedActivity.status === "pending" && (
-                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                      {selectedActivity.type === "vacation" && (
-                        <>
-                          <button
-                            onClick={() => {
-                              handleActivityAction(selectedActivity, "approve")
-                              setIsDetailModalOpen(false)
-                            }}
-                            className="flex-1 px-4 py-3 bg-green-600 hover:bg-green-700 rounded-xl text-white font-medium transition-colors flex items-center justify-center gap-2"
-                          >
-                            <Check size={16} />
-                            Approve Request
-                          </button>
-                          <button
-                            onClick={() => {
-                              handleActivityAction(selectedActivity, "reject")
-                              setIsDetailModalOpen(false)
-                            }}
-                            className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 rounded-xl text-white font-medium transition-colors flex items-center justify-center gap-2"
-                          >
-                            <X size={16} />
-                            Reject Request
-                          </button>
-                        </>
-                      )}
-                      {(selectedActivity.type === "email" ||
-                        selectedActivity.type === "contract" ||
-                        selectedActivity.type === "appointment") && (
-                          <button
-                            onClick={() => {
-                              handleActivityAction(selectedActivity, "resolve")
-                              setIsDetailModalOpen(false)
-                            }}
-                            className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 rounded-xl text-white font-medium transition-colors flex items-center justify-center gap-2"
-                          >
-                            <Check size={16} />
-                            Mark as Resolved
-                          </button>
-                        )}
+              {/* ============================================ */}
+              {/* Failed Emails */}
+              {/* ============================================ */}
+              {activeTab === "emails" && filteredData.map((email) => (
+                <div
+                  key={email.id}
+                  className="bg-[#161616] rounded-2xl p-4 md:p-5 hover:bg-[#1A1A1A] transition-colors"
+                >
+                  {/* Grid Layout für perfektes Alignment */}
+                  <div className="hidden md:grid md:grid-cols-[280px_1fr_80px_120px] gap-4 items-center">
+                    {/* Col 1: Recipient Info */}
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center text-white flex-shrink-0">
+                        <MailWarning size={22} />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-medium text-white truncate">{email.recipientFirstName} {email.recipientLastName}</h3>
+                          {getStatusBadge(email.errorType)}
+                        </div>
+                        <p className="text-gray-400 text-sm mt-0.5 truncate">{email.recipient}</p>
+                      </div>
                     </div>
-                  )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+                    
+                    {/* Col 2: Subject & Error */}
+                    <div className="min-w-0">
+                      <p className="text-gray-300 text-sm truncate">{email.subject}</p>
+                      <p className="text-red-400 text-xs mt-1">{email.errorMessage}</p>
+                    </div>
+                    
+                    {/* Col 3: Retry Count */}
+                    <div className="text-center">
+                      <span className="text-xs text-gray-500">{email.retryCount}x tried</span>
+                    </div>
+                    
+                    {/* Col 4: Actions */}
+                    <div className="flex items-center justify-end">
+                      <button
+                        onClick={() => handleRetryEmail(email.id)}
+                        className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 rounded-xl text-white text-sm font-medium transition-colors"
+                      >
+                        <RefreshCw size={16} />
+                        <span>Resend</span>
+                      </button>
+                    </div>
+                  </div>
 
+                  {/* Mobile Layout */}
+                  <div className="md:hidden flex flex-col gap-3">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center text-white flex-shrink-0">
+                        <MailWarning size={22} />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-medium text-white">{email.recipientFirstName} {email.recipientLastName}</h3>
+                          {getStatusBadge(email.errorType)}
+                        </div>
+                        <p className="text-gray-400 text-sm mt-0.5 truncate">{email.recipient}</p>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-gray-300 text-sm">{email.subject}</p>
+                      <p className="text-red-400 text-xs mt-1">{email.errorMessage}</p>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-500">{email.retryCount}x tried</span>
+                      <button
+                        onClick={() => handleRetryEmail(email.id)}
+                        className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 rounded-xl text-white text-sm font-medium transition-colors"
+                      >
+                        <RefreshCw size={16} />
+                        <span>Resend</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
+        </div>
+      </div>
+
+      {/* ============================================ */}
+      {/* Sidebar */}
+      {/* ============================================ */}
       <Sidebar
         isRightSidebarOpen={isRightSidebarOpen}
         toggleRightSidebar={toggleRightSidebar}
@@ -885,10 +1369,10 @@ export default function ActivityMonitor() {
         memberTypes={memberTypes}
         isChartDropdownOpen={isChartDropdownOpen}
         setIsChartDropdownOpen={setIsChartDropdownOpen}
-        expiringContracts={expiringContracts}
+        expiringContracts={sidebarExpiringContracts}
         getWidgetPlacementStatus={getWidgetPlacementStatus}
         onClose={toggleRightSidebar}
-        hasUnreadNotifications={2}
+        hasUnreadNotifications={counts.vacation.pending + counts.appointments.pending}
         setIsWidgetModalOpen={setIsWidgetModalOpen}
         handleEditNote={handleEditNoteWrapper}
         activeNoteId={activeNoteId}
@@ -903,31 +1387,33 @@ export default function ActivityMonitor() {
         setTodos={setTodos}
       />
 
-      {/* Sidebar related modals */}
+      {/* ============================================ */}
+      {/* Sidebar Modals */}
+      {/* ============================================ */}
       <TrainingPlansModal
         isOpen={isTrainingPlanModalOpen}
         onClose={() => {
           setIsTrainingPlanModalOpen(false)
           setSelectedUserForTrainingPlan(null)
         }}
-        selectedMember={selectedUserForTrainingPlan} // Make sure this is passed correctly
+        selectedMember={selectedUserForTrainingPlan}
         memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
         availableTrainingPlans={availableTrainingPlans}
-        onAssignPlan={handleAssignTrainingPlan} // Make sure this function is passed
-        onRemovePlan={handleRemoveTrainingPlan} // Make sure this function is passed
+        onAssignPlan={handleAssignTrainingPlan}
+        onRemovePlan={handleRemoveTrainingPlan}
       />
 
       <AppointmentActionModalV2
         isOpen={showAppointmentOptionsModal}
         onClose={() => {
-          setShowAppointmentOptionsModal(false);
-          setSelectedAppointment(null);
+          setShowAppointmentOptionsModal(false)
+          setSelectedAppointment(null)
         }}
         appointment={selectedAppointment}
         isEventInPast={isEventInPast}
         onEdit={() => {
-          setShowAppointmentOptionsModal(false);
-          setIsEditAppointmentModalOpen(true);
+          setShowAppointmentOptionsModal(false)
+          setIsEditAppointmentModalOpen(true)
         }}
         onCancel={handleCancelAppointment}
         onViewMember={() => handleViewMemberDetails(selectedAppointment)}
@@ -948,7 +1434,7 @@ export default function ActivityMonitor() {
           appointmentTypes={appointmentTypes}
           freeAppointments={freeAppointments}
           handleAppointmentChange={(changes) => {
-            setSelectedAppointment({ ...selectedAppointment, ...changes });
+            setSelectedAppointment({ ...selectedAppointment, ...changes })
           }}
           appointments={appointments}
           setAppointments={setAppointments}
@@ -956,8 +1442,8 @@ export default function ActivityMonitor() {
           setNotifyAction={setNotifyAction}
           onDelete={handleDeleteAppointmentWrapper}
           onClose={() => {
-            setIsEditAppointmentModalOpen(false);
-            setSelectedAppointment(null);
+            setIsEditAppointmentModalOpen(false)
+            setSelectedAppointment(null)
           }}
         />
       )}
@@ -981,8 +1467,8 @@ export default function ActivityMonitor() {
         <EditTaskModal
           task={editingTask}
           onClose={() => {
-            setIsEditTaskModalOpen(false);
-            setEditingTask(null);
+            setIsEditTaskModalOpen(false)
+            setEditingTask(null)
           }}
           onUpdateTask={handleUpdateTaskWrapper}
         />

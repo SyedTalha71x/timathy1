@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { X, Paperclip } from "lucide-react"
 import { useState } from "react"
-import { WysiwygEditor } from "../configuration-components/WysiwygEditor"
+import { WysiwygEditor } from "../../shared/WysiwygEditor"
 
 export default function CreateMessageModal({
   show,

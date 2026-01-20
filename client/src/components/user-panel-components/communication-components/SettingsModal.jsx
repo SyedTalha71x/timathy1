@@ -2,7 +2,7 @@
 
 import { useRef } from "react"
 import { Settings, X, Info } from 'lucide-react'
-import { WysiwygEditor } from "../configuration-components/WysiwygEditor"
+import { WysiwygEditor } from "../../shared/WysiwygEditor"
 
 
 const SettingsModal = ({

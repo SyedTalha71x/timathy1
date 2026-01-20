@@ -63,7 +63,9 @@ import EditAppointmentModalV2 from "../../components/myarea-components/EditAppoi
 
 import { useSidebarSystem } from "../../hooks/useSidebarSystem"
 import { trainingVideosData } from "../../utils/user-panel-states/training-states"
-import ChatPopup from "../../components/user-panel-components/members-components/ChatPopup"
+import ChatPopup from "../../components/shared/ChatPopup"
+import MessageTypeSelectionModal from "../../components/shared/MessageTypeSelectionModal"
+import SendEmailModal from "../../components/shared/SendEmailModal"
 import TrainingPlansModalMain from "../../components/user-panel-components/members-components/TrainingPlanModal"
 import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
 import { MemberSpecialNoteIcon } from '../../components/shared/shared-special-note-icon'
@@ -101,6 +103,31 @@ const StatusTag = ({ status, reason = "", compact = false }) => {
   );
 };
 
+// Initials Avatar Component - Orange background with initials
+const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) => {
+  const getInitials = () => {
+    const firstInitial = firstName?.charAt(0)?.toUpperCase() || ""
+    const lastInitial = lastName?.charAt(0)?.toUpperCase() || ""
+    return `${firstInitial}${lastInitial}` || "?"
+  }
+
+  const sizeClasses = {
+    sm: "w-9 h-9 text-sm",
+    md: "w-11 h-11 text-base",
+    lg: "w-12 h-12 text-lg",
+    xl: "w-20 h-20 text-2xl",
+  }
+
+  return (
+    <div 
+      className={`bg-orange-500 rounded-xl flex items-center justify-center text-white font-semibold flex-shrink-0 ${sizeClasses[size]} ${className}`}
+      style={{ fontFamily: 'ui-sans-serif, system-ui, sans-serif' }}
+    >
+      {getInitials()}
+    </div>
+  )
+};
+
 export default function Members() {
 
   const sidebarSystem = useSidebarSystem()
@@ -114,6 +141,7 @@ export default function Members() {
   // 
   const [isCompactView, setIsCompactView] = useState(false);
   const [expandedMemberId, setExpandedMemberId] = useState(null);
+  const [expandedMobileRowId, setExpandedMobileRowId] = useState(null); // For mobile expandable actions
 
   const [activeNoteIdMain, setActiveNoteIdMain] = useState(null)
   // 
@@ -125,6 +153,32 @@ export default function Members() {
     isOpen: false,
     member: null
   });
+
+  // Message Type Selection Modal State
+  const [messageTypeModal, setMessageTypeModal] = useState({
+    isOpen: false,
+    member: null
+  });
+
+  // Email Modal States
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [selectedMemberForEmail, setSelectedMemberForEmail] = useState(null);
+  const [showTemplateDropdown, setShowTemplateDropdown] = useState(false);
+  const [showRecipientDropdown, setShowRecipientDropdown] = useState(false);
+  const [selectedEmailTemplate, setSelectedEmailTemplate] = useState(null);
+  const [emailData, setEmailData] = useState({
+    to: "",
+    subject: "",
+    body: "",
+    recipientName: ""
+  });
+
+  // Email Templates
+  const emailTemplates = [
+    { id: 1, name: "Welcome", subject: "Welcome to our studio!", body: "Hello,\n\nWelcome to our studio!" },
+    { id: 2, name: "Reminder", subject: "Reminder for your appointment", body: "Hello,\n\nWe would like to remind you about your upcoming appointment." },
+    { id: 3, name: "Invoice", subject: "Your Invoice", body: "Hello,\n\nPlease find your invoice attached." },
+  ];
 
   // Member Special Note Modal states (like leads)
   const [isMemberSpecialNoteModalOpen, setIsMemberSpecialNoteModalOpen] = useState(false)
@@ -143,7 +197,7 @@ export default function Members() {
   const [memberTypeFilter, setMemberTypeFilter] = useState("all")
   const [archivedFilter, setArchivedFilter] = useState("active")
   const [filterStatus, setFilterStatus] = useState("all")
-  const [filtersExpanded, setFiltersExpanded] = useState(true) // Default expanded, will collapse on mobile via useEffect
+  const [filtersExpanded, setFiltersExpanded] = useState(false) // Default collapsed on mobile
 
 
   const [appointmentToDelete, setAppointmentToDelete] = useState(null)
@@ -344,10 +398,10 @@ export default function Members() {
     type: "manual",
     selectedMemberId: null,
   })
-  // memberRelationsMain wird für EditMember Modal verwendet
+  // memberRelationsMain wird fÃƒÆ’Ã‚Â¼r EditMember Modal verwendet
   const [memberRelationsMain, setMemberRelationsMain] = useState(memberRelationsMainData)
 
-  // Countries hook für CreateTempMemberModal
+  // Countries hook fÃƒÆ’Ã‚Â¼r CreateTempMemberModal
   const { countries, loading: countriesLoading } = useCountries()
 
   // 
@@ -425,7 +479,7 @@ export default function Members() {
     }))
   }
 
-  // Handler für erfolgreiche Erstellung eines temporären Members (Shared Modal)
+  // Handler fÃƒÆ’Ã‚Â¼r erfolgreiche Erstellung eines temporÃƒÆ’Ã‚Â¤ren Members (Shared Modal)
   const handleTempMemberCreated = (newMemberData) => {
     const newId = Math.max(...members.map((m) => m.id), 0) + 1
     const newTempMember = {
@@ -569,6 +623,20 @@ export default function Members() {
     };
   }, [showSortDropdown, showMobileSortDropdown]);
 
+  // Close expanded mobile row on scroll for better UX
+  useEffect(() => {
+    if (!expandedMobileRowId) return;
+
+    const handleScroll = () => {
+      setExpandedMobileRowId(null);
+    };
+
+    window.addEventListener('scroll', handleScroll, { capture: true, passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll, { capture: true, passive: true });
+    };
+  }, [expandedMobileRowId]);
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyPress = (e) => {
@@ -595,12 +663,19 @@ export default function Members() {
     return () => document.removeEventListener('keydown', handleKeyPress);
   }, []);
 
-  // Collapse filters on mobile by default
+  // Expand filters on desktop, keep collapsed on mobile
   useEffect(() => {
-    const isMobile = window.innerWidth < 768; // md breakpoint
-    if (isMobile) {
-      setFiltersExpanded(false);
-    }
+    const handleResize = () => {
+      const isDesktop = window.innerWidth >= 768; // md breakpoint
+      setFiltersExpanded(isDesktop);
+    };
+    
+    // Run on mount
+    handleResize();
+    
+    // Listen for resize
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   // Sort options
@@ -1006,10 +1081,81 @@ export default function Members() {
   }
 
   const handleChatClick = (member) => {
-    setChatPopup({
+    setMessageTypeModal({
       isOpen: true,
       member: member
     });
+  };
+
+  // App Chat Ã¶ffnen (vom Message Type Modal)
+  const handleOpenAppChat = () => {
+    if (messageTypeModal.member) {
+      setChatPopup({
+        isOpen: true,
+        member: messageTypeModal.member
+      });
+    }
+  };
+
+  // Email Modal Ã¶ffnen (vom Message Type Modal)
+  const handleOpenEmailModal = () => {
+    if (messageTypeModal.member) {
+      setSelectedMemberForEmail(messageTypeModal.member);
+      setEmailData({
+        to: messageTypeModal.member.email || "",
+        subject: "",
+        body: "",
+        recipientName: `${messageTypeModal.member.firstName} ${messageTypeModal.member.lastName}`
+      });
+      setShowEmailModal(true);
+    }
+  };
+
+  // Email Modal schlieÃŸen
+  const handleCloseEmailModal = () => {
+    setShowEmailModal(false);
+    setSelectedMemberForEmail(null);
+    setEmailData({ to: "", subject: "", body: "", recipientName: "" });
+    setSelectedEmailTemplate(null);
+    setShowTemplateDropdown(false);
+    setShowRecipientDropdown(false);
+  };
+
+  // Send email
+  const handleSendEmail = () => {
+    console.log("Sending email:", emailData);
+    toast.success("Email sent successfully!");
+    handleCloseEmailModal();
+  };
+
+  // Template auswÃ¤hlen
+  const handleTemplateSelect = (template) => {
+    setSelectedEmailTemplate(template);
+    setEmailData({
+      ...emailData,
+      subject: template.subject,
+      body: template.body || ""
+    });
+    setShowTemplateDropdown(false);
+  };
+
+  // Mitglied fÃ¼r Email suchen
+  const handleSearchMemberForEmail = (query) => {
+    if (!query) return [];
+    return members.filter(m => 
+      `${m.firstName} ${m.lastName}`.toLowerCase().includes(query.toLowerCase()) ||
+      m.email?.toLowerCase().includes(query.toLowerCase())
+    );
+  };
+
+  // Select email recipient
+  const handleSelectEmailRecipient = (member) => {
+    setEmailData({
+      ...emailData,
+      to: member.email,
+      recipientName: `${member.firstName} ${member.lastName}`
+    });
+    setShowRecipientDropdown(false);
   };
 
   const handleOpenFullMessenger = (member) => {
@@ -1329,7 +1475,7 @@ export default function Members() {
               <h1 className="text-white oxanium_font text-xl md:text-2xl">Members</h1>
               
               {/* Sort Button - Mobile: next to title */}
-              <div className="md:hidden relative" ref={mobileSortDropdownRef}>
+              <div className="lg:hidden relative" ref={mobileSortDropdownRef}>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -1378,7 +1524,7 @@ export default function Members() {
               </div>
               
               {/* View Toggle - Desktop only */}
-              <div className="hidden md:flex items-center gap-2 bg-black rounded-xl p-1">
+              <div className="hidden lg:flex items-center gap-2 bg-black rounded-xl p-1">
                 <div className="relative group">
                   <button
                     onClick={() => setViewMode('grid')}
@@ -1452,7 +1598,7 @@ export default function Members() {
             </div>
 
             <div className="flex items-center gap-2">
-              <div className="hidden md:block relative group">
+              <div className="hidden lg:block relative group">
                 <button
                   onClick={() => setShowCreateTempMemberModal(true)}
                   className="flex bg-blue-600 hover:bg-blue-700 text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors"
@@ -1522,7 +1668,7 @@ export default function Members() {
               </button>
 
               {/* Sort Controls - Desktop only, always visible */}
-              <div className="hidden md:block relative" ref={sortDropdownRef}>
+              <div className="hidden lg:block relative" ref={sortDropdownRef}>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -1653,539 +1799,210 @@ export default function Members() {
 
           <div className="open_sans_font">
             {viewMode === "list" ? (
-              // LIST VIEW
-              isCompactView ? (
-                // COMPACT LIST VIEW
-                <div className="space-y-2">
-                  {filteredAndSortedMembers().length > 0 ? (
-                    filteredAndSortedMembers().map((member) => (
-                      <div key={member.id}>
-                        {expandedMemberId === member.id ? (
-                          // Expanded compact view - shows full details
-                          <div className="flex flex-col lg:flex-row lg:items-center justify-between bg-[#141414] p-4 rounded-xl hover:bg-[#1a1a1a] transition-colors gap-4 relative">
-                            {/* Note indicator - always visible like Leads */}
-                            <div className="absolute top-3 left-3 z-10">
-                              <MemberSpecialNoteIcon
-                                member={member}
-                                onEditMember={handleEditMember}
-                                size="md"
-                                position="relative"
-                              />
-                            </div>
-
-                            <div className="flex items-center gap-4 flex-1 min-w-0 pl-4">
-                              <img
-                                src={member.image || DefaultAvatar1}
-                                className="h-12 w-12 rounded-xl flex-shrink-0 object-cover"
-                                alt=""
-                              />
-                              <div className="flex-1 min-w-0">
-                                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
-                                  <h3 className="text-white font-medium text-base sm:text-lg truncate">
-                                    {member.title}
-                                  </h3>
-
-                                  <div className="flex items-center gap-2 flex-shrink-0">
-                                    <StatusTag
-                                      status={member.isArchived ? 'archived' : member.isActive ? 'active' : 'paused'}
-                                      reason={member.reason}
-                                    />
-                                    {isBirthday(member.dateOfBirth) && <Cake size={16} className="text-yellow-500" />}
-                                  </div>
-                                </div>
-
-                                <div className="text-sm mt-1 flex flex-col sm:items-start gap-1">
-                                  <div className="flex items-center gap-1">
-                                    <p className="text-gray-400">Member Type:</p>
-                                    <span className="text-gray-400">
-                                      {member.memberType === "full" ? "Full Member" : "Temporary Member"}
-                                    </span>
-                                  </div>
-
-                                  <p className="text-gray-400 text-sm flex items-center gap-1">
-                                    {member.memberType === "full" ? (
-                                      <>
-                                        Contract: {member.contractStart} -{" "}
-                                        <span className={isContractExpiringSoonMain(member.contractEnd) ? "text-red-500" : ""}>
-                                          {member.contractEnd}
-                                        </span>
-                                        {isContractExpiringSoonMain(member.contractEnd) && (
-                                          <Info size={14} className="text-red-500" />
-                                        )}
-                                      </>
-                                    ) : (
-                                      <>
-                                        No Contract - Auto-archive: {member.autoArchiveDate}
-                                        {member.autoArchiveDate && new Date(member.autoArchiveDate) <= new Date() && (
-                                          <Clock size={14} className="text-orange-500" />
-                                        )}
-                                      </>
-                                    )}
-                                  </p>
-                                </div>
-
-                                <div className="mt-1">
-                                  <button
-                                    onClick={() => handleRelationClick(member)}
-                                    className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
-                                  >
-                                    <Users size={12} />
-                                    Relations ({Object.values(memberRelationsMain[member.id] || {}).flat().length})
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Action buttons */}
-                            <div className="flex flex-col gap-2 flex-shrink-0 w-full sm:w-auto">
-                              <div className="grid grid-cols-5 gap-2">
-                                <button
-                                  onClick={() => handleCalendarClick(member)}
-                                  className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
-                                  title="View Appointments"
-                                >
-                                  <Calendar size={16} />
-                                </button>
-                                <button
-                                  onClick={() => handleTrainingPlansClickMain(member)}
-                                  className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
-                                  title="Training Plans"
-                                >
-                                  <Dumbbell size={16} />
-                                </button>
-                                <button
-                                  onClick={() => handleHistoryClick(member)}
-                                  className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
-                                  title="View History"
-                                >
-                                  <History size={16} />
-                                </button>
-                                <button
-                                  onClick={() => handleDocumentClick(member)}
-                                  className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
-                                  title="Document Management"
-                                >
-                                  <FileText size={16} />
-                                </button>
-                                <button
-                                  onClick={() => handleChatClick(member)}
-                                  className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
-                                  title="Start Chat"
-                                >
-                                  <MessageCircle size={16} />
-                                </button>
-                              </div>
-
-                              <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
-                                <button
-                                  onClick={() => handleViewDetails(member)}
-                                  className="text-gray-200 cursor-pointer bg-black rounded-lg sm:rounded-xl border border-slate-600 py-1.5 sm:py-2 px-2 sm:px-3 hover:text-white hover:border-slate-400 transition-colors text-xs sm:text-sm flex items-center justify-center gap-1 sm:gap-2"
-                                >
-                                  <Eye size={14} className="sm:w-4 sm:h-4" />
-                                  <span>Details</span>
-                                </button>
-                                <button
-                                  onClick={() => handleEditMember(member)}
-                                  className="text-gray-200 cursor-pointer bg-black rounded-lg sm:rounded-xl border border-slate-600 py-1.5 sm:py-2 px-2 sm:px-3 hover:text-white hover:border-slate-400 transition-colors text-xs sm:text-sm flex items-center justify-center gap-1 sm:gap-2"
-                                >
-                                  <Pencil size={14} className="sm:w-4 sm:h-4" />
-                                  <span>Edit</span>
-                                </button>
-                              </div>
-                            </div>
-
-                            <button
-                              onClick={() => setExpandedMemberId(null)}
-                              className="p-2 bg-black rounded-xl border border-slate-600 hover:border-slate-400 transition-colors"
-                              title="Collapse"
-                            >
-                              <ChevronUp className="w-4 h-4 text-gray-400" />
-                            </button>
-                          </div>
-                        ) : (
-                          // Collapsed compact view - minimal info
-                          <div className="flex items-center justify-between bg-[#141414] p-3 rounded-xl hover:bg-[#1a1a1a] transition-colors gap-3">
-                            <div className="flex items-center gap-3 flex-1 min-w-0">
-                              {/* Special Note Icon */}
-                              <MemberSpecialNoteIcon
-                                member={member}
-                                onEditMember={handleEditMember}
-                                size="sm"
-                                position="relative"
-                              />
-                              <img
-                                src={member.image || DefaultAvatar1}
-                                alt={member.title}
-                                className="w-10 h-10 rounded-xl flex-shrink-0 object-cover"
-                              />
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-white font-medium text-sm">
-                                    {getFirstAndLastName(member.title).firstName} {getFirstAndLastName(member.title).lastName}
-                                  </span>
-                                  <StatusTag
-                                    status={member.isArchived ? 'archived' : member.isActive ? 'active' : 'paused'}
-                                    reason={member.reason}
-                                    compact={true}
-                                  />
-                                </div>
-                              </div>
-                            </div>
-                            <button
-                              onClick={() => setExpandedMemberId(member.id)}
-                              className="p-2 bg-black rounded-xl border border-slate-600 hover:border-slate-400 transition-colors flex-shrink-0"
-                              title="Expand"
-                            >
-                              <ChevronDown className="w-4 h-4 text-gray-400" />
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-red-600 text-center text-sm cursor-pointer">
-                      <p className="text-gray-400">
-                        {filterStatus === "active"
-                          ? "No active members found."
-                          : filterStatus === "paused"
-                            ? "No paused members found."
-                            : filterStatus === "archived"
-                              ? "No archived members found."
-                              : "No members found."}
-                      </p>
-                    </div>
-                  )}
+              // LIST VIEW - Table structure for both compact and detailed
+              <div className="bg-[#141414] rounded-xl overflow-hidden">
+                {/* Table Header - Desktop only */}
+                <div className={`hidden lg:grid lg:grid-cols-12 gap-3 px-4 bg-[#0f0f0f] border-b border-gray-800 text-xs text-gray-500 font-medium ${isCompactView ? 'py-2' : 'py-3'}`}>
+                  <div className="col-span-3">Member</div>
+                  <div className="col-span-1">Gender</div>
+                  <div className="col-span-1">Age</div>
+                  <div className="col-span-2">Status</div>
+                  <div className="col-span-1">Type</div>
+                  <div className="col-span-1">Relations</div>
+                  <div className="col-span-3 text-right">Actions</div>
                 </div>
-              ) : (
-                // DETAILED LIST VIEW
-                <div className="flex flex-col gap-3">
-                  {filteredAndSortedMembers().length > 0 ? (
-                    filteredAndSortedMembers().map((member) => (
-                      <div
-                        key={member.id}
-                        className="bg-[#161616] rounded-xl relative p-4 sm:p-6"
-                      >
-                        {/* Note indicator - always visible like Leads */}
-                        <div className="absolute top-3 left-3 z-10">
+                
+                {filteredAndSortedMembers().length > 0 ? (
+                  filteredAndSortedMembers().map((member, index) => (
+                    <div 
+                      key={member.id}
+                      className={`group hover:bg-[#1a1a1a] transition-colors ${
+                        index !== filteredAndSortedMembers().length - 1 ? 'border-b border-gray-800/50' : ''
+                      }`}
+                    >
+                      {/* Desktop Table Row */}
+                      <div className={`hidden lg:grid lg:grid-cols-12 gap-3 px-4 items-center ${isCompactView ? 'py-2.5' : 'py-4'}`}>
+                        {/* Member Info */}
+                        <div className="col-span-3 flex items-center gap-3 min-w-0">
                           <MemberSpecialNoteIcon
                             member={member}
                             onEditMember={handleEditMember}
-                            size="md"
+                            size={isCompactView ? "sm" : "md"}
                             position="relative"
                           />
-                        </div>
-
-                        <div className="flex flex-col lg:flex-row lg:items-center gap-4 pl-4">
-                          {/* Left side - Profile info */}
-                          <div className="flex items-center gap-4 flex-1 min-w-0">
+                          {member.image ? (
                             <img
-                              src={member.image || DefaultAvatar1}
-                              className="h-12 w-12 sm:h-20 sm:w-20 rounded-xl flex-shrink-0 object-cover"
-                              alt=""
+                              src={member.image}
+                              alt={member.title}
+                              className={`${isCompactView ? 'w-9 h-9' : 'w-12 h-12'} rounded-lg flex-shrink-0 object-cover`}
                             />
-                            <div className="flex-1 min-w-0">
-                              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
-                                <h3 className="text-white font-medium text-base sm:text-lg truncate">
-                                  {member.title}
-                                </h3>
-
-                                <div className="flex items-center gap-2 flex-shrink-0">
-                                  <StatusTag
-                                    status={member.isArchived ? 'archived' : member.isActive ? 'active' : 'paused'}
-                                    reason={member.reason}
-                                  />
-                                  {isBirthday(member.dateOfBirth) && <Cake size={16} className="text-yellow-500" />}
-                                </div>
-                              </div>
-
-                              <div className="text-sm mt-1 flex flex-col sm:items-start gap-1">
-                                <div className="flex items-center gap-1">
-                                  <p className="text-gray-400">Member Type:</p>
-                                  <span className="text-gray-400">
-                                    {member.memberType === "full" ? "Full Member" : "Temporary Member"}
-                                  </span>
-                                </div>
-
-                                <p className="text-gray-400 text-sm flex items-center gap-1">
-                                  {member.memberType === "full" ? (
-                                    <>
-                                      Contract: {member.contractStart} -{" "}
-                                      <span className={isContractExpiringSoonMain(member.contractEnd) ? "text-red-500" : ""}>
-                                        {member.contractEnd}
-                                      </span>
-                                      {isContractExpiringSoonMain(member.contractEnd) && (
-                                        <Info size={14} className="text-red-500" />
-                                      )}
-                                    </>
-                                  ) : (
-                                    <>
-                                      No Contract - Auto-archive: {member.autoArchiveDate}
-                                      {member.autoArchiveDate && new Date(member.autoArchiveDate) <= new Date() && (
-                                        <Clock size={14} className="text-orange-500" />
-                                      )}
-                                    </>
-                                  )}
-                                </p>
-                              </div>
-
-                              <div className="mt-1">
-                                <button
-                                  onClick={() => handleRelationClick(member)}
-                                  className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
-                                >
-                                  <Users size={12} />
-                                  Relations ({Object.values(memberRelationsMain[member.id] || {}).flat().length})
-                                </button>
-                              </div>
+                          ) : (
+                            <InitialsAvatar 
+                              firstName={member.firstName} 
+                              lastName={member.lastName} 
+                              size={isCompactView ? "sm" : "lg"}
+                            />
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className={`text-white font-medium ${isCompactView ? 'text-sm' : 'text-base'} truncate`}>
+                                {member.title}
+                              </span>
+                              {isBirthday(member.dateOfBirth) && <Cake size={isCompactView ? 14 : 16} className="text-yellow-500 flex-shrink-0" />}
                             </div>
+                            {member.memberType === "full" && member.contractStart && member.contractEnd ? (
+                              <span className={`${isCompactView ? 'text-xs' : 'text-sm'} ${isContractExpiringSoonMain(member.contractEnd) ? 'text-red-400' : 'text-gray-500'}`}>
+                                {member.contractStart} - {member.contractEnd}
+                                {isContractExpiringSoonMain(member.contractEnd) && <Info size={isCompactView ? 10 : 12} className="inline ml-1" />}
+                              </span>
+                            ) : member.memberType !== "full" && member.autoArchiveDate ? (
+                              <span className={`${isCompactView ? 'text-xs' : 'text-sm'} text-gray-500`}>
+                                Auto-archive: {member.autoArchiveDate}
+                              </span>
+                            ) : null}
                           </div>
-
-                          {/* Right side - Action buttons */}
-                          <div className="flex flex-col gap-2 flex-shrink-0 w-full sm:w-auto">
-                            {/* First row - 5 icon buttons only */}
-                            <div className="grid grid-cols-5 gap-2">
-                              <button
-                                onClick={() => handleCalendarClick(member)}
-                                className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
-                                title="View Appointments"
-                              >
-                                <Calendar size={16} />
-                              </button>
-                              <button
-                                onClick={() => handleTrainingPlansClickMain(member)}
-                                className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
-                                title="Training Plans"
-                              >
-                                <Dumbbell size={16} />
-                              </button>
-                              <button
-                                onClick={() => handleHistoryClick(member)}
-                                className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
-                                title="View History"
-                              >
-                                <History size={16} />
-                              </button>
-                              <button
-                                onClick={() => handleDocumentClick(member)}
-                                className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
-                                title="Document Management"
-                              >
-                                <FileText size={16} />
-                              </button>
-                              <button
-                                onClick={() => handleChatClick(member)}
-                                className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
-                                title="Start Chat"
-                              >
-                                <MessageCircle size={16} />
-                              </button>
+                        </div>
+                        
+                        {/* Gender */}
+                        <div className="col-span-1">
+                          <span className={`${isCompactView ? 'text-xs' : 'text-sm'} text-gray-400`}>
+                            {member.gender || '-'}
+                          </span>
+                        </div>
+                        
+                        {/* Age */}
+                        <div className="col-span-1">
+                          {member.dateOfBirth ? (
+                            <div className="flex flex-col">
+                              <span className={`${isCompactView ? 'text-xs' : 'text-sm'} text-white`}>
+                                {calculateAgeMain(member.dateOfBirth)} yrs
+                              </span>
+                              <span className="text-[10px] text-gray-500">
+                                {new Date(member.dateOfBirth).toLocaleDateString('de-DE')}
+                              </span>
                             </div>
-
-                            {/* Second row - Text buttons */}
-                            <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
-                              <button
-                                onClick={() => handleViewDetails(member)}
-                                className="text-gray-200 cursor-pointer bg-black rounded-lg sm:rounded-xl border border-slate-600 py-1.5 sm:py-2 px-2 sm:px-3 hover:text-white hover:border-slate-400 transition-colors text-xs sm:text-sm flex items-center justify-center gap-1 sm:gap-2"
-                              >
-                                <Eye size={14} className="sm:w-4 sm:h-4" />
-                                <span>Details</span>
-                              </button>
-                              <button
-                                onClick={() => handleEditMember(member)}
-                                className="text-gray-200 cursor-pointer bg-black rounded-lg sm:rounded-xl border border-slate-600 py-1.5 sm:py-2 px-2 sm:px-3 hover:text-white hover:border-slate-400 transition-colors text-xs sm:text-sm flex items-center justify-center gap-1 sm:gap-2"
-                              >
-                                <Pencil size={14} className="sm:w-4 sm:h-4" />
-                                <span>Edit</span>
-                              </button>
-                            </div>
-                          </div>
+                          ) : (
+                            <span className="text-gray-600 text-xs">-</span>
+                          )}
+                        </div>
+                        
+                        {/* Status */}
+                        <div className="col-span-2">
+                          <StatusTag
+                            status={member.isArchived ? 'archived' : member.isActive ? 'active' : 'paused'}
+                            reason={member.reason}
+                            compact={isCompactView}
+                          />
+                        </div>
+                        
+                        {/* Type */}
+                        <div className="col-span-1">
+                          <span className={`${isCompactView ? 'text-xs' : 'text-sm'} text-gray-400`}>
+                            {member.memberType === "full" ? "Full" : "Temp"}
+                          </span>
+                        </div>
+                        
+                        {/* Relations */}
+                        <div className="col-span-1">
+                          <button
+                            onClick={() => handleRelationClick(member)}
+                            className={`${isCompactView ? 'text-xs' : 'text-sm'} text-blue-400 hover:text-blue-300 inline-flex items-center gap-1`}
+                          >
+                            <Users size={isCompactView ? 12 : 14} />
+                            {Object.values(memberRelationsMain[member.id] || {}).flat().length}
+                          </button>
+                        </div>
+                        
+                        {/* Actions */}
+                        <div className="col-span-3 flex items-center justify-end gap-0.5">
+                          <button
+                            onClick={() => handleCalendarClick(member)}
+                            className={`${isCompactView ? 'p-1.5' : 'p-2'} text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-colors`}
+                            title="Appointments"
+                          >
+                            <Calendar size={isCompactView ? 16 : 18} />
+                          </button>
+                          <button
+                            onClick={() => handleTrainingPlansClickMain(member)}
+                            className={`${isCompactView ? 'p-1.5' : 'p-2'} text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-colors`}
+                            title="Training Plans"
+                          >
+                            <Dumbbell size={isCompactView ? 16 : 18} />
+                          </button>
+                          <button
+                            onClick={() => handleHistoryClick(member)}
+                            className={`${isCompactView ? 'p-1.5' : 'p-2'} text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-colors`}
+                            title="History"
+                          >
+                            <History size={isCompactView ? 16 : 18} />
+                          </button>
+                          <button
+                            onClick={() => handleDocumentClick(member)}
+                            className={`${isCompactView ? 'p-1.5' : 'p-2'} text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-colors`}
+                            title="Documents"
+                          >
+                            <FileText size={isCompactView ? 16 : 18} />
+                          </button>
+                          <button
+                            onClick={() => handleChatClick(member)}
+                            className={`${isCompactView ? 'p-1.5' : 'p-2'} text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-colors`}
+                            title="Chat"
+                          >
+                            <MessageCircle size={isCompactView ? 16 : 18} />
+                          </button>
+                          <div className={`w-px ${isCompactView ? 'h-4' : 'h-5'} bg-gray-700/50 mx-1`} />
+                          <button
+                            onClick={() => handleViewDetails(member)}
+                            className={`${isCompactView ? 'p-1.5' : 'p-2'} text-blue-400 hover:text-blue-300 hover:bg-white/5 rounded-lg transition-colors`}
+                            title="View Details"
+                          >
+                            <Eye size={isCompactView ? 16 : 18} />
+                          </button>
+                          <button
+                            onClick={() => handleEditMember(member)}
+                            className={`${isCompactView ? 'p-1.5' : 'p-2'} text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors`}
+                            title="Edit"
+                          >
+                            <Pencil size={isCompactView ? 16 : 18} />
+                          </button>
                         </div>
                       </div>
-                    ))
-                  ) : (
-                    <div className="text-red-600 text-center text-sm cursor-pointer">
-                      <p className="text-gray-400">
-                        {filterStatus === "active"
-                          ? "No active members found."
-                          : filterStatus === "paused"
-                            ? "No paused members found."
-                            : filterStatus === "archived"
-                              ? "No archived members found."
-                              : "No members found."}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )
-            ) : // GRID VIEW
-              isCompactView ? (
-                // COMPACT GRID VIEW
-                <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                  {filteredAndSortedMembers().length > 0 ? (
-                    filteredAndSortedMembers().map((member) => (
-                      <div key={member.id}>
-                        {expandedMemberId === member.id ? (
-                          // Expanded view within grid
-                          <div className="bg-[#141414] p-4 rounded-xl hover:bg-[#1a1a1a] transition-colors flex flex-col h-full col-span-2 md:col-span-2 lg:col-span-2 relative">
-                            {/* Note indicator - always visible like Leads */}
-                            <div className="absolute top-3 left-3 z-10">
-                              <MemberSpecialNoteIcon
-                                member={member}
-                                onEditMember={handleEditMember}
-                                size="md"
-                                position="relative"
-                              />
-                            </div>
-
-                            {/* Header section */}
-                            <div className="flex justify-between items-start mb-3 pl-4">
-                              <StatusTag
-                                status={member.isArchived ? 'archived' : member.isActive ? 'active' : 'paused'}
-                                reason={member.reason}
-                              />
-                            </div>
-
-                            {/* Content section */}
-                            <div className="flex-1 mb-4 flex flex-col gap-1.5 pl-4">
-                              <div className="flex items-center gap-3 mb-3">
-                                <img
-                                  src={member.image || DefaultAvatar1}
-                                  className="h-16 w-16 rounded-xl flex-shrink-0 object-cover"
-                                  alt=""
-                                />
-                                <div>
-                                  <h3 className="text-white font-medium text-lg leading-tight">{member.title}</h3>
-                                  <p className="text-gray-400 text-sm">
-                                    {member.memberType === "full" ? "Full Member" : "Temporary Member"}
-                                  </p>
-                                </div>
-                              </div>
-
-                              <p className="text-gray-400 text-sm leading-snug">
-                                {member.memberType === "full" ? (
-                                  <>
-                                    Contract: {member.contractStart} -{" "}
-                                    <span className={isContractExpiringSoonMain(member.contractEnd) ? "text-red-500" : ""}>
-                                      {member.contractEnd}
-                                    </span>
-                                    {isContractExpiringSoonMain(member.contractEnd) && (
-                                      <Info size={14} className="text-red-500 ml-1" />
-                                    )}
-                                  </>
-                                ) : (
-                                  <>
-                                    No Contract - Auto-archive: {member.autoArchiveDate}
-                                    {member.autoArchiveDate && new Date(member.autoArchiveDate) <= new Date() && (
-                                      <Clock size={14} className="text-orange-500 ml-1" />
-                                    )}
-                                  </>
-                                )}
-                              </p>
-
-                              <div className="mt-2">
-                                <button
-                                  onClick={() => handleRelationClick(member)}
-                                  className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
-                                >
-                                  <Users size={12} />
-                                  Relations ({Object.values(memberRelationsMain[member.id] || {}).flat().length})
-                                </button>
-                              </div>
-                            </div>
-
-                            {/* Button section */}
-                            <div className="flex flex-col gap-2 mt-auto">
-                              <div className="grid grid-cols-5 gap-2">
-                                <button
-                                  onClick={() => handleCalendarClick(member)}
-                                  className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
-                                  title="View Appointments"
-                                >
-                                  <Calendar size={16} />
-                                </button>
-                                <button
-                                  onClick={() => handleTrainingPlansClickMain(member)}
-                                  className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
-                                  title="Training Plans"
-                                >
-                                  <Dumbbell size={16} />
-                                </button>
-                                <button
-                                  onClick={() => handleHistoryClick(member)}
-                                  className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
-                                  title="View History"
-                                >
-                                  <History size={16} />
-                                </button>
-                                <button
-                                  onClick={() => handleDocumentClick(member)}
-                                  className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
-                                  title="Document Management"
-                                >
-                                  <FileText size={16} />
-                                </button>
-                                <button
-                                  onClick={() => handleChatClick(member)}
-                                  className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
-                                  title="Start Chat"
-                                >
-                                  <MessageCircle size={16} />
-                                </button>
-                              </div>
-
-                              <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
-                                <button
-                                  onClick={() => handleViewDetails(member)}
-                                  className="text-gray-200 cursor-pointer bg-black rounded-lg sm:rounded-xl border border-slate-600 py-1.5 sm:py-2 px-2 sm:px-3 hover:text-white hover:border-slate-400 transition-colors text-xs sm:text-sm flex items-center justify-center gap-1 sm:gap-2"
-                                >
-                                  <Eye size={14} className="sm:w-4 sm:h-4" />
-                                  <span>Details</span>
-                                </button>
-                                <button
-                                  onClick={() => handleEditMember(member)}
-                                  className="text-gray-200 cursor-pointer bg-black rounded-lg sm:rounded-xl border border-slate-600 py-1.5 sm:py-2 px-2 sm:px-3 hover:text-white hover:border-slate-400 transition-colors text-xs sm:text-sm flex items-center justify-center gap-1 sm:gap-2"
-                                >
-                                  <Pencil size={14} className="sm:w-4 sm:h-4" />
-                                  <span>Edit</span>
-                                </button>
-                              </div>
-
-                              <button
-                                onClick={() => setExpandedMemberId(null)}
-                                className="px-3 py-1.5 bg-black text-sm cursor-pointer text-white border border-gray-800 rounded-xl hover:bg-gray-900 transition-colors flex items-center justify-center gap-2"
-                                title="Collapse"
-                              >
-                                <ChevronUp size={16} />
-                                Collapse
-                              </button>
-                            </div>
-                          </div>
-                        ) : (
-                          // Compact tile view
-                          <div className="bg-[#141414] p-3 rounded-xl hover:bg-[#1a1a1a] transition-colors flex flex-col items-center justify-center gap-2 h-full relative">
-                            {/* Note indicator - always visible like Leads */}
-                            <div className="absolute top-2 left-2 z-10">
-                              <MemberSpecialNoteIcon
-                                member={member}
-                                onEditMember={handleEditMember}
-                                size="sm"
-                                position="relative"
-                              />
-                            </div>
-
-                            <div className="relative w-full flex justify-center">
+                      
+                      {/* Mobile Row */}
+                      <div className="lg:hidden">
+                        {/* Main Row - Tappable */}
+                        <div 
+                          className={`px-3 ${isCompactView ? 'py-2.5' : 'py-3'} cursor-pointer active:bg-[#252525] transition-colors`}
+                          onClick={() => setExpandedMobileRowId(expandedMobileRowId === member.id ? null : member.id)}
+                        >
+                          <div className="flex items-center gap-3">
+                            <MemberSpecialNoteIcon
+                              member={member}
+                              onEditMember={handleEditMember}
+                              size="sm"
+                              position="relative"
+                            />
+                            {member.image ? (
                               <img
-                                src={member.image || DefaultAvatar1}
+                                src={member.image}
                                 alt={member.title}
-                                className="w-14 h-14 rounded-xl object-cover"
+                                className={`${isCompactView ? 'w-9 h-9' : 'w-11 h-11'} rounded-lg flex-shrink-0 object-cover`}
                               />
-                            </div>
-
-                            <div className="text-center w-full min-w-0">
-                              <p className="text-white font-medium text-sm leading-tight mb-2">
-                                {getFirstAndLastName(member.title).firstName} {getFirstAndLastName(member.title).lastName}
-                              </p>
-                              <div className="flex justify-center">
+                            ) : (
+                              <InitialsAvatar 
+                                firstName={member.firstName} 
+                                lastName={member.lastName} 
+                                size={isCompactView ? "sm" : "md"}
+                              />
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <span className={`text-white font-medium ${isCompactView ? 'text-sm' : 'text-base'} truncate`}>
+                                  {member.title}
+                                </span>
+                                {isBirthday(member.dateOfBirth) && <Cake size={12} className="text-yellow-500 flex-shrink-0" />}
+                              </div>
+                              <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                                 <StatusTag
                                   status={member.isArchived ? 'archived' : member.isActive ? 'active' : 'paused'}
                                   reason={member.reason}
@@ -2193,21 +2010,282 @@ export default function Members() {
                                 />
                               </div>
                             </div>
+                            
+                            {/* Expand/Collapse Indicator */}
+                            <div className="flex-shrink-0 p-1">
+                              <ChevronDown 
+                                size={18} 
+                                className={`text-gray-500 transition-transform duration-200 ${expandedMobileRowId === member.id ? 'rotate-180' : ''}`} 
+                              />
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Expandable Actions Panel */}
+                        <div 
+                          className={`overflow-hidden transition-all duration-200 ease-in-out ${
+                            expandedMobileRowId === member.id ? 'max-h-56 opacity-100' : 'max-h-0 opacity-0'
+                          }`}
+                        >
+                          <div className="px-3 pb-3 pt-1">
+                            <div className="bg-[#0f0f0f] rounded-xl p-2">
+                              {/* Member Info Badges */}
+                              <div className="flex items-center justify-center gap-2 mb-2 flex-wrap">
+                                <span className={`text-[10px] px-2 py-0.5 rounded-full ${
+                                  member.memberType === "full" 
+                                    ? "bg-blue-500/20 text-blue-400" 
+                                    : "bg-orange-500/20 text-orange-400"
+                                }`}>
+                                  {member.memberType === "full" ? "Full Member" : "Temporary Member"}
+                                </span>
+                                {member.gender && (
+                                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-700/50 text-gray-300">
+                                    {member.gender}
+                                  </span>
+                                )}
+                                {member.dateOfBirth && (
+                                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-700/50 text-gray-300">
+                                    {calculateAgeMain(member.dateOfBirth)} yrs • {new Date(member.dateOfBirth).toLocaleDateString('de-DE')}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="grid grid-cols-4 gap-1">
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleCalendarClick(member); }}
+                                  className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                                >
+                                  <Calendar size={18} />
+                                  <span className="text-[10px]">Calendar</span>
+                                </button>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleTrainingPlansClickMain(member); }}
+                                  className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                                >
+                                  <Dumbbell size={18} />
+                                  <span className="text-[10px]">Training</span>
+                                </button>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleHistoryClick(member); }}
+                                  className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                                >
+                                  <History size={18} />
+                                  <span className="text-[10px]">History</span>
+                                </button>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleDocumentClick(member); }}
+                                  className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                                >
+                                  <FileText size={18} />
+                                  <span className="text-[10px]">Docs</span>
+                                </button>
+                              </div>
+                              <div className="grid grid-cols-4 gap-1 mt-1">
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleChatClick(member); }}
+                                  className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                                >
+                                  <MessageCircle size={18} />
+                                  <span className="text-[10px]">Chat</span>
+                                </button>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleRelationClick(member); }}
+                                  className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                                >
+                                  <Users size={18} />
+                                  <span className="text-[10px]">Relations</span>
+                                </button>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleViewDetails(member); }}
+                                  className="flex flex-col items-center gap-1 p-2 text-blue-400 hover:text-blue-300 hover:bg-white/5 rounded-lg transition-colors"
+                                >
+                                  <Eye size={18} />
+                                  <span className="text-[10px]">Details</span>
+                                </button>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleEditMember(member); }}
+                                  className="flex flex-col items-center gap-1 p-2 text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors"
+                                >
+                                  <Pencil size={18} />
+                                  <span className="text-[10px]">Edit</span>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-gray-400 text-sm">
+                      {filterStatus === "active"
+                        ? "No active members found."
+                        : filterStatus === "paused"
+                          ? "No paused members found."
+                          : filterStatus === "archived"
+                            ? "No archived members found."
+                            : "No members found."}
+                    </p>
+                  </div>
+                )}
+              </div>
+            ) : // GRID VIEW
+              isCompactView ? (
+                // COMPACT GRID VIEW - With visible controls
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2">
+                  {filteredAndSortedMembers().length > 0 ? (
+                    filteredAndSortedMembers().map((member) => (
+                      <div 
+                        key={member.id}
+                        className="bg-[#141414] rounded-xl hover:bg-[#1a1a1a] transition-colors group relative overflow-hidden"
+                      >
+                        {/* Note indicator */}
+                        <div className="absolute top-2 left-2 z-10">
+                          <MemberSpecialNoteIcon
+                            member={member}
+                            onEditMember={handleEditMember}
+                            size="sm"
+                            position="relative"
+                          />
+                        </div>
 
+                        {/* Status indicator dot */}
+                        <div className={`absolute top-2 right-2 w-2.5 h-2.5 rounded-full ${
+                          member.isArchived ? 'bg-red-500' : member.isActive ? 'bg-green-500' : 'bg-yellow-500'
+                        }`} title={member.isArchived ? 'Archived' : member.isActive ? 'Active' : 'Paused'} />
+
+                        <div className="p-3 pt-4">
+                          {/* Avatar & Name */}
+                          <div className="flex flex-col items-center mb-2">
+                            {member.image ? (
+                              <img
+                                src={member.image}
+                                alt={member.title}
+                                className="w-12 h-12 rounded-xl object-cover mb-2"
+                              />
+                            ) : (
+                              <InitialsAvatar 
+                                firstName={getFirstAndLastName(member.title).firstName} 
+                                lastName={getFirstAndLastName(member.title).lastName} 
+                                size="lg"
+                                className="mb-2 rounded-xl"
+                              />
+                            )}
+                            <div className="text-center w-full min-w-0">
+                              <p className="text-white font-medium text-sm leading-tight truncate">
+                                {getFirstAndLastName(member.title).firstName}
+                              </p>
+                              <p className="text-gray-500 text-xs truncate">
+                                {getFirstAndLastName(member.title).lastName}
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Age & Birthday */}
+                          {/* Age & Birthday */}
+                          {member.dateOfBirth && (
+                            <div className="flex items-center justify-center gap-1.5 mb-2 text-[10px]">
+                              <span className="text-gray-400">
+                                {calculateAgeMain(member.dateOfBirth)} yrs
+                              </span>
+                              <span className="text-gray-600">•</span>
+                              <span className="text-gray-500">
+                                {new Date(member.dateOfBirth).toLocaleDateString('de-DE')}
+                              </span>
+                              {isBirthday(member.dateOfBirth) && <Cake size={10} className="text-yellow-500" />}
+                            </div>
+                          )}
+
+                          {/* Meta info */}
+                          <div className="flex items-center justify-center gap-2 mb-2 flex-wrap">
+                            <span className="text-[10px] text-gray-500 bg-[#0f0f0f] px-1.5 py-0.5 rounded">
+                              {member.memberType === "full" ? "Full" : "Temp"}
+                            </span>
+                            {member.gender && (
+                              <span className="text-[10px] text-gray-400 bg-[#0f0f0f] px-1.5 py-0.5 rounded">
+                                {member.gender}
+                              </span>
+                            )}
                             <button
-                              onClick={() => setExpandedMemberId(member.id)}
-                              className="p-1.5 bg-black rounded-lg border border-slate-600 hover:border-slate-400 transition-colors w-full flex items-center justify-center"
-                              title="Expand"
+                              onClick={() => handleRelationClick(member)}
+                              className="text-[10px] text-blue-400 bg-[#0f0f0f] px-1.5 py-0.5 rounded flex items-center gap-0.5"
                             >
-                              <ChevronDown className="w-4 h-4 text-gray-400" />
+                              <Users size={9} />
+                              {Object.values(memberRelationsMain[member.id] || {}).flat().length}
                             </button>
                           </div>
-                        )}
+
+                          {/* Action buttons - All visible in 2 rows */}
+                          <div className="space-y-1 bg-[#0a0a0a] rounded-lg p-1.5">
+                            {/* First row - 4 icons */}
+                            <div className="grid grid-cols-4 gap-1">
+                              <button
+                                onClick={() => handleCalendarClick(member)}
+                                className="p-1.5 text-gray-400 hover:text-white rounded-lg transition-colors flex items-center justify-center"
+                                title="Appointments"
+                              >
+                                <Calendar size={14} />
+                              </button>
+                              <button
+                                onClick={() => handleTrainingPlansClickMain(member)}
+                                className="p-1.5 text-gray-400 hover:text-white rounded-lg transition-colors flex items-center justify-center"
+                                title="Training Plans"
+                              >
+                                <Dumbbell size={14} />
+                              </button>
+                              <button
+                                onClick={() => handleHistoryClick(member)}
+                                className="p-1.5 text-gray-400 hover:text-white rounded-lg transition-colors flex items-center justify-center"
+                                title="History"
+                              >
+                                <History size={14} />
+                              </button>
+                              <button
+                                onClick={() => handleDocumentClick(member)}
+                                className="p-1.5 text-gray-400 hover:text-white rounded-lg transition-colors flex items-center justify-center"
+                                title="Documents"
+                              >
+                                <FileText size={14} />
+                              </button>
+                            </div>
+                            {/* Second row - 4 icons */}
+                            <div className="grid grid-cols-4 gap-1">
+                              <button
+                                onClick={() => handleChatClick(member)}
+                                className="p-1.5 text-gray-400 hover:text-white rounded-lg transition-colors flex items-center justify-center"
+                                title="Chat"
+                              >
+                                <MessageCircle size={14} />
+                              </button>
+                              <button
+                                onClick={() => handleViewDetails(member)}
+                                className="p-1.5 text-blue-400 hover:text-blue-300 rounded-lg transition-colors flex items-center justify-center"
+                                title="Details"
+                              >
+                                <Eye size={14} />
+                              </button>
+                              <button
+                                onClick={() => handleEditMember(member)}
+                                className="p-1.5 text-orange-400 hover:text-orange-300 rounded-lg transition-colors flex items-center justify-center"
+                                title="Edit"
+                              >
+                                <Pencil size={14} />
+                              </button>
+                              <button
+                                onClick={() => handleEditMemberNote(member)}
+                                className="p-1.5 text-gray-400 hover:text-white rounded-lg transition-colors flex items-center justify-center"
+                                title="Add Note"
+                              >
+                                <StickyNote size={14} />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     ))
                   ) : (
-                    <div className="text-red-600 text-center text-sm cursor-pointer col-span-full">
-                      <p className="text-gray-400">
+                    <div className="text-center py-8 col-span-full">
+                      <p className="text-gray-400 text-sm">
                         {filterStatus === "active"
                           ? "No active members found."
                           : filterStatus === "paused"
@@ -2240,11 +2318,20 @@ export default function Members() {
 
                         <div className="flex flex-col">
                           <div className="flex flex-col items-center mb-4">
-                            <img
-                              src={member.image || DefaultAvatar1}
-                              className="h-20 w-20 rounded-xl flex-shrink-0 object-cover mb-3"
-                              alt=""
-                            />
+                            {member.image ? (
+                              <img
+                                src={member.image}
+                                className="h-20 w-20 rounded-xl flex-shrink-0 object-cover mb-3"
+                                alt=""
+                              />
+                            ) : (
+                              <InitialsAvatar 
+                                firstName={getFirstAndLastName(member.title).firstName} 
+                                lastName={getFirstAndLastName(member.title).lastName} 
+                                size="xl"
+                                className="mb-3 rounded-xl"
+                              />
+                            )}
                             <div className="flex flex-col items-center">
                               <div className="flex flex-col sm:flex-row items-center gap-2">
                                 <h3 className="text-white font-medium truncate text-lg">
@@ -2260,8 +2347,27 @@ export default function Members() {
                                 </div>
                               </div>
 
-                              <div className="text-sm mt-1 flex items-center gap-1">
-                                <p className="text-gray-400">Member Type:</p>
+                              {/* Age & Birthday */}
+                              {member.dateOfBirth && (
+                                <div className="flex items-center gap-2 mt-1 text-sm">
+                                  <span className="text-gray-300">
+                                    {calculateAgeMain(member.dateOfBirth)} years old
+                                  </span>
+                                  <span className="text-gray-600">•</span>
+                                  <span className="text-gray-500">
+                                    {new Date(member.dateOfBirth).toLocaleDateString('de-DE')}
+                                  </span>
+                                </div>
+                              )}
+
+                              {/* Gender & Member Type */}
+                              <div className="text-sm mt-1 flex items-center gap-2 flex-wrap justify-center">
+                                {member.gender && (
+                                  <>
+                                    <span className="text-gray-400">{member.gender}</span>
+                                    <span className="text-gray-600">•</span>
+                                  </>
+                                )}
                                 <span className="text-gray-400">
                                   {member.memberType === "full" ? "Full Member" : "Temporary Member"}
                                 </span>
@@ -2300,60 +2406,62 @@ export default function Members() {
                           </div>
 
                           {/* Action buttons - Icons only in first row */}
-                          <div className="grid grid-cols-5 gap-2 mt-auto">
-                            <button
-                              onClick={() => handleCalendarClick(member)}
-                              className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
-                              title="View Appointments"
-                            >
-                              <Calendar size={16} />
-                            </button>
-                            <button
-                              onClick={() => handleTrainingPlansClickMain(member)}
-                              className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
-                              title="Training Plans"
-                            >
-                              <Dumbbell size={16} />
-                            </button>
-                            <button
-                              onClick={() => handleHistoryClick(member)}
-                              className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
-                              title="View History"
-                            >
-                              <History size={16} />
-                            </button>
-                            <button
-                              onClick={() => handleDocumentClick(member)}
-                              className="text-white flex-1 sm:flex-none bg-black rounded-xl border border-slate-600 py-2 px-3 hover:border-slate-400 transition-colors text-sm flex items-center justify-center gap-2 relative"
-                              title="Document Management"
-                            >
-                              <FileText size={16} />
-                            </button>
-                            <button
-                              onClick={() => handleChatClick(member)}
-                              className="text-white bg-black rounded-xl border border-slate-600 py-2 px-1 hover:border-slate-400 transition-colors text-sm flex items-center justify-center"
-                              title="Start Chat"
-                            >
-                              <MessageCircle size={16} />
-                            </button>
-                          </div>
+                          <div className="bg-[#0a0a0a] rounded-lg p-2 mt-auto">
+                            <div className="grid grid-cols-5 gap-1">
+                              <button
+                                onClick={() => handleCalendarClick(member)}
+                                className="p-2 text-gray-400 hover:text-white rounded-lg transition-colors flex items-center justify-center"
+                                title="View Appointments"
+                              >
+                                <Calendar size={16} />
+                              </button>
+                              <button
+                                onClick={() => handleTrainingPlansClickMain(member)}
+                                className="p-2 text-gray-400 hover:text-white rounded-lg transition-colors flex items-center justify-center"
+                                title="Training Plans"
+                              >
+                                <Dumbbell size={16} />
+                              </button>
+                              <button
+                                onClick={() => handleHistoryClick(member)}
+                                className="p-2 text-gray-400 hover:text-white rounded-lg transition-colors flex items-center justify-center"
+                                title="View History"
+                              >
+                                <History size={16} />
+                              </button>
+                              <button
+                                onClick={() => handleDocumentClick(member)}
+                                className="p-2 text-gray-400 hover:text-white rounded-lg transition-colors flex items-center justify-center"
+                                title="Document Management"
+                              >
+                                <FileText size={16} />
+                              </button>
+                              <button
+                                onClick={() => handleChatClick(member)}
+                                className="p-2 text-gray-400 hover:text-white rounded-lg transition-colors flex items-center justify-center"
+                                title="Start Chat"
+                              >
+                                <MessageCircle size={16} />
+                              </button>
+                            </div>
 
-                          {/* Second row - Text buttons */}
-                          <div className="grid grid-cols-2 gap-1.5 mt-2">
-                            <button
-                              onClick={() => handleViewDetails(member)}
-                              className="text-gray-200 cursor-pointer bg-black rounded-lg border border-slate-600 py-1.5 px-1 hover:text-white hover:border-slate-400 transition-colors flex items-center justify-center gap-1"
-                            >
-                              <Eye size={12} />
-                              <span className="text-xs">Details</span>
-                            </button>
-                            <button
-                              onClick={() => handleEditMember(member)}
-                              className="text-gray-200 cursor-pointer bg-black rounded-lg border border-slate-600 py-1.5 px-1 hover:text-white hover:border-slate-400 transition-colors flex items-center justify-center gap-1"
-                            >
-                              <Pencil size={12} />
-                              <span className="text-xs">Edit</span>
-                            </button>
+                            {/* Second row - Text buttons */}
+                            <div className="grid grid-cols-2 gap-1 mt-1.5">
+                              <button
+                                onClick={() => handleViewDetails(member)}
+                                className="p-2 text-blue-400 hover:text-blue-300 rounded-lg transition-colors flex items-center justify-center gap-1.5"
+                              >
+                                <Eye size={14} />
+                                <span className="text-xs font-medium">Details</span>
+                              </button>
+                              <button
+                                onClick={() => handleEditMember(member)}
+                                className="p-2 text-orange-400 hover:text-orange-300 rounded-lg transition-colors flex items-center justify-center gap-1.5"
+                              >
+                                <Pencil size={14} />
+                                <span className="text-xs font-medium">Edit</span>
+                              </button>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -2606,6 +2714,16 @@ export default function Members() {
       />
 
 
+      {/* Message Type Selection Modal */}
+      <MessageTypeSelectionModal
+        isOpen={messageTypeModal.isOpen}
+        onClose={() => setMessageTypeModal({ isOpen: false, member: null })}
+        member={messageTypeModal.member}
+        onSelectAppChat={handleOpenAppChat}
+        onSelectEmail={handleOpenEmailModal}
+      />
+
+      {/* Chat Popup */}
       {chatPopup.isOpen && chatPopup.member && (
         <ChatPopup
           member={chatPopup.member}
@@ -2614,6 +2732,24 @@ export default function Members() {
           onOpenFullMessenger={() => handleOpenFullMessenger(chatPopup.member)}
         />
       )}
+
+      {/* Send Email Modal */}
+      <SendEmailModal
+        showEmailModal={showEmailModal}
+        handleCloseEmailModal={handleCloseEmailModal}
+        handleSendEmail={handleSendEmail}
+        setShowTemplateDropdown={setShowTemplateDropdown}
+        showTemplateDropdown={showTemplateDropdown}
+        selectedEmailTemplate={selectedEmailTemplate}
+        emailTemplates={emailTemplates}
+        handleTemplateSelect={handleTemplateSelect}
+        setSelectedEmailTemplate={setSelectedEmailTemplate}
+        emailData={emailData}
+        setEmailData={setEmailData}
+        handleSearchMemberForEmail={handleSearchMemberForEmail}
+        preselectedMember={selectedMemberForEmail}
+      />
+
       {/* sidebar related modal  */}
 
       <Sidebar

@@ -30,7 +30,7 @@ import {
   ChevronUp
 } from "lucide-react"
 import { IoIosMegaphone } from "react-icons/io"
-import { WysiwygEditor } from "../configuration-components/WysiwygEditor"
+import { WysiwygEditor } from "../../shared/WysiwygEditor"
 
 const EmailManagement = ({
   isOpen,
