@@ -170,19 +170,21 @@ const firstLetter = message.senderName?.charAt(0).toUpperCase();
     return (
       <div key={message.id} className="flex items-start gap-2 sm:gap-3">
         {/* Avatar */}
-        <div className="w-16 h-16 rounded-full flex items-center justify-center bg-[#222] border border-gray-700 overflow-hidden">
-          {isOrgaGym ? (
-            <img
-              src={Logo}
-              alt="OrgaGym"
-              className="w-7 h-7 bg-orange-500 object-cover"
-            />
-          ) : (
-            <span className="text-white font-semibold">
-              {firstLetter}
-            </span>
-          )}
-        </div>
+<div className="w-16 h-16 rounded-full bg-orange-500 flex items-center justify-center overflow-hidden">
+  {isOrgaGym ? (
+    <img
+      src={Logo}
+      alt="OrgaGym"
+      className="w-full h-full object-contain"
+    />
+  ) : (
+    <span className="text-white font-semibold text-xl uppercase">
+      {firstLetter}
+    </span>
+  )}
+</div>
+
+
 
         {/* Message Content */}
         <div className="flex-1 min-w-0">

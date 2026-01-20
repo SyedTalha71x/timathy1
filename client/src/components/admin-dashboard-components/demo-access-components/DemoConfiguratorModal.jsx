@@ -94,18 +94,7 @@ const DemoConfiguratorModal = ({ isOpen, onClose, demo, onUpdate }) => {
             </div>
           </div>
 
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              id="sendEmail"
-              checked={formData.sendEmail}
-              onChange={(e) => setFormData({...formData, sendEmail: e.target.checked})}
-              className="mr-3"
-            />
-            <label htmlFor="sendEmail" className="text-sm text-gray-300">
-              Send setup email to user
-            </label>
-          </div>
+
 
           <div className="flex gap-3 pt-4">
             <button
