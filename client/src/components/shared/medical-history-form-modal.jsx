@@ -111,13 +111,14 @@ const AssessmentFormModal = ({
     if (isOpen) {
       if ((isEditMode || isViewMode) && existingDocument) {
         setAnswers(existingDocument.answers || {});
-        if (isViewMode && existingDocument.signature) {
+        // Store signature but don't jump to signature section - let user navigate through questions first
+        if (existingDocument.signature) {
           setSignature(existingDocument.signature);
-          setIsSigned(true);
         } else {
           setSignature('');
-          setIsSigned(false);
         }
+        // Always start at section 0 (questions), not signature section
+        setIsSigned(false);
       } else {
         setAnswers({});
         setSignature('');
@@ -139,7 +140,7 @@ const AssessmentFormModal = ({
       const context = canvas.getContext("2d");
       context.scale(2, 2);
       context.lineCap = "round";
-      context.strokeStyle = "white";
+      context.strokeStyle = "#000000"; // Black for visibility on white backgrounds
       context.lineWidth = 2;
       contextRef.current = context;
     } else if (isSigned && isViewMode && existingDocument?.signature && canvasRef.current) {
@@ -418,19 +419,31 @@ const AssessmentFormModal = ({
       return;
     }
     
+    // Get full name of lead/member
+    const memberFullName = `${selectedLead?.firstName || ''} ${selectedLead?.surname || selectedLead?.lastName || ''}`.trim();
+    
+    // Get form title - handle cases where assessment.title might be the full filename "Form - Name"
+    const rawTitleForFile = assessment?.title || 'Medical History Form';
+    const formTitleForFile = rawTitleForFile.includes(' - ') ? rawTitleForFile.split(' - ')[0] : rawTitleForFile;
+    
+    // Preserve existing name when editing, or generate new name with format: "FormTitle - FullName"
+    const documentName = isEditMode && existingDocument?.name 
+      ? existingDocument.name 
+      : `${formTitleForFile} - ${memberFullName || 'Unknown'}`;
+    
     const documentData = {
       id: existingDocument?.id || `doc-${Date.now()}`,
-      name: `Medical History Form - ${assessment?.title || 'Assessment'}`,
+      name: documentName,
       type: "medicalHistory",
       size: "0.3 MB",
-      uploadDate: new Date().toISOString().split("T")[0],
+      uploadDate: existingDocument?.uploadDate || new Date().toISOString().split("T")[0],
       category: "medicalHistory",
       section: "medicalHistory",
       templateId: assessment?.id || 'default',
       answers,
       signature,
       signed: true,
-      tags: [],
+      tags: existingDocument?.tags || [],
       isEdit: isEditMode
     };
     
@@ -465,6 +478,13 @@ const AssessmentFormModal = ({
 
   if (!isOpen) return null;
 
+  // Get full name of lead/member
+  const fullName = `${selectedLead?.firstName || ''} ${selectedLead?.surname || selectedLead?.lastName || ''}`.trim() || 'Unknown';
+  
+  // Get form title - handle cases where assessment.title might be the full filename "Form - Name"
+  const rawTitle = assessment?.title || existingDocument?.name || 'Medical History Form';
+  const formTitle = rawTitle.includes(' - ') ? rawTitle.split(' - ')[0] : rawTitle;
+
   return (
     <>
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-[70]">
@@ -474,10 +494,10 @@ const AssessmentFormModal = ({
             <div className="flex justify-between items-center">
               <div>
                 <h2 className="text-xl font-bold text-white">
-                  {isViewMode ? 'View Medical History' : isEditMode ? 'Edit Medical History' : assessment?.title}
+                  {formTitle}
                 </h2>
-                <p className="text-gray-400 text-sm">
-                  For: {selectedLead?.firstName} {selectedLead?.surname}
+                <p className="text-gray-400 text-sm mt-1">
+                  {isViewMode ? 'Viewing for' : isEditMode ? 'Editing for' : 'For'}: <span className="text-white font-medium">{fullName}</span>
                 </p>
                 {isViewMode && (
                   <p className="text-orange-400 text-xs mt-1">Read-only mode</p>
@@ -587,30 +607,44 @@ const AssessmentFormModal = ({
                     )}
                   </div>
                   
-                  {/* Signature Canvas */}
-                  <div className="bg-[#1C1C1C] border-2 border-gray-600 rounded-lg overflow-hidden">
-                    <canvas
-                      ref={canvasRef}
-                      className={`w-full h-48 ${isViewMode ? 'cursor-default' : 'cursor-crosshair'} touch-none bg-transparent`}
-                      onMouseDown={startDrawing}
-                      onMouseMove={draw}
-                      onMouseUp={stopDrawing}
-                      onMouseLeave={stopDrawing}
-                      onTouchStart={(e) => {
-                        if (isViewMode) return;
-                        e.preventDefault();
-                        const touch = e.touches[0];
-                        startDrawing(touch);
-                      }}
-                      onTouchMove={(e) => {
-                        if (isViewMode) return;
-                        e.preventDefault();
-                        const touch = e.touches[0];
-                        draw(touch);
-                      }}
-                      onTouchEnd={stopDrawing}
-                    />
-                  </div>
+                  {/* Signature Display */}
+                  {isViewMode && signature ? (
+                    // View mode: show signature as image
+                    <div className="bg-white border-2 border-gray-600 rounded-lg overflow-hidden p-4">
+                      <img 
+                        src={signature} 
+                        alt="Signature" 
+                        className="max-h-48 w-auto mx-auto block"
+                        style={{ backgroundColor: '#ffffff' }}
+                      />
+                    </div>
+                  ) : (
+                    // Edit mode: canvas for drawing
+                    <div className="bg-white border-2 border-gray-600 rounded-lg overflow-hidden">
+                      <canvas
+                        ref={canvasRef}
+                        className={`w-full h-48 ${isViewMode ? 'cursor-default' : 'cursor-crosshair'} touch-none`}
+                        style={{ backgroundColor: '#ffffff' }}
+                        onMouseDown={startDrawing}
+                        onMouseMove={draw}
+                        onMouseUp={stopDrawing}
+                        onMouseLeave={stopDrawing}
+                        onTouchStart={(e) => {
+                          if (isViewMode) return;
+                          e.preventDefault();
+                          const touch = e.touches[0];
+                          startDrawing(touch);
+                        }}
+                        onTouchMove={(e) => {
+                          if (isViewMode) return;
+                          e.preventDefault();
+                          const touch = e.touches[0];
+                          draw(touch);
+                        }}
+                        onTouchEnd={stopDrawing}
+                      />
+                    </div>
+                  )}
                   
                   {!isViewMode && (
                     <p className="text-gray-400 text-xs mt-2">
@@ -636,12 +670,23 @@ const AssessmentFormModal = ({
                 
                 {currentSection === sampleAssessmentSections.length - 1 ? (
                   isViewMode ? (
-                    <button
-                      onClick={onClose}
-                      className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-                    >
-                      Close
-                    </button>
+                    <div className="flex gap-3">
+                      {/* Show View Signature button if document has signature */}
+                      {signature && (
+                        <button
+                          onClick={() => setIsSigned(true)}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                          View Signature
+                        </button>
+                      )}
+                      <button
+                        onClick={onClose}
+                        className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                      >
+                        Close
+                      </button>
+                    </div>
                   ) : (
                     <button
                       onClick={() => setIsSigned(true)}
@@ -664,12 +709,20 @@ const AssessmentFormModal = ({
             ) : (
               <div className="flex flex-col sm:flex-row gap-3 justify-end">
                 {isViewMode ? (
-                  <button
-                    onClick={onClose}
-                    className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-                  >
-                    Close
-                  </button>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setIsSigned(false)}
+                      className="px-4 py-2 text-gray-300 border border-gray-600 rounded-lg hover:bg-gray-700 transition-colors"
+                    >
+                      Back to Questions
+                    </button>
+                    <button
+                      onClick={onClose}
+                      className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                    >
+                      Close
+                    </button>
+                  </div>
                 ) : (
                   <>
                     <button

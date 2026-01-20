@@ -428,204 +428,6 @@ function DocumentViewerModal({ isOpen, onClose, document, onDownload, onPrint })
 }
 
 // ============================================
-// Medical History Viewer Modal (for viewing form responses inline)
-// ============================================
-function MedicalHistoryViewerModal({ isOpen, onClose, document, onDownload, onPrint }) {
-  if (!isOpen || !document) return null
-
-  // Sample sections structure (matching the form modal)
-  const sampleAssessmentSections = [
-    {
-      id: 1,
-      name: "Questions before trial training",
-      items: [
-        { id: 1, text: "How did you hear about us?", number: 1 },
-        { id: 2, text: "Are you ready for your EMS training today?", number: 2 },
-        { id: 3, text: "Are you 'sport healthy'?", number: 3 },
-        { id: 4, text: "What goals are you pursuing?", number: 4 }
-      ]
-    },
-    {
-      id: 2,
-      name: "Contraindications: Checklist",
-      items: [
-        { id: 6, text: "Arteriosclerosis, arterial circulation disorders", number: 5 },
-        { id: 7, text: "Abdominal wall and inguinal hernias", number: 6 },
-        { id: 8, text: "Cancer diseases", number: 7 },
-        { id: 9, text: "Stents and bypasses that have been active for less than 6 months", number: 8 }
-      ]
-    }
-  ]
-
-  const formatAnswer = (answer) => {
-    if (answer === true || answer === 'yes') return 'Yes'
-    if (answer === false || answer === 'no') return 'No'
-    if (answer === 'dontknow') return "Don't know"
-    return String(answer || '-')
-  }
-
-  const getAnswerColor = (answer) => {
-    if (answer === true || answer === 'yes') return 'text-green-400'
-    if (answer === false || answer === 'no') return 'text-red-400'
-    if (answer === 'dontknow') return 'text-yellow-400'
-    return 'text-gray-300'
-  }
-
-  // Get known question IDs
-  const knownIds = sampleAssessmentSections.flatMap(s => s.items.map(i => i.id))
-  
-  // Get unknown answers
-  const unknownAnswers = document.answers 
-    ? Object.entries(document.answers).filter(([id]) => !knownIds.includes(parseInt(id)))
-    : []
-
-  return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[90]">
-      <div className="bg-[#1C1C1C] rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden mx-4 flex flex-col">
-        {/* Header */}
-        <div className="flex justify-between items-center p-4 border-b border-gray-800 bg-[#3F74FF]">
-          <div>
-            <h3 className="text-white text-lg font-bold">Medical History Form</h3>
-            <p className="text-white/80 text-sm">{document.name}</p>
-          </div>
-          <button onClick={onClose} className="text-white/80 hover:text-white">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-        
-        {/* Content */}
-        <div className="flex-1 overflow-auto p-4">
-          {/* Meta info */}
-          <div className="flex flex-wrap gap-4 mb-6 text-sm">
-            <div className="bg-[#2a2a2a] px-3 py-2 rounded-lg">
-              <span className="text-gray-400">Date:</span>
-              <span className="text-white ml-2">{document.uploadDate || 'N/A'}</span>
-            </div>
-            <div className="bg-[#2a2a2a] px-3 py-2 rounded-lg">
-              <span className="text-gray-400">Status:</span>
-              <span className={`ml-2 ${document.signed ? 'text-green-400' : 'text-yellow-400'}`}>
-                {document.signed ? 'Signed' : 'Unsigned'}
-              </span>
-            </div>
-          </div>
-
-          {/* Sections with answers */}
-          {document.answers && Object.keys(document.answers).length > 0 ? (
-            <div className="space-y-6">
-              {sampleAssessmentSections.map(section => {
-                const sectionAnswers = section.items.filter(item => document.answers[item.id] !== undefined)
-                
-                if (sectionAnswers.length === 0) return null
-                
-                return (
-                  <div key={section.id} className="bg-[#141414] rounded-xl overflow-hidden">
-                    {/* Section header */}
-                    <div className="bg-[#2a2a2a] px-4 py-3">
-                      <h4 className="text-white font-medium">{section.name}</h4>
-                    </div>
-                    
-                    {/* Questions */}
-                    <div className="divide-y divide-gray-800">
-                      {sectionAnswers.map(item => {
-                        const answer = document.answers[item.id]
-                        return (
-                          <div key={item.id} className="px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-2">
-                            <div className="flex-1">
-                              <span className="text-[#3F74FF] font-medium mr-2">{item.number}.</span>
-                              <span className="text-gray-300">{item.text}</span>
-                            </div>
-                            <div className={`font-medium ${getAnswerColor(answer)}`}>
-                              {formatAnswer(answer)}
-                            </div>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-                )
-              })}
-
-              {/* Unknown/Additional answers */}
-              {unknownAnswers.length > 0 && (
-                <div className="bg-[#141414] rounded-xl overflow-hidden">
-                  <div className="bg-[#2a2a2a] px-4 py-3">
-                    <h4 className="text-white font-medium">Additional Information</h4>
-                  </div>
-                  <div className="divide-y divide-gray-800">
-                    {unknownAnswers.map(([id, answer], idx) => (
-                      <div key={id} className="px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-2">
-                        <div className="flex-1">
-                          <span className="text-[#3F74FF] font-medium mr-2">Q{idx + 1}.</span>
-                          <span className="text-gray-400">Question ID: {id}</span>
-                        </div>
-                        <div className={`font-medium ${getAnswerColor(answer)}`}>
-                          {formatAnswer(answer)}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <ClipboardList className="w-12 h-12 text-gray-500 mx-auto mb-3" />
-              <p className="text-gray-400">No answers recorded</p>
-            </div>
-          )}
-
-          {/* Signature */}
-          {document.signature && (
-            <div className="mt-6 bg-[#141414] rounded-xl p-4">
-              <h4 className="text-white font-medium mb-3 flex items-center gap-2">
-                <FileSignature className="w-4 h-4 text-[#3F74FF]" />
-                Signature
-              </h4>
-              {/* White box with border for signature visibility */}
-              <div 
-                className="rounded-lg p-3 inline-block border border-gray-300"
-                style={{ backgroundColor: '#ffffff' }}
-              >
-                <img 
-                  src={document.signature} 
-                  alt="Signature" 
-                  className="max-h-20 w-auto block"
-                  style={{ 
-                    backgroundColor: '#ffffff',
-                    minWidth: '150px'
-                  }}
-                />
-              </div>
-              <p className="text-gray-500 text-xs mt-2">
-                Signed on: {document.uploadDate || 'N/A'}
-              </p>
-            </div>
-          )}
-        </div>
-        
-        {/* Footer */}
-        <div className="p-4 border-t border-gray-800 flex gap-3">
-          <button
-            onClick={() => onDownload && onDownload(document)}
-            className="flex-1 py-2.5 bg-[#3F74FF] text-white rounded-xl hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
-          >
-            <Download className="w-4 h-4" />
-            Download PDF
-          </button>
-          <button
-            onClick={() => onPrint && onPrint(document)}
-            className="flex-1 py-2.5 bg-gray-600 text-white rounded-xl hover:bg-gray-700 transition-colors flex items-center justify-center gap-2"
-          >
-            <Printer className="w-4 h-4" />
-            Print
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ============================================
 // Main Document Management Modal
 // ============================================
 export default function DocumentManagementModal({ 
@@ -651,7 +453,6 @@ export default function DocumentManagementModal({
   const [editingDocId, setEditingDocId] = useState(null)
   const [newDocName, setNewDocName] = useState("")
   const [viewingDocument, setViewingDocument] = useState(null)
-  const [viewingMedicalHistory, setViewingMedicalHistory] = useState(null)
   const [activeSection, setActiveSection] = useState("general")
   const [isTagManagerOpen, setIsTagManagerOpen] = useState(false)
   const [configuredTags, setConfiguredTags] = useState([
@@ -769,9 +570,15 @@ export default function DocumentManagementModal({
     let yPos = margin
     
     // Colors
-    const primaryColor = [63, 116, 255] // Blue
+    const primaryColor = [249, 115, 22] // Orange-500
     const textColor = [51, 51, 51]
     const grayColor = [100, 100, 100]
+    
+    // Parse document name to get form title and member name
+    // Format: "Form Title - Member Name"
+    const nameParts = (doc.name || 'Medical History Form').split(' - ')
+    const formTitle = nameParts[0] || 'Medical History Form'
+    const memberName = nameParts[1] || ''
     
     // Helper to add new page if needed
     const checkPageBreak = (neededHeight) => {
@@ -785,20 +592,27 @@ export default function DocumentManagementModal({
     
     // Compact Header
     pdf.setFillColor(...primaryColor)
-    pdf.rect(0, 0, pageWidth, 25, 'F')
+    pdf.rect(0, 0, pageWidth, 30, 'F')
     
     pdf.setTextColor(255, 255, 255)
     pdf.setFontSize(16)
     pdf.setFont('helvetica', 'bold')
-    pdf.text('Medical History Form', margin, 16)
+    pdf.text(formTitle, margin, 14)
     
-    // Date and status in header
+    // Member name below title
+    if (memberName) {
+      pdf.setFontSize(11)
+      pdf.setFont('helvetica', 'normal')
+      pdf.text(`For: ${memberName}`, margin, 22)
+    }
+    
+    // Date and status in header (right side)
     pdf.setFontSize(9)
     pdf.setFont('helvetica', 'normal')
     const headerInfo = `${doc.uploadDate || 'N/A'} • ${doc.signed ? 'Signed' : 'Unsigned'}`
-    pdf.text(headerInfo, pageWidth - margin, 16, { align: 'right' })
+    pdf.text(headerInfo, pageWidth - margin, 14, { align: 'right' })
     
-    yPos = 35
+    yPos = 40
     
     // Sample sections structure (matching the form modal)
     const sampleAssessmentSections = [
@@ -1222,9 +1036,9 @@ export default function DocumentManagementModal({
   }
 
   const handleViewDocument = (doc) => {
-    // Medical history forms use our own inline viewer
-    if (doc.type === "medicalHistory") {
-      setViewingMedicalHistory(doc)
+    // Medical history forms use the AssessmentFormModal in view mode
+    if (doc.type === "medicalHistory" && onViewAssessment) {
+      onViewAssessment(doc)
     } else {
       setViewingDocument(doc)
     }
@@ -1387,15 +1201,6 @@ export default function DocumentManagementModal({
         isOpen={!!viewingDocument}
         onClose={() => setViewingDocument(null)}
         document={viewingDocument}
-        onDownload={handleDownload}
-        onPrint={handlePrint}
-      />
-
-      {/* Medical History Viewer Modal */}
-      <MedicalHistoryViewerModal
-        isOpen={!!viewingMedicalHistory}
-        onClose={() => setViewingMedicalHistory(null)}
-        document={viewingMedicalHistory}
         onDownload={handleDownload}
         onPrint={handlePrint}
       />
@@ -1675,16 +1480,13 @@ export default function DocumentManagementModal({
                         >
                           <Printer className="w-4 h-4" />
                         </button>
-                        {/* Hide rename button for medical history forms - use edit button instead */}
-                        {doc.type !== "medicalHistory" && (
-                          <button
-                            onClick={() => startEditing(doc)}
-                            className="p-2 bg-[#2a2a2a] text-gray-300 rounded-md hover:bg-[#333] transition-colors"
-                            title="Rename"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </button>
-                        )}
+                        <button
+                          onClick={() => startEditing(doc)}
+                          className="p-2 bg-[#2a2a2a] text-gray-300 rounded-md hover:bg-[#333] transition-colors"
+                          title="Rename"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
                         <button
                           onClick={() => handleDelete(doc.id)}
                           className="p-2 bg-[#2a2a2a] text-red-400 rounded-md hover:bg-[#333] transition-colors"
