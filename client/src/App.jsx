@@ -1,9 +1,9 @@
 import { Route, Routes, useLocation } from "react-router-dom";
-import Home from "./pages/home";
+import Home from "./landing-page/home";
 import Footer from "./components/footer";
 import Header from "./components/navbar";
-import Login from './pages/login';
-import Register from './pages/register'
+import Login from './landing-page/login';
+import Register from './landing-page/register'
 
 // User Panel Dashboard
 import Dashboardlayout from "./layouts/dashboard-layout";

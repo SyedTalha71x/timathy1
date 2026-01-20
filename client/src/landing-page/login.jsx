@@ -2,14 +2,17 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/no-unescaped-entities */
 import { useState, useRef, useEffect } from "react"
+import { useNavigate, Link } from "react-router-dom"
 import Art from "../../public/Art.png"
 import { gsap } from "gsap"
 
 export default function SignInPage() {
+  const navigate = useNavigate()
   const [loginType, setLoginType] = useState("user")
   const tabAnimationRef = useRef(null)
   const userTabRef = useRef(null)
   const adminTabRef = useRef(null)
+  const memberTabRef = useRef(null)
   const formContainerRef = useRef(null)
 
   const [userFormData, setUserFormData] = useState({
@@ -28,12 +31,25 @@ export default function SignInPage() {
     password: "",
   })
 
-  const redirectMember = () => (window.location.href = "/member-view/studio-menu")
-  const redirectUser = () => (window.location.href = "/dashboard/my-area")
-  const redirectAdmin = () => (window.location.href = "/admin-dashboard/my-area")
+  // Schnelle Navigation mit React Router (kein Page Reload!)
+  const redirectMember = () => navigate("/member-view/studio-menu")
+  const redirectUser = () => navigate("/dashboard/my-area")
+  const redirectAdmin = () => navigate("/admin-dashboard/my-area")
 
-  const handleUserSubmit = (e) => e.preventDefault()
-  const handleAdminSubmit = (e) => e.preventDefault()
+  const handleUserSubmit = (e) => {
+    e.preventDefault()
+    redirectUser()
+  }
+
+  const handleAdminSubmit = (e) => {
+    e.preventDefault()
+    redirectAdmin()
+  }
+
+  const handleMemberSubmit = (e) => {
+    e.preventDefault()
+    redirectMember()
+  }
 
   const switchTab = (type) => {
     if (type === loginType) return
@@ -65,8 +81,9 @@ export default function SignInPage() {
           ease: "power2.inOut",
         })
 
-        gsap.to(userTabRef.current, { color: type === "user" ? "white" : "#9CA3AF" })
-        gsap.to(adminTabRef.current, { color: type === "admin" ? "white" : "#9CA3AF" })
+        gsap.to(userTabRef.current, { color: type === "user" ? "white" : "#9CA3AF", duration: 0.3 })
+        gsap.to(adminTabRef.current, { color: type === "admin" ? "white" : "#9CA3AF", duration: 0.3 })
+        gsap.to(memberTabRef.current, { color: type === "member" ? "white" : "#9CA3AF", duration: 0.3 })
 
         gsap.fromTo(
           formContainer,
@@ -132,6 +149,7 @@ export default function SignInPage() {
               </button>
 
               <button
+                ref={memberTabRef}
                 className="relative z-10 flex-1 py-2 text-gray-400"
                 onClick={() => switchTab("member")}
               >
@@ -176,7 +194,6 @@ export default function SignInPage() {
                     </a>
                   </div>
                   <button
-                    onClick={redirectUser}
                     type="submit"
                     className="w-full rounded-xl bg-[#3F74FF] px-4 py-2 sm:py-3 text-white hover:bg-blue-700 transition-all duration-500 ease-in-out text-sm sm:text-base"
                   >
@@ -211,7 +228,6 @@ export default function SignInPage() {
                     </a>
                   </div>
                   <button
-                    onClick={redirectAdmin}
                     type="submit"
                     className="w-full rounded-xl bg-[#FF3F3F] px-4 py-2 sm:py-3 text-white hover:bg-red-700 transition-all duration-500 ease-in-out text-sm sm:text-base"
                   >
@@ -221,13 +237,7 @@ export default function SignInPage() {
               )}
 
               {loginType === "member" && (
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault()
-                    redirectMember()
-                  }}
-                  className="space-y-3 sm:space-y-4"
-                >
+                <form onSubmit={handleMemberSubmit} className="space-y-3 sm:space-y-4">
                   <input
                     type="email"
                     placeholder="Member Email"
@@ -259,6 +269,14 @@ export default function SignInPage() {
                   </button>
                 </form>
               )}
+
+              {/* Sign Up Link */}
+              <div className="mt-6 text-center">
+                <span className="text-gray-400 text-sm">Don't have an account? </span>
+                <Link to="/register" className="text-blue-500 text-sm hover:underline">
+                  Sign Up
+                </Link>
+              </div>
             </div>
           </div>
         </div>

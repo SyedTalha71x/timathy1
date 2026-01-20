@@ -1,10 +1,11 @@
 /* eslint-disable react/no-unescaped-entities */
 import { useState, useRef, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import Art from "../../public/Art1.png";
-import { Link } from "react-router-dom";
 import { gsap } from "gsap";
 
 export default function Register() {
+  const navigate = useNavigate();
   const [registerType, setRegisterType] = useState("user");
   const tabAnimationRef = useRef(null);
   const userTabRef = useRef(null);
@@ -27,18 +28,14 @@ export default function Register() {
 
   const handleUserSubmit = (e) => {
     e.preventDefault();
+    // Nach erfolgreicher Registrierung zum Login navigieren
+    navigate("/login");
   };
 
   const handleAdminSubmit = (e) => {
     e.preventDefault();
-  };
-
-  const redirectUser = () => {
-    window.location.href = "/login";
-  };
-
-  const redirectAdmin = () => {
-    window.location.href = "/login";
+    // Nach erfolgreicher Registrierung zum Login navigieren
+    navigate("/login");
   };
 
   const switchTab = (type) => {
@@ -175,7 +172,6 @@ export default function Register() {
                   </div>
 
                   <button
-                    onClick={redirectUser}
                     type="submit"
                     className="w-full register_btn rounded-xl cursor-pointer bg-[#3F74FF] px-4 py-3 text-white hover:bg-blue-700 transition-all duration-500 ease-in-out"
                   >
@@ -186,7 +182,7 @@ export default function Register() {
                     <div className="text-white">
                       Already have an account?
                       <Link
-                        to={"/login"}
+                        to="/login"
                         className="text-blue-500 ml-1 hover:underline"
                       >
                         Sign In
@@ -236,7 +232,6 @@ export default function Register() {
                   </div>
 
                   <button
-                    onClick={redirectAdmin}
                     type="submit"
                     className="w-full register_btn rounded-xl cursor-pointer bg-[#FF3F3F] px-4 py-3 text-white hover:bg-red-700 transition-all duration-500 ease-in-out"
                   >
@@ -247,7 +242,7 @@ export default function Register() {
                     <div className="text-white">
                       Already have an account?
                       <Link
-                        to={"/login"}
+                        to="/login"
                         className="text-blue-500 ml-1 hover:underline"
                       >
                         Sign In
