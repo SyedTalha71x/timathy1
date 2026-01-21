@@ -22,9 +22,17 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
-  Palmtree,
   UserCheck,
   Bell,
+  PauseCircle,
+  CreditCard,
+  UserCog,
+  ArrowRight,
+  MapPin,
+  Phone,
+  AtSign,
+  Paperclip,
+  Building,
 } from "lucide-react"
 import toast, { Toaster } from "react-hot-toast"
 
@@ -166,6 +174,7 @@ const initialFailedEmails = [
     errorType: "bounced",
     errorMessage: "Mailbox not found",
     retryCount: 2,
+    recipientType: "member",
   },
   {
     id: "mail-2",
@@ -177,21 +186,195 @@ const initialFailedEmails = [
     errorType: "rejected",
     errorMessage: "Blocked by spam filter",
     retryCount: 1,
+    recipientType: "member",
+  },
+  {
+    id: "mail-3",
+    recipient: "m.mustermann@studio.de",
+    recipientFirstName: "Max",
+    recipientLastName: "Mustermann",
+    subject: "Shift Schedule Update",
+    sentAt: "2026-01-19T09:15:00",
+    errorType: "bounced",
+    errorMessage: "Invalid email address",
+    retryCount: 1,
+    recipientType: "staff",
+  },
+  {
+    id: "mail-4",
+    recipient: "a.schmidt@studio.de",
+    recipientFirstName: "Anna",
+    recipientLastName: "Schmidt",
+    subject: "Vacation Request Approved",
+    sentAt: "2026-01-18T11:00:00",
+    errorType: "rejected",
+    errorMessage: "Mailbox full",
+    retryCount: 3,
+    recipientType: "staff",
   },
 ]
+
+// NEW: Contract Pause Requests
+const initialContractPauseRequests = [
+  {
+    id: "pause-1",
+    memberFirstName: "Sophie",
+    memberLastName: "Becker",
+    membershipType: "Premium",
+    pauseStart: "2026-02-01",
+    pauseEnd: "2026-03-15",
+    pauseDuration: 6,
+    reason: "Extended travel abroad",
+    status: "pending",
+    submittedAt: "2026-01-19T09:30:00",
+    monthlyFee: 79.99,
+    attachments: [],
+  },
+  {
+    id: "pause-2",
+    memberFirstName: "Lukas",
+    memberLastName: "Zimmermann",
+    membershipType: "Standard",
+    pauseStart: "2026-02-15",
+    pauseEnd: "2026-03-31",
+    pauseDuration: 6,
+    reason: "Medical recovery after surgery",
+    status: "pending",
+    submittedAt: "2026-01-18T16:00:00",
+    monthlyFee: 49.99,
+    attachments: [{ name: "medical_certificate.pdf", type: "pdf" }],
+  },
+  {
+    id: "pause-3",
+    memberFirstName: "Hannah",
+    memberLastName: "Wolf",
+    membershipType: "Premium Plus",
+    pauseStart: "2026-01-20",
+    pauseEnd: "2026-02-20",
+    pauseDuration: 4,
+    reason: "Pregnancy",
+    status: "approved",
+    submittedAt: "2026-01-10T11:00:00",
+    monthlyFee: 99.99,
+    attachments: [{ name: "pregnancy_confirmation.pdf", type: "pdf" }],
+  },
+]
+
+// NEW: Bank Data Change Requests
+const initialBankDataRequests = [
+  {
+    id: "bank-1",
+    memberFirstName: "Felix",
+    memberLastName: "Neumann",
+    membershipType: "Premium",
+    changeType: "fullBankChange",
+    oldBankName: "Deutsche Bank",
+    newBankName: "Commerzbank",
+    oldIban: "DE89 3704 0044 0532 0130 00",
+    newIban: "DE91 1000 0000 0123 4567 89",
+    oldBic: "DEUTDEDB",
+    newBic: "COBADEFF",
+    status: "pending",
+    submittedAt: "2026-01-19T14:20:00",
+  },
+  {
+    id: "bank-2",
+    memberFirstName: "Lena",
+    memberLastName: "Krause",
+    membershipType: "Standard",
+    changeType: "accountHolder",
+    oldValue: "Lena Krause",
+    newValue: "Lena Krause-Meyer",
+    status: "pending",
+    submittedAt: "2026-01-18T10:45:00",
+  },
+  {
+    id: "bank-3",
+    memberFirstName: "Jan",
+    memberLastName: "Richter",
+    membershipType: "Premium Plus",
+    changeType: "fullBankChange",
+    oldBankName: "Sparkasse Berlin",
+    newBankName: "Deutsche Bank",
+    oldIban: "DE12 5001 0517 0648 4898 90",
+    newIban: "DE89 3704 0044 0532 0130 00",
+    oldBic: "BELADEBE",
+    newBic: "DEUTDEDB",
+    status: "approved",
+    submittedAt: "2026-01-15T09:00:00",
+  },
+]
+
+// NEW: Member Data Change Requests
+const initialMemberDataRequests = [
+  {
+    id: "member-1",
+    memberFirstName: "Christina",
+    memberLastName: "Lang",
+    membershipType: "Premium",
+    changeType: "address",
+    fieldLabel: "Address",
+    oldValue: "Hauptstraße 15, 10115 Berlin",
+    newValue: "Parkweg 42, 10178 Berlin",
+    status: "pending",
+    submittedAt: "2026-01-19T11:30:00",
+  },
+  {
+    id: "member-2",
+    memberFirstName: "Tobias",
+    memberLastName: "Schröder",
+    membershipType: "Standard",
+    changeType: "lastName",
+    fieldLabel: "Last Name",
+    oldValue: "Schröder",
+    newValue: "Schröder-Hansen",
+    status: "pending",
+    submittedAt: "2026-01-18T15:00:00",
+  },
+  {
+    id: "member-3",
+    memberFirstName: "Melanie",
+    memberLastName: "Vogel",
+    membershipType: "Premium Plus",
+    changeType: "email",
+    fieldLabel: "Email",
+    oldValue: "m.vogel@oldmail.de",
+    newValue: "melanie.vogel@newmail.de",
+    status: "pending",
+    submittedAt: "2026-01-17T13:15:00",
+  },
+  {
+    id: "member-4",
+    memberFirstName: "Markus",
+    memberLastName: "Keller",
+    membershipType: "Standard",
+    changeType: "phone",
+    fieldLabel: "Phone",
+    oldValue: "+49 170 1234567",
+    newValue: "+49 151 9876543",
+    status: "approved",
+    submittedAt: "2026-01-14T10:00:00",
+  },
+]
+
+// Helper: Get change type icon
+const getChangeTypeIcon = (changeType) => {
+  switch (changeType) {
+    case "address": return MapPin
+    case "phone": return Phone
+    case "email": return AtSign
+    case "lastName":
+    case "firstName": return User
+    case "iban":
+    case "accountHolder": return CreditCard
+    default: return FileText
+  }
+}
 
 // ============================================
 // Tab Configuration - Only Orange and Blue
 // ============================================
 const tabs = [
-  { 
-    id: "vacation", 
-    label: "Vacation Requests", 
-    icon: Palmtree,
-    color: "bg-blue-500",
-    lightColor: "bg-blue-500/10",
-    textColor: "text-blue-400"
-  },
   { 
     id: "appointments", 
     label: "Appointment Requests", 
@@ -209,12 +392,44 @@ const tabs = [
     textColor: "text-orange-400"
   },
   { 
-    id: "emails", 
-    label: "Email Errors", 
-    icon: MailWarning,
+    id: "contractPause", 
+    label: "Contract Pauses", 
+    icon: PauseCircle,
     color: "bg-orange-500",
     lightColor: "bg-orange-500/10",
     textColor: "text-orange-400"
+  },
+  { 
+    id: "memberData", 
+    label: "Member Data Changes", 
+    icon: UserCog,
+    color: "bg-orange-500",
+    lightColor: "bg-orange-500/10",
+    textColor: "text-orange-400"
+  },
+  { 
+    id: "bankData", 
+    label: "Bank Data Changes", 
+    icon: CreditCard,
+    color: "bg-orange-500",
+    lightColor: "bg-orange-500/10",
+    textColor: "text-orange-400"
+  },
+  { 
+    id: "vacation", 
+    label: "Vacation Requests", 
+    icon: Calendar,
+    color: "bg-blue-500",
+    lightColor: "bg-blue-500/10",
+    textColor: "text-blue-400"
+  },
+  { 
+    id: "emails", 
+    label: "Email Errors", 
+    icon: MailWarning,
+    color: "bg-gray-500",
+    lightColor: "bg-gray-500/10",
+    textColor: "text-gray-400"
   },
 ]
 
@@ -234,6 +449,24 @@ const statusFilters = {
     { id: "approved", label: "Confirmed" },
     { id: "rejected", label: "Rejected" },
   ],
+  contractPause: [
+    { id: "all", label: "All" },
+    { id: "pending", label: "Pending" },
+    { id: "approved", label: "Approved" },
+    { id: "rejected", label: "Rejected" },
+  ],
+  bankData: [
+    { id: "all", label: "All" },
+    { id: "pending", label: "Pending" },
+    { id: "approved", label: "Approved" },
+    { id: "rejected", label: "Rejected" },
+  ],
+  memberData: [
+    { id: "all", label: "All" },
+    { id: "pending", label: "Pending" },
+    { id: "approved", label: "Approved" },
+    { id: "rejected", label: "Rejected" },
+  ],
   contracts: [
     { id: "all", label: "All" },
     { id: "critical", label: "Critical (< 14 days)" },
@@ -251,7 +484,7 @@ export default function ActivityMonitor() {
   const sidebarSystem = useSidebarSystem()
   
   // Tab & Filter States
-  const [activeTab, setActiveTab] = useState("vacation")
+  const [activeTab, setActiveTab] = useState("appointments")
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [showArchived, setShowArchived] = useState(false)
@@ -268,6 +501,9 @@ export default function ActivityMonitor() {
   const [appointmentRequests, setAppointmentRequests] = useState(initialAppointmentRequests)
   const [expiringContracts, setExpiringContracts] = useState(initialExpiringContracts)
   const [failedEmails, setFailedEmails] = useState(initialFailedEmails)
+  const [contractPauseRequests, setContractPauseRequests] = useState(initialContractPauseRequests)
+  const [bankDataRequests, setBankDataRequests] = useState(initialBankDataRequests)
+  const [memberDataRequests, setMemberDataRequests] = useState(initialMemberDataRequests)
   
   // Modal States
   const [selectedItem, setSelectedItem] = useState(null)
@@ -307,6 +543,18 @@ export default function ActivityMonitor() {
       appointments: {
         total: appointmentRequests.length,
         pending: appointmentRequests.filter(r => r.status === "pending").length,
+      },
+      contractPause: {
+        total: contractPauseRequests.length,
+        pending: contractPauseRequests.filter(r => r.status === "pending").length,
+      },
+      bankData: {
+        total: bankDataRequests.length,
+        pending: bankDataRequests.filter(r => r.status === "pending").length,
+      },
+      memberData: {
+        total: memberDataRequests.length,
+        pending: memberDataRequests.filter(r => r.status === "pending").length,
       },
       contracts: {
         total: expiringContracts.length,
@@ -351,6 +599,50 @@ export default function ActivityMonitor() {
             `${r.memberFirstName} ${r.memberLastName}`.toLowerCase().includes(query) ||
             r.appointmentType.toLowerCase().includes(query) ||
             r.trainer.toLowerCase().includes(query)
+          )
+        }
+        break
+        
+      case "contractPause":
+        data = [...contractPauseRequests]
+        if (statusFilter !== "all") {
+          data = data.filter(r => r.status === statusFilter)
+        }
+        if (searchQuery) {
+          const query = searchQuery.toLowerCase()
+          data = data.filter(r => 
+            `${r.memberFirstName} ${r.memberLastName}`.toLowerCase().includes(query) ||
+            r.reason.toLowerCase().includes(query) ||
+            r.membershipType.toLowerCase().includes(query)
+          )
+        }
+        break
+        
+      case "bankData":
+        data = [...bankDataRequests]
+        if (statusFilter !== "all") {
+          data = data.filter(r => r.status === statusFilter)
+        }
+        if (searchQuery) {
+          const query = searchQuery.toLowerCase()
+          data = data.filter(r => 
+            `${r.memberFirstName} ${r.memberLastName}`.toLowerCase().includes(query) ||
+            r.changeType.toLowerCase().includes(query)
+          )
+        }
+        break
+        
+      case "memberData":
+        data = [...memberDataRequests]
+        if (statusFilter !== "all") {
+          data = data.filter(r => r.status === statusFilter)
+        }
+        if (searchQuery) {
+          const query = searchQuery.toLowerCase()
+          data = data.filter(r => 
+            `${r.memberFirstName} ${r.memberLastName}`.toLowerCase().includes(query) ||
+            r.changeType.toLowerCase().includes(query) ||
+            r.fieldLabel.toLowerCase().includes(query)
           )
         }
         break
@@ -429,6 +721,21 @@ export default function ActivityMonitor() {
         prev.map(r => r.id === id ? { ...r, status: "approved" } : r)
       )
       toast.success("Appointment request confirmed")
+    } else if (type === "contractPause") {
+      setContractPauseRequests(prev => 
+        prev.map(r => r.id === id ? { ...r, status: "approved" } : r)
+      )
+      toast.success("Contract pause approved")
+    } else if (type === "bankData") {
+      setBankDataRequests(prev => 
+        prev.map(r => r.id === id ? { ...r, status: "approved" } : r)
+      )
+      toast.success("Bank data change approved")
+    } else if (type === "memberData") {
+      setMemberDataRequests(prev => 
+        prev.map(r => r.id === id ? { ...r, status: "approved" } : r)
+      )
+      toast.success("Member data change approved")
     }
   }
 
@@ -443,6 +750,21 @@ export default function ActivityMonitor() {
         prev.map(r => r.id === id ? { ...r, status: "rejected" } : r)
       )
       toast.success("Appointment request rejected")
+    } else if (type === "contractPause") {
+      setContractPauseRequests(prev => 
+        prev.map(r => r.id === id ? { ...r, status: "rejected" } : r)
+      )
+      toast.success("Contract pause rejected")
+    } else if (type === "bankData") {
+      setBankDataRequests(prev => 
+        prev.map(r => r.id === id ? { ...r, status: "rejected" } : r)
+      )
+      toast.success("Bank data change rejected")
+    } else if (type === "memberData") {
+      setMemberDataRequests(prev => 
+        prev.map(r => r.id === id ? { ...r, status: "rejected" } : r)
+      )
+      toast.success("Member data change rejected")
     }
   }
 
@@ -530,6 +852,13 @@ export default function ActivityMonitor() {
       return <span className="px-2.5 py-1 rounded-lg text-xs font-medium bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">Soon</span>
     }
     return <span className="px-2.5 py-1 rounded-lg text-xs font-medium bg-blue-500/20 text-blue-400 border border-blue-500/30">Upcoming</span>
+  }
+
+  const maskIban = (iban) => {
+    if (!iban) return "N/A"
+    const cleaned = iban.replace(/\s/g, '')
+    if (cleaned.length < 8) return iban
+    return `${cleaned.slice(0, 4)} **** **** ${cleaned.slice(-4)}`
   }
 
   // Sort options based on active tab
@@ -697,9 +1026,10 @@ export default function ActivityMonitor() {
         </div>
 
         {/* ============================================ */}
-        {/* Stats Overview Cards */}
+        {/* Stats Overview Cards - Scrollable on smaller screens */}
         {/* ============================================ */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
+        <div className="mb-6 overflow-x-auto pb-2 -mx-3 px-3 md:mx-0 md:px-0">
+          <div className="flex gap-3 md:grid md:grid-cols-4 lg:grid-cols-7 min-w-max md:min-w-0">
           {tabs.map((tab) => {
             const count = counts[tab.id]
             const pendingCount = count.pending || count.critical || 0
@@ -710,19 +1040,19 @@ export default function ActivityMonitor() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`
-                  relative p-4 md:p-5 rounded-2xl transition-all duration-200 text-left
+                  relative p-4 rounded-2xl transition-all duration-200 text-left min-w-[140px] md:min-w-0
                   ${isActive 
                     ? `${tab.color} shadow-lg` 
                     : 'bg-[#161616] hover:bg-[#1F1F1F]'
                   }
                 `}
               >
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className={`text-xs md:text-sm ${isActive ? 'text-white/80' : 'text-gray-400'}`}>
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <p className={`text-xs ${isActive ? 'text-white/80' : 'text-gray-400'} truncate`}>
                       {tab.label}
                     </p>
-                    <p className={`text-2xl md:text-3xl font-bold mt-1 ${isActive ? 'text-white' : 'text-white'}`}>
+                    <p className={`text-2xl font-bold mt-1 ${isActive ? 'text-white' : 'text-white'}`}>
                       {count.total}
                     </p>
                     {pendingCount > 0 && (
@@ -732,10 +1062,10 @@ export default function ActivityMonitor() {
                     )}
                   </div>
                   <div className={`
-                    p-2.5 rounded-xl
+                    p-2 rounded-xl flex-shrink-0
                     ${isActive ? 'bg-white/20' : tab.lightColor}
                   `}>
-                    <tab.icon size={20} className={isActive ? 'text-white' : tab.textColor} />
+                    <tab.icon size={18} className={isActive ? 'text-white' : tab.textColor} />
                   </div>
                 </div>
                 
@@ -746,6 +1076,7 @@ export default function ActivityMonitor() {
               </button>
             )
           })}
+        </div>
         </div>
 
         {/* ============================================ */}
@@ -856,8 +1187,11 @@ export default function ActivityMonitor() {
           {filteredData.length === 0 ? (
             <div className="bg-[#161616] rounded-2xl p-12 text-center">
               <div className="w-16 h-16 bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                {activeTab === "vacation" && <Palmtree size={28} className="text-gray-500" />}
+                {activeTab === "vacation" && <Calendar size={28} className="text-gray-500" />}
                 {activeTab === "appointments" && <CalendarCheck size={28} className="text-gray-500" />}
+                {activeTab === "contractPause" && <PauseCircle size={28} className="text-gray-500" />}
+                {activeTab === "bankData" && <CreditCard size={28} className="text-gray-500" />}
+                {activeTab === "memberData" && <UserCog size={28} className="text-gray-500" />}
                 {activeTab === "contracts" && <FileText size={28} className="text-gray-500" />}
                 {activeTab === "emails" && <MailWarning size={28} className="text-gray-500" />}
               </div>
@@ -1110,6 +1444,444 @@ export default function ActivityMonitor() {
               ))}
 
               {/* ============================================ */}
+              {/* Contract Pause Requests (NEW) */}
+              {/* ============================================ */}
+              {activeTab === "contractPause" && filteredData.map((request) => (
+                <div
+                  key={request.id}
+                  className="bg-[#161616] rounded-2xl p-4 md:p-5 hover:bg-[#1A1A1A] transition-colors"
+                >
+                  {/* Desktop Layout */}
+                  <div className="hidden md:grid md:grid-cols-[280px_200px_120px_1fr] gap-4 items-center">
+                    {/* Col 1: Member Info */}
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center text-white flex-shrink-0">
+                        <PauseCircle size={22} />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-medium text-white truncate">{request.memberFirstName} {request.memberLastName}</h3>
+                          {getStatusBadge(request.status)}
+                        </div>
+                        <p className="text-gray-400 text-sm mt-0.5 truncate">{request.membershipType}</p>
+                      </div>
+                    </div>
+                    
+                    {/* Col 2: Pause Period */}
+                    <div className="flex items-center gap-2 text-sm">
+                      <Calendar size={16} className="text-gray-500 flex-shrink-0" />
+                      <span className="text-gray-300">
+                        {formatDate(request.pauseStart)} - {formatDate(request.pauseEnd)}
+                      </span>
+                    </div>
+                    
+                    {/* Col 3: Duration */}
+                    <div className="flex items-center justify-center">
+                      <div className="px-3 py-1.5 bg-orange-500/10 rounded-lg">
+                        <span className="text-orange-400 font-medium text-sm">{request.pauseDuration} weeks</span>
+                      </div>
+                    </div>
+                    
+                    {/* Col 4: Actions */}
+                    <div className="flex items-center gap-2 justify-end">
+                      {request.status === "pending" ? (
+                        <>
+                          <button
+                            onClick={() => handleApprove(request.id, "contractPause")}
+                            className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 rounded-xl text-white text-sm font-medium transition-colors"
+                          >
+                            <Check size={16} />
+                            <span>Approve</span>
+                          </button>
+                          <button
+                            onClick={() => handleReject(request.id, "contractPause")}
+                            className="flex items-center gap-2 px-4 py-2.5 bg-red-500/20 hover:bg-red-500/30 rounded-xl text-red-400 text-sm font-medium transition-colors"
+                          >
+                            <X size={16} />
+                            <span>Reject</span>
+                          </button>
+                        </>
+                      ) : (
+                        <span className="text-xs text-gray-500">
+                          {formatTimeAgo(request.submittedAt)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Mobile Layout */}
+                  <div className="md:hidden flex flex-col gap-3">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center text-white flex-shrink-0">
+                        <PauseCircle size={22} />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-medium text-white">{request.memberFirstName} {request.memberLastName}</h3>
+                          {getStatusBadge(request.status)}
+                        </div>
+                        <p className="text-gray-400 text-sm mt-0.5">{request.membershipType}</p>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-4 text-sm">
+                      <div className="flex items-center gap-2">
+                        <Calendar size={16} className="text-gray-500" />
+                        <span className="text-gray-300">{formatDate(request.pauseStart)} - {formatDate(request.pauseEnd)}</span>
+                      </div>
+                      <div className="px-3 py-1.5 bg-orange-500/10 rounded-lg">
+                        <span className="text-orange-400 font-medium">{request.pauseDuration} weeks</span>
+                      </div>
+                    </div>
+                    {request.status === "pending" && (
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleApprove(request.id, "contractPause")}
+                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 rounded-xl text-white text-sm font-medium transition-colors"
+                        >
+                          <Check size={16} />
+                          <span>Approve</span>
+                        </button>
+                        <button
+                          onClick={() => handleReject(request.id, "contractPause")}
+                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-red-500/20 hover:bg-red-500/30 rounded-xl text-red-400 text-sm font-medium transition-colors"
+                        >
+                          <X size={16} />
+                          <span>Reject</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Reason & Attachments */}
+                  <div className="mt-3 pt-3 border-t border-gray-800 flex flex-wrap items-center justify-between gap-3">
+                    <p className="text-gray-400 text-sm">
+                      <span className="text-gray-500">Reason:</span> {request.reason}
+                    </p>
+                    {request.attachments && request.attachments.length > 0 && (
+                      <button className="flex items-center gap-2 px-3 py-1.5 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-lg text-sm text-gray-300 transition-colors">
+                        <Paperclip size={14} />
+                        <span>{request.attachments.length} Attachment{request.attachments.length > 1 ? 's' : ''}</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              {/* ============================================ */}
+              {/* Bank Data Change Requests (NEW) */}
+              {/* ============================================ */}
+              {activeTab === "bankData" && filteredData.map((request) => (
+                <div
+                  key={request.id}
+                  className="bg-[#161616] rounded-2xl p-4 md:p-5 hover:bg-[#1A1A1A] transition-colors"
+                >
+                  {/* Desktop Layout */}
+                  <div className="hidden md:grid md:grid-cols-[260px_1fr_1fr] gap-4 items-start">
+                    {/* Col 1: Member Info */}
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center text-white flex-shrink-0">
+                        <CreditCard size={22} />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-medium text-white truncate">{request.memberFirstName} {request.memberLastName}</h3>
+                          {getStatusBadge(request.status)}
+                        </div>
+                        <p className="text-gray-400 text-sm mt-0.5 truncate">
+                          {request.changeType === "fullBankChange" ? "Bank Account Change" : "Account Holder Change"}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* Col 2: Old/New Values */}
+                    <div className="bg-[#1A1A1A] rounded-xl p-4">
+                      {request.changeType === "fullBankChange" ? (
+                        <div className="space-y-3">
+                          {/* Bank Name */}
+                          <div className="grid grid-cols-[1fr_auto_1fr] gap-3 items-center">
+                            <div>
+                              <p className="text-gray-500 text-xs mb-1">Bank</p>
+                              <p className="text-gray-400 text-sm">{request.oldBankName}</p>
+                            </div>
+                            <ArrowRight size={16} className="text-gray-600" />
+                            <div>
+                              <p className="text-gray-500 text-xs mb-1">Bank</p>
+                              <p className="text-white text-sm">{request.newBankName}</p>
+                            </div>
+                          </div>
+                          {/* IBAN */}
+                          <div className="grid grid-cols-[1fr_auto_1fr] gap-3 items-center pt-2 border-t border-gray-800">
+                            <div>
+                              <p className="text-gray-500 text-xs mb-1">IBAN</p>
+                              <p className="text-gray-400 text-xs font-mono">{maskIban(request.oldIban)}</p>
+                            </div>
+                            <ArrowRight size={16} className="text-gray-600" />
+                            <div>
+                              <p className="text-gray-500 text-xs mb-1">IBAN</p>
+                              <p className="text-white text-xs font-mono">{maskIban(request.newIban)}</p>
+                            </div>
+                          </div>
+                          {/* BIC */}
+                          <div className="grid grid-cols-[1fr_auto_1fr] gap-3 items-center pt-2 border-t border-gray-800">
+                            <div>
+                              <p className="text-gray-500 text-xs mb-1">BIC</p>
+                              <p className="text-gray-400 text-xs font-mono">{request.oldBic}</p>
+                            </div>
+                            <ArrowRight size={16} className="text-gray-600" />
+                            <div>
+                              <p className="text-gray-500 text-xs mb-1">BIC</p>
+                              <p className="text-white text-xs font-mono">{request.newBic}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-[1fr_auto_1fr] gap-3 items-center">
+                          <div>
+                            <p className="text-gray-500 text-xs mb-1">Previous</p>
+                            <p className="text-gray-400 text-sm">{request.oldValue}</p>
+                          </div>
+                          <ArrowRight size={16} className="text-gray-600" />
+                          <div>
+                            <p className="text-gray-500 text-xs mb-1">New</p>
+                            <p className="text-white text-sm">{request.newValue}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Col 3: Actions */}
+                    <div className="flex items-center gap-2 justify-end">
+                      {request.status === "pending" ? (
+                        <>
+                          <button
+                            onClick={() => handleApprove(request.id, "bankData")}
+                            className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 rounded-xl text-white text-sm font-medium transition-colors"
+                          >
+                            <Check size={16} />
+                            <span>Approve</span>
+                          </button>
+                          <button
+                            onClick={() => handleReject(request.id, "bankData")}
+                            className="flex items-center gap-2 px-4 py-2.5 bg-red-500/20 hover:bg-red-500/30 rounded-xl text-red-400 text-sm font-medium transition-colors"
+                          >
+                            <X size={16} />
+                            <span>Reject</span>
+                          </button>
+                        </>
+                      ) : (
+                        <span className="text-xs text-gray-500">
+                          {formatTimeAgo(request.submittedAt)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Mobile Layout */}
+                  <div className="md:hidden flex flex-col gap-3">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center text-white flex-shrink-0">
+                        <CreditCard size={22} />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-medium text-white">{request.memberFirstName} {request.memberLastName}</h3>
+                          {getStatusBadge(request.status)}
+                        </div>
+                        <p className="text-gray-400 text-sm mt-0.5">
+                          {request.changeType === "fullBankChange" ? "Bank Account Change" : "Account Holder Change"}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* Old/New Values */}
+                    <div className="bg-[#1A1A1A] rounded-xl p-4">
+                      {request.changeType === "fullBankChange" ? (
+                        <div className="space-y-3">
+                          <div>
+                            <p className="text-gray-500 text-xs mb-1">Bank</p>
+                            <p className="text-gray-400 text-sm">{request.oldBankName} <ArrowRight size={12} className="inline text-gray-600 mx-1" /> <span className="text-white">{request.newBankName}</span></p>
+                          </div>
+                          <div className="pt-2 border-t border-gray-800">
+                            <p className="text-gray-500 text-xs mb-1">IBAN</p>
+                            <p className="text-gray-400 text-xs font-mono">{maskIban(request.oldIban)}</p>
+                            <p className="text-white text-xs font-mono mt-1">{maskIban(request.newIban)}</p>
+                          </div>
+                          <div className="pt-2 border-t border-gray-800">
+                            <p className="text-gray-500 text-xs mb-1">BIC</p>
+                            <p className="text-gray-400 text-xs font-mono">{request.oldBic} <ArrowRight size={12} className="inline text-gray-600 mx-1" /> <span className="text-white">{request.newBic}</span></p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          <div>
+                            <p className="text-gray-500 text-xs mb-1">Previous</p>
+                            <p className="text-gray-400 text-sm">{request.oldValue}</p>
+                          </div>
+                          <div className="flex justify-center">
+                            <ArrowDown size={16} className="text-gray-600" />
+                          </div>
+                          <div>
+                            <p className="text-gray-500 text-xs mb-1">New</p>
+                            <p className="text-white text-sm">{request.newValue}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {request.status === "pending" && (
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleApprove(request.id, "bankData")}
+                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 rounded-xl text-white text-sm font-medium transition-colors"
+                        >
+                          <Check size={16} />
+                          <span>Approve</span>
+                        </button>
+                        <button
+                          onClick={() => handleReject(request.id, "bankData")}
+                          className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-red-500/20 hover:bg-red-500/30 rounded-xl text-red-400 text-sm font-medium transition-colors"
+                        >
+                          <X size={16} />
+                          <span>Reject</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              {/* ============================================ */}
+              {/* Member Data Change Requests (NEW) */}
+              {/* ============================================ */}
+              {activeTab === "memberData" && filteredData.map((request) => {
+                const ChangeIcon = getChangeTypeIcon(request.changeType)
+                return (
+                  <div
+                    key={request.id}
+                    className="bg-[#161616] rounded-2xl p-4 md:p-5 hover:bg-[#1A1A1A] transition-colors"
+                  >
+                    {/* Desktop Layout */}
+                    <div className="hidden md:grid md:grid-cols-[260px_1fr_1fr] gap-4 items-start">
+                      {/* Col 1: Member Info */}
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center text-white flex-shrink-0">
+                          <ChangeIcon size={22} />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-medium text-white truncate">{request.memberFirstName} {request.memberLastName}</h3>
+                            {getStatusBadge(request.status)}
+                          </div>
+                          <p className="text-gray-400 text-sm mt-0.5 truncate">
+                            {request.fieldLabel} Change
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {/* Col 2: Old/New Values */}
+                      <div className="bg-[#1A1A1A] rounded-xl p-4">
+                        <div className="grid grid-cols-[1fr_auto_1fr] gap-3 items-center">
+                          <div className="min-w-0">
+                            <p className="text-gray-500 text-xs mb-1">Previous</p>
+                            <p className="text-gray-400 text-sm truncate" title={request.oldValue}>
+                              {request.oldValue}
+                            </p>
+                          </div>
+                          <div className="flex items-center justify-center">
+                            <ArrowRight size={16} className="text-gray-600" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-gray-500 text-xs mb-1">New</p>
+                            <p className="text-white text-sm truncate" title={request.newValue}>
+                              {request.newValue}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Col 3: Actions */}
+                      <div className="flex items-center gap-2 justify-end">
+                        {request.status === "pending" ? (
+                          <>
+                            <button
+                              onClick={() => handleApprove(request.id, "memberData")}
+                              className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 rounded-xl text-white text-sm font-medium transition-colors"
+                            >
+                              <Check size={16} />
+                              <span>Approve</span>
+                            </button>
+                            <button
+                              onClick={() => handleReject(request.id, "memberData")}
+                              className="flex items-center gap-2 px-4 py-2.5 bg-red-500/20 hover:bg-red-500/30 rounded-xl text-red-400 text-sm font-medium transition-colors"
+                            >
+                              <X size={16} />
+                              <span>Reject</span>
+                            </button>
+                          </>
+                        ) : (
+                          <span className="text-xs text-gray-500">
+                            {formatTimeAgo(request.submittedAt)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Mobile Layout */}
+                    <div className="md:hidden flex flex-col gap-3">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center text-white flex-shrink-0">
+                          <ChangeIcon size={22} />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-medium text-white">{request.memberFirstName} {request.memberLastName}</h3>
+                            {getStatusBadge(request.status)}
+                          </div>
+                          <p className="text-gray-400 text-sm mt-0.5">{request.fieldLabel} Change</p>
+                        </div>
+                      </div>
+                      
+                      {/* Old/New Values */}
+                      <div className="bg-[#1A1A1A] rounded-xl p-4">
+                        <div className="space-y-3">
+                          <div>
+                            <p className="text-gray-500 text-xs mb-1">Previous</p>
+                            <p className="text-gray-400 text-sm">{request.oldValue}</p>
+                          </div>
+                          <div className="flex justify-center">
+                            <ArrowDown size={16} className="text-gray-600" />
+                          </div>
+                          <div>
+                            <p className="text-gray-500 text-xs mb-1">New</p>
+                            <p className="text-white text-sm">{request.newValue}</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {request.status === "pending" && (
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleApprove(request.id, "memberData")}
+                            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 rounded-xl text-white text-sm font-medium transition-colors"
+                          >
+                            <Check size={16} />
+                            <span>Approve</span>
+                          </button>
+                          <button
+                            onClick={() => handleReject(request.id, "memberData")}
+                            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-red-500/20 hover:bg-red-500/30 rounded-xl text-red-400 text-sm font-medium transition-colors"
+                          >
+                            <X size={16} />
+                            <span>Reject</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+
+              {/* ============================================ */}
               {/* Expiring Contracts */}
               {/* ============================================ */}
               {activeTab === "contracts" && filteredData.map((contract) => (
@@ -1248,81 +2020,100 @@ export default function ActivityMonitor() {
               {/* ============================================ */}
               {/* Failed Emails */}
               {/* ============================================ */}
-              {activeTab === "emails" && filteredData.map((email) => (
-                <div
-                  key={email.id}
-                  className="bg-[#161616] rounded-2xl p-4 md:p-5 hover:bg-[#1A1A1A] transition-colors"
-                >
-                  {/* Grid Layout für perfektes Alignment */}
-                  <div className="hidden md:grid md:grid-cols-[280px_1fr_80px_120px] gap-4 items-center">
-                    {/* Col 1: Recipient Info */}
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center text-white flex-shrink-0">
-                        <MailWarning size={22} />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-medium text-white truncate">{email.recipientFirstName} {email.recipientLastName}</h3>
-                          {getStatusBadge(email.errorType)}
+              {activeTab === "emails" && filteredData.map((email) => {
+                const isStaff = email.recipientType === "staff"
+                return (
+                  <div
+                    key={email.id}
+                    className="bg-[#161616] rounded-2xl p-4 md:p-5 hover:bg-[#1A1A1A] transition-colors"
+                  >
+                    {/* Grid Layout - Fixed alignment with items-start */}
+                    <div className="hidden md:grid md:grid-cols-[280px_1fr_80px_1fr] gap-4 items-start">
+                      {/* Col 1: Recipient Info */}
+                      <div className="flex items-center gap-4">
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-white flex-shrink-0 ${
+                          isStaff 
+                            ? 'bg-gradient-to-br from-blue-500 to-blue-600' 
+                            : 'bg-gradient-to-br from-orange-500 to-orange-600'
+                        }`}>
+                          <MailWarning size={22} />
                         </div>
-                        <p className="text-gray-400 text-sm mt-0.5 truncate">{email.recipient}</p>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-medium text-white truncate">{email.recipientFirstName} {email.recipientLastName}</h3>
+                            {getStatusBadge(email.errorType)}
+                          </div>
+                          <p className="text-gray-400 text-sm mt-0.5 truncate">{email.recipient}</p>
+                        </div>
+                      </div>
+                      
+                      {/* Col 2: Subject & Error - aligned to top */}
+                      <div className="min-w-0 pt-1">
+                        <p className="text-gray-300 text-sm truncate">{email.subject}</p>
+                        <p className="text-red-400 text-xs mt-1">{email.errorMessage}</p>
+                      </div>
+                      
+                      {/* Col 3: Retry Count - aligned to center of first row */}
+                      <div className="text-center pt-2">
+                        <span className="text-xs text-gray-500">{email.retryCount}x tried</span>
+                      </div>
+                      
+                      {/* Col 4: Actions - aligned to center of first row */}
+                      <div className="flex items-start justify-end pt-0.5">
+                        <button
+                          onClick={() => handleRetryEmail(email.id)}
+                          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-medium transition-colors ${
+                            isStaff 
+                              ? 'bg-blue-500 hover:bg-blue-600' 
+                              : 'bg-orange-500 hover:bg-orange-600'
+                          }`}
+                        >
+                          <RefreshCw size={16} />
+                          <span>Resend</span>
+                        </button>
                       </div>
                     </div>
-                    
-                    {/* Col 2: Subject & Error */}
-                    <div className="min-w-0">
-                      <p className="text-gray-300 text-sm truncate">{email.subject}</p>
-                      <p className="text-red-400 text-xs mt-1">{email.errorMessage}</p>
-                    </div>
-                    
-                    {/* Col 3: Retry Count */}
-                    <div className="text-center">
-                      <span className="text-xs text-gray-500">{email.retryCount}x tried</span>
-                    </div>
-                    
-                    {/* Col 4: Actions */}
-                    <div className="flex items-center justify-end">
-                      <button
-                        onClick={() => handleRetryEmail(email.id)}
-                        className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 rounded-xl text-white text-sm font-medium transition-colors"
-                      >
-                        <RefreshCw size={16} />
-                        <span>Resend</span>
-                      </button>
-                    </div>
-                  </div>
 
-                  {/* Mobile Layout */}
-                  <div className="md:hidden flex flex-col gap-3">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center text-white flex-shrink-0">
-                        <MailWarning size={22} />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-medium text-white">{email.recipientFirstName} {email.recipientLastName}</h3>
-                          {getStatusBadge(email.errorType)}
+                    {/* Mobile Layout */}
+                    <div className="md:hidden flex flex-col gap-3">
+                      <div className="flex items-center gap-4">
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-white flex-shrink-0 ${
+                          isStaff 
+                            ? 'bg-gradient-to-br from-blue-500 to-blue-600' 
+                            : 'bg-gradient-to-br from-orange-500 to-orange-600'
+                        }`}>
+                          <MailWarning size={22} />
                         </div>
-                        <p className="text-gray-400 text-sm mt-0.5 truncate">{email.recipient}</p>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-medium text-white">{email.recipientFirstName} {email.recipientLastName}</h3>
+                            {getStatusBadge(email.errorType)}
+                          </div>
+                          <p className="text-gray-400 text-sm mt-0.5 truncate">{email.recipient}</p>
+                        </div>
                       </div>
-                    </div>
-                    <div>
-                      <p className="text-gray-300 text-sm">{email.subject}</p>
-                      <p className="text-red-400 text-xs mt-1">{email.errorMessage}</p>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-gray-500">{email.retryCount}x tried</span>
-                      <button
-                        onClick={() => handleRetryEmail(email.id)}
-                        className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 rounded-xl text-white text-sm font-medium transition-colors"
-                      >
-                        <RefreshCw size={16} />
-                        <span>Resend</span>
-                      </button>
+                      <div>
+                        <p className="text-gray-300 text-sm">{email.subject}</p>
+                        <p className="text-red-400 text-xs mt-1">{email.errorMessage}</p>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-500">{email.retryCount}x tried</span>
+                        <button
+                          onClick={() => handleRetryEmail(email.id)}
+                          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-medium transition-colors ${
+                            isStaff 
+                              ? 'bg-blue-500 hover:bg-blue-600' 
+                              : 'bg-orange-500 hover:bg-orange-600'
+                          }`}
+                        >
+                          <RefreshCw size={16} />
+                          <span>Resend</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </>
           )}
         </div>

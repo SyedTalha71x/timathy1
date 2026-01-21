@@ -1,172 +1,188 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import React from "react";
-import { X, Plus, Lock, Info } from "lucide-react";
+import { X, Plus, Minus, Calendar } from "lucide-react";
 
-export default function ContingentModalMain({
+export default function CreditsModalMain({
+  // New prop names
+  showCreditsModalMain,
+  setShowCreditsModalMain,
+  tempCreditsMain,
+  setTempCreditsMain,
+  handleSaveCreditsMain,
+  // Legacy prop names for backwards compatibility
   showContingentModalMain,
   setShowContingentModalMain,
+  tempContingentMain,
+  setTempContingentMain,
+  handleSaveContingentMain,
+  // Shared props
   selectedMemberForAppointmentsMain,
   getBillingPeriodsMain,
   selectedBillingPeriodMain,
   handleBillingPeriodChange,
   setShowAddBillingPeriodModalMain,
   currentBillingPeriodMain,
-  tempContingentMain,
-  setTempContingentMain,
-  handleSaveContingentMain,
 }) {
-  if (!showContingentModalMain) return null;
+  // Support both old and new prop names
+  const isOpen = showCreditsModalMain ?? showContingentModalMain;
+  const setIsOpen = setShowCreditsModalMain || setShowContingentModalMain;
+  const tempData = tempCreditsMain || tempContingentMain || { used: 0, total: 0 };
+  const setTempData = setTempCreditsMain || setTempContingentMain;
+  const handleSave = handleSaveCreditsMain || handleSaveContingentMain;
+
+  if (!isOpen) return null;
+
+  // Calculate remaining (this is what users care about!)
+  const remaining = tempData.total - tempData.used;
+  const isCurrentPeriod = selectedBillingPeriodMain === "current";
+
+  // Adjust remaining credits directly (inverted logic!)
+  // When user adds remaining, we decrease used
+  // When user removes remaining, we increase used
+  const adjustRemaining = (amount) => {
+    const newRemaining = Math.max(0, remaining + amount);
+    const newUsed = tempData.total - newRemaining;
+    
+    // Can't have negative used
+    if (newUsed < 0) return;
+    
+    setTempData({ ...tempData, used: newUsed });
+  };
+
+  // Get billing periods
+  const billingPeriods = selectedMemberForAppointmentsMain 
+    ? getBillingPeriodsMain(selectedMemberForAppointmentsMain.id) 
+    : [];
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-[#181818] rounded-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          {/* Header */}
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-lg font-medium text-white">
-              Manage Appointment Contingent
-            </h2>
-            <button
-              onClick={() => setShowContingentModalMain(false)}
-              className="p-2 hover:bg-zinc-700 text-white rounded-lg"
-            >
-              <X size={16} />
-            </button>
+    <div 
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      onClick={() => setIsOpen(false)}
+    >
+      <div 
+        className="bg-[#181818] rounded-xl w-full max-w-sm overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-700">
+          <div>
+            <h2 className="text-lg font-medium text-white">Credits</h2>
+            <p className="text-gray-500 text-sm">
+              {selectedMemberForAppointmentsMain?.name || "Member"}
+            </p>
           </div>
-
-          {/* Billing Period Selection */}
-<div className="mb-6">
-  <label className="block text-sm font-medium text-gray-400 mb-3">
-    Select Billing Period
-  </label>
-  <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
-    {selectedMemberForAppointmentsMain &&
-      getBillingPeriodsMain(selectedMemberForAppointmentsMain.id).map(
-        (period) => (
           <button
-            key={period.id}
-            onClick={() => handleBillingPeriodChange(period.id)}
-            className={`w-full text-left p-3 rounded-xl border transition-colors ${
-              selectedBillingPeriodMain === period.id
-                ? "bg-blue-600/20 border-blue-500 text-blue-300"
-                : "bg-[#222222] border-gray-600 text-gray-300 hover:bg-[#2A2A2A]"
-            }`}
+            onClick={() => setIsOpen(false)}
+            className="p-2 hover:bg-zinc-700 text-gray-400 hover:text-white rounded-lg transition-colors"
           >
-            <div className="flex justify-between items-center">
-              <span className="font-medium">{period.label}</span>
-              <span className="text-sm">
-                {period.data.used}/{period.data.total}
-              </span>
-            </div>
+            <X size={20} />
           </button>
-        )
-      )}
-  </div>
-  {/* Add New Billing Period */}
-  <button
-    onClick={() => setShowAddBillingPeriodModalMain(true)}
-    className="w-full mt-3 p-3 border-2 border-dashed border-gray-600 rounded-xl text-gray-400 hover:border-gray-500 hover:text-gray-300 transition-colors flex items-center justify-center gap-2"
-  >
-    <Plus size={16} />
-    Add Future Billing Period
-  </button>
-</div>
+        </div>
 
-          {/* Contingent Management */}
-          <div className="space-y-4">
-            <div className="bg-[#222222] rounded-xl p-4">
-              <h3 className="text-white font-medium mb-3">
-                {selectedBillingPeriodMain === "current"
-                  ? `Current Period (${currentBillingPeriodMain})`
-                  : `Future Period (${selectedBillingPeriodMain})`}
-              </h3>
-              <div className="flex items-center gap-4">
-                {/* Used Appointments */}
-                <div className="flex-1">
-                  <label className="block text-sm text-gray-400 mb-1">
-                    Used Appointments
-                  </label>
-                  <input
-                    type="number"
-                    min={0}
-                    max={tempContingentMain.total}
-                    value={tempContingentMain.used}
-                    onChange={(e) =>
-                      setTempContingentMain({
-                        ...tempContingentMain,
-                        used: Number.parseInt(e.target.value),
-                      })
-                    }
-                    className="w-full bg-[#333333] text-white rounded-xl px-4 py-2 text-sm"
-                  />
-                </div>
-
-                {/* Total Appointments */}
-                <div className="flex-1">
-                  <label className="block text-sm text-gray-400 mb-1 flex items-center gap-2">
-                    Total Appointments
-                    {selectedBillingPeriodMain === "current" && (
-                      <Lock
-                        size={14}
-                        className="text-gray-500"
-                        title="Locked for current period"
-                      />
-                    )}
-                  </label>
-                  <input
-                    type="number"
-                    min={
-                      selectedBillingPeriodMain === "current"
-                        ? tempContingentMain.used
-                        : 0
-                    }
-                    value={tempContingentMain.total}
-                    onChange={(e) =>
-                      setTempContingentMain({
-                        ...tempContingentMain,
-                        total: Number.parseInt(e.target.value),
-                      })
-                    }
-                    disabled={selectedBillingPeriodMain === "current"}
-                    className={`w-full rounded-xl px-4 py-2 text-sm ${
-                      selectedBillingPeriodMain === "current"
-                        ? "bg-gray-600 text-gray-400 cursor-not-allowed"
-                        : "bg-[#333333] text-white"
-                    }`}
-                  />
-                </div>
-              </div>
-
-              {/* Remaining */}
-              <div className="mt-3 flex justify-between items-center text-sm">
-                <span className="text-gray-400">Remaining:</span>
-                <span className="text-white font-medium">
-                  {tempContingentMain.total - tempContingentMain.used} appointments
-                </span>
-              </div>
+        <div className="p-5 space-y-5">
+          {/* Main Display */}
+          <div className="text-center">
+            <div className="flex items-end justify-center gap-2">
+              <span className="text-5xl font-bold text-white">{remaining}</span>
+              <span className="text-2xl text-gray-500 mb-1">/ {tempData.total}</span>
             </div>
-
-           
+            <div className="text-gray-400 text-sm mt-1">
+              credits remaining
+            </div>
           </div>
 
-          {/* Actions */}
-          <div className="flex gap-3 justify-end mt-6">
+          {/* Quick Adjust Buttons */}
+          <div className="flex items-center justify-center gap-4">
             <button
-              onClick={() => setShowContingentModalMain(false)}
-              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-xl text-sm"
+              onClick={() => adjustRemaining(-1)}
+              disabled={remaining <= 0}
+              className="w-16 h-16 flex items-center justify-center bg-[#222222] hover:bg-[#2a2a2a] disabled:opacity-30 disabled:cursor-not-allowed text-white rounded-xl transition-colors"
             >
-              Cancel
+              <Minus size={28} />
             </button>
+
             <button
-              onClick={handleSaveContingentMain}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm"
+              onClick={() => adjustRemaining(1)}
+              disabled={remaining >= tempData.total}
+              className="w-16 h-16 flex items-center justify-center bg-[#222222] hover:bg-[#2a2a2a] disabled:opacity-30 disabled:cursor-not-allowed text-white rounded-xl transition-colors"
             >
-              Save Changes
+              <Plus size={28} />
             </button>
           </div>
+
+          {/* Visual Progress */}
+          <div className="bg-[#222222] rounded-xl p-3">
+            <div className="flex justify-between text-xs text-gray-500 mb-2">
+              <span>Used: {tempData.used}</span>
+              <span>Total: {tempData.total}</span>
+            </div>
+            <div className="h-2 bg-[#333333] rounded-full overflow-hidden">
+              <div 
+                className="h-full rounded-full transition-all duration-300 bg-blue-500"
+                style={{ width: `${(remaining / tempData.total) * 100}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Billing Period - Compact */}
+          <div className="bg-[#222222] rounded-xl p-3">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-gray-500 flex items-center gap-1">
+                <Calendar size={12} />
+                Period
+              </span>
+              <button
+                onClick={() => setShowAddBillingPeriodModalMain(true)}
+                className="text-xs text-blue-400 hover:text-blue-300"
+              >
+                + Add
+              </button>
+            </div>
+            <div className="space-y-1 max-h-[100px] overflow-y-auto">
+              {billingPeriods.map((period) => {
+                const isSelected = selectedBillingPeriodMain === period.id;
+                const periodRemaining = period.data.total - period.data.used;
+                return (
+                  <button
+                    key={period.id}
+                    onClick={() => handleBillingPeriodChange(period.id)}
+                    className={`w-full text-left px-3 py-2 rounded-lg transition-colors flex items-center justify-between text-sm ${
+                      isSelected
+                        ? "bg-blue-600/20 text-blue-400"
+                        : "hover:bg-[#2a2a2a] text-gray-300"
+                    }`}
+                  >
+                    <span>{period.label}</span>
+                    <span className={isSelected ? "text-blue-300" : "text-gray-500"}>
+                      {periodRemaining} left
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex gap-3 px-5 py-4 border-t border-gray-700">
+          <button
+            onClick={() => setIsOpen(false)}
+            className="flex-1 py-2.5 text-sm text-gray-400 hover:text-white bg-gray-700 hover:bg-gray-600 rounded-xl transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            className="flex-1 py-2.5 text-sm text-white bg-orange-500 hover:bg-orange-600 rounded-xl transition-colors"
+          >
+            Save
+          </button>
         </div>
       </div>
     </div>
   );
 }
+
+// Legacy export for backwards compatibility
+export { CreditsModalMain as ContingentModalMain };

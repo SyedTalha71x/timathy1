@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import React, { useRef, useState, useEffect } from "react";
-import { Mail, X, Search, Send, ChevronDown, Paperclip, Image, FileText, File, Trash2, Plus, User, Building, FileSignature } from "lucide-react";
+import { Mail, X, Search, Send, ChevronDown, Paperclip, Image, FileText, File, Trash2 } from "lucide-react";
 import { WysiwygEditor } from "./WysiwygEditor";
 
 // Initials Avatar Component
@@ -291,11 +291,11 @@ const formatFileSize = (bytes) => {
   return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
 };
 
-// Insert variables
+// Insert variables - matching configuration.jsx format
 const insertVariables = [
-  { id: 'first_name', label: 'First Name', value: '{{first_name}}', icon: User },
-  { id: 'last_name', label: 'Last Name', value: '{{last_name}}', icon: User },
-  { id: 'studio_name', label: 'Studio Name', value: '{{studio_name}}', icon: Building },
+  { id: 'first_name', label: 'Member First Name', value: '{Member_First_Name}' },
+  { id: 'last_name', label: 'Member Last Name', value: '{Member_Last_Name}' },
+  { id: 'studio_name', label: 'Studio Name', value: '{Studio_Name}' },
 ];
 
 const SendEmailModal = ({
@@ -315,10 +315,9 @@ const SendEmailModal = ({
   signature = "",
 }) => {
   const attachmentInputRef = useRef(null);
-  const insertRef = useRef(null);
+  const editorRef = useRef(null);
   const [showCc, setShowCc] = useState(false);
   const [showBcc, setShowBcc] = useState(false);
-  const [showInsertDropdown, setShowInsertDropdown] = useState(false);
   const [attachments, setAttachments] = useState([]);
   const [toRecipients, setToRecipients] = useState([]);
   const [ccRecipients, setCcRecipients] = useState([]);
@@ -337,17 +336,6 @@ const SendEmailModal = ({
       }]);
     }
   }, [showEmailModal, preselectedMember]);
-
-  // Close insert dropdown on outside click
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (insertRef.current && !insertRef.current.contains(e.target)) {
-        setShowInsertDropdown(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   // Handle attachment upload
   const handleAttachmentUpload = (e) => {
@@ -368,18 +356,19 @@ const SendEmailModal = ({
     setAttachments(prev => prev.filter(a => a.id !== id));
   };
 
-  // Insert variable into body
+  // Insert variable into body - using editor ref for direct insertion
   const insertVariable = (variable) => {
-    const currentBody = emailData.body || '';
-    setEmailData({ ...emailData, body: currentBody + variable.value });
-    setShowInsertDropdown(false);
+    if (editorRef.current?.insertText) {
+      editorRef.current.insertText(variable.value);
+    }
   };
 
-  // Insert signature
+  // Insert signature - using editor ref for direct insertion
   const insertSignature = () => {
-    const currentBody = emailData.body || '';
-    const signatureHtml = signature || '<br><br>--<br>Mit freundlichen Grüßen<br>{{first_name}} {{last_name}}';
-    setEmailData({ ...emailData, body: currentBody + signatureHtml });
+    const signatureHtml = signature || '\n\n--\nMit freundlichen Grüßen\n{Member_First_Name} {Member_Last_Name}';
+    if (editorRef.current?.insertText) {
+      editorRef.current.insertText(signatureHtml);
+    }
   };
 
   // Handle send with all data
@@ -548,44 +537,31 @@ const SendEmailModal = ({
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="text-sm font-medium text-gray-400">Message</label>
-                <div className="flex items-center gap-2">
-                  {/* Insert Variable Dropdown */}
-                  <div className="relative" ref={insertRef}>
-                    <button
-                      onClick={() => setShowInsertDropdown(!showInsertDropdown)}
-                      className="flex items-center gap-1.5 text-xs text-[#FF843E] hover:text-[#e0733a] transition-colors px-2 py-1 rounded hover:bg-[#2a2a2a]"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      Insert
-                    </button>
-                    {showInsertDropdown && (
-                      <div className="absolute right-0 mt-1 w-48 bg-[#1C1C1C] border border-gray-700 rounded-xl shadow-xl z-[200] py-1">
-                        {insertVariables.map((variable) => (
-                          <button
-                            key={variable.id}
-                            onClick={() => insertVariable(variable)}
-                            className="w-full text-left px-3 py-2 hover:bg-[#2F2F2F] flex items-center gap-2 text-sm text-white transition-colors"
-                          >
-                            <variable.icon className="w-4 h-4 text-gray-400" />
-                            <span>{variable.label}</span>
-                            <span className="ml-auto text-xs text-gray-500 font-mono">{variable.value}</span>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  
-                  {/* Signature Button */}
+              </div>
+              {/* Variables and Insert row - matching configuration.jsx style */}
+              <div className="flex flex-wrap items-center gap-2 mb-2">
+                <span className="text-xs text-gray-500 mr-1">Variables:</span>
+                {insertVariables.map((variable) => (
                   <button
-                    onClick={insertSignature}
-                    className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white transition-colors px-2 py-1 rounded hover:bg-[#2a2a2a]"
+                    key={variable.id}
+                    onClick={() => insertVariable(variable)}
+                    className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600 transition-colors"
                   >
-                    <FileSignature className="w-3.5 h-3.5" />
-                    Signature
+                    {variable.label}
                   </button>
-                </div>
+                ))}
+                <span className="text-xs text-gray-500 mx-2">|</span>
+                <span className="text-xs text-gray-500 mr-1">Insert:</span>
+                <button
+                  onClick={insertSignature}
+                  className="px-2 py-1 bg-orange-500 text-white text-xs rounded-lg hover:bg-orange-600 flex items-center gap-1 transition-colors"
+                >
+                  <FileText className="w-3 h-3" />
+                  Email Signature
+                </button>
               </div>
               <WysiwygEditor
+                ref={editorRef}
                 value={emailData.body}
                 onChange={(content) => setEmailData({ ...emailData, body: content })}
                 placeholder="Type your email message here..."

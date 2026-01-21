@@ -57,7 +57,7 @@ const EditMemberModalMain = ({
   relationOptionsMain = {
     family: ["Father", "Mother", "Brother", "Sister", "Son", "Daughter", "Uncle", "Aunt", "Cousin", "Grandfather", "Grandmother", "Nephew", "Niece", "Stepfather", "Stepmother", "Father-in-law", "Mother-in-law", "Brother-in-law", "Sister-in-law"],
     friendship: ["Best Friend", "Close Friend", "Friend", "Acquaintance", "Childhood Friend"],
-    relationship: ["Partner", "Spouse", "Fiancé/Fiancée", "Ex-Partner", "Boyfriend", "Girlfriend"],
+    relationship: ["Partner", "Spouse", "FiancÃ©/FiancÃ©e", "Ex-Partner", "Boyfriend", "Girlfriend"],
     work: ["Colleague", "Boss", "Manager", "Employee", "Business Partner", "Client", "Mentor", "Cofounder"],
     other: ["Neighbor", "Doctor", "Trainer", "Coach", "Teacher", "Therapist", "Roommate"],
   },
@@ -403,7 +403,7 @@ const EditMemberModalMain = ({
 
   return (
     <div 
-      className="fixed inset-0 bg-black/50 flex p-2 justify-center items-center z-50 overflow-y-auto"
+      className="fixed inset-0 bg-black/50 flex p-2 justify-center items-center z-[1000010] overflow-y-auto"
     >
       <div 
         className="bg-[#1C1C1C] p-6 rounded-xl w-full max-w-md my-8"
@@ -1102,7 +1102,7 @@ const EditMemberModalMain = ({
                               {option}
                             </option>
                           ))}
-                          <option disabled>────────────</option>
+                          <option disabled>â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</option>
                           <option value="custom">Custom...</option>
                         </select>
                       </div>
@@ -1148,7 +1148,7 @@ const EditMemberModalMain = ({
                           <div className="text-sm flex items-center flex-wrap gap-1.5">
                             <span className="text-white font-medium">{relation.name}</span>
                             <span className="text-gray-400">({relation.relation})</span>
-                            <span className="text-gray-500">•</span>
+                            <span className="text-gray-500">â€¢</span>
                             <span className="text-gray-400 capitalize">{category}</span>
                             <span className="bg-gray-700 text-gray-300 text-xs px-2 py-0.5 rounded capitalize">
                               {relation.type}

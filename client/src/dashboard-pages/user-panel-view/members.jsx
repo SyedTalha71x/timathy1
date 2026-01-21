@@ -398,10 +398,10 @@ export default function Members() {
     type: "manual",
     selectedMemberId: null,
   })
-  // memberRelationsMain wird fÃƒÆ’Ã‚Â¼r EditMember Modal verwendet
+  // memberRelationsMain wird fÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼r EditMember Modal verwendet
   const [memberRelationsMain, setMemberRelationsMain] = useState(memberRelationsMainData)
 
-  // Countries hook fÃƒÆ’Ã‚Â¼r CreateTempMemberModal
+  // Countries hook fÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼r CreateTempMemberModal
   const { countries, loading: countriesLoading } = useCountries()
 
   // 
@@ -479,7 +479,7 @@ export default function Members() {
     }))
   }
 
-  // Handler fÃƒÆ’Ã‚Â¼r erfolgreiche Erstellung eines temporÃƒÆ’Ã‚Â¤ren Members (Shared Modal)
+  // Handler fÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼r erfolgreiche Erstellung eines temporÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¤ren Members (Shared Modal)
   const handleTempMemberCreated = (newMemberData) => {
     const newId = Math.max(...members.map((m) => m.id), 0) + 1
     const newTempMember = {
@@ -1054,6 +1054,15 @@ export default function Members() {
     setAppointmentToDelete(id)
   }
 
+  // Direct delete function for EditAppointmentModal (no confirmation needed - already confirmed in modal)
+  const handleDeleteAppointmentDirect = (id) => {
+    setAppointmentsMain(appointmentsMain.filter((app) => app.id !== id))
+    setSelectedAppointmentDataMain(null)
+    setShowSelectedAppointmentModalMain(false)
+    setIsNotifyMemberOpenMain(true)
+    setNotifyActionMain("delete")
+  }
+
   const confirmDeleteAppointment = () => {
     setAppointmentsMain(appointmentsMain.filter((app) => app.id !== appointmentToDelete))
     setSelectedAppointmentDataMain(null)
@@ -1087,7 +1096,7 @@ export default function Members() {
     });
   };
 
-  // App Chat Ã¶ffnen (vom Message Type Modal)
+  // App Chat ÃƒÂ¶ffnen (vom Message Type Modal)
   const handleOpenAppChat = () => {
     if (messageTypeModal.member) {
       setChatPopup({
@@ -1097,7 +1106,7 @@ export default function Members() {
     }
   };
 
-  // Email Modal Ã¶ffnen (vom Message Type Modal)
+  // Email Modal ÃƒÂ¶ffnen (vom Message Type Modal)
   const handleOpenEmailModal = () => {
     if (messageTypeModal.member) {
       setSelectedMemberForEmail(messageTypeModal.member);
@@ -1111,7 +1120,7 @@ export default function Members() {
     }
   };
 
-  // Email Modal schlieÃŸen
+  // Email Modal schlieÃƒÅ¸en
   const handleCloseEmailModal = () => {
     setShowEmailModal(false);
     setSelectedMemberForEmail(null);
@@ -1128,7 +1137,7 @@ export default function Members() {
     handleCloseEmailModal();
   };
 
-  // Template auswÃ¤hlen
+  // Template auswÃƒÂ¤hlen
   const handleTemplateSelect = (template) => {
     setSelectedEmailTemplate(template);
     setEmailData({
@@ -1139,7 +1148,7 @@ export default function Members() {
     setShowTemplateDropdown(false);
   };
 
-  // Mitglied fÃ¼r Email suchen
+  // Mitglied fÃƒÂ¼r Email suchen
   const handleSearchMemberForEmail = (query) => {
     if (!query) return [];
     return members.filter(m => 
@@ -2045,7 +2054,7 @@ export default function Members() {
                                 )}
                                 {member.dateOfBirth && (
                                   <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-700/50 text-gray-300">
-                                    {calculateAgeMain(member.dateOfBirth)} yrs • {new Date(member.dateOfBirth).toLocaleDateString('de-DE')}
+                                    {calculateAgeMain(member.dateOfBirth)} yrs â€¢ {new Date(member.dateOfBirth).toLocaleDateString('de-DE')}
                                   </span>
                                 )}
                               </div>
@@ -2188,7 +2197,7 @@ export default function Members() {
                               <span className="text-gray-400">
                                 {calculateAgeMain(member.dateOfBirth)} yrs
                               </span>
-                              <span className="text-gray-600">•</span>
+                              <span className="text-gray-600">â€¢</span>
                               <span className="text-gray-500">
                                 {new Date(member.dateOfBirth).toLocaleDateString('de-DE')}
                               </span>
@@ -2353,7 +2362,7 @@ export default function Members() {
                                   <span className="text-gray-300">
                                     {calculateAgeMain(member.dateOfBirth)} years old
                                   </span>
-                                  <span className="text-gray-600">•</span>
+                                  <span className="text-gray-600">â€¢</span>
                                   <span className="text-gray-500">
                                     {new Date(member.dateOfBirth).toLocaleDateString('de-DE')}
                                   </span>
@@ -2365,7 +2374,7 @@ export default function Members() {
                                 {member.gender && (
                                   <>
                                     <span className="text-gray-400">{member.gender}</span>
-                                    <span className="text-gray-600">•</span>
+                                    <span className="text-gray-600">â€¢</span>
                                   </>
                                 )}
                                 <span className="text-gray-400">
@@ -2590,6 +2599,12 @@ export default function Members() {
           setIsNotifyMemberOpenMain={setIsNotifyMemberOpenMain}
           setNotifyActionMain={setNotifyActionMain}
           freeAppointmentsMain={freeAppointmentsMain}
+          availableMembersLeads={availableMembersLeadsMain}
+          selectedMemberMain={selectedMemberForAppointmentsMain}
+          memberCredits={selectedMemberForAppointmentsMain ? memberContingent[selectedMemberForAppointmentsMain.id] : null}
+          currentBillingPeriod={currentBillingPeriodMain}
+          onOpenEditMemberModal={handleEditMember}
+          memberRelations={memberRelationsMain}
         />
       )}
       {showSelectedAppointmentModalMain && selectedAppointmentDataMain && (
@@ -2603,7 +2618,9 @@ export default function Members() {
           setAppointmentsMain={setAppointmentsMain}
           setIsNotifyMemberOpenMain={setIsNotifyMemberOpenMain}
           setNotifyActionMain={setNotifyActionMain}
-          onDelete={handleDeleteAppointmentMain}
+          onDelete={handleDeleteAppointmentDirect}
+          onOpenEditMemberModal={handleEditMember}
+          memberRelations={memberRelationsMain}
         />
       )}
       <DocumentManagementModal

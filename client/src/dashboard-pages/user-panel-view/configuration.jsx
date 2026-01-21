@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
 
-import { useState, useEffect, useRef, useMemo } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useSearchParams } from "react-router-dom"
 import {
   Search,
@@ -47,10 +47,9 @@ import { BsPersonWorkspace } from "react-icons/bs"
 import { RiContractLine } from "react-icons/ri"
 import { Modal, notification, QRCode } from "antd"
 import dayjs from "dayjs"
-import ReactQuill, { Quill } from "react-quill"
-import "react-quill/dist/quill.snow.css"
 
 import ContractBuilder from "../../components/user-panel-components/configuration-components/ContractBuilder"
+import { WysiwygEditor } from "../../components/shared/WysiwygEditor"
 import { PERMISSION_DATA, PermissionModal } from "../../components/user-panel-components/configuration-components/PermissionModal"
 import { RoleItem } from "../../components/user-panel-components/configuration-components/RoleItem"
 import { StaffAssignmentModal } from "../../components/user-panel-components/configuration-components/StaffAssignmentModal"
@@ -59,697 +58,6 @@ import ImageCropModal from "../../components/shared/ImageCropModal"
 import IntroMaterialEditorModal from "../../components/user-panel-components/configuration-components/IntroMaterialEditorModal"
 import MediaLibraryPickerModal from "../../components/shared/MediaLibraryPickerModal"
 import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'
-
-// ============================================
-// Simple WYSIWYG Editor Component
-// ============================================
-const ConfigWysiwygEditor = ({ value, onChange, placeholder, minHeight = 120 }) => {
-  const editorId = useRef(`editor-${Math.random().toString(36).substr(2, 9)}`).current
-  const quillRef = useRef(null)
-  const containerRef = useRef(null)
-  const [showLinkModal, setShowLinkModal] = useState(false)
-  const [showImageModal, setShowImageModal] = useState(false)
-  const [linkUrl, setLinkUrl] = useState('')
-  const [linkText, setLinkText] = useState('')
-  const [imageUrl, setImageUrl] = useState('')
-  const [savedRange, setSavedRange] = useState(null)
-  const [selectedImage, setSelectedImage] = useState(null)
-  const [imageRect, setImageRect] = useState(null)
-  
-  // Track the last known value to detect external changes
-  const lastValueRef = useRef(value)
-  const isInternalUpdate = useRef(false)
-  
-  // Sync external value changes to editor (but not our own changes)
-  useEffect(() => {
-    if (quillRef.current && value !== lastValueRef.current && !isInternalUpdate.current) {
-      const quill = quillRef.current.getEditor()
-      const selection = quill.getSelection()
-      // Only update if value actually changed from outside
-      if (quill.root.innerHTML !== value) {
-        quill.root.innerHTML = value || ''
-        // Restore selection if possible
-        if (selection) {
-          try {
-            quill.setSelection(selection)
-          } catch (e) {
-            // Ignore selection errors
-          }
-        }
-      }
-      lastValueRef.current = value
-    }
-  }, [value])
-  
-  // Handle changes from the editor
-  const handleChange = (content, delta, source, editor) => {
-    if (source === 'user') {
-      isInternalUpdate.current = true
-      lastValueRef.current = content
-      onChange(content)
-      // Reset flag after a tick
-      setTimeout(() => {
-        isInternalUpdate.current = false
-      }, 0)
-    }
-  }
-  
-  // Custom link handler
-  const linkHandler = () => {
-    const quill = quillRef.current?.getEditor()
-    if (quill) {
-      const range = quill.getSelection(true)
-      setSavedRange(range)
-      const selectedText = range.length > 0 ? quill.getText(range.index, range.length) : ''
-      setLinkText(selectedText)
-      setLinkUrl('')
-      setShowLinkModal(true)
-    }
-  }
-
-  // Custom image handler
-  const imageHandler = () => {
-    const quill = quillRef.current?.getEditor()
-    if (quill) {
-      const range = quill.getSelection(true)
-      setSavedRange(range)
-      setImageUrl('')
-      setShowImageModal(true)
-    }
-  }
-
-  // Insert link
-  const insertLink = () => {
-    if (!linkUrl) return
-    const quill = quillRef.current?.getEditor()
-    if (quill && savedRange !== null) {
-      if (savedRange.length > 0) {
-        quill.formatText(savedRange.index, savedRange.length, 'link', linkUrl)
-      } else if (linkText) {
-        quill.insertText(savedRange.index, linkText, 'link', linkUrl)
-      } else {
-        quill.insertText(savedRange.index, linkUrl, 'link', linkUrl)
-      }
-      // Trigger onChange after insert
-      const newHtml = quill.root.innerHTML
-      isInternalUpdate.current = true
-      lastValueRef.current = newHtml
-      onChange(newHtml)
-      setTimeout(() => {
-        isInternalUpdate.current = false
-      }, 0)
-    }
-    setShowLinkModal(false)
-    setLinkUrl('')
-    setLinkText('')
-  }
-
-  // Insert image
-  const insertImage = () => {
-    if (!imageUrl) return
-    const quill = quillRef.current?.getEditor()
-    if (quill && savedRange !== null) {
-      quill.insertEmbed(savedRange.index, 'image', imageUrl)
-      quill.setSelection(savedRange.index + 1)
-      // Trigger onChange after insert
-      const newHtml = quill.root.innerHTML
-      isInternalUpdate.current = true
-      lastValueRef.current = newHtml
-      onChange(newHtml)
-      setTimeout(() => {
-        isInternalUpdate.current = false
-      }, 0)
-    }
-    setShowImageModal(false)
-    setImageUrl('')
-  }
-
-  // Update image rect position for resize handles
-  const updateImageRect = (img) => {
-    if (!img || !containerRef.current) {
-      setImageRect(null)
-      return
-    }
-    const containerRect = containerRef.current.getBoundingClientRect()
-    const imgRect = img.getBoundingClientRect()
-    setImageRect({
-      top: imgRect.top - containerRect.top,
-      left: imgRect.left - containerRect.left,
-      width: imgRect.width,
-      height: imgRect.height
-    })
-  }
-
-  // Handle image click for selection
-  const handleContainerClick = (e) => {
-    const img = e.target.closest('img')
-    if (img && containerRef.current?.contains(img)) {
-      e.preventDefault()
-      e.stopPropagation()
-      setSelectedImage(img)
-      updateImageRect(img)
-    } else if (!e.target.classList?.contains('resize-handle')) {
-      setSelectedImage(null)
-      setImageRect(null)
-    }
-  }
-
-  // Start resizing
-  const startResize = (e, direction) => {
-    e.preventDefault()
-    e.stopPropagation()
-    if (!selectedImage) return
-    
-    const startX = e.clientX
-    const startWidth = selectedImage.offsetWidth
-    const img = selectedImage
-    
-    const doResize = (moveEvent) => {
-      let newWidth = startWidth
-      const deltaX = moveEvent.clientX - startX
-      
-      if (direction.includes('e')) {
-        newWidth = startWidth + deltaX
-      } else if (direction.includes('w')) {
-        newWidth = startWidth - deltaX
-      }
-      
-      // Constraints
-      const editor = containerRef.current?.querySelector('.ql-editor')
-      const maxWidth = editor?.offsetWidth || 500
-      newWidth = Math.max(50, Math.min(newWidth, maxWidth - 40))
-      
-      // Apply size directly
-      img.style.width = `${Math.round(newWidth)}px`
-      img.style.height = 'auto'
-      img.setAttribute('width', String(Math.round(newWidth)))
-      
-      updateImageRect(img)
-    }
-    
-    const stopResize = () => {
-      document.removeEventListener('mousemove', doResize)
-      document.removeEventListener('mouseup', stopResize)
-      
-      // Get the HTML and call onChange
-      if (quillRef.current) {
-        const quill = quillRef.current.getEditor()
-        const newHtml = quill.root.innerHTML
-        isInternalUpdate.current = true
-        lastValueRef.current = newHtml
-        onChange(newHtml)
-        setTimeout(() => {
-          isInternalUpdate.current = false
-        }, 0)
-      }
-    }
-    
-    document.addEventListener('mousemove', doResize)
-    document.addEventListener('mouseup', stopResize)
-  }
-
-  // Click outside to deselect
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (containerRef.current && !containerRef.current.contains(e.target)) {
-        setSelectedImage(null)
-        setImageRect(null)
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
-
-  // Update rect on scroll/window resize
-  useEffect(() => {
-    if (!selectedImage) return
-    const handleUpdate = () => updateImageRect(selectedImage)
-    window.addEventListener('resize', handleUpdate)
-    return () => window.removeEventListener('resize', handleUpdate)
-  }, [selectedImage])
-
-  const modules = useMemo(() => ({
-    toolbar: {
-      container: [
-        ['undo', 'redo'],
-        [{ 'size': ['small', false, 'large', 'huge'] }],
-        ['bold', 'italic', 'underline', 'strike'],
-        [{ 'color': [] }, { 'background': [] }],
-        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-        [{ 'align': [] }],
-        ['blockquote'],
-        ['link', 'image'],
-        ['clean']
-      ],
-      handlers: {
-        link: linkHandler,
-        image: imageHandler,
-        undo: function() {
-          this.quill.history.undo()
-        },
-        redo: function() {
-          this.quill.history.redo()
-        }
-      }
-    },
-    history: {
-      delay: 1000,
-      maxStack: 50,
-      userOnly: true
-    }
-  }), [])
-
-  const formats = [
-    'size',
-    'bold', 'italic', 'underline', 'strike',
-    'color', 'background',
-    'list', 'bullet',
-    'align',
-    'blockquote',
-    'link', 'image'
-  ]
-
-  useEffect(() => {
-    const style = document.createElement('style')
-    style.id = `wysiwyg-style-${editorId}`
-    style.textContent = `
-      .config-wysiwyg-${editorId} .ql-editor.ql-blank::before {
-        color: #9ca3af !important;
-        font-style: normal !important;
-      }
-      .config-wysiwyg-${editorId} .ql-editor {
-        color: #ffffff !important;
-        min-height: ${minHeight}px;
-        max-height: 300px;
-        overflow-y: auto;
-        font-size: 14px;
-        line-height: 1.4;
-        position: relative;
-      }
-      .config-wysiwyg-${editorId} .ql-editor p {
-        margin-bottom: 0.25em;
-      }
-      .config-wysiwyg-${editorId} .ql-editor p:last-child {
-        margin-bottom: 0;
-      }
-      .config-wysiwyg-${editorId} .ql-editor img {
-        max-width: 100%;
-        height: auto;
-        border-radius: 8px;
-        margin: 8px 0;
-        cursor: pointer;
-      }
-      .config-wysiwyg-${editorId} .ql-editor img:hover {
-        outline: 2px solid rgba(255, 132, 62, 0.5);
-        outline-offset: 2px;
-      }
-      .config-wysiwyg-${editorId} .ql-editor blockquote {
-        border-left: 4px solid #FF843E;
-        padding-left: 16px;
-        margin: 10px 0;
-        color: #d1d5db;
-        font-style: italic;
-      }
-      .config-wysiwyg-${editorId} .ql-toolbar {
-        border: none !important;
-        border-bottom: 1px solid #333333 !important;
-        background-color: #1a1a1a !important;
-        padding: 8px !important;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 2px;
-      }
-      .config-wysiwyg-${editorId} .ql-toolbar .ql-formats {
-        margin-right: 8px !important;
-        display: flex;
-        align-items: center;
-      }
-      .config-wysiwyg-${editorId} .ql-undo,
-      .config-wysiwyg-${editorId} .ql-redo {
-        width: 28px !important;
-        height: 28px !important;
-        padding: 4px !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-      }
-      .config-wysiwyg-${editorId} .ql-undo::before {
-        content: '';
-        display: block;
-        width: 18px;
-        height: 18px;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 7v6h6'/%3E%3Cpath d='M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: center;
-      }
-      .config-wysiwyg-${editorId} .ql-redo::before {
-        content: '';
-        display: block;
-        width: 18px;
-        height: 18px;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 7v6h-6'/%3E%3Cpath d='M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: center;
-      }
-      .config-wysiwyg-${editorId} .ql-undo:hover::before {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 7v6h6'/%3E%3Cpath d='M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13'/%3E%3C/svg%3E");
-      }
-      .config-wysiwyg-${editorId} .ql-redo:hover::before {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 7v6h-6'/%3E%3Cpath d='M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7'/%3E%3C/svg%3E");
-      }
-      .config-wysiwyg-${editorId} .ql-container {
-        border: none !important;
-        background-color: #141414 !important;
-        font-family: inherit;
-      }
-      .config-wysiwyg-${editorId} .ql-snow .ql-stroke {
-        stroke: #9ca3af !important;
-      }
-      .config-wysiwyg-${editorId} .ql-snow .ql-fill {
-        fill: #9ca3af !important;
-      }
-      .config-wysiwyg-${editorId} .ql-snow .ql-picker-label {
-        color: #9ca3af !important;
-      }
-      .config-wysiwyg-${editorId} .ql-snow .ql-picker-label::before {
-        color: #9ca3af !important;
-      }
-      .config-wysiwyg-${editorId} .ql-snow .ql-picker-options {
-        background-color: #1f1f1f !important;
-        border: 1px solid #333333 !important;
-        border-radius: 8px !important;
-        padding: 4px !important;
-        z-index: 9999 !important;
-      }
-      .config-wysiwyg-${editorId} .ql-snow .ql-picker-item {
-        color: #ffffff !important;
-        padding: 4px 8px !important;
-        border-radius: 4px !important;
-      }
-      .config-wysiwyg-${editorId} .ql-snow .ql-picker-item:hover {
-        background-color: #2f2f2f !important;
-      }
-      .config-wysiwyg-${editorId} .ql-snow .ql-color-picker .ql-picker-options,
-      .config-wysiwyg-${editorId} .ql-snow .ql-background .ql-picker-options {
-        padding: 8px !important;
-        width: 192px !important;
-      }
-      .config-wysiwyg-${editorId} .ql-snow .ql-color-picker .ql-picker-item,
-      .config-wysiwyg-${editorId} .ql-snow .ql-background .ql-picker-item {
-        width: 20px !important;
-        height: 20px !important;
-        border-radius: 4px !important;
-        margin: 2px !important;
-        padding: 0 !important;
-      }
-      .config-wysiwyg-${editorId} .ql-snow .ql-tooltip {
-        display: none !important;
-      }
-      .config-wysiwyg-${editorId} .ql-snow button {
-        width: 28px !important;
-        height: 28px !important;
-        padding: 4px !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-      }
-      .config-wysiwyg-${editorId} .ql-snow button:hover {
-        background-color: #2f2f2f !important;
-        border-radius: 4px !important;
-      }
-      .config-wysiwyg-${editorId} .ql-snow button.ql-active {
-        background-color: #3b82f6 !important;
-        border-radius: 4px !important;
-      }
-      .config-wysiwyg-${editorId} .ql-snow button.ql-active .ql-stroke {
-        stroke: #ffffff !important;
-      }
-      .config-wysiwyg-${editorId} .ql-snow button.ql-active .ql-fill {
-        fill: #ffffff !important;
-      }
-      .config-wysiwyg-${editorId} .ql-snow .ql-picker {
-        height: 28px !important;
-      }
-      .config-wysiwyg-${editorId} .ql-snow .ql-picker-label {
-        padding: 4px 8px !important;
-        border: none !important;
-        border-radius: 4px !important;
-      }
-      .config-wysiwyg-${editorId} .ql-snow .ql-picker-label:hover {
-        background-color: #2f2f2f !important;
-      }
-      .config-wysiwyg-${editorId} .ql-snow .ql-picker.ql-expanded .ql-picker-label {
-        background-color: #2f2f2f !important;
-      }
-      .config-wysiwyg-${editorId} .ql-snow svg {
-        width: 18px !important;
-        height: 18px !important;
-      }
-      .config-wysiwyg-${editorId} .ql-snow .ql-size .ql-picker-label::before,
-      .config-wysiwyg-${editorId} .ql-snow .ql-size .ql-picker-item::before {
-        content: 'Normal' !important;
-      }
-      .config-wysiwyg-${editorId} .ql-snow .ql-size .ql-picker-label[data-value="small"]::before,
-      .config-wysiwyg-${editorId} .ql-snow .ql-size .ql-picker-item[data-value="small"]::before {
-        content: 'Small' !important;
-      }
-      .config-wysiwyg-${editorId} .ql-snow .ql-size .ql-picker-label[data-value="large"]::before,
-      .config-wysiwyg-${editorId} .ql-snow .ql-size .ql-picker-item[data-value="large"]::before {
-        content: 'Large' !important;
-      }
-      .config-wysiwyg-${editorId} .ql-snow .ql-size .ql-picker-label[data-value="huge"]::before,
-      .config-wysiwyg-${editorId} .ql-snow .ql-size .ql-picker-item[data-value="huge"]::before {
-        content: 'Huge' !important;
-      }
-    `
-    document.head.appendChild(style)
-
-    return () => {
-      const existingStyle = document.getElementById(`wysiwyg-style-${editorId}`)
-      if (existingStyle) {
-        document.head.removeChild(existingStyle)
-      }
-    }
-  }, [editorId, minHeight])
-
-  // Custom Modal Component
-  const EditorModal = ({ show, onClose, title, children, onSubmit, submitText }) => {
-    if (!show) return null
-    return (
-      <div 
-        className="fixed inset-0 bg-black/60 flex items-center justify-center z-[10000]"
-        onClick={onClose}
-      >
-        <div 
-          className="bg-[#1F1F1F] rounded-2xl p-5 w-full max-w-md mx-4 border border-[#333333] shadow-2xl"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-white">{title}</h3>
-            <button
-              onClick={onClose}
-              className="p-1.5 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded-lg transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-          {children}
-          <div className="flex gap-3 mt-5">
-            <button
-              onClick={onClose}
-              className="flex-1 px-4 py-2.5 bg-[#2F2F2F] text-white text-sm font-medium rounded-xl hover:bg-[#3F3F3F] transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={onSubmit}
-              className="flex-1 px-4 py-2.5 bg-orange-500 text-white text-sm font-medium rounded-xl hover:bg-orange-600 transition-colors"
-            >
-              {submitText}
-            </button>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <>
-      <div 
-        ref={containerRef}
-        className={`config-wysiwyg-${editorId} rounded-xl border border-[#333333] relative`}
-        onClick={handleContainerClick}
-        style={{ overflow: 'visible' }}
-      >
-        <ReactQuill
-          ref={quillRef}
-          defaultValue={value}
-          onChange={handleChange}
-          modules={modules}
-          formats={formats}
-          placeholder={placeholder}
-          theme="snow"
-          preserveWhitespace
-        />
-        
-        {/* Image Resize Handles */}
-        {selectedImage && imageRect && (
-          <div 
-            className="absolute pointer-events-none"
-            style={{
-              top: imageRect.top,
-              left: imageRect.left,
-              width: imageRect.width,
-              height: imageRect.height,
-              zIndex: 1000,
-            }}
-          >
-            {/* Selection border */}
-            <div className="absolute inset-0 border-2 border-orange-500 rounded" />
-            
-            {/* Corner handles */}
-            {['nw', 'ne', 'sw', 'se'].map((dir) => (
-              <div
-                key={dir}
-                className="resize-handle"
-                onMouseDown={(e) => startResize(e, dir)}
-                style={{
-                  position: 'absolute',
-                  width: 12,
-                  height: 12,
-                  backgroundColor: '#FF843E',
-                  border: '2px solid white',
-                  borderRadius: 2,
-                  pointerEvents: 'auto',
-                  top: dir.includes('n') ? -6 : 'auto',
-                  bottom: dir.includes('s') ? -6 : 'auto',
-                  left: dir.includes('w') ? -6 : 'auto',
-                  right: dir.includes('e') ? -6 : 'auto',
-                  cursor: dir === 'nw' || dir === 'se' ? 'nwse-resize' : 'nesw-resize'
-                }}
-              />
-            ))}
-            
-            {/* Edge handles - east and west */}
-            <div
-              className="resize-handle"
-              onMouseDown={(e) => startResize(e, 'e')}
-              style={{
-                position: 'absolute',
-                width: 8,
-                height: 30,
-                backgroundColor: '#FF843E',
-                border: '2px solid white',
-                borderRadius: 2,
-                pointerEvents: 'auto',
-                top: '50%',
-                right: -5,
-                transform: 'translateY(-50%)',
-                cursor: 'ew-resize'
-              }}
-            />
-            <div
-              className="resize-handle"
-              onMouseDown={(e) => startResize(e, 'w')}
-              style={{
-                position: 'absolute',
-                width: 8,
-                height: 30,
-                backgroundColor: '#FF843E',
-                border: '2px solid white',
-                borderRadius: 2,
-                pointerEvents: 'auto',
-                top: '50%',
-                left: -5,
-                transform: 'translateY(-50%)',
-                cursor: 'ew-resize'
-              }}
-            />
-            
-            {/* Size indicator */}
-            <div 
-              className="absolute -bottom-7 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-orange-500 text-white rounded text-xs font-medium whitespace-nowrap pointer-events-none"
-            >
-              {Math.round(imageRect.width)} × {Math.round(imageRect.height)}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Link Modal */}
-      <EditorModal
-        show={showLinkModal}
-        onClose={() => setShowLinkModal(false)}
-        title="Insert Link"
-        onSubmit={insertLink}
-        submitText="Insert Link"
-      >
-        <div className="space-y-4">
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-300">Link Text</label>
-            <input
-              type="text"
-              value={linkText}
-              onChange={(e) => setLinkText(e.target.value)}
-              placeholder="Text to display"
-              className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF] transition-colors"
-              autoFocus
-            />
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-300">URL</label>
-            <input
-              type="url"
-              value={linkUrl}
-              onChange={(e) => setLinkUrl(e.target.value)}
-              placeholder="https://example.com"
-              className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF] transition-colors"
-            />
-          </div>
-        </div>
-      </EditorModal>
-
-      {/* Image Modal */}
-      <EditorModal
-        show={showImageModal}
-        onClose={() => setShowImageModal(false)}
-        title="Insert Image"
-        onSubmit={insertImage}
-        submitText="Insert Image"
-      >
-        <div className="space-y-4">
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-300">Image URL</label>
-            <input
-              type="url"
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              placeholder="https://example.com/image.jpg"
-              className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF] transition-colors"
-              autoFocus
-            />
-          </div>
-          
-          {/* Image Preview */}
-          {imageUrl && (
-            <div className="p-3 bg-[#141414] rounded-xl border border-[#333333]">
-              <img 
-                src={imageUrl} 
-                alt="Preview" 
-                className="max-h-40 mx-auto rounded-lg object-contain"
-                onError={(e) => e.target.style.display = 'none'}
-              />
-            </div>
-          )}
-          
-          <p className="text-xs text-gray-500">
-            💡 Tip: After inserting, click on the image to resize it by dragging the handles.
-          </p>
-        </div>
-      </EditorModal>
-    </>
-  )
-}
 
 // ============================================
 // Navigation Items Configuration
@@ -1596,7 +904,7 @@ const ConfigurationPage = () => {
     smtpFromEmail: "noreply@fitnesspro.de",
     senderName: "FitnessPro Studio",
     // Email signature
-    emailSignature: "<p>Best regards,<br><strong>FitnessPro Studio Team</strong></p><p>📞 +49 30 12345678<br>📧 info@fitnesspro.de<br>🌐 www.fitnesspro.de</p><p style=\"color: #666; font-size: 12px;\">Musterstraße 123, 10115 Berlin</p>",
+    emailSignature: "<p>Best regards,<br><strong>FitnessPro Studio Team</strong></p><p>📞 +49 30 12345678<br>📧 info@fitnesspro.de<br>🌐 www.fitnesspro.de</p><p style=\"color: #666; font-size: 12px;\">Musterstraße 123, 10115 Berlin</p>",
     // E-Invoice
     einvoiceSubject: "Invoice {Invoice_Number} - {Selling_Date}",
     einvoiceTemplate: "<p>Dear {Member_First_Name} {Member_Last_Name},</p><p>Please find attached your invoice <strong>#{Invoice_Number}</strong> dated {Selling_Date}.</p><p><strong>Total Amount: {Total_Amount}</strong></p><p>Thank you for your continued membership!</p>",
@@ -2867,10 +2175,10 @@ const ConfigurationPage = () => {
               <div className="mt-4 p-4 bg-[#141414] rounded-xl">
                 <p className="text-sm text-gray-300 font-medium mb-2">Example with 3 total slots:</p>
                 <div className="space-y-1.5 text-xs text-gray-500">
-                  <p>• <span className="text-gray-300">EMS Strength</span> (1 slot, max 2×) — Can run twice in parallel, uses 2 slots total</p>
-                  <p>• <span className="text-gray-300">Body Check</span> (2 slots, max 1×) — Uses 2 slots, only 1 slot left for other appointments</p>
-                  <p>• <span className="text-gray-300">Trial Training</span> (3 slots, max 1×) — Uses all capacity, blocks all other bookings</p>
-                  <p>• <span className="text-gray-300">EMP Chair</span> (0 slots, max 1×) — Doesn't use any capacity, runs independently</p>
+                  <p>• <span className="text-gray-300">EMS Strength</span> (1 slot, max 2×) – Can run twice in parallel, uses 2 slots total</p>
+                  <p>• <span className="text-gray-300">Body Check</span> (2 slots, max 1×) – Uses 2 slots, only 1 slot left for other appointments</p>
+                  <p>• <span className="text-gray-300">Trial Training</span> (3 slots, max 1×) – Uses all capacity, blocks all other bookings</p>
+                  <p>• <span className="text-gray-300">EMP Chair</span> (0 slots, max 1×) – Doesn't use any capacity, runs independently</p>
                 </div>
               </div>
             </SettingsCard>
@@ -4354,7 +3662,7 @@ const ConfigurationPage = () => {
                 <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl">
                   <p className="text-blue-400 text-sm flex items-start gap-2">
                     <Info className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                    <span>Archiving only affects member chats in the Messenger. Archived chats are hidden from the main view but are not deleted — they remain accessible and can be retrieved at any time.</span>
+                    <span>Archiving only affects member chats in the Messenger. Archived chats are hidden from the main view but are not deleted – they remain accessible and can be retrieved at any time.</span>
                   </p>
                 </div>
                 <NumberInput
@@ -4406,9 +3714,9 @@ const ConfigurationPage = () => {
                     {/* Subject */}
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-gray-300">Subject</label>
-                      <div className="flex flex-wrap gap-2 mb-2">
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
                         <span className="text-xs text-gray-500 mr-2">Variables:</span>
-                        {["{Studio_Name}", "{Member_First_Name}"].map(v => (
+                        {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}"].map(v => (
                           <button
                             key={v}
                             onClick={() => setSettings({ ...settings, birthdayEmailSubject: (settings.birthdayEmailSubject || "") + " " + v })}
@@ -4457,10 +3765,12 @@ const ConfigurationPage = () => {
                           Email Signature
                         </button>
                       </div>
-                      <ConfigWysiwygEditor
+                      <WysiwygEditor
                         value={settings.birthdayEmailTemplate || ""}
                         onChange={(v) => setSettings({ ...settings, birthdayEmailTemplate: v })}
                         placeholder="Happy Birthday, {Member_First_Name}! We hope you have a wonderful day..."
+                        minHeight={120}
+                        showImages={true}
                       />
                     </div>
                   </div>
@@ -4487,10 +3797,14 @@ const ConfigurationPage = () => {
               }
               const subjectVariables = type === "registration" 
                 ? ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}"]
-                : ["{Studio_Name}", "{Member_First_Name}", "{Appointment_Type}", "{Booked_Date}"]
+                : type === "rescheduled"
+                  ? ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Appointment_Type}", "{Old_Booked_Date}", "{Old_Booked_Time}", "{New_Booked_Date}", "{New_Booked_Time}"]
+                  : ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Appointment_Type}", "{Booked_Date}", "{Booked_Time}"]
               const messageVariables = type === "registration" 
                 ? ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Registration_Link}"]
-                : ["{Studio_Name}", "{Member_First_Name}", "{Appointment_Type}", "{Booked_Time}", "{Booked_Date}"]
+                : type === "rescheduled"
+                  ? ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Appointment_Type}", "{Old_Booked_Date}", "{Old_Booked_Time}", "{New_Booked_Date}", "{New_Booked_Time}"]
+                  : ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Appointment_Type}", "{Booked_Time}", "{Booked_Date}"]
               
               return (
                 <SettingsCard key={type}>
@@ -4531,7 +3845,7 @@ const ConfigurationPage = () => {
                         {/* Subject */}
                         <div className="space-y-2">
                           <label className="text-sm font-medium text-gray-300">Subject</label>
-                          <div className="flex flex-wrap gap-2 mb-2">
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
                             <span className="text-xs text-gray-500 mr-2">Variables:</span>
                             {subjectVariables.map(v => (
                               <button
@@ -4594,13 +3908,15 @@ const ConfigurationPage = () => {
                               Email Signature
                             </button>
                           </div>
-                          <ConfigWysiwygEditor
+                          <WysiwygEditor
                             value={config.emailTemplate || ""}
                             onChange={(v) => setAppointmentNotificationTypes({
                               ...appointmentNotificationTypes,
                               [type]: { ...config, emailTemplate: v }
                             })}
                             placeholder={`Enter ${type} email message...`}
+                            minHeight={120}
+                            showImages={true}
                           />
                         </div>
                       </div>
@@ -4647,9 +3963,9 @@ const ConfigurationPage = () => {
                     {/* Title */}
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-gray-300">Title</label>
-                      <div className="flex flex-wrap gap-2 mb-2">
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
                         <span className="text-xs text-gray-500 mr-2">Variables:</span>
-                        {["{Studio_Name}", "{Member_First_Name}"].map(v => (
+                        {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}"].map(v => (
                           <button
                             key={v}
                             onClick={() => setSettings({ ...settings, birthdayAppTitle: (settings.birthdayAppTitle || "") + " " + v })}
@@ -4671,7 +3987,7 @@ const ConfigurationPage = () => {
                     {/* Message */}
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-gray-300">Message</label>
-                      <div className="flex flex-wrap gap-2 mb-2">
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
                         <span className="text-xs text-gray-500 mr-2">Variables:</span>
                         {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}"].map(v => (
                           <button
@@ -4711,8 +4027,12 @@ const ConfigurationPage = () => {
                 rescheduled: "Push notification when an appointment time is changed",
                 reminder: "Push notification before an upcoming appointment"
               }
-              const titleVariables = ["{Studio_Name}", "{Member_First_Name}", "{Appointment_Type}"]
-              const messageVariables = ["{Studio_Name}", "{Member_First_Name}", "{Appointment_Type}", "{Booked_Time}", "{Booked_Date}"]
+              const titleVariables = type === "rescheduled" 
+                ? ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Appointment_Type}", "{Old_Booked_Date}", "{Old_Booked_Time}", "{New_Booked_Date}", "{New_Booked_Time}"]
+                : ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Appointment_Type}", "{Booked_Time}", "{Booked_Date}"]
+              const messageVariables = type === "rescheduled" 
+                ? ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Appointment_Type}", "{Old_Booked_Date}", "{Old_Booked_Time}", "{New_Booked_Date}", "{New_Booked_Time}"]
+                : ["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Appointment_Type}", "{Booked_Time}", "{Booked_Date}"]
               
               return (
                 <SettingsCard key={type}>
@@ -4753,7 +4073,7 @@ const ConfigurationPage = () => {
                         {/* Title */}
                         <div className="space-y-2">
                           <label className="text-sm font-medium text-gray-300">Title</label>
-                          <div className="flex flex-wrap gap-2 mb-2">
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
                             <span className="text-xs text-gray-500 mr-2">Variables:</span>
                             {titleVariables.map(v => (
                               <button
@@ -4783,7 +4103,7 @@ const ConfigurationPage = () => {
                         {/* Message */}
                         <div className="space-y-2">
                           <label className="text-sm font-medium text-gray-300">Message</label>
-                          <div className="flex flex-wrap gap-2 mb-2">
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
                             <span className="text-xs text-gray-500 mr-2">Variables:</span>
                             {messageVariables.map(v => (
                               <button
@@ -4939,8 +4259,9 @@ const ConfigurationPage = () => {
                 <p className="text-sm text-gray-400">
                   This signature can be inserted into your email notification templates using the orange "Email Signature" button.
                 </p>
-                <div className="flex flex-wrap gap-2">
-                  {["{Studio_Name}", "{Studio_Phone}", "{Studio_Email}", "{Studio_Website}", "{Studio_Address}"].map(v => (
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs text-gray-500 mr-1">Variables:</span>
+                  {["{Studio_Name}", "{Studio_Operator}", "{Studio_Phone}", "{Studio_Email}", "{Studio_Website}", "{Studio_Address}"].map(v => (
                     <button
                       key={v}
                       onClick={() => setSettings({ ...settings, emailSignature: (settings.emailSignature || "") + v })}
@@ -4950,10 +4271,12 @@ const ConfigurationPage = () => {
                     </button>
                   ))}
                 </div>
-                <ConfigWysiwygEditor
+                <WysiwygEditor
                   value={settings.emailSignature || ""}
                   onChange={(v) => setSettings({ ...settings, emailSignature: v })}
                   placeholder="Best regards,&#10;{Studio_Name} Team&#10;{Studio_Phone} | {Studio_Email}"
+                  minHeight={120}
+                  showImages={true}
                 />
               </div>
             </SettingsCard>
@@ -4968,9 +4291,9 @@ const ConfigurationPage = () => {
               <div className="space-y-4">
                 <div>
                   <label className="text-sm font-medium text-gray-300 mb-2 block">Subject</label>
-                  <div className="flex flex-wrap gap-2 mb-2">
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
                     <span className="text-xs text-gray-500 mr-2">Variables:</span>
-                    {["{Invoice_Number}", "{Selling_Date}", "{Member_First_Name}"].map(v => (
+                    {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Invoice_Number}", "{Total_Amount}", "{Selling_Date}"].map(v => (
                       <button
                         key={v}
                         onClick={() => setSettings({ ...settings, einvoiceSubject: (settings.einvoiceSubject || "") + " " + v })}
@@ -5018,10 +4341,12 @@ const ConfigurationPage = () => {
                       Email Signature
                     </button>
                   </div>
-                  <ConfigWysiwygEditor
+                  <WysiwygEditor
                     value={settings.einvoiceTemplate || ""}
                     onChange={(v) => setSettings({ ...settings, einvoiceTemplate: v })}
                     placeholder="Dear {Member_First_Name}, please find attached your invoice #{Invoice_Number}..."
+                    minHeight={120}
+                    showImages={true}
                   />
                 </div>
               </div>

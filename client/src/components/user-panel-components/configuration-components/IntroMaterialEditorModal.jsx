@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { useState, useRef, useEffect, useMemo, useCallback } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import { 
   X, 
   Check, 
@@ -9,233 +9,35 @@ import {
   ChevronRight,
   ChevronUp,
   ChevronDown,
-  AlertTriangle,
-  AlignLeft,
-  AlignCenter,
-  AlignRight
+  AlertTriangle
 } from "lucide-react"
-import ReactQuill from "react-quill"
-import "react-quill/dist/quill.snow.css"
+import { WysiwygEditor } from "../../shared/WysiwygEditor"
 
-// Inject styles once globally - always update to latest version
-const STYLE_ID = 'intro-material-editor-global-styles'
-const injectStyles = () => {
-  // Remove existing styles
-  const existingStyle = document.getElementById(STYLE_ID)
-  if (existingStyle) existingStyle.remove()
-  
-  const style = document.createElement('style')
-  style.id = STYLE_ID
-  style.textContent = `
-    .intro-material-quill .ql-toolbar {
-      border: none !important;
-      background-color: #1C1C1C !important;
-      border-bottom: 1px solid #333333 !important;
-      padding: 12px !important;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-    .intro-material-quill .ql-container {
-      border: none !important;
-      font-family: Arial, Helvetica, sans-serif !important;
-      font-size: 14px !important;
-      height: 620px !important;
-      min-height: 620px !important;
-      max-height: 620px !important;
-      overflow: hidden !important;
-    }
-    .intro-material-quill .ql-editor {
-      background-color: #ffffff !important;
-      color: #000000 !important;
-      height: 580px !important;
-      min-height: 580px !important;
-      max-height: 580px !important;
-      overflow: hidden !important;
-      padding: 32px 40px !important;
-      line-height: 1.5 !important;
-      border-radius: 8px;
-      margin: 16px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.25);
-      box-sizing: border-box !important;
-      resize: none !important;
-    }
-    .intro-material-quill .ql-editor > * {
-      max-width: 100% !important;
-      overflow-wrap: break-word !important;
-      word-wrap: break-word !important;
-    }
-    .intro-material-quill .ql-editor p,
-    .intro-material-quill .ql-editor h1,
-    .intro-material-quill .ql-editor h2,
-    .intro-material-quill .ql-editor h3,
-    .intro-material-quill .ql-editor ul,
-    .intro-material-quill .ql-editor ol {
-      margin-bottom: 0.5em !important;
-    }
-    .intro-material-quill .ql-snow .ql-stroke {
-      stroke: #9CA3AF !important;
-    }
-    .intro-material-quill .ql-snow .ql-fill {
-      fill: #9CA3AF !important;
-    }
-    .intro-material-quill .ql-snow .ql-picker-label {
-      color: #9CA3AF !important;
-    }
-    .intro-material-quill .ql-snow .ql-picker-label:hover,
-    .intro-material-quill .ql-snow button:hover .ql-stroke,
-    .intro-material-quill .ql-snow button:hover .ql-fill,
-    .intro-material-quill .ql-snow button.ql-active .ql-stroke,
-    .intro-material-quill .ql-snow button.ql-active .ql-fill {
-      stroke: #FF843E !important;
-      fill: #FF843E !important;
-      color: #FF843E !important;
-    }
-    .intro-material-quill .ql-snow .ql-picker-options {
-      background-color: #2F2F2F !important;
-      border-color: #444444 !important;
-      border-radius: 8px !important;
-      padding: 8px !important;
-    }
-    .intro-material-quill .ql-snow .ql-picker-item {
-      color: #ffffff !important;
-    }
-    .intro-material-quill .ql-snow .ql-picker-item:hover {
-      color: #FF843E !important;
-    }
-    .intro-material-quill .ql-snow .ql-tooltip {
-      position: fixed !important;
-      left: 50% !important;
-      top: 50% !important;
-      transform: translate(-50%, -50%) !important;
-      background-color: #2F2F2F !important;
-      border-color: #444444 !important;
-      color: #ffffff !important;
-      border-radius: 12px !important;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important;
-      padding: 16px 20px !important;
-      z-index: 9999 !important;
-      white-space: nowrap !important;
-    }
-    .intro-material-quill .ql-snow .ql-tooltip::before {
-      color: #9CA3AF !important;
-      margin-right: 8px !important;
-    }
-    .intro-material-quill .ql-snow .ql-tooltip input[type="text"] {
-      color: #000000 !important;
-      background: #ffffff !important;
-      border-radius: 6px !important;
-      padding: 8px 12px !important;
-      width: 280px !important;
-      border: 1px solid #555 !important;
-    }
-    .intro-material-quill .ql-snow .ql-tooltip a {
-      color: #FF843E !important;
-      margin-left: 12px !important;
-    }
-    .intro-material-quill .ql-snow .ql-tooltip a.ql-action::after {
-      content: 'Save' !important;
-      border: none !important;
-      padding: 6px 12px !important;
-      background: #FF843E !important;
-      border-radius: 6px !important;
-      color: white !important;
-      margin-left: 8px !important;
-    }
-    .intro-material-quill .ql-snow .ql-tooltip a.ql-remove::before {
-      content: 'Remove' !important;
-      margin-left: 8px !important;
-    }
-    .intro-material-quill .ql-editor img {
-      max-width: 100%;
-      max-height: 400px;
-      width: auto;
-      height: auto;
-      cursor: pointer;
-      border-radius: 6px;
-      object-fit: contain;
-    }
-    .intro-material-quill .ql-editor img.img-selected {
-      outline: 3px solid #FF843E;
-      outline-offset: 2px;
-    }
-  `
-  document.head.appendChild(style)
-}
-
-if (typeof document !== 'undefined') {
-  injectStyles()
-}
-
-const IntroMaterialEditorModal = ({
-  visible,
-  onClose,
-  material,
-  onSave
-}) => {
-  // Core state - pages stored separately for proper management
-  const [materialName, setMaterialName] = useState("")
+/**
+ * IntroMaterialEditorModal - Multi-page document editor using WysiwygEditor
+ * 
+ * Features from WysiwygEditor:
+ * - Undo/Redo buttons
+ * - Font picker (Arial, Times New Roman, Georgia, Verdana, Courier New, Trebuchet MS, Comic Sans)
+ * - Size picker (10px - 36px)
+ * - Image resize with drag handles
+ * - Image drag & drop repositioning
+ * - Link and image modals
+ * - Bold, italic, underline, strike, colors, lists, alignment
+ */
+const IntroMaterialEditorModal = ({ visible, onClose, material, onSave }) => {
+  // State
   const [materialId, setMaterialId] = useState(null)
+  const [materialName, setMaterialName] = useState("")
   const [pages, setPages] = useState([])
   const [activePageIndex, setActivePageIndex] = useState(0)
-  const [editorKey, setEditorKey] = useState(0) // Key to force remount editor
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
-  
-  // UI state
   const [showExitConfirm, setShowExitConfirm] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null)
-  const [selectedImage, setSelectedImage] = useState(null)
-  const [imageToolbar, setImageToolbar] = useState({ visible: false, x: 0, y: 0 })
+  const [editorKey, setEditorKey] = useState(0)
   
   // Refs
-  const quillRef = useRef(null)
-  const imageInputRef = useRef(null)
-  const containerRef = useRef(null)
-  const lastValidContent = useRef("") // Store last valid content for overflow prevention
-
-  // Memoized modules
-  const modules = useMemo(() => ({
-    toolbar: {
-      container: [
-        [{ 'header': [1, 2, 3, false] }],
-        ['bold', 'italic', 'underline', 'strike'],
-        [{ 'color': [] }, { 'background': [] }],
-        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-        [{ 'align': [] }],
-        ['link', 'image'],
-        ['clean']
-      ],
-      handlers: {
-        image: () => imageInputRef.current?.click()
-      }
-    },
-    clipboard: { matchVisual: false }
-  }), [])
-
-  const formats = useMemo(() => [
-    'header', 'bold', 'italic', 'underline', 'strike',
-    'color', 'background', 'list', 'bullet', 'align',
-    'link', 'image', 'width', 'height', 'style'
-  ], [])
-
-  // Get current editor content directly from Quill DOM
-  const getEditorContent = useCallback(() => {
-    const quill = quillRef.current?.getEditor()
-    return quill ? quill.root.innerHTML : ""
-  }, [])
-
-  // Save current page content to pages array
-  const saveCurrentPageContent = useCallback(() => {
-    const content = getEditorContent()
-    if (content && pages[activePageIndex]) {
-      setPages(prev => {
-        const newPages = [...prev]
-        newPages[activePageIndex] = { ...newPages[activePageIndex], content }
-        return newPages
-      })
-    }
-    return content
-  }, [activePageIndex, getEditorContent, pages])
+  const currentContentRef = useRef("")
 
   // Initialize when modal opens
   useEffect(() => {
@@ -251,176 +53,26 @@ const IntroMaterialEditorModal = ({
       setMaterialName(material.name || "")
       setPages(initPages)
       setActivePageIndex(0)
-      setEditorKey(prev => prev + 1) // Force new editor instance
+      setEditorKey(prev => prev + 1)
       setHasUnsavedChanges(false)
-      setSelectedImage(null)
-      setImageToolbar({ visible: false, x: 0, y: 0 })
-      lastValidContent.current = initPages[0]?.content || "" // Initialize last valid content
+      currentContentRef.current = initPages[0]?.content || ""
     }
   }, [visible, material])
 
-  // Setup image click handlers after editor mounts
-  useEffect(() => {
-    if (!visible || pages.length === 0) return
-
-    const timer = setTimeout(() => {
-      const editor = document.querySelector('.intro-material-quill .ql-editor')
-      if (!editor) return
-
-      const handleClick = (e) => {
-        if (e.target.tagName === 'IMG') {
-          e.stopPropagation()
-          editor.querySelectorAll('img.img-selected').forEach(img => img.classList.remove('img-selected'))
-          e.target.classList.add('img-selected')
-          setSelectedImage(e.target)
-          
-          const rect = e.target.getBoundingClientRect()
-          const containerRect = containerRef.current?.getBoundingClientRect()
-          if (containerRect) {
-            setImageToolbar({
-              visible: true,
-              x: rect.left - containerRect.left + rect.width / 2,
-              y: rect.top - containerRect.top - 50
-            })
-          }
-        } else {
-          editor.querySelectorAll('img.img-selected').forEach(img => img.classList.remove('img-selected'))
-          setSelectedImage(null)
-          setImageToolbar({ visible: false, x: 0, y: 0 })
-        }
-      }
-
-      editor.addEventListener('click', handleClick)
-      return () => editor.removeEventListener('click', handleClick)
-    }, 300)
-
-    return () => clearTimeout(timer)
-  }, [visible, pages.length, editorKey])
-
-  // Image handlers
-  const handleImageUpload = (e) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    const reader = new FileReader()
-    reader.onload = (event) => {
-      const quill = quillRef.current?.getEditor()
-      if (quill) {
-        const range = quill.getSelection(true)
-        const beforeContent = quill.root.innerHTML
-        quill.insertEmbed(range.index, 'image', event.target?.result)
-        quill.setSelection(range.index + 1)
-        
-        // Check if image caused overflow
-        requestAnimationFrame(() => {
-          const editor = quill.root
-          if (editor.scrollHeight > editor.clientHeight + 5) {
-            // Image caused overflow - revert
-            quill.clipboard.dangerouslyPasteHTML(beforeContent)
-          } else {
-            lastValidContent.current = editor.innerHTML
-            setHasUnsavedChanges(true)
-          }
-        })
-      }
-    }
-    reader.readAsDataURL(file)
-    e.target.value = ''
-  }
-
-  const handleImageResize = (percentage) => {
-    if (!selectedImage) return
-    const previousWidth = selectedImage.style.width
-    selectedImage.style.width = `${percentage}%`
-    selectedImage.style.height = 'auto'
-    
-    // Check if resize caused overflow
-    const quill = quillRef.current?.getEditor()
-    if (quill) {
-      requestAnimationFrame(() => {
-        const editor = quill.root
-        if (editor.scrollHeight > editor.clientHeight + 5) {
-          // Revert resize
-          selectedImage.style.width = previousWidth
-        } else {
-          lastValidContent.current = editor.innerHTML
-          setHasUnsavedChanges(true)
-        }
-      })
-    }
-  }
-
-  const handleImageAlign = (align) => {
-    if (!selectedImage) return
-    selectedImage.style.float = 'none'
-    selectedImage.style.display = 'block'
-    selectedImage.style.marginLeft = '0'
-    selectedImage.style.marginRight = '0'
-    
-    if (align === 'left') {
-      selectedImage.style.float = 'left'
-      selectedImage.style.marginRight = '16px'
-      selectedImage.style.marginBottom = '8px'
-    } else if (align === 'center') {
-      selectedImage.style.marginLeft = 'auto'
-      selectedImage.style.marginRight = 'auto'
-    } else if (align === 'right') {
-      selectedImage.style.float = 'right'
-      selectedImage.style.marginLeft = '16px'
-      selectedImage.style.marginBottom = '8px'
-    }
-    
-    const quill = quillRef.current?.getEditor()
-    if (quill) {
-      lastValidContent.current = quill.root.innerHTML
-    }
+  // Handle content change from WysiwygEditor
+  const handleContentChange = useCallback((content) => {
+    currentContentRef.current = content
     setHasUnsavedChanges(true)
-  }
-
-  const handleImageDelete = () => {
-    if (!selectedImage) return
-    selectedImage.remove()
-    setSelectedImage(null)
-    setImageToolbar({ visible: false, x: 0, y: 0 })
-    
-    const quill = quillRef.current?.getEditor()
-    if (quill) {
-      lastValidContent.current = quill.root.innerHTML
-    }
-    setHasUnsavedChanges(true)
-  }
-
-  // Content change handler - prevent overflow
-  const handleContentChange = useCallback((content, delta, source) => {
-    if (source !== 'user') return
-    
-    const quill = quillRef.current?.getEditor()
-    if (!quill) return
-    
-    const editor = quill.root
-    
-    // Check if content overflows the fixed height
-    // scrollHeight > clientHeight means content is larger than visible area
-    requestAnimationFrame(() => {
-      if (editor.scrollHeight > editor.clientHeight + 5) {
-        // Content overflows - revert to last valid content
-        quill.clipboard.dangerouslyPasteHTML(lastValidContent.current)
-        // Move cursor to end
-        quill.setSelection(quill.getLength() - 1)
-      } else {
-        // Content fits - save as last valid
-        lastValidContent.current = editor.innerHTML
-        setHasUnsavedChanges(true)
-      }
-    })
   }, [])
 
   // Page management
   const handleAddPage = () => {
     // Save current page content first
-    const currentContent = getEditorContent()
     const updatedPages = [...pages]
-    updatedPages[activePageIndex] = { ...updatedPages[activePageIndex], content: currentContent }
+    updatedPages[activePageIndex] = { 
+      ...updatedPages[activePageIndex], 
+      content: currentContentRef.current 
+    }
     
     const newPage = {
       id: Date.now(),
@@ -430,11 +82,9 @@ const IntroMaterialEditorModal = ({
     
     setPages([...updatedPages, newPage])
     setActivePageIndex(updatedPages.length)
-    setEditorKey(prev => prev + 1) // Force new editor
+    setEditorKey(prev => prev + 1)
     setHasUnsavedChanges(true)
-    setSelectedImage(null)
-    setImageToolbar({ visible: false, x: 0, y: 0 })
-    lastValidContent.current = "" // New page starts empty
+    currentContentRef.current = ""
   }
 
   const handleDeletePage = (index) => setShowDeleteConfirm(index)
@@ -449,8 +99,10 @@ const IntroMaterialEditorModal = ({
     // Save current content first if not deleting current page
     let updatedPages = [...pages]
     if (index !== activePageIndex) {
-      const currentContent = getEditorContent()
-      updatedPages[activePageIndex] = { ...updatedPages[activePageIndex], content: currentContent }
+      updatedPages[activePageIndex] = { 
+        ...updatedPages[activePageIndex], 
+        content: currentContentRef.current 
+      }
     }
     
     const newPages = updatedPages.filter((_, i) => i !== index)
@@ -460,28 +112,26 @@ const IntroMaterialEditorModal = ({
     
     setPages(newPages)
     setActivePageIndex(newActiveIndex)
-    setEditorKey(prev => prev + 1) // Force editor remount
+    setEditorKey(prev => prev + 1)
     setShowDeleteConfirm(null)
     setHasUnsavedChanges(true)
-    setSelectedImage(null)
-    setImageToolbar({ visible: false, x: 0, y: 0 })
-    lastValidContent.current = newPages[newActiveIndex]?.content || "" // Set for remaining page
+    currentContentRef.current = newPages[newActiveIndex]?.content || ""
   }
 
   const handlePageChange = (newIndex) => {
     if (newIndex === activePageIndex || newIndex < 0 || newIndex >= pages.length) return
     
     // Save current page content before switching
-    const currentContent = getEditorContent()
     const updatedPages = [...pages]
-    updatedPages[activePageIndex] = { ...updatedPages[activePageIndex], content: currentContent }
+    updatedPages[activePageIndex] = { 
+      ...updatedPages[activePageIndex], 
+      content: currentContentRef.current 
+    }
     
     setPages(updatedPages)
     setActivePageIndex(newIndex)
-    setEditorKey(prev => prev + 1) // Force new editor with new content
-    setSelectedImage(null)
-    setImageToolbar({ visible: false, x: 0, y: 0 })
-    lastValidContent.current = updatedPages[newIndex]?.content || "" // Set for new page
+    setEditorKey(prev => prev + 1)
+    currentContentRef.current = updatedPages[newIndex]?.content || ""
   }
 
   const handleMovePage = (fromIndex, direction) => {
@@ -489,9 +139,11 @@ const IntroMaterialEditorModal = ({
     if (toIndex < 0 || toIndex >= pages.length) return
     
     // Save current page content first
-    const currentContent = getEditorContent()
     const updatedPages = [...pages]
-    updatedPages[activePageIndex] = { ...updatedPages[activePageIndex], content: currentContent }
+    updatedPages[activePageIndex] = { 
+      ...updatedPages[activePageIndex], 
+      content: currentContentRef.current 
+    }
     
     // Swap pages
     const temp = updatedPages[fromIndex]
@@ -520,15 +172,12 @@ const IntroMaterialEditorModal = ({
     setHasUnsavedChanges(true)
   }
 
-  // Save handler - builds final material and calls onSave
+  // Save handler
   const handleSave = () => {
-    // Get current editor content (includes all image modifications)
-    const currentContent = getEditorContent()
-    
     // Build final pages array with current content
     const finalPages = pages.map((page, index) => {
       if (index === activePageIndex) {
-        return { ...page, content: currentContent }
+        return { ...page, content: currentContentRef.current }
       }
       return page
     })
@@ -539,8 +188,6 @@ const IntroMaterialEditorModal = ({
       name: materialName,
       pages: finalPages
     }
-    
-    console.log('Saving material:', finalMaterial) // Debug
     
     onSave(finalMaterial)
     setHasUnsavedChanges(false)
@@ -697,7 +344,8 @@ const IntroMaterialEditorModal = ({
           </div>
 
           {/* Editor Area */}
-          <div className="flex-1 flex flex-col bg-[#0f0f0f] overflow-hidden relative" ref={containerRef}>
+          <div className="flex-1 flex flex-col bg-[#0f0f0f] overflow-hidden">
+            {/* Page Title */}
             <div className="p-3 border-b border-[#333333] bg-[#141414]">
               <input
                 type="text"
@@ -708,52 +356,17 @@ const IntroMaterialEditorModal = ({
               />
             </div>
 
-            {/* Image Toolbar */}
-            {imageToolbar.visible && selectedImage && (
-              <div 
-                className="absolute z-50 bg-[#1C1C1C] rounded-xl shadow-xl border border-[#333333] p-2 flex items-center gap-1"
-                style={{ 
-                  left: `${Math.max(100, Math.min(imageToolbar.x, (containerRef.current?.offsetWidth || 500) - 200))}px`, 
-                  top: `${Math.max(60, imageToolbar.y)}px`,
-                  transform: 'translateX(-50%)'
-                }}
-              >
-                <div className="flex items-center gap-1 pr-2 border-r border-[#333333]">
-                  {[['S',25], ['M',50], ['L',75], ['XL',100]].map(([label, size]) => (
-                    <button key={label} onClick={() => handleImageResize(size)} className="px-2 py-1 text-xs text-gray-300 hover:bg-[#2F2F2F] rounded">
-                      {label}
-                    </button>
-                  ))}
-                </div>
-                <div className="flex items-center gap-1 pr-2 border-r border-[#333333]">
-                  <button onClick={() => handleImageAlign('left')} className="p-1.5 text-gray-300 hover:bg-[#2F2F2F] rounded"><AlignLeft className="w-4 h-4" /></button>
-                  <button onClick={() => handleImageAlign('center')} className="p-1.5 text-gray-300 hover:bg-[#2F2F2F] rounded"><AlignCenter className="w-4 h-4" /></button>
-                  <button onClick={() => handleImageAlign('right')} className="p-1.5 text-gray-300 hover:bg-[#2F2F2F] rounded"><AlignRight className="w-4 h-4" /></button>
-                </div>
-                <button onClick={handleImageDelete} className="p-1.5 text-red-400 hover:bg-red-500/20 rounded"><Trash2 className="w-4 h-4" /></button>
-              </div>
-            )}
-
-            {/* Quill Editor - key forces remount on page change */}
-            <div className="flex-1 overflow-hidden bg-[#2a2a2a] intro-material-quill flex items-start justify-center">
-              <div className="w-full max-w-4xl h-full overflow-hidden">
-                <ReactQuill
-                  key={`editor-${editorKey}`}
-                  ref={quillRef}
-                  defaultValue={currentContent}
-                  onChange={handleContentChange}
-                  modules={modules}
-                  formats={formats}
-                  theme="snow"
-                  preserveWhitespace
-                />
-              </div>
-              <input
-                ref={imageInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleImageUpload}
+            {/* WysiwygEditor */}
+            <div className="flex-1 overflow-hidden p-4">
+              <WysiwygEditor
+                key={`editor-${editorKey}`}
+                value={currentContent}
+                onChange={handleContentChange}
+                placeholder="Start writing your content..."
+                minHeight={500}
+                maxHeight={600}
+                showImages={true}
+                className="h-full"
               />
             </div>
           </div>
@@ -765,17 +378,41 @@ const IntroMaterialEditorModal = ({
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50">
           <div className="bg-[#1C1C1C] rounded-2xl p-6 w-full max-w-md shadow-2xl border border-[#333333]">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-orange-500/20 rounded-xl"><AlertTriangle className="w-6 h-6 text-orange-400" /></div>
+              <div className="p-2 bg-orange-500/20 rounded-xl">
+                <AlertTriangle className="w-6 h-6 text-orange-400" />
+              </div>
               <h3 className="text-lg font-semibold text-white">Unsaved Changes</h3>
             </div>
-            <p className="text-gray-400 mb-6">You have unsaved changes. Would you like to save before leaving?</p>
+            <p className="text-gray-400 mb-6">
+              You have unsaved changes. Would you like to save before leaving?
+            </p>
             <div className="flex gap-3">
-              <button onClick={() => { setShowExitConfirm(false); setHasUnsavedChanges(false); onClose() }} className="flex-1 px-4 py-2.5 bg-[#2F2F2F] text-white text-sm rounded-xl hover:bg-[#3F3F3F] flex items-center justify-center gap-2">
-                <X className="w-4 h-4" />Don&apos;t Save
+              <button 
+                onClick={() => { 
+                  setShowExitConfirm(false)
+                  setHasUnsavedChanges(false)
+                  onClose() 
+                }} 
+                className="flex-1 px-4 py-2.5 bg-[#2F2F2F] text-white text-sm rounded-xl hover:bg-[#3F3F3F] flex items-center justify-center gap-2"
+              >
+                <X className="w-4 h-4" />
+                Don&apos;t Save
               </button>
-              <button onClick={() => setShowExitConfirm(false)} className="flex-1 px-4 py-2.5 bg-[#2F2F2F] text-white text-sm rounded-xl hover:bg-[#3F3F3F]">Cancel</button>
-              <button onClick={() => { setShowExitConfirm(false); handleSave() }} className="flex-1 px-4 py-2.5 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 flex items-center justify-center gap-2">
-                <Check className="w-4 h-4" />Save
+              <button 
+                onClick={() => setShowExitConfirm(false)} 
+                className="flex-1 px-4 py-2.5 bg-[#2F2F2F] text-white text-sm rounded-xl hover:bg-[#3F3F3F]"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={() => { 
+                  setShowExitConfirm(false)
+                  handleSave() 
+                }} 
+                className="flex-1 px-4 py-2.5 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 flex items-center justify-center gap-2"
+              >
+                <Check className="w-4 h-4" />
+                Save
               </button>
             </div>
           </div>
@@ -787,14 +424,27 @@ const IntroMaterialEditorModal = ({
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50">
           <div className="bg-[#1C1C1C] rounded-2xl p-6 w-full max-w-sm shadow-2xl border border-[#333333]">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-red-500/20 rounded-xl"><Trash2 className="w-6 h-6 text-red-400" /></div>
+              <div className="p-2 bg-red-500/20 rounded-xl">
+                <Trash2 className="w-6 h-6 text-red-400" />
+              </div>
               <h3 className="text-lg font-semibold text-white">Delete Page</h3>
             </div>
-            <p className="text-gray-400 mb-6">Are you sure you want to delete this page? This action cannot be undone.</p>
+            <p className="text-gray-400 mb-6">
+              Are you sure you want to delete this page? This action cannot be undone.
+            </p>
             <div className="flex gap-3">
-              <button onClick={() => setShowDeleteConfirm(null)} className="flex-1 px-4 py-2.5 bg-[#2F2F2F] text-white text-sm rounded-xl hover:bg-[#3F3F3F]">Cancel</button>
-              <button onClick={confirmDeletePage} className="flex-1 px-4 py-2.5 bg-red-500 text-white text-sm rounded-xl hover:bg-red-600 flex items-center justify-center gap-2">
-                <Trash2 className="w-4 h-4" />Delete
+              <button 
+                onClick={() => setShowDeleteConfirm(null)} 
+                className="flex-1 px-4 py-2.5 bg-[#2F2F2F] text-white text-sm rounded-xl hover:bg-[#3F3F3F]"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={confirmDeletePage} 
+                className="flex-1 px-4 py-2.5 bg-red-500 text-white text-sm rounded-xl hover:bg-red-600 flex items-center justify-center gap-2"
+              >
+                <Trash2 className="w-4 h-4" />
+                Delete
               </button>
             </div>
           </div>

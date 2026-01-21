@@ -129,7 +129,10 @@ export const SpecialNoteModal = ({
   }
 
   const modalContent = (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+    <div 
+      className="fixed inset-0 bg-black/60 flex items-center justify-center p-4"
+      style={{ zIndex: 1000010 }}
+    >
       <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
         <div className="p-6 space-y-4">
           {/* Header */}

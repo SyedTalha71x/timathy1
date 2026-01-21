@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { useEffect, useRef, useState, useMemo, useCallback } from "react"
+import { useEffect, useRef, useState, useMemo, useCallback, forwardRef, useImperativeHandle } from "react"
 import ReactQuill, { Quill } from "react-quill"
 import "react-quill/dist/quill.snow.css"
 import { X, Upload } from "lucide-react"
@@ -34,7 +34,7 @@ const EditorModal = ({ show, onClose, title, children, onSubmit, submitText, sub
   )
 }
 
-export const WysiwygEditor = ({ 
+export const WysiwygEditor = forwardRef(({ 
   value, 
   onChange, 
   placeholder = "Type something...", 
@@ -42,7 +42,7 @@ export const WysiwygEditor = ({
   maxHeight = 400,
   showImages = true,
   className = ""
-}) => {
+}, ref) => {
   const editorId = useRef(`editor-${Math.random().toString(36).substr(2, 9)}`).current
   const quillRef = useRef(null)
   const containerRef = useRef(null)
@@ -58,9 +58,82 @@ export const WysiwygEditor = ({
   const [imageRect, setImageRect] = useState(null)
   const isResizing = useRef(false)
   const isDraggingRef = useRef(false)
+  const isDraggingFromHandle = useRef(false)
   
   const lastValueRef = useRef(value)
   const isInternalUpdate = useRef(false)
+  const savedContentRef = useRef(value || '')
+  const hasInitialized = useRef(false)
+
+  // Expose insertText method to parent components via ref
+  useImperativeHandle(ref, () => ({
+    insertText: (text) => {
+      const quill = quillRef.current?.getEditor()
+      if (!quill) return
+      
+      // Focus the editor first
+      quill.focus()
+      
+      // Get current selection or move to end
+      let range = quill.getSelection()
+      if (!range) {
+        // If no selection, move cursor to end
+        const length = quill.getLength()
+        quill.setSelection(length - 1, 0)
+        range = { index: length - 1, length: 0 }
+      }
+      
+      // Insert the text at cursor position
+      quill.insertText(range.index, text)
+      
+      // Move cursor after inserted text
+      quill.setSelection(range.index + text.length, 0)
+      
+      // Trigger onChange with new content
+      const newContent = quill.root.innerHTML
+      lastValueRef.current = newContent
+      savedContentRef.current = newContent
+      onChange(newContent)
+    },
+    focus: () => {
+      const quill = quillRef.current?.getEditor()
+      if (quill) quill.focus()
+    },
+    getEditor: () => quillRef.current?.getEditor()
+  }), [onChange])
+
+  // Visibility change handler - restore content if lost when switching tabs
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      const quill = quillRef.current?.getEditor()
+      if (!quill) return
+      
+      if (document.hidden) {
+        // Tab is being hidden - save current content
+        const currentContent = quill.root.innerHTML
+        if (currentContent && currentContent !== '<p><br></p>') {
+          savedContentRef.current = currentContent
+        }
+      } else {
+        // Tab is visible again - check if content was lost
+        const currentContent = quill.root.innerHTML
+        const isEmpty = !currentContent || currentContent === '<p><br></p>' || currentContent === ''
+        const hadContent = savedContentRef.current && savedContentRef.current !== '<p><br></p>' && savedContentRef.current !== ''
+        
+        if (isEmpty && hadContent) {
+          // Content was lost - restore it
+          isInternalUpdate.current = true
+          quill.root.innerHTML = savedContentRef.current
+          lastValueRef.current = savedContentRef.current
+          onChange(savedContentRef.current)
+          setTimeout(() => { isInternalUpdate.current = false }, 100)
+        }
+      }
+    }
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [onChange])
 
   // Update color indicators
   const updateColorIndicators = useCallback(() => {
@@ -105,13 +178,50 @@ export const WysiwygEditor = ({
   }, [updateColorIndicators])
   
   useEffect(() => {
-    if (quillRef.current && value !== lastValueRef.current && !isInternalUpdate.current) {
-      const quill = quillRef.current.getEditor()
+    // Skip on first render - let defaultValue handle it
+    if (!hasInitialized.current) {
+      hasInitialized.current = true
+      lastValueRef.current = value
+      if (value) savedContentRef.current = value
+      return
+    }
+    
+    // Skip if this is our own update
+    if (isInternalUpdate.current) return
+    
+    // Skip if value hasn't changed
+    if (value === lastValueRef.current) return
+    
+    const quill = quillRef.current?.getEditor()
+    if (!quill) return
+    
+    const currentContent = quill.root.innerHTML
+    
+    // Normalize for comparison (ignore whitespace differences)
+    const normalizeHtml = (html) => (html || '').replace(/\s+/g, ' ').trim()
+    const normalizedValue = normalizeHtml(value)
+    const normalizedCurrent = normalizeHtml(currentContent)
+    
+    // If content is essentially the same, just update ref
+    if (normalizedValue === normalizedCurrent) {
+      lastValueRef.current = value
+      return
+    }
+    
+    // Check if this looks like a template change (significant content change)
+    const isTemplateChange = !normalizedCurrent || 
+      normalizedCurrent === '<p><br></p>' || 
+      (normalizedValue.length > 50 && Math.abs(normalizedValue.length - normalizedCurrent.length) > normalizedCurrent.length * 0.5)
+    
+    if (isTemplateChange) {
+      // This is a template change - update editor
       const selection = quill.getSelection()
-      if (quill.root.innerHTML !== value) {
-        quill.root.innerHTML = value || ''
-        if (selection) try { quill.setSelection(selection) } catch (e) {}
-      }
+      quill.root.innerHTML = value || ''
+      if (selection) try { quill.setSelection(selection) } catch (e) {}
+      lastValueRef.current = value
+      if (value) savedContentRef.current = value
+    } else {
+      // Minor difference - keep current content, update ref
       lastValueRef.current = value
     }
   }, [value])
@@ -120,8 +230,9 @@ export const WysiwygEditor = ({
     if (source === 'user') {
       isInternalUpdate.current = true
       lastValueRef.current = content
+      savedContentRef.current = content
       onChange(content)
-      setTimeout(() => { isInternalUpdate.current = false; updateColorIndicators() }, 0)
+      setTimeout(() => { isInternalUpdate.current = false; updateColorIndicators() }, 100)
     }
   }
   
@@ -163,12 +274,16 @@ export const WysiwygEditor = ({
     if (!imageUrl) return
     const quill = quillRef.current?.getEditor()
     if (quill && savedRange !== null) {
+      isInternalUpdate.current = true
       quill.focus()
       quill.setSelection(savedRange.index, 0)
       quill.insertEmbed(savedRange.index, 'image', imageUrl, 'user')
       quill.setSelection(savedRange.index + 1)
-      lastValueRef.current = quill.root.innerHTML
-      onChange(quill.root.innerHTML)
+      const newContent = quill.root.innerHTML
+      lastValueRef.current = newContent
+      savedContentRef.current = newContent
+      onChange(newContent)
+      setTimeout(() => { isInternalUpdate.current = false }, 100)
     }
     setShowImageModal(false)
     setImageUrl('')
@@ -181,12 +296,16 @@ export const WysiwygEditor = ({
     reader.onload = () => {
       const quill = quillRef.current?.getEditor()
       if (quill) {
+        isInternalUpdate.current = true
         quill.focus()
         const range = quill.getSelection(true)
         quill.insertEmbed(range.index, 'image', reader.result, 'user')
         quill.setSelection(range.index + 1)
-        lastValueRef.current = quill.root.innerHTML
-        onChange(quill.root.innerHTML)
+        const newContent = quill.root.innerHTML
+        lastValueRef.current = newContent
+        savedContentRef.current = newContent
+        onChange(newContent)
+        setTimeout(() => { isInternalUpdate.current = false }, 100)
       }
     }
     reader.readAsDataURL(file)
@@ -198,13 +317,13 @@ export const WysiwygEditor = ({
     const newHtml = quill.root.innerHTML
     isInternalUpdate.current = true
     lastValueRef.current = newHtml
+    savedContentRef.current = newHtml
     onChange(newHtml)
-    setTimeout(() => { isInternalUpdate.current = false }, 0)
+    setTimeout(() => { isInternalUpdate.current = false }, 100)
   }
 
   const updateImageRect = useCallback((img) => {
     if (!img || !containerRef.current) { setImageRect(null); return }
-    // Position relative to .ql-container (editor area only, not toolbar)
     const qlContainer = containerRef.current.querySelector('.ql-container')
     if (!qlContainer) { setImageRect(null); return }
     const containerRect = qlContainer.getBoundingClientRect()
@@ -217,15 +336,250 @@ export const WysiwygEditor = ({
     })
   }, [])
 
+  // Start dragging image from move handle
+  const startDragFromHandle = useCallback((e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    if (!selectedImage) return
+    
+    const quill = quillRef.current?.getEditor()
+    if (!quill) return
+    
+    const editor = containerRef.current?.querySelector('.ql-editor')
+    if (!editor) return
+    
+    // Find image index
+    const allImages = editor.querySelectorAll('img')
+    let imageNumber = -1
+    allImages.forEach((img, idx) => {
+      if (img === selectedImage) imageNumber = idx
+    })
+    
+    let imgIndex = -1
+    if (imageNumber >= 0) {
+      const delta = quill.getContents()
+      let currentIndex = 0
+      let foundImages = 0
+      
+      for (const op of delta.ops) {
+        if (op.insert && typeof op.insert === 'object' && op.insert.image) {
+          if (foundImages === imageNumber) {
+            imgIndex = currentIndex
+            break
+          }
+          foundImages++
+          currentIndex += 1
+        } else if (typeof op.insert === 'string') {
+          currentIndex += op.insert.length
+        } else {
+          currentIndex += 1
+        }
+      }
+    }
+    
+    const dragData = {
+      src: selectedImage.src,
+      width: selectedImage.getAttribute('width') || selectedImage.style.width || selectedImage.offsetWidth,
+      originalIndex: imgIndex
+    }
+    
+    isDraggingFromHandle.current = true
+    selectedImage.style.opacity = '0.3'
+    
+    // Create ghost element
+    const ghost = document.createElement('div')
+    ghost.id = 'drag-ghost'
+    ghost.style.cssText = `
+      position: fixed;
+      pointer-events: none;
+      z-index: 99999;
+      opacity: 0.9;
+      border: 2px solid #3B82F6;
+      border-radius: 6px;
+      background: white;
+      padding: 4px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      transform: translate(-50%, -50%);
+    `
+    const imgClone = document.createElement('img')
+    imgClone.src = selectedImage.src
+    imgClone.style.cssText = `max-width: 150px; max-height: 100px; display: block; border-radius: 4px;`
+    ghost.appendChild(imgClone)
+    document.body.appendChild(ghost)
+    ghost.style.left = `${e.clientX}px`
+    ghost.style.top = `${e.clientY}px`
+    
+    // Create drop indicator
+    const indicator = document.createElement('div')
+    indicator.id = 'drop-indicator'
+    indicator.style.cssText = `
+      position: absolute;
+      width: 3px;
+      height: 24px;
+      background: #3B82F6;
+      pointer-events: none;
+      z-index: 9999;
+      display: none;
+      border-radius: 2px;
+      box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
+    `
+    editor.appendChild(indicator)
+    
+    // Clear selection
+    setSelectedImage(null)
+    setImageRect(null)
+    
+    const handleMouseMove = (moveEvent) => {
+      ghost.style.left = `${moveEvent.clientX}px`
+      ghost.style.top = `${moveEvent.clientY}px`
+      
+      // Update drop indicator
+      if (document.caretRangeFromPoint) {
+        const range = document.caretRangeFromPoint(moveEvent.clientX, moveEvent.clientY)
+        if (range) {
+          const rect = range.getBoundingClientRect()
+          const editorRect = editor.getBoundingClientRect()
+          indicator.style.left = `${rect.left - editorRect.left}px`
+          indicator.style.top = `${rect.top - editorRect.top}px`
+          indicator.style.height = `${Math.max(20, rect.height || 20)}px`
+          indicator.style.display = 'block'
+        }
+      }
+    }
+    
+    const handleMouseUp = (upEvent) => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+      
+      ghost.remove()
+      indicator.remove()
+      
+      // Restore opacity if image still exists
+      const img = editor.querySelector(`img[src="${dragData.src}"]`)
+      if (img) img.style.opacity = ''
+      
+      // Get drop position
+      let dropIndex = quill.getLength() - 1
+      if (document.caretRangeFromPoint) {
+        const range = document.caretRangeFromPoint(upEvent.clientX, upEvent.clientY)
+        if (range) {
+          const sel = window.getSelection()
+          sel.removeAllRanges()
+          sel.addRange(range)
+          const selection = quill.getSelection(true)
+          if (selection) dropIndex = selection.index
+        }
+      }
+      
+      dropIndex = Math.max(0, Math.min(dropIndex, quill.getLength() - 1))
+      
+      // Don't move if same position
+      if (dragData.originalIndex >= 0 && (dropIndex === dragData.originalIndex || dropIndex === dragData.originalIndex + 1)) {
+        isDraggingFromHandle.current = false
+        return
+      }
+      
+      // Remove from original position
+      if (dragData.originalIndex >= 0) {
+        quill.deleteText(dragData.originalIndex, 1, 'silent')
+        if (dropIndex > dragData.originalIndex) {
+          dropIndex -= 1
+        }
+      }
+      
+      // Insert at new position
+      quill.insertEmbed(dropIndex, 'image', dragData.src, 'silent')
+      
+      // Restore width
+      requestAnimationFrame(() => {
+        editor.querySelectorAll('img').forEach(editorImg => {
+          if (editorImg.src === dragData.src && dragData.width) {
+            const w = typeof dragData.width === 'string' ? parseInt(dragData.width) : dragData.width
+            if (w > 0) {
+              editorImg.style.width = `${w}px`
+              editorImg.setAttribute('width', String(w))
+            }
+          }
+        })
+        
+        triggerOnChange(quill)
+        isDraggingFromHandle.current = false
+      })
+    }
+    
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+  }, [selectedImage, triggerOnChange])
+
+  // Delete selected image
+  const deleteSelectedImage = useCallback(() => {
+    if (!selectedImage) return
+    
+    const quill = quillRef.current?.getEditor()
+    if (!quill) return
+    
+    const editor = containerRef.current?.querySelector('.ql-editor')
+    if (!editor) return
+    
+    // Find image index
+    const allImages = editor.querySelectorAll('img')
+    let imageNumber = -1
+    allImages.forEach((img, idx) => {
+      if (img === selectedImage) imageNumber = idx
+    })
+    
+    let imgIndex = -1
+    if (imageNumber >= 0) {
+      const delta = quill.getContents()
+      let currentIndex = 0
+      let foundImages = 0
+      
+      for (const op of delta.ops) {
+        if (op.insert && typeof op.insert === 'object' && op.insert.image) {
+          if (foundImages === imageNumber) {
+            imgIndex = currentIndex
+            break
+          }
+          foundImages++
+          currentIndex += 1
+        } else if (typeof op.insert === 'string') {
+          currentIndex += op.insert.length
+        } else {
+          currentIndex += 1
+        }
+      }
+    }
+    
+    if (imgIndex >= 0) {
+      quill.deleteText(imgIndex, 1, 'user')
+    } else {
+      // Fallback: remove via DOM
+      selectedImage.remove()
+    }
+    
+    setSelectedImage(null)
+    setImageRect(null)
+    
+    // Trigger change
+    const newHtml = quill.root.innerHTML
+    isInternalUpdate.current = true
+    lastValueRef.current = newHtml
+    savedContentRef.current = newHtml
+    onChange(newHtml)
+    setTimeout(() => { isInternalUpdate.current = false }, 100)
+  }, [selectedImage, onChange])
+
   const handleContainerClick = (e) => {
-    if (isResizing.current || isDraggingRef.current) return
+    if (isResizing.current || isDraggingRef.current || isDraggingFromHandle.current) return
+    
     const img = e.target.closest('.ql-editor img')
     if (img && containerRef.current?.contains(img)) {
       e.preventDefault()
       e.stopPropagation()
       setSelectedImage(img)
       updateImageRect(img)
-    } else if (!e.target.classList?.contains('resize-handle')) {
+    } else if (!e.target.classList?.contains('resize-handle') && !e.target.closest('.image-drag-area')) {
       setSelectedImage(null)
       setImageRect(null)
     }
@@ -306,21 +660,16 @@ export const WysiwygEditor = ({
   }, [selectedImage, updateImageRect])
 
   // Image drag & drop
+  const dragDataRef = useRef(null)
+  
   useEffect(() => {
     const editor = containerRef.current?.querySelector('.ql-editor')
-    if (!editor) {
-      const timer = setTimeout(() => {}, 100)
-      return () => clearTimeout(timer)
-    }
-
-    let dragData = null
+    if (!editor) return
 
     const makeImagesDraggable = () => {
       editor.querySelectorAll('img').forEach(img => {
-        if (!img.draggable) {
-          img.draggable = true
-          img.style.cursor = 'grab'
-        }
+        img.draggable = true
+        img.style.cursor = 'grab'
       })
     }
 
@@ -332,20 +681,58 @@ export const WysiwygEditor = ({
       const img = e.target
       if (img.tagName !== 'IMG') return
       
+      e.stopPropagation()
       isDraggingRef.current = true
       setSelectedImage(null)
       setImageRect(null)
       
-      dragData = {
+      // Find image index by looking at all images in the editor
+      const quill = quillRef.current?.getEditor()
+      let imgIndex = -1
+      
+      if (quill) {
+        // Find all images in editor and get the index of the dragged one
+        const allImages = editor.querySelectorAll('img')
+        let imageNumber = -1
+        allImages.forEach((editorImg, idx) => {
+          if (editorImg === img) {
+            imageNumber = idx
+          }
+        })
+        
+        // Now find the Quill index of the nth image
+        if (imageNumber >= 0) {
+          const delta = quill.getContents()
+          let currentIndex = 0
+          let foundImages = 0
+          
+          for (const op of delta.ops) {
+            if (op.insert && typeof op.insert === 'object' && op.insert.image) {
+              if (foundImages === imageNumber) {
+                imgIndex = currentIndex
+                break
+              }
+              foundImages++
+              currentIndex += 1
+            } else if (typeof op.insert === 'string') {
+              currentIndex += op.insert.length
+            } else {
+              currentIndex += 1
+            }
+          }
+        }
+      }
+      
+      dragDataRef.current = {
         element: img,
         src: img.src,
-        width: img.getAttribute('width') || img.offsetWidth
+        width: img.getAttribute('width') || img.style.width || img.offsetWidth,
+        originalIndex: imgIndex
       }
       
       img.style.opacity = '0.4'
-      img.style.cursor = 'grabbing'
       e.dataTransfer.effectAllowed = 'move'
-      e.dataTransfer.setData('text/plain', 'image-drag')
+      e.dataTransfer.setData('text/plain', img.src)
     }
 
     const handleDragEnd = (e) => {
@@ -354,76 +741,96 @@ export const WysiwygEditor = ({
         e.target.style.cursor = 'grab'
       }
       isDraggingRef.current = false
-      dragData = null
+      dragDataRef.current = null
     }
 
     const handleDragOver = (e) => {
-      if (!dragData) return
+      if (!dragDataRef.current) return
       e.preventDefault()
       e.dataTransfer.dropEffect = 'move'
+      
+      // Focus editor and set selection at mouse position
+      const quill = quillRef.current?.getEditor()
+      if (!quill) return
+      
+      // Get position from mouse coordinates
+      if (document.caretRangeFromPoint) {
+        const range = document.caretRangeFromPoint(e.clientX, e.clientY)
+        if (range) {
+          const sel = window.getSelection()
+          sel.removeAllRanges()
+          sel.addRange(range)
+        }
+      }
     }
 
     const handleDrop = (e) => {
-      if (!dragData) return
+      if (!dragDataRef.current) return
       e.preventDefault()
       e.stopPropagation()
 
       const quill = quillRef.current?.getEditor()
       if (!quill) return
 
-      const { element, src, width } = dragData
+      const { element, src, width, originalIndex } = dragDataRef.current
+      
+      // Get drop position from current selection (set during dragover)
+      const selection = quill.getSelection(true)
+      let dropIndex = selection ? selection.index : quill.getLength() - 1
+      
+      // Clamp to valid range
+      dropIndex = Math.max(0, Math.min(dropIndex, quill.getLength() - 1))
 
-      try {
-        // Find original position
-        const blot = Quill.find(element)
-        if (!blot) {
-          console.log('No blot found')
-          return
-        }
-        const origIndex = quill.getIndex(blot)
-
-        // Find drop position using caret
-        let dropIndex = origIndex
-        const range = document.caretRangeFromPoint(e.clientX, e.clientY)
-        if (range && range.startContainer) {
-          const dropBlot = Quill.find(range.startContainer, true)
-          if (dropBlot) {
-            dropIndex = quill.getIndex(dropBlot) + range.startOffset
-          }
-        }
-
-        // Don't move if same position
-        if (dropIndex === origIndex || dropIndex === origIndex + 1) {
-          element.style.opacity = ''
-          return
-        }
-
-        // Calculate adjusted index
-        const adjustedIndex = dropIndex > origIndex ? dropIndex - 1 : dropIndex
-
-        // Perform move
-        quill.deleteText(origIndex, 1, 'silent')
-        quill.insertEmbed(adjustedIndex, 'image', src, 'silent')
-
-        // Restore width after insert
-        requestAnimationFrame(() => {
-          const images = editor.querySelectorAll('img')
-          images.forEach(img => {
-            if (img.src === src && width) {
-              img.style.width = `${parseInt(width)}px`
-              img.setAttribute('width', String(parseInt(width)))
-              img.draggable = true
-              img.style.cursor = 'grab'
-            }
-          })
-          triggerOnChange(quill)
+      // Don't move if same position
+      if (originalIndex >= 0 && (dropIndex === originalIndex || dropIndex === originalIndex + 1)) {
+        editor.querySelectorAll('img').forEach(img => {
+          img.style.opacity = ''
         })
-
-      } catch (err) {
-        console.error('Drop error:', err)
+        dragDataRef.current = null
+        isDraggingRef.current = false
+        return
       }
 
-      dragData = null
+      // Remove from original position
+      if (originalIndex >= 0) {
+        quill.deleteText(originalIndex, 1, 'silent')
+        // Adjust drop index if it was after the original
+        if (dropIndex > originalIndex) {
+          dropIndex -= 1
+        }
+      } else if (element && element.parentNode) {
+        // Fallback: remove via DOM if we couldn't find the Quill index
+        element.parentNode.removeChild(element)
+      }
+
+      // Insert at new position
+      quill.insertEmbed(dropIndex, 'image', src, 'silent')
+
+      // Restore width after insert
+      requestAnimationFrame(() => {
+        editor.querySelectorAll('img').forEach(img => {
+          if (img.src === src && width) {
+            const w = typeof width === 'string' ? parseInt(width) : width
+            if (w > 0) {
+              img.style.width = `${w}px`
+              img.setAttribute('width', String(w))
+            }
+          }
+          img.style.opacity = ''
+          img.draggable = true
+          img.style.cursor = 'grab'
+        })
+        
+        // Trigger change
+        const newHtml = quill.root.innerHTML
+        isInternalUpdate.current = true
+        lastValueRef.current = newHtml
+        savedContentRef.current = newHtml
+        onChange(newHtml)
+        setTimeout(() => { isInternalUpdate.current = false }, 100)
+      })
+
+      dragDataRef.current = null
       isDraggingRef.current = false
     }
 
@@ -439,7 +846,7 @@ export const WysiwygEditor = ({
       editor.removeEventListener('dragover', handleDragOver)
       editor.removeEventListener('drop', handleDrop)
     }
-  }, [])
+  }, [onChange])
 
   const toolbarConfig = useMemo(() => showImages 
     ? [
@@ -786,10 +1193,8 @@ export const WysiwygEditor = ({
     return () => { const s = document.getElementById(`wysiwyg-style-${editorId}`); if (s) document.head.removeChild(s) }
   }, [editorId, minHeight, maxHeight])
 
-  // State for editor area bounds (for clipping the selection)
   const [editorBounds, setEditorBounds] = useState(null)
   
-  // Update editor bounds when needed
   const updateEditorBounds = useCallback(() => {
     if (!containerRef.current) return
     const qlContainer = containerRef.current.querySelector('.ql-container')
@@ -804,91 +1209,112 @@ export const WysiwygEditor = ({
     })
   }, [])
   
-  // Update editor bounds when selected image changes or on resize
   useEffect(() => {
     if (selectedImage) {
       updateEditorBounds()
     }
   }, [selectedImage, updateEditorBounds])
 
-  // Render image selection inside a clipped container
   const renderImageSelection = () => {
     if (!selectedImage || !imageRect || !editorBounds || showLinkModal || showImageModal) return null
     
     return (
-      <div 
-        style={{ 
-          position: 'absolute', 
-          top: editorBounds.top, 
-          left: editorBounds.left, 
-          width: editorBounds.width, 
-          height: editorBounds.height, 
-          overflow: 'hidden',
-          pointerEvents: 'none',
-          zIndex: 1,
-          borderRadius: '0 0 12px 12px'
-        }}
-      >
+      <>
+        {/* Selection frame and resize handles - in clipped container */}
         <div 
           style={{ 
             position: 'absolute', 
-            top: imageRect.top, 
-            left: imageRect.left, 
-            width: imageRect.width, 
-            height: imageRect.height, 
-            pointerEvents: 'none'
+            top: editorBounds.top, 
+            left: editorBounds.left, 
+            width: editorBounds.width, 
+            height: editorBounds.height, 
+            overflow: 'hidden',
+            pointerEvents: 'none',
+            zIndex: 1,
+            borderRadius: '0 0 12px 12px'
           }}
         >
-          <div style={{ position: 'absolute', inset: 0, border: '2px solid #FF843E', borderRadius: 4 }} />
-          
-          {['nw', 'ne', 'sw', 'se'].map((dir) => (
-            <div
-              key={dir}
-              className="resize-handle"
-              onMouseDown={(e) => startResize(e, dir)}
-              style={{
-                position: 'absolute',
-                width: 12, height: 12,
-                backgroundColor: '#FF843E',
-                border: '2px solid white',
-                borderRadius: 2,
+          <div 
+            style={{ 
+              position: 'absolute', 
+              top: imageRect.top, 
+              left: imageRect.left, 
+              width: imageRect.width, 
+              height: imageRect.height, 
+              pointerEvents: 'none'
+            }}
+          >
+            {/* Drag area over the image - click and drag to move */}
+            <div 
+              className="image-drag-area"
+              onMouseDown={startDragFromHandle}
+              style={{ 
+                position: 'absolute', 
+                inset: 8, 
+                cursor: 'grab',
                 pointerEvents: 'auto',
-                cursor: dir === 'nw' || dir === 'se' ? 'nwse-resize' : 'nesw-resize',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
-                top: dir.includes('n') ? -6 : 'auto',
-                bottom: dir.includes('s') ? -6 : 'auto',
-                left: dir.includes('w') ? -6 : 'auto',
-                right: dir.includes('e') ? -6 : 'auto',
-              }}
+                zIndex: 5
+              }} 
+              title="Ziehen um Bild zu verschieben"
             />
-          ))}
-          
-          <div
-            className="resize-handle"
-            onMouseDown={(e) => startResize(e, 'e')}
-            style={{ position: 'absolute', width: 8, height: 28, backgroundColor: '#FF843E', border: '2px solid white', borderRadius: 3, pointerEvents: 'auto', top: '50%', right: -5, transform: 'translateY(-50%)', cursor: 'ew-resize', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }}
-          />
-          <div
-            className="resize-handle"
-            onMouseDown={(e) => startResize(e, 'w')}
-            style={{ position: 'absolute', width: 8, height: 28, backgroundColor: '#FF843E', border: '2px solid white', borderRadius: 3, pointerEvents: 'auto', top: '50%', left: -5, transform: 'translateY(-50%)', cursor: 'ew-resize', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }}
-          />
-          
-          <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', bottom: -22, padding: '2px 8px', backgroundColor: '#FF843E', color: 'white', borderRadius: 4, fontSize: 10, fontWeight: 500, whiteSpace: 'nowrap', pointerEvents: 'none' }}>
-            {Math.round(imageRect.width)} × {Math.round(imageRect.height)}
+            
+            <div style={{ position: 'absolute', inset: 0, border: '3px solid #FF843E', borderRadius: 4, pointerEvents: 'none' }} />
+            
+            {/* Corner resize handles */}
+            {['nw', 'ne', 'sw', 'se'].map((dir) => (
+              <div
+                key={dir}
+                className="resize-handle"
+                onMouseDown={(e) => startResize(e, dir)}
+                style={{
+                  position: 'absolute',
+                  width: 14, height: 14,
+                  backgroundColor: '#FF843E',
+                  border: '2px solid white',
+                  borderRadius: 3,
+                  pointerEvents: 'auto',
+                  cursor: dir === 'nw' || dir === 'se' ? 'nwse-resize' : 'nesw-resize',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+                  top: dir.includes('n') ? -7 : 'auto',
+                  bottom: dir.includes('s') ? -7 : 'auto',
+                  left: dir.includes('w') ? -7 : 'auto',
+                  right: dir.includes('e') ? -7 : 'auto',
+                }}
+              />
+            ))}
+            
+            {/* Edge resize handles */}
+            <div
+              className="resize-handle"
+              onMouseDown={(e) => startResize(e, 'e')}
+              style={{ position: 'absolute', width: 10, height: 32, backgroundColor: '#FF843E', border: '2px solid white', borderRadius: 4, pointerEvents: 'auto', top: '50%', right: -6, transform: 'translateY(-50%)', cursor: 'ew-resize', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }}
+            />
+            <div
+              className="resize-handle"
+              onMouseDown={(e) => startResize(e, 'w')}
+              style={{ position: 'absolute', width: 10, height: 32, backgroundColor: '#FF843E', border: '2px solid white', borderRadius: 4, pointerEvents: 'auto', top: '50%', left: -6, transform: 'translateY(-50%)', cursor: 'ew-resize', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }}
+            />
+            
+            {/* Size indicator */}
+            <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', bottom: -24, padding: '3px 10px', backgroundColor: '#FF843E', color: 'white', borderRadius: 4, fontSize: 11, fontWeight: 500, whiteSpace: 'nowrap', pointerEvents: 'none' }}>
+              {Math.round(imageRect.width)} × {Math.round(imageRect.height)}
+            </div>
           </div>
         </div>
-      </div>
+      </>
     )
   }
-
+  
   return (
     <>
       <div 
         ref={containerRef}
         className={`wysiwyg-editor-${editorId} rounded-xl border border-[#333333] ${className}`}
         onClick={handleContainerClick}
-        style={{ position: 'relative', overflow: 'visible' }}
+        style={{ 
+          position: 'relative', 
+          overflow: 'visible'
+        }}
       >
         <ReactQuill
           ref={quillRef}
@@ -944,6 +1370,6 @@ export const WysiwygEditor = ({
       </EditorModal>
     </>
   )
-}
+})
 
 export default WysiwygEditor

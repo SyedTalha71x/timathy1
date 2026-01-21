@@ -294,11 +294,12 @@ const SharedSpecialNoteIcon = ({
         createPortal(
           <div
             ref={noteRef}
-            className="fixed w-72 sm:w-80 bg-black/95 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-[99999] flex flex-col"
+            className="fixed w-72 sm:w-80 bg-black/95 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg flex flex-col"
             style={{
               top: notePosition.top,
               left: notePosition.left,
               maxHeight: notePosition.maxHeight || '60vh',
+              zIndex: 1000005,
             }}
             onMouseEnter={handlePopupMouseEnter}
             onMouseLeave={handlePopupMouseLeave}
