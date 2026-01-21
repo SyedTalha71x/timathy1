@@ -1233,7 +1233,7 @@ export default function DocumentManagementModal({
             <p className="text-gray-300">
               Manage documents for <span className="font-medium text-white">{entityName}</span>
               <span className="text-gray-500 text-sm block sm:inline sm:ml-2">
-                {entityType === "lead" ? `Lead #${entity.id}` : `Member #${entity.id}`}
+                {entityType === "lead" ? `Lead #${entity.id}` : entityType === "staff" ? `Staff #${entity.id}` : `Member #${entity.id}`}
               </span>
             </p>
             <div className="flex flex-col sm:flex-row gap-2 w-full justify-between">

@@ -1,17 +1,20 @@
 /* eslint-disable react/prop-types */
 import { X, MessageCircle, Mail } from "lucide-react";
 
-// Initials Avatar Component
-const InitialsAvatar = ({ firstName, lastName, size = 48, className = "" }) => {
+// Initials Avatar Component - supports context for different colors
+const InitialsAvatar = ({ firstName, lastName, size = 48, className = "", context = "member" }) => {
   const getInitials = () => {
     const firstInitial = firstName?.charAt(0)?.toUpperCase() || "";
     const lastInitial = lastName?.charAt(0)?.toUpperCase() || "";
     return `${firstInitial}${lastInitial}` || "?";
   };
 
+  // Staff uses blue, members use orange
+  const bgColor = context === "staff" ? "bg-blue-600" : "bg-orange-500";
+
   return (
     <div
-      className={`bg-orange-500 rounded-xl flex items-center justify-center text-white font-semibold ${className}`}
+      className={`${bgColor} rounded-xl flex items-center justify-center text-white font-semibold ${className}`}
       style={{ width: size, height: size, fontSize: size * 0.4 }}
     >
       {getInitials()}
@@ -25,8 +28,12 @@ const MessageTypeSelectionModal = ({
   member,
   onSelectAppChat,
   onSelectEmail,
+  context = "member", // "member" | "staff"
 }) => {
   if (!isOpen || !member) return null;
+
+  // Support both image and img properties
+  const avatarImage = member.image || member.img;
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[1000] p-4">
@@ -35,9 +42,9 @@ const MessageTypeSelectionModal = ({
         <div className="p-4 border-b border-gray-800">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              {member.image ? (
+              {avatarImage ? (
                 <img
-                  src={member.image}
+                  src={avatarImage}
                   alt={`${member.firstName} ${member.lastName}`}
                   className="w-11 h-11 rounded-xl object-cover"
                 />
@@ -46,6 +53,7 @@ const MessageTypeSelectionModal = ({
                   firstName={member.firstName}
                   lastName={member.lastName}
                   size={44}
+                  context={context}
                 />
               )}
               <div>

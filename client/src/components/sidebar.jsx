@@ -24,6 +24,11 @@ import {
   ChevronLeft,
   ChevronRight,
   ClipboardList,
+  MessageSquarePlus,
+  Lightbulb,
+  Bug,
+  Star,
+  CheckCircle,
 } from "lucide-react"
 import { HiOutlineUsers } from "react-icons/hi2"
 import { IoFitnessOutline } from "react-icons/io5"
@@ -35,6 +40,179 @@ import { BadgeDollarSign } from "lucide-react"
 import { CgGym } from "react-icons/cg"
 
 import OrgaGymLogoWihoutText from '../../public/Orgagym white without text.svg'
+
+// ============================================
+// Feedback Modal Component (defined outside to prevent re-creation)
+// ============================================
+const feedbackTypes = [
+  { id: 'suggestion', label: 'Suggestion', icon: Lightbulb },
+  { id: 'bug', label: 'Bug Report', icon: Bug },
+  { id: 'praise', label: 'Praise', icon: Star },
+  { id: 'other', label: 'Other', icon: MessageCircle },
+]
+
+const FeedbackModal = ({ 
+  isOpen, 
+  isSubmitted, 
+  feedbackData, 
+  onFeedbackDataChange, 
+  onSubmit, 
+  onClose 
+}) => {
+  if (!isOpen) return null
+  
+  // Success State
+  if (isSubmitted) {
+    return (
+      <div 
+        className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999] p-4"
+        onKeyDown={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="bg-[#1a1a1a] rounded-2xl w-full max-w-md overflow-hidden border border-zinc-700 p-8 text-center">
+          <div className="w-16 h-16 bg-orange-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckCircle size={32} className="text-orange-500" />
+          </div>
+          <h2 className="text-xl font-semibold text-white mb-2">Thank You!</h2>
+          <p className="text-zinc-400">
+            Your feedback has been submitted successfully. We appreciate you taking the time to help us improve OrgaGym.
+          </p>
+        </div>
+      </div>
+    )
+  }
+  
+  return (
+    <div 
+      className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999] p-4"
+      onKeyDown={(e) => e.stopPropagation()}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div 
+        className="bg-[#1a1a1a] rounded-2xl w-full max-w-lg overflow-hidden border border-zinc-700"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between p-5 border-b border-zinc-700">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-orange-500/20 rounded-xl flex items-center justify-center">
+              <MessageSquarePlus size={20} className="text-orange-500" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-white">Send Feedback</h2>
+              <p className="text-sm text-zinc-400">Help us improve OrgaGym</p>
+            </div>
+          </div>
+          <button 
+            onClick={onClose}
+            className="p-2 hover:bg-zinc-700 rounded-lg transition-colors"
+          >
+            <span className="text-zinc-400 hover:text-white text-xl">×</span>
+          </button>
+        </div>
+        
+        {/* Content */}
+        <div className="p-5 space-y-5">
+          {/* Feedback Type */}
+          <div>
+            <label className="block text-sm font-medium text-zinc-300 mb-2">Feedback Type</label>
+            <div className="grid grid-cols-4 gap-2">
+              {feedbackTypes.map((type) => {
+                const IconComponent = type.icon
+                return (
+                  <button
+                    key={type.id}
+                    onClick={() => onFeedbackDataChange({ ...feedbackData, type: type.id })}
+                    className={`p-3 rounded-xl border transition-all text-center ${
+                      feedbackData.type === type.id
+                        ? 'border-orange-500 bg-orange-500/10 text-white'
+                        : 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600'
+                    }`}
+                  >
+                    <IconComponent size={20} className={`mx-auto mb-1 ${feedbackData.type === type.id ? 'text-orange-500' : ''}`} />
+                    <span className="text-xs">{type.label}</span>
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+          
+          {/* Subject */}
+          <div>
+            <label className="block text-sm font-medium text-zinc-300 mb-2">Subject</label>
+            <input
+              type="text"
+              value={feedbackData.subject}
+              onChange={(e) => onFeedbackDataChange({ ...feedbackData, subject: e.target.value })}
+              onKeyDown={(e) => e.stopPropagation()}
+              placeholder="Brief summary of your feedback"
+              className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-orange-500 transition-colors"
+            />
+          </div>
+          
+          {/* Message */}
+          <div>
+            <label className="block text-sm font-medium text-zinc-300 mb-2">Message</label>
+            <textarea
+              value={feedbackData.message}
+              onChange={(e) => onFeedbackDataChange({ ...feedbackData, message: e.target.value })}
+              onKeyDown={(e) => e.stopPropagation()}
+              placeholder="Tell us more about your feedback..."
+              rows={4}
+              className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-orange-500 transition-colors resize-none"
+            />
+          </div>
+          
+          {/* Rating (optional) */}
+          <div>
+            <label className="block text-sm font-medium text-zinc-300 mb-2">
+              How would you rate your experience? <span className="text-zinc-500">(optional)</span>
+            </label>
+            <div className="flex gap-2">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  onClick={() => onFeedbackDataChange({ ...feedbackData, rating: star })}
+                  className="transition-transform hover:scale-110"
+                >
+                  <Star 
+                    size={24} 
+                    className={feedbackData.rating >= star ? 'text-yellow-500 fill-yellow-500' : 'text-zinc-600'} 
+                  />
+                </button>
+              ))}
+              {feedbackData.rating > 0 && (
+                <button
+                  onClick={() => onFeedbackDataChange({ ...feedbackData, rating: 0 })}
+                  className="text-xs text-zinc-500 hover:text-zinc-400 ml-2"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+        
+        {/* Footer */}
+        <div className="flex gap-3 p-5 border-t border-zinc-700">
+          <button
+            onClick={onClose}
+            className="flex-1 px-4 py-3 bg-zinc-700 text-white rounded-xl hover:bg-zinc-600 transition-colors font-medium"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onSubmit}
+            disabled={!feedbackData.subject.trim() || !feedbackData.message.trim()}
+            className="flex-1 px-4 py-3 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Send Feedback
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 /**
  * Sidebar Component
@@ -56,6 +234,51 @@ const Sidebar = ({ isOpen = false, onClose }) => {
   const [isMemberAreaOpen, setIsMemberAreaOpen] = useState(false)
   const [isFitnessHubOpen, setIsFitnessHubOpen] = useState(false)
   const [isSupportAreaOpen, setIsSupportAreaOpen] = useState(false)
+  
+  // Feedback Modal state
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false)
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false)
+  const [feedbackData, setFeedbackData] = useState({
+    type: 'suggestion',
+    subject: '',
+    message: '',
+    rating: 0
+  })
+
+  // Block all hotkeys when feedback modal is open
+  useEffect(() => {
+    if (!isFeedbackModalOpen) return
+    
+    const blockHotkeys = (e) => {
+      // Allow Escape to close the modal
+      if (e.key === 'Escape') {
+        setIsFeedbackModalOpen(false)
+        setFeedbackSubmitted(false)
+        setFeedbackData({ type: 'suggestion', subject: '', message: '', rating: 0 })
+        e.stopImmediatePropagation()
+        return
+      }
+      
+      // Check if target is an input field
+      const target = e.target
+      const isInputField = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable
+      
+      // Always stop propagation to prevent hotkeys
+      e.stopImmediatePropagation()
+      
+      // Only preventDefault if NOT in an input field (to allow typing)
+      if (!isInputField) {
+        e.preventDefault()
+      }
+    }
+    
+    // Capture phase to catch events before they reach other listeners
+    document.addEventListener('keydown', blockHotkeys, true)
+    
+    return () => {
+      document.removeEventListener('keydown', blockHotkeys, true)
+    }
+  }, [isFeedbackModalOpen])
 
   const location = useLocation()
   const navigate = useNavigate()
@@ -74,6 +297,10 @@ const Sidebar = ({ isOpen = false, onClose }) => {
   }, [onClose])
 
   const handleNavigation = (to) => {
+    if (to === '#feedback') {
+      setIsFeedbackModalOpen(true)
+      return
+    }
     navigate(to)
     if (onClose) onClose()
   }
@@ -135,6 +362,7 @@ const Sidebar = ({ isOpen = false, onClose }) => {
       ],
     },
     { icon: TbBrandGoogleAnalytics, label: "Analytics", to: "/dashboard/analytics" },
+    { icon: Settings, label: "Configuration", to: "/dashboard/configuration" },
     {
       icon: MdOutlineSupportAgent,
       label: "Support Area",
@@ -145,9 +373,9 @@ const Sidebar = ({ isOpen = false, onClose }) => {
       submenu: [
         { label: "Help Center", to: "/dashboard/help-center", icon: MdOutlineHelpCenter },
         { label: "Tickets", to: "/dashboard/tickets", icon: MdOutlineLocalActivity, hasNotification: true, notificationCount: 3 },
+        { label: "Feedback", to: "#feedback", icon: MessageSquarePlus },
       ],
     },
-    { icon: Settings, label: "Configuration", to: "/dashboard/configuration" },
   ]
 
   // Helper function to check if any submenu item is active
@@ -193,12 +421,43 @@ const Sidebar = ({ isOpen = false, onClose }) => {
     }
   }
 
+  // Feedback handlers
+  const handleFeedbackSubmit = () => {
+    console.log('Feedback submitted:', feedbackData)
+    // Hier würde normalerweise ein API-Call erfolgen
+    setFeedbackSubmitted(true)
+    
+    // Nach 2.5 Sekunden Modal schließen
+    setTimeout(() => {
+      setIsFeedbackModalOpen(false)
+      setFeedbackSubmitted(false)
+      setFeedbackData({ type: 'suggestion', subject: '', message: '', rating: 0 })
+    }, 2500)
+  }
+
+  const handleFeedbackClose = () => {
+    setIsFeedbackModalOpen(false)
+    setFeedbackSubmitted(false)
+    setFeedbackData({ type: 'suggestion', subject: '', message: '', rating: 0 })
+  }
+
   return (
-    <aside
-      className={`
-        fixed top-0 left-0 z-[50] h-screen bg-[#111111] transition-all duration-500 overflow-hidden 
-        lg:relative lg:block
-        ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
+    <>
+      {/* Feedback Modal */}
+      <FeedbackModal 
+        isOpen={isFeedbackModalOpen}
+        isSubmitted={feedbackSubmitted}
+        feedbackData={feedbackData}
+        onFeedbackDataChange={setFeedbackData}
+        onSubmit={handleFeedbackSubmit}
+        onClose={handleFeedbackClose}
+      />
+      
+      <aside
+        className={`
+          fixed top-0 left-0 z-[50] h-screen bg-[#111111] transition-all duration-500 overflow-hidden 
+          lg:relative lg:block
+          ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         ${isCollapsed ? "lg:w-20" : "lg:w-64 w-64"}
       `}
     >
@@ -408,8 +667,8 @@ const Sidebar = ({ isOpen = false, onClose }) => {
                     {!isCollapsed && <span>{item.label}</span>}
                   </button>
 
-                  {/* Divider after Analytics */}
-                  {item.label === "Analytics" && <hr className="border-zinc-700 my-2" />}
+                  {/* Divider after Configuration */}
+                  {item.label === "Configuration" && <hr className="border-zinc-700 my-2" />}
                 </li>
               )
             })}
@@ -430,6 +689,7 @@ const Sidebar = ({ isOpen = false, onClose }) => {
         </div>
       </div>
     </aside>
+    </>
   )
 }
 

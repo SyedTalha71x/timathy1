@@ -2,6 +2,30 @@
 import { useState, useEffect } from "react"
 import { X, Plus, Minus } from "lucide-react"
 
+// Initials Avatar Component - Blue background with initials (like members)
+const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) => {
+  const getInitials = () => {
+    const firstInitial = firstName?.charAt(0)?.toUpperCase() || ""
+    const lastInitial = lastName?.charAt(0)?.toUpperCase() || ""
+    return `${firstInitial}${lastInitial}` || "?"
+  }
+
+  const sizeClasses = {
+    sm: "w-9 h-9 text-sm",
+    md: "w-[60px] h-[60px] text-xl",
+    lg: "w-24 h-24 text-3xl",
+  }
+
+  return (
+    <div 
+      className={`bg-[#3F74FF] rounded-xl flex items-center justify-center text-white font-semibold flex-shrink-0 ${sizeClasses[size]} ${className}`}
+      style={{ fontFamily: 'ui-sans-serif, system-ui, sans-serif' }}
+    >
+      {getInitials()}
+    </div>
+  )
+}
+
 const VacationContingentModal = ({ 
   isOpen, 
   onClose, 
@@ -10,6 +34,9 @@ const VacationContingentModal = ({
 }) => {
   const [contingent, setContingent] = useState(staff?.vacationDays || 0)
   const [notes, setNotes] = useState("")
+  
+  // Get current year for display
+  const currentYear = new Date().getFullYear()
 
   useEffect(() => {
     if (staff) {
@@ -53,31 +80,41 @@ const VacationContingentModal = ({
         </div>
 
         <div className="p-6">
-          <div className="flex items-center gap-4 mb-6">
-            <img
-              src={staff.img || "/placeholder.svg?height=60&width=60"}
-              width={60}
-              height={60}
-              className="rounded-xl"
-              alt={`${staff.firstName} ${staff.lastName}`}
-            />
-            <div>
-              <h3 className="text-white font-medium text-lg">
-                {staff.firstName} {staff.lastName}
-              </h3>
-              <p className="text-gray-400 text-sm">{staff.role}</p>
-            </div>
+          <div className="flex flex-col items-center mb-6">
+            {staff.img ? (
+              <img
+                src={staff.img}
+                width={60}
+                height={60}
+                className="rounded-xl w-[60px] h-[60px] object-cover mb-3"
+                alt={`${staff.firstName} ${staff.lastName}`}
+              />
+            ) : (
+              <InitialsAvatar 
+                firstName={staff.firstName} 
+                lastName={staff.lastName} 
+                size="md"
+                className="mb-3"
+              />
+            )}
+            <h3 className="text-white font-medium text-lg text-center">
+              {staff.firstName} {staff.lastName}
+            </h3>
+            <p className="text-gray-400 text-sm text-center">{staff.role}</p>
           </div>
 
           <div className="mb-6">
-            <label className="block text-white text-sm font-medium mb-3">
+            <label className="block text-white text-sm font-medium mb-2 text-center">
               Vacation Days Contingent
             </label>
+            <p className="text-gray-400 text-xs mb-4 text-center">
+              Period: 01.01.{currentYear} - 31.12.{currentYear}
+            </p>
             <div className="flex items-center justify-center gap-4">
               <button
                 onClick={handleDecrement}
                 disabled={contingent <= 0}
-                className="p-2 rounded-lg bg-red-600 text-white disabled:bg-gray-600 disabled:cursor-not-allowed hover:bg-red-700 transition-colors"
+                className="p-2 rounded-lg bg-gray-600 text-white disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed hover:bg-gray-500 transition-colors"
               >
                 <Minus size={20} />
               </button>
@@ -88,31 +125,21 @@ const VacationContingentModal = ({
               
               <button
                 onClick={handleIncrement}
-                className="p-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors"
+                className="p-2 rounded-lg bg-gray-600 text-white hover:bg-gray-500 transition-colors"
               >
                 <Plus size={20} />
               </button>
             </div>
+            <p className="text-gray-500 text-xs text-center mt-3">
+              Days remaining for this year
+            </p>
           </div>
-
-          {/* <div className="mb-6">
-            <label className="block text-white text-sm font-medium mb-2">
-              Notes
-            </label>
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Add notes about vacation contingent changes..."
-              className="w-full bg-[#2A2A2A] border border-gray-600 rounded-lg px-3 py-2 text-white text-sm resize-none focus:outline-none focus:border-orange-500"
-              rows="3"
-            />
-          </div> */}
         </div>
 
         <div className="px-6 py-4 border-t border-gray-800 flex gap-3">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2.5 bg-gray-800 text-sm font-medium text-white rounded-xl hover:bg-gray-700 transition-colors"
+            className="flex-1 px-4 py-2.5 bg-gray-700 text-sm font-medium text-white rounded-xl hover:bg-gray-600 transition-colors"
           >
             Cancel
           </button>

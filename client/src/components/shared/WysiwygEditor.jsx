@@ -942,8 +942,31 @@ export const WysiwygEditor = forwardRef(({
         align-items: center !important;
         gap: 4px !important;
         min-height: 44px !important;
-        overflow: visible !important;
+        overflow-x: auto !important;
+        overflow-y: visible !important;
         border-radius: 12px 12px 0 0 !important;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+        scrollbar-color: #444 transparent;
+      }
+      .wysiwyg-editor-${editorId} .ql-toolbar::-webkit-scrollbar {
+        height: 4px;
+      }
+      .wysiwyg-editor-${editorId} .ql-toolbar::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .wysiwyg-editor-${editorId} .ql-toolbar::-webkit-scrollbar-thumb {
+        background: #444;
+        border-radius: 2px;
+      }
+      .wysiwyg-editor-${editorId} .ql-toolbar::-webkit-scrollbar-thumb:hover {
+        background: #555;
+      }
+      @media (min-width: 768px) {
+        .wysiwyg-editor-${editorId} .ql-toolbar {
+          overflow-x: visible !important;
+          flex-wrap: wrap !important;
+        }
       }
       .wysiwyg-editor-${editorId} .ql-toolbar .ql-formats {
         margin: 0 !important;
@@ -952,6 +975,7 @@ export const WysiwygEditor = forwardRef(({
         align-items: center !important;
         gap: 2px !important;
         height: 36px !important;
+        flex-shrink: 0 !important;
       }
       
       /* All buttons same height as color pickers (36px) */
@@ -965,6 +989,7 @@ export const WysiwygEditor = forwardRef(({
         border-radius: 6px !important;
         background: transparent !important;
         border: none !important;
+        flex-shrink: 0 !important;
       }
       .wysiwyg-editor-${editorId} .ql-snow.ql-toolbar button:hover { background-color: rgba(255,255,255,0.1) !important; }
       .wysiwyg-editor-${editorId} .ql-snow.ql-toolbar button.ql-active { background-color: rgba(255,132,62,0.2) !important; }
@@ -1004,6 +1029,7 @@ export const WysiwygEditor = forwardRef(({
         color: #a0a0a0 !important;
         display: inline-flex !important;
         align-items: center !important;
+        flex-shrink: 0 !important;
       }
       .wysiwyg-editor-${editorId} .ql-snow .ql-picker-label {
         padding: 0 6px !important;

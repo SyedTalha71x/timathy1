@@ -291,12 +291,22 @@ const formatFileSize = (bytes) => {
   return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
 };
 
-// Insert variables - matching configuration.jsx format
-const insertVariables = [
-  { id: 'first_name', label: 'Member First Name', value: '{Member_First_Name}' },
-  { id: 'last_name', label: 'Member Last Name', value: '{Member_Last_Name}' },
-  { id: 'studio_name', label: 'Studio Name', value: '{Studio_Name}' },
-];
+// Insert variables helper - returns context-appropriate variables
+const getInsertVariables = (context) => {
+  if (context === "staff") {
+    return [
+      { id: 'first_name', label: 'Staff First Name', value: '{Staff_First_Name}' },
+      { id: 'last_name', label: 'Staff Last Name', value: '{Staff_Last_Name}' },
+      { id: 'studio_name', label: 'Studio Name', value: '{Studio_Name}' },
+    ];
+  }
+  // Default to member
+  return [
+    { id: 'first_name', label: 'Member First Name', value: '{Member_First_Name}' },
+    { id: 'last_name', label: 'Member Last Name', value: '{Member_Last_Name}' },
+    { id: 'studio_name', label: 'Studio Name', value: '{Studio_Name}' },
+  ];
+};
 
 const SendEmailModal = ({
   showEmailModal,
@@ -313,11 +323,15 @@ const SendEmailModal = ({
   handleSearchMemberForEmail,
   preselectedMember = null,
   signature = "",
+  context = "member", // "member" | "staff"
 }) => {
   const attachmentInputRef = useRef(null);
   const editorRef = useRef(null);
   const [showCc, setShowCc] = useState(false);
   const [showBcc, setShowBcc] = useState(false);
+  
+  // Get context-appropriate insert variables
+  const insertVariables = getInsertVariables(context);
   const [attachments, setAttachments] = useState([]);
   const [toRecipients, setToRecipients] = useState([]);
   const [ccRecipients, setCcRecipients] = useState([]);
@@ -408,12 +422,12 @@ const SendEmailModal = ({
   const canSend = toRecipients.length > 0 && emailData.subject;
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-      <div className="bg-[#181818] rounded-xl w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
-        <div className="p-4">
+    <div className="fixed inset-0 bg-black/80 flex items-end md:items-center justify-center z-50">
+      <div className="bg-[#181818] w-full h-[95vh] md:h-auto md:rounded-xl md:max-w-4xl md:mx-4 md:max-h-[90vh] flex flex-col">
+        <div className="p-4 md:p-5 flex flex-col flex-1 min-h-0 overflow-hidden">
           {/* Header */}
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-medium flex items-center gap-2 text-white">
+          <div className="flex justify-between items-center mb-4 flex-shrink-0">
+            <h2 className="text-base md:text-lg font-medium flex items-center gap-2 text-white">
               <Mail className="w-5 h-5" />
               Send Email
             </h2>
@@ -421,11 +435,11 @@ const SendEmailModal = ({
               onClick={onClose}
               className="p-2 hover:bg-zinc-700 rounded-lg text-gray-400 hover:text-white transition-colors"
             >
-              <X size={16} />
+              <X size={20} />
             </button>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-4 flex-1 overflow-y-auto custom-scrollbar pr-1">
             {/* Template Selection */}
             <div>
               <label className="block text-sm font-medium text-gray-400 mb-1">
@@ -538,35 +552,37 @@ const SendEmailModal = ({
               <div className="flex items-center justify-between mb-1">
                 <label className="text-sm font-medium text-gray-400">Message</label>
               </div>
-              {/* Variables and Insert row - matching configuration.jsx style */}
-              <div className="flex flex-wrap items-center gap-2 mb-2">
-                <span className="text-xs text-gray-500 mr-1">Variables:</span>
-                {insertVariables.map((variable) => (
+              {/* Variables and Insert row - horizontal scrollable on mobile */}
+              <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 mb-2">
+                <div className="flex items-center gap-2 min-w-max">
+                  <span className="text-xs text-gray-500 mr-1">Variables:</span>
+                  {insertVariables.map((variable) => (
+                    <button
+                      key={variable.id}
+                      onClick={() => insertVariable(variable)}
+                      className="px-2 py-1.5 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600 transition-colors whitespace-nowrap"
+                    >
+                      {variable.label}
+                    </button>
+                  ))}
+                  <span className="text-xs text-gray-500 mx-1">|</span>
+                  <span className="text-xs text-gray-500 mr-1">Insert:</span>
                   <button
-                    key={variable.id}
-                    onClick={() => insertVariable(variable)}
-                    className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600 transition-colors"
+                    onClick={insertSignature}
+                    className="px-2 py-1.5 bg-orange-500 text-white text-xs rounded-lg hover:bg-orange-600 flex items-center gap-1 transition-colors whitespace-nowrap"
                   >
-                    {variable.label}
+                    <FileText className="w-3 h-3" />
+                    Signature
                   </button>
-                ))}
-                <span className="text-xs text-gray-500 mx-2">|</span>
-                <span className="text-xs text-gray-500 mr-1">Insert:</span>
-                <button
-                  onClick={insertSignature}
-                  className="px-2 py-1 bg-orange-500 text-white text-xs rounded-lg hover:bg-orange-600 flex items-center gap-1 transition-colors"
-                >
-                  <FileText className="w-3 h-3" />
-                  Email Signature
-                </button>
+                </div>
               </div>
               <WysiwygEditor
                 ref={editorRef}
                 value={emailData.body}
                 onChange={(content) => setEmailData({ ...emailData, body: content })}
                 placeholder="Type your email message here..."
-                minHeight={180}
-                maxHeight={300}
+                minHeight={140}
+                maxHeight={250}
                 showImages={true}
               />
             </div>
@@ -594,22 +610,22 @@ const SendEmailModal = ({
               </div>
               
               {attachments.length > 0 && (
-                <div className="bg-[#222222] rounded-xl p-3 space-y-2">
+                <div className="bg-[#222222] rounded-xl p-2 md:p-3 space-y-2">
                   {attachments.map((attachment) => (
                     <div
                       key={attachment.id}
-                      className="flex items-center justify-between bg-[#1a1a1a] rounded-lg px-3 py-2 group"
+                      className="flex items-center justify-between bg-[#1a1a1a] rounded-lg px-3 py-2"
                     >
-                      <div className="flex items-center gap-2 min-w-0">
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
                         {getFileIcon(attachment)}
                         <span className="text-sm text-white truncate">{attachment.name}</span>
-                        <span className="text-xs text-gray-500 flex-shrink-0">
+                        <span className="text-xs text-gray-500 flex-shrink-0 hidden sm:inline">
                           ({formatFileSize(attachment.size)})
                         </span>
                       </div>
                       <button
                         onClick={() => removeAttachment(attachment.id)}
-                        className="p-1 text-gray-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all"
+                        className="p-1.5 text-gray-500 hover:text-red-400 transition-colors ml-2"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -621,28 +637,28 @@ const SendEmailModal = ({
               {attachments.length === 0 && (
                 <div 
                   onClick={() => attachmentInputRef.current?.click()}
-                  className="border border-dashed border-gray-700 rounded-xl p-4 text-center cursor-pointer hover:border-gray-600 transition-colors"
+                  className="border border-dashed border-gray-700 rounded-xl p-3 md:p-4 text-center cursor-pointer hover:border-gray-600 transition-colors"
                 >
                   <Paperclip className="w-5 h-5 text-gray-500 mx-auto mb-1" />
                   <p className="text-xs text-gray-500">
-                    Click to add attachments or drag & drop
+                    Tap to add attachments
                   </p>
                 </div>
               )}
             </div>
 
             {/* Actions */}
-            <div className="flex gap-2 justify-end pt-2">
+            <div className="flex gap-3 pt-4 flex-shrink-0">
               <button
                 onClick={onClose}
-                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-xl text-sm transition-colors"
+                className="flex-1 md:flex-none px-4 py-3 md:py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-xl text-sm transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={onSendEmail}
                 disabled={!canSend}
-                className="px-4 py-2 bg-[#FF843E] hover:bg-[#e0733a] disabled:bg-gray-700 disabled:text-gray-500 text-white rounded-xl text-sm flex items-center gap-2 transition-colors disabled:cursor-not-allowed"
+                className="flex-1 md:flex-none px-4 py-3 md:py-2 bg-[#FF843E] hover:bg-[#e0733a] disabled:bg-gray-700 disabled:text-gray-500 text-white rounded-xl text-sm flex items-center justify-center gap-2 transition-colors disabled:cursor-not-allowed"
               >
                 <Send className="w-4 h-4" />
                 Send Email

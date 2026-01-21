@@ -21,6 +21,8 @@ import {
   Pencil,
   Briefcase,
   Cake,
+  File,
+  ClipboardList,
 } from "lucide-react"
 import toast, { Toaster } from "react-hot-toast"
 import AddStaffModal from "../../components/user-panel-components/staff-components/add-staff-modal"
@@ -42,6 +44,13 @@ import AppointmentActionModalV2 from "../../components/myarea-components/Appoint
 import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
 import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
 import VacationContingentModal from "../../components/user-panel-components/staff-components/vacation-contigent"
+import ChatPopup from "../../components/shared/ChatPopup"
+import MessageTypeSelectionModal from "../../components/shared/MessageTypeSelectionModal"
+import SendEmailModal from "../../components/shared/SendEmailModal"
+import DocumentManagementModal from "../../components/shared/DocumentManagementModal"
+import StaffViewDetailsModal from "../../components/user-panel-components/staff-components/staff-view-details-modal"
+import AssessmentFormModal from "../../components/shared/medical-history-form-modal"
+import AssessmentSelectionModal from "../../components/shared/medical-history-selection-modal"
 
 const StaffContext = createContext(null)
 
@@ -68,8 +77,8 @@ const RoleTag = ({ role, compact = false }) => {
   if (compact) {
     return (
       <div className={`inline-flex items-center gap-1 ${bgColor} text-white px-2 py-1 rounded-lg text-xs font-medium`}>
-        <Briefcase size={12} />
-        <span className="truncate max-w-[80px]">{role}</span>
+        <Briefcase size={12} className="flex-shrink-0" />
+        <span className="truncate max-w-[140px]">{role}</span>
       </div>
     );
   }
@@ -128,13 +137,52 @@ export default function StaffManagement() {
   const [showDocumentModal, setShowDocumentModal] = useState(false)
   const [selectedMemberForDocuments, setSelectedMemberForDocuments] = useState(null)
 
+  // Assessment states (Medical History)
+  const [isAssessmentSelectionModalOpen, setIsAssessmentSelectionModalOpen] = useState(false)
+  const [isAssessmentFormModalOpen, setIsAssessmentFormModalOpen] = useState(false)
+  const [selectedAssessment, setSelectedAssessment] = useState(null)
+  const [assessmentFromDocumentManagement, setAssessmentFromDocumentManagement] = useState(false)
+  const [editingAssessmentDocument, setEditingAssessmentDocument] = useState(null)
+  const [isEditingAssessment, setIsEditingAssessment] = useState(false)
+  const [isViewingAssessment, setIsViewingAssessment] = useState(false)
+
   const [chatPopup, setChatPopup] = useState({
     isOpen: false,
     staff: null
   });
 
+  // Message Type Selection Modal State
+  const [messageTypeModal, setMessageTypeModal] = useState({
+    isOpen: false,
+    staff: null
+  });
+
+  // Email Modal States
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [selectedStaffForEmail, setSelectedStaffForEmail] = useState(null);
+  const [showTemplateDropdown, setShowTemplateDropdown] = useState(false);
+  const [showRecipientDropdown, setShowRecipientDropdown] = useState(false);
+  const [selectedEmailTemplate, setSelectedEmailTemplate] = useState(null);
+  const [emailData, setEmailData] = useState({
+    to: "",
+    subject: "",
+    body: "",
+    recipientName: ""
+  });
+
+  // Email Templates
+  const emailTemplates = [
+    { id: 1, name: "Welcome", subject: "Welcome to our team!", body: "Hello,\n\nWelcome to our team!" },
+    { id: 2, name: "Reminder", subject: "Reminder for your shift", body: "Hello,\n\nThis is a reminder about your upcoming shift." },
+    { id: 3, name: "Schedule", subject: "Your Schedule", body: "Hello,\n\nPlease find your schedule attached." },
+  ];
+
   const [isVacationContingentModalOpen, setIsVacationContingentModalOpen] = useState(false)
   const [selectedStaffForContingent, setSelectedStaffForContingent] = useState(null)
+
+  // View Details Modal State
+  const [isViewDetailsModalOpen, setIsViewDetailsModalOpen] = useState(false)
+  const [selectedStaffForView, setSelectedStaffForView] = useState(null)
 
   // Search and Filter States
   const [searchQuery, setSearchQuery] = useState("")
@@ -322,12 +370,115 @@ export default function StaffManagement() {
     setShowDocumentModal(true)
   }
 
+  // Handler for document updates from DocumentManagementModal
+  const handleDocumentsUpdate = (staffId, documents) => {
+    setStaffMembers(prevStaff => 
+      prevStaff.map(staff => 
+        staff.id === staffId ? { ...staff, documents } : staff
+      )
+    )
+  }
+
+  // Assessment handlers (Medical History)
+  const handleCreateAssessmentClick = (staff, fromDocManagement = false) => {
+    setSelectedStaff(staff)
+    setAssessmentFromDocumentManagement(fromDocManagement)
+    
+    if (fromDocManagement) {
+      setShowDocumentModal(false)
+    }
+    
+    setIsAssessmentSelectionModalOpen(true)
+  }
+
+  const handleAssessmentSelect = (assessment) => {
+    setSelectedAssessment(assessment)
+    setIsAssessmentSelectionModalOpen(false)
+    setIsAssessmentFormModalOpen(true)
+  }
+
+  const handleAssessmentComplete = (documentData) => {
+    setStaffMembers(prevStaff => 
+      prevStaff.map(staff => {
+        if (staff.id === selectedStaff.id) {
+          const existingDocuments = staff.documents || []
+          
+          if (documentData.isEdit) {
+            return {
+              ...staff,
+              documents: existingDocuments.map(doc => 
+                doc.id === documentData.id ? documentData : doc
+              ),
+              hasAssessment: true
+            }
+          } else {
+            return {
+              ...staff,
+              documents: [...existingDocuments, documentData],
+              hasAssessment: true
+            }
+          }
+        }
+        return staff
+      })
+    )
+    
+    setIsAssessmentFormModalOpen(false)
+    setSelectedAssessment(null)
+    setIsEditingAssessment(false)
+    setEditingAssessmentDocument(null)
+    setIsViewingAssessment(false)
+    
+    if (assessmentFromDocumentManagement) {
+      if (selectedMemberForDocuments && selectedMemberForDocuments.id === selectedStaff.id) {
+        const existingDocuments = selectedMemberForDocuments.documents || []
+        let updatedDocuments
+        if (documentData.isEdit) {
+          updatedDocuments = existingDocuments.map(doc => 
+            doc.id === documentData.id ? documentData : doc
+          )
+        } else {
+          updatedDocuments = [...existingDocuments, documentData]
+        }
+        setSelectedMemberForDocuments({
+          ...selectedMemberForDocuments,
+          documents: updatedDocuments,
+          hasAssessment: true
+        })
+      }
+      setShowDocumentModal(true)
+      setAssessmentFromDocumentManagement(false)
+    }
+    
+    toast.success("Medical history saved successfully")
+  }
+
+  const handleEditAssessmentClick = (staff, doc) => {
+    setSelectedStaff(staff)
+    setIsEditingAssessment(true)
+    setEditingAssessmentDocument(doc)
+    setAssessmentFromDocumentManagement(true)
+    setSelectedAssessment({ id: doc.templateId, title: doc.name })
+    setShowDocumentModal(false)
+    setIsAssessmentFormModalOpen(true)
+  }
+
+  const handleViewAssessmentClick = (staff, doc) => {
+    setSelectedStaff(staff)
+    setEditingAssessmentDocument(doc)
+    setIsViewingAssessment(true)
+    setAssessmentFromDocumentManagement(true)
+    setSelectedAssessment({ id: doc.templateId, title: doc.name })
+    setShowDocumentModal(false)
+    setIsAssessmentFormModalOpen(true)
+  }
+
   const confirmRemoveStaff = () => {
     setStaffMembers(staffMembers.filter((member) => member.id !== staffToRemove.id))
     setIsRemoveModalOpen(false)
     setStaffToRemove(null)
     setIsShowDetails(false)
-    toast.success("Staff member deleted successfully")
+    toast.success("Staff deleted successfully")
   }
 
   const handleVacationRequest = (staffId, startDate, endDate) => {
@@ -340,11 +491,87 @@ export default function StaffManagement() {
     setIsHistoryModalOpen(true)
   }
 
+  const handleViewDetails = (staff) => {
+    setSelectedStaffForView(staff)
+    setIsViewDetailsModalOpen(true)
+  }
+
   const handleChatClick = (staff) => {
-    setChatPopup({
+    setMessageTypeModal({
       isOpen: true,
       staff: staff
     });
+  };
+
+  // Open App Chat (from Message Type Modal)
+  const handleOpenAppChat = () => {
+    if (messageTypeModal.staff) {
+      setChatPopup({
+        isOpen: true,
+        staff: messageTypeModal.staff
+      });
+    }
+  };
+
+  // Open Email Modal (from Message Type Modal)
+  const handleOpenEmailModal = () => {
+    if (messageTypeModal.staff) {
+      setSelectedStaffForEmail(messageTypeModal.staff);
+      setEmailData({
+        to: messageTypeModal.staff.email || "",
+        subject: "",
+        body: "",
+        recipientName: `${messageTypeModal.staff.firstName} ${messageTypeModal.staff.lastName}`
+      });
+      setShowEmailModal(true);
+    }
+  };
+
+  // Close Email Modal
+  const handleCloseEmailModal = () => {
+    setShowEmailModal(false);
+    setSelectedStaffForEmail(null);
+    setEmailData({ to: "", subject: "", body: "", recipientName: "" });
+    setSelectedEmailTemplate(null);
+    setShowTemplateDropdown(false);
+    setShowRecipientDropdown(false);
+  };
+
+  // Send email
+  const handleSendEmail = () => {
+    console.log("Sending email:", emailData);
+    toast.success("Email sent successfully!");
+    handleCloseEmailModal();
+  };
+
+  // Template select
+  const handleTemplateSelect = (template) => {
+    setSelectedEmailTemplate(template);
+    setEmailData({
+      ...emailData,
+      subject: template.subject,
+      body: template.body || ""
+    });
+    setShowTemplateDropdown(false);
+  };
+
+  // Search staff for email
+  const handleSearchStaffForEmail = (query) => {
+    if (!query) return [];
+    return staffMembers.filter(s => 
+      `${s.firstName} ${s.lastName}`.toLowerCase().includes(query.toLowerCase()) ||
+      s.email?.toLowerCase().includes(query.toLowerCase())
+    );
+  };
+
+  // Select email recipient
+  const handleSelectEmailRecipient = (staff) => {
+    setEmailData({
+      ...emailData,
+      to: staff.email,
+      recipientName: `${staff.firstName} ${staff.lastName}`
+    });
+    setShowRecipientDropdown(false);
   };
 
   const handleOpenFullMessenger = (staff) => {
@@ -917,9 +1144,10 @@ export default function StaffManagement() {
                 <div className="bg-[#141414] rounded-xl overflow-hidden">
                   {/* Table Header - Desktop only */}
                   <div className={`hidden lg:grid lg:grid-cols-12 gap-3 px-4 bg-[#0f0f0f] border-b border-gray-800 text-xs text-gray-500 font-medium ${isCompactView ? 'py-2' : 'py-3'}`}>
-                    <div className="col-span-3">Staff Member</div>
+                    <div className="col-span-3">Staff</div>
                     <div className="col-span-2">Role</div>
-                    <div className="col-span-4">About</div>
+                    <div className="col-span-2">Username</div>
+                    <div className="col-span-2">About</div>
                     <div className="col-span-3 text-right">Actions</div>
                   </div>
                   
@@ -967,10 +1195,17 @@ export default function StaffManagement() {
                             <RoleTag role={staff.role} compact={isCompactView} />
                           </div>
                           
+                          {/* Username */}
+                          <div className="col-span-2">
+                            <span className={`${isCompactView ? 'text-xs' : 'text-sm'} text-gray-400 truncate block`}>
+                              {staff.username || "—"}
+                            </span>
+                          </div>
+                          
                           {/* About */}
-                          <div className="col-span-4">
+                          <div className="col-span-2">
                             <span className={`${isCompactView ? 'text-xs' : 'text-sm'} text-gray-400 line-clamp-2`}>
-                              {staff.description || staff.about || "—"}
+                              {staff.description || staff.about || "Ã¢â‚¬â€"}
                             </span>
                           </div>
                           
@@ -1003,6 +1238,13 @@ export default function StaffManagement() {
                               title="Documents"
                             >
                               <FileText size={isCompactView ? 16 : 18} />
+                            </button>
+                            <button
+                              onClick={() => handleViewDetails(staff)}
+                              className={`${isCompactView ? 'p-1.5' : 'p-2'} text-blue-400 hover:text-blue-300 hover:bg-white/5 rounded-lg transition-colors`}
+                              title="View Details"
+                            >
+                              <Eye size={isCompactView ? 16 : 18} />
                             </button>
                             <div className={`w-px ${isCompactView ? 'h-4' : 'h-5'} bg-gray-700/50 mx-1`} />
                             <button
@@ -1095,7 +1337,14 @@ export default function StaffManagement() {
                                     <span className="text-[10px]">Docs</span>
                                   </button>
                                 </div>
-                                <div className="grid grid-cols-1 gap-1 mt-1">
+                                <div className="grid grid-cols-2 gap-1 mt-1">
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); handleViewDetails(staff); }}
+                                    className="flex items-center justify-center gap-2 p-2 text-blue-400 hover:text-blue-300 hover:bg-white/5 rounded-lg transition-colors"
+                                  >
+                                    <Eye size={18} />
+                                    <span className="text-xs">View Details</span>
+                                  </button>
                                   <button
                                     onClick={(e) => { e.stopPropagation(); handleEdit(staff); }}
                                     className="flex items-center justify-center gap-2 p-2 text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors"
@@ -1150,6 +1399,11 @@ export default function StaffManagement() {
                                 <p className="text-gray-500 text-xs truncate">
                                   {staff.lastName}
                                 </p>
+                                {staff.username && (
+                                  <p className="text-gray-600 text-xs truncate">
+                                    {staff.username}
+                                  </p>
+                                )}
                               </div>
                             </div>
 
@@ -1190,14 +1444,20 @@ export default function StaffManagement() {
                                   <FileText size={14} />
                                 </button>
                               </div>
-                              <div className="grid grid-cols-1 gap-1">
+                              <div className="grid grid-cols-2 gap-1">
+                                <button
+                                  onClick={() => handleViewDetails(staff)}
+                                  className="p-1.5 text-blue-400 hover:text-blue-300 rounded-lg transition-colors flex items-center justify-center gap-1"
+                                  title="View Details"
+                                >
+                                  <Eye size={14} />
+                                </button>
                                 <button
                                   onClick={() => handleEdit(staff)}
                                   className="p-1.5 text-orange-400 hover:text-orange-300 rounded-lg transition-colors flex items-center justify-center gap-1"
                                   title="Edit"
                                 >
                                   <Pencil size={14} />
-                                  <span className="text-xs">Edit</span>
                                 </button>
                               </div>
                             </div>
@@ -1251,6 +1511,11 @@ export default function StaffManagement() {
                                 <p className="text-gray-400 text-sm mt-2 text-center">
                                   {staff.email}
                                 </p>
+                                {staff.username && (
+                                  <p className="text-gray-500 text-xs mt-1 text-center">
+                                    {staff.username}
+                                  </p>
+                                )}
                               </div>
                             </div>
 
@@ -1289,6 +1554,13 @@ export default function StaffManagement() {
                                 title="Documents"
                               >
                                 <FileText size={18} />
+                              </button>
+                              <button
+                                onClick={() => handleViewDetails(staff)}
+                                className="p-2.5 text-blue-400 hover:text-blue-300 bg-[#0f0f0f] hover:bg-[#1a1a1a] rounded-xl transition-colors"
+                                title="View Details"
+                              >
+                                <Eye size={18} />
                               </button>
                               <button
                                 onClick={() => handleEdit(staff)}
@@ -1333,9 +1605,9 @@ export default function StaffManagement() {
         )}
 
         {isRemoveModalOpen && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1001]">
             <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4 text-white">
-              <h3 className="text-lg font-semibold mb-4">Delete Staff Member</h3>
+              <h3 className="text-lg font-semibold mb-4">Delete Staff</h3>
               <p className="text-gray-300 mb-6">
                 Are you sure you want to delete {staffToRemove?.firstName} {staffToRemove?.lastName}? This action cannot be undone.
               </p>
@@ -1390,23 +1662,100 @@ export default function StaffManagement() {
         )}
 
         {showDocumentModal && selectedMemberForDocuments && (
-          <StafffDocumentManagementModal
+          <DocumentManagementModal
+            entity={selectedMemberForDocuments}
+            entityType="staff"
             isOpen={showDocumentModal}
             onClose={() => {
               setShowDocumentModal(false)
               setSelectedMemberForDocuments(null)
             }}
-            staffMember={selectedMemberForDocuments}
+            onCreateAssessment={() => handleCreateAssessmentClick(selectedMemberForDocuments, true)}
+            onEditAssessment={(doc) => handleEditAssessmentClick(selectedMemberForDocuments, doc)}
+            onViewAssessment={(doc) => handleViewAssessmentClick(selectedMemberForDocuments, doc)}
+            onDocumentsUpdate={handleDocumentsUpdate}
+            sections={[
+              { id: "general", label: "General", icon: File },
+              { id: "medicalHistory", label: "Medical History", icon: ClipboardList },
+            ]}
           />
         )}
 
+        {/* Assessment Selection Modal */}
+        <AssessmentSelectionModal
+          isOpen={isAssessmentSelectionModalOpen}
+          onClose={() => {
+            setIsAssessmentSelectionModalOpen(false)
+            if (assessmentFromDocumentManagement) {
+              setShowDocumentModal(true)
+            }
+          }}
+          onSelectAssessment={handleAssessmentSelect}
+          selectedLead={selectedStaff}
+          fromDocumentManagement={assessmentFromDocumentManagement}
+        />
+
+        {/* Assessment Form Modal */}
+        <AssessmentFormModal
+          isOpen={isAssessmentFormModalOpen}
+          onClose={() => {
+            setIsAssessmentFormModalOpen(false)
+            setSelectedAssessment(null)
+            setIsEditingAssessment(false)
+            setEditingAssessmentDocument(null)
+            setIsViewingAssessment(false)
+            if (assessmentFromDocumentManagement) {
+              setShowDocumentModal(true)
+              setAssessmentFromDocumentManagement(false)
+            }
+          }}
+          assessment={selectedAssessment}
+          selectedLead={selectedStaff}
+          onComplete={handleAssessmentComplete}
+          fromDocumentManagement={assessmentFromDocumentManagement}
+          existingDocument={editingAssessmentDocument}
+          isEditMode={isEditingAssessment}
+          isViewMode={isViewingAssessment}
+        />
+
+        {/* Message Type Selection Modal */}
+        <MessageTypeSelectionModal
+          isOpen={messageTypeModal.isOpen}
+          onClose={() => setMessageTypeModal({ isOpen: false, staff: null })}
+          member={messageTypeModal.staff}
+          onSelectAppChat={handleOpenAppChat}
+          onSelectEmail={handleOpenEmailModal}
+          context="staff"
+        />
+
+        {/* Chat Popup */}
         {chatPopup.isOpen && chatPopup.staff && (
           <ChatPopup
-            staff={chatPopup.staff}
+            member={chatPopup.staff}
+            isOpen={chatPopup.isOpen}
             onClose={() => setChatPopup({ isOpen: false, staff: null })}
             onOpenFullMessenger={() => handleOpenFullMessenger(chatPopup.staff)}
+            context="staff"
           />
         )}
+
+        {/* Send Email Modal */}
+        <SendEmailModal
+          showEmailModal={showEmailModal}
+          handleCloseEmailModal={handleCloseEmailModal}
+          handleSendEmail={handleSendEmail}
+          setShowTemplateDropdown={setShowTemplateDropdown}
+          showTemplateDropdown={showTemplateDropdown}
+          selectedEmailTemplate={selectedEmailTemplate}
+          emailTemplates={emailTemplates}
+          handleTemplateSelect={handleTemplateSelect}
+          setSelectedEmailTemplate={setSelectedEmailTemplate}
+          emailData={emailData}
+          setEmailData={setEmailData}
+          handleSearchMemberForEmail={handleSearchStaffForEmail}
+          preselectedMember={selectedStaffForEmail}
+          context="staff"
+        />
 
         {isVacationContingentModalOpen && selectedStaffForContingent && (
           <VacationContingentModal
@@ -1609,6 +1958,21 @@ export default function StaffManagement() {
             </div>
           </div>
         )}
+
+        {/* Staff View Details Modal */}
+        <StaffViewDetailsModal
+          isOpen={isViewDetailsModalOpen}
+          onClose={() => {
+            setIsViewDetailsModalOpen(false)
+            setSelectedStaffForView(null)
+          }}
+          selectedStaff={selectedStaffForView}
+          onEditStaff={(staff) => {
+            setIsViewDetailsModalOpen(false)
+            setSelectedStaffForView(null)
+            handleEdit(staff)
+          }}
+        />
 
         {/* Floating Action Button - Mobile Only */}
         <button

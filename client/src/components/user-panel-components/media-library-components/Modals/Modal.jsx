@@ -90,7 +90,7 @@ const Modal = ({
         </div>
       </div>
       
-      <style jsx>{`
+      <style>{`
         @keyframes modal-enter {
           from {
             opacity: 0;
