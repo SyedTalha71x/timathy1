@@ -243,6 +243,18 @@ export default function StaffManagement() {
         e.preventDefault();
         setViewMode(prev => prev === 'grid' ? 'list' : 'grid');
       }
+      
+      // P key - Staff Planning
+      if (e.key === 'p' || e.key === 'P') {
+        e.preventDefault();
+        setIsPlanningModalOpen(true);
+      }
+      
+      // K key - Vacation Calendar
+      if (e.key === 'k' || e.key === 'K') {
+        e.preventDefault();
+        setIsVacationRequestModalOpen(true);
+      }
     };
     
     document.addEventListener('keydown', handleKeyPress);
@@ -958,21 +970,39 @@ export default function StaffManagement() {
               <div className="flex items-center gap-2">
                 {/* Action Buttons - Desktop */}
                 <div className="hidden lg:flex items-center gap-2">
-                  <button
-                    onClick={() => setIsPlanningModalOpen(true)}
-                    className="bg-black py-2 px-4 text-sm rounded-xl flex items-center gap-2 hover:bg-[#1a1a1a] transition-colors"
-                  >
-                    <Users className="h-4 w-4" />
-                    <span>Staff Planning</span>
-                  </button>
+                  <div className="relative group">
+                    <button
+                      onClick={() => setIsPlanningModalOpen(true)}
+                      className="bg-black py-2 px-4 text-sm rounded-xl flex items-center gap-2 hover:bg-[#1a1a1a] transition-colors"
+                    >
+                      <Users className="h-4 w-4" />
+                      <span>Staff Planning</span>
+                    </button>
+                    
+                    {/* Tooltip */}
+                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                      <span className="font-medium">Staff Planning</span>
+                      <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">P</span>
+                      <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                    </div>
+                  </div>
 
-                  <button
-                    onClick={() => setIsVacationRequestModalOpen(true)}
-                    className="bg-black py-2 px-4 text-sm rounded-xl flex items-center gap-2 hover:bg-[#1a1a1a] transition-colors"
-                  >
-                    <Calendar className="h-4 w-4" />
-                    <span>Vacation Calendar</span>
-                  </button>
+                  <div className="relative group">
+                    <button
+                      onClick={() => setIsVacationRequestModalOpen(true)}
+                      className="bg-black py-2 px-4 text-sm rounded-xl flex items-center gap-2 hover:bg-[#1a1a1a] transition-colors"
+                    >
+                      <Calendar className="h-4 w-4" />
+                      <span>Vacation Calendar</span>
+                    </button>
+                    
+                    {/* Tooltip */}
+                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                      <span className="font-medium">Vacation Calendar</span>
+                      <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">K</span>
+                      <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                    </div>
+                  </div>
 
                   <div className="relative group">
                     <button
@@ -1198,14 +1228,14 @@ export default function StaffManagement() {
                           {/* Username */}
                           <div className="col-span-2">
                             <span className={`${isCompactView ? 'text-xs' : 'text-sm'} text-gray-400 truncate block`}>
-                              {staff.username || "—"}
+                              {staff.username || "â€”"}
                             </span>
                           </div>
                           
                           {/* About */}
                           <div className="col-span-2">
                             <span className={`${isCompactView ? 'text-xs' : 'text-sm'} text-gray-400 line-clamp-2`}>
-                              {staff.description || staff.about || "Ã¢â‚¬â€"}
+                              {staff.description || staff.about || "ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â"}
                             </span>
                           </div>
                           
