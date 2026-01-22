@@ -89,11 +89,11 @@ const FeedbackModal = ({
       onClick={(e) => e.stopPropagation()}
     >
       <div 
-        className="bg-[#1a1a1a] rounded-2xl w-full max-w-lg overflow-hidden border border-zinc-700"
+        className="bg-[#1a1a1a] rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto border border-zinc-700"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-zinc-700">
+        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-zinc-700">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-orange-500/20 rounded-xl flex items-center justify-center">
               <MessageSquarePlus size={20} className="text-orange-500" />
@@ -112,11 +112,11 @@ const FeedbackModal = ({
         </div>
         
         {/* Content */}
-        <div className="p-5 space-y-5">
+        <div className="p-4 sm:p-5 space-y-4 sm:space-y-5">
           {/* Feedback Type */}
           <div>
             <label className="block text-sm font-medium text-zinc-300 mb-2">Feedback Type</label>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {feedbackTypes.map((type) => {
                 const IconComponent = type.icon
                 return (
@@ -146,7 +146,7 @@ const FeedbackModal = ({
               onChange={(e) => onFeedbackDataChange({ ...feedbackData, subject: e.target.value })}
               onKeyDown={(e) => e.stopPropagation()}
               placeholder="Brief summary of your feedback"
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-orange-500 transition-colors"
+              className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-white text-sm sm:text-base placeholder-zinc-500 focus:outline-none focus:border-orange-500 transition-colors"
             />
           </div>
           
@@ -159,7 +159,7 @@ const FeedbackModal = ({
               onKeyDown={(e) => e.stopPropagation()}
               placeholder="Tell us more about your feedback..."
               rows={4}
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-white placeholder-zinc-500 focus:outline-none focus:border-orange-500 transition-colors resize-none"
+              className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-white text-sm sm:text-base placeholder-zinc-500 focus:outline-none focus:border-orange-500 transition-colors resize-none"
             />
           </div>
           
@@ -177,7 +177,7 @@ const FeedbackModal = ({
                 >
                   <Star 
                     size={24} 
-                    className={feedbackData.rating >= star ? 'text-yellow-500 fill-yellow-500' : 'text-zinc-600'} 
+                    className={feedbackData.rating >= star ? 'text-orange-500 fill-orange-500' : 'text-zinc-600'} 
                   />
                 </button>
               ))}
@@ -194,17 +194,17 @@ const FeedbackModal = ({
         </div>
         
         {/* Footer */}
-        <div className="flex gap-3 p-5 border-t border-zinc-700">
+        <div className="flex gap-3 p-4 sm:p-5 border-t border-zinc-700">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-3 bg-zinc-700 text-white rounded-xl hover:bg-zinc-600 transition-colors font-medium"
+            className="flex-1 px-4 py-2.5 sm:py-3 bg-zinc-700 text-white rounded-xl hover:bg-zinc-600 transition-colors font-medium text-sm sm:text-base"
           >
             Cancel
           </button>
           <button
             onClick={onSubmit}
             disabled={!feedbackData.subject.trim() || !feedbackData.message.trim()}
-            className="flex-1 px-4 py-3 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 px-4 py-2.5 sm:py-3 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
           >
             Send Feedback
           </button>
@@ -427,12 +427,12 @@ const Sidebar = ({ isOpen = false, onClose }) => {
     // Hier würde normalerweise ein API-Call erfolgen
     setFeedbackSubmitted(true)
     
-    // Nach 2.5 Sekunden Modal schließen
+    // Nach 4 Sekunden Modal schließen
     setTimeout(() => {
       setIsFeedbackModalOpen(false)
       setFeedbackSubmitted(false)
       setFeedbackData({ type: 'suggestion', subject: '', message: '', rating: 0 })
-    }, 2500)
+    }, 4000)
   }
 
   const handleFeedbackClose = () => {

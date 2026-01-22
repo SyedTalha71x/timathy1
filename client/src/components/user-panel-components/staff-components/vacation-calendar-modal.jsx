@@ -185,7 +185,7 @@ const VacationBar = ({ vacation, staff, startOfMonth, daysInMonth, onEdit, isFul
     >
       {widthPercent > 10 && (
         <div className="px-2 h-full flex items-center overflow-hidden">
-          <span className={`${isPending ? "text-yellow-300" : "text-white"} ${isFullscreen ? "text-sm" : "text-[11px]"} font-medium truncate`}>
+          <span className={`${isPending ? "text-yellow-300" : "text-white"} ${isFullscreen ? "text-sm" : "text-xs"} font-medium truncate`}>
             {vacation.reason || "Vacation"}
           </span>
         </div>
@@ -381,13 +381,15 @@ const GroupCalendarView = ({
   onAddVacation,
   isFullscreen
 }) => {
-  // Responsive sizes
-  const cellHeight = isFullscreen ? "h-[52px]" : "h-[40px] sm:h-[44px]"
-  const dayNumSize = isFullscreen ? "text-base" : "text-[10px] sm:text-sm"
-  const dayNameSize = isFullscreen ? "text-xs" : "text-[8px] sm:text-[10px]"
-  const staffWidth = isFullscreen ? "w-[240px]" : "w-[100px] sm:w-[160px] md:w-[200px]"
-  const staffNameSize = isFullscreen ? "text-sm" : "text-[10px] sm:text-xs md:text-sm"
-  const cellWidth = isFullscreen ? "w-[44px] min-w-[44px]" : "w-[24px] min-w-[24px] sm:w-[30px] sm:min-w-[30px] md:w-[36px] md:min-w-[36px]"
+  // Fixed pixel values for consistent layout
+  const STAFF_WIDTH = isFullscreen ? 250 : 170
+  const CELL_WIDTH = isFullscreen ? 48 : 36
+  const ROW_HEIGHT = isFullscreen ? 56 : 48
+
+  // Responsive sizes for text
+  const dayNumSize = isFullscreen ? "text-base" : "text-sm"
+  const dayNameSize = isFullscreen ? "text-xs" : "text-[10px]"
+  const staffNameSize = isFullscreen ? "text-sm" : "text-sm"
 
   // Check if date is a closing day
   const isClosingDay = (date) => {
@@ -465,119 +467,139 @@ const GroupCalendarView = ({
           return <div key={monthIndex} className="hidden" />
         }
 
+        const totalWidth = STAFF_WIDTH + daysInMonth * CELL_WIDTH
+
         return (
           <div key={monthIndex} className="bg-[#1a1a1a] rounded-xl border border-gray-800 overflow-hidden">
-            <div className="px-2 sm:px-4 py-2 sm:py-3 bg-gray-800/50 border-b border-gray-800 flex items-center justify-between">
-              <h3 className={`font-semibold text-white text-xs sm:text-sm ${isFullscreen ? "sm:text-lg" : ""}`}>
+            {/* Month header */}
+            <div className="px-4 py-3 bg-gray-800/50 border-b border-gray-800 flex items-center justify-between">
+              <h3 className={`font-semibold text-white ${isFullscreen ? "text-lg" : "text-sm"}`}>
                 {monthStart.toLocaleDateString("en-US", { month: "long", year: "numeric" })}
               </h3>
               <button
                 onClick={() => onAddVacation(monthStart)}
-                className={`text-orange-400 hover:text-orange-300 flex items-center gap-1 text-xs sm:text-sm ${isFullscreen ? "sm:text-base" : ""}`}
+                className={`text-orange-400 hover:text-orange-300 flex items-center gap-1 ${isFullscreen ? "text-base" : "text-sm"}`}
               >
                 <Plus size={isFullscreen ? 18 : 14} />
-                <span className="hidden sm:inline">Add</span>
+                <span>Add</span>
               </button>
             </div>
 
-            {/* Day headers with day name and number */}
-            <div 
-              className={`flex border-b border-gray-800/50 overflow-x-auto`} 
-              style={{ marginLeft: isFullscreen ? '240px' : 'var(--staff-width, 100px)' }}
-            >
-              {Array.from({ length: daysInMonth }, (_, i) => {
-                const date = new Date(currentYear, monthIndex, i + 1)
-                const dayName = getDayName(date)
-                const isClosing = isWeekend(date) || closingDays.includes(formatDateStr(date))
-                
-                return (
+            {/* Scrollable content */}
+            <div className="overflow-x-auto">
+              <div style={{ minWidth: totalWidth }}>
+                {/* Day headers row */}
+                <div className="flex border-b border-gray-800/50">
+                  {/* Empty space for staff column */}
                   <div 
-                    key={i}
-                    className={`${cellWidth} text-center py-1 sm:py-2 border-l border-gray-800/30 first:border-l-0 flex flex-col justify-center flex-shrink-0 ${
-                      isClosing ? "hatched-closing" : ""
-                    }`}
-                  >
-                    <span className={`${dayNameSize} ${isClosing ? "text-gray-600" : "text-gray-500"} leading-none`}>
-                      {dayName}
-                    </span>
-                    <span className={`${dayNumSize} ${isClosing ? "text-gray-600" : "text-gray-400"} font-medium leading-none mt-0.5 sm:mt-1`}>
-                      {i + 1}
-                    </span>
-                  </div>
-                )
-              })}
-            </div>
-
-            {/* Staff rows */}
-            {staffMembers.map(staff => {
-              const staffVacations = monthVacations.filter(v => v.staffId === staff.id)
-              if (staffVacations.length === 0) return null
-              
-              return (
-                <div key={staff.id} className={`flex items-stretch border-b border-gray-800/30 last:border-b-0 ${cellHeight}`}>
-                  {/* Staff info */}
-                  <div className={`${staffWidth} flex-shrink-0 flex items-center gap-1.5 sm:gap-3 px-2 sm:px-4 py-1 sm:py-2 border-r border-gray-800/50`}>
-                    <InitialsAvatar 
-                      firstName={staff.firstName}
-                      lastName={staff.lastName}
-                      img={staff.img}
-                      size={isFullscreen ? "sm" : "sm"}
-                    />
-                    <span className={`${staffNameSize} text-gray-300 truncate`}>
-                      {staff.firstName} {staff.lastName}
-                    </span>
-                  </div>
-
-                  {/* Timeline with cells */}
-                  <div className="flex relative">
-                    {/* Background cells for closing days */}
-                    {Array.from({ length: daysInMonth }, (_, i) => {
-                      const date = new Date(currentYear, monthIndex, i + 1)
-                      const closing = isClosingDay(date)
-                      return (
-                        <div 
-                          key={i}
-                          className={`${cellWidth} flex-shrink-0 ${closing ? "hatched-closing" : ""}`}
-                        />
-                      )
-                    })}
+                    style={{ width: STAFF_WIDTH, minWidth: STAFF_WIDTH }} 
+                    className="flex-shrink-0 border-r border-gray-800/50"
+                  />
+                  {/* Day cells */}
+                  {Array.from({ length: daysInMonth }, (_, i) => {
+                    const date = new Date(currentYear, monthIndex, i + 1)
+                    const dayName = getDayName(date)
+                    const isClosing = isWeekend(date) || closingDays.includes(formatDateStr(date))
                     
-                    {/* Vacation segments */}
-                    {staffVacations.map(vacation => {
-                      const segments = getVacationSegments(vacation, monthIndex)
-                      return segments.map((segment, segIdx) => {
-                        const leftPos = (segment.start - 1) * (isFullscreen ? 44 : 36)
-                        const width = (segment.end - segment.start + 1) * (isFullscreen ? 44 : 36) - 4
-                        
-                        return (
-                          <div
-                            key={`${vacation.id}-${segIdx}`}
-                            className={`absolute top-1 bottom-1 rounded cursor-pointer transition-all hover:z-10 hover:brightness-110 flex items-center overflow-hidden ${
-                              vacation.status === "pending" 
-                                ? "hatched-pending border border-yellow-500/50" 
-                                : ""
-                            }`}
-                            style={{
-                              left: `${leftPos + 2}px`,
-                              width: `${width}px`,
-                              backgroundColor: vacation.status === "pending" ? undefined : (staff.color || "#3F74FF")
-                            }}
-                            onClick={() => onEditVacation(vacation)}
-                            title={`${staff.firstName} ${staff.lastName}: ${vacation.startDate} - ${vacation.endDate}${vacation.reason ? ` - ${vacation.reason}` : ""} (${vacation.status})`}
-                          >
-                            {segment.isFirst && width > 60 && (
-                              <span className={`px-2 text-white text-xs font-medium truncate ${vacation.status === "pending" ? "text-yellow-300" : ""}`}>
-                                {vacation.reason || "Vacation"}
-                              </span>
-                            )}
-                          </div>
-                        )
-                      })
-                    })}
-                  </div>
+                    return (
+                      <div 
+                        key={i}
+                        style={{ width: CELL_WIDTH, minWidth: CELL_WIDTH }}
+                        className={`text-center py-2 border-r border-gray-800/30 last:border-r-0 flex flex-col justify-center flex-shrink-0 ${
+                          isClosing ? "hatched-closing" : ""
+                        }`}
+                      >
+                        <span className={`${dayNameSize} ${isClosing ? "text-gray-600" : "text-gray-500"} leading-none`}>
+                          {dayName}
+                        </span>
+                        <span className={`${dayNumSize} ${isClosing ? "text-gray-600" : "text-gray-400"} font-medium leading-none mt-1`}>
+                          {i + 1}
+                        </span>
+                      </div>
+                    )
+                  })}
                 </div>
-              )
-            })}
+
+                {/* Staff rows */}
+                {staffMembers.map(staff => {
+                  const staffVacations = monthVacations.filter(v => v.staffId === staff.id)
+                  if (staffVacations.length === 0) return null
+                  
+                  return (
+                    <div 
+                      key={staff.id} 
+                      className="flex border-b border-gray-800/30 last:border-b-0"
+                      style={{ height: ROW_HEIGHT }}
+                    >
+                      {/* Staff info */}
+                      <div 
+                        style={{ width: STAFF_WIDTH, minWidth: STAFF_WIDTH }}
+                        className="flex-shrink-0 flex items-center gap-2 px-3 border-r border-gray-800/50"
+                      >
+                        <InitialsAvatar 
+                          firstName={staff.firstName}
+                          lastName={staff.lastName}
+                          img={staff.img}
+                          size={isFullscreen ? "sm" : "sm"}
+                        />
+                        <span className={`${staffNameSize} text-gray-300 truncate`}>
+                          {staff.firstName} {staff.lastName}
+                        </span>
+                      </div>
+
+                      {/* Timeline with cells */}
+                      <div className="flex-1 relative flex">
+                        {/* Background cells for closing days */}
+                        {Array.from({ length: daysInMonth }, (_, i) => {
+                          const date = new Date(currentYear, monthIndex, i + 1)
+                          const closing = isClosingDay(date)
+                          return (
+                            <div 
+                              key={i}
+                              style={{ width: CELL_WIDTH, minWidth: CELL_WIDTH }}
+                              className={`flex-shrink-0 border-r border-gray-800/30 last:border-r-0 ${closing ? "hatched-closing" : ""}`}
+                            />
+                          )
+                        })}
+                        
+                        {/* Vacation segments */}
+                        {staffVacations.map(vacation => {
+                          const segments = getVacationSegments(vacation, monthIndex)
+                          return segments.map((segment, segIdx) => {
+                            const leftPos = (segment.start - 1) * CELL_WIDTH
+                            const width = (segment.end - segment.start + 1) * CELL_WIDTH - 4
+                            
+                            return (
+                              <div
+                                key={`${vacation.id}-${segIdx}`}
+                                className={`absolute top-1 bottom-1 rounded cursor-pointer transition-all hover:z-10 hover:brightness-110 flex items-center overflow-hidden ${
+                                  vacation.status === "pending" 
+                                    ? "hatched-pending border border-yellow-500/50" 
+                                    : ""
+                                }`}
+                                style={{
+                                  left: `${leftPos + 2}px`,
+                                  width: `${width}px`,
+                                  backgroundColor: vacation.status === "pending" ? undefined : (staff.color || "#3F74FF")
+                                }}
+                                onClick={() => onEditVacation(vacation)}
+                                title={`${staff.firstName} ${staff.lastName}: ${vacation.startDate} - ${vacation.endDate}${vacation.reason ? ` - ${vacation.reason}` : ""} (${vacation.status})`}
+                              >
+                                {segment.isFirst && width > 60 && (
+                                  <span className={`px-2 text-white text-xs font-medium truncate ${vacation.status === "pending" ? "text-yellow-300" : ""}`}>
+                                    {vacation.reason || "Vacation"}
+                                  </span>
+                                )}
+                              </div>
+                            )
+                          })
+                        })}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
           </div>
         )
       })}
@@ -1289,9 +1311,9 @@ function VacationCalendarModal({
         </div>
 
         {/* Content */}
-        <div className="flex-1 min-h-0 flex flex-col overflow-hidden bg-[#141414] vacation-calendar-content">
+        <div className="flex-1 min-h-0 overflow-auto bg-[#141414] vacation-calendar-content">
           {viewMode === "individual" && currentStaff ? (
-            <div className="flex-1 min-h-0 overflow-y-auto overflow-x-auto custom-scrollbar p-2 sm:p-4 bg-[#141414]">
+            <div className="p-2 sm:p-4">
               <IndividualCalendarView
                 staff={currentStaff}
                 vacations={vacations}
@@ -1309,7 +1331,7 @@ function VacationCalendarModal({
               />
             </div>
           ) : (
-            <div className="flex-1 min-h-0 overflow-y-auto overflow-x-auto custom-scrollbar p-2 sm:p-4 bg-[#141414]">
+            <div className="p-2 sm:p-4">
               <GroupCalendarView
                 staffMembers={filteredStaffMembers}
                 vacations={vacations}
