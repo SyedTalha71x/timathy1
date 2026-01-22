@@ -470,11 +470,11 @@ const GroupCalendarView = ({
 
     return (
       <div className="bg-[#1a1a1a] rounded-xl border border-gray-800 overflow-hidden">
-        <div className={`px-6 py-4 border-b border-gray-800 ${isClosed ? "hatched-closing" : ""}`}>
-          <div className="text-white font-semibold text-xl">
-            {currentMonth.toLocaleDateString("en-US", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+        <div className={`px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-800 ${isClosed ? "hatched-closing" : ""}`}>
+          <div className="text-white font-semibold text-base sm:text-xl">
+            {currentMonth.toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "short", year: "numeric" })}
           </div>
-          {isClosed && <span className="text-sm text-gray-500">Closing Day</span>}
+          {isClosed && <span className="text-xs sm:text-sm text-gray-500">Closing Day</span>}
         </div>
         <div className="divide-y divide-gray-800">
           {staffMembers.map(staff => {
@@ -484,14 +484,14 @@ const GroupCalendarView = ({
             return (
               <div 
                 key={staff.id}
-                className={`flex items-center p-4 gap-4 ${!isClosed ? "cursor-pointer hover:bg-white/5" : ""} ${isClosed ? "hatched-closing" : ""}`}
+                className={`flex flex-col sm:flex-row sm:items-center p-3 sm:p-4 gap-2 sm:gap-4 ${!isClosed ? "cursor-pointer hover:bg-white/5" : ""} ${isClosed ? "hatched-closing" : ""}`}
                 onClick={() => !isClosed && onAddShift({ staffId: staff.id, date: dateStr })}
               >
-                <div className="flex items-center gap-3 w-48 flex-shrink-0">
-                  <InitialsAvatar firstName={staff.firstName} lastName={staff.lastName} img={staff.img} size="md" />
-                  <span className="text-base text-gray-300">{staff.firstName} {staff.lastName}</span>
+                <div className="flex items-center gap-2 sm:gap-3 sm:w-48 flex-shrink-0">
+                  <InitialsAvatar firstName={staff.firstName} lastName={staff.lastName} img={staff.img} size="sm" />
+                  <span className="text-sm sm:text-base text-gray-300">{staff.firstName} {staff.lastName}</span>
                 </div>
-                <div className="flex-1 flex flex-wrap items-center gap-3">
+                <div className="flex-1 flex flex-wrap items-center gap-2 sm:gap-3 ml-8 sm:ml-0">
                   {dayShifts.map((shift, idx) => {
                     const isPast = isPastDate(shift.endDate)
                     const isAbsence = shift.status === "absence"
@@ -502,18 +502,18 @@ const GroupCalendarView = ({
                     return (
                       <Tooltip key={shift.id || idx} text={tooltipText}>
                         <div
-                          className={`rounded-xl px-5 py-3 cursor-pointer transition-all hover:brightness-110 hover:scale-[1.02] ${isAbsence ? "hatched-absence border border-red-500/50" : ""} ${isPast ? "opacity-50" : ""}`}
+                          className={`rounded-lg sm:rounded-xl px-3 sm:px-5 py-2 sm:py-3 cursor-pointer transition-all hover:brightness-110 hover:scale-[1.02] ${isAbsence ? "hatched-absence border border-red-500/50" : ""} ${isPast ? "opacity-50" : ""}`}
                           style={{ backgroundColor: isAbsence ? undefined : staffColor }}
                           onClick={(e) => { e.stopPropagation(); onEditShift(shift) }}
                         >
-                          <span className={`text-sm font-medium ${isAbsence ? "text-red-300" : "text-white"}`}>
+                          <span className={`text-xs sm:text-sm font-medium ${isAbsence ? "text-red-300" : "text-white"}`}>
                             {timeDisplay}
                           </span>
                         </div>
                       </Tooltip>
                     )
                   })}
-                  {!isClosed && dayShifts.length === 0 && <span className="text-gray-500 text-sm">Click to add shift</span>}
+                  {!isClosed && dayShifts.length === 0 && <span className="text-gray-500 text-xs sm:text-sm">Tap to add shift</span>}
                 </div>
               </div>
             )
@@ -1262,68 +1262,87 @@ function ShiftsOverviewModal({ staffMembers, onClose, currentStaffId = 1, isEmbe
       <ShiftStyles />
       <div className={`bg-[#1a1a1a] text-white ${modalClass}`}>
         {/* Header */}
-        <div className="flex-shrink-0 border-b border-gray-800 px-4 sm:px-6 py-4">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-500/10 rounded-xl"><Calendar className="text-blue-400 w-5 h-5" /></div>
-              <div>
-                <h2 className="font-bold text-white text-lg sm:text-xl">Shift Schedule</h2>
+        <div className="flex-shrink-0 border-b border-gray-800 px-4 sm:px-6 py-3 sm:py-4">
+          {/* Row 1: Title + Filter + Close */}
+          <div className="flex items-center justify-between gap-2 sm:gap-4">
+            <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
+              <div className="p-1.5 sm:p-2 bg-blue-500/10 rounded-lg sm:rounded-xl flex-shrink-0"><Calendar className="text-blue-400 w-4 h-4 sm:w-5 sm:h-5" /></div>
+              <div className="min-w-0">
+                <h2 className="font-bold text-white text-base sm:text-xl truncate">Shift Schedule</h2>
                 <p className="text-gray-500 text-xs hidden sm:block">Manage team shifts and absences</p>
               </div>
+              {/* Filter - Mobile: next to title */}
+              {viewMode === "team" && (
+                <select 
+                  value={staffFilter} 
+                  onChange={(e) => setStaffFilter(e.target.value)} 
+                  className="sm:hidden bg-gray-800 border border-gray-700 rounded-lg text-white px-2 py-1.5 text-xs ml-auto flex-shrink-0"
+                >
+                  <option value="all">All</option>
+                  {staffMembers.map(s => <option key={s.id} value={s.id}>{s.firstName}</option>)}
+                </select>
+              )}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
               {!isEmbedded && <button onClick={() => setIsFullscreen(!isFullscreen)} className="p-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg hidden sm:block">{isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}</button>}
-              {!isEmbedded && <button onClick={onClose} className="p-2 hover:bg-gray-800 text-gray-400 hover:text-white rounded-lg"><X size={20} /></button>}
+              {!isEmbedded && <button onClick={onClose} className="p-1.5 sm:p-2 hover:bg-gray-800 text-gray-400 hover:text-white rounded-lg"><X size={18} className="sm:hidden" /><X size={20} className="hidden sm:block" /></button>}
             </div>
           </div>
 
-          <div className="mt-4 flex flex-col sm:flex-row sm:items-center gap-3">
-            <div className="flex items-center gap-2 flex-wrap">
-              <button onClick={goToPrevious} className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg"><ChevronLeft size={18} className="text-gray-400" /></button>
-              <button onClick={() => setCurrentMonth(new Date())} className="bg-gray-800 hover:bg-gray-700 rounded-lg font-medium text-center px-4 py-2 min-w-[160px] sm:min-w-[200px] text-sm sm:text-base">{getNavigationLabel()}</button>
-              <button onClick={goToNext} className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg"><ChevronRight size={18} className="text-gray-400" /></button>
-
-              {viewMode === "team" && (
-                <>
-                  <div className="hidden sm:block w-px h-6 bg-gray-700 mx-2" />
-                  <select value={staffFilter} onChange={(e) => setStaffFilter(e.target.value)} className="bg-gray-800 border border-gray-700 rounded-xl text-white px-3 py-2 text-sm">
-                    <option value="all">All ({staffMembers.length})</option>
-                    {staffMembers.map(s => <option key={s.id} value={s.id}>{s.firstName} {s.lastName}</option>)}
-                  </select>
-                  <div className="hidden sm:block w-px h-6 bg-gray-700 mx-2" />
-                  <button onClick={() => { setIsMultiSelectMode(!isMultiSelectMode); cancelSelection() }} className={`hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl text-sm transition-colors ${isMultiSelectMode ? "bg-orange-500 text-white" : "bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700"}`}>
-                    <MousePointer2 size={14} />Multi-Select {isMultiSelectMode ? "ON" : "OFF"}
-                  </button>
-                  {isMultiSelectMode && selectionStart && <button onClick={cancelSelection} className="text-gray-400 hover:text-white text-xs hidden sm:block">Cancel</button>}
-                </>
-              )}
+          {/* Row 2: Navigation + Controls */}
+          <div className="mt-3 sm:mt-4 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+            {/* Navigation */}
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <button onClick={goToPrevious} className="p-1.5 sm:p-2 bg-gray-800 hover:bg-gray-700 rounded-lg flex-shrink-0"><ChevronLeft size={16} className="sm:hidden text-gray-400" /><ChevronLeft size={18} className="hidden sm:block text-gray-400" /></button>
+              <button onClick={() => setCurrentMonth(new Date())} className="bg-gray-800 hover:bg-gray-700 rounded-lg font-medium text-center px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm flex-1 sm:flex-none sm:min-w-[200px] truncate">{getNavigationLabel()}</button>
+              <button onClick={goToNext} className="p-1.5 sm:p-2 bg-gray-800 hover:bg-gray-700 rounded-lg flex-shrink-0"><ChevronRight size={16} className="sm:hidden text-gray-400" /><ChevronRight size={18} className="hidden sm:block text-gray-400" /></button>
             </div>
 
-            <div className="flex-1" />
+            {/* Desktop only: Filter + Multi-Select */}
+            {viewMode === "team" && (
+              <div className="hidden sm:flex items-center gap-2">
+                <div className="w-px h-6 bg-gray-700 mx-1" />
+                <select value={staffFilter} onChange={(e) => setStaffFilter(e.target.value)} className="bg-gray-800 border border-gray-700 rounded-xl text-white px-3 py-2 text-sm">
+                  <option value="all">All ({staffMembers.length})</option>
+                  {staffMembers.map(s => <option key={s.id} value={s.id}>{s.firstName} {s.lastName}</option>)}
+                </select>
+                <div className="w-px h-6 bg-gray-700 mx-1" />
+                <button onClick={() => { setIsMultiSelectMode(!isMultiSelectMode); cancelSelection() }} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm transition-colors ${isMultiSelectMode ? "bg-orange-500 text-white" : "bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700"}`}>
+                  <MousePointer2 size={14} />Multi-Select {isMultiSelectMode ? "ON" : "OFF"}
+                </button>
+                {isMultiSelectMode && selectionStart && <button onClick={cancelSelection} className="text-gray-400 hover:text-white text-xs">Cancel</button>}
+              </div>
+            )}
 
-            <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex-1 hidden sm:block" />
+
+            {/* Combined Toggles: Period + View Mode */}
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              {/* Period Toggle */}
               <div className="flex bg-gray-800 rounded-lg p-0.5">
                 {["day", "week", "month"].map(p => (
-                  <button key={p} onClick={() => setViewPeriod(p)} className={`px-3 py-1.5 rounded-md text-sm capitalize ${viewPeriod === p ? "bg-gray-700 text-white" : "text-gray-400 hover:text-white"}`}>{p}</button>
+                  <button key={p} onClick={() => setViewPeriod(p)} className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-md text-xs sm:text-sm capitalize ${viewPeriod === p ? "bg-gray-700 text-white" : "text-gray-400 hover:text-white"}`}>{p.charAt(0).toUpperCase()}<span className="hidden sm:inline">{p.slice(1)}</span></button>
                 ))}
               </div>
 
+              {/* View Mode Toggle */}
+              <div className="flex bg-gray-800 rounded-lg p-0.5">
+                <button onClick={() => setViewMode("team")} className={`rounded-md flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm ${viewMode === "team" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"}`}><Users size={12} className="sm:hidden" /><Users size={14} className="hidden sm:block" /><span className="hidden xs:inline">Team</span></button>
+                <button onClick={() => setViewMode("individual")} className={`rounded-md flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm ${viewMode === "individual" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"}`}><User size={12} className="sm:hidden" /><User size={14} className="hidden sm:block" /><span className="hidden xs:inline">My</span></button>
+              </div>
+
+              {/* Desktop: New Shift Button */}
               {viewMode === "team" && (
-                <button onClick={() => handleAddShift(null)} className="bg-orange-500 hover:bg-orange-600 text-white rounded-xl flex items-center gap-2 px-4 py-2 text-sm">
-                  <Plus size={16} /><span className="hidden sm:inline">New Shift</span>
+                <button onClick={() => handleAddShift(null)} className="hidden sm:flex bg-orange-500 hover:bg-orange-600 text-white rounded-xl items-center gap-2 px-4 py-2 text-sm">
+                  <Plus size={16} />New Shift
                 </button>
               )}
-
-              <div className="flex bg-gray-800 rounded-lg p-0.5">
-                <button onClick={() => setViewMode("team")} className={`rounded-md flex items-center gap-1.5 px-3 py-1.5 text-sm ${viewMode === "team" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"}`}><Users size={14} />Team</button>
-                <button onClick={() => setViewMode("individual")} className={`rounded-md flex items-center gap-1.5 px-3 py-1.5 text-sm ${viewMode === "individual" ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"}`}><User size={14} /><span className="hidden sm:inline">My Shifts</span></button>
-              </div>
             </div>
           </div>
         </div>
 
         {/* Content */}
-        <div className="flex-1 min-h-0 overflow-auto p-4 bg-[#141414]">
+        <div className="flex-1 min-h-0 overflow-auto p-2 sm:p-4 bg-[#141414]">
           {viewMode === "individual" && currentStaff ? (
             <IndividualCalendarView staff={currentStaff} shifts={shifts} currentMonth={currentMonth} onViewShift={handleViewShift} closingDays={closingDays} viewPeriod={viewPeriod} />
           ) : (
@@ -1337,22 +1356,34 @@ function ShiftsOverviewModal({ staffMembers, onClose, currentStaffId = 1, isEmbe
         </div>
 
         {/* Footer */}
-        <div className="flex-shrink-0 border-t border-gray-800 bg-[#1a1a1a] px-4 sm:px-6 py-3 overflow-x-auto">
-          <div className="flex items-center gap-6 h-6 min-w-max">
-            <span className="text-gray-500 uppercase tracking-wider text-xs flex-shrink-0">LEGEND:</span>
+        <div className="flex-shrink-0 border-t border-gray-800 bg-[#1a1a1a] px-4 sm:px-6 py-2 sm:py-3 overflow-x-auto">
+          <div className="flex items-center gap-4 sm:gap-6 h-5 sm:h-6 min-w-max">
+            <span className="text-gray-500 uppercase tracking-wider text-[10px] sm:text-xs flex-shrink-0">LEGEND:</span>
             {viewMode === "team" ? (
-              <div className="flex items-center gap-6">
-                {filteredStaffMembers.slice(0, 6).map(s => (
-                  <div key={s.id} className="flex items-center gap-2 flex-shrink-0"><div className="w-4 h-3 rounded" style={{ backgroundColor: s.color || "#3F74FF" }} /><span className="text-gray-400 text-xs">{s.firstName}</span></div>
+              <div className="flex items-center gap-3 sm:gap-6">
+                {filteredStaffMembers.slice(0, 4).map(s => (
+                  <div key={s.id} className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0"><div className="w-3 sm:w-4 h-2 sm:h-3 rounded" style={{ backgroundColor: s.color || "#3F74FF" }} /><span className="text-gray-400 text-[10px] sm:text-xs">{s.firstName}</span></div>
                 ))}
+                {filteredStaffMembers.length > 4 && <span className="text-gray-500 text-[10px] sm:text-xs hidden sm:inline">+{filteredStaffMembers.length - 4}</span>}
               </div>
             ) : (
-              <div className="flex items-center gap-2 flex-shrink-0"><div className="w-5 h-3 rounded" style={{ backgroundColor: currentStaff?.color || "#3F74FF" }} /><span className="text-gray-400 text-xs">Scheduled</span></div>
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0"><div className="w-4 sm:w-5 h-2 sm:h-3 rounded" style={{ backgroundColor: currentStaff?.color || "#3F74FF" }} /><span className="text-gray-400 text-[10px] sm:text-xs">Scheduled</span></div>
             )}
-            <div className="flex items-center gap-2 flex-shrink-0"><div className="w-5 h-3 rounded hatched-absence border border-red-500/30" /><span className="text-gray-400 text-xs">Absence</span></div>
-            <div className="flex items-center gap-2 flex-shrink-0"><div className="w-5 h-3 rounded hatched-closing" /><span className="text-gray-400 text-xs hidden sm:inline">Closing Days</span></div>
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0"><div className="w-4 sm:w-5 h-2 sm:h-3 rounded hatched-absence border border-red-500/30" /><span className="text-gray-400 text-[10px] sm:text-xs">Absence</span></div>
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0 hidden sm:flex"><div className="w-5 h-3 rounded hatched-closing" /><span className="text-gray-400 text-xs">Closing Days</span></div>
           </div>
         </div>
+
+        {/* Floating Action Button - Mobile Only */}
+        {viewMode === "team" && (
+          <button
+            onClick={() => handleAddShift(null)}
+            className="sm:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-[1001]"
+            aria-label="Add New Shift"
+          >
+            <Plus size={22} />
+          </button>
+        )}
       </div>
 
       <ShiftFormModal 
