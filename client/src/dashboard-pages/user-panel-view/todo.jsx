@@ -1019,7 +1019,7 @@ export default function TodoApp() {
     }
   }, [])
 
-  // Keyboard shortcuts: T for Tags, ESC for closing modals
+  // Keyboard shortcuts: T for Tags, C for Create, ESC for closing modals
   useEffect(() => {
     const handleKeyPress = (e) => {
       // Check if user is typing in an input field
@@ -1079,8 +1079,28 @@ export default function TodoApp() {
       // Don't handle other shortcuts if modifier keys are pressed
       if (e.ctrlKey || e.metaKey || e.altKey) return
 
-      // T - Open Tag Manager (only when no modal is open)
-      if ((e.key === 't' || e.key === 'T') && !isTagManagerOpen && !showMobileCreateModal && !selectedMobileTask) {
+      // Check if ANY modal is open - if so, don't trigger other hotkeys
+      const anyModalOpen = 
+        isDeleteModalOpen ||
+        isRepeatModalOpen ||
+        assignModalTask ||
+        tagsModalTask ||
+        calendarModal.isOpen ||
+        isTagManagerOpen ||
+        isEditModalOpenTask ||
+        showMobileCreateModal ||
+        selectedMobileTask ||
+        mobileSortMenuOpen ||
+        showMobileFilterMenu
+      
+      // Also check if any modal overlay is visible in the DOM
+      const hasVisibleModal = document.querySelector('[class*="fixed"][class*="inset-0"][class*="z-50"]') ||
+                              document.querySelector('[class*="fixed"][class*="inset-0"][class*="z-40"]')
+      
+      if (anyModalOpen || hasVisibleModal) return
+
+      // T - Open Tag Manager
+      if (e.key === 't' || e.key === 'T') {
         e.preventDefault()
         setIsTagManagerOpen(true)
       }

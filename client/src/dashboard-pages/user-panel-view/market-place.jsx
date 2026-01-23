@@ -260,6 +260,56 @@ const PriceDisplay = ({ product }) => {
   );
 };
 
+// Product Card Component
+const ProductCard = ({ product, isFavorite, toggleFavorite, openExternalLinkModal, isRightSidebarOpen }) => {
+  return (
+    <div className="bg-[#2a2a2a] rounded-2xl overflow-hidden relative select-none">
+      <div className="relative w-full h-48 bg-white">
+        <img
+          src={product.image || "/placeholder.svg"}
+          alt={product.name}
+          className="object-cover w-full h-full pointer-events-none"
+          draggable="false"
+        />
+
+        {/* Discount Badge - top right corner of image */}
+        {isOnSale(product) && (
+          <DiscountBadge percentage={calculateDiscountPercentage(product.originalPrice, product.price)} />
+        )}
+
+        {/* Favorite button - top left */}
+        <button
+          onClick={() => toggleFavorite(product.id)}
+          className={`absolute top-3 left-3 p-2 rounded-full transition-colors ${
+            isFavorite
+              ? 'bg-orange-500 hover:bg-orange-600'
+              : 'bg-black/50 hover:bg-black/70'
+          }`}
+          aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+        >
+          <Heart 
+            size={16} 
+            className={isFavorite ? "fill-white text-white" : "text-white"} 
+          />
+        </button>
+
+        {/* Bottom-right action buttons */}
+        <div className="absolute bottom-3 right-3 flex gap-2">
+          <InfoTooltip product={product} />
+          <AffiliateLinkButton link={product.link} onOpenModal={openExternalLinkModal} />
+        </div>
+      </div>
+
+      <div className="p-4 bg-[#2a2a2a] text-white">
+        <h3 className="text-base font-medium mb-1">{product.name}</h3>
+        <p className="text-sm text-gray-300 mb-1">{product.brand}</p>
+        <p className="text-sm text-gray-400 mb-2">Art. No: {product.articleNo}</p>
+        <PriceDisplay product={product} />
+      </div>
+    </div>
+  );
+};
+
 
 export default function MarketplacePage() {
   const sidebarSystem = useSidebarSystem();
@@ -417,6 +467,14 @@ export default function MarketplacePage() {
 
   const filtered = getFilteredProducts();
   const sortedProducts = sortProducts(filtered);
+  
+  // Separate featured and all products
+  const featuredProducts = sortedProducts.filter(product => product.pinned);
+  const allProducts = sortedProducts.filter(product => !product.pinned);
+  
+  // Section collapse states
+  const [isFeaturedCollapsed, setIsFeaturedCollapsed] = useState(false);
+  const [isMoreCollapsed, setIsMoreCollapsed] = useState(false);
 
   const openInfoModal = (product) => {
     setProductForInfo(product);
@@ -650,6 +708,57 @@ export default function MarketplacePage() {
     handleDeleteAppointment(id, appointments, setAppointments);
   };
 
+  // Sort Dropdown Component for reuse
+  const SortDropdown = ({ className = "" }) => (
+    <div className={`relative ${className}`} ref={sortDropdownRef}>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          setShowSortDropdown(!showSortDropdown);
+        }}
+        className="px-3 sm:px-4 py-2 bg-[#2F2F2F] text-gray-300 rounded-xl text-xs sm:text-sm hover:bg-[#3F3F3F] transition-colors flex items-center gap-2"
+      >
+        {getSortIcon()}
+        <span className="hidden sm:inline">{currentSortLabel}</span>
+      </button>
+
+      {/* Sort Dropdown */}
+      {showSortDropdown && (
+        <div className="absolute top-full right-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[180px]">
+          <div className="py-1">
+            <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">
+              Sort by
+            </div>
+            {sortOptions.map((option) => (
+              <button
+                key={option.value}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleSortOptionClick(option.value);
+                }}
+                className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${
+                  sortBy === option.value 
+                    ? 'text-white bg-gray-800/50' 
+                    : 'text-gray-300'
+                }`}
+              >
+                <span>{option.label}</span>
+                {sortBy === option.value && (
+                  <span className="text-gray-400">
+                    {sortDirection === 'asc' 
+                      ? <ArrowUp size={14} /> 
+                      : <ArrowDown size={14} />
+                    }
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
 
   return (
     <>
@@ -695,16 +804,24 @@ export default function MarketplacePage() {
         }
     `}>
         <div className="md:p-6 p-3">
+          {/* Header with title, sort (mobile), and sidebar toggle */}
           <div className="flex justify-between items-center w-full mb-6">
-
-            <h1 className="text-white oxanium_font text-xl md:text-2xl">Marketplace</h1>
-
-            {isRightSidebarOpen ? (<div onClick={toggleRightSidebar} className=" ">
-              <img src='/expand-sidebar mirrored.svg' className="h-5 w-5 cursor-pointer" alt="" />
+            <div className="flex items-center gap-3">
+              <h1 className="text-white oxanium_font text-xl md:text-2xl">Marketplace</h1>
+              {/* Sort button - visible on mobile only */}
+              <div className="sm:hidden">
+                <SortDropdown />
+              </div>
             </div>
-            ) : (<div onClick={toggleRightSidebar} className=" ">
-              <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
-            </div>
+
+            {isRightSidebarOpen ? (
+              <div onClick={toggleRightSidebar} className=" ">
+                <img src='/expand-sidebar mirrored.svg' className="h-5 w-5 cursor-pointer" alt="" />
+              </div>
+            ) : (
+              <div onClick={toggleRightSidebar} className=" ">
+                <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
+              </div>
             )}
           </div>
 
@@ -771,111 +888,94 @@ export default function MarketplacePage() {
               Favorites ({favorites.length})
             </button>
 
-            {/* Sort dropdown */}
-            <div className="ml-auto relative" ref={sortDropdownRef}>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowSortDropdown(!showSortDropdown);
-                }}
-                className="px-3 sm:px-4 py-2 bg-[#2F2F2F] text-gray-300 rounded-xl text-xs sm:text-sm hover:bg-[#3F3F3F] transition-colors flex items-center gap-2"
-              >
-                {getSortIcon()}
-                <span>{currentSortLabel}</span>
-              </button>
-
-              {/* Sort Dropdown */}
-              {showSortDropdown && (
-                <div className="absolute top-full right-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[180px]">
-                  <div className="py-1">
-                    <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">
-                      Sort by
-                    </div>
-                    {sortOptions.map((option) => (
-                      <button
-                        key={option.value}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleSortOptionClick(option.value);
-                        }}
-                        className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${
-                          sortBy === option.value 
-                            ? 'text-white bg-gray-800/50' 
-                            : 'text-gray-300'
-                        }`}
-                      >
-                        <span>{option.label}</span>
-                        {sortBy === option.value && (
-                          <span className="text-gray-400">
-                            {sortDirection === 'asc' 
-                              ? <ArrowUp size={14} /> 
-                              : <ArrowDown size={14} />
-                            }
-                          </span>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
+            {/* Sort dropdown - hidden on mobile (shown in header instead) */}
+            <div className="ml-auto hidden sm:block">
+              <SortDropdown />
             </div>
           </div>
 
-
-          <div className={`grid grid-cols-1 sm:grid-cols-2 ${isRightSidebarOpen ? 'lg:grid-cols-3' : 'lg:grid-cols-3 xl:grid-cols-4'} gap-4 sm:gap-6`}>
-            {sortedProducts.map((product) => (
-              <div key={product.id} className="bg-[#2a2a2a] rounded-2xl overflow-hidden relative select-none">
-
-                <div className="relative w-full h-48 bg-white">
-                  <img
-                    src={product.image || "/placeholder.svg"}
-                    alt={product.name}
-                    className="object-cover w-full h-full pointer-events-none"
-                    draggable="false"
-                  />
-
-                  {/* Discount Badge - top right corner of image */}
-                  {isOnSale(product) && (
-                    <DiscountBadge percentage={calculateDiscountPercentage(product.originalPrice, product.price)} />
-                  )}
-
-                  {/* Favorite button - top left */}
-                  <button
-                    onClick={() => toggleFavorite(product.id)}
-                    className={`absolute top-3 left-3 p-2 rounded-full transition-colors ${
-                      isFavorite(product.id)
-                        ? 'bg-orange-500 hover:bg-orange-600'
-                        : 'bg-black/50 hover:bg-black/70'
-                    }`}
-                    aria-label={isFavorite(product.id) ? "Remove from favorites" : "Add to favorites"}
+          {/* Show sections only when no filter is active */}
+          {!showFavoritesOnly && !showSaleOnly ? (
+            <>
+              {/* Featured Products Section */}
+              {featuredProducts.length > 0 && (
+                <div className="mb-8">
+                  <button 
+                    onClick={() => setIsFeaturedCollapsed(!isFeaturedCollapsed)}
+                    className="flex items-center gap-2 mb-4 group cursor-pointer"
                   >
-                    <Heart 
-                      size={16} 
-                      className={isFavorite(product.id) ? "fill-white text-white" : "text-white"} 
+                    <ChevronDown 
+                      size={20} 
+                      className={`text-gray-400 transition-transform duration-200 ${isFeaturedCollapsed ? '-rotate-90' : ''}`} 
                     />
+                    <h2 className="text-lg font-semibold text-white group-hover:text-gray-300 transition-colors">Featured</h2>
+                    <span className="text-sm text-gray-400">({featuredProducts.length})</span>
                   </button>
-
-                  {/* Bottom-right action buttons (moved from top-right to avoid overlap with discount badge) */}
-                  <div className="absolute bottom-3 right-3 flex gap-2">
-                    {/* Info Tooltip Component */}
-                    <InfoTooltip product={product} />
-
-                    {/* Affiliate Link Button with disclosure */}
-                    <AffiliateLinkButton link={product.link} onOpenModal={openExternalLinkModal} />
-                  </div>
+                  {!isFeaturedCollapsed && (
+                    <div className={`grid grid-cols-1 sm:grid-cols-2 ${isRightSidebarOpen ? 'lg:grid-cols-3' : 'lg:grid-cols-3 xl:grid-cols-4'} gap-4 sm:gap-6`}>
+                      {featuredProducts.map((product) => (
+                        <ProductCard
+                          key={product.id}
+                          product={product}
+                          isFavorite={isFavorite(product.id)}
+                          toggleFavorite={toggleFavorite}
+                          openExternalLinkModal={openExternalLinkModal}
+                          isRightSidebarOpen={isRightSidebarOpen}
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
+              )}
 
-                <div className="p-4 bg-[#2a2a2a] text-white">
-                  <h3 className="text-base font-medium mb-1">{product.name}</h3>
-                  <p className="text-sm text-gray-300 mb-1">{product.brand}</p>
-                  <p className="text-sm text-gray-400 mb-2">Art. No: {product.articleNo}</p>
-                  
-                  {/* Price Display with sale formatting */}
-                  <PriceDisplay product={product} />
+              {/* More Products Section */}
+              {allProducts.length > 0 && (
+                <div>
+                  <button 
+                    onClick={() => setIsMoreCollapsed(!isMoreCollapsed)}
+                    className="flex items-center gap-2 mb-4 group cursor-pointer"
+                  >
+                    <ChevronDown 
+                      size={20} 
+                      className={`text-gray-400 transition-transform duration-200 ${isMoreCollapsed ? '-rotate-90' : ''}`} 
+                    />
+                    <h2 className="text-lg font-semibold text-white group-hover:text-gray-300 transition-colors">More Products</h2>
+                    <span className="text-sm text-gray-400">({allProducts.length})</span>
+                  </button>
+                  {!isMoreCollapsed && (
+                    <div className={`grid grid-cols-1 sm:grid-cols-2 ${isRightSidebarOpen ? 'lg:grid-cols-3' : 'lg:grid-cols-3 xl:grid-cols-4'} gap-4 sm:gap-6`}>
+                      {allProducts.map((product) => (
+                        <ProductCard
+                          key={product.id}
+                          product={product}
+                          isFavorite={isFavorite(product.id)}
+                          toggleFavorite={toggleFavorite}
+                          openExternalLinkModal={openExternalLinkModal}
+                          isRightSidebarOpen={isRightSidebarOpen}
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
+              )}
+            </>
+          ) : (
+            /* Flat list when filter is active */
+            sortedProducts.length > 0 && (
+              <div className={`grid grid-cols-1 sm:grid-cols-2 ${isRightSidebarOpen ? 'lg:grid-cols-3' : 'lg:grid-cols-3 xl:grid-cols-4'} gap-4 sm:gap-6`}>
+                {sortedProducts.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    isFavorite={isFavorite(product.id)}
+                    toggleFavorite={toggleFavorite}
+                    openExternalLinkModal={openExternalLinkModal}
+                    isRightSidebarOpen={isRightSidebarOpen}
+                  />
+                ))}
               </div>
-            ))}
-          </div>
+            )
+          )}
 
           {sortedProducts.length === 0 && (
             <div className="text-center py-12">

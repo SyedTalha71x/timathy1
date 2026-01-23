@@ -696,7 +696,9 @@ export default function NotesApp() {
       
       // Handle Escape for modals
       if (e.key === 'Escape') {
-        if (deleteConfirm) setDeleteConfirm(null)
+        if (showImageSourceModal) setShowImageSourceModal(false)
+        else if (showMediaLibraryModal) setShowMediaLibraryModal(false)
+        else if (deleteConfirm) setDeleteConfirm(null)
         else if (showTagsModal) setShowTagsModal(false)
         else if (selectedNote) setSelectedNote(null)
         return
@@ -705,28 +707,36 @@ export default function NotesApp() {
       // Don't handle if modifier keys are pressed
       if (e.ctrlKey || e.metaKey || e.altKey) return
 
-      // C - Create new note (only when not typing)
+      // Check if ANY modal is open - if so, don't trigger other hotkeys
+      const anyModalOpen = 
+        deleteConfirm ||
+        showTagsModal ||
+        showImageSourceModal ||
+        showMediaLibraryModal ||
+        selectedNote // Note being edited counts as "modal open"
+      
+      // Also check if any modal overlay is visible in the DOM
+      const hasVisibleModal = document.querySelector('[class*="fixed"][class*="inset-0"][class*="z-50"]') ||
+                              document.querySelector('[class*="fixed"][class*="inset-0"][class*="z-40"]')
+      
+      if (anyModalOpen || hasVisibleModal) return
+
+      // C - Create new note (only when not typing and no modal open)
       if (e.key === 'c' || e.key === 'C') {
         e.preventDefault()
         handleCreateNote()
       }
 
-      // T - Manage tags (only when not typing)
+      // T - Manage tags (only when not typing and no modal open)
       if (e.key === 't' || e.key === 'T') {
         e.preventDefault()
         setShowTagsModal(true)
-      }
-
-      // Delete/Entf - Delete selected note
-      if ((e.key === 'Delete' || e.key === 'Entf') && selectedNote) {
-        e.preventDefault()
-        setDeleteConfirm(selectedNote)
       }
     }
 
     document.addEventListener('keydown', handleKeyPress)
     return () => document.removeEventListener('keydown', handleKeyPress)
-  }, [deleteConfirm, selectedNote, showTagsModal])
+  }, [deleteConfirm, selectedNote, showTagsModal, showImageSourceModal, showMediaLibraryModal])
 
   // Save current note (silently in background)
   const saveCurrentNote = () => {

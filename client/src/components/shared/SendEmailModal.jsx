@@ -439,7 +439,7 @@ const SendEmailModal = ({
             </button>
           </div>
 
-          <div className="space-y-4 flex-1 overflow-y-auto overflow-x-visible custom-scrollbar pr-1" style={{ position: 'relative' }}>
+          <div className="space-y-4 flex-1 overflow-y-auto custom-scrollbar pr-1">
             {/* Template Selection */}
             <div>
               <label className="block text-sm font-medium text-gray-400 mb-1">
@@ -548,7 +548,7 @@ const SendEmailModal = ({
             </div>
 
             {/* Message with WYSIWYG Editor */}
-            <div className="relative z-10" style={{ overflow: 'visible' }}>
+            <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="text-sm font-medium text-gray-400">Message</label>
               </div>
