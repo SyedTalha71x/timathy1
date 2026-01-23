@@ -153,22 +153,22 @@ const SortableTaskColumn = ({
       }}
     >
       {/* Section Header - Touch Optimized */}
-      <button 
-        className={`px-3 py-3 md:py-2 flex items-center w-full text-left transition-all active:opacity-80 ${
+      <div 
+        className={`px-3 py-3 md:py-2 flex items-center w-full text-left transition-all ${
           isCollapsed ? 'rounded-2xl' : 'rounded-t-2xl'
         }`}
         style={{ backgroundColor: `${color}20` }}
-        onClick={() => onToggleCollapse(id)}
       >
         {/* Left side: Collapse + Sort + Color dot + Title + Count */}
         <div className="flex items-center gap-2 flex-1 min-w-0">
           {/* Collapse/Expand Button */}
-          <div
-            className="text-gray-400 p-1 flex-shrink-0"
+          <button
+            onClick={() => onToggleCollapse(id)}
+            className="text-gray-400 hover:text-white p-1 flex-shrink-0 transition-colors active:opacity-80"
             title={isCollapsed ? "Expand section" : "Collapse section"}
           >
             {isCollapsed ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
-          </div>
+          </button>
 
           {/* Sort Button - Desktop only in header */}
           {!isCollapsed && (
@@ -185,15 +185,20 @@ const SortableTaskColumn = ({
           {/* Color dot */}
           <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: color }}></div>
           
-          {/* Title */}
-          <h3 className="font-medium text-white text-sm truncate">{title}</h3>
+          {/* Title - clickable to collapse/expand */}
+          <button
+            onClick={() => onToggleCollapse(id)}
+            className="font-medium text-white text-sm truncate hover:text-gray-200 transition-colors text-left"
+          >
+            {title}
+          </button>
           
           {/* Count badge */}
           <span className="text-xs text-black font-medium bg-white px-2 py-0.5 rounded-full flex-shrink-0">
             {tasks.length}
           </span>
         </div>
-      </button>
+      </div>
 
       {/* Sort Dropdown - Portal-like positioning */}
       {showSortDropdown && (

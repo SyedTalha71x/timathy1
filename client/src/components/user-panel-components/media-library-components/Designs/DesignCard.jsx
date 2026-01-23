@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   Edit2, 
   Trash2, 
@@ -6,7 +6,8 @@ import {
   Download,
   Layers,
   GripVertical,
-  Eye
+  Eye,
+  MoreVertical
 } from 'lucide-react';
 
 const DesignCard = ({ 
@@ -20,9 +21,29 @@ const DesignCard = ({
   onDragEnd,
   isDragging
 }) => {
-  const [isHovered, setIsHovered] = useState(false);
   const [isDragHandleHeld, setIsDragHandleHeld] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
   const cardRef = useRef(null);
+  const mobileMenuRef = useRef(null);
+
+  // Close mobile menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target)) {
+        setShowMobileMenu(false);
+      }
+    };
+
+    if (showMobileMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [showMobileMenu]);
 
   const handleDragStart = (e) => {
     // Only allow drag if drag handle is being held
@@ -82,9 +103,7 @@ const DesignCard = ({
         ${isDragging ? 'opacity-50 scale-95' : ''}
         ${isDragHandleHeld ? 'cursor-grabbing' : ''}
       `}
-      onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => {
-        setIsHovered(false);
         setIsDragHandleHeld(false);
       }}
       draggable={isDragHandleHeld}
@@ -92,9 +111,9 @@ const DesignCard = ({
       onDragEnd={handleDragEnd}
       style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
     >
-      {/* Drag Handle - Top Left */}
+      {/* Drag Handle - Top Left - Desktop only */}
       <div 
-        className="absolute top-2 left-2 cursor-grab active:cursor-grabbing text-white/70 hover:text-white p-1.5 rounded-lg bg-black/50 hover:bg-black/70 z-20 opacity-0 group-hover:opacity-100 transition-opacity"
+        className="hidden sm:block absolute top-2 left-2 cursor-grab active:cursor-grabbing text-white/70 hover:text-white p-1.5 rounded-lg bg-black/50 hover:bg-black/70 z-20 opacity-0 group-hover:opacity-100 transition-opacity"
         title="Drag to move to folder"
         onMouseDown={handleDragHandleMouseDown}
         onMouseUp={handleDragHandleMouseUp}
@@ -103,17 +122,80 @@ const DesignCard = ({
         <GripVertical size={14} />
       </div>
 
-      {/* Preview Button - Top Right */}
+      {/* Preview Button - Desktop only (hover) */}
       <button
         onClick={(e) => {
           e.stopPropagation();
           onPreview?.(design);
         }}
-        className="absolute top-2 right-2 cursor-pointer text-white/70 hover:text-white p-1.5 rounded-lg bg-black/50 hover:bg-black/70 z-20 opacity-0 group-hover:opacity-100 transition-opacity"
+        className="hidden sm:block absolute top-2 right-2 cursor-pointer text-white/70 hover:text-white p-1.5 rounded-lg bg-black/50 hover:bg-black/70 z-20 opacity-0 group-hover:opacity-100 transition-opacity"
         title="Preview"
       >
         <Eye size={14} />
       </button>
+
+      {/* Mobile Menu Button - Mobile only */}
+      <div className="sm:hidden absolute top-2 right-2 z-20" ref={mobileMenuRef}>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowMobileMenu(!showMobileMenu);
+          }}
+          className="text-white/70 hover:text-white p-1.5 rounded-lg bg-black/50 hover:bg-black/70 transition-colors"
+        >
+          <MoreVertical size={16} />
+        </button>
+
+        {/* Mobile Dropdown Menu */}
+        {showMobileMenu && (
+          <div className="absolute top-full right-0 mt-1 w-40 bg-[#2a2a2a] border border-gray-700 rounded-xl shadow-xl overflow-hidden z-50">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onPreview?.(design);
+                setShowMobileMenu(false);
+              }}
+              className="w-full flex items-center gap-3 px-4 py-3 text-white hover:bg-[#3a3a3a] transition-colors text-sm"
+            >
+              <Eye size={16} className="text-gray-400" />
+              Preview
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDownload?.(design);
+                setShowMobileMenu(false);
+              }}
+              className="w-full flex items-center gap-3 px-4 py-3 text-white hover:bg-[#3a3a3a] transition-colors text-sm"
+            >
+              <Download size={16} className="text-gray-400" />
+              Download
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDuplicate?.(design);
+                setShowMobileMenu(false);
+              }}
+              className="w-full flex items-center gap-3 px-4 py-3 text-white hover:bg-[#3a3a3a] transition-colors text-sm"
+            >
+              <Copy size={16} className="text-gray-400" />
+              Duplicate
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(design);
+                setShowMobileMenu(false);
+              }}
+              className="w-full flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-500/10 transition-colors text-sm"
+            >
+              <Trash2 size={16} />
+              Delete
+            </button>
+          </div>
+        )}
+      </div>
 
       {/* Fixed-size Preview Container - Solid gray background like drafts */}
       <div 
@@ -136,14 +218,10 @@ const DesignCard = ({
           </div>
         )}
 
-        {/* Hover Overlay */}
-        <div className={`
-          absolute inset-0 bg-black/60 backdrop-blur-sm
-          flex flex-col items-center justify-center gap-2
-          transition-all duration-200
-          ${isHovered ? 'opacity-100' : 'opacity-0'}
-        `}>
+        {/* Hover Overlay - Desktop only */}
+        <div className="hidden sm:flex absolute inset-0 bg-black/60 backdrop-blur-sm flex-col items-center justify-center gap-2 transition-all duration-200 opacity-0 group-hover:opacity-100">
           {/* Quick Actions */}
+          {/* Edit Button - Desktop only */}
           <button
             onClick={(e) => {
               e.stopPropagation();

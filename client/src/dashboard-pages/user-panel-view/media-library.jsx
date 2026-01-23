@@ -17,7 +17,8 @@ import {
   Pipette,
   Eye,
   AlertTriangle,
-  FolderInput
+  FolderInput,
+  Info
 } from 'lucide-react';
 
 // Components
@@ -67,6 +68,9 @@ const MediaLibrary = () => {
   // Preview modal state
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [previewDesign, setPreviewDesign] = useState(null);
+  
+  // Mobile info tooltip state
+  const [showMobileInfoTooltip, setShowMobileInfoTooltip] = useState(false);
 
   // Folder management
   const {
@@ -524,8 +528,33 @@ const MediaLibrary = () => {
         {/* Header */}
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4 sm:mb-6">
-            <div>
+            <div className="flex items-center gap-2">
               <h1 className="text-xl sm:text-2xl font-bold text-white">Media Library</h1>
+              
+              {/* Mobile Info Tooltip - only visible on mobile */}
+              <div className="sm:hidden relative">
+                <button
+                  onClick={() => setShowMobileInfoTooltip(!showMobileInfoTooltip)}
+                  onMouseEnter={() => setShowMobileInfoTooltip(true)}
+                  onMouseLeave={() => setShowMobileInfoTooltip(false)}
+                  className="text-gray-400 hover:text-gray-300 transition-colors p-1"
+                  aria-label="Design Information"
+                >
+                  <Info size={16} />
+                </button>
+                
+                {showMobileInfoTooltip && (
+                  <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-64 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-xl p-4 z-50">
+                    <div className="text-sm space-y-2">
+                      <p className="text-orange-400 font-medium">Desktop Only</p>
+                      <p className="text-gray-300 text-xs leading-relaxed">
+                        Creating and editing designs is only available on desktop devices for the best experience.
+                      </p>
+                    </div>
+                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-[#2a2a2a] border-l border-t border-gray-700 transform rotate-45"></div>
+                  </div>
+                )}
+              </div>
             </div>
             
             {/* Create Design Button with Tooltip */}
@@ -548,13 +577,7 @@ const MediaLibrary = () => {
               </div>
             </div>
 
-            {/* Mobile Create Button (no tooltip) */}
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="sm:hidden flex items-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-xl transition-colors"
-            >
-              <Plus size={18} />
-            </button>
+            {/* Mobile Create Button - disabled (design creation not supported on mobile) */}
           </div>
 
           {/* Search Bar */}
@@ -704,13 +727,18 @@ const MediaLibrary = () => {
                       Clear Search
                     </button>
                   ) : (
-                    <button
-                      onClick={() => setShowCreateModal(true)}
-                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-xl transition-colors"
-                    >
-                      <Plus size={16} />
-                      Create Design
-                    </button>
+                    <>
+                      <button
+                        onClick={() => setShowCreateModal(true)}
+                        className="hidden sm:inline-flex items-center gap-2 px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-xl transition-colors"
+                      >
+                        <Plus size={16} />
+                        Create Design
+                      </button>
+                      <p className="sm:hidden text-gray-500 text-xs mt-2">
+                        Design creation is only available on desktop
+                      </p>
+                    </>
                   )}
                 </div>
               )
@@ -1210,14 +1238,7 @@ const MediaLibrary = () => {
         </div>
       </Modal>
 
-      {/* Floating Action Button - Mobile Only */}
-      <button
-        onClick={() => setShowCreateModal(true)}
-        className="sm:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
-        aria-label="Create Design"
-      >
-        <Plus size={22} />
-      </button>
+      {/* Floating Action Button - disabled (design creation not supported on mobile) */}
     </div>
   );
 };

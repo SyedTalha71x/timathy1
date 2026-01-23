@@ -1,4 +1,3 @@
-/* eslint-disable react/no-unknown-property */
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useEffect, useRef, useState } from "react"
@@ -591,41 +590,52 @@ export default function SortableTaskCard({
         </div>
       </div>
 
-      <style jsx global>{`
-        @keyframes tick {
-          from {
-            stroke-dashoffset: 18;
-            transform: scale(0.8);
-          }
-          to {
-            stroke-dashoffset: 0;
-            transform: scale(1);
-          }
-        }
-        .animate-tick {
-          animation: tick 0.4s ease-out forwards;
-        }
-        @keyframes pulse {
-          0% { transform: scale(1); }
-          50% { transform: scale(0.98); }
-          100% { transform: scale(1); }
-        }
-        .animate-pulse {
-          animation: pulse 0.4s ease-out;
-        }
-        .cursor-grab {
-          cursor: grab;
-        }
-        .cursor-grab:active {
-          cursor: grabbing;
-        }
-        .select-none {
-          user-select: none;
-          -webkit-user-select: none;
-          -moz-user-select: none;
-          -ms-user-select: none;
-        }
-      `}</style>
+      {/* Styles injected via useEffect to avoid jsx/global attribute warnings */}
     </div>
   )
+}
+
+// Inject global styles once
+if (typeof document !== 'undefined') {
+  const styleId = 'sortable-task-card-styles'
+  if (!document.getElementById(styleId)) {
+    const style = document.createElement('style')
+    style.id = styleId
+    style.textContent = `
+      @keyframes tick {
+        from {
+          stroke-dashoffset: 18;
+          transform: scale(0.8);
+        }
+        to {
+          stroke-dashoffset: 0;
+          transform: scale(1);
+        }
+      }
+      .animate-tick {
+        animation: tick 0.4s ease-out forwards;
+      }
+      @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(0.98); }
+        100% { transform: scale(1); }
+      }
+      .animate-pulse {
+        animation: pulse 0.4s ease-out;
+      }
+      .cursor-grab {
+        cursor: grab;
+      }
+      .cursor-grab:active {
+        cursor: grabbing;
+      }
+      .select-none {
+        user-select: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+      }
+    `
+    document.head.appendChild(style)
+  }
 }
