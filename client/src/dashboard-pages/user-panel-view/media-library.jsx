@@ -16,7 +16,6 @@ import {
   Layers,
   Pipette,
   Eye,
-  Bookmark,
   AlertTriangle,
   FolderInput
 } from 'lucide-react';
@@ -68,15 +67,6 @@ const MediaLibrary = () => {
   // Preview modal state
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [previewDesign, setPreviewDesign] = useState(null);
-  
-  // Custom templates state
-  const [customTemplates, setCustomTemplates] = useState([]);
-  
-  // Save as template modal state
-  const [showSaveTemplateModal, setShowSaveTemplateModal] = useState(false);
-  const [pendingTemplate, setPendingTemplate] = useState(null);
-  const [templateName, setTemplateName] = useState('');
-  const [templateCategory, setTemplateCategory] = useState('custom');
 
   // Folder management
   const {
@@ -392,33 +382,6 @@ const MediaLibrary = () => {
   const handlePreviewDesign = (design) => {
     setPreviewDesign(design);
     setShowPreviewModal(true);
-  };
-
-  // Handle save as template - open modal
-  const handleSaveAsTemplate = (templateData) => {
-    setPendingTemplate(templateData);
-    setTemplateName(templateData.name || 'My Template');
-    setTemplateCategory('custom');
-    setShowSaveTemplateModal(true);
-  };
-
-  // Confirm save as template
-  const confirmSaveAsTemplate = () => {
-    if (!pendingTemplate || !templateName.trim()) return;
-    
-    const template = {
-      ...pendingTemplate,
-      id: `custom-${generateId()}`,
-      name: templateName.trim(),
-      category: templateCategory,
-      isCustom: true,
-      createdAt: new Date().toISOString()
-    };
-    
-    setCustomTemplates(prev => [...prev, template]);
-    setShowSaveTemplateModal(false);
-    setPendingTemplate(null);
-    setTemplateName('');
   };
 
   // Handle delete draft
@@ -872,7 +835,6 @@ const MediaLibrary = () => {
         onClose={() => setShowTemplateGallery(false)}
         onSelectTemplate={handleSelectTemplate}
         onSelectBlank={handleSelectBlank}
-        customTemplates={customTemplates}
         personalization={pendingPersonalization}
       />
 
@@ -886,7 +848,6 @@ const MediaLibrary = () => {
           }}
           onSave={handleSaveDesign}
           onSaveDraft={handleSaveDraft}
-          onSaveAsTemplate={handleSaveAsTemplate}
           initialElements={currentDesign.elements}
           initialName={currentDesign.name}
           initialSize={currentDesign.size}
@@ -1185,78 +1146,6 @@ const MediaLibrary = () => {
           >
             Back
           </button>
-        </div>
-      </Modal>
-
-      {/* Save as Template Modal */}
-      <Modal
-        isOpen={showSaveTemplateModal}
-        onClose={() => {
-          setShowSaveTemplateModal(false);
-          setPendingTemplate(null);
-          setTemplateName('');
-        }}
-        title="Save as Template"
-        subtitle="Save your design as a reusable template"
-        size="sm"
-      >
-        <div className="space-y-4">
-          {/* Template Preview */}
-          {pendingTemplate?.thumbnail && (
-            <div className="relative bg-[#0a0a0a] rounded-xl p-3 flex items-center justify-center">
-              <img 
-                src={pendingTemplate.thumbnail}
-                alt="Template preview"
-                className="max-h-32 object-contain rounded-lg"
-                draggable={false}
-              />
-            </div>
-          )}
-          
-          {/* Template Name */}
-          <div>
-            <label className="block text-sm text-gray-400 mb-1.5">Template Name</label>
-            <input
-              type="text"
-              value={templateName}
-              onChange={(e) => setTemplateName(e.target.value)}
-              className="w-full bg-[#0a0a0a] border border-[#333333] rounded-xl py-2.5 px-4 text-white focus:outline-none focus:border-orange-500 transition-colors"
-              placeholder="Enter template name"
-              autoFocus
-            />
-          </div>
-          
-          {/* Template Info */}
-          <div className="flex items-center gap-4 text-xs text-gray-500">
-            <div className="flex items-center gap-1">
-              <Layers size={12} />
-              <span>{pendingTemplate?.elements?.length || 0} layers</span>
-            </div>
-            <div>
-              <span>{pendingTemplate?.size}</span>
-            </div>
-          </div>
-          
-          <div className="flex gap-3 pt-2">
-            <button
-              onClick={() => {
-                setShowSaveTemplateModal(false);
-                setPendingTemplate(null);
-                setTemplateName('');
-              }}
-              className="flex-1 py-2.5 bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white rounded-xl transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={confirmSaveAsTemplate}
-              disabled={!templateName.trim()}
-              className="flex-1 py-2.5 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-500/50 disabled:cursor-not-allowed text-white font-medium rounded-xl transition-colors flex items-center justify-center gap-2"
-            >
-              <Bookmark size={16} />
-              Save Template
-            </button>
-          </div>
         </div>
       </Modal>
 

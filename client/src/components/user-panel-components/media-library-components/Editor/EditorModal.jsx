@@ -7,8 +7,7 @@ import {
   ZoomIn,
   ZoomOut,
   Undo2,
-  Redo2,
-  Bookmark
+  Redo2
 } from 'lucide-react';
 import EditorToolbar from './EditorToolbar';
 import Canvas from './Canvas';
@@ -41,7 +40,6 @@ const EditorModal = ({
   onClose,
   onSave,
   onSaveDraft,
-  onSaveAsTemplate,
   initialElements = [],
   initialName = 'Untitled Design',
   initialSize = '1080x1080',
@@ -379,37 +377,6 @@ const EditorModal = ({
     }
   };
 
-  // Save as template
-  const handleSaveAsTemplate = async () => {
-    if (elements.length === 0) {
-      alert('Add some elements before saving as template');
-      return;
-    }
-
-    try {
-      const elementsToSave = JSON.parse(JSON.stringify(elements));
-      const thumbnail = await generateThumbnail(elementsToSave, imageSize, hiddenLayers);
-      
-      const templateData = {
-        name: designName,
-        size: imageSize,
-        elements: elementsToSave,
-        thumbnail,
-        colors: {
-          primary: elementsToSave.find(el => el.color)?.color || '#FF843E',
-          secondary: '#1A1A1A',
-          accent: '#FFFFFF'
-        }
-      };
-
-      if (onSaveAsTemplate) {
-        onSaveAsTemplate(templateData);
-      }
-    } catch (error) {
-      console.error('Error saving template:', error);
-    }
-  };
-
   // Close handling
   const handleClose = () => {
     // Cancel crop before closing
@@ -572,16 +539,6 @@ const EditorModal = ({
           </div>
 
           <div className="w-px h-5 bg-[#333333]" />
-
-          {onSaveAsTemplate && (
-            <button
-              onClick={handleSaveAsTemplate}
-              className="p-1.5 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded-lg transition-colors"
-              title="Save as Template"
-            >
-              <Bookmark size={16} />
-            </button>
-          )}
 
           <button
             onClick={handleSave}
