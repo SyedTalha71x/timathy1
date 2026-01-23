@@ -27,6 +27,7 @@ import { RiContractLine, RiStockFill } from "react-icons/ri";
 import { MdOutlineLeaderboard } from "react-icons/md";
 import { SiYoutubestudio } from "react-icons/si";
 import { CgGym } from "react-icons/cg";
+import { IoMdNutrition } from "react-icons/io";
 
 const MemberViewSidebar = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -150,6 +151,11 @@ const MemberViewSidebar = () => {
         { label: "Notifications & Reminders", to: "/member-view/notifications-remainders", icon: Bell },
         { label: "Offline Mode", to: "/member-view/offline-mode", icon: CloudOff },
       ],
+    },
+     {
+      icon: IoMdNutrition,
+      label: "Nutrition Analysis",
+      to: "/member-view/nutrition-analysis",
     },
     {
       icon: Settings,

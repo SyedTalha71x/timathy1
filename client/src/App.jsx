@@ -28,6 +28,7 @@ import BulletinBoard from './dashboard-pages/user-panel-view/bulletin-board'
 import MembersCheckIn from './dashboard-pages/user-panel-view/members-checkin'
 import Assessment from "./dashboard-pages/user-panel-view/medical-history";
 import HelpCenter from "./dashboard-pages/user-panel-view/help-center";
+import Tickets from "./dashboard-pages/user-panel-view/tickets";
 
 
 // Admin Dashboard
@@ -65,7 +66,7 @@ import MemberGoalSettings from './dashboard-pages/member-view/nutrition-tracking
 import MemberNotificationsRemainders from './dashboard-pages/member-view/nutrition-tracking/notifications'
 import MemberOfflineMode from './dashboard-pages/member-view/nutrition-tracking/offline-mode'
 import MemberBarcodeEntry from './dashboard-pages/member-view/nutrition-tracking/barcode-entry'
-import Tickets from "./dashboard-pages/user-panel-view/tickets";
+import MemberNutritionAnalysis from './dashboard-pages/member-view/nutrition-analysis'
 // import { useEffect } from "react";
 // import { startModalWatcher } from "./utils/fixModals";
 
@@ -150,6 +151,7 @@ function App() {
           <Route path="notifications-remainders" element={<MemberNotificationsRemainders />} />
           <Route path="offline-mode" element={<MemberOfflineMode />} />
           <Route path="barcode-entry" element={<MemberBarcodeEntry />} />
+          <Route path="nutrition-analysis" element={<MemberNutritionAnalysis />} />
 
         </Route>
       </Routes>
