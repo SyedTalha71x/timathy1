@@ -20,12 +20,14 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  Line,
+  Legend,
+  ReferenceLine,
 } from "recharts";
 
 const NutritionDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
 
-  // Data for the Daily Caloric Intake chart
   const caloricData = [
     { day: "M", calories: 1800 },
     { day: "T", calories: 2200 },
@@ -36,14 +38,24 @@ const NutritionDashboard = () => {
     { day: "S", calories: 2300 },
   ];
 
+  const trendData = [
+    { date: "OCT 01", actual: 1650, target: 2000 },
+    { date: "OCT 07", actual: 2150, target: 2000 },
+    { date: "OCT 14", actual: 2100, target: 2000 },
+     { date: "OCT 15", actual: 2100, target: 2000 },
+      { date: "OCT 16", actual: 2100, target: 2000 },
+       { date: "OCT 17", actual: 2100, target: 2000 },
+        { date: "OCT 18", actual: 2100, target: 2000 },
+         { date: "OCT 19", actual: 2100, target: 2000 },
+          { date: "OCT 20", actual: 2100, target: 2000 },
+  ];
+
   const renderTabContent = () => {
     switch (activeTab) {
       case "dashboard":
         return (
           <>
-            {/* Metric Cards Row */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-              {/* Total Calories */}
               <div className="bg-[#212121] rounded-lg p-6 ">
                 <div className="flex justify-between items-start mb-4">
                   <h3 className="text-white text-sm font-medium">
@@ -59,7 +71,6 @@ const NutritionDashboard = () => {
                 <div className="text-sm text-white">Target: 2,500 kcal</div>
               </div>
 
-              {/* Protein Intake */}
               <div className="bg-[#212121] rounded-lg p-6 ">
                 <div className="flex justify-between items-start mb-4">
                   <h3 className="text-white text-sm font-medium">
@@ -75,7 +86,6 @@ const NutritionDashboard = () => {
                 <div className="text-sm text-white">Target: 100 g</div>
               </div>
 
-              {/* Carb Intake */}
               <div className="bg-[#212121] rounded-lg p-6 ">
                 <div className="flex justify-between items-start mb-4">
                   <h3 className="text-white text-sm font-medium">
@@ -91,7 +101,6 @@ const NutritionDashboard = () => {
                 <div className="text-sm text-white">Target: 70 g</div>
               </div>
 
-              {/* Fat Intake */}
               <div className="bg-[#212121] rounded-lg p-6 ">
                 <div className="flex justify-between items-start mb-4">
                   <h3 className="text-white text-sm font-medium">Fat Intake</h3>
@@ -106,9 +115,7 @@ const NutritionDashboard = () => {
               </div>
             </div>
 
-            {/* Overall Status and Daily Goal Section */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-              {/* Left: Nutrition Score */}
               <div className="lg:col-span-2 bg-[#212121] rounded-lg p-6 ">
                 <div className="flex items-center gap-1">
                   <h3 className="text-gray-200 text-sm font-semibold uppercase ">
@@ -141,9 +148,7 @@ const NutritionDashboard = () => {
                 </div>
               </div>
 
-              {/* Middle: Nutrition Score and charts section */}
               <div className="col-span-1 grid grid-cols-1 gap-6">
-                {/* Daily Goal Reached */}
                 <div className="bg-[#212121] rounded-2xl p-6 ">
                   <div className="flex justify-between items-start mb-4">
                     <h3 className="text-white text-2xl font-bold uppercase">
@@ -168,9 +173,7 @@ const NutritionDashboard = () => {
               </div>
             </div>
 
-            {/* Charts Section - Updated to match screenshot */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-              {/* Total Calories - Reduced height */}
               <div className="bg-[#212121] rounded-2xl p-6">
                 <div className="flex items-center  gap-2 mb-4">
                   <h3 className="text-white text-2xl font-bold">
@@ -180,8 +183,6 @@ const NutritionDashboard = () => {
 
                 <div className="flex items-center md:flex-row flex-col mt-8 justify-center  mb-6 gap-4">
                   <div className="relative w-36 h-36">
-                    {" "}
-                    {/* Reduced from w-36 h-36 */}
                     <svg
                       className="w-full h-full transform -rotate-90"
                       viewBox="0 0 120 120"
@@ -206,8 +207,7 @@ const NutritionDashboard = () => {
                       />
                     </svg>
                     <div className="absolute inset-0 flex items-center justify-center flex-col">
-                      <span className="text-2xl font-bold text-white">84%</span>{" "}
-                      {/* Reduced from text-3xl */}
+                      <span className="text-2xl font-bold text-white">84%</span>
                     </div>
                   </div>
                   <div>
@@ -216,8 +216,7 @@ const NutritionDashboard = () => {
                         Total Calories
                         <Info size={16} className="inline ml-2 text-blue-500" />
                       </div>
-                      <div className="text-3xl font-bold text-white">1,850</div>{" "}
-                      {/* Reduced from text-4xl */}
+                      <div className="text-3xl font-bold text-white">1,850</div>
                       <div className="text-gray-300 mt-2 text-sm">
                         of 2,200 kcal target
                       </div>
@@ -231,20 +230,13 @@ const NutritionDashboard = () => {
                 </div>
               </div>
 
-              {/* Quick Macro Summary - Reduced height */}
               <div className="bg-[#212121] rounded-2xl p-6">
                 <h3 className="text-white text-2xl font-bold mb-4">
                   Quick Macro Summary
-                </h3>{" "}
-                {/* Reduced margin */}
+                </h3>
                 <div className="space-y-4 mt-8">
-                  {" "}
-                  {/* Reduced from space-y-6 */}
-                  {/* Protein */}
                   <div>
                     <div className="flex justify-between items-center mb-1">
-                      {" "}
-                      {/* Reduced margin */}
                       <span className="text-gray-300 text-sm">Protein</span>
                       <span className="text-white text-sm font-medium">
                         120g <span className="text-gray-400">/ 150g</span>
@@ -257,11 +249,8 @@ const NutritionDashboard = () => {
                       ></div>
                     </div>
                   </div>
-                  {/* Carbs */}
                   <div>
                     <div className="flex justify-between items-center mb-1">
-                      {" "}
-                      {/* Reduced margin */}
                       <span className="text-gray-300 text-sm">Carbs</span>
                       <span className="text-white text-sm font-medium">
                         200g <span className="text-gray-400">/ 250g</span>
@@ -274,11 +263,8 @@ const NutritionDashboard = () => {
                       ></div>
                     </div>
                   </div>
-                  {/* Fat */}
                   <div>
                     <div className="flex justify-between items-center mb-1">
-                      {" "}
-                      {/* Reduced margin */}
                       <span className="text-gray-300 text-sm">Fats</span>
                       <span className="text-white text-sm font-medium">
                         60g <span className="text-gray-400">/ 70g</span>
@@ -294,15 +280,11 @@ const NutritionDashboard = () => {
                 </div>
               </div>
 
-              {/* Daily Caloric Intake - Reduced height */}
               <div className="bg-[#212121] rounded-2xl p-6">
                 <h3 className="text-white text-2xl font-bold mb-4">
                   Daily Caloric Intake
-                </h3>{" "}
-                {/* Reduced margin */}
+                </h3>
                 <div className="h-48">
-                  {" "}
-                  {/* Reduced from h-64 */}
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       data={caloricData}
@@ -348,139 +330,356 @@ const NutritionDashboard = () => {
               </div>
             </div>
 
-            {/* Weekly Log Summary */}
-           <div className="bg-[#212121] rounded-lg p-4 md:p-6">
-  <div className="flex justify-between items-center mb-6">
-    <h3 className="text-2xl text-white font-bold">
-      Weekly Log Summary
-    </h3>
-    <a
-      href="#"
-      className="text-green-500 text-xs font-semibold hover:text-blue-400"
-    >
-      VIEW FULL LOG
-    </a>
-  </div>
+            <div className="bg-[#212121] rounded-lg p-4 md:p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-2xl text-white font-bold">
+                  Weekly Log Summary
+                </h3>
+                <a
+                  href="#"
+                  className="text-green-500 text-xs font-semibold hover:text-blue-400"
+                >
+                  VIEW FULL LOG
+                </a>
+              </div>
 
-  {/* ===== DESKTOP TABLE ===== */}
-  <div className="hidden md:block">
-    <table className="w-full text-sm">
-      <thead>
-        <tr className="border-b border-gray-800">
-          <th className="text-left text-gray-500 font-medium py-3">DATE</th>
-          <th className="text-left text-gray-500 font-medium py-3">CALORIES</th>
-          <th className="text-left text-gray-500 font-medium py-3">
-            MACROS (P/C/F)
-          </th>
-          <th className="text-left text-gray-500 font-medium py-3">FIBER</th>
-          <th className="text-left text-gray-500 font-medium py-3">STATUS</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr className="border-b border-gray-800">
-          <td className="py-3 text-gray-300">Oct 7, 2025</td>
-          <td className="py-3 text-gray-300">2,100 kcal</td>
-          <td className="py-3 text-gray-300">115g / 200g / 70g</td>
-          <td className="py-3 text-gray-300">28g</td>
-          <td className="py-3">
-            <span className="text-yellow-200 bg-[#0D350D] px-2 py-1 rounded-md text-xs font-semibold">
-              HIT TARGET
-            </span>
-          </td>
-        </tr>
+              <div className="hidden md:block">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-800">
+                      <th className="text-left text-gray-500 font-medium py-3">DATE</th>
+                      <th className="text-left text-gray-500 font-medium py-3">CALORIES</th>
+                      <th className="text-left text-gray-500 font-medium py-3">
+                        MACROS (P/C/F)
+                      </th>
+                      <th className="text-left text-gray-500 font-medium py-3">FIBER</th>
+                      <th className="text-left text-gray-500 font-medium py-3">STATUS</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="border-b border-gray-800">
+                      <td className="py-3 text-gray-300">Oct 7, 2025</td>
+                      <td className="py-3 text-gray-300">2,100 kcal</td>
+                      <td className="py-3 text-gray-300">115g / 200g / 70g</td>
+                      <td className="py-3 text-gray-300">28g</td>
+                      <td className="py-3">
+                        <span className="text-yellow-200 bg-[#0D350D] px-2 py-1 rounded-md text-xs font-semibold">
+                          HIT TARGET
+                        </span>
+                      </td>
+                    </tr>
 
-        <tr className="border-b border-gray-800">
-          <td className="py-3 text-gray-300">Oct 6, 2025</td>
-          <td className="py-3 text-gray-300">2,350 kcal</td>
-          <td className="py-3 text-gray-300">125g / 220g / 85g</td>
-          <td className="py-3 text-gray-300">30g</td>
-          <td className="py-3">
-            <span className="text-yellow-200 bg-[#0D350D] px-2 py-1 rounded-md text-xs font-semibold">
-              HIT TARGET
-            </span>
-          </td>
-        </tr>
+                    <tr className="border-b border-gray-800">
+                      <td className="py-3 text-gray-300">Oct 6, 2025</td>
+                      <td className="py-3 text-gray-300">2,350 kcal</td>
+                      <td className="py-3 text-gray-300">125g / 220g / 85g</td>
+                      <td className="py-3 text-gray-300">30g</td>
+                      <td className="py-3">
+                        <span className="text-yellow-200 bg-[#0D350D] px-2 py-1 rounded-md text-xs font-semibold">
+                          HIT TARGET
+                        </span>
+                      </td>
+                    </tr>
 
-        <tr>
-          <td className="py-3 text-gray-300">Oct 5, 2025</td>
-          <td className="py-3 text-gray-300">2,300 kcal</td>
-          <td className="py-3 text-gray-300">140g / 280g / 75g</td>
-          <td className="py-3 text-gray-300">25g</td>
-          <td className="py-3">
-            <span className="text-yellow-200 bg-[#4A1313] px-2 py-1 rounded-md text-xs font-semibold">
-              OVER TARGET
-            </span>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+                    <tr>
+                      <td className="py-3 text-gray-300">Oct 5, 2025</td>
+                      <td className="py-3 text-gray-300">2,300 kcal</td>
+                      <td className="py-3 text-gray-300">140g / 280g / 75g</td>
+                      <td className="py-3 text-gray-300">25g</td>
+                      <td className="py-3">
+                        <span className="text-yellow-200 bg-[#4A1313] px-2 py-1 rounded-md text-xs font-semibold">
+                          OVER TARGET
+                        </span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
 
-  {/* ===== MOBILE CARDS ===== */}
-  <div className="space-y-4 md:hidden">
-    {[
-      {
-        date: "Oct 7, 2025",
-        calories: "2,100 kcal",
-        macros: "115g / 200g / 70g",
-        fiber: "28g",
-        status: "HIT TARGET",
-        statusBg: "bg-[#0D350D]",
-      },
-      {
-        date: "Oct 6, 2025",
-        calories: "2,350 kcal",
-        macros: "125g / 220g / 85g",
-        fiber: "30g",
-        status: "HIT TARGET",
-        statusBg: "bg-[#0D350D]",
-      },
-      {
-        date: "Oct 5, 2025",
-        calories: "2,300 kcal",
-        macros: "140g / 280g / 75g",
-        fiber: "25g",
-        status: "OVER TARGET",
-        statusBg: "bg-[#4A1313]",
-      },
-    ].map((item, i) => (
-      <div
-        key={i}
-        className="bg-[#1a1a1a] rounded-lg p-4 border border-gray-800"
-      >
-        <div className="flex justify-between mb-2">
-          <span className="text-gray-400 text-xs">Date</span>
-          <span className="text-gray-300 text-sm">{item.date}</span>
-        </div>
+              <div className="space-y-4 md:hidden">
+                {[
+                  {
+                    date: "Oct 7, 2025",
+                    calories: "2,100 kcal",
+                    macros: "115g / 200g / 70g",
+                    fiber: "28g",
+                    status: "HIT TARGET",
+                    statusBg: "bg-[#0D350D]",
+                  },
+                  {
+                    date: "Oct 6, 2025",
+                    calories: "2,350 kcal",
+                    macros: "125g / 220g / 85g",
+                    fiber: "30g",
+                    status: "HIT TARGET",
+                    statusBg: "bg-[#0D350D]",
+                  },
+                  {
+                    date: "Oct 5, 2025",
+                    calories: "2,300 kcal",
+                    macros: "140g / 280g / 75g",
+                    fiber: "25g",
+                    status: "OVER TARGET",
+                    statusBg: "bg-[#4A1313]",
+                  },
+                ].map((item, i) => (
+                  <div
+                    key={i}
+                    className="bg-[#1a1a1a] rounded-lg p-4 border border-gray-800"
+                  >
+                    <div className="flex justify-between mb-2">
+                      <span className="text-gray-400 text-xs">Date</span>
+                      <span className="text-gray-300 text-sm">{item.date}</span>
+                    </div>
 
-        <div className="flex justify-between mb-2">
-          <span className="text-gray-400 text-xs">Calories</span>
-          <span className="text-gray-300 text-sm">{item.calories}</span>
-        </div>
+                    <div className="flex justify-between mb-2">
+                      <span className="text-gray-400 text-xs">Calories</span>
+                      <span className="text-gray-300 text-sm">{item.calories}</span>
+                    </div>
 
-        <div className="flex justify-between mb-2">
-          <span className="text-gray-400 text-xs">Macros</span>
-          <span className="text-gray-300 text-sm">{item.macros}</span>
-        </div>
+                    <div className="flex justify-between mb-2">
+                      <span className="text-gray-400 text-xs">Macros</span>
+                      <span className="text-gray-300 text-sm">{item.macros}</span>
+                    </div>
 
-        <div className="flex justify-between mb-3">
-          <span className="text-gray-400 text-xs">Fiber</span>
-          <span className="text-gray-300 text-sm">{item.fiber}</span>
-        </div>
+                    <div className="flex justify-between mb-3">
+                      <span className="text-gray-400 text-xs">Fiber</span>
+                      <span className="text-gray-300 text-sm">{item.fiber}</span>
+                    </div>
 
-        <span
-          className={`inline-block text-yellow-200 ${item.statusBg} px-3 py-1 rounded-md text-xs font-semibold`}
-        >
-          {item.status}
-        </span>
-      </div>
-    ))}
-  </div>
-</div>
-
+                    <span
+                      className={`inline-block text-yellow-200 ${item.statusBg} px-3 py-1 rounded-md text-xs font-semibold`}
+                    >
+                      {item.status}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </>
         );
       case "trends":
+        return (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="bg-[#212121] rounded-lg p-6">
+                <div className="flex justify-between items-start mb-4">
+                  <h3 className="text-white text-sm font-medium">
+                    AVG DAILY INTAKE
+                  </h3>
+                  <Info size={16} className="text-blue-500" />
+                </div>
+                <div className="text-3xl text-white font-bold oxanium_font mb-2">
+                  2,140 kcal
+                </div>
+                <div className="text-sm text-[#C83C51] flex items-center">
+                  <TrendingUp size={16} className="mr-1" />
+                  vs 2% vs last month
+                </div>
+              </div>
+
+              <div className="bg-[#212121] rounded-lg p-6">
+                <div className="flex justify-between items-start mb-4">
+                  <h3 className="text-white text-sm font-medium">
+                    TARGET VARIANCE
+                  </h3>
+                  <CheckCircle size={16} className="text-green-500" />
+                </div>
+                <div className="text-3xl font-bold text-[#6155F5] oxanium_font mb-2">
+                  +4.2%
+                </div>
+                <div className="text-sm text-[#6155F5]">Within optimal range</div>
+              </div>
+
+              <div className="bg-[#212121] rounded-lg p-6">
+                <div className="flex justify-between items-start mb-4">
+                  <h3 className="text-white text-sm font-medium">
+                    DAYS WITHIN GOAL
+                  </h3>
+                  <AlertCircle size={16} className="text-blue-400" />
+                </div>
+                <div className="text-3xl font-bold text-white oxanium_font mb-2">
+                  18/30
+                </div>
+                <div className="text-sm text-[#6155F5] flex items-center">
+                  <TrendingUp size={16} className="mr-1" />
+                  ≈+2 days vs last period
+                </div>
+              </div>
+
+            </div>
+
+           <div className="bg-[#212121] rounded-lg p-6">
+  <div className="mb-6">
+    <p className="text-gray-200 text-sm">OVERALL STATUS:</p>
+    <h3 className="text-white text-2xl mt-1 font-bold">
+      Nutrition Score:
+    </h3>
+  </div>
+
+  {/* Scroll container */}
+  <div className="w-full overflow-x-auto">
+    {/* Fixed / min width chart wrapper */}
+    <div className="min-w-[700px] h-64">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart
+          data={trendData}
+          margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
+        >
+          <CartesianGrid
+            strokeDasharray="3 3"
+            stroke="#3B82F6"
+            strokeOpacity={0.2}
+            horizontal
+            vertical={false}
+          />
+
+          <XAxis
+            dataKey="date"
+            axisLine={false}
+            tickLine={false}
+            tick={{ fill: "#9CA3AF", fontSize: 12 }}
+          />
+
+          <YAxis
+            axisLine={false}
+            tickLine={false}
+            tick={{ fill: "#9CA3AF", fontSize: 12 }}
+            domain={[0, 2200]}
+            ticks={[0, 550, 1100, 1650, 2200]}
+          />
+
+          <Tooltip
+            contentStyle={{
+              backgroundColor: "#1F2937",
+              border: "1px solid #374151",
+              borderRadius: "6px",
+              color: "white",
+            }}
+            formatter={(value) => [`${value} kcal`, "Calories"]}
+          />
+
+          <ReferenceLine
+            y={2000}
+            stroke="#EF4444"
+            strokeDasharray="3 3"
+            label="Daily Target (2,000)"
+          />
+
+          <Bar
+            dataKey="actual"
+            fill="#3B82F6"
+            radius={[4, 4, 0, 0]}
+            name="Actual Intake"
+          />
+          <Bar
+            dataKey="target"
+            fill="#EF4444"
+            fillOpacity={0.3}
+            radius={[4, 4, 0, 0]}
+            name="Daily Target (2,000)"
+          />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  </div>
+</div>
+
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-[#212121] rounded-lg p-6">
+                <h3 className="text-white text-xl font-bold mb-4">Insights & Recommendations</h3>
+                
+                <div className="space-y-4">
+                  <div className="p-3 bg-[#6155F51A] rounded-lg">
+                    <div className="flex items-start mb-2">
+                      <AlertCircle size={16} className="text-yellow-500 mr-2 mt-0.5" />
+                      <h4 className="text-white font-medium">Goal Alert</h4>
+                    </div>
+                    <p className="text-gray-300 text-sm">
+                      You are exceeding your calorie target on most days (12 of the last 14 days). Your average surplus is 140 kcal.
+                    </p>
+                  </div>
+
+                  <div className="p-3 bg-[#6155F51A] rounded-lg">
+                    <div className="flex items-start mb-2">
+                      <TrendingUp size={16} className="text-blue-500 mr-2 mt-0.5" />
+                      <h4 className="text-white font-medium">Weekend Trend</h4>
+                    </div>
+                    <p className="text-gray-300 text-sm">
+                      Your intake peaks on Fridays and Saturdays. Consider planning a consistent meal prep routine on Thursday evenings to stay on track.
+                    </p>
+                  </div>
+
+                  <div className="p-3 bg-[#6155F51A] rounded-lg">
+                    <div className="flex items-start mb-2">
+                      <CheckCircle size={16} className="text-green-500 mr-2 mt-0.5" />
+                      <h4 className="text-white font-medium">Activity Match</h4>
+                    </div>
+                    <p className="text-gray-300 text-sm">
+                      Your protein intake is within levels on Tuesday and Wednesday. Keep it up!
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-[#212121] rounded-lg p-6">
+                <h3 className="text-white text-xl font-bold mb-6">Macro Distribution</h3>
+                
+                <div className="space-y-4 mt-12">
+                  <div>
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="text-gray-300 text-sm">Protein</span>
+                      <span className="text-white text-sm font-medium">
+                        120g <span className="text-gray-400"></span>
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-800 rounded-full h-2">
+                      <div
+                        className="bg-blue-500 h-2 rounded-full"
+                        style={{ width: `${(120 / 150) * 100}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="text-gray-300 text-sm">Carbohydrates</span>
+                      <span className="text-white text-sm font-medium">
+                        200g <span className="text-gray-400"></span>
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-800 rounded-full h-2">
+                      <div
+                        className="bg-green-500 h-2 rounded-full"
+                        style={{ width: `${(200 / 250) * 100}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="text-gray-300 text-sm">Fats</span>
+                      <span className="text-white text-sm font-medium">
+                        60g <span className="text-gray-400"></span>
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-800 rounded-full h-2">
+                      <div
+                        className="bg-yellow-500 h-2 rounded-full"
+                        style={{ width: `${(60 / 70) * 100}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-8 w-full flex justify-center">
+                    <button className="bg-blue-500 text-sm w-full text-center hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors">
+                      Detailed Macro Breakdown
+                    </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
       case "macro breakdown":
       case "recommendation":
         return (
@@ -509,7 +708,6 @@ const NutritionDashboard = () => {
 
   return (
     <div className="min-h-screen bg-[#1C1C1C]">
-      {/* Header */}
       <header className="border-b border-gray-800 px-4 sm:px-6 py-4 flex justify-between items-center">
         <h1 className="text-white oxanium_font text-xl md:text-2xl">
           Nutrition Analysis Dashboard
@@ -519,7 +717,6 @@ const NutritionDashboard = () => {
         </div>
       </header>
 
-      {/* Navigation Tabs */}
       <div className="border-b border-gray-800 mt-6 px-4 sm:px-6">
         <div className="flex gap-4 sm:gap-8 overflow-x-auto">
           {["Dashboard", "Trends", "Macro Breakdown", "Recommendation"].map(
@@ -540,7 +737,6 @@ const NutritionDashboard = () => {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="p-4 sm:p-6 max-w-7xl mx-auto">{renderTabContent()}</div>
     </div>
   );
