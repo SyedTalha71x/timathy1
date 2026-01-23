@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
-import { X, Info, Trash2 } from "lucide-react"
-import { useState, useEffect } from "react"
+import { X, Info, Trash2, Camera, Upload } from "lucide-react"
+import { useState, useEffect, useRef } from "react"
 import toast from "react-hot-toast"
 import useCountries from "../../../hooks/useCountries";
 
@@ -28,6 +28,124 @@ const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) =>
   )
 }
 
+// Camera Modal Component
+const CameraModal = ({ isOpen, onClose, onCapture }) => {
+  const videoRef = useRef(null)
+  const canvasRef = useRef(null)
+  const [stream, setStream] = useState(null)
+  const [error, setError] = useState(null)
+  const [facingMode, setFacingMode] = useState("user")
+
+  useEffect(() => {
+    if (isOpen) {
+      startCamera()
+    }
+    return () => {
+      stopCamera()
+    }
+  }, [isOpen, facingMode])
+
+  const startCamera = async () => {
+    try {
+      setError(null)
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: facingMode }
+      })
+      setStream(mediaStream)
+      if (videoRef.current) {
+        videoRef.current.srcObject = mediaStream
+      }
+    } catch (err) {
+      console.error("Error accessing camera:", err)
+      setError("Could not access camera. Please ensure you have granted camera permissions.")
+    }
+  }
+
+  const stopCamera = () => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop())
+      setStream(null)
+    }
+  }
+
+  const handleCapture = () => {
+    if (videoRef.current && canvasRef.current) {
+      const video = videoRef.current
+      const canvas = canvasRef.current
+      canvas.width = video.videoWidth
+      canvas.height = video.videoHeight
+      const ctx = canvas.getContext('2d')
+      ctx.drawImage(video, 0, 0)
+      const imageData = canvas.toDataURL('image/jpeg', 0.8)
+      onCapture(imageData)
+      stopCamera()
+      onClose()
+    }
+  }
+
+  const toggleCamera = () => {
+    setFacingMode(prev => prev === "user" ? "environment" : "user")
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[1100] p-4">
+      <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md overflow-hidden">
+        <div className="flex justify-between items-center p-4 border-b border-gray-700">
+          <h3 className="text-white font-semibold">Take Photo</h3>
+          <button onClick={() => { stopCamera(); onClose(); }} className="text-gray-400 hover:text-white">
+            <X size={20} />
+          </button>
+        </div>
+        
+        <div className="p-4">
+          {error ? (
+            <div className="text-center py-8">
+              <p className="text-red-400 text-sm mb-4">{error}</p>
+              <button 
+                onClick={startCamera}
+                className="px-4 py-2 bg-[#3F74FF] text-white rounded-xl text-sm"
+              >
+                Try Again
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="relative bg-black rounded-xl overflow-hidden aspect-square mb-4">
+                <video 
+                  ref={videoRef} 
+                  autoPlay 
+                  playsInline
+                  muted
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <canvas ref={canvasRef} className="hidden" />
+              
+              <div className="flex gap-3">
+                <button
+                  onClick={toggleCamera}
+                  className="flex-1 py-2.5 bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white rounded-xl text-sm flex items-center justify-center gap-2"
+                >
+                  <Camera size={16} />
+                  Flip
+                </button>
+                <button
+                  onClick={handleCapture}
+                  className="flex-[2] py-2.5 bg-[#3F74FF] hover:bg-[#3F74FF]/90 text-white rounded-xl text-sm font-medium"
+                >
+                  Capture Photo
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function EditStaffModal({
   staff,
   setIsShowDetails,
@@ -48,6 +166,7 @@ function EditStaffModal({
   const [showPassword, setShowPassword] = useState(false)
   const [isChangingPassword, setIsChangingPassword] = useState(false)
   const [newPassword, setNewPassword] = useState("")
+  const [showCameraModal, setShowCameraModal] = useState(false)
 
   // Reset state when staff changes
   useEffect(() => {
@@ -94,6 +213,14 @@ function EditStaffModal({
       }
       reader.readAsDataURL(file)
     }
+  }
+
+  const handleCameraCapture = (imageData) => {
+    setEditedStaff((prev) => ({ ...prev, img: imageData }))
+  }
+
+  const handleRemoveImage = () => {
+    setEditedStaff((prev) => ({ ...prev, img: null }))
   }
 
   const handleSubmit = (e) => {
@@ -161,13 +288,24 @@ function EditStaffModal({
               <>
                 {/* Avatar Upload */}
                 <div className="flex flex-col items-start">
-                  <div className="w-24 h-24 rounded-xl overflow-hidden mb-4">
+                  <div className="w-24 h-24 rounded-xl overflow-hidden mb-4 relative">
                     {editedStaff.img ? (
-                      <img
-                        src={editedStaff.img}
-                        alt="Profile"
-                        className="w-full h-full object-cover"
-                      />
+                      <>
+                        <img
+                          src={editedStaff.img}
+                          alt="Profile"
+                          className="w-full h-full object-cover"
+                        />
+                        {/* Remove button on image */}
+                        <button
+                          type="button"
+                          onClick={handleRemoveImage}
+                          className="absolute top-1 right-1 bg-black/70 hover:bg-black/90 text-white p-1.5 rounded-lg transition-colors"
+                          title="Remove image"
+                        >
+                          <X size={14} />
+                        </button>
+                      </>
                     ) : (
                       <InitialsAvatar 
                         firstName={editedStaff.firstName} 
@@ -176,19 +314,32 @@ function EditStaffModal({
                       />
                     )}
                   </div>
-                  <input 
-                    type="file" 
-                    id="edit-avatar" 
-                    className="hidden" 
-                    accept="image/*" 
-                    onChange={handleImgUpload} 
-                  />
-                  <label
-                    htmlFor="edit-avatar"
-                    className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 px-6 py-2 rounded-xl text-sm cursor-pointer text-white"
-                  >
-                    Update picture
-                  </label>
+                  
+                  {/* Image action buttons */}
+                  <div className="flex flex-wrap gap-2">
+                    <input 
+                      type="file" 
+                      id="edit-avatar" 
+                      className="hidden" 
+                      accept="image/*" 
+                      onChange={handleImgUpload} 
+                    />
+                    <label
+                      htmlFor="edit-avatar"
+                      className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 px-4 py-2 rounded-xl text-sm cursor-pointer text-white flex items-center gap-2"
+                    >
+                      <Upload size={16} />
+                      Upload
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setShowCameraModal(true)}
+                      className="bg-[#2F2F2F] hover:bg-[#3F3F3F] px-4 py-2 rounded-xl text-sm text-white flex items-center gap-2"
+                    >
+                      <Camera size={16} />
+                      Camera
+                    </button>
+                  </div>
                 </div>
 
                 {/* Personal Information */}
@@ -224,38 +375,6 @@ function EditStaffModal({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">Gender</label>
-                      <select
-                        name="gender"
-                        value={editedStaff.gender || ""}
-                        onChange={handleInputChange}
-                        className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
-                      >
-                        <option value="">Select Gender</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                        <option value="other">Other</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="text-sm text-gray-200 block mb-2">Birthday</label>
-                      <input
-                        type="date"
-                        name="birthday"
-                        value={editedStaff.birthday || ""}
-                        onChange={handleInputChange}
-                        className="w-full bg-[#141414] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Contact Information */}
-                <div className="space-y-4 pt-4 border-t border-gray-700">
-                  <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Contact Information</div>
-                  
                   <div>
                     <label className="text-sm text-gray-200 block mb-2">
                       Email<span className="text-red-500 ml-1">*</span>
@@ -263,7 +382,7 @@ function EditStaffModal({
                     <input
                       type="email"
                       name="email"
-                      value={editedStaff.email}
+                      value={editedStaff.email || ""}
                       onChange={handleInputChange}
                       className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
                       required
@@ -272,14 +391,16 @@ function EditStaffModal({
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">Mobile Number</label>
+                      <label className="text-sm text-gray-200 block mb-2">
+                        Mobile Number<span className="text-red-500 ml-1">*</span>
+                      </label>
                       <input
                         type="tel"
                         name="mobileNumber"
-                        value={editedStaff.mobileNumber || ""}
+                        value={editedStaff.mobileNumber}
                         onChange={handlePhoneChange}
-                        placeholder="+49 123 456789"
                         className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                        required
                       />
                     </div>
                     <div>
@@ -287,11 +408,37 @@ function EditStaffModal({
                       <input
                         type="tel"
                         name="telephoneNumber"
-                        value={editedStaff.telephoneNumber || ""}
+                        value={editedStaff.telephoneNumber}
                         onChange={handlePhoneChange}
-                        placeholder="030 12345678"
                         className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
                       />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                    <div>
+                      <label className="text-sm text-gray-200 block mb-2">Birthday</label>
+                      <input
+                        type="date"
+                        name="birthday"
+                        value={editedStaff.birthday || ""}
+                        onChange={handleInputChange}
+                        className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm text-gray-200 block mb-2">Gender</label>
+                      <select
+                        name="gender"
+                        value={editedStaff.gender || ""}
+                        onChange={handleInputChange}
+                        className="w-full bg-[#141414] text-sm rounded-xl px-4 py-2 text-white outline-none"
+                      >
+                        <option value="">Select gender</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
+                      </select>
                     </div>
                   </div>
                 </div>
@@ -301,18 +448,17 @@ function EditStaffModal({
                   <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Address</div>
                   
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">Street & Number</label>
+                    <label className="text-sm text-gray-200 block mb-2">Street</label>
                     <input
                       type="text"
                       name="street"
                       value={editedStaff.street || ""}
                       onChange={handleInputChange}
-                      placeholder="Main Street 123"
                       className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="grid grid-cols-2 gap-3 sm:gap-4">
                     <div>
                       <label className="text-sm text-gray-200 block mb-2">ZIP Code</label>
                       <input
@@ -320,7 +466,6 @@ function EditStaffModal({
                         name="zipCode"
                         value={editedStaff.zipCode || ""}
                         onChange={handleInputChange}
-                        placeholder="12345"
                         className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
                       />
                     </div>
@@ -331,7 +476,6 @@ function EditStaffModal({
                         name="city"
                         value={editedStaff.city || ""}
                         onChange={handleInputChange}
-                        placeholder="Berlin"
                         className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
                       />
                     </div>
@@ -536,6 +680,13 @@ function EditStaffModal({
           </div>
         </form>
       </div>
+
+      {/* Camera Modal */}
+      <CameraModal
+        isOpen={showCameraModal}
+        onClose={() => setShowCameraModal(false)}
+        onCapture={handleCameraCapture}
+      />
     </div>
   )
 }

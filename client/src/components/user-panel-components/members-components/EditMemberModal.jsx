@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { Trash2, X, Search, Plus, ChevronDown, ChevronUp, Pencil, Archive, ArchiveRestore } from "lucide-react"
+import { Trash2, X, Search, Plus, ChevronDown, ChevronUp, Pencil, Archive, ArchiveRestore, Camera, Upload } from "lucide-react"
 import { useEffect, useState, useRef } from "react"
 import toast from "react-hot-toast"
 import useCountries from "../../../hooks/useCountries"
@@ -24,6 +24,126 @@ const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) =>
       className={`bg-orange-500 rounded-xl flex items-center justify-center text-white font-semibold ${sizeClasses[size]} ${className}`}
     >
       {getInitials()}
+    </div>
+  )
+}
+
+// Camera Modal Component
+const CameraModal = ({ isOpen, onClose, onCapture }) => {
+  const videoRef = useRef(null)
+  const canvasRef = useRef(null)
+  const [stream, setStream] = useState(null)
+  const [error, setError] = useState(null)
+  const [facingMode, setFacingMode] = useState("user")
+
+  useEffect(() => {
+    if (isOpen) {
+      startCamera()
+    }
+    return () => {
+      stopCamera()
+    }
+  }, [isOpen, facingMode])
+
+  const startCamera = async () => {
+    try {
+      setError(null)
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: facingMode }
+      })
+      setStream(mediaStream)
+      if (videoRef.current) {
+        videoRef.current.srcObject = mediaStream
+      }
+    } catch (err) {
+      console.error("Error accessing camera:", err)
+      setError("Could not access camera. Please ensure you have granted camera permissions.")
+    }
+  }
+
+  const stopCamera = () => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop())
+      setStream(null)
+    }
+  }
+
+  const handleCapture = () => {
+    if (videoRef.current && canvasRef.current) {
+      const video = videoRef.current
+      const canvas = canvasRef.current
+      canvas.width = video.videoWidth
+      canvas.height = video.videoHeight
+      const ctx = canvas.getContext('2d')
+      ctx.drawImage(video, 0, 0)
+      const imageData = canvas.toDataURL('image/jpeg', 0.8)
+      onCapture(imageData)
+      stopCamera()
+      onClose()
+    }
+  }
+
+  const toggleCamera = () => {
+    setFacingMode(prev => prev === "user" ? "environment" : "user")
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[1000020] p-4">
+      <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md overflow-hidden">
+        <div className="flex justify-between items-center p-4 border-b border-gray-700">
+          <h3 className="text-white font-semibold">Take Photo</h3>
+          <button onClick={() => { stopCamera(); onClose(); }} className="text-gray-400 hover:text-white">
+            <X size={20} />
+          </button>
+        </div>
+        
+        <div className="p-4">
+          {error ? (
+            <div className="text-center py-8">
+              <p className="text-red-400 text-sm mb-4">{error}</p>
+              <button 
+                onClick={startCamera}
+                className="px-4 py-2 bg-[#3F74FF] text-white rounded-xl text-sm"
+              >
+                Try Again
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="relative bg-black rounded-xl overflow-hidden aspect-square mb-4">
+                <video 
+                  ref={videoRef} 
+                  autoPlay 
+                  playsInline
+                  muted
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <canvas ref={canvasRef} className="hidden" />
+              
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={toggleCamera}
+                  className="flex-1 py-2.5 bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white rounded-xl text-sm flex items-center justify-center gap-2"
+                >
+                  <Camera size={16} />
+                  Flip
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCapture}
+                  className="flex-[2] py-2.5 bg-[#3F74FF] hover:bg-[#3F74FF]/90 text-white rounded-xl text-sm font-medium"
+                >
+                  Capture Photo
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   )
 }
@@ -69,6 +189,7 @@ const EditMemberModalMain = ({
 }) => {
   const [activeTab, setActiveTab] = useState(editModalTabMain || "details")
   const [editingRelations, setEditingRelations] = useState(false)
+  const [showCameraModal, setShowCameraModal] = useState(false)
   const {countries, loading} = useCountries();
   const specialNoteTextareaRef = useRef(null)
   
@@ -399,6 +520,17 @@ const EditMemberModalMain = ({
     }
   }
 
+  // Camera capture handler
+  const handleCameraCapture = (imageData) => {
+    handleInputChangeMain({ target: { name: "image", value: imageData } })
+    toast.success("Photo captured successfully")
+  }
+
+  // Remove image handler
+  const handleRemoveImage = () => {
+    handleInputChangeMain({ target: { name: "image", value: null } })
+  }
+
   if (!isOpen || !selectedMemberMain) return null
 
   return (
@@ -456,13 +588,24 @@ const EditMemberModalMain = ({
               <>
                 {/* Avatar Upload */}
                 <div className="flex flex-col items-start">
-                  <div className="w-24 h-24 rounded-xl overflow-hidden mb-4">
+                  <div className="w-24 h-24 rounded-xl overflow-hidden mb-4 relative">
                     {editFormMain.image ? (
-                      <img
-                        src={editFormMain.image}
-                        alt="Profile"
-                        className="w-full h-full object-cover"
-                      />
+                      <>
+                        <img
+                          src={editFormMain.image}
+                          alt="Profile"
+                          className="w-full h-full object-cover"
+                        />
+                        {/* Remove button on image */}
+                        <button
+                          type="button"
+                          onClick={handleRemoveImage}
+                          className="absolute top-1 right-1 bg-black/70 hover:bg-black/90 text-white p-1.5 rounded-lg transition-colors"
+                          title="Remove image"
+                        >
+                          <X size={14} />
+                        </button>
+                      </>
                     ) : (
                       <InitialsAvatar 
                         firstName={editFormMain.firstName} 
@@ -471,13 +614,26 @@ const EditMemberModalMain = ({
                       />
                     )}
                   </div>
-                  <input type="file" id="avatar" className="hidden" accept="image/*" onChange={handleImageUpload} />
-                  <label
-                    htmlFor="avatar"
-                    className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 px-6 py-2 rounded-xl text-sm cursor-pointer text-white"
-                  >
-                    Update picture
-                  </label>
+                  
+                  {/* Image action buttons */}
+                  <div className="flex flex-wrap gap-2">
+                    <input type="file" id="avatar" className="hidden" accept="image/*" onChange={handleImageUpload} />
+                    <label
+                      htmlFor="avatar"
+                      className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 px-4 py-2 rounded-xl text-sm cursor-pointer text-white flex items-center gap-2"
+                    >
+                      <Upload size={16} />
+                      Upload
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setShowCameraModal(true)}
+                      className="bg-[#2F2F2F] hover:bg-[#3F3F3F] px-4 py-2 rounded-xl text-sm text-white flex items-center gap-2"
+                    >
+                      <Camera size={16} />
+                      Camera
+                    </button>
+                  </div>
                 </div>
 
                 {/* Personal Information */}
@@ -1224,6 +1380,13 @@ const EditMemberModalMain = ({
           </div>
         </form>
       </div>
+
+      {/* Camera Modal */}
+      <CameraModal
+        isOpen={showCameraModal}
+        onClose={() => setShowCameraModal(false)}
+        onCapture={handleCameraCapture}
+      />
     </div>
   )
 }
