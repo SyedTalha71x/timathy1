@@ -191,13 +191,46 @@ export const WysiwygEditor = forwardRef(({
         if (!options) return
         
         const pickerRect = picker.getBoundingClientRect()
+        const optionsRect = options.getBoundingClientRect()
+        const viewportWidth = window.innerWidth
+        const viewportHeight = window.innerHeight
+        const padding = 12 // Padding from screen edges
         
-        // Position dropdown fixed below the picker
+        // Calculate dropdown width (use actual width or estimate)
+        const dropdownWidth = optionsRect.width || 180
+        const dropdownHeight = optionsRect.height || 200
+        
+        // Calculate ideal centered position below the picker
+        let left = pickerRect.left + (pickerRect.width / 2) - (dropdownWidth / 2)
+        let top = pickerRect.bottom + 4
+        
+        // Ensure dropdown doesn't go off the left edge
+        if (left < padding) {
+          left = padding
+        }
+        
+        // Ensure dropdown doesn't go off the right edge
+        if (left + dropdownWidth > viewportWidth - padding) {
+          left = viewportWidth - dropdownWidth - padding
+        }
+        
+        // If dropdown would go below viewport, position it above the picker
+        if (top + dropdownHeight > viewportHeight - padding) {
+          top = pickerRect.top - dropdownHeight - 4
+          // If still doesn't fit, just position at bottom of viewport
+          if (top < padding) {
+            top = viewportHeight - dropdownHeight - padding
+          }
+        }
+        
+        // Apply fixed positioning
         options.style.position = 'fixed'
-        options.style.top = `${pickerRect.bottom + 2}px`
-        options.style.left = `${pickerRect.left}px`
+        options.style.top = `${top}px`
+        options.style.left = `${left}px`
         options.style.transform = 'none'
         options.style.marginTop = '0'
+        options.style.width = dropdownWidth > 100 ? `${dropdownWidth}px` : 'auto'
+        options.style.minWidth = '120px'
       })
     }
     
@@ -208,6 +241,8 @@ export const WysiwygEditor = forwardRef(({
       options.style.left = ''
       options.style.transform = ''
       options.style.marginTop = ''
+      options.style.width = ''
+      options.style.minWidth = ''
     }
     
     const observer = new MutationObserver((mutations) => {
@@ -215,8 +250,10 @@ export const WysiwygEditor = forwardRef(({
         if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
           const picker = mutation.target
           if (picker.classList.contains('ql-expanded')) {
-            // Small delay to let the dropdown render
-            requestAnimationFrame(fixDropdownPosition)
+            // Small delay to let the dropdown render and get its dimensions
+            requestAnimationFrame(() => {
+              requestAnimationFrame(fixDropdownPosition)
+            })
           } else {
             const options = picker.querySelector('.ql-picker-options')
             resetDropdownPosition(options)
@@ -999,7 +1036,8 @@ export const WysiwygEditor = forwardRef(({
         align-items: center !important;
         gap: 4px !important;
         min-height: 44px !important;
-        overflow: visible !important;
+        overflow-x: auto !important;
+        overflow-y: visible !important;
         border-radius: 12px 12px 0 0 !important;
         -webkit-overflow-scrolling: touch;
         scrollbar-width: thin;
@@ -1022,6 +1060,7 @@ export const WysiwygEditor = forwardRef(({
       }
       @media (min-width: 768px) {
         .wysiwyg-editor-${editorId} .ql-toolbar {
+          overflow: visible !important;
           flex-wrap: wrap !important;
         }
       }
@@ -1113,12 +1152,11 @@ export const WysiwygEditor = forwardRef(({
         z-index: 99999 !important;
         max-height: 200px !important;
         overflow-y: auto !important;
-        position: absolute !important;
-        top: 100% !important;
-        left: 0 !important;
-        margin-top: 2px !important;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        margin-top: 2px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.4) !important;
-        transform: translateZ(0) !important;
       }
       .wysiwyg-editor-${editorId} .ql-snow .ql-picker.ql-expanded .ql-picker-options {
         display: block !important;

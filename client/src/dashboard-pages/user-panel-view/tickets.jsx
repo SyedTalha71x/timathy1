@@ -28,13 +28,7 @@ const Tickets = () => {
       // Ignore if Ctrl/Cmd is pressed (for Ctrl+C copy, etc.)
       if (e.ctrlKey || e.metaKey) return;
       
-      // C key - Create Ticket
-      if (e.key === 'c' || e.key === 'C') {
-        e.preventDefault();
-        handleNewTicketClick();
-      }
-      
-      // ESC key - Close open modals/views
+      // ESC key - Close open modals/views (this should always work)
       if (e.key === 'Escape') {
         e.preventDefault();
         if (closeConfirmModal) {
@@ -44,6 +38,18 @@ const Tickets = () => {
         } else if (isModalOpen) {
           setIsModalOpen(false);
         }
+        return;
+      }
+      
+      // Check if ANY modal/view is open - if so, don't trigger other hotkeys
+      const anyModalOpen = isModalOpen || selectedTicket || closeConfirmModal;
+      
+      if (anyModalOpen) return;
+      
+      // C key - Create Ticket (only when no modal is open)
+      if (e.key === 'c' || e.key === 'C') {
+        e.preventDefault();
+        handleNewTicketClick();
       }
     };
     

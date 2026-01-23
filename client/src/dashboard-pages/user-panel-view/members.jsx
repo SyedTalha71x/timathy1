@@ -646,6 +646,52 @@ export default function Members() {
       // Ignore if Ctrl/Cmd is pressed (for Ctrl+C copy, etc.)
       if (e.ctrlKey || e.metaKey) return;
       
+      // Check if ANY modal is open
+      const anyModalOpen = 
+        showCreateTempMemberModal ||
+        isEditModalOpenMain ||
+        isViewDetailsModalOpen ||
+        showEmailModal ||
+        messageTypeModal.isOpen ||
+        isMemberSpecialNoteModalOpen ||
+        showAppointmentModalMain ||
+        showAddAppointmentModalMain ||
+        showSelectedAppointmentModalMain ||
+        isNotifyMemberOpenMain ||
+        showContingentModalMain ||
+        showAddBillingPeriodModalMain ||
+        showHistoryModalMain ||
+        showDocumentModal ||
+        isAssessmentSelectionModalOpen ||
+        isAssessmentFormModalOpen;
+      
+      // Also check if any modal overlay is visible in the DOM
+      const hasVisibleModal = document.querySelector('[class*="fixed"][class*="inset-0"][class*="z-50"]') ||
+                              document.querySelector('[class*="fixed"][class*="inset-0"][class*="z-40"]');
+      
+      // ESC key - Close modals (should work even when modals are open)
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        if (isViewDetailsModalOpen) setIsViewDetailsModalOpen(false);
+        else if (isEditModalOpenMain) setIsEditModalOpenMain(false);
+        else if (showCreateTempMemberModal) setShowCreateTempMemberModal(false);
+        else if (showEmailModal) setShowEmailModal(false);
+        else if (messageTypeModal.isOpen) setMessageTypeModal({ isOpen: false, member: null });
+        else if (isMemberSpecialNoteModalOpen) setIsMemberSpecialNoteModalOpen(false);
+        else if (showAppointmentModalMain) setShowAppointmentModalMain(false);
+        else if (showAddAppointmentModalMain) setShowAddAppointmentModalMain(false);
+        else if (showSelectedAppointmentModalMain) setShowSelectedAppointmentModalMain(false);
+        else if (showContingentModalMain) setShowContingentModalMain(false);
+        else if (showAddBillingPeriodModalMain) setShowAddBillingPeriodModalMain(false);
+        else if (showHistoryModalMain) setShowHistoryModalMain(false);
+        else if (showDocumentModal) setShowDocumentModal(false);
+        else if (isAssessmentFormModalOpen) setIsAssessmentFormModalOpen(false);
+        else if (isAssessmentSelectionModalOpen) setIsAssessmentSelectionModalOpen(false);
+        return;
+      }
+      
+      if (anyModalOpen || hasVisibleModal) return;
+      
       // C key - Create Temporary Member
       if (e.key === 'c' || e.key === 'C') {
         e.preventDefault();
@@ -661,7 +707,24 @@ export default function Members() {
     
     document.addEventListener('keydown', handleKeyPress);
     return () => document.removeEventListener('keydown', handleKeyPress);
-  }, []);
+  }, [
+    showCreateTempMemberModal,
+    isEditModalOpenMain,
+    isViewDetailsModalOpen,
+    showEmailModal,
+    messageTypeModal.isOpen,
+    isMemberSpecialNoteModalOpen,
+    showAppointmentModalMain,
+    showAddAppointmentModalMain,
+    showSelectedAppointmentModalMain,
+    isNotifyMemberOpenMain,
+    showContingentModalMain,
+    showAddBillingPeriodModalMain,
+    showHistoryModalMain,
+    showDocumentModal,
+    isAssessmentSelectionModalOpen,
+    isAssessmentFormModalOpen
+  ]);
 
   // Expand filters on desktop, keep collapsed on mobile
   useEffect(() => {

@@ -573,6 +573,52 @@ export default function LeadManagement() {
       // Ignore if Ctrl/Cmd is pressed (for Ctrl+C copy, etc.)
       if (e.ctrlKey || e.metaKey) return;
       
+      // Check if ANY modal is open
+      const anyModalOpen = 
+        isModalOpen ||
+        isEditModalOpenLead ||
+        isViewDetailsModalOpen ||
+        isTrialModalOpen ||
+        isCreateContractModalOpen ||
+        isEditColumnModalOpen ||
+        isDeleteConfirmationModalOpen ||
+        isDocumentModalOpen ||
+        isAssessmentSelectionModalOpen ||
+        isAssessmentFormModalOpen ||
+        isTrialAppointmentModalOpen ||
+        isEditTrialModalOpen ||
+        isDeleteTrialConfirmationModalOpen ||
+        showContractPromptModal ||
+        showMedicalHistoryPromptModal ||
+        isLeadSpecialNoteModalOpen ||
+        showHistoryModalLead ||
+        dragConfirmation.isOpen;
+      
+      // Also check if any modal overlay is visible in the DOM
+      const hasVisibleModal = document.querySelector('[class*="fixed"][class*="inset-0"][class*="z-50"]') ||
+                              document.querySelector('[class*="fixed"][class*="inset-0"][class*="z-40"]');
+      
+      // ESC key - Close modals (should work even when modals are open)
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        if (isViewDetailsModalOpen) setIsViewDetailsModalOpen(false);
+        else if (isEditModalOpenLead) setIsEditModalOpenLead(false);
+        else if (isModalOpen) setIsModalOpen(false);
+        else if (isTrialModalOpen) setIsTrialModalOpen(false);
+        else if (isCreateContractModalOpen) setIsCreateContractModalOpen(false);
+        else if (isDeleteConfirmationModalOpen) setIsDeleteConfirmationModalOpen(false);
+        else if (isDocumentModalOpen) setIsDocumentModalOpen(false);
+        else if (isAssessmentFormModalOpen) setIsAssessmentFormModalOpen(false);
+        else if (isAssessmentSelectionModalOpen) setIsAssessmentSelectionModalOpen(false);
+        else if (showContractPromptModal) setShowContractPromptModal(false);
+        else if (showMedicalHistoryPromptModal) setShowMedicalHistoryPromptModal(false);
+        else if (isLeadSpecialNoteModalOpen) setIsLeadSpecialNoteModalOpen(false);
+        else if (showHistoryModalLead) setShowHistoryModalLead(false);
+        return;
+      }
+      
+      if (anyModalOpen || hasVisibleModal) return;
+      
       // C key - Create Lead
       if (e.key === 'c' || e.key === 'C') {
         e.preventDefault();
@@ -582,7 +628,26 @@ export default function LeadManagement() {
     
     document.addEventListener('keydown', handleKeyPress);
     return () => document.removeEventListener('keydown', handleKeyPress);
-  }, []);
+  }, [
+    isModalOpen,
+    isEditModalOpenLead,
+    isViewDetailsModalOpen,
+    isTrialModalOpen,
+    isCreateContractModalOpen,
+    isEditColumnModalOpen,
+    isDeleteConfirmationModalOpen,
+    isDocumentModalOpen,
+    isAssessmentSelectionModalOpen,
+    isAssessmentFormModalOpen,
+    isTrialAppointmentModalOpen,
+    isEditTrialModalOpen,
+    isDeleteTrialConfirmationModalOpen,
+    showContractPromptModal,
+    showMedicalHistoryPromptModal,
+    isLeadSpecialNoteModalOpen,
+    showHistoryModalLead,
+    dragConfirmation.isOpen
+  ]);
 
   // Enforce compact view on mobile
   useEffect(() => {

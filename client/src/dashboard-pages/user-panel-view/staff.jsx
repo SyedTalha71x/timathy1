@@ -231,6 +231,30 @@ export default function StaffManagement() {
       // Ignore if Ctrl/Cmd is pressed (for Ctrl+C copy, etc.)
       if (e.ctrlKey || e.metaKey) return;
       
+      // Check if ANY modal is open - if so, don't trigger hotkeys
+      // Only check local modal states (sidebar modals are checked via DOM)
+      const anyLocalModalOpen = 
+        isModalOpen ||
+        isRemoveModalOpen ||
+        isPlanningModalOpen ||
+        isAttendanceModalOpen ||
+        isVacationRequestModalOpen ||
+        isHistoryModalOpen ||
+        isAssessmentSelectionModalOpen ||
+        isAssessmentFormModalOpen ||
+        chatPopup.isOpen ||
+        messageTypeModal.isOpen ||
+        showEmailModal ||
+        isVacationContingentModalOpen ||
+        isViewDetailsModalOpen ||
+        showDocumentModal;
+      
+      // Also check if any modal overlay is visible in the DOM
+      const hasVisibleModal = document.querySelector('[class*="fixed"][class*="inset-0"][class*="z-50"]') ||
+                              document.querySelector('[class*="fixed"][class*="inset-0"][class*="z-40"]');
+      
+      if (anyLocalModalOpen || hasVisibleModal) return;
+      
       // C key - Create Staff
       if (e.key === 'c' || e.key === 'C') {
         e.preventDefault();
@@ -258,7 +282,22 @@ export default function StaffManagement() {
     
     document.addEventListener('keydown', handleKeyPress);
     return () => document.removeEventListener('keydown', handleKeyPress);
-  }, []);
+  }, [
+    isModalOpen,
+    isRemoveModalOpen,
+    isPlanningModalOpen,
+    isAttendanceModalOpen,
+    isVacationRequestModalOpen,
+    isHistoryModalOpen,
+    isAssessmentSelectionModalOpen,
+    isAssessmentFormModalOpen,
+    chatPopup.isOpen,
+    messageTypeModal.isOpen,
+    showEmailModal,
+    isVacationContingentModalOpen,
+    isViewDetailsModalOpen,
+    showDocumentModal
+  ]);
 
   // Expand filters on desktop, keep collapsed on mobile
   useEffect(() => {

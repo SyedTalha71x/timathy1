@@ -316,6 +316,27 @@ const Assessment = () => {
       // Ignore if Ctrl/Cmd is pressed (for Ctrl+C copy, etc.)
       if (e.ctrlKey || e.metaKey) return;
       
+      // Check if ANY modal is open
+      const anyModalOpen = 
+        showModal ||
+        showDeleteModal ||
+        showPreviewModal;
+      
+      // Also check if any modal overlay is visible in the DOM
+      const hasVisibleModal = document.querySelector('[class*="fixed"][class*="inset-0"][class*="z-50"]') ||
+                              document.querySelector('[class*="fixed"][class*="inset-0"][class*="z-40"]');
+      
+      // ESC key - Close modals (should work even when modals are open)
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        if (showPreviewModal) setShowPreviewModal(false);
+        else if (showDeleteModal) setShowDeleteModal(false);
+        else if (showModal) setShowModal(false);
+        return;
+      }
+      
+      if (anyModalOpen || hasVisibleModal) return;
+      
       // C key - Create Medical History
       if (e.key === 'c' || e.key === 'C') {
         e.preventDefault();
@@ -331,7 +352,7 @@ const Assessment = () => {
     
     document.addEventListener('keydown', handleKeyPress);
     return () => document.removeEventListener('keydown', handleKeyPress);
-  }, []);
+  }, [showModal, showDeleteModal, showPreviewModal]);
 
   // Form creation handler
   const handleCreateForm = () => {
