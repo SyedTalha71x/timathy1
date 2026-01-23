@@ -176,6 +176,62 @@ export const WysiwygEditor = forwardRef(({
     }
     return () => clearTimeout(timer)
   }, [updateColorIndicators])
+
+  // Fix dropdown positioning to avoid overflow clipping
+  useEffect(() => {
+    if (!containerRef.current) return
+    
+    const toolbar = containerRef.current.querySelector('.ql-toolbar')
+    if (!toolbar) return
+    
+    const fixDropdownPosition = () => {
+      const expandedPickers = toolbar.querySelectorAll('.ql-picker.ql-expanded')
+      expandedPickers.forEach(picker => {
+        const options = picker.querySelector('.ql-picker-options')
+        if (!options) return
+        
+        const pickerRect = picker.getBoundingClientRect()
+        
+        // Position dropdown fixed below the picker
+        options.style.position = 'fixed'
+        options.style.top = `${pickerRect.bottom + 2}px`
+        options.style.left = `${pickerRect.left}px`
+        options.style.transform = 'none'
+        options.style.marginTop = '0'
+      })
+    }
+    
+    const resetDropdownPosition = (options) => {
+      if (!options) return
+      options.style.position = ''
+      options.style.top = ''
+      options.style.left = ''
+      options.style.transform = ''
+      options.style.marginTop = ''
+    }
+    
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach(mutation => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+          const picker = mutation.target
+          if (picker.classList.contains('ql-expanded')) {
+            // Small delay to let the dropdown render
+            requestAnimationFrame(fixDropdownPosition)
+          } else {
+            const options = picker.querySelector('.ql-picker-options')
+            resetDropdownPosition(options)
+          }
+        }
+      })
+    })
+    
+    const pickers = toolbar.querySelectorAll('.ql-picker')
+    pickers.forEach(picker => {
+      observer.observe(picker, { attributes: true, attributeFilter: ['class'] })
+    })
+    
+    return () => observer.disconnect()
+  }, [])
   
   useEffect(() => {
     // Skip on first render - let defaultValue handle it
@@ -890,7 +946,8 @@ export const WysiwygEditor = forwardRef(({
     const style = document.createElement('style')
     style.id = `wysiwyg-style-${editorId}`
     style.textContent = `
-      .wysiwyg-editor-${editorId} { position: relative; }
+      .wysiwyg-editor-${editorId} { position: relative; z-index: 1; }
+      .wysiwyg-editor-${editorId}:has(.ql-expanded) { z-index: 1000; }
       .wysiwyg-editor-${editorId} .ql-container {
         border: none !important;
         background-color: #ffffff !important;
@@ -942,12 +999,13 @@ export const WysiwygEditor = forwardRef(({
         align-items: center !important;
         gap: 4px !important;
         min-height: 44px !important;
-        overflow-x: auto !important;
-        overflow-y: visible !important;
+        overflow: visible !important;
         border-radius: 12px 12px 0 0 !important;
         -webkit-overflow-scrolling: touch;
         scrollbar-width: thin;
         scrollbar-color: #444 transparent;
+        position: relative !important;
+        z-index: 100 !important;
       }
       .wysiwyg-editor-${editorId} .ql-toolbar::-webkit-scrollbar {
         height: 4px;
@@ -964,7 +1022,6 @@ export const WysiwygEditor = forwardRef(({
       }
       @media (min-width: 768px) {
         .wysiwyg-editor-${editorId} .ql-toolbar {
-          overflow-x: visible !important;
           flex-wrap: wrap !important;
         }
       }
@@ -976,6 +1033,7 @@ export const WysiwygEditor = forwardRef(({
         gap: 2px !important;
         height: 36px !important;
         flex-shrink: 0 !important;
+        position: relative !important;
       }
       
       /* All buttons same height as color pickers (36px) */
@@ -1030,6 +1088,7 @@ export const WysiwygEditor = forwardRef(({
         display: inline-flex !important;
         align-items: center !important;
         flex-shrink: 0 !important;
+        position: relative !important;
       }
       .wysiwyg-editor-${editorId} .ql-snow .ql-picker-label {
         padding: 0 6px !important;
@@ -1059,11 +1118,18 @@ export const WysiwygEditor = forwardRef(({
         left: 0 !important;
         margin-top: 2px !important;
         box-shadow: 0 4px 12px rgba(0,0,0,0.4) !important;
+        transform: translateZ(0) !important;
       }
       .wysiwyg-editor-${editorId} .ql-snow .ql-picker.ql-expanded .ql-picker-options {
         display: block !important;
       }
-      .wysiwyg-editor-${editorId} .ql-snow .ql-picker.ql-expanded { z-index: 99999 !important; }
+      .wysiwyg-editor-${editorId} .ql-snow .ql-picker.ql-expanded { 
+        z-index: 99999 !important;
+        position: relative !important;
+      }
+      .wysiwyg-editor-${editorId} .ql-toolbar:has(.ql-expanded) {
+        z-index: 99999 !important;
+      }
       .wysiwyg-editor-${editorId} .ql-snow .ql-picker-item {
         color: #e5e5e5 !important;
         padding: 6px 10px !important;
@@ -1104,6 +1170,7 @@ export const WysiwygEditor = forwardRef(({
       .wysiwyg-editor-${editorId} .ql-snow .ql-background {
         width: 36px !important;
         height: 36px !important;
+        position: relative !important;
       }
       .wysiwyg-editor-${editorId} .ql-snow .ql-color-picker .ql-picker-label,
       .wysiwyg-editor-${editorId} .ql-snow .ql-background .ql-picker-label {
@@ -1173,7 +1240,8 @@ export const WysiwygEditor = forwardRef(({
       /* Align picker - same height, dropdown hidden by default */
       .wysiwyg-editor-${editorId} .ql-snow .ql-align { 
         width: 36px !important; 
-        height: 36px !important; 
+        height: 36px !important;
+        position: relative !important;
       }
       .wysiwyg-editor-${editorId} .ql-snow .ql-align .ql-picker-label {
         padding: 0 !important;
@@ -1323,7 +1391,7 @@ export const WysiwygEditor = forwardRef(({
             
             {/* Size indicator */}
             <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', bottom: -24, padding: '3px 10px', backgroundColor: '#FF843E', color: 'white', borderRadius: 4, fontSize: 11, fontWeight: 500, whiteSpace: 'nowrap', pointerEvents: 'none' }}>
-              {Math.round(imageRect.width)} × {Math.round(imageRect.height)}
+              {Math.round(imageRect.width)} Ã— {Math.round(imageRect.height)}
             </div>
           </div>
         </div>

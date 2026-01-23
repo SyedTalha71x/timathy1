@@ -379,7 +379,7 @@ const SendEmailModal = ({
 
   // Insert signature - using editor ref for direct insertion
   const insertSignature = () => {
-    const signatureHtml = signature || '\n\n--\nMit freundlichen Grüßen\n{Member_First_Name} {Member_Last_Name}';
+    const signatureHtml = signature || '\n\n--\nMit freundlichen GrÃ¼ÃŸen\n{Member_First_Name} {Member_Last_Name}';
     if (editorRef.current?.insertText) {
       editorRef.current.insertText(signatureHtml);
     }
@@ -439,7 +439,7 @@ const SendEmailModal = ({
             </button>
           </div>
 
-          <div className="space-y-4 flex-1 overflow-y-auto custom-scrollbar pr-1">
+          <div className="space-y-4 flex-1 overflow-y-auto overflow-x-visible custom-scrollbar pr-1" style={{ position: 'relative' }}>
             {/* Template Selection */}
             <div>
               <label className="block text-sm font-medium text-gray-400 mb-1">
@@ -548,7 +548,7 @@ const SendEmailModal = ({
             </div>
 
             {/* Message with WYSIWYG Editor */}
-            <div>
+            <div className="relative z-10" style={{ overflow: 'visible' }}>
               <div className="flex items-center justify-between mb-1">
                 <label className="text-sm font-medium text-gray-400">Message</label>
               </div>
