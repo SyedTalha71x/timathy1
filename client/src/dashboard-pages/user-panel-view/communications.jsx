@@ -176,6 +176,7 @@ export default function Communications() {
   const [messageReactions, setMessageReactions] = useState({})
   const [mobileContextMenu, setMobileContextMenu] = useState(null) // { messageId, x, y }
   const [longPressTimer, setLongPressTimer] = useState(null)
+  const [showCopiedToast, setShowCopiedToast] = useState(false)
 
   // Email States
   const [emailList, setEmailList] = useState(emailListNew)
@@ -350,10 +351,27 @@ export default function Communications() {
         setOpen(false)
       }
 
-      if (showEmojiPicker &&
-        !event.target.closest('.emoji-picker-container') &&
-        !event.target.closest('button[aria-label="Add emoji"]')) {
-        setShowEmojiPicker(false);
+      // Emoji Picker - improved detection for Shadow DOM and Web Components
+      if (showEmojiPicker) {
+        const isInsideEmojiPicker = emojiPickerRef.current?.contains(event.target);
+        const isEmojiButton = event.target.closest('button[aria-label="Add emoji"]');
+        
+        // Check for emoji-mart elements - they use Web Components with Shadow DOM
+        // composedPath() gives us all elements including those in Shadow DOM
+        const path = event.composedPath ? event.composedPath() : [];
+        const isInEmojiMartPath = path.some(el => 
+          el.tagName === 'EM-EMOJI-PICKER' || 
+          el.classList?.contains('emoji-mart') ||
+          (el.getAttribute && el.getAttribute('data-emoji-picker'))
+        );
+        
+        const isEmojiMartElement = event.target.closest('em-emoji-picker') || 
+                                    event.target.tagName === 'EM-EMOJI-PICKER' ||
+                                    event.target.closest('.emoji-mart');
+        
+        if (!isInsideEmojiPicker && !isEmojiButton && !isEmojiMartElement && !isInEmojiMartPath) {
+          setShowEmojiPicker(false);
+        }
       }
 
       if (messageMenuRef.current && !messageMenuRef.current.contains(event.target) &&
@@ -362,11 +380,24 @@ export default function Communications() {
       }
 
       if (reactionPickerRef.current && !reactionPickerRef.current.contains(event.target)) {
-        setShowReactionPicker(null);
+        // Check composedPath for Shadow DOM elements
+        const path = event.composedPath ? event.composedPath() : [];
+        const isInEmojiMartPath = path.some(el => 
+          el.tagName === 'EM-EMOJI-PICKER' || 
+          el.classList?.contains('emoji-mart')
+        );
+        
+        if (!event.target.closest('em-emoji-picker') && !isInEmojiMartPath) {
+          setShowReactionPicker(null);
+        }
       }
     }
     document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
+    document.addEventListener("touchstart", handleClickOutside)
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+      document.removeEventListener("touchstart", handleClickOutside)
+    }
   }, [showEmojiPicker])
 
   useEffect(() => {
@@ -731,7 +762,8 @@ export default function Communications() {
     if (msg.isDeleted) return;
     const textToCopy = msg.content || msg.text || "";
     navigator.clipboard.writeText(textToCopy).then(() => {
-      // Optional: Show a toast notification
+      setShowCopiedToast(true);
+      setTimeout(() => setShowCopiedToast(false), 2000);
     }).catch(err => {
       console.error('Failed to copy: ', err);
     });
@@ -1467,13 +1499,13 @@ export default function Communications() {
           </div>
         </div>
 
-        {/* Floating Broadcast Button - FIXED position within sidebar */}
-        <div className="absolute bottom-6 right-6 z-50">
+        {/* Floating Broadcast Button - Desktop only, within sidebar */}
+        <div className="hidden md:block absolute bottom-6 right-6 z-50">
           <button
             onClick={() => setActiveScreen("send-message")}
-            className="p-3.5 bg-orange-500 hover:bg-orange-600 rounded-full shadow-xl"
+            className="bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95"
           >
-            <IoIosMegaphone className="w-6 h-6 text-white" />
+            <IoIosMegaphone size={22} />
           </button>
         </div>
       </div>
@@ -1568,15 +1600,69 @@ export default function Communications() {
                   
                   {/* Menu button - LEFT side for own messages */}
                   {message.sender === "You" && !message.isDeleted && (
-                    <button
-                      onClick={() => setActiveMessageMenu(activeMessageMenu === message.id ? null : message.id)}
-                      className="message-menu-trigger opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-gray-700 rounded-lg mt-2 flex-shrink-0"
-                    >
-                      <MoreVertical size={18} className="text-gray-400" />
-                    </button>
+                    <div className="relative flex-shrink-0">
+                      <button
+                        onClick={() => setActiveMessageMenu(activeMessageMenu === message.id ? null : message.id)}
+                        className="message-menu-trigger opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-gray-700 rounded-lg mt-2"
+                      >
+                        <MoreVertical size={18} className="text-gray-400" />
+                      </button>
+                      
+                      {/* Menu for own messages - appears to the right of button */}
+                      {activeMessageMenu === message.id && (
+                        <>
+                          <div 
+                            className="fixed inset-0 z-[1099]"
+                            onClick={() => setActiveMessageMenu(null)}
+                          />
+                          <div
+                            ref={messageMenuRef}
+                            className="absolute top-0 left-full ml-1 z-[1100] bg-[#2a2a2a] rounded-xl shadow-xl p-1 min-w-[140px] border border-gray-700"
+                          >
+                            <button
+                              onClick={() => handleReplyToMessage(message)}
+                              className="w-full text-left px-3 py-2 text-sm hover:bg-gray-700 rounded-lg text-white flex items-center gap-2"
+                            >
+                              <Reply size={14} />
+                              Reply
+                            </button>
+
+                            <button
+                              onClick={() => {
+                                setShowReactionPicker(message.id);
+                                setActiveMessageMenu(null);
+                              }}
+                              className="w-full text-left px-3 py-2 text-sm hover:bg-gray-700 rounded-lg text-white flex items-center gap-2"
+                            >
+                              <Smile size={14} />
+                              React
+                            </button>
+
+                            <button
+                              onClick={() => handleCopyMessage(message)}
+                              className="w-full text-left px-3 py-2 text-sm hover:bg-gray-700 rounded-lg text-white flex items-center gap-2"
+                            >
+                              <Copy size={14} />
+                              Copy
+                            </button>
+
+                            <button
+                              onClick={() => {
+                                setShowDeleteConfirm(message.id);
+                                setActiveMessageMenu(null);
+                              }}
+                              className="w-full text-left px-3 py-2 text-sm hover:bg-gray-700 rounded-lg text-red-400 flex items-center gap-2"
+                            >
+                              <Trash2 size={14} />
+                              Delete
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
                   )}
 
-                  <div className={`flex flex-col gap-1 ${message.sender === "You" ? "items-end" : ""} max-w-lg relative`}>
+                  <div className={`flex flex-col gap-1 ${message.sender === "You" ? "items-end" : ""} max-w-lg`}>
                     {/* Sender name ONLY for main studio group chat (ID 100) */}
                     {selectedChat?.id === 100 && message.sender !== "You" && !message.isDeleted && (
                       <div className="text-xs text-gray-500 font-medium mb-1">
@@ -1645,83 +1731,6 @@ export default function Communications() {
                       </div>
                     </div>
 
-                    {/* Message Menu - Positioned above the message */}
-                    {activeMessageMenu === message.id && !message.isDeleted && (
-                      <div
-                        ref={messageMenuRef}
-                        className={`absolute bottom-full mb-1 ${message.sender === 'You' ? 'right-0' : 'left-0'} bg-[#2a2a2a] rounded-xl shadow-xl p-1 min-w-[140px] z-[1100] border border-gray-700`}
-                      >
-                        <button
-                          onClick={() => handleReplyToMessage(message)}
-                          className="w-full text-left px-3 py-2 text-sm hover:bg-gray-700 rounded-lg text-white flex items-center gap-2"
-                        >
-                          <Reply size={14} />
-                          Reply
-                        </button>
-
-                        <button
-                          onClick={() => {
-                            setShowReactionPicker(showReactionPicker === message.id ? null : message.id);
-                            setActiveMessageMenu(null);
-                          }}
-                          className="w-full text-left px-3 py-2 text-sm hover:bg-gray-700 rounded-lg text-white flex items-center gap-2"
-                        >
-                          <Smile size={14} />
-                          React
-                        </button>
-
-                        <button
-                          onClick={() => handleCopyMessage(message)}
-                          className="w-full text-left px-3 py-2 text-sm hover:bg-gray-700 rounded-lg text-white flex items-center gap-2"
-                        >
-                          <Copy size={14} />
-                          Copy
-                        </button>
-
-                        {message.sender === 'You' && (
-                          <button
-                            onClick={() => {
-                              setShowDeleteConfirm(message.id);
-                              setActiveMessageMenu(null);
-                            }}
-                            className="w-full text-left px-3 py-2 text-sm hover:bg-gray-700 rounded-lg text-red-400 flex items-center gap-2"
-                          >
-                            <Trash2 size={14} />
-                            Delete
-                          </button>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Full Emoji Picker for Reactions */}
-                    {showReactionPicker === message.id && (
-                      <>
-                        <div
-                          className="fixed inset-0 z-[9998]"
-                          onClick={() => setShowReactionPicker(null)}
-                        />
-                        <div
-                          ref={reactionPickerRef}
-                          className="fixed z-[9999]"
-                          style={{
-                            top: '50%',
-                            left: '50%',
-                            transform: 'translate(-50%, -50%)'
-                          }}
-                        >
-                          <Picker
-                            data={data}
-                            onEmojiSelect={(emoji) => handleReaction(message.id, emoji.native)}
-                            theme="dark"
-                            previewPosition="none"
-                            skinTonePosition="none"
-                            perLine={8}
-                            maxFrequentRows={2}
-                          />
-                        </div>
-                      </>
-                    )}
-
                     {/* Reaction Display */}
                     {messageReactions[message.id] && !message.isDeleted && (
                       <div className={`flex gap-1 ${message.sender === 'You' ? 'justify-end' : 'justify-start'}`}>
@@ -1739,41 +1748,60 @@ export default function Communications() {
 
                   {/* Menu button - RIGHT side for received messages */}
                   {message.sender !== "You" && !message.isDeleted && (
-                    <button
-                      onClick={() => setActiveMessageMenu(activeMessageMenu === message.id ? null : message.id)}
-                      className="message-menu-trigger opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-gray-700 rounded-lg mt-2 flex-shrink-0"
-                    >
-                      <MoreVertical size={18} className="text-gray-400" />
-                    </button>
+                    <div className="relative flex-shrink-0">
+                      <button
+                        onClick={() => setActiveMessageMenu(activeMessageMenu === message.id ? null : message.id)}
+                        className="message-menu-trigger opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-gray-700 rounded-lg mt-2"
+                      >
+                        <MoreVertical size={18} className="text-gray-400" />
+                      </button>
+                      
+                      {/* Menu for received messages - appears to the left of button */}
+                      {activeMessageMenu === message.id && (
+                        <>
+                          <div 
+                            className="fixed inset-0 z-[1099]"
+                            onClick={() => setActiveMessageMenu(null)}
+                          />
+                          <div
+                            ref={messageMenuRef}
+                            className="absolute top-0 right-full mr-1 z-[1100] bg-[#2a2a2a] rounded-xl shadow-xl p-1 min-w-[140px] border border-gray-700"
+                          >
+                            <button
+                              onClick={() => handleReplyToMessage(message)}
+                              className="w-full text-left px-3 py-2 text-sm hover:bg-gray-700 rounded-lg text-white flex items-center gap-2"
+                            >
+                              <Reply size={14} />
+                              Reply
+                            </button>
+
+                            <button
+                              onClick={() => {
+                                setShowReactionPicker(message.id);
+                                setActiveMessageMenu(null);
+                              }}
+                              className="w-full text-left px-3 py-2 text-sm hover:bg-gray-700 rounded-lg text-white flex items-center gap-2"
+                            >
+                              <Smile size={14} />
+                              React
+                            </button>
+
+                            <button
+                              onClick={() => handleCopyMessage(message)}
+                              className="w-full text-left px-3 py-2 text-sm hover:bg-gray-700 rounded-lg text-white flex items-center gap-2"
+                            >
+                              <Copy size={14} />
+                              Copy
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
                   )}
                 </div>
               ))}
               <div ref={messagesEndRef} />
             </div>
-
-            {/* Delete Confirmation Modal */}
-            {showDeleteConfirm && (
-              <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[1200]">
-                <div className="bg-[#2a2a2a] rounded-xl p-5 mx-4 max-w-sm w-full shadow-xl border border-gray-700">
-                  <h4 className="text-white font-medium mb-2">Delete Message?</h4>
-                  <p className="text-gray-400 text-sm mb-4">This message will be marked as deleted and cannot be recovered.</p>
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => setShowDeleteConfirm(null)}
-                      className="flex-1 px-4 py-2.5 bg-gray-700 text-white text-sm rounded-xl hover:bg-gray-600 transition-colors"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={() => handleDeleteMessage(showDeleteConfirm)}
-                      className="flex-1 px-4 py-2.5 bg-red-500 text-white text-sm rounded-xl hover:bg-red-600 transition-colors"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
 
             {/* Reply Preview Bar */}
             {replyingTo && (
@@ -1838,11 +1866,13 @@ export default function Communications() {
                 </button>
               </div>
 
-              {/* Desktop Emoji Picker - like ChatPopup */}
+              {/* Desktop Emoji Picker */}
               {showEmojiPicker && (
                 <div 
                   ref={emojiPickerRef}
-                  className="absolute bottom-16 left-2 z-[1020]"
+                  className="absolute bottom-16 left-4 z-[1020]"
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
                 >
                   <Picker
                     data={data}
@@ -2197,7 +2227,9 @@ export default function Communications() {
               {showEmojiPicker && (
                 <div 
                   ref={emojiPickerRef}
-                  className="absolute bottom-14 left-3 z-[201]"
+                  className="absolute bottom-14 left-0 z-[201]"
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
                 >
                   <Picker 
                     data={data} 
@@ -2207,6 +2239,8 @@ export default function Communications() {
                     theme="dark"
                     previewPosition="none"
                     skinTonePosition="none"
+                    perLine={8}
+                    maxFrequentRows={2}
                   />
                 </div>
               )}
@@ -2245,7 +2279,7 @@ export default function Communications() {
       {/* Mobile Context Menu Modal */}
       {mobileContextMenu && (
         <div 
-          className="md:hidden fixed inset-0 z-[70] flex items-end justify-center"
+          className="md:hidden fixed inset-0 z-[9998] flex items-end justify-center"
           onClick={() => setMobileContextMenu(null)}
         >
           <div className="absolute inset-0 bg-black/60" />
@@ -2311,6 +2345,74 @@ export default function Communications() {
             </button>
           </div>
         </div>
+      )}
+
+      {/* Global Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[10000]">
+          <div className="bg-[#2a2a2a] rounded-xl p-5 mx-4 max-w-sm w-full shadow-xl border border-gray-700">
+            <h4 className="text-white font-medium mb-2">Delete Message?</h4>
+            <p className="text-gray-400 text-sm mb-4">This message will be marked as deleted and cannot be recovered.</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(null)}
+                className="flex-1 px-4 py-2.5 bg-gray-700 text-white text-sm rounded-xl hover:bg-gray-600 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDeleteMessage(showDeleteConfirm)}
+                className="flex-1 px-4 py-2.5 bg-red-500 text-white text-sm rounded-xl hover:bg-red-600 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Global Reaction Picker (for both Desktop and Mobile) */}
+      {showReactionPicker && (
+        <>
+          <div
+            className="fixed inset-0 z-[9998] bg-black/50"
+            onClick={() => setShowReactionPicker(null)}
+          />
+          <div
+            ref={reactionPickerRef}
+            className="fixed z-[9999] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            <Picker
+              data={data}
+              onEmojiSelect={(emoji) => handleReaction(showReactionPicker, emoji.native)}
+              theme="dark"
+              previewPosition="none"
+              skinTonePosition="none"
+              perLine={8}
+              maxFrequentRows={2}
+            />
+          </div>
+        </>
+      )}
+
+      {/* Copied Toast */}
+      {showCopiedToast && (
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[9999] bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg text-sm font-medium">
+          Copied!
+        </div>
+      )}
+
+      {/* Floating Broadcast Button - Mobile Only (only on chat list, not inside chat) */}
+      {activeScreen === "chat" && !selectedChat && (
+        <button
+          onClick={() => setActiveScreen("send-message")}
+          className="md:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
+          aria-label="Broadcast Message"
+        >
+          <IoIosMegaphone size={22} />
+        </button>
       )}
 
       {/* Modals - high z-index to appear above everything */}
