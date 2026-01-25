@@ -24,7 +24,7 @@ import { useSidebarSystem } from "../../hooks/useSidebarSystem"
 import { appointmentsData as initialAppointmentsData } from "../../utils/user-panel-states/appointment-states"
 
 import TrialTrainingModal from "../../components/user-panel-components/appointments-components/add-trial-training"
-import AddAppointmentModal from "../../components/user-panel-components/appointments-components/add-appointment-modal"
+import CreateAppointmentModal from "../../components/user-panel-components/appointments-components/add-appointment-modal"
 import MiniCalendar from "../../components/user-panel-components/appointments-components/mini-calender"
 import BlockAppointmentModal from "../../components/user-panel-components/appointments-components/block-appointment-modal"
 import Calendar from "../../components/user-panel-components/appointments-components/calendar"
@@ -1060,7 +1060,7 @@ export default function Appointments() {
             </div>
           </div>
         </main>
-        <AddAppointmentModal
+        <CreateAppointmentModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           appointmentTypesMain={appointmentTypesMain}

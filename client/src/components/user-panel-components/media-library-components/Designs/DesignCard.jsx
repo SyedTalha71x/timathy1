@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useDraggable } from '@dnd-kit/core';
+import { CSS } from '@dnd-kit/utilities';
 import { 
   Edit2, 
   Trash2, 
@@ -17,14 +19,33 @@ const DesignCard = ({
   onDelete, 
   onDuplicate,
   onPreview,
-  onDragStart,
-  onDragEnd,
-  isDragging
 }) => {
-  const [isDragHandleHeld, setIsDragHandleHeld] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
-  const cardRef = useRef(null);
   const mobileMenuRef = useRef(null);
+
+  // @dnd-kit draggable setup
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    setActivatorNodeRef,
+    transform,
+    isDragging,
+  } = useDraggable({
+    id: design.id,
+    data: {
+      type: 'design',
+      design: design,
+    },
+  });
+
+  const style = {
+    transform: CSS.Translate.toString(transform),
+    opacity: isDragging ? 0 : 1,  // Completely hide original while dragging
+    transition: isDragging ? 'none' : 'all 0.2s ease',
+    userSelect: 'none',
+    WebkitUserSelect: 'none',
+  };
 
   // Close mobile menu when clicking outside
   useEffect(() => {
@@ -45,43 +66,6 @@ const DesignCard = ({
     };
   }, [showMobileMenu]);
 
-  const handleDragStart = (e) => {
-    // Only allow drag if drag handle is being held
-    if (!isDragHandleHeld) {
-      e.preventDefault();
-      return;
-    }
-    
-    e.dataTransfer.setData('application/json', JSON.stringify(design));
-    e.dataTransfer.setData('text/plain', design.id);
-    e.dataTransfer.effectAllowed = 'move';
-    
-    // Add drag image
-    const dragImage = e.currentTarget.cloneNode(true);
-    dragImage.style.opacity = '0.8';
-    dragImage.style.position = 'absolute';
-    dragImage.style.top = '-1000px';
-    document.body.appendChild(dragImage);
-    e.dataTransfer.setDragImage(dragImage, 100, 100);
-    setTimeout(() => document.body.removeChild(dragImage), 0);
-    
-    onDragStart?.(e, design);
-  };
-
-  const handleDragHandleMouseDown = (e) => {
-    e.stopPropagation();
-    setIsDragHandleHeld(true);
-  };
-
-  const handleDragHandleMouseUp = () => {
-    setIsDragHandleHeld(false);
-  };
-
-  const handleDragEnd = () => {
-    setIsDragHandleHeld(false);
-    onDragEnd?.();
-  };
-
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -96,28 +80,21 @@ const DesignCard = ({
 
   return (
     <div
-      ref={cardRef}
+      ref={setNodeRef}
+      style={style}
       className={`
         group relative bg-[#1a1a1a] rounded-xl overflow-hidden transition-all duration-200 border border-[#333333]
         hover:border-[#444444] hover:shadow-lg select-none
-        ${isDragging ? 'opacity-50 scale-95' : ''}
-        ${isDragHandleHeld ? 'cursor-grabbing' : ''}
       `}
-      onMouseLeave={() => {
-        setIsDragHandleHeld(false);
-      }}
-      draggable={isDragHandleHeld}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-      style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
     >
       {/* Drag Handle - Top Left - Desktop only */}
+      {/* This uses @dnd-kit's activator pattern */}
       <div 
-        className="hidden sm:block absolute top-2 left-2 cursor-grab active:cursor-grabbing text-white/70 hover:text-white p-1.5 rounded-lg bg-black/50 hover:bg-black/70 z-20 opacity-0 group-hover:opacity-100 transition-opacity"
+        ref={setActivatorNodeRef}
+        {...listeners}
+        {...attributes}
+        className="hidden sm:flex absolute top-2 left-2 cursor-grab active:cursor-grabbing text-white/70 hover:text-white p-1.5 rounded-lg bg-black/50 hover:bg-black/70 z-20 opacity-0 group-hover:opacity-100 transition-opacity items-center justify-center touch-none"
         title="Drag to move to folder"
-        onMouseDown={handleDragHandleMouseDown}
-        onMouseUp={handleDragHandleMouseUp}
-        onMouseLeave={handleDragHandleMouseUp}
       >
         <GripVertical size={14} />
       </div>
@@ -197,19 +174,14 @@ const DesignCard = ({
         )}
       </div>
 
-      {/* Fixed-size Preview Container - Solid gray background like drafts */}
-      <div 
-        className="relative w-full h-[180px] bg-[#2a2a2a] flex items-center justify-center overflow-hidden"
-        onDragStart={(e) => e.preventDefault()}
-      >
+      {/* Fixed-size Preview Container */}
+      <div className="relative w-full h-[180px] bg-[#2a2a2a] flex items-center justify-center overflow-hidden">
         {design.thumbnail && design.thumbnail !== 'data:,' ? (
           <img 
             src={design.thumbnail}
             alt={design.name}
             className="max-w-full max-h-full object-contain transition-transform duration-300 group-hover:scale-105 pointer-events-none"
-            draggable={false}
-            onDragStart={(e) => e.preventDefault()}
-            style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
+            draggable="false"
           />
         ) : (
           <div className="flex flex-col items-center justify-center text-gray-500 pointer-events-none">
@@ -220,8 +192,6 @@ const DesignCard = ({
 
         {/* Hover Overlay - Desktop only */}
         <div className="hidden sm:flex absolute inset-0 bg-black/60 backdrop-blur-sm flex-col items-center justify-center gap-2 transition-all duration-200 opacity-0 group-hover:opacity-100">
-          {/* Quick Actions */}
-          {/* Edit Button - Desktop only */}
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -268,8 +238,8 @@ const DesignCard = ({
         </div>
       </div>
 
-      {/* Info - Always at the same position */}
-      <div className="p-3 bg-[#1a1a1a]" style={{ userSelect: 'none', WebkitUserSelect: 'none' }}>
+      {/* Info */}
+      <div className="p-3 bg-[#1a1a1a]">
         <h4 className="text-white font-medium text-sm truncate group-hover:text-orange-400 transition-colors pointer-events-none">
           {design.name}
         </h4>

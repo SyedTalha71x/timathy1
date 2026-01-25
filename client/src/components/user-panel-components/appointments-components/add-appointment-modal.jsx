@@ -4,7 +4,7 @@
 import { Search, X, Plus, Trash2, Users, Info } from "lucide-react";
 import { useEffect, useState } from "react";
 
-const AddAppointmentModal = ({
+const CreateAppointmentModal = ({
   isOpen,
   onClose,
   appointmentTypesMain = [],
@@ -923,4 +923,4 @@ const [availableMembers, setAvailableMembers] = useState([]); // List of all ava
   );
 };
 
-export default AddAppointmentModal;
+export default CreateAppointmentModal;

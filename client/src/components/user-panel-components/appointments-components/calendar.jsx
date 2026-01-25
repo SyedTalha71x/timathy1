@@ -7,7 +7,7 @@ import timeGridPlugin from "@fullcalendar/timegrid"
 import interactionPlugin from "@fullcalendar/interaction"
 import { GoArrowLeft, GoArrowRight } from "react-icons/go"
 
-import AddAppointmentModal from "./add-appointment-modal"
+import CreateAppointmentModal from "./add-appointment-modal"
 import BlockAppointmentModal from "./block-appointment-modal"
 import TrialTrainingModal from "./add-trial-training"
 import EditAppointmentModalMain from "./selected-appointment-modal"
@@ -38,7 +38,7 @@ export default function Calendar({
   const [viewMode, setViewMode] = useState("all") // "all" or "free"
 
   const [selectedMemberForAppointments, setSelectedMemberForAppointments] = useState(null)
-  const [showAddAppointmentModal, setShowAddAppointmentModal] = useState(false)
+  const [showCreateAppointmentModal, setShowCreateAppointmentModal] = useState(false)
   const [showSelectedAppointmentModal, setShowSelectedAppointmentModal] = useState(false) // State for new modal
   const [selectedAppointmentData, setSelectedAppointmentData] = useState(null) // State for new modal data
 
@@ -691,7 +691,7 @@ export default function Calendar({
       memberId: selectedMemberForAppointments?.id,
     }
     setMemberAppointments([...memberAppointments, newAppointment])
-    setShowAddAppointmentModal(false)
+    setShowCreateAppointmentModal(false)
     toast.success("Appointment created successfully")
   }
 
@@ -1463,10 +1463,10 @@ export default function Calendar({
       </div>
 
       {/* Add Appointment Modal */}
-      {showAddAppointmentModal && (
-        <AddAppointmentModal
-          isOpen={showAddAppointmentModal}
-          onClose={() => setShowAddAppointmentModal(false)}
+      {showCreateAppointmentModal && (
+        <CreateAppointmentModal
+          isOpen={showCreateAppointmentModal}
+          onClose={() => setShowCreateAppointmentModal(false)}
           appointmentTypesMain={appointmentTypesMain}
           onSubmit={handleAddAppointmentSubmit}
           setIsNotifyMemberOpen={setIsNotifyMemberOpen}
@@ -1475,7 +1475,7 @@ export default function Calendar({
         />
       )}
       {isAppointmentModalOpen && (
-        <AddAppointmentModal
+        <CreateAppointmentModal
           isOpen={isAppointmentModalOpen}
           onClose={() => setIsAppointmentModalOpen(false)}
           appointmentTypesMain={appointmentTypesMain}

@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useState, useRef, useEffect, useMemo } from "react"
-import { X, Upload, Trash, Edit2, File, FileText, FilePlus, Eye, Download, Check, Tag, FileSignature, Pencil, Printer, ClipboardList, AlertCircle } from "lucide-react"
+import { X, Upload, Trash, Edit2, File, FileText, FilePlus, Eye, Download, Check, Tag, Pencil, Printer, ClipboardList, AlertCircle } from "lucide-react"
 import { toast } from "react-hot-toast"
 import TagManagerModal from "./TagManagerModal"
 
@@ -438,7 +438,6 @@ export default function DocumentManagementModal({
   onDocumentsUpdate,
   // Optional assessment callbacks
   onCreateAssessment,
-  onEditAssessment,
   onViewAssessment,
   // Optional: custom sections config
   sections = [
@@ -516,8 +515,6 @@ export default function DocumentManagementModal({
       "image/png",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       "application/msword",
-      "application/vnd.ms-excel",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       "text/plain",
     ]
 
@@ -609,7 +606,7 @@ export default function DocumentManagementModal({
     // Date and status in header (right side)
     pdf.setFontSize(9)
     pdf.setFont('helvetica', 'normal')
-    const headerInfo = `${doc.uploadDate || 'N/A'} • ${doc.signed ? 'Signed' : 'Unsigned'}`
+    const headerInfo = `${doc.uploadDate || 'N/A'} â€¢ ${doc.signed ? 'Signed' : 'Unsigned'}`
     pdf.text(headerInfo, pageWidth - margin, 14, { align: 'right' })
     
     yPos = 40
@@ -1044,12 +1041,6 @@ export default function DocumentManagementModal({
     }
   }
 
-  const handleEditAssessmentClick = (doc) => {
-    if (onEditAssessment) {
-      onEditAssessment(doc)
-    }
-  }
-
   const handleCreateAssessmentClick = () => {
     if (onCreateAssessment) {
       onCreateAssessment()
@@ -1270,7 +1261,7 @@ export default function DocumentManagementModal({
               onChange={handleFileChange} 
               className="hidden" 
               multiple 
-              accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx,.txt"
+              accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.txt"
             />
           </div>
         </div>
@@ -1387,7 +1378,7 @@ export default function DocumentManagementModal({
                               <span className="text-gray-600">-</span>
                               <p className="text-gray-400 text-xs">{doc.uploadDate}</p>
                               {doc.type === "medicalHistory" && doc.answers && (
-                                <span className="text-gray-400 text-xs">• {Object.keys(doc.answers).length} answers</span>
+                                <span className="text-gray-400 text-xs">â€¢ {Object.keys(doc.answers).length} answers</span>
                               )}
                             </div>
                             
@@ -1448,16 +1439,6 @@ export default function DocumentManagementModal({
                           </select>
                         </div>
                         
-                        {/* Assessment Edit Button (only for filled-out medical history forms) */}
-                        {doc.type === "medicalHistory" && onEditAssessment && (
-                          <button
-                            onClick={() => handleEditAssessmentClick(doc)}
-                            className="p-2 bg-[#2a2a2a] text-orange-400 rounded-md hover:bg-[#333] transition-colors"
-                            title="Edit Medical History"
-                          >
-                            <FileSignature className="w-4 h-4" />
-                          </button>
-                        )}
                         
                         <button
                           onClick={() => handleViewDocument(doc)}
@@ -1507,7 +1488,7 @@ export default function DocumentManagementModal({
         <div className="p-4 border-t border-gray-800">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <div className="text-xs text-gray-500">
-              <p>Supported: PDF, JPG, PNG, DOC, DOCX, XLS, XLSX, TXT</p>
+              <p>Supported: PDF, JPG, PNG, DOC, DOCX, TXT</p>
               <p>Max size: 10MB per file</p>
             </div>
             <button

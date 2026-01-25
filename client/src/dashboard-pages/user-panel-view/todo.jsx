@@ -995,6 +995,7 @@ export default function TodoApp() {
       if (!event.target.closest(".calendar-dropdown")) {
         setIsCalendarOpen(false)
       }
+      // Only close assign dropdown if click is truly outside
       if (!event.target.closest(".assign-dropdown")) {
         setIsAssignDropdownOpen(false)
       }
@@ -1003,7 +1004,15 @@ export default function TodoApp() {
       }
     }
     
-    const handleScroll = () => {
+    const handleScroll = (event) => {
+      // Don't close dropdowns if scrolling inside them
+      if (event.target.closest(".assign-dropdown") || 
+          event.target.closest(".tag-dropdown") ||
+          event.target.closest(".calendar-dropdown") ||
+          event.target.closest(".mobile-sort-dropdown") ||
+          event.target.closest(".mobile-filter-dropdown")) {
+        return
+      }
       setMobileSortMenuOpen(null)
       setShowMobileFilterMenu(false)
       setIsCalendarOpen(false)
@@ -1011,10 +1020,10 @@ export default function TodoApp() {
       setIsTagDropdownOpen(false)
     }
     
-    document.addEventListener("mousedown", handleClickOutside)
+    document.addEventListener("click", handleClickOutside)
     window.addEventListener("scroll", handleScroll, true) // true for capture phase to catch all scroll events
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
+      document.removeEventListener("click", handleClickOutside)
       window.removeEventListener("scroll", handleScroll, true)
     }
   }, [])
@@ -1622,12 +1631,13 @@ export default function TodoApp() {
   // ============================================
   // Add Task Handler (Desktop)
   // ============================================
-  const handleAddTaskFromInputOptimized = useCallback(() => {
-    if (newTaskInput.trim() !== "") {
+  const handleAddTask = useCallback((inputValue) => {
+    const titleToUse = inputValue || newTaskInput
+    if (titleToUse.trim() !== "") {
       const newId = tasks.length > 0 ? Math.max(...tasks.map((t) => t.id)) + 1 : 1
       const newTask = {
         id: newId,
-        title: newTaskInput.trim(),
+        title: titleToUse.trim(),
         assignees: selectedAssignees.map((a) => `${a.firstName} ${a.lastName}`),
         roles: [],
         tags: selectedTags.map((t) => t.name),
@@ -1646,7 +1656,7 @@ export default function TodoApp() {
       setSelectedTags([])
       
     }
-  }, [newTaskInput, tasks, selectedAssignees, selectedTags, selectedDate, selectedTime])
+  }, [tasks, selectedAssignees, selectedTags, selectedDate, selectedTime, newTaskInput])
 
   const handleTextareaChange = useCallback((newValue) => {
     setNewTaskInput(newValue)
@@ -1888,9 +1898,8 @@ export default function TodoApp() {
                 <OptimizedTextarea
                   value={newTaskInput}
                   onChange={handleTextareaChange}
-                  onEnter={handleAddTaskFromInputOptimized}
+                  onEnter={handleAddTask}
                   placeholder="New task… (Press Enter to add)"
-                  maxLines={4}
                 />
                 <SelectedDateTimeDisplay date={selectedDate} time={selectedTime} onClear={handleClearDateTime} />
                 
@@ -1927,21 +1936,24 @@ export default function TodoApp() {
                     <ChevronDown size={18} />
                   </button>
                   {isAssignDropdownOpen && (
-                    <div className="absolute top-full right-0 mt-2 bg-[#2F2F2F] rounded-xl shadow-lg z-50 p-3 w-64 max-h-80 overflow-y-auto">
+                    <div className="absolute top-full right-0 mt-2 bg-[#2F2F2F] rounded-xl shadow-lg z-50 p-3 w-72 max-h-[450px] overflow-y-auto assign-dropdown-content">
                       <div className="space-y-4">
                         <div>
                           <h4 className="text-white text-sm font-medium mb-2 flex items-center gap-2">
                             <Users size={14} />
                             Assign to Staff
                           </h4>
-                          <div className="space-y-1 max-h-40 overflow-y-auto">
+                          <div className="space-y-1 max-h-48 overflow-y-auto custom-scrollbar">
                             {availableAssignees.map((assignee) => {
                               const isSelected = selectedAssignees.find((a) => a.id === assignee.id)
                               return (
                                 <button
                                   key={assignee.id}
                                   className="flex items-center gap-2 w-full text-left px-2 py-1.5 text-sm text-white hover:bg-gray-600 rounded"
-                                  onClick={() => toggleAssignee(assignee)}
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    toggleAssignee(assignee)
+                                  }}
                                 >
                                   <UserCheck size={14} />
                                   <span className="flex-1">{assignee.firstName} {assignee.lastName}</span>
@@ -1957,14 +1969,17 @@ export default function TodoApp() {
                             <Tag size={14} />
                             Add Tags
                           </h4>
-                          <div className="space-y-1 max-h-32 overflow-y-auto">
+                          <div className="space-y-1 max-h-48 overflow-y-auto custom-scrollbar">
                             {configuredTags.map((tag) => {
                               const isSelected = selectedTags.find((t) => t.id === tag.id)
                               return (
                                 <button
                                   key={tag.id}
-                                  className="flex items-center gap-2 w-full text-left px-2 py-1 text-sm text-white hover:bg-gray-600 rounded"
-                                  onClick={() => toggleTag(tag)}
+                                  className="flex items-center gap-2 w-full text-left px-2 py-1.5 text-sm text-white hover:bg-gray-600 rounded"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    toggleTag(tag)
+                                  }}
                                 >
                                   <span
                                     className="px-2 py-1 rounded-md text-xs flex items-center gap-1 text-white"
@@ -1973,7 +1988,7 @@ export default function TodoApp() {
                                     <Tag size={10} />
                                     {tag.name}
                                   </span>
-                                  {isSelected && <Check size={14} className="text-green-400" />}
+                                  {isSelected && <Check size={14} className="text-green-400 ml-auto" />}
                                 </button>
                               )
                             })}

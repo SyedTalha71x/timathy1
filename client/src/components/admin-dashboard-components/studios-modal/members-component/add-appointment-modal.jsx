@@ -4,7 +4,7 @@
 import { Search, X, Plus, Trash2, Users, Info } from "lucide-react";
 import { useState } from "react";
 
-const AddAppointmentModal = ({
+const CreateAppointmentModal = ({
   isOpen,
   onClose,
   appointmentTypesMain = [],
@@ -815,4 +815,4 @@ const AddAppointmentModal = ({
   );
 };
 
-export default AddAppointmentModal;
+export default CreateAppointmentModal;

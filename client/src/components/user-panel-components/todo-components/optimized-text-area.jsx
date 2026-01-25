@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import { memo, useState, useCallback, useEffect } from 'react';
+import { memo, useRef, useEffect, useCallback } from 'react';
 
 export const OptimizedTextarea = memo(function OptimizedTextarea({
   value,
@@ -7,43 +7,55 @@ export const OptimizedTextarea = memo(function OptimizedTextarea({
   onEnter,
   placeholder,
 }) {
-  const [localValue, setLocalValue] = useState(value || "");
-
-  // Sync local value with external value changes (e.g., when cleared after adding task)
+  const inputRef = useRef(null);
+  const valueRef = useRef(value || "");
+  
+  // Sync with external value changes (e.g., when cleared after adding task)
   useEffect(() => {
-    setLocalValue(value || "");
+    if (value !== valueRef.current) {
+      valueRef.current = value || "";
+      if (inputRef.current) {
+        inputRef.current.value = value || "";
+      }
+    }
   }, [value]);
 
-  // Handle change
-  const handleChange = useCallback((e) => {
-    const newValue = e.target.value;
-    setLocalValue(newValue);
-    
-    // Use requestAnimationFrame for smooth updates
-    requestAnimationFrame(() => {
-      if (onChange) {
-        onChange(newValue);
-      }
-    });
+  // Handle input - just update ref (no re-renders)
+  const handleInput = useCallback((e) => {
+    valueRef.current = e.target.value;
+  }, []);
+
+  // Sync on blur for safety
+  const handleBlur = useCallback(() => {
+    if (onChange) {
+      onChange(valueRef.current);
+    }
   }, [onChange]);
 
   // Handle Enter key press
   const handleKeyDown = useCallback((e) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      if (onEnter && localValue.trim()) {
-        onEnter();
-        // Clear local value immediately for better UX
-        setLocalValue("");
+      const currentValue = valueRef.current.trim();
+      if (currentValue && onEnter) {
+        // Pass value directly to onEnter
+        onEnter(currentValue);
+        // Clear immediately for visual feedback
+        if (inputRef.current) {
+          inputRef.current.value = "";
+        }
+        valueRef.current = "";
       }
     }
-  }, [onEnter, localValue]);
+  }, [onEnter]);
 
   return (
     <input
+      ref={inputRef}
       type="text"
-      value={localValue}
-      onChange={handleChange}
+      defaultValue={value}
+      onInput={handleInput}
+      onBlur={handleBlur}
       onKeyDown={handleKeyDown}
       placeholder={placeholder}
       className="flex-grow bg-transparent text-white outline-none text-sm placeholder-gray-500"

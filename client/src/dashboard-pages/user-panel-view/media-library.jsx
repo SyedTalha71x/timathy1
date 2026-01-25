@@ -1,5 +1,13 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { 
+  DndContext, 
+  PointerSensor, 
+  TouchSensor,
+  useSensor, 
+  useSensors,
+  DragOverlay,
+} from '@dnd-kit/core';
+import { 
   Plus, 
   Search, 
   Folder as FolderIcon, 
@@ -478,51 +486,61 @@ const MediaLibrary = () => {
     setShowMoveDesignsModal(false);
   };
 
-  // Design drag handling
+  // Design drag handling with @dnd-kit
   const [draggingDesign, setDraggingDesign] = useState(null);
 
-  const handleDesignDragStart = (e, design) => {
-    setDraggingDesign(design);
-    e.dataTransfer.setData('application/json', JSON.stringify(design));
-    e.dataTransfer.setData('text/plain', design.id);
-    e.dataTransfer.effectAllowed = 'move';
-  };
+  // @dnd-kit sensors - works in Edge, Firefox, Chrome
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 0,
+        tolerance: 5,
+      },
+    })
+  );
 
-  const handleDesignDragEnd = () => {
-    setDraggingDesign(null);
-  };
-
-  const handleFolderDrop = (e, folderId) => {
-    e.preventDefault();
-    
-    try {
-      const designData = e.dataTransfer.getData('application/json');
-      if (designData) {
-        const design = JSON.parse(designData);
-        
-        // Don't move if dropping on same folder
-        if (design.folderId === folderId) {
-          setDraggingDesign(null);
-          return;
-        }
-        
-        setMyCreations(prev =>
-          prev.map(d => d.id === design.id ? { ...d, folderId } : d)
-        );
-        
-        // DO NOT switch to target folder - stay in current folder
-      }
-    } catch (error) {
-      console.error('Drop error:', error);
+  // @dnd-kit drag handlers
+  const handleDragStart = (event) => {
+    const { active } = event;
+    if (active.data.current?.type === 'design') {
+      setDraggingDesign(active.data.current.design);
     }
+  };
+
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
     
     setDraggingDesign(null);
+    
+    if (!over) return;
+    
+    // Check if dropped on a folder
+    if (over.data.current?.type === 'folder') {
+      const targetFolderId = over.data.current.folderId;
+      const design = active.data.current?.design;
+      
+      if (design && design.folderId !== targetFolderId) {
+        setMyCreations(prev =>
+          prev.map(d => d.id === design.id ? { ...d, folderId: targetFolderId } : d)
+        );
+      }
+    }
   };
 
   // Check if current color is a preset color
   const isPresetColor = folderColors.includes(newFolderColor);
 
   return (
+    <DndContext
+      sensors={sensors}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
     <div className="min-h-screen bg-[#0a0a0a] p-4 sm:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
@@ -647,7 +665,6 @@ const MediaLibrary = () => {
                       onSelect={setSelectedFolderId}
                       onEdit={(f) => openFolderModal('edit', f)}
                       onDelete={handleDeleteFolder}
-                      onDrop={handleFolderDrop}
                     />
                   ))}
                   </div>
@@ -698,9 +715,6 @@ const MediaLibrary = () => {
                       onDelete={() => handleDeleteDesign(design)}
                       onDuplicate={() => handleDuplicateDesign(design)}
                       onPreview={() => handlePreviewDesign(design)}
-                      onDragStart={handleDesignDragStart}
-                      onDragEnd={handleDesignDragEnd}
-                      isDragging={draggingDesign?.id === design.id}
                     />
                   ))}
                 </div>
@@ -1240,6 +1254,29 @@ const MediaLibrary = () => {
 
       {/* Floating Action Button - disabled (design creation not supported on mobile) */}
     </div>
+    
+    {/* Drag Overlay - shows preview while dragging */}
+    <DragOverlay>
+      {draggingDesign ? (
+        <div className="bg-[#1a1a1a] rounded-xl border-2 border-orange-500 shadow-2xl shadow-orange-500/20 p-3 w-48 opacity-90">
+          <div className="h-24 bg-[#2a2a2a] rounded-lg mb-2 flex items-center justify-center overflow-hidden">
+            {draggingDesign.thumbnail && draggingDesign.thumbnail !== 'data:,' ? (
+              <img 
+                src={draggingDesign.thumbnail}
+                alt={draggingDesign.name}
+                className="max-w-full max-h-full object-contain"
+                draggable="false"
+              />
+            ) : (
+              <Layers size={24} className="text-gray-500" />
+            )}
+          </div>
+          <p className="text-white text-sm font-medium truncate">{draggingDesign.name}</p>
+          <p className="text-orange-400 text-xs mt-1">Drop on folder to move</p>
+        </div>
+      ) : null}
+    </DragOverlay>
+    </DndContext>
   );
 };
 

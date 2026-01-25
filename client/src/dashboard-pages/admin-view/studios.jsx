@@ -73,7 +73,7 @@
   import { MemberDocumentModal } from "../../components/admin-dashboard-components/studios-modal/members-component/members-document-modal"
   import AppointmentModalMain from "../../components/admin-dashboard-components/studios-modal/members-component/appointment-modal"
   import EditAppointmentModalMain from "../../components/admin-dashboard-components/studios-modal/members-component/edit-appointment-modal"
-  import AddAppointmentModal from "../../components/admin-dashboard-components/studios-modal/members-component/add-appointment-modal"
+  import CreateAppointmentModal from "../../components/admin-dashboard-components/studios-modal/members-component/add-appointment-modal"
   import ContingentModalMain from "../../components/admin-dashboard-components/studios-modal/members-component/show-contigent-modal"
   import AddBillingPeriodModalMain from "../../components/admin-dashboard-components/studios-modal/members-component/add-biling-period-modal"
   import StaffHistoryModalMain from "../../components/admin-dashboard-components/studios-modal/staff-components/staff-history-modal"
@@ -346,7 +346,7 @@
     const [appointmentTypesMain, setAppointmentTypesMain] = useState(studioappointmentTypeMainData)
     const [freeAppointmentsMain, setFreeAppointmentsMain] = useState(studiofreeAppointmentsMainData)
     const [selectedAppointmentDataMain, setSelectedAppointmentDataMain] = useState(null)
-    const [showAddAppointmentModalMain, setShowAddAppointmentModalMain] = useState(false)
+    const [showCreateAppointmentModalMain, setShowCreateAppointmentModalMain] = useState(false)
     const [showSelectedAppointmentModalMain, setShowSelectedAppointmentModalMain] = useState(false)
     const [appointmentToDelete, setAppointmentToDelete] = useState(null)
 
@@ -1311,7 +1311,7 @@
 
 
     const handleCreateNewAppointmentMain = () => {
-      setShowAddAppointmentModalMain(true)
+      setShowCreateAppointmentModalMain(true)
       setShowAppointmentModalMain(false)
     }
 
@@ -1376,7 +1376,7 @@
         memberId: selectedMemberForEdit?.id,
       }
       setAppointmentsMain([...appointmentsMain, newAppointment])
-      setShowAddAppointmentModalMain(false)
+      setShowCreateAppointmentModalMain(false)
     }
 
     const handleAppointmentChange = (changes) => {
@@ -2242,10 +2242,10 @@
           handleCreateNewAppointmentMain={handleCreateNewAppointmentMain}
         />
 
-        {showAddAppointmentModalMain && (
-          <AddAppointmentModal
-            isOpen={showAddAppointmentModalMain}
-            onClose={() => setShowAddAppointmentModalMain(false)}
+        {showCreateAppointmentModalMain && (
+          <CreateAppointmentModal
+            isOpen={showCreateAppointmentModalMain}
+            onClose={() => setShowCreateAppointmentModalMain(false)}
             appointmentTypesMain={appointmentTypesMain}
             onSubmit={handleAddAppointmentSubmit}
             setIsNotifyMemberOpenMain={setIsNotifyMemberOpenMain}
@@ -2404,10 +2404,10 @@
           handleCreateNewAppointmentStaff={handleCreateNewAppointmentStaff}
         />
 
-        {showAddAppointmentModalStaff && (
-          <AddAppointmentModalStaff
-            isOpen={showAddAppointmentModalStaff}
-            onClose={() => setShowAddAppointmentModalStaff(false)}
+        {showCreateAppointmentModalStaff && (
+          <CreateAppointmentModalStaff
+            isOpen={showCreateAppointmentModalStaff}
+            onClose={() => setShowCreateAppointmentModalStaff(false)}
             appointmentTypesStaff={appointmentTypesStaff}
             onSubmit={handleAddAppointmentSubmitStaff}
             setIsNotifyStaffOpen={setIsNotifyMemberOpenStaff}

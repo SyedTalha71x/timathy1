@@ -20,6 +20,7 @@ import {
   Building2,
   Settings,
   Pin,
+  PinOff,
   Check,
   CheckCheck,
   FolderPlus,
@@ -27,9 +28,13 @@ import {
   MessageCircle,
   Home,
   CheckSquare,
+  Copy,
   Users,
   ShoppingCart,
   BadgeDollarSign,
+  Reply,
+  Trash2,
+  XCircle,
 } from "lucide-react"
 
 import { ToastContainer } from "react-toastify"
@@ -44,23 +49,98 @@ import { appointmentNotificationTypesNew, companyChatListNew, emailListNew, emai
 import { memberContingentDataNew } from "../../utils/user-panel-states/myarea-states"
 import { appointmentsData, membersData } from "../../utils/user-panel-states/appointment-states"
 
-import AddAppointmentModal from "../../components/user-panel-components/appointments-components/add-appointment-modal"
+import CreateAppointmentModal from "../../components/shared/appointments/CreateAppointmentModal"
 import EmailManagement from "../../components/user-panel-components/communication-components/EmailManagement"
-import ContingentModal from "../../components/user-panel-components/communication-components/ContingentModal"
+import ContingentModal from "../../components/shared/appointments/ShowContigentModal"
 import CreateMessageModal from "../../components/user-panel-components/communication-components/CreateMessageModal"
-import AddBillingPeriodModal from "../../components/user-panel-components/communication-components/AddBillingPeriodModal"
-import NotifyMemberModal from "../../components/user-panel-components/communication-components/NotifyMemberModal"
-import SettingsModal from "../../components/user-panel-components/communication-components/SettingsModal"
+import AddBillingPeriodModal from "../../components/shared/appointments/AddBillingPeriodModal"
+import NotifyMemberModal from "../../components/shared/appointments/NotifyMemberModal"
 import ArchiveModal from "../../components/user-panel-components/communication-components/ArchiveModal"
 import DraftModal from "../../components/user-panel-components/communication-components/DraftModal"
 import EmailModal from "../../components/user-panel-components/communication-components/EmailModal"
-import SidebarMenu from "../../components/user-panel-components/communication-components/Sidebar"
 import BroadcastModal from "../../components/user-panel-components/communication-components/BroadcastModal"
-import ShowAppointmentModal from "../../components/user-panel-components/communication-components/ShowAppointmentsModal"
+import ShowAppointmentModal from "../../components/shared/appointments/ShowAppointmentModal"
 import FolderModal from "../../components/user-panel-components/communication-components/broadcast-modal-components/FolderModal"
-import EditAppointmentModalMain from '../../components/user-panel-components/appointments-components/selected-appointment-modal'
+import EditAppointmentModalMain from '../../components/shared/appointments/EditAppointmentModal'
 import ViewMemberConfirmationModal from "../../components/user-panel-components/communication-components/ViewConfirmationModal"
-// import ViewMemberConfirmationModal from "../../components/user-panel-components/communication-components/ViewMemberConfirmationModal"
+
+
+// ==========================================
+// HIGHLIGHTED TEXT COMPONENT - for dates/times
+// ==========================================
+const HighlightedText = ({ text, isUserMessage }) => {
+  if (!text) return null;
+  
+  const dateTimeRegex = /(\d{1,2}\.\d{1,2}\.\d{2,4}|\d{4}-\d{2}-\d{2}|\d{1,2}\/\d{1,2}\/\d{2,4}|\d{1,2}:\d{2}(?:\s*(?:Uhr|AM|PM|am|pm))?|(?:Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag|Sonntag|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)|(?:heute|morgen|gestern|übermorgen|today|tomorrow|yesterday))/gi;
+
+  const parts = text.split(dateTimeRegex);
+  const matches = text.match(dateTimeRegex) || [];
+
+  if (matches.length === 0) {
+    return <span style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{text}</span>;
+  }
+
+  const result = [];
+
+  parts.forEach((part, index) => {
+    if (part) {
+      const isMatch = matches.some(match => match.toLowerCase() === part.toLowerCase());
+      
+      if (isMatch) {
+        result.push(
+          <span 
+            key={`match-${index}`}
+            className={`border-b ${isUserMessage ? 'border-white/60' : 'border-gray-400'}`}
+            style={{ borderBottomStyle: 'dotted', paddingBottom: '1px', whiteSpace: 'pre-wrap' }}
+          >
+            {part}
+          </span>
+        );
+      } else {
+        result.push(<span key={`text-${index}`} style={{ whiteSpace: 'pre-wrap' }}>{part}</span>);
+      }
+    }
+  });
+
+  return <span style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{result}</span>;
+};
+
+// ==========================================
+// INITIALS AVATAR - Orange for members, Blue for staff
+// ==========================================
+const InitialsAvatar = ({ firstName, lastName, size = "md", isStaff = false, className = "" }) => {
+  const getInitials = () => {
+    const firstInitial = firstName?.charAt(0)?.toUpperCase() || ""
+    const lastInitial = lastName?.charAt(0)?.toUpperCase() || ""
+    return `${firstInitial}${lastInitial}` || "?"
+  }
+
+  const sizeClasses = {
+    sm: "w-9 h-9 text-sm",
+    md: "w-11 h-11 text-base",
+    lg: "w-12 h-12 text-lg",
+    xl: "w-20 h-20 text-2xl",
+  }
+
+  // Blue for staff, Orange for members
+  const bgColor = isStaff ? "bg-blue-600" : "bg-orange-500"
+
+  return (
+    <div 
+      className={`${bgColor} rounded-xl flex items-center justify-center text-white font-semibold flex-shrink-0 ${sizeClasses[size]} ${className}`}
+      style={{ fontFamily: 'ui-sans-serif, system-ui, sans-serif' }}
+    >
+      {getInitials()}
+    </div>
+  )
+};
+
+// Truncate text for reply preview
+const truncateText = (text, maxLength = 50) => {
+  if (!text) return '';
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength) + '...';
+};
 
 export default function Communications() {
   // UI States
@@ -69,12 +149,16 @@ export default function Communications() {
   const [showChatDropdown, setShowChatDropdown] = useState(false)
   const [showGroupDropdown, setShowGroupDropdown] = useState(false)
   const [showChatMenu, setShowChatMenu] = useState(null)
-  const [showSidebar, setShowSidebar] = useState(false)
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const [showRecipientDropdown, setShowRecipientDropdown] = useState(false)
   const [showReactionPicker, setShowReactionPicker] = useState(null)
   const [showTemplateDropdown, setShowTemplateDropdown] = useState(false)
   const [open, setOpen] = useState(false)
+  
+  // Chat feature states
+  const [activeMessageMenu, setActiveMessageMenu] = useState(null)
+  const [replyingTo, setReplyingTo] = useState(null)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(null)
 
   // Navigation States
   const [chatType, setChatType] = useState("member")
@@ -90,6 +174,8 @@ export default function Communications() {
   const [pinnedChats, setPinnedChats] = useState(new Set())
   const [searchMember, setSearchMember] = useState("")
   const [messageReactions, setMessageReactions] = useState({})
+  const [mobileContextMenu, setMobileContextMenu] = useState(null) // { messageId, x, y }
+  const [longPressTimer, setLongPressTimer] = useState(null)
 
   // Email States
   const [emailList, setEmailList] = useState(emailListNew)
@@ -112,7 +198,7 @@ export default function Communications() {
   const [showContingentModal, setShowContingentModal] = useState(false)
   const [showAddBillingPeriodModal, setShowAddBillingPeriodModal] = useState(false)
   const [showAppointmentModal, setShowAppointmentModal] = useState(false)
-  const [showAddAppointmentModal, setShowAddAppointmentModal] = useState(false)
+  const [showCreateAppointmentModal, setShowCreateAppointmentModal] = useState(false)
   const [showSelectedAppointmentModal, setShowSelectedAppointmentModal] = useState(false)
   const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false)
   const [showMemberConfirmation, setShowMemberConfirmation] = useState(false)
@@ -164,9 +250,14 @@ export default function Communications() {
   const recipientDropdownRef = useRef(null)
   const messagesEndRef = useRef(null)
   const chatMenuRef = useRef(null)
-  const notePopoverRef = useRef(null)
   const menuRef = useRef(null)
   const messagesContainerRef = useRef(null)
+  const mobileMessagesContainerRef = useRef(null)
+  const messageMenuRef = useRef(null)
+  const textareaRef = useRef(null)
+  const mobileTextareaRef = useRef(null)
+  const reactionPickerRef = useRef(null)
+  const emojiPickerRef = useRef(null)
 
   // Constants
   const staffChatList = staffChatListNew
@@ -177,7 +268,7 @@ export default function Communications() {
   // EFFECTS SECTION
   useEffect(() => {
     const initialMemberChats = membersData
-      .filter(member => member.isActive && !member.isArchived) // This filters archived members
+      .filter(member => member.isActive && !member.isArchived)
       .map(member => ({
         id: member.id,
         name: `${member.firstName} ${member.lastName}`,
@@ -243,6 +334,16 @@ export default function Communications() {
     }))
   }, [])
 
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
+    if (mobileMessagesContainerRef.current) {
+      mobileMessagesContainerRef.current.scrollTop = mobileMessagesContainerRef.current.scrollHeight;
+    }
+  }, [messages])
+
   useEffect(() => {
     function handleClickOutside(event) {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -253,6 +354,15 @@ export default function Communications() {
         !event.target.closest('.emoji-picker-container') &&
         !event.target.closest('button[aria-label="Add emoji"]')) {
         setShowEmojiPicker(false);
+      }
+
+      if (messageMenuRef.current && !messageMenuRef.current.contains(event.target) &&
+          !event.target.closest('.message-menu-trigger')) {
+        setActiveMessageMenu(null);
+      }
+
+      if (reactionPickerRef.current && !reactionPickerRef.current.contains(event.target)) {
+        setShowReactionPicker(null);
       }
     }
     document.addEventListener("mousedown", handleClickOutside)
@@ -275,9 +385,6 @@ export default function Communications() {
       }
       if (chatMenuRef.current && !chatMenuRef.current.contains(event.target)) {
         setShowChatMenu(null)
-      }
-      if (notePopoverRef.current && !notePopoverRef.current.contains(event.target)) {
-        // Close note popover
       }
     }
     document.addEventListener("mousedown", handleClickOutside)
@@ -319,6 +426,7 @@ export default function Communications() {
 
   const handleEmailManagementClose = () => {
     setShowEmailFrontend(false)
+    setActiveScreen("chat")
     setIsMessagesOpen(true)
     setChatType("member")
   }
@@ -476,18 +584,29 @@ export default function Communications() {
     setSelectedMemberForConfirmation(null);
   };
 
+  // ==========================================
+  // MESSAGE HANDLING FUNCTIONS
+  // ==========================================
+
   const handleSendMessage = () => {
     if (!messageText.trim() || !selectedChat) return
     const newMessage = {
-      id: messages.length + 1,
+      id: Date.now(),
       sender: "You",
       content: messageText,
       time: new Date().toLocaleTimeString([], {
         hour: "2-digit",
         minute: "2-digit",
       }),
+      timestamp: new Date(),
       isUnread: false,
       status: "sent",
+      isDeleted: false,
+      replyTo: replyingTo ? {
+        id: replyingTo.id,
+        content: replyingTo.content,
+        sender: replyingTo.sender
+      } : null
     }
     setMessages([...messages, newMessage])
     setChatList((prevList) =>
@@ -510,12 +629,26 @@ export default function Communications() {
     }
 
     setMessageText("")
+    setReplyingTo(null)
+    setShowEmojiPicker(false)
 
+    // Reset textarea height for both desktop and mobile
+    if (textareaRef.current) {
+      textareaRef.current.style.height = '32px';
+    }
+    if (mobileTextareaRef.current) {
+      mobileTextareaRef.current.style.height = '32px';
+    }
+
+    // Auto-scroll to bottom for both desktop and mobile
     setTimeout(() => {
       if (messagesContainerRef.current) {
         messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
       }
-    }, 0);
+      if (mobileMessagesContainerRef.current) {
+        mobileMessagesContainerRef.current.scrollTop = mobileMessagesContainerRef.current.scrollHeight;
+      }
+    }, 50);
 
     setTimeout(() => {
       setMessages((prev) => prev.map((msg) => (msg.id === newMessage.id ? { ...msg, status: "delivered" } : msg)))
@@ -526,16 +659,120 @@ export default function Communications() {
     }, 3000)
   }
 
-  const handleReaction = (messageId, reaction) => {
-    setMessageReactions((prev) => ({
-      ...prev,
-      [messageId]: {
-        ...prev[messageId],
-        [reaction]: (prev[messageId]?.[reaction] || 0) + 1,
-      },
-    }))
-    setShowReactionPicker(null)
-  }
+  // Handle reaction with full emoji picker (like ChatPopup)
+  const handleReaction = (messageId, emoji) => {
+    setMessageReactions((prev) => {
+      const newReactions = { ...prev };
+      
+      // Toggle reaction - if same emoji clicked, remove it
+      if (newReactions[messageId] === emoji) {
+        delete newReactions[messageId];
+      } else {
+        newReactions[messageId] = emoji;
+      }
+      
+      return newReactions;
+    });
+    setShowReactionPicker(null);
+    setActiveMessageMenu(null);
+  };
+
+  const removeReaction = (messageId, e) => {
+    e.stopPropagation();
+    setMessageReactions((prev) => {
+      const newReactions = { ...prev };
+      delete newReactions[messageId];
+      return newReactions;
+    });
+  };
+
+  // Delete message - mark as deleted instead of removing
+  const handleDeleteMessage = (messageId) => {
+    setMessages(prev => prev.map(msg => 
+      msg.id === messageId 
+        ? { ...msg, isDeleted: true, content: "" }
+        : msg
+    ));
+    // Remove reactions for deleted message
+    setMessageReactions(prev => {
+      const newReactions = { ...prev };
+      delete newReactions[messageId];
+      return newReactions;
+    });
+    // Update chat list
+    setChatList((prevList) =>
+      prevList.map((chat) =>
+        chat.id === selectedChat?.id
+          ? {
+            ...chat,
+            messages: chat.messages?.map(msg =>
+              msg.id === messageId
+                ? { ...msg, isDeleted: true, content: "" }
+                : msg
+            ) || [],
+          }
+          : chat,
+      ),
+    );
+    setShowDeleteConfirm(null);
+    setActiveMessageMenu(null);
+  };
+
+  const handleReplyToMessage = (msg) => {
+    if (msg.isDeleted) return;
+    setReplyingTo(msg);
+    setActiveMessageMenu(null);
+    if (textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  };
+
+  const handleCopyMessage = (msg) => {
+    if (msg.isDeleted) return;
+    const textToCopy = msg.content || msg.text || "";
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      // Optional: Show a toast notification
+    }).catch(err => {
+      console.error('Failed to copy: ', err);
+    });
+    setActiveMessageMenu(null);
+    setMobileContextMenu(null);
+  };
+
+  // Mobile Long Press handlers
+  const handleTouchStart = (message, e) => {
+    if (message.isDeleted) return;
+    const timer = setTimeout(() => {
+      // Vibrate if supported
+      if (navigator.vibrate) navigator.vibrate(50);
+      setMobileContextMenu({ messageId: message.id, message });
+    }, 500);
+    setLongPressTimer(timer);
+  };
+
+  const handleTouchEnd = () => {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
+    }
+  };
+
+  const handleTouchMove = () => {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
+    }
+  };
+
+  const cancelReply = () => {
+    setReplyingTo(null);
+  };
+
+  const formatTimestamp = (timestamp) => {
+    if (!timestamp) return '';
+    const date = timestamp instanceof Date ? timestamp : new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
 
   const handleEmailClick = () => {
     setActiveScreen("email-frontend")
@@ -600,14 +837,17 @@ export default function Communications() {
       memberId: selectedChat?.id,
     }
     setAppointments([...appointments, newAppointment])
-    setShowAddAppointmentModal(false)
+    setShowCreateAppointmentModal(false)
   }
 
   const handleCalendarClick = () => {
     if (selectedChat) {
       const foundMember = membersData.find((m) => m.id === selectedChat.id)
       if (foundMember) {
-        setSelectedMember(foundMember)
+        setSelectedMember({
+          ...foundMember,
+          title: `${foundMember.firstName} ${foundMember.lastName}`
+        })
         setShowAppointmentModal(true)
       } else {
         setSelectedMember({
@@ -615,6 +855,7 @@ export default function Communications() {
           firstName: selectedChat.name.split(' ')[0],
           lastName: selectedChat.name.split(' ')[1] || '',
           email: selectedChat.email || '',
+          title: selectedChat.name,
           ...selectedChat
         })
         setShowAppointmentModal(true)
@@ -643,29 +884,9 @@ export default function Communications() {
   }
 
   const handleCreateNewAppointment = () => {
-    setShowAddAppointmentModal(true)
+    setShowCreateAppointmentModal(true)
     setShowAppointmentModal(false)
   }
-
-  const handleRemoveEmoji = (messageId, emojiName) => {
-    setMessageReactions((prev) => {
-      const updatedReactions = { ...prev };
-
-      if (updatedReactions[messageId] && updatedReactions[messageId][emojiName]) {
-        updatedReactions[messageId][emojiName] -= 1;
-
-        if (updatedReactions[messageId][emojiName] <= 0) {
-          delete updatedReactions[messageId][emojiName];
-        }
-
-        if (Object.keys(updatedReactions[messageId]).length === 0) {
-          delete updatedReactions[messageId];
-        }
-      }
-
-      return updatedReactions;
-    });
-  };
 
   const handleBroadcast = (broadcastData) => {
     const { message, recipients, settings } = broadcastData;
@@ -715,6 +936,7 @@ export default function Communications() {
     setMessages(chat.messages || [])
     setIsMessagesOpen(false)
     setActiveScreen("chat")
+    setReplyingTo(null)
     if (chatType !== "company") {
       setChatList((prevList) => prevList.map((c) => (c.id === chat.id ? { ...c, isRead: true, unreadCount: 0 } : c)))
     }
@@ -804,46 +1026,28 @@ export default function Communications() {
 
   const getSortedChatList = () => {
     const list = getCombinedChatList();
-    return list.sort((a, b) => {
-      if (a.type === 'separator' || b.type === 'separator') return 0;
-      const aPinned = pinnedChats.has(a.id);
-      const bPinned = pinnedChats.has(b.id);
-      if (aPinned && !bPinned) return -1;
-      if (!aPinned && bPinned) return 1;
-      return 0;
+    // Filter out archived chats
+    const activeChats = list.filter(chat => {
+      if (chat.type === 'separator') return true;
+      return !archivedChats.some(archived => archived.id === chat.id);
     });
+    return activeChats;
+  };
+
+  // Get pinned and unpinned chats separately
+  const getPinnedAndUnpinnedChats = () => {
+    const allChats = getSortedChatList();
+    const pinned = allChats.filter(chat => chat.type !== 'separator' && pinnedChats.has(chat.id));
+    const unpinned = allChats.filter(chat => chat.type === 'separator' || !pinnedChats.has(chat.id));
+    return { pinned, unpinned };
   };
 
   const getCombinedChatList = () => {
     if (chatType === "company") {
       return [...companyChatList, { id: "separator", type: "separator" }, ...staffChatList];
     } else if (chatType === "member") {
-      const activeMembers = membersData.filter(member =>
-        member.isActive &&
-        !member.isArchived && 
-        member.memberType !== "blocked"
-      );
-  
-      const newMemberChats = activeMembers.map(member => ({
-        id: member.id,
-        name: `${member.firstName} ${member.lastName}`,
-        email: member.email,
-        logo: member.image || DefaultAvatar,
-        message: "New member - Start conversation",
-        time: new Date().toLocaleTimeString([], {
-          hour: '2-digit',
-          minute: '2-digit'
-        }),
-        isRead: true,
-        unreadCount: 0,
-        messageStatus: "sent",
-        messages: [],
-        isBirthday: checkIfBirthday(member.dateOfBirth),
-        isArchived: false,
-        isNewMember: true
-      }));
-  
-      return newMemberChats;
+      // Use memberChatList which has dummy messages
+      return memberChatList;
     }
   
     return staffChatList;
@@ -872,11 +1076,11 @@ export default function Communications() {
   const getMessageStatusIcon = (status) => {
     switch (status) {
       case "sent":
-        return <Check className="w-5 h-5 text-gray-400" />
+        return <Check className="w-3.5 h-3.5 text-gray-400" />
       case "delivered":
-        return <CheckCheck className="w-5 h-5 text-gray-400" />
+        return <CheckCheck className="w-3.5 h-3.5 text-gray-400" />
       case "read":
-        return <CheckCheck className="w-5 h-5 text-blue-500" />
+        return <CheckCheck className="w-3.5 h-3.5 text-blue-400" />
       default:
         return null
     }
@@ -898,15 +1102,6 @@ export default function Communications() {
     return periods
   }
 
-  // Helper Arrays
-  const reactions = [
-    { emoji: "❤️", name: "heart" },
-    { emoji: "😂", name: "laugh" },
-    { emoji: "😮", name: "wow" },
-    { emoji: "😢", name: "sad" },
-    { emoji: "😡", name: "angry" },
-  ]
-
   const searchResults = searchMember
     ? getCombinedChatList().filter((chat) =>
       chat.name.toLowerCase().includes(searchMember.toLowerCase())
@@ -915,377 +1110,439 @@ export default function Communications() {
 
   const appointmentTypes = getAppointmentTypesFromData();
 
-  return (
-
-    <div className="relative flex lg:min-h-[92vh]   h-auto bg-[#1C1C1C] text-gray-200 rounded-3xl overflow-hidden">
-      <ToastContainer />
-      <SidebarMenu showSidebar={showSidebar} setShowSidebar={setShowSidebar} />
-
-
-
-      {isMessagesOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-30 md:hidden transition-opacity duration-500"
-          onClick={() => setIsMessagesOpen(false)}
-          aria-hidden="true"
-        />
-      )}
-
-      {/* Sidebar */}
+  // ==========================================
+  // CHAT ITEM COMPONENT - with orange stripe for selected
+  // ==========================================
+  const ChatItem = ({ chat, isSelected, onSelect, onMenuClick }) => {
+    const [showBirthdayTooltip, setShowBirthdayTooltip] = useState(false);
+    const isCompanyChat = chatType === "company";
+    // Staff chats are in the company/studio tab but NOT the main studio group (ID 100)
+    const isStaffChat = chatType === "company" && chat.id !== 100;
+    
+    // Parse name for InitialsAvatar
+    const nameParts = chat.name?.split(" ") || [];
+    const firstName = nameParts[0] || "";
+    const lastName = nameParts.slice(1).join(" ") || "";
+    
+    // Determine if we should show image or InitialsAvatar
+    const showImage = (chat.id === 100 && chat.logo) || (chat.logo && chat.logo !== DefaultAvatar && !chat.logo?.includes('placeholder'));
+    
+    // Calculate age from dateOfBirth
+    const calculateAge = (dateOfBirth) => {
+      if (!dateOfBirth) return null;
+      const today = new Date();
+      const birthDate = new Date(dateOfBirth);
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      return age;
+    };
+    
+    const age = chat.dateOfBirth ? calculateAge(chat.dateOfBirth) : null;
+    
+    return (
       <div
-        className={`fixed md:relative inset-y-0 left-0 md:w-[400px] w-full rounded-tr-3xl rounded-br-3xl transform transition-transform duration-500 ease-in-out ${isMessagesOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-          } bg-black z-40`}
+        onClick={() => onSelect(chat)}
+        className={`
+          relative flex items-start gap-3 p-4 rounded-xl cursor-pointer select-none
+          transition-all duration-200 group border-b border-slate-700
+          ${isSelected 
+            ? "bg-[#181818] border-l-2 border-l-orange-500" 
+            : "hover:bg-[#181818] border-l-2 border-l-transparent"
+          }
+        `}
       >
-        <div className="p-4 h-full flex flex-col relative">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2 ">
-              {/* <button
-                onClick={() => setShowSidebar(true)}
-                className="p-2 hover:bg-gray-800 rounded-full"
-                aria-label="Open Menu"
-              >
-                <Menu className="w-5 h-5" />
-              </button> */}
-              <div onClick={() => setShowSidebar(true)} className="">
-                <img src="/icon.svg" className="h-5 w-5 cursor-pointer lg:hidden block" alt="" />
-              </div>
-              <h1 className="text-2xl font-bold">Messenger</h1>
+        {/* Avatar */}
+        <div className="relative flex-shrink-0">
+          {showImage ? (
+            <img
+              src={chat.logo}
+              alt={`${chat.name}'s avatar`}
+              className="w-12 h-12 rounded-xl object-cover"
+              onClick={(e) => {
+                e.stopPropagation();
+                !isCompanyChat && handleViewMember(chat.id, e);
+              }}
+            />
+          ) : (
+            <InitialsAvatar 
+              firstName={firstName}
+              lastName={lastName}
+              size="lg"
+              isStaff={isStaffChat}
+            />
+          )}
+          {/* Birthday Icon - with tooltip */}
+          {chat.isBirthday && (
+            <div 
+              className="absolute -top-1.5 -right-1.5 bg-orange-500 hover:bg-orange-400 rounded-full p-1 border-[2.5px] border-white shadow-lg cursor-pointer transition-all duration-200 hover:scale-110"
+              onMouseEnter={() => setShowBirthdayTooltip(true)}
+              onMouseLeave={() => setShowBirthdayTooltip(false)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowBirthdayTooltip(!showBirthdayTooltip);
+              }}
+            >
+              <Gift size={14} className="text-white" />
             </div>
-            {/* <div className="flex items-center gap-2">
+          )}
+          
+          {/* Birthday Tooltip */}
+          {chat.isBirthday && showBirthdayTooltip && (
+            <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-[#1C1C1C] border border-gray-700 rounded-lg px-3 py-2 shadow-xl z-30 whitespace-nowrap">
+              <p className="text-xs text-white font-medium">Birthday today!</p>
+              {age !== null && (
+                <p className="text-[10px] text-gray-400 mt-0.5">Turns {age} years old</p>
+              )}
+              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-full">
+                <div className="border-4 border-transparent border-t-[#1C1C1C]"></div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          {/* Row 1: Name */}
+          <div className="flex items-center">
+            <span className={`font-medium truncate ${isSelected ? 'text-orange-400' : 'text-white'}`}>
+              {chat.name}
+            </span>
+          </div>
+          
+          {/* Row 2: Message Preview */}
+          <p className="text-sm text-gray-400 truncate mt-0.5">{chat.message}</p>
+          
+          {/* Row 3: Time */}
+          <div className="flex items-center gap-1 text-gray-500 mt-1.5">
+            <Clock size={12} />
+            <span className="text-xs">{chat.time}</span>
+          </div>
+        </div>
+
+        {/* Right side: Icons stacked vertically - positioned to align with message preview */}
+        <div className="flex flex-col items-center gap-1 flex-shrink-0 w-[24px] mt-1">
+          {/* Unread Count - fixed height slot */}
+          <div className="h-[18px] flex items-center justify-center">
+            {chat.unreadCount > 0 ? (
+              <span className="bg-orange-600 text-white text-[10px] rounded-full h-[18px] min-w-[18px] px-1 flex items-center justify-center font-medium">
+                {chat.unreadCount}
+              </span>
+            ) : (
+              <span className="w-[18px]" /> 
+            )}
+          </div>
+          
+          {/* Checkmarks - fixed height slot */}
+          <div className="w-[18px] h-[18px] flex items-center justify-center">
+            {getMessageStatusIcon(chat.messageStatus)}
+          </div>
+          
+          {/* Horizontal 3-dot menu - fixed height slot, only for member chats */}
+          <div className="h-[18px] flex items-center justify-center">
+            {!isCompanyChat ? (
               <button
-                onClick={() => setShowSettings(true)}
-                className="p-2 hover:bg-gray-800 rounded-full"
-                aria-label="Settings"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onMenuClick(chat.id);
+                }}
+                className="w-[18px] h-[18px] flex items-center justify-center text-gray-400 hover:text-orange-400 rounded hover:bg-gray-800 transition-colors"
               >
-                <Settings className="w-5 h-5" />
+                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
+                </svg>
               </button>
-            </div> */}
+            ) : (
+              <span className="w-[18px]" />
+            )}
+          </div>
+        </div>
+
+        {/* Chat Menu Dropdown */}
+        {showChatMenu === chat.id && !isCompanyChat && (
+          <div
+            ref={chatMenuRef}
+            className="absolute right-4 top-16 w-48 bg-[#1C1C1C] border border-gray-700 rounded-lg shadow-lg py-1 z-20"
+          >
+            <button
+              className="w-full px-3 py-2 text-sm text-left hover:bg-gray-800 text-gray-300 flex items-center gap-2 transition-colors"
+              onClick={(e) => chat.isRead ? handleMarkChatAsUnread(chat.id, e) : handleMarkChatAsRead(chat.id, e)}
+            >
+              {chat.isRead ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              Mark as {chat.isRead ? "unread" : "read"}
+            </button>
+            <button
+              className="w-full px-3 py-2 text-sm text-left hover:bg-gray-800 text-gray-300 flex items-center gap-2 transition-colors"
+              onClick={(e) => handlePinChat(chat.id, e)}
+            >
+              {pinnedChats.has(chat.id) ? <PinOff className="w-4 h-4" /> : <Pin className="w-4 h-4" />}
+              {pinnedChats.has(chat.id) ? "Unpin" : "Pin"} chat
+            </button>
+            <button
+              className="w-full px-3 py-2 text-sm text-left hover:bg-gray-800 text-gray-300 flex items-center gap-2 transition-colors"
+              onClick={(e) => handleArchiveChat(chat.id, e)}
+            >
+              <Archive className="w-4 h-4" />
+              Archive chat
+            </button>
+            <button
+              className="w-full px-3 py-2 text-sm text-left hover:bg-gray-800 text-gray-300 flex items-center gap-2 transition-colors"
+              onClick={(e) => handleViewMember(chat.id, e)}
+            >
+              <User className="w-4 h-4" />
+              View Member
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="relative flex h-[92vh] bg-[#1C1C1C] text-gray-200 rounded-3xl" style={{ overflow: 'hidden', maxHeight: '92vh' }}>
+      <ToastContainer />
+
+      {/* Chat List Sidebar - Fixed height container */}
+      <div
+        className={`fixed md:relative inset-y-0 left-0 md:w-[400px] w-full md:rounded-none rounded-tr-3xl rounded-br-3xl transform transition-transform duration-500 ease-in-out ${isMessagesOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+          } bg-black z-30 select-none md:top-0 top-[52px] md:h-[92vh] h-[calc(100vh-52px)]`}
+        style={{ display: 'flex', flexDirection: 'column' }}
+      >
+        {/* Header Section - Fixed, doesn't scroll */}
+        <div className="flex-shrink-0 p-4">
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-2xl font-bold text-white">Messenger</h1>
           </div>
 
-          <div className="flex gap-2 items-center justify-between mb-4">
-            <div className="flex bg-[#000000] rounded-xl border border-slate-300/30 p-1">
+          {/* Tabs - Equal width, full width */}
+          <div className="mb-4">
+            <div className="flex bg-[#141414] rounded-xl border border-[#333333] p-1 w-full overflow-hidden">
               <button
-                className={`px-4 py-2 flex items-center rounded-lg text-sm transition-colors relative ${chatType === "member" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"
+                className={`flex-1 py-2 flex items-center justify-center rounded-lg text-sm transition-colors relative ${chatType === "member" && activeScreen !== "email-frontend" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white hover:bg-[#222222]"
                   }`}
-                onClick={() => setChatType("member")}
+                onClick={() => {
+                  setChatType("member");
+                  setActiveScreen("chat");
+                  setShowEmailFrontend(false);
+                  setSelectedChat(null);
+                  setMessages([]);
+                }}
               >
-                <User size={16} className="inline mr-2" />
+                <User size={16} className="mr-2" />
                 Member
                 {unreadMessagesCount.member > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-orange-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  <span className="absolute top-0.5 right-0.5 bg-orange-600 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center">
                     {unreadMessagesCount.member}
                   </span>
                 )}
               </button>
               <button
-                className={`px-4 flex items-center py-2 rounded-lg text-sm transition-colors relative ${chatType === "company" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"
+                className={`flex-1 py-2 flex items-center justify-center rounded-lg text-sm transition-colors relative ${chatType === "company" && activeScreen !== "email-frontend" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white hover:bg-[#222222]"
                   }`}
-                onClick={() => setChatType("company")}
+                onClick={() => {
+                  setChatType("company");
+                  setActiveScreen("chat");
+                  setShowEmailFrontend(false);
+                  setSelectedChat(null);
+                  setMessages([]);
+                }}
               >
-                <Building2 size={16} className="inline mr-2" />
+                <Building2 size={16} className="mr-2" />
                 Studio
                 {unreadMessagesCount.company > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-orange-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  <span className="absolute top-0.5 right-0.5 bg-orange-600 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center">
                     {unreadMessagesCount.company}
                   </span>
                 )}
               </button>
               <button
-                className="px-4 py-2 flex items-center rounded-lg text-sm text-gray-400 hover:text-white transition-colors relative"
+                className={`flex-1 py-2 flex items-center justify-center rounded-lg text-sm transition-colors relative ${activeScreen === "email-frontend" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white hover:bg-[#222222]"}`}
                 onClick={handleEmailClick}
               >
-                <Mail size={16} className="inline mr-2" />
+                <Mail size={16} className="mr-2" />
                 Email
                 {emailList.inbox.filter((e) => !e.isRead && !e.isArchived).length > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-orange-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  <span className="absolute top-0.5 right-0.5 bg-orange-600 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center">
                     {emailList.inbox.filter((e) => !e.isRead && !e.isArchived).length}
                   </span>
                 )}
               </button>
             </div>
-            {/* Removed MoreVertical dropdown (New Chat, New Group) */}
           </div>
 
-          <>
-            <div className="relative mb-4">
-              <input
-                type="text"
-                placeholder="Search"
-                value={searchMember}
-                onChange={(e) => setSearchMember(e.target.value)}
-                className="w-full px-4 py-2 pl-10 border border-slate-200 bg-black rounded-xl text-sm outline-none"
-              />
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-            </div>
-            {/* Archive Button */}
-            <button
-              onClick={() => setShowArchive(true)}
-              className="flex items-center gap-2 px-4 py-2 mb-4 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-xl text-sm transition-colors"
-            >
-              <Archive className="w-4 h-4" />
-              Archived ({archivedChats.length})
-            </button>
-          </>
+          {/* Search - Like Leads */}
+          <div className="relative mb-4">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+            <input
+              type="text"
+              placeholder="Search chats by name..."
+              value={searchMember}
+              onChange={(e) => setSearchMember(e.target.value)}
+              className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-9 border border-[#333333] focus:border-[#3F74FF] transition-colors"
+            />
+          </div>
 
+          {/* Archive Button */}
+          <button
+            onClick={() => setShowArchive(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-[#2a2a2a] hover:bg-[#333333] rounded-xl text-sm text-white transition-colors w-full mb-4"
+          >
+            <Archive className="w-4 h-4 text-white" />
+            Archived ({archivedChats.length})
+          </button>
+        </div>
 
-          <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2" style={{ maxHeight: 'calc(100vh - 300px)' }}>
-            {/* Show search results if searching */}
+        {/* Chat List - ONLY this area scrolls */}
+        <div 
+          className="flex-1 overflow-y-auto custom-scrollbar"
+          style={{ minHeight: 0 }}
+          onWheel={(e) => e.stopPropagation()}
+        >
+          <div className="px-4 pb-24 space-y-2">
             {searchMember && searchResults.length > 0
               ? searchResults.map((chat, index) => (
-                <div
-                  key={`search-${chat.id}-${index}`}
-                  className={`flex items-start gap-3 p-6 border-b border-slate-700 rounded-xl ${selectedChat?.id === chat.id ? "bg-[#181818]" : "hover:bg-[#181818]"
-                    } cursor-pointer relative group`}
-                  onClick={() => handleChatSelect(chat)}
-                >
-                  <div className="relative">
-                    <img
-                      src={chat.logo || "/placeholder.svg?height=40&width=40"}
-                      alt={`${chat.name}'s avatar`}
-                      width={40}
-                      height={40}
-                      className="rounded-xl cursor-pointer"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (chatType !== "company") {
-                          // Show confirmation dialog
-                          if (window.confirm(`Do you want to view details of ${chat.name}?`)) {
-                            // Find member and redirect
-                            const member = members.find(m => m.id === chat.id);
-                            if (member) {
-                              window.location.href = `/dashboard/member-details/${member.id}`;
-                            }
-                          }
-                        }
-                      }}
-                    />
-                    {chat.isBirthday && (
-                      <div className="absolute -top-4 -right-4  rounded-md p-1">
-                        <span className="text-yellow-500">🎂</span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1">
-                        <span className="font-medium truncate">{chat.name}</span>
-                        {pinnedChats.has(chat.id) && <Pin className="w-3 h-3 text-gray-400" />}
-                        {chat.isArchived && <span className="text-xs bg-gray-600 px-2 py-1 rounded">Archived</span>}
-                      </div>
-
-                      {chat.unreadCount > 0 && (
-                        <span className="bg-orange-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                          {chat.unreadCount}
-                        </span>
-                      )}
-                    </div>
-                    <div className="text-sm text-gray-400">
-                      <p className="truncate">{chat.message}</p>
-                    </div>
-                    <div className="flex mt-1 text-gray-400 items-center gap-1">
-                      <Clock size={15} />
-                      <span className="text-sm text-gray-400">{chat.time}</span>
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-center gap-1">
-                    <button
-                      className="opacity-100 p-1 hover:bg-gray-600 rounded-full z-10 relative"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowChatMenu(showChatMenu === chat.id ? null : chat.id);
-                      }}
-                      aria-label="Chat options"
-                    >
-                      <MoreVertical className="w-5 h-5 text-gray-300" />
-                    </button>
-                    {getMessageStatusIcon(chat.messageStatus)}
-                  </div>
-                </div>
-              ))
-              : getSortedChatList().map((chat, index) => {
-                // Handle separator
-                if (chat.type === "separator") {
-                  return (
-                    <div key="separator" className="border-t border-gray-600 my-2 mx-4">
-                      <div className="text-xs text-gray-500 text-center py-2">Staff Chats</div>
-                    </div>
-                  )
-                }
-
-                return (
-                  <div
-                    key={`${chatType}-${chat.id}-${index}`}
-                    className={`flex items-start gap-3 p-6 border-b border-slate-700 rounded-xl ${selectedChat?.id === chat.id ? "bg-[#181818]" : "hover:bg-[#181818]"
-                      } cursor-pointer relative group`}
-                    onClick={() => handleChatSelect(chat)}
-                  >
-                    <div className="relative">
-                      <img
-                        src={chat.logo || "/placeholder.svg"}
-                        alt={`${chat.name}'s avatar`}
-                        width={40}
-                        height={40}
-                        className="rounded-xl cursor-pointer"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          chatType !== "company" && handleViewMember(chat.id, e)
-                        }}
-                      />
-                      {chat.isBirthday && (
-                        <div className="absolute -top-4 -right-4  rounded-md p-1">
-                          <span className="text-yellow-500">🎂</span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1">
-                          <span className="font-medium truncate">{chat.name}</span>
-                          {pinnedChats.has(chat.id) && <Pin className="w-4 h-4 text-gray-400" />}
-                        </div>
-                        {chat.unreadCount > 0 && (
-                          <span className="bg-orange-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                            {chat.unreadCount}
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-sm text-gray-400">
-                        <p className="truncate">{chat.message}</p>
-                      </div>
-                      <div className="flex mt-1 text-gray-400 items-center gap-1">
-                        <Clock size={15} />
-                        <span className="text-sm text-gray-400">{chat.time}</span>
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-center gap-1">
-                      {chatType !== "company" && (
-                        <button
-                          className="opacity-100 p-1 hover:bg-gray-600 rounded-full z-10 relative"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowChatMenu(showChatMenu === chat.id ? null : chat.id);
-                          }}
-                          aria-label="Chat options"
-                        >
-                          <MoreVertical className="w-5 h-5 text-gray-300" />
-                        </button>
-                      )}
-                      {getMessageStatusIcon(chat.messageStatus)}
-                      {showChatMenu === chat.id && chatType !== "company" && (
-                        <div
-                          ref={chatMenuRef}
-                          className="absolute right-0 top-8 w-48 bg-[#2F2F2F] rounded-xl border border-gray-800 shadow-lg overflow-hidden z-20"
-                        >
-                          <button
-                            className="w-full px-4 py-2 text-sm text-left hover:bg-gray-700 flex items-center gap-2"
-                            onClick={(e) =>
-                              chat.isRead ? handleMarkChatAsUnread(chat.id, e) : handleMarkChatAsRead(chat.id, e)
-                            }
-                          >
-                            {chat.isRead ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                            Mark as {chat.isRead ? "unread" : "read"}
-                          </button>
-                          <button
-                            className="w-full px-4 py-2 text-sm text-left hover:bg-gray-700 flex items-center gap-2"
-                            onClick={(e) => handlePinChat(chat.id, e)}
-                          >
-                            <Pin className="w-4 h-4" />
-                            {pinnedChats.has(chat.id) ? "Unpin" : "Pin"} chat
-                          </button>
-                          <button
-                            className="w-full px-4 py-2 text-sm text-left hover:bg-gray-700 flex items-center gap-2"
-                            onClick={(e) => handleArchiveChat(chat.id, e)}
-                          >
-                            <Archive className="w-4 h-4" />
-                            Archive chat
-                          </button>
-                          <button
-                            className="w-full px-4 py-2 text-sm text-left hover:bg-gray-700 flex items-center gap-2"
-                            onClick={(e) => handleViewMember(chat.id, e)}
-                          >
-                            <User className="w-4 h-4" />
-                            View Member
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                chat.type !== "separator" && (
+                  <ChatItem
+                    key={`search-${chat.id}-${index}`}
+                    chat={chat}
+                    isSelected={selectedChat?.id === chat.id}
+                    onSelect={handleChatSelect}
+                    onMenuClick={(id) => setShowChatMenu(showChatMenu === id ? null : id)}
+                  />
                 )
-              })}
+              ))
+              : (() => {
+                const { pinned, unpinned } = getPinnedAndUnpinnedChats();
+                return (
+                  <>
+                    {/* Pinned Section */}
+                    {pinned.length > 0 && (
+                      <>
+                        <div className="flex items-center gap-2 px-2 py-1">
+                          <Pin size={12} className="text-amber-500 fill-amber-500" />
+                          <span className="text-xs text-amber-500 font-medium">Pinned</span>
+                          <div className="flex-1 h-px bg-amber-500/30"></div>
+                        </div>
+                        {pinned.map((chat, index) => (
+                          <ChatItem
+                            key={`pinned-${chat.id}-${index}`}
+                            chat={chat}
+                            isSelected={selectedChat?.id === chat.id}
+                            onSelect={handleChatSelect}
+                            onMenuClick={(id) => setShowChatMenu(showChatMenu === id ? null : id)}
+                          />
+                        ))}
+                        {/* Divider between pinned and unpinned */}
+                        <div className="flex items-center px-2 py-1 mt-2">
+                          <div className="flex-1 h-px bg-gray-700"></div>
+                        </div>
+                      </>
+                    )}
+                    
+                    {/* Unpinned Chats */}
+                    {unpinned.map((chat, index) => {
+                      if (chat.type === "separator") {
+                        return (
+                          <div key="separator" className="border-t border-gray-600 my-2">
+                            <div className="text-xs text-gray-500 text-center py-2">Staff Chats</div>
+                          </div>
+                        )
+                      }
+
+                      return (
+                        <ChatItem
+                          key={`${chatType}-${chat.id}-${index}`}
+                          chat={chat}
+                          isSelected={selectedChat?.id === chat.id}
+                          onSelect={handleChatSelect}
+                          onMenuClick={(id) => setShowChatMenu(showChatMenu === id ? null : id)}
+                        />
+                      );
+                    })}
+                  </>
+                );
+              })()}
           </div>
+        </div>
+
+        {/* Floating Broadcast Button - FIXED position within sidebar */}
+        <div className="absolute bottom-6 right-6 z-50">
           <button
             onClick={() => setActiveScreen("send-message")}
-            className="absolute bottom-6 right-6 p-3 bg-blue-600 hover:bg-blue-700 rounded-full shadow-lg"
+            className="p-3.5 bg-orange-500 hover:bg-orange-600 rounded-full shadow-xl"
           >
             <IoIosMegaphone className="w-6 h-6 text-white" />
           </button>
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col min-w-0">
+      {/* Main Chat Area - Desktop only, Mobile uses Fullscreen Overlay */}
+      <div className="hidden md:flex flex-1 flex-col min-w-0" style={{ height: '92vh', maxHeight: '92vh', overflow: 'hidden' }}>
         {!selectedChat && activeScreen === "chat" && (
           <div className="flex flex-col items-center justify-center h-full text-center p-6">
-            <button
-              onClick={() => setIsMessagesOpen(true)}
-              className="md:hidden absolute top-4 left-4 text-gray-400 hover:text-gray-300"
-              aria-label="Open messages"
-            >
-              <Menu className="w-6 h-6" />
-            </button>
-            <div className="mb-5">
-              <img
-                src={CommuncationBg || "/placeholder.svg"}
-                alt="Welcome to Communications"
-                className="w-64 h-64 mx-auto"
-              />
+            <div className="mb-6">
+              <div className="w-24 h-24 rounded-2xl bg-[#1a1a1a] border border-[#333333] flex items-center justify-center mx-auto">
+                <MessageCircle className="w-12 h-12 text-gray-600" />
+              </div>
             </div>
-            <p className="md:w-[50%] text-gray-400 text-sm mx-auto w-full">
-              Select a chat to start messaging or choose from your archived conversations. Click on a member's name or
-              avatar to view their profile.
+            <h3 className="text-white font-medium text-lg mb-2">No chat selected</h3>
+            <p className="text-gray-500 text-sm max-w-xs">
+              Select a conversation from the chatlist to start messaging.
             </p>
           </div>
         )}
+
         {selectedChat && activeScreen === "chat" && (
-          <div className="flex flex-col h-full">
-            {/* Header - Fixed at top */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-800 flex-shrink-0">
+          <div className="flex flex-col h-full overflow-hidden">
+            {/* Chat Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-800 flex-shrink-0 select-none">
               <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setIsMessagesOpen(true)}
-                  className="md:hidden text-gray-400 hover:text-gray-300"
-                  aria-label="Open messages"
-                >
-                  <Menu className="w-6 h-6" />
-                </button>
-                <div className="relative">
-                  <img
-                    src={selectedChat.logo || "/placeholder.svg"}
-                    alt="Current chat avatar"
-                    width={48}
-                    height={48}
-                    className="rounded-xl cursor-pointer"
-                    onClick={(e) => {
-                      if (chatType !== "company") {
-                        handleViewMember(selectedChat.id, e)
-                      }
-                    }}
-                  />
-                  {selectedChat.isBirthday && (
-                    <div className="absolute -top-4 -right-4 rounded-md p-1">
-                      <span className="text-yellow-500">🎂</span>
-                    </div>
-                  )}
-                </div>
-                <span
-                  className="font-medium cursor-pointer hover:text-blue-400"
+                {/* Clickable Profile Container */}
+                <div 
+                  className={`flex items-center gap-3 px-3 py-2 bg-black rounded-xl ${chatType !== "company" ? "cursor-pointer hover:bg-gray-900 transition-colors" : ""}`}
                   onClick={(e) => {
                     if (chatType !== "company") {
                       handleViewMember(selectedChat.id, e)
                     }
                   }}
                 >
-                  {selectedChat.name}
-                </span>
+                  <div className="relative">
+                    {/* Show image only for main studio chat (ID 100) or real uploaded images */}
+                    {selectedChat.id === 100 && selectedChat.logo ? (
+                      <img
+                        src={selectedChat.logo}
+                        alt="Current chat avatar"
+                        className="w-11 h-11 rounded-xl object-cover"
+                      />
+                    ) : selectedChat.logo && selectedChat.logo !== DefaultAvatar && !selectedChat.logo?.includes('placeholder') ? (
+                      <img
+                        src={selectedChat.logo}
+                        alt="Current chat avatar"
+                        className="w-11 h-11 rounded-xl object-cover"
+                      />
+                    ) : (
+                      <InitialsAvatar 
+                        firstName={selectedChat.name?.split(" ")[0] || ""}
+                        lastName={selectedChat.name?.split(" ").slice(1).join(" ") || ""}
+                        size="md"
+                        isStaff={chatType === "company" && selectedChat.id !== 100}
+                      />
+                    )}
+                    {selectedChat.isBirthday && (
+                      <div 
+                        className="absolute -top-1.5 -right-1.5 bg-orange-500 hover:bg-orange-400 rounded-full p-1 border-[2.5px] border-white shadow-lg transition-all duration-200 hover:scale-110 cursor-pointer group"
+                        title={`Birthday today!${selectedChat.dateOfBirth ? ` Turns ${new Date().getFullYear() - new Date(selectedChat.dateOfBirth).getFullYear()} years old` : ''}`}
+                      >
+                        <Gift size={14} className="text-white" />
+                      </div>
+                    )}
+                  </div>
+                  <span className="font-medium text-white">
+                    {selectedChat.name}
+                  </span>
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 {chatType !== "company" && (
@@ -1300,162 +1557,266 @@ export default function Communications() {
               </div>
             </div>
 
-            {/* Messages Container - FIXED HEIGHT, SCROLLABLE CONTENT */}
-            <div className="flex-1 overflow-hidden md:overflow-y-auto md:max-h-[70vh]">
-              {/* This wrapper ensures proper scrolling on mobile */}
-              <div
-                ref={messagesContainerRef}
-                className="h-full overflow-y-auto custom-scrollbar p-4 space-y-4"
-                style={{
-                  // Mobile-specific: fixed height container with scroll
-                  maxHeight: 'calc(100vh - 12rem)' // Adjust based on header + input height
-                }}
-              >
-                {messages.map((message) => (
-                  <div key={message.id} className={`flex gap-3 ${message.sender === "You" ? "justify-end" : ""} group`}>
-                    <div className={`flex flex-col gap-1 ${message.sender === "You" ? "items-end" : ""}`}>
-                      {/* Add sender name ONLY for company chats (studio group chats) */}
-                      {chatType === "company" && message.sender !== "You" && (
-                        <div className="text-xs text-gray-500 font-medium mb-1">
-                          {message.sender}
+            {/* Messages Area - Scrollable, fills remaining space */}
+            <div
+              ref={messagesContainerRef}
+              className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4"
+              style={{ minHeight: 0 }}
+            >
+              {messages.map((message) => (
+                <div key={message.id} className={`flex items-start gap-2 ${message.sender === "You" ? "justify-end" : ""} group`}>
+                  
+                  {/* Menu button - LEFT side for own messages */}
+                  {message.sender === "You" && !message.isDeleted && (
+                    <button
+                      onClick={() => setActiveMessageMenu(activeMessageMenu === message.id ? null : message.id)}
+                      className="message-menu-trigger opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-gray-700 rounded-lg mt-2 flex-shrink-0"
+                    >
+                      <MoreVertical size={18} className="text-gray-400" />
+                    </button>
+                  )}
+
+                  <div className={`flex flex-col gap-1 ${message.sender === "You" ? "items-end" : ""} max-w-lg relative`}>
+                    {/* Sender name ONLY for main studio group chat (ID 100) */}
+                    {selectedChat?.id === 100 && message.sender !== "You" && !message.isDeleted && (
+                      <div className="text-xs text-gray-500 font-medium mb-1">
+                        {message.sender}
+                      </div>
+                    )}
+
+                    <div
+                      className={`rounded-xl p-3 ${
+                        message.isDeleted
+                          ? "bg-gray-800/50 text-gray-500 italic"
+                          : message.sender === "You"
+                            ? "bg-orange-500"
+                            : "bg-black"
+                      }`}
+                    >
+                      {/* Reply/Quote Preview */}
+                      {message.replyTo && !message.isDeleted && (
+                        <div
+                          className={`mb-2 p-2 rounded-lg text-xs border-l-2 ${
+                            message.sender === 'You'
+                              ? "bg-orange-600/50 border-l-white"
+                              : "bg-gray-700 border-l-orange-500"
+                          }`}
+                        >
+                          <p className="font-semibold mb-0.5 text-white text-xs">
+                            {message.replyTo.sender === 'You' ? 'You' : message.replyTo.sender}
+                          </p>
+                          <p className={`${message.sender === 'You' ? 'text-orange-100/80' : 'text-gray-400'} text-xs`}>
+                            {truncateText(message.replyTo.content, 50)}
+                          </p>
                         </div>
                       )}
 
-                      <div
-                        className={`rounded-xl p-4 text-sm max-w-md relative ${message.sender === "You" ? "bg-[#3F74FF]" : "bg-black"
-                          }`}
+                      {/* Message Content */}
+                      <p 
+                        className={`text-sm ${message.isDeleted ? "" : "text-white"}`}
+                        style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word' }}
                       >
-                        <p style={{ whiteSpace: 'pre-wrap' }}>{message.content}</p>
-
-                        {/* Message actions */}
-                        <div className="absolute -right-2 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-1">
-                          <button
-                            onClick={() => setShowReactionPicker(showReactionPicker === message.id ? null : message.id)}
-                            className="p-1 bg-gray-700 hover:bg-gray-600 rounded-full"
-                            title="Add reaction"
-                          >
-                            <Smile className="w-5 h-5" />
-                          </button>
-                        </div>
-
-                        {/* Reaction picker */}
-                        {showReactionPicker === message.id && (
-                          <div className="absolute top-14 -left-6 bg-gray-800 rounded-lg shadow-lg p-2 flex gap-1 z-10">
-                            {reactions.map((reaction) => (
-                              <button
-                                key={reaction.name}
-                                onClick={() => handleReaction(message.id, reaction.name)}
-                                className="p-1 hover:bg-gray-700 rounded text-xl transition-colors"
-                                title={`Add ${reaction.name} reaction`}
-                              >
-                                {reaction.emoji}
-                              </button>
-                            ))}
-                          </div>
+                        {message.isDeleted ? (
+                          <span className="flex items-center gap-1.5">
+                            <Trash2 size={14} />
+                            The message was deleted.
+                          </span>
+                        ) : (
+                          <HighlightedText text={message.content} isUserMessage={message.sender === 'You'} />
                         )}
+                      </p>
 
-                        {/* Display reactions with removal option */}
-                        {messageReactions[message.id] && (
-                          <div className="flex gap-1 mt-2 flex-wrap">
-                            {Object.entries(messageReactions[message.id]).map(([reactionName, count]) => {
-                              const reaction = reactions.find((r) => r.name === reactionName);
-                              return (
-                                <div
-                                  key={reactionName}
-                                  className="bg-gray-700 rounded-full px-2 py-1 text-xs flex items-center gap-1 group/reaction relative"
-                                >
-                                  <span className="text-lg">{reaction?.emoji}</span>
-                                  <span>{count}</span>
-
-                                  <button
-                                    onClick={() => handleRemoveEmoji(message.id, reactionName)}
-                                    className="opacity-0 group-hover/reaction:opacity-100 transition-opacity ml-1 text-red-400 hover:text-red-300"
-                                    title={`Remove ${reactionName} reaction`}
-                                  >
-                                    <X className="w-3 h-3" />
-                                  </button>
-                                </div>
-                              );
-                            })}
-                          </div>
+                      {/* Time and status */}
+                      <div className={`text-[11px] mt-1.5 flex items-center gap-1 ${
+                        message.sender === "You" ? "text-white/70 justify-end" : "text-gray-500"
+                      }`}>
+                        <span>{message.time || formatTimestamp(message.timestamp)}</span>
+                        {message.sender === "You" && !message.isDeleted && (
+                          <span className="ml-1">
+                            {message.status === "read" ? (
+                              <CheckCheck className="w-3.5 h-3.5 text-blue-400" />
+                            ) : message.status === "delivered" ? (
+                              <CheckCheck className="w-3.5 h-3.5" />
+                            ) : (
+                              <Check className="w-3.5 h-3.5" />
+                            )}
+                          </span>
                         )}
-                      </div>
-
-                      <div className="flex items-center gap-1 text-sm text-gray-400">
-                        <span>{message.time}</span>
-                        {message.sender === "You" && getMessageStatusIcon(message.status)}
                       </div>
                     </div>
-                  </div>
-                ))}
-                <div ref={messagesEndRef} />
-              </div>
-            </div>
 
-            {/* Input Area - Fixed at bottom */}
-            <div className="p-4 border-t border-gray-800 flex-shrink-0">
-              <div className="flex items-end gap-2 bg-black rounded-xl p-2 relative">
-                <div className="relative">
-                  <button
-                    className="p-2 hover:bg-gray-700 rounded-full flex items-center justify-center"
-                    aria-label="Add emoji"
-                    onClick={() => setShowEmojiPicker(prev => !prev)}
-                    type="button"
-                  >
-                    <Smile className="w-6 h-6 text-gray-200" />
-                  </button>
-
-                  {showEmojiPicker && (
-                    <>
+                    {/* Message Menu - Positioned above the message */}
+                    {activeMessageMenu === message.id && !message.isDeleted && (
                       <div
-                        className="fixed inset-0 z-40"
-                        onClick={() => setShowEmojiPicker(false)}
-                      />
+                        ref={messageMenuRef}
+                        className={`absolute bottom-full mb-1 ${message.sender === 'You' ? 'right-0' : 'left-0'} bg-[#2a2a2a] rounded-xl shadow-xl p-1 min-w-[140px] z-[1100] border border-gray-700`}
+                      >
+                        <button
+                          onClick={() => handleReplyToMessage(message)}
+                          className="w-full text-left px-3 py-2 text-sm hover:bg-gray-700 rounded-lg text-white flex items-center gap-2"
+                        >
+                          <Reply size={14} />
+                          Reply
+                        </button>
 
-                      <div className="absolute bottom-12 left-0 md:left-1/2 md:-translate-x-1/2 z-50">
-                        <div className="w-screen max-w-[90vw] md:w-auto">
+                        <button
+                          onClick={() => {
+                            setShowReactionPicker(showReactionPicker === message.id ? null : message.id);
+                            setActiveMessageMenu(null);
+                          }}
+                          className="w-full text-left px-3 py-2 text-sm hover:bg-gray-700 rounded-lg text-white flex items-center gap-2"
+                        >
+                          <Smile size={14} />
+                          React
+                        </button>
+
+                        <button
+                          onClick={() => handleCopyMessage(message)}
+                          className="w-full text-left px-3 py-2 text-sm hover:bg-gray-700 rounded-lg text-white flex items-center gap-2"
+                        >
+                          <Copy size={14} />
+                          Copy
+                        </button>
+
+                        {message.sender === 'You' && (
+                          <button
+                            onClick={() => {
+                              setShowDeleteConfirm(message.id);
+                              setActiveMessageMenu(null);
+                            }}
+                            className="w-full text-left px-3 py-2 text-sm hover:bg-gray-700 rounded-lg text-red-400 flex items-center gap-2"
+                          >
+                            <Trash2 size={14} />
+                            Delete
+                          </button>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Full Emoji Picker for Reactions */}
+                    {showReactionPicker === message.id && (
+                      <>
+                        <div
+                          className="fixed inset-0 z-[9998]"
+                          onClick={() => setShowReactionPicker(null)}
+                        />
+                        <div
+                          ref={reactionPickerRef}
+                          className="fixed z-[9999]"
+                          style={{
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)'
+                          }}
+                        >
                           <Picker
                             data={data}
-                            onEmojiSelect={(emoji) => {
-                              setMessageText(prev => prev + emoji.native);
-                              setShowEmojiPicker(false);
-                            }}
+                            onEmojiSelect={(emoji) => handleReaction(message.id, emoji.native)}
                             theme="dark"
                             previewPosition="none"
                             skinTonePosition="none"
                             perLine={8}
-                            maxFrequentRows={1}
-                            emojiSize={28}
-                            emojiButtonSize={40}
-                            searchPosition="top"
-                            width="100%"
-                            maxWidth="100%"
-                            categories={[
-                              'frequent',
-                              'people',
-                              'nature',
-                              'foods',
-                              'activity',
-                              'places',
-                              'objects',
-                              'symbols',
-                              'flags'
-                            ]}
+                            maxFrequentRows={2}
                           />
                         </div>
+                      </>
+                    )}
+
+                    {/* Reaction Display */}
+                    {messageReactions[message.id] && !message.isDeleted && (
+                      <div className={`flex gap-1 ${message.sender === 'You' ? 'justify-end' : 'justify-start'}`}>
+                        <button
+                          onClick={(e) => removeReaction(message.id, e)}
+                          className="bg-gray-700/80 rounded-full px-2 py-0.5 text-base flex items-center gap-1 hover:bg-gray-600 transition-colors group/reaction"
+                          title="Click to remove"
+                        >
+                          <span>{messageReactions[message.id]}</span>
+                          <span className="opacity-0 group-hover/reaction:opacity-100 text-xs text-gray-400">✕</span>
+                        </button>
                       </div>
-                    </>
+                    )}
+                  </div>
+
+                  {/* Menu button - RIGHT side for received messages */}
+                  {message.sender !== "You" && !message.isDeleted && (
+                    <button
+                      onClick={() => setActiveMessageMenu(activeMessageMenu === message.id ? null : message.id)}
+                      className="message-menu-trigger opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-gray-700 rounded-lg mt-2 flex-shrink-0"
+                    >
+                      <MoreVertical size={18} className="text-gray-400" />
+                    </button>
                   )}
                 </div>
+              ))}
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Delete Confirmation Modal */}
+            {showDeleteConfirm && (
+              <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[1200]">
+                <div className="bg-[#2a2a2a] rounded-xl p-5 mx-4 max-w-sm w-full shadow-xl border border-gray-700">
+                  <h4 className="text-white font-medium mb-2">Delete Message?</h4>
+                  <p className="text-gray-400 text-sm mb-4">This message will be marked as deleted and cannot be recovered.</p>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setShowDeleteConfirm(null)}
+                      className="flex-1 px-4 py-2.5 bg-gray-700 text-white text-sm rounded-xl hover:bg-gray-600 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => handleDeleteMessage(showDeleteConfirm)}
+                      className="flex-1 px-4 py-2.5 bg-red-500 text-white text-sm rounded-xl hover:bg-red-600 transition-colors"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Reply Preview Bar */}
+            {replyingTo && (
+              <div className="px-4 py-3 bg-[#1a1a1a] border-t border-gray-800 flex-shrink-0">
+                <div className="flex items-center gap-3 bg-[#2a2a2a] rounded-xl p-3">
+                  <div className="w-1 h-10 bg-orange-500 rounded-full"></div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-orange-400 text-xs font-semibold">
+                      Replying to {replyingTo.sender === 'You' ? 'yourself' : replyingTo.sender}
+                    </p>
+                    <p className="text-gray-300 text-sm truncate">{truncateText(replyingTo.content, 50)}</p>
+                  </div>
+                  <button
+                    onClick={cancelReply}
+                    className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Input Area - Fixed at bottom like WhatsApp */}
+            <div className="p-4 border-t border-gray-800 flex-shrink-0 bg-[#1C1C1C]">
+              <div className="flex items-end gap-2 bg-black rounded-xl p-2 relative">
+                <button
+                  className="p-2 hover:bg-gray-700 rounded-full flex items-center justify-center flex-shrink-0"
+                  aria-label="Add emoji"
+                  onClick={() => setShowEmojiPicker(prev => !prev)}
+                  type="button"
+                >
+                  <Smile className="w-6 h-6 text-gray-200" />
+                </button>
 
                 <textarea
+                  ref={textareaRef}
                   placeholder="Type your message here..."
-                  className="flex-1 bg-transparent focus:outline-none text-sm min-w-0 resize-none overflow-hidden leading-relaxed text-gray-200 py-2 placeholder-gray-400"
+                  className="flex-1 bg-transparent focus:outline-none text-sm min-w-0 resize-none overflow-y-auto leading-5 text-gray-200 placeholder-gray-400 max-h-[150px]"
                   rows={1}
                   value={messageText}
                   onInput={(e) => {
-                    e.target.style.height = "auto";
-                    e.target.style.height = e.target.scrollHeight + "px";
+                    e.target.style.height = "32px";
+                    e.target.style.height = Math.min(e.target.scrollHeight, 150) + "px";
                   }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey && !e.altKey) {
@@ -1464,6 +1825,7 @@ export default function Communications() {
                     }
                   }}
                   onChange={(e) => setMessageText(e.target.value)}
+                  style={{ height: '32px' }}
                 />
 
                 <button
@@ -1475,10 +1837,93 @@ export default function Communications() {
                   <Send className="w-6 h-6 text-gray-200" />
                 </button>
               </div>
+
+              {/* Desktop Emoji Picker - like ChatPopup */}
+              {showEmojiPicker && (
+                <div 
+                  ref={emojiPickerRef}
+                  className="absolute bottom-16 left-2 z-[1020]"
+                >
+                  <Picker
+                    data={data}
+                    onEmojiSelect={(emoji) => {
+                      setMessageText(prev => prev + emoji.native);
+                    }}
+                    theme="dark"
+                    previewPosition="none"
+                    skinTonePosition="none"
+                    perLine={8}
+                    maxFrequentRows={2}
+                  />
+                </div>
+              )}
             </div>
           </div>
         )}
+
         {activeScreen === "send-message" && (
+          <div className="hidden md:block">
+            <BroadcastModal
+              onClose={() => setActiveScreen("chat")}
+              broadcastFolders={broadcastFolders}
+              preConfiguredMessages={preConfiguredMessages}
+              chatList={chatList}
+              archivedChats={archivedChats}
+              settings={settings}
+              onBroadcast={handleBroadcast}
+              onCreateMessage={(messageData) => {
+                const newId = Math.max(0, ...preConfiguredMessages.map((m) => m.id)) + 1
+                const newMessage = {
+                  id: newId,
+                  ...messageData
+                }
+                setPreConfiguredMessages([...preConfiguredMessages, newMessage])
+              }}
+              onUpdateMessage={(messageData) => {
+                setPreConfiguredMessages(prev =>
+                  prev.map(msg =>
+                    msg.id === messageData.id ? messageData : msg
+                  )
+                )
+              }}
+              onDeleteMessage={(messageId) => {
+                setPreConfiguredMessages(prev =>
+                  prev.filter(msg => msg.id !== messageId)
+                )
+              }}
+              onCreateFolder={(folderName) => {
+                const newId = Math.max(0, ...broadcastFolders.map((f) => f.id)) + 1
+                setBroadcastFolders([...broadcastFolders, {
+                  id: newId,
+                  name: folderName,
+                  messages: []
+                }])
+              }}
+              onUpdateFolder={(folderId, folderName) => {
+                setBroadcastFolders(prev =>
+                  prev.map(folder =>
+                    folder.id === folderId
+                      ? { ...folder, name: folderName }
+                      : folder
+                  )
+                )
+              }}
+              onDeleteFolder={(folderId) => {
+                setBroadcastFolders(prev =>
+                  prev.filter(folder => folder.id !== folderId)
+                )
+                setPreConfiguredMessages(prev =>
+                  prev.filter(msg => msg.folderId !== folderId)
+                )
+              }}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Mobile Broadcast Modal - same as notes.jsx fullscreen pattern */}
+      {activeScreen === "send-message" && (
+        <div className="md:hidden fixed inset-0 bg-[#1C1C1C] z-[60] flex flex-col overflow-auto">
           <BroadcastModal
             onClose={() => setActiveScreen("chat")}
             broadcastFolders={broadcastFolders}
@@ -1488,7 +1933,6 @@ export default function Communications() {
             settings={settings}
             onBroadcast={handleBroadcast}
             onCreateMessage={(messageData) => {
-              // Handle creating new message
               const newId = Math.max(0, ...preConfiguredMessages.map((m) => m.id)) + 1
               const newMessage = {
                 id: newId,
@@ -1497,7 +1941,6 @@ export default function Communications() {
               setPreConfiguredMessages([...preConfiguredMessages, newMessage])
             }}
             onUpdateMessage={(messageData) => {
-              // Handle updating message
               setPreConfiguredMessages(prev =>
                 prev.map(msg =>
                   msg.id === messageData.id ? messageData : msg
@@ -1505,13 +1948,11 @@ export default function Communications() {
               )
             }}
             onDeleteMessage={(messageId) => {
-              // Handle deleting message
               setPreConfiguredMessages(prev =>
                 prev.filter(msg => msg.id !== messageId)
               )
             }}
             onCreateFolder={(folderName) => {
-              // Handle creating folder
               const newId = Math.max(0, ...broadcastFolders.map((f) => f.id)) + 1
               setBroadcastFolders([...broadcastFolders, {
                 id: newId,
@@ -1520,7 +1961,6 @@ export default function Communications() {
               }])
             }}
             onUpdateFolder={(folderId, folderName) => {
-              // Handle updating folder
               setBroadcastFolders(prev =>
                 prev.map(folder =>
                   folder.id === folderId
@@ -1530,78 +1970,400 @@ export default function Communications() {
               )
             }}
             onDeleteFolder={(folderId) => {
-              // Handle deleting folder
               setBroadcastFolders(prev =>
                 prev.filter(folder => folder.id !== folderId)
               )
-
-              // Also remove messages in this folder
               setPreConfiguredMessages(prev =>
                 prev.filter(msg => msg.folderId !== folderId)
               )
             }}
           />
-        )}
-      </div>
+        </div>
+      )}
 
-      <ShowAppointmentModal
-        show={showAppointmentModal}
-        member={selectedMember}
-        appointmentTypes={appointmentTypes}
-        getMemberAppointments={getMemberAppointments}
-        handleEditAppointment={handleEditAppointment}
-        handleCancelAppointment={handleCancelAppointment}
-        handleManageContingent={handleManageContingent}
-        handleCreateNewAppointment={handleCreateNewAppointment}
-        currentBillingPeriod={currentBillingPeriod}
-        memberContingentData={memberContingentData}
-        onClose={() => {
-          setShowAppointmentModal(false)
-          setSelectedMember(null)
-        }}
+      {/* Mobile Fullscreen Chat Overlay - same as notes.jsx */}
+      {selectedChat && activeScreen === "chat" && (
+        <div className="md:hidden fixed inset-0 bg-[#1C1C1C] z-[60] flex flex-col">
+          {/* Mobile Chat Header with Back Button */}
+          <div className="flex items-center justify-between p-3 border-b border-gray-800 flex-shrink-0">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  setSelectedChat(null);
+                  setMessages([]);
+                  setIsMessagesOpen(true);
+                }}
+                className="text-gray-400 hover:text-white p-1.5 hover:bg-gray-800 rounded-lg transition-colors"
+                aria-label="Back to chat list"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              
+              {/* Profile Container */}
+              <div 
+                className={`flex items-center gap-2 px-2 py-1.5 bg-black rounded-xl ${chatType !== "company" ? "cursor-pointer hover:bg-gray-900 transition-colors" : ""}`}
+                onClick={(e) => {
+                  if (chatType !== "company") {
+                    handleViewMember(selectedChat.id, e);
+                  }
+                }}
+              >
+                <div className="relative">
+                  {selectedChat.id === 100 && selectedChat.logo ? (
+                    <img
+                      src={selectedChat.logo}
+                      alt="Current chat avatar"
+                      className="w-8 h-8 rounded-lg object-cover"
+                    />
+                  ) : selectedChat.logo && selectedChat.logo !== DefaultAvatar && !selectedChat.logo?.includes('placeholder') ? (
+                    <img
+                      src={selectedChat.logo}
+                      alt="Current chat avatar"
+                      className="w-8 h-8 rounded-lg object-cover"
+                    />
+                  ) : (
+                    <InitialsAvatar 
+                      firstName={selectedChat.name?.split(" ")[0] || ""}
+                      lastName={selectedChat.name?.split(" ").slice(1).join(" ") || ""}
+                      size="sm"
+                      isStaff={chatType === "company" && selectedChat.id !== 100}
+                    />
+                  )}
+                  {selectedChat.isBirthday && (
+                    <div 
+                      className="absolute -top-1 -right-1 bg-orange-500 rounded-full p-0.5 border-2 border-white shadow-lg"
+                    >
+                      <Gift size={8} className="text-white" />
+                    </div>
+                  )}
+                </div>
+                <span className="font-medium text-white text-sm truncate max-w-[150px]">
+                  {selectedChat.name}
+                </span>
+              </div>
+            </div>
+            
+            {/* Calendar Button */}
+            {chatType !== "company" && (
+              <button
+                className="text-blue-500 hover:text-blue-400 p-1.5"
+                aria-label="View appointments"
+                onClick={handleCalendarClick}
+              >
+                <Calendar className="w-5 h-5" />
+              </button>
+            )}
+          </div>
+
+          {/* Mobile Messages Area */}
+          <div
+            ref={mobileMessagesContainerRef}
+            className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-3"
+            style={{ minHeight: 0 }}
+          >
+            {messages.length === 0 ? (
+              <div className="flex items-center justify-center h-full text-gray-500">
+                <p>No messages yet</p>
+              </div>
+            ) : (
+              messages.map((message) => (
+                <div key={message.id} className={`flex ${message.sender === "You" ? "justify-end" : "justify-start"}`}>
+                  <div className={`flex flex-col ${message.sender === "You" ? "items-end" : "items-start"} max-w-[80%] min-w-0`}>
+                    {/* Sender name for group chats */}
+                    {selectedChat?.id === 100 && message.sender !== "You" && !message.isDeleted && (
+                      <span className="text-xs text-gray-500 font-medium mb-1 px-1">
+                        {message.sender}
+                      </span>
+                    )}
+
+                    {/* Message bubble with Long Press */}
+                    <div
+                      className={`rounded-xl px-3 py-2 max-w-full overflow-hidden select-none ${
+                        message.isDeleted
+                          ? "bg-gray-800/50"
+                          : message.sender === "You"
+                            ? "bg-orange-500"
+                            : "bg-[#2a2a2a]"
+                      }`}
+                      style={{ wordBreak: 'break-word', WebkitUserSelect: 'none', userSelect: 'none' }}
+                      onTouchStart={(e) => handleTouchStart(message, e)}
+                      onTouchEnd={handleTouchEnd}
+                      onTouchMove={handleTouchMove}
+                      onContextMenu={(e) => {
+                        e.preventDefault();
+                        if (!message.isDeleted) {
+                          setMobileContextMenu({ messageId: message.id, message });
+                        }
+                      }}
+                    >
+                      {/* Reply preview */}
+                      {message.replyTo && !message.isDeleted && (
+                        <div 
+                          className={`mb-2 pl-2 border-l-2 ${
+                            message.sender === "You" 
+                              ? "border-white/40" 
+                              : "border-gray-600"
+                          }`}
+                        >
+                          <p className={`text-xs font-medium ${message.sender === "You" ? "text-white/80" : "text-gray-400"}`}>
+                            {message.replyTo.sender}
+                          </p>
+                          <p className={`text-xs truncate max-w-[200px] ${message.sender === "You" ? "text-white/60" : "text-gray-500"}`}>
+                            {message.replyTo.content || message.replyTo.text}
+                          </p>
+                        </div>
+                      )}
+                      
+                      {/* Message content */}
+                      <p 
+                        className={`text-sm ${
+                          message.isDeleted 
+                            ? "text-gray-500 italic" 
+                            : "text-white"
+                        }`}
+                        style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word' }}
+                      >
+                        {message.isDeleted 
+                          ? "This message was deleted" 
+                          : (message.content || message.text || "")
+                        }
+                      </p>
+                      
+                      {/* Time and status */}
+                      <div className={`text-[11px] mt-1 flex items-center gap-1 ${
+                        message.sender === "You" ? "text-white/70 justify-end" : "text-gray-500"
+                      }`}>
+                        <span>{message.time || formatTimestamp(message.timestamp)}</span>
+                        {message.sender === "You" && !message.isDeleted && (
+                          <span className="ml-1">
+                            {message.status === "read" ? (
+                              <CheckCheck className="w-3 h-3 text-blue-400" />
+                            ) : message.status === "delivered" ? (
+                              <CheckCheck className="w-3 h-3" />
+                            ) : (
+                              <Check className="w-3 h-3" />
+                            )}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Reaction Display */}
+                    {messageReactions[message.id] && !message.isDeleted && (
+                      <div className={`flex gap-1 mt-1 ${message.sender === "You" ? "justify-end" : ""}`}>
+                        <button
+                          onClick={(e) => removeReaction(message.id, e)}
+                          className="bg-gray-700/80 rounded-full px-2 py-0.5 text-base flex items-center gap-1 hover:bg-gray-600 transition-colors"
+                        >
+                          <span>{messageReactions[message.id]}</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Mobile Reply Preview */}
+          {replyingTo && (
+            <div className="px-4 py-2 bg-[#1a1a1a] border-t border-gray-800 flex items-center gap-3">
+              <div className="flex-1 pl-3 border-l-2 border-orange-500">
+                <p className="text-xs font-medium text-orange-400">{replyingTo.sender}</p>
+                <p className="text-xs text-gray-400 truncate">{truncateText(replyingTo.content || replyingTo.text, 50)}</p>
+              </div>
+              <button
+                onClick={cancelReply}
+                className="text-gray-400 hover:text-white p-1"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
+          {/* Mobile Input Area - Multi-line with auto-resize */}
+          <div className="p-3 bg-[#1C1C1C] border-t border-gray-800 flex-shrink-0 relative">
+            <div className="flex items-end gap-2 bg-black px-3 py-2 rounded-xl border border-gray-800">
+              <button
+                className="p-2 hover:bg-gray-700 rounded-full flex-shrink-0"
+                aria-label="Add emoji"
+                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                type="button"
+              >
+                <Smile className="w-5 h-5 text-gray-400" />
+              </button>
+              {showEmojiPicker && (
+                <div 
+                  ref={emojiPickerRef}
+                  className="absolute bottom-14 left-3 z-[201]"
+                >
+                  <Picker 
+                    data={data} 
+                    onEmojiSelect={(emoji) => {
+                      setMessageText(prev => prev + emoji.native);
+                    }}
+                    theme="dark"
+                    previewPosition="none"
+                    skinTonePosition="none"
+                  />
+                </div>
+              )}
+              <textarea
+                ref={mobileTextareaRef}
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+                onInput={(e) => {
+                  e.target.style.height = "32px";
+                  e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }
+                }}
+                placeholder="Type a message..."
+                className="flex-1 bg-transparent text-white outline-none text-sm min-w-0 resize-none max-h-[120px] leading-5"
+                rows={1}
+                style={{ height: '32px' }}
+              />
+              <button
+                className="p-2 hover:bg-gray-700 rounded-full flex-shrink-0"
+                aria-label="Send message"
+                onClick={handleSendMessage}
+                type="button"
+              >
+                <Send className="w-5 h-5 text-gray-200" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Context Menu Modal */}
+      {mobileContextMenu && (
+        <div 
+          className="md:hidden fixed inset-0 z-[70] flex items-end justify-center"
+          onClick={() => setMobileContextMenu(null)}
+        >
+          <div className="absolute inset-0 bg-black/60" />
+          <div 
+            className="relative bg-[#2a2a2a] rounded-t-2xl w-full max-w-lg p-4 pb-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Handle bar */}
+            <div className="w-10 h-1 bg-gray-600 rounded-full mx-auto mb-4" />
+            
+            <div className="space-y-1">
+              <button
+                onClick={() => {
+                  handleReplyToMessage(mobileContextMenu.message);
+                  setMobileContextMenu(null);
+                }}
+                className="w-full text-left px-4 py-3 text-base hover:bg-gray-700 rounded-xl text-white flex items-center gap-3"
+              >
+                <Reply size={20} />
+                Reply
+              </button>
+
+              <button
+                onClick={() => {
+                  setShowReactionPicker(mobileContextMenu.messageId);
+                  setMobileContextMenu(null);
+                }}
+                className="w-full text-left px-4 py-3 text-base hover:bg-gray-700 rounded-xl text-white flex items-center gap-3"
+              >
+                <Smile size={20} />
+                React
+              </button>
+
+              <button
+                onClick={() => {
+                  handleCopyMessage(mobileContextMenu.message);
+                }}
+                className="w-full text-left px-4 py-3 text-base hover:bg-gray-700 rounded-xl text-white flex items-center gap-3"
+              >
+                <Copy size={20} />
+                Copy
+              </button>
+
+              {mobileContextMenu.message?.sender === 'You' && (
+                <button
+                  onClick={() => {
+                    setShowDeleteConfirm(mobileContextMenu.messageId);
+                    setMobileContextMenu(null);
+                  }}
+                  className="w-full text-left px-4 py-3 text-base hover:bg-gray-700 rounded-xl text-red-400 flex items-center gap-3"
+                >
+                  <Trash2 size={20} />
+                  Delete
+                </button>
+              )}
+            </div>
+
+            <button
+              onClick={() => setMobileContextMenu(null)}
+              className="w-full mt-4 px-4 py-3 text-base bg-gray-700 hover:bg-gray-600 rounded-xl text-white font-medium"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modals - high z-index to appear above everything */}
+      <div className="relative z-[9999]">
+        <ShowAppointmentModal
+          isOpen={showAppointmentModal}
+          selectedMemberMain={selectedMember}
+          appointmentTypesMain={appointmentTypes}
+          getMemberAppointmentsMain={getMemberAppointments}
+          handleEditAppointmentMain={handleEditAppointment}
+          handleDeleteAppointmentMain={handleCancelAppointment}
+          handleManageContingentMain={handleManageContingent}
+          handleCreateNewAppointmentMain={handleCreateNewAppointment}
+          currentBillingPeriodMain={currentBillingPeriod}
+          memberContingent={memberContingentData}
+          onClose={() => {
+            setShowAppointmentModal(false)
+            setSelectedMember(null)
+          }}
+        />
+
+        <EmailManagement
+          isOpen={showEmailFrontend}
+          onClose={handleEmailManagementClose}
+          onOpenSendEmail={() => setShowEmailModal(true)}
+          onOpenSettings={() => setShowSettings(true)}
+          onOpenBroadcast={() => setActiveScreen("send-message")}
+          initialEmailList={emailList}
+        />
+
+        <EmailModal
+          show={showEmailModal}
+          onClose={() => setShowEmailModal(false)}
+          emailData={emailData}
+          setEmailData={setEmailData}
+          handleSendEmail={handleSendEmail}
+          emailTemplates={emailTemplates}
+          selectedEmailTemplate={selectedEmailTemplate}
+          handleTemplateSelect={handleTemplateSelect}
+          showTemplateDropdown={showTemplateDropdown}
+          setShowTemplateDropdown={setShowTemplateDropdown}
+          showRecipientDropdown={showRecipientDropdown}
+          setShowRecipientDropdown={setShowRecipientDropdown}
+          handleSearchMemberForEmail={handleSearchMemberForEmail}
+          handleSelectEmailRecipient={handleSelectEmailRecipient}
       />
 
-      <EmailManagement
-        isOpen={showEmailFrontend}
-        onClose={handleEmailManagementClose}
-        onOpenSendEmail={() => setShowEmailModal(true)}
-        onOpenSettings={() => setShowSettings(true)}
-        onOpenBroadcast={() => setActiveScreen("send-message")}
-        initialEmailList={emailList}
-      />
-      <SettingsModal
-        showSettings={showSettings}
-        setShowSettings={setShowSettings}
-        settings={settings}
-        setSettings={setSettings}
-        settingsTab={settingsTab}
-        setSettingsTab={setSettingsTab}
-        appointmentNotificationTypes={appointmentNotificationTypes}
-        setAppointmentNotificationTypes={setAppointmentNotificationTypes}
-        handleSaveSettings={handleSaveSettings}
-      />
-
-      <EmailModal
-        show={showEmailModal}
-        onClose={() => setShowEmailModal(false)}
-        emailData={emailData}
-        setEmailData={setEmailData}
-        handleSendEmail={handleSendEmail}
-        emailTemplates={emailTemplates}
-        selectedEmailTemplate={selectedEmailTemplate}
-        handleTemplateSelect={handleTemplateSelect}
-        showTemplateDropdown={showTemplateDropdown}
-        setShowTemplateDropdown={setShowTemplateDropdown}
-        showRecipientDropdown={showRecipientDropdown}
-        setShowRecipientDropdown={setShowRecipientDropdown}
-        handleSearchMemberForEmail={handleSearchMemberForEmail}
-        handleSelectEmailRecipient={handleSelectEmailRecipient}
-      />
       <ArchiveModal
         showArchive={showArchive}
         setShowArchive={setShowArchive}
         archivedChats={archivedChats}
         handleRestoreChat={(id) => handleRestoreChat(id)}
+        chatType={chatType}
       />
 
       <FolderModal
@@ -1610,10 +2372,10 @@ export default function Communications() {
         onCreateFolder={handleCreateFolder}
       />
 
-      {showAddAppointmentModal && (
-        <AddAppointmentModal
-          isOpen={showAddAppointmentModal}
-          onClose={() => setShowAddAppointmentModal(false)}
+      {showCreateAppointmentModal && (
+        <CreateAppointmentModal
+          isOpen={showCreateAppointmentModal}
+          onClose={() => setShowCreateAppointmentModal(false)}
           appointmentTypes={appointmentTypes}
           onSubmit={handleAddAppointmentSubmit}
           setIsNotifyMemberOpen={setIsNotifyMemberOpen}
@@ -1621,6 +2383,7 @@ export default function Communications() {
           freeAppointments={freeAppointments}
         />
       )}
+
       {showSelectedAppointmentModal && selectedAppointmentData && (
         <EditAppointmentModalMain
           selectedAppointmentMain={selectedAppointmentData}
@@ -1639,12 +2402,14 @@ export default function Communications() {
           }}
         />
       )}
+
       <DraftModal
         show={showDraftModal}
         onClose={() => setShowDraftModal(false)}
         onDiscard={handleDiscardDraft}
         onSave={handleSaveDraft}
       />
+
       <CreateMessageModal
         show={showCreateMessageModal}
         setShow={setShowCreateMessageModal}
@@ -1653,6 +2418,7 @@ export default function Communications() {
         setNewMessage={setNewMessage}
         handleSaveNewMessage={handleSaveNewMessage}
       />
+
       <ContingentModal
         show={showContingentModal}
         setShow={setShowContingentModal}
@@ -1666,6 +2432,7 @@ export default function Communications() {
         currentBillingPeriod={currentBillingPeriod}
         handleSaveContingent={handleSaveContingent}
       />
+
       <AddBillingPeriodModal
         show={showAddBillingPeriodModal}
         setShow={setShowAddBillingPeriodModal}
@@ -1673,6 +2440,7 @@ export default function Communications() {
         setNewBillingPeriod={setNewBillingPeriod}
         handleAddBillingPeriod={handleAddBillingPeriod}
       />
+
       <NotifyMemberModal
         isOpen={isNotifyMemberOpen}
         onClose={() => setIsNotifyMemberOpen(false)}
@@ -1688,7 +2456,7 @@ export default function Communications() {
         onConfirm={handleConfirmViewMember}
         memberName={selectedMemberForConfirmation ? `${selectedMemberForConfirmation.firstName || ''} ${selectedMemberForConfirmation.lastName || ''}`.trim() || selectedMemberForConfirmation.name : ''}
       />
-
+      </div>
     </div>
   )
 }

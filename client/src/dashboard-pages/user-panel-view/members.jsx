@@ -36,21 +36,21 @@ import { IoIosMenu } from "react-icons/io"
 import { useNavigate } from "react-router-dom"
 
 import HistoryModalMain from "../../components/user-panel-components/members-components/HistoryModal"
-import NotifyMemberModalMain from "../../components/user-panel-components/members-components/NotifyMemberModal"
+import NotifyMemberModalMain from "../../components/shared/appointments/NotifyMemberModal"
 import CreateTempMemberModal from "../../components/shared/CreateTempMemberModal"
 import useCountries from "../../hooks/useCountries"
 import EditMemberModalMain from "../../components/user-panel-components/members-components/EditMemberModal"
-import AddBillingPeriodModalMain from "../../components/user-panel-components/members-components/AddBillingPeriodModal"
-import ContingentModalMain from "../../components/user-panel-components/members-components/ShowContigentModal"
+import AddBillingPeriodModalMain from "../../components/shared/appointments/AddBillingPeriodModal"
+import ContingentModalMain from "../../components/shared/appointments/ShowContigentModal"
 import ViewDetailsModal from "../../components/user-panel-components/members-components/ViewDetailsModal"
 import { MemberSpecialNoteModal } from '../../components/shared/shared-special-note-modal'
-import AppointmentModalMain from "../../components/user-panel-components/members-components/AppointmentModal"
+import AppointmentModalMain from "../../components/shared/appointments/ShowAppointmentModal"
 import DocumentManagementModal from "../../components/shared/DocumentManagementModal"
 import AssessmentFormModal from "../../components/shared/medical-history-form-modal"
 import AssessmentSelectionModal from "../../components/shared/medical-history-selection-modal"
 import { appointmentsMainData, appointmentTypeMainData, availableMembersLeadsMain, freeAppointmentsMainData, memberHistoryMainData, memberRelationsMainData, membersData, relationOptionsMain } from "../../utils/user-panel-states/members-states"
-import AddAppointmentModal from "../../components/user-panel-components/members-components/AddAppointmentModal"
-import EditAppointmentModalMain from "../../components/user-panel-components/members-components/EditAppointmentModal"
+import CreateAppointmentModal from "../../components/shared/appointments/CreateAppointmentModal"
+import EditAppointmentModalMain from "../../components/shared/appointments/EditAppointmentModal"
 
 
 // sidebar related import
@@ -206,7 +206,7 @@ export default function Members() {
   // 
   const [showAppointmentModalMain, setShowAppointmentModalMain] = useState(false)
   const [selectedMemberForAppointmentsMain, setSelectedMemberForAppointmentsMain] = useState(null)
-  const [showAddAppointmentModalMain, setShowAddAppointmentModalMain] = useState(false)
+  const [showCreateAppointmentModalMain, setShowCreateAppointmentModalMain] = useState(false)
   const [showSelectedAppointmentModalMain, setShowSelectedAppointmentModalMain] = useState(false)
   const [selectedAppointmentDataMain, setSelectedAppointmentDataMain] = useState(null)
   // 
@@ -655,7 +655,7 @@ export default function Members() {
         messageTypeModal.isOpen ||
         isMemberSpecialNoteModalOpen ||
         showAppointmentModalMain ||
-        showAddAppointmentModalMain ||
+        showCreateAppointmentModalMain ||
         showSelectedAppointmentModalMain ||
         isNotifyMemberOpenMain ||
         showContingentModalMain ||
@@ -679,7 +679,7 @@ export default function Members() {
         else if (messageTypeModal.isOpen) setMessageTypeModal({ isOpen: false, member: null });
         else if (isMemberSpecialNoteModalOpen) setIsMemberSpecialNoteModalOpen(false);
         else if (showAppointmentModalMain) setShowAppointmentModalMain(false);
-        else if (showAddAppointmentModalMain) setShowAddAppointmentModalMain(false);
+        else if (showCreateAppointmentModalMain) setShowCreateAppointmentModalMain(false);
         else if (showSelectedAppointmentModalMain) setShowSelectedAppointmentModalMain(false);
         else if (showContingentModalMain) setShowContingentModalMain(false);
         else if (showAddBillingPeriodModalMain) setShowAddBillingPeriodModalMain(false);
@@ -715,7 +715,7 @@ export default function Members() {
     messageTypeModal.isOpen,
     isMemberSpecialNoteModalOpen,
     showAppointmentModalMain,
-    showAddAppointmentModalMain,
+    showCreateAppointmentModalMain,
     showSelectedAppointmentModalMain,
     isNotifyMemberOpenMain,
     showContingentModalMain,
@@ -1098,7 +1098,7 @@ export default function Members() {
 
   // 
   const handleCreateNewAppointmentMain = () => {
-    setShowAddAppointmentModalMain(true)
+    setShowCreateAppointmentModalMain(true)
     setShowAppointmentModalMain(false)
   }
 
@@ -1109,7 +1109,7 @@ export default function Members() {
       memberId: selectedMemberForAppointmentsMain?.id,
     }
     setAppointmentsMain([...appointmentsMain, newAppointment])
-    setShowAddAppointmentModalMain(false)
+    setShowCreateAppointmentModalMain(false)
   }
 
   // 
@@ -2653,10 +2653,10 @@ export default function Members() {
         handleManageContingentMain={handleManageContingentMain}
         handleCreateNewAppointmentMain={handleCreateNewAppointmentMain}
       />
-      {showAddAppointmentModalMain && (
-        <AddAppointmentModal
-          isOpen={showAddAppointmentModalMain}
-          onClose={() => setShowAddAppointmentModalMain(false)}
+      {showCreateAppointmentModalMain && (
+        <CreateAppointmentModal
+          isOpen={showCreateAppointmentModalMain}
+          onClose={() => setShowCreateAppointmentModalMain(false)}
           appointmentTypesMain={appointmentTypesMain}
           onSubmit={handleAddAppointmentSubmit}
           setIsNotifyMemberOpenMain={setIsNotifyMemberOpenMain}
