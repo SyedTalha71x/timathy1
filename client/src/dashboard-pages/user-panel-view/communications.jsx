@@ -1825,8 +1825,8 @@ export default function Communications() {
             )}
 
             {/* Input Area - Fixed at bottom like WhatsApp */}
-            <div className="p-4 border-t border-gray-800 flex-shrink-0 bg-[#1C1C1C]">
-              <div className="flex items-end gap-2 bg-black rounded-xl p-2 relative">
+            <div className="p-4 border-t border-gray-800 flex-shrink-0 bg-[#1C1C1C] relative">
+              <div className="flex items-end gap-2 bg-black rounded-xl p-2">
                 <button
                   className="p-2 hover:bg-gray-700 rounded-full flex items-center justify-center flex-shrink-0"
                   aria-label="Add emoji"
@@ -1870,7 +1870,7 @@ export default function Communications() {
               {showEmojiPicker && (
                 <div 
                   ref={emojiPickerRef}
-                  className="absolute bottom-16 left-4 z-[1020]"
+                  className="absolute bottom-full mb-2 left-4 z-[1020]"
                   onMouseDown={(e) => e.stopPropagation()}
                   onTouchStart={(e) => e.stopPropagation()}
                 >
@@ -2016,7 +2016,7 @@ export default function Communications() {
         <div className="md:hidden fixed inset-0 bg-[#1C1C1C] z-[60] flex flex-col">
           {/* Mobile Chat Header with Back Button */}
           <div className="flex items-center justify-between p-3 border-b border-gray-800 flex-shrink-0">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-4">
               <button
                 onClick={() => {
                   setSelectedChat(null);
@@ -2227,7 +2227,7 @@ export default function Communications() {
               {showEmojiPicker && (
                 <div 
                   ref={emojiPickerRef}
-                  className="absolute bottom-14 left-0 z-[201]"
+                  className="absolute bottom-full mb-2 left-3 z-[201]"
                   onMouseDown={(e) => e.stopPropagation()}
                   onTouchStart={(e) => e.stopPropagation()}
                 >
@@ -2251,12 +2251,6 @@ export default function Communications() {
                 onInput={(e) => {
                   e.target.style.height = "32px";
                   e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSendMessage();
-                  }
                 }}
                 placeholder="Type a message..."
                 className="flex-1 bg-transparent text-white outline-none text-sm min-w-0 resize-none max-h-[120px] leading-5"
