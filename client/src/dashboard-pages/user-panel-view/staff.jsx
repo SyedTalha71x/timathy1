@@ -20,11 +20,11 @@ import {
   Plus,
   Pencil,
   Briefcase,
-  Cake,
   File,
   ClipboardList,
 } from "lucide-react"
 import toast, { Toaster } from "react-hot-toast"
+import BirthdayBadge from "../../components/shared/BirthdayBadge"
 import AddStaffModal from "../../components/user-panel-components/staff-components/add-staff-modal"
 import EditStaffModal from "../../components/user-panel-components/staff-components/edit-staff-modal"
 import StaffPlanningModal from "../../components/user-panel-components/staff-components/staff-planning-modal"
@@ -1231,26 +1231,34 @@ export default function StaffManagement() {
                         <div className={`hidden lg:grid lg:grid-cols-12 gap-3 px-4 items-center ${isCompactView ? 'py-2.5' : 'py-4'}`}>
                           {/* Staff Info */}
                           <div className="col-span-3 flex items-center gap-3 min-w-0">
-                            {staff.img ? (
-                              <img
-                                src={staff.img}
-                                alt={`${staff.firstName} ${staff.lastName}`}
-                                className={`${isCompactView ? 'w-9 h-9' : 'w-12 h-12'} rounded-xl flex-shrink-0 object-cover`}
+                            <div className="relative flex-shrink-0">
+                              {staff.img ? (
+                                <img
+                                  src={staff.img}
+                                  alt={`${staff.firstName} ${staff.lastName}`}
+                                  className={`${isCompactView ? 'w-9 h-9' : 'w-12 h-12'} rounded-xl object-cover`}
+                                />
+                              ) : (
+                                <InitialsAvatar 
+                                  firstName={staff.firstName} 
+                                  lastName={staff.lastName} 
+                                  size={isCompactView ? "sm" : "lg"}
+                                  isStaff={true}
+                                />
+                              )}
+                              <BirthdayBadge 
+                                show={isBirthday(staff.dateOfBirth)} 
+                                dateOfBirth={staff.dateOfBirth}
+                                size={isCompactView ? "sm" : "md"}
+                                withTooltip={true}
                               />
-                            ) : (
-                              <InitialsAvatar 
-                                firstName={staff.firstName} 
-                                lastName={staff.lastName} 
-                                size={isCompactView ? "sm" : "lg"}
-                              />
-                            )}
+                            </div>
                             <div className="min-w-0 flex-1">
                               <div className="flex items-center gap-2">
                                 <span className={`text-white font-medium ${isCompactView ? 'text-sm' : 'text-base'} truncate`}>
                                   {staff.firstName} {staff.lastName}
                                 </span>
                                 <StaffColorIndicator color={staff.color} />
-                                {isBirthday(staff.dateOfBirth) && <Cake size={isCompactView ? 14 : 16} className="text-yellow-500 flex-shrink-0" />}
                               </div>
                               <span className={`${isCompactView ? 'text-xs' : 'text-sm'} text-gray-500 truncate block`}>
                                 {staff.email}
@@ -1332,26 +1340,34 @@ export default function StaffManagement() {
                             onClick={() => setExpandedMobileRowId(expandedMobileRowId === staff.id ? null : staff.id)}
                           >
                             <div className="flex items-center gap-3">
-                              {staff.img ? (
-                                <img
-                                  src={staff.img}
-                                  alt={`${staff.firstName} ${staff.lastName}`}
-                                  className={`${isCompactView ? 'w-9 h-9' : 'w-11 h-11'} rounded-xl flex-shrink-0 object-cover`}
+                              <div className="relative flex-shrink-0">
+                                {staff.img ? (
+                                  <img
+                                    src={staff.img}
+                                    alt={`${staff.firstName} ${staff.lastName}`}
+                                    className={`${isCompactView ? 'w-9 h-9' : 'w-11 h-11'} rounded-xl object-cover`}
+                                  />
+                                ) : (
+                                  <InitialsAvatar 
+                                    firstName={staff.firstName} 
+                                    lastName={staff.lastName} 
+                                    size={isCompactView ? "sm" : "md"}
+                                    isStaff={true}
+                                  />
+                                )}
+                                <BirthdayBadge 
+                                  show={isBirthday(staff.dateOfBirth)} 
+                                  dateOfBirth={staff.dateOfBirth}
+                                  size="sm"
+                                  withTooltip={true}
                                 />
-                              ) : (
-                                <InitialsAvatar 
-                                  firstName={staff.firstName} 
-                                  lastName={staff.lastName} 
-                                  size={isCompactView ? "sm" : "md"}
-                                />
-                              )}
+                              </div>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">
                                   <span className={`text-white font-medium ${isCompactView ? 'text-sm' : 'text-base'} truncate`}>
                                     {staff.firstName} {staff.lastName}
                                   </span>
                                   <StaffColorIndicator color={staff.color} />
-                                  {isBirthday(staff.dateOfBirth) && <Cake size={12} className="text-yellow-500 flex-shrink-0" />}
                                 </div>
                                 <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                                   <RoleTag role={staff.role} compact={true} />
@@ -1549,27 +1565,34 @@ export default function StaffManagement() {
                         >
                           <div className="flex flex-col">
                             <div className="flex flex-col items-center mb-4">
-                              {staff.img ? (
-                                <img
-                                  src={staff.img}
-                                  className="h-20 w-20 rounded-xl flex-shrink-0 object-cover mb-3"
-                                  alt={`${staff.firstName} ${staff.lastName}`}
+                              <div className="relative mb-3">
+                                {staff.img ? (
+                                  <img
+                                    src={staff.img}
+                                    className="h-20 w-20 rounded-xl flex-shrink-0 object-cover"
+                                    alt={`${staff.firstName} ${staff.lastName}`}
+                                  />
+                                ) : (
+                                  <InitialsAvatar 
+                                    firstName={staff.firstName} 
+                                    lastName={staff.lastName} 
+                                    size="xl"
+                                    isStaff={true}
+                                  />
+                                )}
+                                <BirthdayBadge 
+                                  show={isBirthday(staff.dateOfBirth)} 
+                                  dateOfBirth={staff.dateOfBirth}
+                                  size="md"
+                                  withTooltip={true}
                                 />
-                              ) : (
-                                <InitialsAvatar 
-                                  firstName={staff.firstName} 
-                                  lastName={staff.lastName} 
-                                  size="xl"
-                                  className="mb-3"
-                                />
-                              )}
+                              </div>
                               <div className="flex flex-col items-center">
                                 <div className="flex items-center gap-2">
                                   <h3 className="text-white font-medium text-lg">
                                     {staff.firstName} {staff.lastName}
                                   </h3>
                                   <StaffColorIndicator color={staff.color} />
-                                  {isBirthday(staff.dateOfBirth) && <Cake size={16} className="text-yellow-500" />}
                                 </div>
 
                                 <div className="flex items-center gap-2 mt-2">

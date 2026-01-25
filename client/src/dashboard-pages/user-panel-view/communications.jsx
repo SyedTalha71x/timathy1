@@ -10,7 +10,6 @@ import {
   Smile,
   Clock,
   Send,
-  Gift,
   Calendar,
   Mail,
   Archive,
@@ -49,6 +48,7 @@ import { appointmentNotificationTypesNew, appointmentsNew, companyChatListNew, e
 import { membersData } from "../../utils/user-panel-states/app-states"
 
 import CreateAppointmentModal from "../../components/shared/appointments/CreateAppointmentModal"
+import BirthdayBadge from "../../components/shared/BirthdayBadge"
 import EmailManagement from "../../components/user-panel-components/communication-components/EmailManagement"
 import ContingentModal from "../../components/shared/appointments/ShowContigentModal"
 import CreateMessageModal from "../../components/user-panel-components/communication-components/CreateMessageModal"
@@ -322,13 +322,17 @@ export default function Communications() {
     if (chatType === "member") {
       // Start with existing chat data (which has messages)
       // IMPORTANT: Use memberId as the chat id for consistency
-      const existingChats = memberChatListNew.map(chat => ({
-        ...chat,
-        id: chat.memberId, // Use memberId as the unique identifier
-        logo: chat.logo || membersData.find(m => m.id === chat.memberId)?.image || null,
-        isBirthday: checkIfBirthday(membersData.find(m => m.id === chat.memberId)?.dateOfBirth),
-        markedUnread: chat.markedUnread || false,
-      }));
+      const existingChats = memberChatListNew.map(chat => {
+        const member = membersData.find(m => m.id === chat.memberId);
+        return {
+          ...chat,
+          id: chat.memberId, // Use memberId as the unique identifier
+          logo: chat.logo || member?.image || null,
+          dateOfBirth: member?.dateOfBirth || null, // Add dateOfBirth for age calculation in tooltip
+          isBirthday: checkIfBirthday(member?.dateOfBirth),
+          markedUnread: chat.markedUnread || false,
+        };
+      });
       
       // Get IDs of members who already have chats
       const existingMemberIds = existingChats.map(chat => chat.memberId);
@@ -342,6 +346,7 @@ export default function Communications() {
           name: `${member.firstName} ${member.lastName}`,
           email: member.email,
           logo: member.image || null,
+          dateOfBirth: member.dateOfBirth || null, // Add dateOfBirth for age calculation in tooltip
           messages: [],
           isBirthday: checkIfBirthday(member.dateOfBirth),
           isArchived: false,
@@ -710,17 +715,47 @@ export default function Communications() {
     }
     setMessages([...messages, newMessage])
     
-    // Update chatList with new message - this ensures the chat list shows the latest message
-    setChatList((prevList) =>
-      prevList.map((chat) =>
-        chat.id === selectedChat.id
-          ? {
-            ...chat,
-            messages: [...(chat.messages || []), newMessage],
-          }
-          : chat,
-      ),
-    )
+    // Update the appropriate chat list based on chatType
+    if (chatType === "member") {
+      // Update chatList for member chats
+      setChatList((prevList) =>
+        prevList.map((chat) =>
+          chat.id === selectedChat.id
+            ? {
+              ...chat,
+              messages: [...(chat.messages || []), newMessage],
+            }
+            : chat,
+        ),
+      )
+    } else if (chatType === "company") {
+      // Update company or staff chat state
+      if (selectedChat.id === 100 || selectedChat.isCompany) {
+        // Company chat
+        setCompanyChatListState((prevList) =>
+          prevList.map((chat) =>
+            chat.id === selectedChat.id
+              ? {
+                ...chat,
+                messages: [...(chat.messages || []), newMessage],
+              }
+              : chat,
+          ),
+        )
+      } else {
+        // Staff chat
+        setStaffChatListState((prevList) =>
+          prevList.map((chat) =>
+            chat.id === selectedChat.id
+              ? {
+                ...chat,
+                messages: [...(chat.messages || []), newMessage],
+              }
+              : chat,
+          ),
+        )
+      }
+    }
 
     // Also update selectedChat to reflect the new message
     setSelectedChat(prev => prev ? {
@@ -756,10 +791,66 @@ export default function Communications() {
 
     setTimeout(() => {
       setMessages((prev) => prev.map((msg) => (msg.id === newMessage.id ? { ...msg, status: "delivered" } : msg)))
+      // Also update in the appropriate chat list
+      if (chatType === "member") {
+        setChatList((prevList) =>
+          prevList.map((chat) =>
+            chat.id === selectedChat.id
+              ? { ...chat, messages: chat.messages.map((msg) => msg.id === newMessage.id ? { ...msg, status: "delivered" } : msg) }
+              : chat
+          )
+        )
+      } else if (chatType === "company") {
+        if (selectedChat.id === 100 || selectedChat.isCompany) {
+          setCompanyChatListState((prevList) =>
+            prevList.map((chat) =>
+              chat.id === selectedChat.id
+                ? { ...chat, messages: chat.messages.map((msg) => msg.id === newMessage.id ? { ...msg, status: "delivered" } : msg) }
+                : chat
+            )
+          )
+        } else {
+          setStaffChatListState((prevList) =>
+            prevList.map((chat) =>
+              chat.id === selectedChat.id
+                ? { ...chat, messages: chat.messages.map((msg) => msg.id === newMessage.id ? { ...msg, status: "delivered" } : msg) }
+                : chat
+            )
+          )
+        }
+      }
     }, 1000)
 
     setTimeout(() => {
       setMessages((prev) => prev.map((msg) => (msg.id === newMessage.id ? { ...msg, status: "read" } : msg)))
+      // Also update in the appropriate chat list
+      if (chatType === "member") {
+        setChatList((prevList) =>
+          prevList.map((chat) =>
+            chat.id === selectedChat.id
+              ? { ...chat, messages: chat.messages.map((msg) => msg.id === newMessage.id ? { ...msg, status: "read" } : msg) }
+              : chat
+          )
+        )
+      } else if (chatType === "company") {
+        if (selectedChat.id === 100 || selectedChat.isCompany) {
+          setCompanyChatListState((prevList) =>
+            prevList.map((chat) =>
+              chat.id === selectedChat.id
+                ? { ...chat, messages: chat.messages.map((msg) => msg.id === newMessage.id ? { ...msg, status: "read" } : msg) }
+                : chat
+            )
+          )
+        } else {
+          setStaffChatListState((prevList) =>
+            prevList.map((chat) =>
+              chat.id === selectedChat.id
+                ? { ...chat, messages: chat.messages.map((msg) => msg.id === newMessage.id ? { ...msg, status: "read" } : msg) }
+                : chat
+            )
+          )
+        }
+      }
     }, 3000)
   }
 
@@ -803,21 +894,55 @@ export default function Communications() {
       delete newReactions[messageId];
       return newReactions;
     });
-    // Update chat list
-    setChatList((prevList) =>
-      prevList.map((chat) =>
-        chat.id === selectedChat?.id
-          ? {
-            ...chat,
-            messages: chat.messages?.map(msg =>
-              msg.id === messageId
-                ? { ...msg, isDeleted: true, content: "" }
-                : msg
-            ) || [],
-          }
-          : chat,
-      ),
-    );
+    // Update the appropriate chat list based on chatType
+    if (chatType === "member") {
+      setChatList((prevList) =>
+        prevList.map((chat) =>
+          chat.id === selectedChat?.id
+            ? {
+              ...chat,
+              messages: chat.messages?.map(msg =>
+                msg.id === messageId
+                  ? { ...msg, isDeleted: true, content: "" }
+                  : msg
+              ) || [],
+            }
+            : chat,
+        ),
+      );
+    } else if (chatType === "company") {
+      if (selectedChat?.id === 100 || selectedChat?.isCompany) {
+        setCompanyChatListState((prevList) =>
+          prevList.map((chat) =>
+            chat.id === selectedChat?.id
+              ? {
+                ...chat,
+                messages: chat.messages?.map(msg =>
+                  msg.id === messageId
+                    ? { ...msg, isDeleted: true, content: "" }
+                    : msg
+                ) || [],
+              }
+              : chat,
+          ),
+        );
+      } else {
+        setStaffChatListState((prevList) =>
+          prevList.map((chat) =>
+            chat.id === selectedChat?.id
+              ? {
+                ...chat,
+                messages: chat.messages?.map(msg =>
+                  msg.id === messageId
+                    ? { ...msg, isDeleted: true, content: "" }
+                    : msg
+                ) || [],
+              }
+              : chat,
+          ),
+        );
+      }
+    }
     setShowDeleteConfirm(null);
     setActiveMessageMenu(null);
   };
@@ -1039,6 +1164,9 @@ export default function Communications() {
   const handleChatSelect = (chat) => {
     // Handle new chats (members not yet in chat list)
     if (chat.isNewChat && chatType === "member") {
+      // Get member data for dateOfBirth
+      const member = membersData.find(m => m.id === chat.memberId);
+      
       // Create a proper chat entry and add to chatList
       // Use memberId as the chat id for consistency
       const newChat = {
@@ -1046,6 +1174,7 @@ export default function Communications() {
         memberId: chat.memberId,
         name: chat.name,
         logo: chat.logo,
+        dateOfBirth: member?.dateOfBirth || null, // Add dateOfBirth for age calculation in tooltip
         isBirthday: chat.isBirthday || false,
         isArchived: false,
         markedUnread: false,
@@ -1196,7 +1325,11 @@ export default function Communications() {
         // Check if there's an existing chat for this staff member in state
         const existingChat = staffChatListState.find(chat => chat.staffId === staff.id);
         if (existingChat) {
-          return existingChat;
+          return {
+            ...existingChat,
+            dateOfBirth: staff.dateOfBirth || existingChat.dateOfBirth || null,
+            isBirthday: checkIfBirthday(staff.dateOfBirth) || existingChat.isBirthday
+          };
         }
         // Create a new empty chat entry for staff without existing chat
         return {
@@ -1204,7 +1337,8 @@ export default function Communications() {
           staffId: staff.id,
           name: `${staff.firstName} ${staff.lastName}`,
           logo: staff.image || null,
-          isBirthday: false,
+          dateOfBirth: staff.dateOfBirth || null, // Add dateOfBirth for age calculation in tooltip
+          isBirthday: checkIfBirthday(staff.dateOfBirth),
           isArchived: false,
           markedUnread: false,
           messages: []
@@ -1244,7 +1378,8 @@ export default function Communications() {
           memberId: member.id,
           name: `${member.firstName} ${member.lastName}`,
           logo: member.image || null,
-          isBirthday: false,
+          dateOfBirth: member.dateOfBirth || null, // Add dateOfBirth for age calculation in tooltip
+          isBirthday: checkIfBirthday(member.dateOfBirth),
           isArchived: false,
           isNewChat: true, // Flag to indicate this is a new chat
           messages: []
@@ -1370,7 +1505,6 @@ export default function Communications() {
   // CHAT ITEM COMPONENT - with orange stripe for selected
   // ==========================================
   const ChatItem = ({ chat, isSelected, onSelect, onMenuClick, index, totalChats }) => {
-    const [showBirthdayTooltip, setShowBirthdayTooltip] = useState(false);
     const chatItemRef = useRef(null);
     const isCompanyChat = chatType === "company";
     // Staff chats are in the company/studio tab but NOT the main studio group (ID 100)
@@ -1383,21 +1517,6 @@ export default function Communications() {
     
     // Determine if we should show image or InitialsAvatar
     const showImage = (chat.id === 100 && chat.logo) || (chat.logo && chat.logo !== DefaultAvatar && !chat.logo?.includes('placeholder'));
-    
-    // Calculate age from dateOfBirth
-    const calculateAge = (dateOfBirth) => {
-      if (!dateOfBirth) return null;
-      const today = new Date();
-      const birthDate = new Date(dateOfBirth);
-      let age = today.getFullYear() - birthDate.getFullYear();
-      const monthDiff = today.getMonth() - birthDate.getMonth();
-      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-        age--;
-      }
-      return age;
-    };
-    
-    const age = chat.dateOfBirth ? calculateAge(chat.dateOfBirth) : null;
     
     // Check if menu should open upwards (for items in lower half of list)
     const shouldOpenUpward = () => {
@@ -1451,33 +1570,13 @@ export default function Communications() {
               isStaff={isStaffChat}
             />
           )}
-          {/* Birthday Icon - with tooltip */}
-          {chat.isBirthday && (
-            <div 
-              className="absolute -top-1.5 -right-1.5 bg-orange-500 hover:bg-orange-400 rounded-full p-1 border-[2.5px] border-white shadow-lg cursor-pointer transition-all duration-200 hover:scale-110"
-              onMouseEnter={() => setShowBirthdayTooltip(true)}
-              onMouseLeave={() => setShowBirthdayTooltip(false)}
-              onClick={(e) => {
-                e.stopPropagation();
-                setShowBirthdayTooltip(!showBirthdayTooltip);
-              }}
-            >
-              <Gift size={14} className="text-white" />
-            </div>
-          )}
-          
-          {/* Birthday Tooltip */}
-          {chat.isBirthday && showBirthdayTooltip && (
-            <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-[#1C1C1C] border border-gray-700 rounded-lg px-3 py-2 shadow-xl z-30 whitespace-nowrap">
-              <p className="text-xs text-white font-medium">Birthday today!</p>
-              {age !== null && (
-                <p className="text-[10px] text-gray-400 mt-0.5">Turns {age} years old</p>
-              )}
-              <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-full">
-                <div className="border-4 border-transparent border-t-[#1C1C1C]"></div>
-              </div>
-            </div>
-          )}
+          {/* Birthday Badge */}
+          <BirthdayBadge 
+            show={chat.isBirthday}
+            dateOfBirth={chat.dateOfBirth}
+            size="md"
+            withTooltip={true}
+          />
         </div>
 
         {/* Content */}
@@ -1830,14 +1929,11 @@ export default function Communications() {
                         isStaff={chatType === "company" && selectedChat.id !== 100}
                       />
                     )}
-                    {selectedChat.isBirthday && (
-                      <div 
-                        className="absolute -top-1.5 -right-1.5 bg-orange-500 hover:bg-orange-400 rounded-full p-1 border-[2.5px] border-white shadow-lg transition-all duration-200 hover:scale-110 cursor-pointer group"
-                        title={`Birthday today!${selectedChat.dateOfBirth ? ` Turns ${new Date().getFullYear() - new Date(selectedChat.dateOfBirth).getFullYear()} years old` : ''}`}
-                      >
-                        <Gift size={14} className="text-white" />
-                      </div>
-                    )}
+                    <BirthdayBadge 
+                      show={selectedChat.isBirthday}
+                      dateOfBirth={selectedChat.dateOfBirth}
+                      size="md"
+                    />
                   </div>
                   <span className="font-medium text-white">
                     {selectedChat.name}
@@ -2329,13 +2425,12 @@ export default function Communications() {
                       isStaff={chatType === "company" && selectedChat.id !== 100}
                     />
                   )}
-                  {selectedChat.isBirthday && (
-                    <div 
-                      className="absolute -top-1 -right-1 bg-orange-500 rounded-full p-0.5 border-2 border-white shadow-lg"
-                    >
-                      <Gift size={8} className="text-white" />
-                    </div>
-                  )}
+                  <BirthdayBadge 
+                    show={selectedChat.isBirthday}
+                    dateOfBirth={selectedChat.dateOfBirth}
+                    size="sm"
+                    className="absolute -top-1 -right-1"
+                  />
                 </div>
                 <span className="font-medium text-white text-sm truncate max-w-[150px]">
                   {selectedChat.name}

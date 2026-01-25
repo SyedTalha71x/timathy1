@@ -5,7 +5,6 @@ import {
   X,
   Search,
   ChevronDown,
-  Cake,
   Eye,
   Info,
   AlertTriangle,
@@ -35,6 +34,7 @@ import toast, { Toaster } from "react-hot-toast"
 import { IoIosMenu } from "react-icons/io"
 import { useNavigate } from "react-router-dom"
 
+import BirthdayBadge from "../../components/shared/BirthdayBadge"
 import HistoryModalMain from "../../components/user-panel-components/members-components/HistoryModal"
 import NotifyMemberModalMain from "../../components/shared/appointments/NotifyMemberModal"
 import CreateTempMemberModal from "../../components/shared/CreateTempMemberModal"
@@ -1902,25 +1902,32 @@ export default function Members() {
                             size={isCompactView ? "sm" : "md"}
                             position="relative"
                           />
-                          {member.image ? (
-                            <img
-                              src={member.image}
-                              alt={member.title}
-                              className={`${isCompactView ? 'w-9 h-9' : 'w-12 h-12'} rounded-lg flex-shrink-0 object-cover`}
+                          <div className="relative flex-shrink-0">
+                            {member.image ? (
+                              <img
+                                src={member.image}
+                                alt={member.title}
+                                className={`${isCompactView ? 'w-9 h-9' : 'w-12 h-12'} rounded-lg object-cover`}
+                              />
+                            ) : (
+                              <InitialsAvatar 
+                                firstName={member.firstName} 
+                                lastName={member.lastName} 
+                                size={isCompactView ? "sm" : "lg"}
+                              />
+                            )}
+                            <BirthdayBadge 
+                              show={isBirthday(member.dateOfBirth)} 
+                              dateOfBirth={member.dateOfBirth}
+                              size={isCompactView ? "sm" : "md"}
+                              withTooltip={true}
                             />
-                          ) : (
-                            <InitialsAvatar 
-                              firstName={member.firstName} 
-                              lastName={member.lastName} 
-                              size={isCompactView ? "sm" : "lg"}
-                            />
-                          )}
+                          </div>
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2">
                               <span className={`text-white font-medium ${isCompactView ? 'text-sm' : 'text-base'} truncate`}>
                                 {member.title}
                               </span>
-                              {isBirthday(member.dateOfBirth) && <Cake size={isCompactView ? 14 : 16} className="text-yellow-500 flex-shrink-0" />}
                             </div>
                             {member.memberType === "full" && member.contractStart && member.contractEnd ? (
                               <span className={`${isCompactView ? 'text-xs' : 'text-sm'} ${isContractExpiringSoonMain(member.contractEnd) ? 'text-red-400' : 'text-gray-500'}`}>
@@ -2054,25 +2061,32 @@ export default function Members() {
                               size="sm"
                               position="relative"
                             />
-                            {member.image ? (
-                              <img
-                                src={member.image}
-                                alt={member.title}
-                                className={`${isCompactView ? 'w-9 h-9' : 'w-11 h-11'} rounded-lg flex-shrink-0 object-cover`}
+                            <div className="relative flex-shrink-0">
+                              {member.image ? (
+                                <img
+                                  src={member.image}
+                                  alt={member.title}
+                                  className={`${isCompactView ? 'w-9 h-9' : 'w-11 h-11'} rounded-lg object-cover`}
+                                />
+                              ) : (
+                                <InitialsAvatar 
+                                  firstName={member.firstName} 
+                                  lastName={member.lastName} 
+                                  size={isCompactView ? "sm" : "md"}
+                                />
+                              )}
+                              <BirthdayBadge 
+                                show={isBirthday(member.dateOfBirth)} 
+                                dateOfBirth={member.dateOfBirth}
+                                size="sm"
+                                withTooltip={true}
                               />
-                            ) : (
-                              <InitialsAvatar 
-                                firstName={member.firstName} 
-                                lastName={member.lastName} 
-                                size={isCompactView ? "sm" : "md"}
-                              />
-                            )}
+                            </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2">
                                 <span className={`text-white font-medium ${isCompactView ? 'text-sm' : 'text-base'} truncate`}>
                                   {member.title}
                                 </span>
-                                {isBirthday(member.dateOfBirth) && <Cake size={12} className="text-yellow-500 flex-shrink-0" />}
                               </div>
                               <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                                 <StatusTag
@@ -2264,7 +2278,6 @@ export default function Members() {
                               <span className="text-gray-500">
                                 {new Date(member.dateOfBirth).toLocaleDateString('de-DE')}
                               </span>
-                              {isBirthday(member.dateOfBirth) && <Cake size={10} className="text-yellow-500" />}
                             </div>
                           )}
 
@@ -2390,20 +2403,28 @@ export default function Members() {
 
                         <div className="flex flex-col">
                           <div className="flex flex-col items-center mb-4">
-                            {member.image ? (
-                              <img
-                                src={member.image}
-                                className="h-20 w-20 rounded-xl flex-shrink-0 object-cover mb-3"
-                                alt=""
+                            <div className="relative mb-3">
+                              {member.image ? (
+                                <img
+                                  src={member.image}
+                                  className="h-20 w-20 rounded-xl flex-shrink-0 object-cover"
+                                  alt=""
+                                />
+                              ) : (
+                                <InitialsAvatar 
+                                  firstName={getFirstAndLastName(member.title).firstName} 
+                                  lastName={getFirstAndLastName(member.title).lastName} 
+                                  size="xl"
+                                  className="rounded-xl"
+                                />
+                              )}
+                              <BirthdayBadge 
+                                show={isBirthday(member.dateOfBirth)} 
+                                dateOfBirth={member.dateOfBirth}
+                                size="md"
+                                withTooltip={true}
                               />
-                            ) : (
-                              <InitialsAvatar 
-                                firstName={getFirstAndLastName(member.title).firstName} 
-                                lastName={getFirstAndLastName(member.title).lastName} 
-                                size="xl"
-                                className="mb-3 rounded-xl"
-                              />
-                            )}
+                            </div>
                             <div className="flex flex-col items-center">
                               <div className="flex flex-col sm:flex-row items-center gap-2">
                                 <h3 className="text-white font-medium truncate text-lg">
@@ -2415,7 +2436,6 @@ export default function Members() {
                                     status={member.isArchived ? 'archived' : member.isActive ? 'active' : 'paused'}
                                     reason={member.reason}
                                   />
-                                  {isBirthday(member.dateOfBirth) && <Cake size={16} className="text-yellow-500" />}
                                 </div>
                               </div>
 
