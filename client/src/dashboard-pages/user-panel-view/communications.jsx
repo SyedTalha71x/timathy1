@@ -45,9 +45,8 @@ import DefaultAvatar from "../../../public/gray-avatar-fotor-20250912192528.png"
 import data from '@emoji-mart/data'
 import Picker from '@emoji-mart/react'
 
-import { appointmentNotificationTypesNew, companyChatListNew, emailListNew, emailTemplatesNew, memberChatListNew, memberHistoryNew, memberRelationsNew, preConfiguredMessagesNew, settingsNew, staffChatListNew } from "../../utils/user-panel-states/communication-states"
-import { memberContingentDataNew } from "../../utils/user-panel-states/myarea-states"
-import { appointmentsData, membersData } from "../../utils/user-panel-states/appointment-states"
+import { appointmentNotificationTypesNew, appointmentsNew, companyChatListNew, emailListNew, emailTemplatesNew, memberChatListNew, memberContingentDataNew, memberHistoryNew, membersNew, memberRelationsNew, preConfiguredMessagesNew, settingsNew, staffChatListNew, appointmentTypesData, freeAppointmentsData, availableMembersLeadsMain, staffData, getLastMessage, getLastMessageContent, getLastMessageTime, getUnreadCount, isChatRead, getLastMessageStatus } from "../../utils/user-panel-states/app-states"
+import { membersData } from "../../utils/user-panel-states/app-states"
 
 import CreateAppointmentModal from "../../components/shared/appointments/CreateAppointmentModal"
 import EmailManagement from "../../components/user-panel-components/communication-components/EmailManagement"
@@ -220,7 +219,7 @@ export default function Communications() {
   const [settings, setSettings] = useState(settingsNew)
   const [preConfiguredMessages, setPreConfiguredMessages] = useState(preConfiguredMessagesNew)
   const [selectedMessage, setSelectedMessage] = useState(null)
-  const [appointments, setAppointments] = useState(appointmentsData)
+  const [appointments, setAppointments] = useState(appointmentsNew)
   const [freeAppointments, setFreeAppointments] = useState([
     { id: 1, date: "2025-03-15", time: "9:00 AM" },
     { id: 2, date: "2025-03-15", time: "11:00 AM" },
@@ -260,36 +259,100 @@ export default function Communications() {
   const reactionPickerRef = useRef(null)
   const emojiPickerRef = useRef(null)
 
-  // Constants
-  const staffChatList = staffChatListNew
+  // Chat list states - initialized from imported data
+  const [companyChatListState, setCompanyChatListState] = useState(
+    companyChatListNew.map(chat => ({ ...chat, markedUnread: chat.markedUnread || false }))
+  )
+  const [staffChatListState, setStaffChatListState] = useState(
+    staffChatListNew.map(chat => ({ ...chat, markedUnread: chat.markedUnread || false }))
+  )
+  
+  // Constants (for backwards compatibility references)
   const memberChatList = memberChatListNew
-  const companyChatList = companyChatListNew
   const currentBillingPeriod = "04.14.25 - 04.18.2025"
 
   // EFFECTS SECTION
-  useEffect(() => {
-    const initialMemberChats = membersData
-      .filter(member => member.isActive && !member.isArchived)
-      .map(member => ({
-        id: member.id,
-        name: `${member.firstName} ${member.lastName}`,
-        email: member.email,
-        logo: member.image || DefaultAvatar,
-        message: "No messages yet",
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        isRead: true,
-        unreadCount: 0,
-        messageStatus: "sent",
-        messages: [],
-        isBirthday: checkIfBirthday(member.dateOfBirth),
-        isArchived: false
-      }));
   
-    const mergedChats = [...initialMemberChats];
-    if (chatType === "member") {
-      setChatList(mergedChats);
+  // Disable parent scrolling and reset scroll position when this component is mounted
+  useEffect(() => {
+    // Reset scroll position to top immediately
+    window.scrollTo(0, 0);
+    
+    // Find the main container element
+    const mainContainer = document.querySelector('main');
+    const originalOverflow = mainContainer?.style.overflow;
+    const originalScrollTop = mainContainer?.scrollTop;
+    
+    if (mainContainer) {
+      // Reset scroll position of main container
+      mainContainer.scrollTop = 0;
+      // Disable scrolling
+      mainContainer.style.overflow = 'hidden';
     }
-  }, [membersData, chatType]);
+    
+    // Also reset any parent scrollable containers
+    const dashboardContent = document.querySelector('.dashboard-content');
+    if (dashboardContent) {
+      dashboardContent.scrollTop = 0;
+    }
+    
+    // Reset body scroll as well
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
+    
+    // Cleanup: restore overflow when component unmounts
+    return () => {
+      if (mainContainer) {
+        mainContainer.style.overflow = originalOverflow || '';
+      }
+    };
+  }, []);
+
+  // Helper function to check if today is someone's birthday
+  const checkIfBirthday = (dateOfBirth) => {
+    if (!dateOfBirth) return false;
+    const today = new Date();
+    const birthDate = new Date(dateOfBirth);
+    return today.getMonth() === birthDate.getMonth() &&
+      today.getDate() === birthDate.getDate();
+  };
+
+  // Single useEffect to handle chat list initialization based on chatType
+  useEffect(() => {
+    if (chatType === "member") {
+      // Start with existing chat data (which has messages)
+      // IMPORTANT: Use memberId as the chat id for consistency
+      const existingChats = memberChatListNew.map(chat => ({
+        ...chat,
+        id: chat.memberId, // Use memberId as the unique identifier
+        logo: chat.logo || membersData.find(m => m.id === chat.memberId)?.image || null,
+        isBirthday: checkIfBirthday(membersData.find(m => m.id === chat.memberId)?.dateOfBirth),
+        markedUnread: chat.markedUnread || false,
+      }));
+      
+      // Get IDs of members who already have chats
+      const existingMemberIds = existingChats.map(chat => chat.memberId);
+      
+      // Add remaining active members without existing chats
+      const additionalChats = membersData
+        .filter(member => member.isActive && !member.isArchived && !existingMemberIds.includes(member.id))
+        .map(member => ({
+          id: member.id, // Use member.id as the chat id (same as memberId)
+          memberId: member.id,
+          name: `${member.firstName} ${member.lastName}`,
+          email: member.email,
+          logo: member.image || null,
+          messages: [],
+          isBirthday: checkIfBirthday(member.dateOfBirth),
+          isArchived: false,
+          markedUnread: false,
+        }));
+    
+      setChatList([...existingChats, ...additionalChats]);
+    }
+    // Note: For "staff" and "company" chatTypes, we use staffChatListState and companyChatListState directly
+    // via getCombinedChatList(), so we don't need to set chatList here
+  }, [chatType]);
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -424,36 +487,7 @@ export default function Communications() {
     }
   }, [])
 
-  useEffect(() => {
-    if (chatType === "staff") {
-      setChatList(staffChatList)
-    } else if (chatType === "member") {
-      setChatList(memberChatList)
-    } else if (chatType === "company") {
-      setChatList(companyChatList)
-    }
-  }, [chatType])
-
-  useEffect(() => {
-    const memberUnread = memberChatList.filter((chat) => !chat.isRead && chat.unreadCount > 0).length
-    const companyUnread = companyChatList.filter((chat) => !chat.isRead && chat.unreadCount > 0).length
-    const emailUnread = emailList.inbox.filter((email) => !email.isRead && !email.isArchived).length
-
-    setUnreadMessagesCount({
-      member: memberUnread,
-      company: companyUnread,
-      email: emailUnread,
-    })
-  }, [chatList, archivedChats, emailList])
-
   // FUNCTIONS SECTION
-  const checkIfBirthday = (dateOfBirth) => {
-    if (!dateOfBirth) return false;
-    const today = new Date();
-    const birthDate = new Date(dateOfBirth);
-    return today.getMonth() === birthDate.getMonth() &&
-      today.getDate() === birthDate.getDate();
-  };
 
   const handleEmailManagementClose = () => {
     setShowEmailFrontend(false)
@@ -567,19 +601,53 @@ export default function Communications() {
     setShowChatMenu(null)
   }
 
-  const handleMarkChatAsRead = (chatId, e) => {
+  const handleMarkChatAsRead = (chatId, e, isCompanyChat = false) => {
     e.stopPropagation()
-    setChatList((prevList) =>
-      prevList.map((chat) => (chat.id === chatId ? { ...chat, isRead: true, unreadCount: 0 } : chat)),
-    )
+    
+    const updateChat = (chat) => {
+      if (chat.id === chatId) {
+        const updatedMessages = (chat.messages || []).map(msg => ({
+          ...msg,
+          status: msg.sender !== "You" ? "read" : msg.status
+        }));
+        return { ...chat, messages: updatedMessages, markedUnread: false };
+      }
+      return chat;
+    };
+    
+    if (isCompanyChat) {
+      // Check if it's the main studio chat or a staff chat
+      if (chatId === 100) {
+        setCompanyChatListState(prev => prev.map(updateChat));
+      } else {
+        setStaffChatListState(prev => prev.map(updateChat));
+      }
+    } else {
+      setChatList(prev => prev.map(updateChat));
+    }
     setShowChatMenu(null)
   }
 
-  const handleMarkChatAsUnread = (chatId, e) => {
+  const handleMarkChatAsUnread = (chatId, e, isCompanyChat = false) => {
     e.stopPropagation()
-    setChatList((prevList) =>
-      prevList.map((chat) => (chat.id === chatId ? { ...chat, isRead: false, unreadCount: 1 } : chat)),
-    )
+    
+    const updateChat = (chat) => {
+      if (chat.id === chatId) {
+        return { ...chat, markedUnread: true };
+      }
+      return chat;
+    };
+    
+    if (isCompanyChat) {
+      // Check if it's the main studio chat or a staff chat
+      if (chatId === 100) {
+        setCompanyChatListState(prev => prev.map(updateChat));
+      } else {
+        setStaffChatListState(prev => prev.map(updateChat));
+      }
+    } else {
+      setChatList(prev => prev.map(updateChat));
+    }
     setShowChatMenu(null)
   }
 
@@ -621,15 +689,16 @@ export default function Communications() {
 
   const handleSendMessage = () => {
     if (!messageText.trim() || !selectedChat) return
+    const now = new Date();
     const newMessage = {
       id: Date.now(),
       sender: "You",
       content: messageText,
-      time: new Date().toLocaleTimeString([], {
+      time: now.toLocaleTimeString([], {
         hour: "2-digit",
         minute: "2-digit",
       }),
-      timestamp: new Date(),
+      timestamp: now.toISOString(),
       isUnread: false,
       status: "sent",
       isDeleted: false,
@@ -640,20 +709,24 @@ export default function Communications() {
       } : null
     }
     setMessages([...messages, newMessage])
+    
+    // Update chatList with new message - this ensures the chat list shows the latest message
     setChatList((prevList) =>
       prevList.map((chat) =>
         chat.id === selectedChat.id
           ? {
             ...chat,
             messages: [...(chat.messages || []), newMessage],
-            message: messageText,
-            messageStatus: "sent",
-            isRead: true,
-            unreadCount: 0,
           }
           : chat,
       ),
     )
+
+    // Also update selectedChat to reflect the new message
+    setSelectedChat(prev => prev ? {
+      ...prev,
+      messages: [...(prev.messages || []), newMessage]
+    } : prev);
 
     if (archivedChats.some((chat) => chat.id === selectedChat.id)) {
       handleRestoreChat(selectedChat.id)
@@ -964,14 +1037,56 @@ export default function Communications() {
   }
 
   const handleChatSelect = (chat) => {
-    setSelectedChat(chat)
-    setMessages(chat.messages || [])
-    setIsMessagesOpen(false)
-    setActiveScreen("chat")
-    setReplyingTo(null)
-    if (chatType !== "company") {
-      setChatList((prevList) => prevList.map((c) => (c.id === chat.id ? { ...c, isRead: true, unreadCount: 0 } : c)))
+    // Handle new chats (members not yet in chat list)
+    if (chat.isNewChat && chatType === "member") {
+      // Create a proper chat entry and add to chatList
+      // Use memberId as the chat id for consistency
+      const newChat = {
+        id: chat.memberId, // Use memberId as the unique identifier
+        memberId: chat.memberId,
+        name: chat.name,
+        logo: chat.logo,
+        isBirthday: chat.isBirthday || false,
+        isArchived: false,
+        markedUnread: false,
+        messages: []
+      };
+      setChatList(prevList => [newChat, ...prevList]);
+      setSelectedChat(newChat);
+      setMessages([]);
+    } else {
+      // Mark messages as read when opening chat and clear markedUnread flag
+      const updatedMessages = (chat.messages || []).map(msg => ({
+        ...msg,
+        status: msg.sender !== "You" ? "read" : msg.status
+      }));
+      
+      const updatedChat = { ...chat, messages: updatedMessages, markedUnread: false };
+      setSelectedChat(updatedChat);
+      setMessages(updatedMessages);
+      
+      // Update the appropriate chat list based on type
+      if (chatType === "member") {
+        setChatList(prevList => prevList.map(c => 
+          c.id === chat.id ? updatedChat : c
+        ));
+      } else if (chatType === "company") {
+        // Update company or staff chat state
+        if (chat.id === 100 || chat.isCompany) {
+          setCompanyChatListState(prevList => prevList.map(c => 
+            c.id === chat.id ? updatedChat : c
+          ));
+        } else {
+          setStaffChatListState(prevList => prevList.map(c => 
+            c.id === chat.id ? updatedChat : c
+          ));
+        }
+      }
     }
+    setIsMessagesOpen(false);
+    setActiveScreen("chat");
+    setReplyingTo(null);
+    setSearchMember(""); // Clear search after selection
   }
 
   const handleCancelAppointment = (id) => {
@@ -1041,7 +1156,7 @@ export default function Communications() {
   }
 
   const handleSearchMemberForEmail = (query) => {
-    const allMembers = [...staffChatList, ...memberChatList].filter(
+    const allMembers = [...staffChatListState, ...memberChatList].filter(
       (m) => m.name.toLowerCase().includes(query.toLowerCase()) || m.email?.toLowerCase().includes(query.toLowerCase()),
     )
     return allMembers
@@ -1076,25 +1191,112 @@ export default function Communications() {
 
   const getCombinedChatList = () => {
     if (chatType === "company") {
-      return [...companyChatList, { id: "separator", type: "separator" }, ...staffChatList];
+      // For company/studio tab, use state-managed lists
+      const allStaffChats = staffData.map(staff => {
+        // Check if there's an existing chat for this staff member in state
+        const existingChat = staffChatListState.find(chat => chat.staffId === staff.id);
+        if (existingChat) {
+          return existingChat;
+        }
+        // Create a new empty chat entry for staff without existing chat
+        return {
+          id: 100 + staff.id,
+          staffId: staff.id,
+          name: `${staff.firstName} ${staff.lastName}`,
+          logo: staff.image || null,
+          isBirthday: false,
+          isArchived: false,
+          markedUnread: false,
+          messages: []
+        };
+      });
+      return [...companyChatListState, { id: "separator", type: "separator" }, ...allStaffChats];
     } else if (chatType === "member") {
-      // Use memberChatList which has dummy messages
-      return memberChatList;
+      // For member tab, use chatList which has the updated read/unread states
+      return chatList;
     }
   
-    return staffChatList;
+    return staffChatListState;
+  };
+
+  // Extended search that includes members/staff not in chat list
+  const getSearchResults = () => {
+    if (!searchMember) return [];
+    
+    const lowerQuery = searchMember.toLowerCase();
+    const existingChats = getCombinedChatList().filter((chat) =>
+      chat.type !== 'separator' && chat.name?.toLowerCase().includes(lowerQuery)
+    );
+    
+    if (chatType === "member") {
+      // Also search for members who don't have a chat yet
+      // Use memberId for consistency (id === memberId for member chats)
+      const existingMemberIds = chatList.map(chat => chat.memberId);
+      const newMemberChats = membersData
+        .filter(member => 
+          member.isActive && 
+          !member.isArchived &&
+          !existingMemberIds.includes(member.id) &&
+          `${member.firstName} ${member.lastName}`.toLowerCase().includes(lowerQuery)
+        )
+        .map(member => ({
+          id: `new-${member.id}`,
+          memberId: member.id,
+          name: `${member.firstName} ${member.lastName}`,
+          logo: member.image || null,
+          isBirthday: false,
+          isArchived: false,
+          isNewChat: true, // Flag to indicate this is a new chat
+          messages: []
+        }));
+      
+      return [...existingChats, ...newMemberChats];
+    }
+    
+    return existingChats;
+  };
+
+  const searchResults = getSearchResults();
+
+  // Calculate total unread messages for each tab
+  const getTotalUnreadCount = (type) => {
+    if (type === "member") {
+      // Count chats with unread messages OR manually marked as unread
+      return chatList.reduce((total, chat) => {
+        const unreadCount = getUnreadCount(chat);
+        if (unreadCount > 0) return total + unreadCount;
+        if (chat.markedUnread) return total + 1;
+        return total;
+      }, 0);
+    } else if (type === "company") {
+      // Count unread messages from company + staff chats
+      const companyUnread = companyChatListState.reduce((total, chat) => {
+        const unreadCount = getUnreadCount(chat);
+        if (unreadCount > 0) return total + unreadCount;
+        if (chat.markedUnread) return total + 1;
+        return total;
+      }, 0);
+      const staffUnread = staffChatListState.reduce((total, chat) => {
+        const unreadCount = getUnreadCount(chat);
+        if (unreadCount > 0) return total + unreadCount;
+        if (chat.markedUnread) return total + 1;
+        return total;
+      }, 0);
+      return companyUnread + staffUnread;
+    }
+    return 0;
   };
 
   const getAppointmentTypesFromData = () => {
     const typesSet = new Set();
-    appointmentsData.forEach(app => {
+    appointmentsNew.forEach(app => {
       if (app.type) {
         typesSet.add(app.type);
       }
     });
 
     const typesArray = Array.from(typesSet).map(type => {
-      const firstApp = appointmentsData.find(app => app.type === type);
+      const firstApp = appointmentsNew.find(app => app.type === type);
       return {
         name: type,
         color: firstApp?.color || "bg-gray-700",
@@ -1134,19 +1336,42 @@ export default function Communications() {
     return periods
   }
 
-  const searchResults = searchMember
-    ? getCombinedChatList().filter((chat) =>
-      chat.name.toLowerCase().includes(searchMember.toLowerCase())
-    )
-    : [];
+  // Use appointmentTypesData from app-states.jsx instead of generating from appointments
+  const appointmentTypes = appointmentTypesData;
 
-  const appointmentTypes = getAppointmentTypesFromData();
+  // Search members function for CreateAppointmentModal
+  const searchMembersMain = (query) => {
+    if (!query || query.trim() === "") return [];
+    const lowerQuery = query.toLowerCase();
+    return membersData
+      .filter(member => 
+        member.isActive && 
+        !member.isArchived &&
+        (
+          member.firstName?.toLowerCase().includes(lowerQuery) ||
+          member.lastName?.toLowerCase().includes(lowerQuery) ||
+          `${member.firstName} ${member.lastName}`.toLowerCase().includes(lowerQuery) ||
+          member.email?.toLowerCase().includes(lowerQuery)
+        )
+      )
+      .map(member => ({
+        id: member.id,
+        name: `${member.firstName} ${member.lastName}`,
+        firstName: member.firstName,
+        lastName: member.lastName,
+        email: member.email,
+        image: member.image,
+        note: member.note,
+        noteImportance: member.noteImportance,
+      }));
+  };
 
   // ==========================================
   // CHAT ITEM COMPONENT - with orange stripe for selected
   // ==========================================
-  const ChatItem = ({ chat, isSelected, onSelect, onMenuClick }) => {
+  const ChatItem = ({ chat, isSelected, onSelect, onMenuClick, index, totalChats }) => {
     const [showBirthdayTooltip, setShowBirthdayTooltip] = useState(false);
+    const chatItemRef = useRef(null);
     const isCompanyChat = chatType === "company";
     // Staff chats are in the company/studio tab but NOT the main studio group (ID 100)
     const isStaffChat = chatType === "company" && chat.id !== 100;
@@ -1174,8 +1399,21 @@ export default function Communications() {
     
     const age = chat.dateOfBirth ? calculateAge(chat.dateOfBirth) : null;
     
+    // Check if menu should open upwards (for items in lower half of list)
+    const shouldOpenUpward = () => {
+      if (chatItemRef.current) {
+        const rect = chatItemRef.current.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        // If the bottom of the item is in the lower 40% of viewport, open upward
+        return rect.bottom > viewportHeight * 0.6;
+      }
+      // Fallback: if index is more than 60% of total, open upward
+      return index >= totalChats * 0.6;
+    };
+    
     return (
       <div
+        ref={chatItemRef}
         onClick={() => onSelect(chat)}
         className={`
           relative flex items-start gap-3 p-4 rounded-xl cursor-pointer select-none
@@ -1197,6 +1435,13 @@ export default function Communications() {
                 e.stopPropagation();
                 !isCompanyChat && handleViewMember(chat.id, e);
               }}
+            />
+          ) : chat.id === 100 ? (
+            /* Special Studio Avatar - Use DefaultAvatar image */
+            <img
+              src={chat.logo || DefaultAvatar}
+              alt="Studio"
+              className="w-12 h-12 rounded-xl object-cover"
             />
           ) : (
             <InitialsAvatar 
@@ -1237,95 +1482,112 @@ export default function Communications() {
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-          {/* Row 1: Name */}
-          <div className="flex items-center">
+          {/* Row 1: Name + New Chat Badge */}
+          <div className="flex items-center gap-2">
             <span className={`font-medium truncate ${isSelected ? 'text-orange-400' : 'text-white'}`}>
               {chat.name}
             </span>
+            {chat.isNewChat && (
+              <span className="text-[10px] bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded">New</span>
+            )}
           </div>
           
-          {/* Row 2: Message Preview */}
-          <p className="text-sm text-gray-400 truncate mt-0.5">{chat.message}</p>
+          {/* Row 2: Message Preview - dynamically computed from messages */}
+          <p className="text-sm text-gray-400 truncate mt-0.5">
+            {getLastMessageContent(chat)}
+          </p>
           
-          {/* Row 3: Time */}
+          {/* Row 3: Time - dynamically computed from messages */}
           <div className="flex items-center gap-1 text-gray-500 mt-1.5">
             <Clock size={12} />
-            <span className="text-xs">{chat.time}</span>
+            <span className="text-xs">{getLastMessageTime(chat) || "No messages"}</span>
           </div>
         </div>
 
         {/* Right side: Icons stacked vertically - positioned to align with message preview */}
         <div className="flex flex-col items-center gap-1 flex-shrink-0 w-[24px] mt-1">
-          {/* Unread Count - fixed height slot */}
+          {/* Unread indicator - shows count or dot based on state */}
           <div className="h-[18px] flex items-center justify-center">
-            {chat.unreadCount > 0 ? (
+            {getUnreadCount(chat) > 0 ? (
+              // Real unread messages - show count
               <span className="bg-orange-600 text-white text-[10px] rounded-full h-[18px] min-w-[18px] px-1 flex items-center justify-center font-medium">
-                {chat.unreadCount}
+                {getUnreadCount(chat)}
               </span>
+            ) : chat.markedUnread ? (
+              // Manually marked as unread - show dot without number
+              <span className="bg-orange-600 rounded-full h-[10px] w-[10px]" />
             ) : (
               <span className="w-[18px]" /> 
             )}
           </div>
           
-          {/* Checkmarks - fixed height slot */}
+          {/* Checkmarks - dynamically computed from last message status */}
           <div className="w-[18px] h-[18px] flex items-center justify-center">
-            {getMessageStatusIcon(chat.messageStatus)}
+            {getMessageStatusIcon(getLastMessageStatus(chat))}
           </div>
           
-          {/* Horizontal 3-dot menu - fixed height slot, only for member chats */}
+          {/* Horizontal 3-dot menu - available for all chats */}
           <div className="h-[18px] flex items-center justify-center">
-            {!isCompanyChat ? (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onMenuClick(chat.id);
-                }}
-                className="w-[18px] h-[18px] flex items-center justify-center text-gray-400 hover:text-orange-400 rounded hover:bg-gray-800 transition-colors"
-              >
-                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
-                </svg>
-              </button>
-            ) : (
-              <span className="w-[18px]" />
-            )}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onMenuClick(chat.id);
+              }}
+              className="w-[18px] h-[18px] flex items-center justify-center text-gray-400 hover:text-orange-400 rounded hover:bg-gray-800 transition-colors"
+            >
+              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
+              </svg>
+            </button>
           </div>
         </div>
 
         {/* Chat Menu Dropdown */}
-        {showChatMenu === chat.id && !isCompanyChat && (
+        {showChatMenu === chat.id && (
           <div
             ref={chatMenuRef}
-            className="absolute right-4 top-16 w-48 bg-[#1C1C1C] border border-gray-700 rounded-lg shadow-lg py-1 z-20"
+            className={`absolute right-4 w-48 bg-[#1C1C1C] border border-gray-700 rounded-lg shadow-lg py-1 z-20 ${
+              shouldOpenUpward() ? 'bottom-16' : 'top-16'
+            }`}
           >
+            {/* Mark as read/unread - available for all chat types */}
             <button
               className="w-full px-3 py-2 text-sm text-left hover:bg-gray-800 text-gray-300 flex items-center gap-2 transition-colors"
-              onClick={(e) => chat.isRead ? handleMarkChatAsUnread(chat.id, e) : handleMarkChatAsRead(chat.id, e)}
+              onClick={(e) => {
+                const hasUnread = getUnreadCount(chat) > 0 || chat.markedUnread;
+                hasUnread ? handleMarkChatAsRead(chat.id, e, isCompanyChat) : handleMarkChatAsUnread(chat.id, e, isCompanyChat);
+              }}
             >
-              {chat.isRead ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              Mark as {chat.isRead ? "unread" : "read"}
+              {(getUnreadCount(chat) > 0 || chat.markedUnread) ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+              Mark as {(getUnreadCount(chat) > 0 || chat.markedUnread) ? "read" : "unread"}
             </button>
-            <button
-              className="w-full px-3 py-2 text-sm text-left hover:bg-gray-800 text-gray-300 flex items-center gap-2 transition-colors"
-              onClick={(e) => handlePinChat(chat.id, e)}
-            >
-              {pinnedChats.has(chat.id) ? <PinOff className="w-4 h-4" /> : <Pin className="w-4 h-4" />}
-              {pinnedChats.has(chat.id) ? "Unpin" : "Pin"} chat
-            </button>
-            <button
-              className="w-full px-3 py-2 text-sm text-left hover:bg-gray-800 text-gray-300 flex items-center gap-2 transition-colors"
-              onClick={(e) => handleArchiveChat(chat.id, e)}
-            >
-              <Archive className="w-4 h-4" />
-              Archive chat
-            </button>
-            <button
-              className="w-full px-3 py-2 text-sm text-left hover:bg-gray-800 text-gray-300 flex items-center gap-2 transition-colors"
-              onClick={(e) => handleViewMember(chat.id, e)}
-            >
-              <User className="w-4 h-4" />
-              View Member
-            </button>
+            
+            {/* Additional options - only for member chats */}
+            {!isCompanyChat && (
+              <>
+                <button
+                  className="w-full px-3 py-2 text-sm text-left hover:bg-gray-800 text-gray-300 flex items-center gap-2 transition-colors"
+                  onClick={(e) => handlePinChat(chat.id, e)}
+                >
+                  {pinnedChats.has(chat.id) ? <PinOff className="w-4 h-4" /> : <Pin className="w-4 h-4" />}
+                  {pinnedChats.has(chat.id) ? "Unpin" : "Pin"} chat
+                </button>
+                <button
+                  className="w-full px-3 py-2 text-sm text-left hover:bg-gray-800 text-gray-300 flex items-center gap-2 transition-colors"
+                  onClick={(e) => handleArchiveChat(chat.id, e)}
+                >
+                  <Archive className="w-4 h-4" />
+                  Archive chat
+                </button>
+                <button
+                  className="w-full px-3 py-2 text-sm text-left hover:bg-gray-800 text-gray-300 flex items-center gap-2 transition-colors"
+                  onClick={(e) => handleViewMember(chat.id, e)}
+                >
+                  <User className="w-4 h-4" />
+                  View Member
+                </button>
+              </>
+            )}
           </div>
         )}
       </div>
@@ -1333,7 +1595,7 @@ export default function Communications() {
   };
 
   return (
-    <div className="relative flex h-[92vh] bg-[#1C1C1C] text-gray-200 rounded-3xl" style={{ overflow: 'hidden', maxHeight: '92vh' }}>
+    <div className="relative flex h-[92vh] max-h-[92vh] bg-[#1C1C1C] text-gray-200 rounded-3xl overflow-hidden">
       <ToastContainer />
 
       {/* Chat List Sidebar - Fixed height container */}
@@ -1364,9 +1626,9 @@ export default function Communications() {
               >
                 <User size={16} className="mr-2" />
                 Member
-                {unreadMessagesCount.member > 0 && (
+                {getTotalUnreadCount("member") > 0 && (
                   <span className="absolute top-0.5 right-0.5 bg-orange-600 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center">
-                    {unreadMessagesCount.member}
+                    {getTotalUnreadCount("member")}
                   </span>
                 )}
               </button>
@@ -1383,9 +1645,9 @@ export default function Communications() {
               >
                 <Building2 size={16} className="mr-2" />
                 Studio
-                {unreadMessagesCount.company > 0 && (
+                {getTotalUnreadCount("company") > 0 && (
                   <span className="absolute top-0.5 right-0.5 bg-orange-600 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center">
-                    {unreadMessagesCount.company}
+                    {getTotalUnreadCount("company")}
                   </span>
                 )}
               </button>
@@ -1442,6 +1704,8 @@ export default function Communications() {
                     isSelected={selectedChat?.id === chat.id}
                     onSelect={handleChatSelect}
                     onMenuClick={(id) => setShowChatMenu(showChatMenu === id ? null : id)}
+                    index={index}
+                    totalChats={searchResults.length}
                   />
                 )
               ))
@@ -1464,6 +1728,8 @@ export default function Communications() {
                             isSelected={selectedChat?.id === chat.id}
                             onSelect={handleChatSelect}
                             onMenuClick={(id) => setShowChatMenu(showChatMenu === id ? null : id)}
+                            index={index}
+                            totalChats={pinned.length + unpinned.length}
                           />
                         ))}
                         {/* Divider between pinned and unpinned */}
@@ -1490,6 +1756,8 @@ export default function Communications() {
                           isSelected={selectedChat?.id === chat.id}
                           onSelect={handleChatSelect}
                           onMenuClick={(id) => setShowChatMenu(showChatMenu === id ? null : id)}
+                          index={pinned.length + index}
+                          totalChats={pinned.length + unpinned.length}
                         />
                       );
                     })}
@@ -1511,7 +1779,7 @@ export default function Communications() {
       </div>
 
       {/* Main Chat Area - Desktop only, Mobile uses Fullscreen Overlay */}
-      <div className="hidden md:flex flex-1 flex-col min-w-0" style={{ height: '92vh', maxHeight: '92vh', overflow: 'hidden' }}>
+      <div className="hidden md:flex flex-1 flex-col min-w-0 h-[92vh] max-h-[92vh] overflow-hidden">
         {!selectedChat && activeScreen === "chat" && (
           <div className="flex flex-col items-center justify-center h-full text-center p-6">
             <div className="mb-6">
@@ -1533,7 +1801,7 @@ export default function Communications() {
               <div className="flex items-center gap-3">
                 {/* Clickable Profile Container */}
                 <div 
-                  className={`flex items-center gap-3 px-3 py-2 bg-black rounded-xl ${chatType !== "company" ? "cursor-pointer hover:bg-gray-900 transition-colors" : ""}`}
+                  className={`flex items-center gap-3 px-3 py-2 bg-black rounded-xl ${chatType !== "company" ? "cursor-pointer hover:bg-gray-700 active:scale-[0.98] transition-all duration-200" : ""}`}
                   onClick={(e) => {
                     if (chatType !== "company") {
                       handleViewMember(selectedChat.id, e)
@@ -1541,11 +1809,11 @@ export default function Communications() {
                   }}
                 >
                   <div className="relative">
-                    {/* Show image only for main studio chat (ID 100) or real uploaded images */}
-                    {selectedChat.id === 100 && selectedChat.logo ? (
+                    {/* Show image for studio chat or real uploaded images */}
+                    {selectedChat.id === 100 ? (
                       <img
-                        src={selectedChat.logo}
-                        alt="Current chat avatar"
+                        src={selectedChat.logo || DefaultAvatar}
+                        alt="Studio"
                         className="w-11 h-11 rounded-xl object-cover"
                       />
                     ) : selectedChat.logo && selectedChat.logo !== DefaultAvatar && !selectedChat.logo?.includes('placeholder') ? (
@@ -1825,7 +2093,7 @@ export default function Communications() {
             )}
 
             {/* Input Area - Fixed at bottom like WhatsApp */}
-            <div className="p-4 border-t border-gray-800 flex-shrink-0 bg-[#1C1C1C] relative">
+            <div className="px-4 pt-4 pb-6 border-t border-gray-800 flex-shrink-0 bg-[#1C1C1C] relative">
               <div className="flex items-end gap-2 bg-black rounded-xl p-2">
                 <button
                   className="p-2 hover:bg-gray-700 rounded-full flex items-center justify-center flex-shrink-0"
@@ -2033,7 +2301,7 @@ export default function Communications() {
               
               {/* Profile Container */}
               <div 
-                className={`flex items-center gap-2 px-2 py-1.5 bg-black rounded-xl ${chatType !== "company" ? "cursor-pointer hover:bg-gray-900 transition-colors" : ""}`}
+                className={`flex items-center gap-2 px-2 py-1.5 bg-black rounded-xl ${chatType !== "company" ? "cursor-pointer hover:bg-gray-700 active:scale-[0.98] transition-all duration-200" : ""}`}
                 onClick={(e) => {
                   if (chatType !== "company") {
                     handleViewMember(selectedChat.id, e);
@@ -2041,10 +2309,10 @@ export default function Communications() {
                 }}
               >
                 <div className="relative">
-                  {selectedChat.id === 100 && selectedChat.logo ? (
+                  {selectedChat.id === 100 ? (
                     <img
-                      src={selectedChat.logo}
-                      alt="Current chat avatar"
+                      src={selectedChat.logo || DefaultAvatar}
+                      alt="Studio"
                       className="w-8 h-8 rounded-lg object-cover"
                     />
                   ) : selectedChat.logo && selectedChat.logo !== DefaultAvatar && !selectedChat.logo?.includes('placeholder') ? (
@@ -2409,8 +2677,8 @@ export default function Communications() {
         </button>
       )}
 
-      {/* Modals - high z-index to appear above everything */}
-      <div className="relative z-[9999]">
+      {/* Modals - rendered outside of flex layout flow */}
+      <>
         <ShowAppointmentModal
           isOpen={showAppointmentModal}
           selectedMemberMain={selectedMember}
@@ -2472,11 +2740,24 @@ export default function Communications() {
         <CreateAppointmentModal
           isOpen={showCreateAppointmentModal}
           onClose={() => setShowCreateAppointmentModal(false)}
-          appointmentTypes={appointmentTypes}
+          appointmentTypesMain={appointmentTypes}
           onSubmit={handleAddAppointmentSubmit}
-          setIsNotifyMemberOpen={setIsNotifyMemberOpen}
-          setNotifyAction={setNotifyAction}
-          freeAppointments={freeAppointments}
+          setIsNotifyMemberOpenMain={setIsNotifyMemberOpen}
+          setNotifyActionMain={setNotifyAction}
+          freeAppointmentsMain={freeAppointmentsData}
+          availableMembersLeads={availableMembersLeadsMain}
+          searchMembersMain={searchMembersMain}
+          selectedMemberMain={selectedChat && chatType === "member" ? {
+            id: selectedChat.id,
+            name: selectedChat.name,
+            firstName: selectedChat.name?.split(" ")[0] || "",
+            lastName: selectedChat.name?.split(" ").slice(1).join(" ") || "",
+            image: selectedChat.logo,
+            title: selectedChat.name,
+          } : null}
+          memberCredits={selectedChat && chatType === "member" ? memberContingentData[selectedChat.id] : null}
+          currentBillingPeriod={currentBillingPeriod}
+          memberRelations={memberRelationsNew}
         />
       )}
 
@@ -2485,7 +2766,7 @@ export default function Communications() {
           selectedAppointmentMain={selectedAppointmentData}
           setSelectedAppointmentMain={setSelectedAppointmentData}
           appointmentTypesMain={appointmentTypes}
-          freeAppointmentsMain={freeAppointments}
+          freeAppointmentsMain={freeAppointmentsData}
           handleAppointmentChange={handleAppointmentChange}
           appointmentsMain={appointments}
           setAppointmentsMain={setAppointments}
@@ -2552,7 +2833,7 @@ export default function Communications() {
         onConfirm={handleConfirmViewMember}
         memberName={selectedMemberForConfirmation ? `${selectedMemberForConfirmation.firstName || ''} ${selectedMemberForConfirmation.lastName || ''}`.trim() || selectedMemberForConfirmation.name : ''}
       />
-      </div>
+      </>
     </div>
   )
 }

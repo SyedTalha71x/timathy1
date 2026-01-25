@@ -21,7 +21,7 @@ import toast, { Toaster } from "react-hot-toast"
 import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
 
 import { useSidebarSystem } from "../../hooks/useSidebarSystem"
-import { appointmentsData as initialAppointmentsData } from "../../utils/user-panel-states/appointment-states"
+import { appointmentsData as initialAppointmentsData } from "../../utils/user-panel-states/app-states"
 
 import TrialTrainingModal from "../../components/user-panel-components/appointments-components/add-trial-training"
 import CreateAppointmentModal from "../../components/user-panel-components/appointments-components/add-appointment-modal"

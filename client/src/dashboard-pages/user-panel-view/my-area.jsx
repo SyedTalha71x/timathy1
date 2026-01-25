@@ -55,7 +55,7 @@ import { createPortal } from "react-dom"
 import AnalyticsChartWidget from "../../components/myarea-components/widgets/AnalyticsChartWidget"
 
 
-import { appointmentsData } from "../../utils/user-panel-states/appointment-states"
+import { appointmentsData } from "../../utils/user-panel-states/app-states"
 
 export default function MyArea() {
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)

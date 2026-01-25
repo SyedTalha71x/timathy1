@@ -4,6 +4,20 @@
 import React from 'react';
 import { X, Edit3, Trash2, Plus } from 'lucide-react';
 
+// Helper function to extract hex color from various formats
+const getColorHex = (type) => {
+  if (!type) return "#808080";
+  // If colorHex exists, use it directly
+  if (type.colorHex) return type.colorHex;
+  // If color is a hex value, use it
+  if (type.color?.startsWith("#")) return type.color;
+  // If color is a Tailwind class like bg-[#FF843E], extract the hex
+  const match = type.color?.match(/#[A-Fa-f0-9]{6}/);
+  if (match) return match[0];
+  // Default fallback
+  return "#808080";
+};
+
 const AppointmentModalMain = ({
   isOpen,
   onClose,
@@ -90,7 +104,8 @@ const AppointmentModalMain = ({
                 const appointmentType = appointmentTypesMain.find(
                   (type) => type.name === appointment.type
                 );
-                const bgColor = appointmentType?.color || "#374151";
+                // Use getColorHex to extract hex color from various formats
+                const bgColor = getColorHex(appointmentType) || "#374151";
                 
                 return (
                   <div

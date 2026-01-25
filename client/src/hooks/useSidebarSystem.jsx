@@ -18,7 +18,7 @@ import {
   notificationData,
   todosData,
 } from "../utils/user-panel-states/myarea-states"
-import { appointmentsData } from "../utils/user-panel-states/appointment-states"
+import { appointmentsData } from "../utils/user-panel-states/app-states"
 import { createPortal } from "react-dom"
 
 export const useSidebarSystem = () => {

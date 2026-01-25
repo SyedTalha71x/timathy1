@@ -6,6 +6,20 @@ import React, { useState, useEffect, useRef } from "react";
 import { X, Clock, User, ChevronDown, Trash2, AlertTriangle, Check, Users } from "lucide-react";
 import { MemberSpecialNoteIcon } from '../../shared/shared-special-note-icon';
 
+// Helper function to extract hex color from various formats
+const getColorHex = (type) => {
+  if (!type) return "#808080";
+  // If colorHex exists, use it directly
+  if (type.colorHex) return type.colorHex;
+  // If color is a hex value, use it
+  if (type.color?.startsWith("#")) return type.color;
+  // If color is a Tailwind class like bg-[#FF843E], extract the hex
+  const match = type.color?.match(/#[A-Fa-f0-9]{6}/);
+  if (match) return match[0];
+  // Default fallback
+  return "#808080";
+};
+
 // Initials Avatar Component
 const InitialsAvatar = ({ name, size = 32, className = "" }) => {
   const getInitials = () => {
@@ -29,12 +43,18 @@ const InitialsAvatar = ({ name, size = 32, className = "" }) => {
 const AppointmentTypeDropdown = ({ 
   value, 
   onChange, 
-  appointmentTypes = [] 
+  appointmentTypes = [],
+  showTrialTypes = false 
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  const selectedType = appointmentTypes.find(t => t.name === value);
+  // Filter out trial types unless explicitly requested
+  const filteredTypes = showTrialTypes 
+    ? appointmentTypes 
+    : appointmentTypes.filter(t => !t.isTrialType);
+
+  const selectedType = filteredTypes.find(t => t.name === value);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -57,7 +77,7 @@ const AppointmentTypeDropdown = ({
           <div className="flex items-center gap-3">
             <div 
               className="w-3 h-3 rounded-full flex-shrink-0"
-              style={{ backgroundColor: selectedType.color }}
+              style={{ backgroundColor: getColorHex(selectedType) }}
             />
             <span className="text-white">{selectedType.name}</span>
             <span className="text-gray-500 text-xs">({selectedType.duration} min)</span>
@@ -70,7 +90,7 @@ const AppointmentTypeDropdown = ({
 
       {isOpen && (
         <div className="absolute left-0 right-0 mt-1 bg-[#1C1C1C] border border-gray-700 rounded-xl shadow-xl z-20 max-h-64 overflow-y-auto">
-          {appointmentTypes.map((type) => (
+          {filteredTypes.map((type) => (
             <button
               key={type.name}
               onClick={() => {
@@ -83,7 +103,7 @@ const AppointmentTypeDropdown = ({
             >
               <div 
                 className="w-4 h-4 rounded-full flex-shrink-0"
-                style={{ backgroundColor: type.color }}
+                style={{ backgroundColor: getColorHex(type) }}
               />
               <div className="flex-1">
                 <div className="text-sm text-white">{type.name}</div>

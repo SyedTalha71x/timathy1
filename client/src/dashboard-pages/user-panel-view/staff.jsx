@@ -30,7 +30,7 @@ import EditStaffModal from "../../components/user-panel-components/staff-compone
 import StaffPlanningModal from "../../components/user-panel-components/staff-components/staff-planning-modal"
 import VacationCalendarModal from "../../components/user-panel-components/staff-components/vacation-calendar-modal"
 import StaffHistoryModal from "../../components/user-panel-components/staff-components/staff-history-modal"
-import { StaffColorIndicator, staffMemberDataNew } from "../../utils/user-panel-states/staff-states"
+import { StaffColorIndicator, staffMemberDataNew } from "../../utils/user-panel-states/app-states"
 import { useSidebarSystem } from "../../hooks/useSidebarSystem"
 import { trainingVideosData } from "../../utils/user-panel-states/training-states"
 import Sidebar from "../../components/central-sidebar"
