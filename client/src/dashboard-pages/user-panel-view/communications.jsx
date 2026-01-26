@@ -13,6 +13,8 @@ import {
   Send,
   Calendar,
   Mail,
+  MailCheck,
+  MailOpen,
   Archive,
   Eye,
   EyeOff,
@@ -37,6 +39,7 @@ import {
   XCircle,
   Inbox,
   Paperclip,
+  RefreshCw,
 } from "lucide-react"
 
 import { ToastContainer } from "react-toastify"
@@ -58,7 +61,7 @@ import EditMemberModalMain from "../../components/user-panel-components/members-
 // EmailManagement removed - Email is now natively integrated
 // import EmailManagement from "../../components/user-panel-components/communication-components/EmailManagement"
 import ContingentModal from "../../components/shared/appointments/ShowContigentModal"
-import CreateMessageModal from "../../components/user-panel-components/communication-components/CreateMessageModal"
+// import CreateMessageModal from "../../components/user-panel-components/communication-components/CreateMessageModal"
 import AddBillingPeriodModal from "../../components/shared/appointments/AddBillingPeriodModal"
 import NotifyMemberModal from "../../components/shared/appointments/NotifyMemberModal"
 import ArchiveModal from "../../components/user-panel-components/communication-components/ArchiveModal"
@@ -68,6 +71,241 @@ import BroadcastModal from "../../components/user-panel-components/communication
 import ShowAppointmentModal from "../../components/shared/appointments/ShowAppointmentModal"
 import EditAppointmentModalMain from '../../components/shared/appointments/EditAppointmentModal'
 import ViewMemberConfirmationModal from "../../components/user-panel-components/communication-components/broadcast-modal-components/ViewConfirmationModal"
+
+
+// ==========================================
+// EMAIL TAG COMPONENTS - for reply modal
+// ==========================================
+const ReplyEmailTag = ({ recipient, onRemove }) => {
+  const isManual = !recipient.id;
+  const displayName = recipient.name || `${recipient.firstName || ''} ${recipient.lastName || ''}`.trim();
+  const isStaff = recipient.type === 'staff';
+  const avatarBgColor = isStaff ? 'bg-blue-500' : 'bg-orange-500';
+  
+  // Get two initials like SendEmailModal
+  const getInitials = () => {
+    const firstInitial = recipient.firstName?.charAt(0)?.toUpperCase() || recipient.name?.charAt(0)?.toUpperCase() || '';
+    const lastInitial = recipient.lastName?.charAt(0)?.toUpperCase() || recipient.name?.split(' ')[1]?.charAt(0)?.toUpperCase() || '';
+    return `${firstInitial}${lastInitial}` || '?';
+  };
+  
+  return (
+    <div className="flex items-center gap-1.5 bg-[#2a2a2a] border border-gray-700 rounded-lg px-2 py-1 text-sm">
+      {isManual ? (
+        <Mail className="w-3.5 h-3.5 text-gray-400" />
+      ) : recipient.image ? (
+        <img 
+          src={recipient.image} 
+          alt="" 
+          className="w-5 h-5 rounded object-cover"
+        />
+      ) : (
+        <div 
+          className={`w-5 h-5 rounded ${avatarBgColor} flex items-center justify-center text-white font-semibold`}
+          style={{ fontSize: '8px' }}
+        >
+          {getInitials()}
+        </div>
+      )}
+      <span className="text-white text-xs">
+        {isManual ? recipient.email : (
+          <>
+            {displayName}
+            {recipient.email && <span className="text-gray-400 ml-1">&lt;{recipient.email}&gt;</span>}
+          </>
+        )}
+      </span>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onRemove();
+        }}
+        className="p-0.5 hover:bg-gray-600 rounded transition-colors ml-0.5"
+      >
+        <X className="w-3 h-3 text-gray-400 hover:text-white" />
+      </button>
+    </div>
+  );
+};
+
+const ReplyEmailTagInput = ({ 
+  recipients, 
+  setRecipients, 
+  searchMembers, 
+  placeholder,
+  label,
+  showRemoveButton = false,
+  onRemoveField,
+  showAddCc = false,
+  onAddCc,
+  showAddBcc = false,
+  onAddBcc
+}) => {
+  const [inputValue, setInputValue] = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
+  const inputRef = useRef(null);
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    if (inputValue.length > 0 && searchMembers) {
+      const results = searchMembers(inputValue);
+      const filtered = results.filter(
+        member => !recipients.some(r => r.id === member.id || r.email === member.email)
+      );
+      setSearchResults(filtered);
+      setShowDropdown(true);
+    } else {
+      setSearchResults([]);
+      setShowDropdown(false);
+    }
+  }, [inputValue, searchMembers, recipients]);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+  const addManualEmail = () => {
+    const email = inputValue.trim();
+    if (email && isValidEmail(email)) {
+      if (!recipients.some(r => r.email === email)) {
+        setRecipients([...recipients, { email, isManual: true }]);
+      }
+      setInputValue("");
+      setShowDropdown(false);
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (searchResults.length > 0) {
+        selectMember(searchResults[0]);
+      } else if (inputValue.trim()) {
+        addManualEmail();
+      }
+    } else if (e.key === 'Backspace' && !inputValue && recipients.length > 0) {
+      setRecipients(recipients.slice(0, -1));
+    } else if (e.key === ',' || e.key === ';') {
+      e.preventDefault();
+      if (inputValue.trim()) {
+        addManualEmail();
+      }
+    }
+  };
+
+  const selectMember = (member) => {
+    setRecipients([...recipients, {
+      id: member.id,
+      email: member.email,
+      name: member.name || `${member.firstName} ${member.lastName}`,
+      firstName: member.firstName,
+      lastName: member.lastName,
+      image: member.image,
+      type: member.type // Keep track of member/staff type
+    }]);
+    setInputValue("");
+    setShowDropdown(false);
+    inputRef.current?.focus();
+  };
+
+  const removeRecipient = (index) => {
+    setRecipients(recipients.filter((_, i) => i !== index));
+  };
+
+  return (
+    <div ref={containerRef} className="relative">
+      {label && (
+        <div className="flex items-center justify-between mb-1">
+          <label className="text-sm font-medium text-gray-400">{label}</label>
+          <div className="flex items-center gap-2">
+            {showAddCc && (
+              <button onClick={onAddCc} className="text-xs text-orange-500 hover:text-orange-400 transition-colors">
+                + CC
+              </button>
+            )}
+            {showAddBcc && (
+              <button onClick={onAddBcc} className="text-xs text-orange-500 hover:text-orange-400 transition-colors">
+                + BCC
+              </button>
+            )}
+            {showRemoveButton && (
+              <button onClick={onRemoveField} className="text-xs text-gray-500 hover:text-gray-400 transition-colors">
+                Remove
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+      <div 
+        className="bg-[#222222] rounded-xl px-3 py-2 min-h-[42px] flex flex-wrap items-center gap-1.5 cursor-text focus-within:bg-[#2a2a2a] transition-colors"
+        onClick={() => inputRef.current?.focus()}
+      >
+        {recipients.map((recipient, index) => (
+          <ReplyEmailTag 
+            key={recipient.id || recipient.email} 
+            recipient={recipient}
+            onRemove={() => removeRecipient(index)}
+          />
+        ))}
+        <div className="flex-1 min-w-[120px]">
+          <input
+            ref={inputRef}
+            type="text"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={handleKeyDown}
+            onFocus={() => inputValue.length > 0 && setShowDropdown(true)}
+            placeholder={recipients.length === 0 ? placeholder : ""}
+            className="w-full bg-transparent text-white text-sm outline-none placeholder:text-gray-500"
+          />
+        </div>
+      </div>
+      
+      {showDropdown && searchResults.length > 0 && (
+        <div className="absolute top-full left-0 right-0 mt-1 bg-[#1C1C1C] border border-gray-800 rounded-xl shadow-xl z-50 max-h-48 overflow-y-auto">
+          {searchResults.map((member) => (
+            <button
+              key={member.id}
+              onClick={() => selectMember(member)}
+              className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-[#2F2F2F] transition-colors text-left"
+            >
+              {member.image ? (
+                <img
+                  src={member.image}
+                  alt=""
+                  className="h-8 w-8 rounded-lg object-cover"
+                />
+              ) : (
+                <div 
+                  className={`w-8 h-8 rounded-lg ${member.type === 'staff' ? 'bg-blue-500' : 'bg-orange-500'} flex items-center justify-center text-white font-semibold`}
+                  style={{ fontSize: '13px' }}
+                >
+                  {`${member.firstName?.charAt(0)?.toUpperCase() || ''}${member.lastName?.charAt(0)?.toUpperCase() || member.name?.split(' ')[1]?.charAt(0)?.toUpperCase() || ''}` || '?'}
+                </div>
+              )}
+              <div>
+                <div className="text-sm text-white">
+                  {member.name || `${member.firstName} ${member.lastName}`}
+                  {member.type === 'staff' && <span className="ml-2 text-xs text-blue-400">(Staff)</span>}
+                </div>
+                <div className="text-xs text-gray-400">{member.email}</div>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 
 // ==========================================
@@ -188,7 +426,11 @@ export default function Communications() {
   const [showCopiedToast, setShowCopiedToast] = useState(false)
 
   // Email States
-  const [emailList, setEmailList] = useState(emailListNew)
+  const [emailList, setEmailList] = useState(() => ({
+    ...emailListNew,
+    error: emailListNew.error || [], // Ensure error folder exists
+    trash: emailListNew.trash || []  // Ensure trash folder exists
+  }))
   const [emailTemplates, setEmailTemplates] = useState(emailTemplatesNew)
   const [selectedEmailTemplate, setSelectedEmailTemplate] = useState(null)
   const [emailData, setEmailData] = useState({
@@ -200,10 +442,11 @@ export default function Communications() {
   // Modal States
   const [showDraftModal, setShowDraftModal] = useState(false)
   const [showEmailModal, setShowEmailModal] = useState(false)
+  const [editingDraft, setEditingDraft] = useState(null) // Track draft being edited
   const [showBroadcastModal, setShowBroadcastModal] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [showArchive, setShowArchive] = useState(false)
-  const [showCreateMessageModal, setShowCreateMessageModal] = useState(false)
+  // const [showCreateMessageModal, setShowCreateMessageModal] = useState(false)
   const [showContingentModal, setShowContingentModal] = useState(false)
   const [showAddBillingPeriodModal, setShowAddBillingPeriodModal] = useState(false)
   const [showAppointmentModal, setShowAppointmentModal] = useState(false)
@@ -225,10 +468,18 @@ export default function Communications() {
   const [selectedEmail, setSelectedEmail] = useState(null)
   const [emailSearchQuery, setEmailSearchQuery] = useState("")
   const [showReplyModal, setShowReplyModal] = useState(false)
-  const [replyData, setReplyData] = useState({ to: "", toName: "", cc: "", bcc: "", subject: "", body: "" })
+  const [replyData, setReplyData] = useState({ subject: "", body: "" })
+  const [replyToRecipients, setReplyToRecipients] = useState([])
+  const [replyCcRecipients, setReplyCcRecipients] = useState([])
+  const [replyBccRecipients, setReplyBccRecipients] = useState([])
+  const [showReplyCc, setShowReplyCc] = useState(false)
+  const [showReplyBcc, setShowReplyBcc] = useState(false)
   const [replyAttachments, setReplyAttachments] = useState([])
-  const [showOriginalMessage, setShowOriginalMessage] = useState(true)
-
+  const [selectedEmailIds, setSelectedEmailIds] = useState([])
+  const [showDraftConfirmModal, setShowDraftConfirmModal] = useState(false)
+  const replyEditorRef = useRef(null)
+  const replySubjectRef = useRef(null)
+  const replyAttachmentInputRef = useRef(null)
   // Data States
   const [appointmentNotificationTypes, setAppointmentNotificationTypes] = useState(appointmentNotificationTypesNew)
   const [unreadMessagesCount, setUnreadMessagesCount] = useState({
@@ -1145,15 +1396,42 @@ export default function Communications() {
   }
 
   // Email helper functions
+  const getEmailFolderCount = (folderId) => {
+    if (folderId === "archive") {
+      return Object.values(emailList).filter(arr => Array.isArray(arr)).flat().filter(e => e?.isArchived).length
+    }
+    return (emailList[folderId] || []).filter(e => !e?.isArchived).length
+  }
+
+  // Get unread count for a specific folder
+  const getUnreadCountForFolder = (folderId) => {
+    if (folderId === "archive") {
+      return Object.values(emailList).filter(arr => Array.isArray(arr)).flat().filter(e => e?.isArchived && !e.isRead).length
+    }
+    return (emailList[folderId] || []).filter(e => !e.isRead && !e?.isArchived).length
+  }
+
+  // Get total unread emails from all folders (except trash)
+  const getTotalUnreadEmails = () => {
+    let count = 0
+    Object.keys(emailList).forEach(folder => {
+      if (folder !== "trash" && Array.isArray(emailList[folder])) {
+        count += emailList[folder].filter(e => !e.isRead && !e.isArchived).length
+      }
+    })
+    return count
+  }
+
   const emailFolders = [
-    { id: "inbox", label: "Inbox", icon: Inbox, showCount: true, count: () => emailList.inbox?.filter(e => !e.isRead && !e.isArchived).length || 0 },
-    { id: "sent", label: "Sent", icon: Send, showCount: false },
-    { id: "draft", label: "Drafts", icon: FileText, showCount: false },
-    { id: "archive", label: "Archive", icon: Archive, showCount: false },
-    { id: "trash", label: "Trash", icon: Trash2, showCount: false },
+    { id: "inbox", label: "Inbox", icon: Inbox },
+    { id: "sent", label: "Sent", icon: Send },
+    { id: "draft", label: "Drafts", icon: FileText },
+    { id: "archive", label: "Archive", icon: Archive },
+    { id: "error", label: "Failed", icon: XCircle },
+    { id: "trash", label: "Trash", icon: Trash2 },
   ]
 
-  const getFilteredEmails = () => {
+  const getFilteredEmails = (includePinned = true) => {
     let emails = emailList[emailTab] || []
     if (!Array.isArray(emails)) emails = []
 
@@ -1174,16 +1452,40 @@ export default function Communications() {
       emails = emails.filter(e => e && !e.isArchived)
     }
 
-    return emails.sort((a, b) => {
-      if (a.isPinned && !b.isPinned) return -1
-      if (!a.isPinned && b.isPinned) return 1
-      return new Date(b.time) - new Date(a.time)
-    })
+    // Filter out pinned if not including them
+    if (!includePinned) {
+      emails = emails.filter(e => !e.isPinned)
+    }
+
+    return emails.sort((a, b) => new Date(b.time) - new Date(a.time))
   }
 
   const handleEmailItemClick = (email) => {
-    setSelectedEmail(email)
-    if (!email.isRead && emailTab === "inbox") {
+    // Check if this is a draft - open in SendEmailModal instead
+    if (emailTab === "draft" || email.status === "Draft") {
+      // Parse recipients from draft
+      const toRecipients = email.recipientEmail 
+        ? email.recipientEmail.split(",").map(e => e.trim()).filter(Boolean).map(email => ({ 
+            email, 
+            name: email,
+            isManual: true 
+          }))
+        : []
+      
+      // Set email data for the modal
+      setEmailData({
+        subject: email.subject || "",
+        body: email.body || "",
+      })
+      
+      // Store draft reference for deletion after sending
+      setEditingDraft(email)
+      setShowEmailModal(true)
+      return
+    }
+    
+    // Mark as read when opening the email
+    if (!email.isRead) {
       setEmailList(prev => {
         const newList = { ...prev }
         Object.keys(newList).forEach(folder => {
@@ -1193,6 +1495,10 @@ export default function Communications() {
         })
         return newList
       })
+      // Update selectedEmail with isRead: true
+      setSelectedEmail({ ...email, isRead: true })
+    } else {
+      setSelectedEmail(email)
     }
   }
 
@@ -1206,63 +1512,280 @@ export default function Communications() {
       })
       return newList
     })
+    // Also update selectedEmail if it's the one being updated
+    if (selectedEmail?.id === emailId) {
+      setSelectedEmail(prev => prev ? { ...prev, ...updates } : null)
+    }
   }
 
   const moveEmailToTrash = (emailId) => {
     setEmailList(prev => {
-      const newList = { ...prev }
       let emailToMove = null
-      Object.keys(newList).forEach(folder => {
-        if (folder !== "trash" && Array.isArray(newList[folder])) {
-          const idx = newList[folder].findIndex(e => e.id === emailId)
-          if (idx !== -1) {
-            emailToMove = newList[folder][idx]
-            newList[folder].splice(idx, 1)
+      let sourceFolder = null
+      
+      // Find the email and its folder (including error folder, but not trash)
+      Object.keys(prev).forEach(folder => {
+        if (folder !== "trash" && Array.isArray(prev[folder])) {
+          const email = prev[folder].find(e => e.id === emailId)
+          if (email) {
+            emailToMove = email
+            sourceFolder = folder
           }
         }
       })
-      if (emailToMove) {
-        newList.trash = [...(newList.trash || []), { ...emailToMove, deletedAt: new Date().toISOString() }]
+      
+      if (!emailToMove || !sourceFolder) return prev
+      
+      // Create new state with email moved to trash
+      return {
+        ...prev,
+        [sourceFolder]: prev[sourceFolder].filter(e => e.id !== emailId),
+        trash: [...(prev.trash || []), { ...emailToMove, deletedAt: new Date().toISOString() }]
       }
-      return newList
     })
     if (selectedEmail?.id === emailId) setSelectedEmail(null)
   }
 
+  // Retry sending a failed email
+  const retryFailedEmail = (email) => {
+    // Move from error to sent with updated timestamp
+    setEmailList(prev => ({
+      ...prev,
+      error: (prev.error || []).filter(e => e.id !== email.id),
+      sent: [{ ...email, status: "Sent", time: new Date().toISOString() }, ...(prev.sent || [])]
+    }))
+    if (selectedEmail?.id === email.id) setSelectedEmail(null)
+  }
+
+  // Delete permanently from trash only
+  const permanentlyDeleteEmail = (emailId) => {
+    setEmailList(prev => ({
+      ...prev,
+      trash: (prev.trash || []).filter(e => e.id !== emailId)
+    }))
+    if (selectedEmail?.id === emailId) setSelectedEmail(null)
+  }
+
   const handleEmailReply = (email) => {
+    if (!email) return
+    
+    // Try to find the sender in members or staff data
+    const senderEmail = email.senderEmail || ""
+    const senderName = email.sender || ""
+    
+    // Search for sender in membersData
+    let senderData = membersData.find(m => 
+      m.email?.toLowerCase() === senderEmail.toLowerCase()
+    )
+    
+    // If not found in members, search in staffData
+    if (!senderData) {
+      const staffMember = staffData.find(s => 
+        s.email?.toLowerCase() === senderEmail.toLowerCase()
+      )
+      if (staffMember) {
+        senderData = {
+          id: `staff-${staffMember.id}`,
+          email: staffMember.email,
+          name: `${staffMember.firstName || ''} ${staffMember.lastName || ''}`.trim(),
+          firstName: staffMember.firstName,
+          lastName: staffMember.lastName,
+          image: staffMember.img,
+          type: 'staff'
+        }
+      }
+    } else {
+      senderData = {
+        id: `member-${senderData.id}`,
+        email: senderData.email,
+        name: `${senderData.firstName || ''} ${senderData.lastName || ''}`.trim(),
+        firstName: senderData.firstName,
+        lastName: senderData.lastName,
+        image: senderData.image,
+        type: 'member'
+      }
+    }
+    
+    // Set initial recipient - use found data or fallback to manual entry
+    if (senderData) {
+      setReplyToRecipients([senderData])
+    } else {
+      // Fallback to manual entry if sender not found in database
+      const nameParts = senderName.split(' ')
+      setReplyToRecipients([{
+        id: null,
+        email: senderEmail || senderName,
+        name: senderName,
+        firstName: nameParts[0] || '',
+        lastName: nameParts.slice(1).join(' ') || '',
+        isManual: true
+      }])
+    }
+    
+    setReplyCcRecipients([])
+    setReplyBccRecipients([])
+    setShowReplyCc(false)
+    setShowReplyBcc(false)
+    
+    const subject = email.subject || ""
     setReplyData({
-      to: email.senderEmail || email.sender,
-      toName: email.sender,
-      cc: "",
-      bcc: "",
-      subject: email.subject.startsWith("Re: ") ? email.subject : `Re: ${email.subject}`,
+      subject: subject.startsWith("Re: ") ? subject : `Re: ${subject}`,
       body: "",
     })
     setReplyAttachments([])
-    setShowOriginalMessage(true)
     setShowReplyModal(true)
   }
 
-  const sendEmailReply = () => {
-    const newReply = {
-      id: Date.now().toString(),
+  // Check if reply has unsaved content
+  const hasReplyContent = () => {
+    return replyData.body.trim() !== "" || 
+           replyData.subject !== (selectedEmail?.subject?.startsWith("Re: ") ? selectedEmail.subject : `Re: ${selectedEmail?.subject || ""}`) ||
+           replyCcRecipients.length > 0 ||
+           replyBccRecipients.length > 0 ||
+           replyAttachments.length > 0
+  }
+
+  // Handle close reply modal with draft confirmation
+  const handleCloseReplyModal = () => {
+    if (hasReplyContent()) {
+      setShowDraftConfirmModal(true)
+    } else {
+      closeReplyModal()
+    }
+  }
+
+  // Actually close the reply modal
+  const closeReplyModal = () => {
+    setShowReplyModal(false)
+    setShowDraftConfirmModal(false)
+    setReplyData({ subject: "", body: "" })
+    setReplyToRecipients([])
+    setReplyCcRecipients([])
+    setReplyBccRecipients([])
+    setReplyAttachments([])
+    setShowReplyCc(false)
+    setShowReplyBcc(false)
+  }
+
+  // Save reply as draft
+  const saveReplyAsDraft = () => {
+    const draft = {
+      id: Date.now(),
       sender: "FitLife Studio",
       senderEmail: "studio@fitlife.com",
-      recipient: replyData.toName || replyData.to,
-      recipientEmail: replyData.to,
+      recipient: replyToRecipients.map(r => r.name || r.email).join(", "),
+      recipientEmail: replyToRecipients.map(r => r.email).join(", "),
+      cc: replyCcRecipients.map(r => r.email).join(", "),
+      bcc: replyBccRecipients.map(r => r.email).join(", "),
       subject: replyData.subject,
-      body: replyData.body + (showOriginalMessage && selectedEmail ? `<div style="margin-top:30px;padding-top:20px;border-top:1px solid #444;color:#888;font-size:12px;"><strong>--- Original Message ---</strong><br/><strong>From:</strong> ${selectedEmail.sender}${selectedEmail.senderEmail ? ` &lt;${selectedEmail.senderEmail}&gt;` : ''}<br/><strong>Date:</strong> ${new Date(selectedEmail.time).toLocaleString()}<br/><strong>Subject:</strong> ${selectedEmail.subject}<br/><br/>${selectedEmail.body}</div>` : ""),
+      body: replyData.body,
+      time: new Date().toISOString(),
+      isRead: true,
+      isPinned: false,
+      isArchived: false,
+      status: "Draft",
+      attachments: replyAttachments,
+    }
+    setEmailList(prev => ({ ...prev, draft: [draft, ...(prev.draft || [])] }))
+    closeReplyModal()
+  }
+
+  // Handle attachment upload for reply
+  const handleReplyAttachmentUpload = (e) => {
+    const files = Array.from(e.target.files)
+    const newAttachments = files.map(file => ({
+      id: Date.now() + Math.random(),
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      file: file
+    }))
+    setReplyAttachments(prev => [...prev, ...newAttachments])
+    if (replyAttachmentInputRef.current) {
+      replyAttachmentInputRef.current.value = ""
+    }
+  }
+
+  // Remove attachment
+  const removeReplyAttachment = (id) => {
+    setReplyAttachments(prev => prev.filter(a => a.id !== id))
+  }
+
+  // Format file size
+  const formatFileSize = (bytes) => {
+    if (bytes < 1024) return bytes + ' B'
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
+  }
+
+  const insertReplySignature = () => {
+    if (replyEditorRef.current?.insertHtml && settings.emailSignature) {
+      replyEditorRef.current.insertHtml(`<br><br>${settings.emailSignature}`)
+    }
+  }
+
+  // Search members and staff for email
+  const handleSearchMemberForReply = (query) => {
+    if (!query) return []
+    const q = query.toLowerCase()
+    
+    // Search in members
+    const memberResults = membersData.filter(m => 
+      m.firstName?.toLowerCase().includes(q) ||
+      m.lastName?.toLowerCase().includes(q) ||
+      m.email?.toLowerCase().includes(q) ||
+      `${m.firstName} ${m.lastName}`.toLowerCase().includes(q)
+    ).map(m => ({
+      id: `member-${m.id}`,
+      email: m.email,
+      name: `${m.firstName || ''} ${m.lastName || ''}`.trim(),
+      firstName: m.firstName,
+      lastName: m.lastName,
+      image: m.image || m.avatar,
+      type: 'member'
+    }))
+    
+    // Search in staff (staffData uses 'img' not 'image')
+    const staffResults = staffData.filter(s => 
+      s.firstName?.toLowerCase().includes(q) ||
+      s.lastName?.toLowerCase().includes(q) ||
+      s.email?.toLowerCase().includes(q) ||
+      `${s.firstName} ${s.lastName}`.toLowerCase().includes(q)
+    ).map(s => ({
+      id: `staff-${s.id}`,
+      email: s.email,
+      name: `${s.firstName || ''} ${s.lastName || ''}`.trim(),
+      firstName: s.firstName,
+      lastName: s.lastName,
+      image: s.img, // staffData uses 'img' field
+      type: 'staff'
+    }))
+    
+    return [...memberResults, ...staffResults].slice(0, 10)
+  }
+
+  const sendEmailReply = () => {
+    if (replyToRecipients.length === 0) return
+
+    const newReply = {
+      id: Date.now(),
+      sender: "FitLife Studio",
+      senderEmail: "studio@fitlife.com",
+      recipient: replyToRecipients.map(r => r.name || r.email).join(", "),
+      recipientEmail: replyToRecipients.map(r => r.email).join(", "),
+      cc: replyCcRecipients.map(r => r.email).join(", "),
+      bcc: replyBccRecipients.map(r => r.email).join(", "),
+      subject: replyData.subject,
+      body: replyData.body + (selectedEmail ? `<div style="margin-top:30px;padding-top:20px;border-top:1px solid #ddd;color:#666;font-size:12px;"><strong>--- Original Message ---</strong><br/><strong>From:</strong> ${selectedEmail.sender}${selectedEmail.senderEmail ? ` &lt;${selectedEmail.senderEmail}&gt;` : ''}<br/><strong>Date:</strong> ${new Date(selectedEmail.time).toLocaleString()}<br/><strong>Subject:</strong> ${selectedEmail.subject}<br/><br/>${selectedEmail.body}</div>` : ""),
       time: new Date().toISOString(),
       isRead: true,
       isPinned: false,
       isArchived: false,
       status: "Sent",
-      attachments: replyAttachments,
+      attachments: replyAttachments.map(a => ({ name: a.name, size: formatFileSize(a.size), type: a.type })),
     }
     setEmailList(prev => ({ ...prev, sent: [newReply, ...(prev.sent || [])] }))
-    setShowReplyModal(false)
-    setReplyData({ to: "", toName: "", cc: "", bcc: "", subject: "", body: "" })
-    setReplyAttachments([])
+    closeReplyModal()
   }
 
   const formatEmailTime = (dateString) => {
@@ -1283,6 +1806,11 @@ export default function Communications() {
   }
 
   const handleMoveEmailToFolder = (emailId, targetFolder) => {
+    // Don't allow moving regular emails to draft folder
+    if (targetFolder === 'draft') {
+      return
+    }
+    
     setEmailList(prev => {
       const newList = { ...prev }
       let emailToMove = null
@@ -1324,6 +1852,117 @@ export default function Communications() {
     }
   }
 
+  // Get pinned emails for current folder
+  const getPinnedEmails = () => {
+    let emails = emailList[emailTab] || []
+    if (!Array.isArray(emails)) emails = []
+
+    if (emailTab === "archive") {
+      emails = Object.values(emailList).filter(arr => Array.isArray(arr)).flat().filter(e => e?.isArchived)
+    } else {
+      emails = emails.filter(e => e && !e.isArchived)
+    }
+
+    if (emailSearchQuery.trim()) {
+      const query = emailSearchQuery.toLowerCase()
+      emails = emails.filter(e => 
+        e.subject?.toLowerCase().includes(query) ||
+        e.sender?.toLowerCase().includes(query) ||
+        e.recipient?.toLowerCase().includes(query)
+      )
+    }
+
+    return emails.filter(e => e.isPinned).sort((a, b) => new Date(b.time) - new Date(a.time))
+  }
+
+  // Toggle email selection
+  const toggleEmailSelection = (emailId) => {
+    setSelectedEmailIds(prev => 
+      prev.includes(emailId) 
+        ? prev.filter(id => id !== emailId)
+        : [...prev, emailId]
+    )
+  }
+
+  // Select all emails in current view
+  const selectAllEmails = () => {
+    const allEmails = [...getPinnedEmails(), ...getFilteredEmails(false)]
+    const allIds = allEmails.map(e => e.id)
+    const allSelected = allIds.every(id => selectedEmailIds.includes(id))
+    
+    if (allSelected) {
+      setSelectedEmailIds([])
+    } else {
+      setSelectedEmailIds(allIds)
+    }
+  }
+
+  // Bulk actions
+  const bulkMarkAsRead = (isRead) => {
+    setEmailList(prev => {
+      const newList = { ...prev }
+      Object.keys(newList).forEach(folder => {
+        if (Array.isArray(newList[folder])) {
+          newList[folder] = newList[folder].map(email => 
+            selectedEmailIds.includes(email.id) ? { ...email, isRead } : email
+          )
+        }
+      })
+      return newList
+    })
+    setSelectedEmailIds([])
+  }
+
+  const bulkArchive = () => {
+    selectedEmailIds.forEach(id => {
+      updateEmailStatus(id, { isArchived: true })
+    })
+    setSelectedEmailIds([])
+  }
+
+  const bulkDelete = () => {
+    selectedEmailIds.forEach(id => {
+      moveEmailToTrash(id)
+    })
+    setSelectedEmailIds([])
+  }
+
+  // Save email as draft from SendEmailModal
+  const handleSaveEmailAsDraft = (draftData) => {
+    const draft = {
+      id: draftData.id || Date.now(), // Use existing ID if updating, otherwise create new
+      sender: "FitLife Studio",
+      senderEmail: "studio@fitlife.com",
+      recipient: draftData.toRecipients?.map(r => r.name || r.email).join(", ") || "",
+      recipientEmail: draftData.toRecipients?.map(r => r.email).join(", ") || "",
+      cc: draftData.ccRecipients?.map(r => r.email).join(", ") || "",
+      bcc: draftData.bccRecipients?.map(r => r.email).join(", ") || "",
+      subject: draftData.subject || "",
+      body: draftData.body || "",
+      time: new Date().toISOString(),
+      isRead: true,
+      isPinned: false,
+      isArchived: false,
+      status: "Draft",
+      attachments: draftData.attachments?.map(a => ({ name: a.name, size: a.size, type: a.type })) || [],
+    }
+    
+    setEmailList(prev => {
+      // If updating existing draft, replace it
+      if (draftData.id) {
+        return {
+          ...prev,
+          draft: (prev.draft || []).map(d => d.id === draftData.id ? draft : d)
+        }
+      }
+      // Otherwise add new draft
+      return {
+        ...prev,
+        draft: [draft, ...(prev.draft || [])]
+      }
+    })
+  }
+
   const handleSendEmail = (emailDataWithAttachments) => {
     // SendEmailModal liefert to als Array, also prüfen wir die Länge
     const toEmails = Array.isArray(emailDataWithAttachments.to) 
@@ -1354,10 +1993,20 @@ export default function Communications() {
       attachments: emailDataWithAttachments.attachments || []
     };
 
-    setEmailList(prev => ({
-      ...prev,
-      sent: [newEmail, ...prev.sent]
-    }));
+    // If editing a draft, delete it first
+    if (editingDraft) {
+      setEmailList(prev => ({
+        ...prev,
+        draft: (prev.draft || []).filter(d => d.id !== editingDraft.id),
+        sent: [newEmail, ...prev.sent]
+      }));
+      setEditingDraft(null);
+    } else {
+      setEmailList(prev => ({
+        ...prev,
+        sent: [newEmail, ...prev.sent]
+      }));
+    }
 
     alert("Email sent successfully!");
     setEmailData({ to: "", subject: "", body: "" });
@@ -1469,7 +2118,7 @@ export default function Communications() {
     }
     setPreConfiguredMessages([...preConfiguredMessages, messageToAdd])
     setSelectedMessage(messageToAdd)
-    setShowCreateMessageModal(false)
+    // setShowCreateMessageModal(false)
     setNewMessage({ title: "", message: "", folderId: 1 })
   }
 
@@ -1588,10 +2237,42 @@ export default function Communications() {
   }
 
   const handleSearchMemberForEmail = (query) => {
-    const allMembers = [...staffChatListState, ...memberChatList].filter(
-      (m) => m.name.toLowerCase().includes(query.toLowerCase()) || m.email?.toLowerCase().includes(query.toLowerCase()),
-    )
-    return allMembers
+    if (!query) return []
+    const q = query.toLowerCase()
+    
+    // Search in members
+    const memberResults = membersData.filter(m => 
+      m.firstName?.toLowerCase().includes(q) ||
+      m.lastName?.toLowerCase().includes(q) ||
+      m.email?.toLowerCase().includes(q) ||
+      `${m.firstName} ${m.lastName}`.toLowerCase().includes(q)
+    ).map(m => ({
+      id: `member-${m.id}`,
+      email: m.email,
+      name: `${m.firstName || ''} ${m.lastName || ''}`.trim(),
+      firstName: m.firstName,
+      lastName: m.lastName,
+      image: m.image || m.avatar,
+      type: 'member'
+    }))
+    
+    // Search in staff (staffData uses 'img' not 'image')
+    const staffResults = staffData.filter(s => 
+      s.firstName?.toLowerCase().includes(q) ||
+      s.lastName?.toLowerCase().includes(q) ||
+      s.email?.toLowerCase().includes(q) ||
+      `${s.firstName} ${s.lastName}`.toLowerCase().includes(q)
+    ).map(s => ({
+      id: `staff-${s.id}`,
+      email: s.email,
+      name: `${s.firstName || ''} ${s.lastName || ''}`.trim(),
+      firstName: s.firstName,
+      lastName: s.lastName,
+      image: s.img, // staffData uses 'img' field
+      type: 'staff'
+    }))
+    
+    return [...memberResults, ...staffResults].slice(0, 10)
   }
 
   const handleSelectEmailRecipient = (member) => {
@@ -2137,9 +2818,9 @@ export default function Communications() {
               >
                 <Mail size={16} className="mr-2" />
                 Email
-                {emailList.inbox.filter((e) => !e.isRead && !e.isArchived).length > 0 && (
+                {getTotalUnreadEmails() > 0 && (
                   <span className="absolute top-0.5 right-0.5 bg-orange-600 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center">
-                    {emailList.inbox.filter((e) => !e.isRead && !e.isArchived).length}
+                    {getTotalUnreadEmails()}
                   </span>
                 )}
               </button>
@@ -2286,7 +2967,8 @@ export default function Communications() {
             <div className="px-4 pb-24 space-y-1">
               {emailFolders.map((folder) => {
                 const Icon = folder.icon
-                const count = folder.showCount && folder.count ? folder.count() : 0
+                const totalCount = getEmailFolderCount(folder.id)
+                const unreadCount = getUnreadCountForFolder(folder.id)
                 const isActive = emailTab === folder.id
                 
                 return (
@@ -2295,8 +2977,13 @@ export default function Communications() {
                     onClick={() => {
                       setEmailTab(folder.id)
                       setSelectedEmail(null)
+                      setSelectedEmailIds([])
                     }}
                     onDragOver={(e) => {
+                      // Don't allow dropping on draft, error, or trash folders
+                      if (folder.id === 'draft' || folder.id === 'error' || folder.id === 'trash') return
+                      // Don't allow dragging from draft, error, or trash folders
+                      if (emailTab === 'draft' || emailTab === 'error' || emailTab === 'trash') return
                       e.preventDefault()
                       e.currentTarget.classList.add('bg-[#333333]')
                     }}
@@ -2306,26 +2993,30 @@ export default function Communications() {
                     onDrop={(e) => {
                       e.preventDefault()
                       e.currentTarget.classList.remove('bg-[#333333]')
+                      // Don't allow dropping on draft, error, or trash folders
+                      if (folder.id === 'draft' || folder.id === 'error' || folder.id === 'trash') return
+                      // Don't allow dragging from draft, error, or trash folders
+                      if (emailTab === 'draft' || emailTab === 'error' || emailTab === 'trash') return
                       const emailId = e.dataTransfer.getData('emailId')
                       if (emailId && folder.id !== emailTab) {
                         handleMoveEmailToFolder(emailId, folder.id)
                       }
                     }}
-                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-colors ${
+                    className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-colors border-l-2 ${
                       isActive 
-                        ? "bg-[#3F74FF] text-white" 
-                        : "text-gray-400 hover:bg-[#222222] hover:text-white"
+                        ? "bg-[#181818] border-l-orange-500 text-white" 
+                        : "border-l-transparent text-gray-400 hover:bg-[#222222] hover:text-white"
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <Icon size={18} />
-                      <span className="text-sm font-medium">{folder.label}</span>
+                      <Icon size={18} className={isActive ? "text-orange-400" : ""} />
+                      <span className={`text-sm font-medium ${isActive ? "text-orange-400" : ""}`}>
+                        {folder.label} <span className={isActive ? "text-gray-400" : "text-gray-500"}>[{totalCount}]</span>
+                      </span>
                     </div>
-                    {folder.showCount && count > 0 && (
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${
-                        isActive ? "bg-white/20" : "bg-orange-500 text-white"
-                      }`}>
-                        {count}
+                    {unreadCount > 0 && (
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500 text-white">
+                        {unreadCount}
                       </span>
                     )}
                   </button>
@@ -2736,8 +3427,69 @@ export default function Communications() {
           <div className="flex h-full select-none">
             {/* Email List - Fixed width, always visible separator */}
             <div className="w-[400px] flex-shrink-0 border-r border-[#333333] flex flex-col">
+              {/* Bulk Actions Header */}
+              {(getPinnedEmails().length > 0 || getFilteredEmails(false).length > 0) && (
+                <div className="px-3 py-2 border-b border-[#333333] flex items-center gap-2">
+                  <button
+                    onClick={selectAllEmails}
+                    className="flex items-center gap-2 px-2 py-1.5 hover:bg-[#222222] rounded-lg transition-colors"
+                  >
+                    <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
+                      selectedEmailIds.length > 0 && selectedEmailIds.length === [...getPinnedEmails(), ...getFilteredEmails(false)].length
+                        ? "bg-orange-500 border-orange-500"
+                        : selectedEmailIds.length > 0
+                        ? "bg-orange-500/50 border-orange-500"
+                        : "border-gray-500"
+                    }`}>
+                      {selectedEmailIds.length > 0 && (
+                        <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </div>
+                    <span className="text-xs text-gray-400">
+                      {selectedEmailIds.length > 0 ? `${selectedEmailIds.length} selected` : "Select all"}
+                    </span>
+                  </button>
+                  
+                  {/* Bulk Action Buttons */}
+                  {selectedEmailIds.length > 0 && (
+                    <div className="flex items-center gap-1 ml-auto">
+                      <button
+                        onClick={() => bulkMarkAsRead(true)}
+                        className="p-1.5 hover:bg-[#333333] rounded-lg transition-colors text-gray-400 hover:text-white"
+                        title="Mark as read"
+                      >
+                        <MailCheck size={16} />
+                      </button>
+                      <button
+                        onClick={() => bulkMarkAsRead(false)}
+                        className="p-1.5 hover:bg-[#333333] rounded-lg transition-colors text-gray-400 hover:text-white"
+                        title="Mark as unread"
+                      >
+                        <MailOpen size={16} />
+                      </button>
+                      <button
+                        onClick={bulkArchive}
+                        className="p-1.5 hover:bg-[#333333] rounded-lg transition-colors text-gray-400 hover:text-white"
+                        title="Archive"
+                      >
+                        <Archive size={16} />
+                      </button>
+                      <button
+                        onClick={bulkDelete}
+                        className="p-1.5 hover:bg-[#333333] rounded-lg transition-colors text-gray-400 hover:text-red-400"
+                        title="Delete"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="flex-1 overflow-y-auto">
-                {getFilteredEmails().length === 0 ? (
+                {getPinnedEmails().length === 0 && getFilteredEmails(false).length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full text-center p-6">
                     <div className="w-16 h-16 rounded-2xl bg-[#222222] border border-[#333333] flex items-center justify-center mb-4">
                       <Mail className="w-8 h-8 text-gray-600" />
@@ -2745,21 +3497,133 @@ export default function Communications() {
                     <p className="text-gray-400 text-sm">No emails in this folder</p>
                   </div>
                 ) : (
-                  <div className="px-2 py-2 space-y-1">
-                    {getFilteredEmails().map((email) => (
+                  <div className="px-2 py-2">
+                    {/* Pinned Emails Section */}
+                    {getPinnedEmails().length > 0 && (
+                      <>
+                        <div className="flex items-center gap-2 px-2 py-1">
+                          <Pin size={12} className="text-amber-500 fill-amber-500" />
+                          <span className="text-xs text-amber-500 font-medium">Pinned</span>
+                          <div className="flex-1 h-px bg-amber-500/30"></div>
+                        </div>
+                        {getPinnedEmails().map((email) => (
+                          <div
+                            key={email.id}
+                            draggable={emailTab !== 'draft' && emailTab !== 'error' && emailTab !== 'trash'}
+                            onDragStart={(e) => {
+                              // Prevent dragging from draft, error, or trash folders
+                              if (emailTab === 'draft' || emailTab === 'error' || emailTab === 'trash') {
+                                e.preventDefault()
+                                return
+                              }
+                              e.dataTransfer.setData('emailId', email.id.toString())
+                              e.currentTarget.classList.add('opacity-50')
+                            }}
+                            onDragEnd={(e) => {
+                              e.currentTarget.classList.remove('opacity-50')
+                            }}
+                            onClick={(e) => {
+                              if (e.target.closest('.email-checkbox')) return
+                              handleEmailItemClick(email)
+                            }}
+                            className={`
+                              relative flex items-center gap-3 p-4 rounded-xl cursor-pointer
+                              transition-all duration-200 group border-b border-slate-700
+                              ${selectedEmail?.id === email.id 
+                                ? "bg-[#181818] border-l-2 border-l-orange-500" 
+                                : "hover:bg-[#181818] border-l-2 border-l-transparent"
+                              }
+                            `}
+                          >
+                            {/* Checkbox */}
+                            <div 
+                              className="email-checkbox flex-shrink-0"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                toggleEmailSelection(email.id)
+                              }}
+                            >
+                              <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors cursor-pointer ${
+                                selectedEmailIds.includes(email.id)
+                                  ? "bg-orange-500 border-orange-500"
+                                  : "border-gray-500 hover:border-gray-400"
+                              }`}>
+                                {selectedEmailIds.includes(email.id) && (
+                                  <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                  </svg>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Email Icon */}
+                            <div className="relative flex-shrink-0">
+                              <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-[#222222]">
+                                <Mail size={20} className="text-gray-500" />
+                              </div>
+                              {!email.isRead && (
+                                <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-orange-500 rounded-full" />
+                              )}
+                            </div>
+
+                            {/* Content */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-2 mb-0.5">
+                                <span className={`font-medium truncate ${selectedEmail?.id === email.id ? 'text-orange-400' : 'text-white'}`}>
+                                  {emailTab === "sent" ? email.recipient : email.sender}
+                                </span>
+                                <span className="text-xs text-gray-500 flex-shrink-0">{formatEmailTime(email.time)}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <p className={`text-sm truncate ${!email.isRead ? "font-medium text-white" : "text-gray-400"}`}>
+                                  {email.subject || "(No subject)"}
+                                </p>
+                                {email.status === "Draft" && (
+                                  <span className="text-[10px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded flex-shrink-0">Draft</span>
+                                )}
+                              </div>
+                              <p className="text-xs text-gray-500 truncate mt-0.5">{truncateEmailText(email.body)}</p>
+                              {email.attachments?.length > 0 && (
+                                <div className="flex items-center gap-1 mt-1.5 text-xs text-gray-500 select-none">
+                                  <Paperclip size={12} />
+                                  <span>{email.attachments.length}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                        {/* Divider between pinned and unpinned */}
+                        {getFilteredEmails(false).length > 0 && (
+                          <div className="flex items-center px-2 py-1 mt-2">
+                            <div className="flex-1 h-px bg-gray-700"></div>
+                          </div>
+                        )}
+                      </>
+                    )}
+
+                    {/* Unpinned Emails */}
+                    {getFilteredEmails(false).map((email) => (
                       <div
                         key={email.id}
-                        draggable
+                        draggable={emailTab !== 'draft' && emailTab !== 'error' && emailTab !== 'trash'}
                         onDragStart={(e) => {
+                          // Prevent dragging from draft, error, or trash folders
+                          if (emailTab === 'draft' || emailTab === 'error' || emailTab === 'trash') {
+                            e.preventDefault()
+                            return
+                          }
                           e.dataTransfer.setData('emailId', email.id.toString())
                           e.currentTarget.classList.add('opacity-50')
                         }}
                         onDragEnd={(e) => {
                           e.currentTarget.classList.remove('opacity-50')
                         }}
-                        onClick={() => handleEmailItemClick(email)}
+                        onClick={(e) => {
+                          if (e.target.closest('.email-checkbox')) return
+                          handleEmailItemClick(email)
+                        }}
                         className={`
-                          relative flex items-start gap-3 p-4 rounded-xl cursor-pointer
+                          relative flex items-center gap-3 p-4 rounded-xl cursor-pointer
                           transition-all duration-200 group border-b border-slate-700
                           ${selectedEmail?.id === email.id 
                             ? "bg-[#181818] border-l-2 border-l-orange-500" 
@@ -2767,38 +3631,56 @@ export default function Communications() {
                           }
                         `}
                       >
+                        {/* Checkbox */}
+                        <div 
+                          className="email-checkbox flex-shrink-0"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            toggleEmailSelection(email.id)
+                          }}
+                        >
+                          <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors cursor-pointer ${
+                            selectedEmailIds.includes(email.id)
+                              ? "bg-orange-500 border-orange-500"
+                              : "border-gray-500 hover:border-gray-400"
+                          }`}>
+                            {selectedEmailIds.includes(email.id) && (
+                              <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                              </svg>
+                            )}
+                          </div>
+                        </div>
+
                         {/* Email Icon */}
                         <div className="relative flex-shrink-0">
-                          <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                            !email.isRead ? "bg-orange-500/20" : "bg-[#222222]"
-                          }`}>
-                            <Mail size={20} className={!email.isRead ? "text-orange-400" : "text-gray-500"} />
+                          <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-[#222222]">
+                            <Mail size={20} className="text-gray-500" />
                           </div>
-                          {email.isPinned && (
-                            <div className="absolute -top-1 -right-1 bg-yellow-500 rounded-full p-0.5">
-                              <Pin size={10} className="text-black" />
-                            </div>
+                          {!email.isRead && (
+                            <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-orange-500 rounded-full" />
                           )}
                         </div>
 
                         {/* Content */}
                         <div className="flex-1 min-w-0">
-                          {/* Row 1: Sender + Time */}
                           <div className="flex items-center justify-between gap-2 mb-0.5">
                             <span className={`font-medium truncate ${selectedEmail?.id === email.id ? 'text-orange-400' : 'text-white'}`}>
                               {emailTab === "sent" ? email.recipient : email.sender}
                             </span>
                             <span className="text-xs text-gray-500 flex-shrink-0">{formatEmailTime(email.time)}</span>
                           </div>
-                          {/* Row 2: Subject */}
-                          <p className={`text-sm truncate ${!email.isRead ? "font-medium text-white" : "text-gray-400"}`}>
-                            {email.subject || "(No subject)"}
-                          </p>
-                          {/* Row 3: Preview */}
+                          <div className="flex items-center gap-2">
+                            <p className={`text-sm truncate ${!email.isRead ? "font-medium text-white" : "text-gray-400"}`}>
+                              {email.subject || "(No subject)"}
+                            </p>
+                            {email.status === "Draft" && (
+                              <span className="text-[10px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded flex-shrink-0">Draft</span>
+                            )}
+                          </div>
                           <p className="text-xs text-gray-500 truncate mt-0.5">{truncateEmailText(email.body)}</p>
-                          {/* Attachments indicator */}
                           {email.attachments?.length > 0 && (
-                            <div className="flex items-center gap-1 mt-1.5 text-xs text-gray-500">
+                            <div className="flex items-center gap-1 mt-1.5 text-xs text-gray-500 select-none">
                               <Paperclip size={12} />
                               <span>{email.attachments.length}</span>
                             </div>
@@ -2819,41 +3701,67 @@ export default function Communications() {
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       {selectedEmail.isPinned && (
-                        <span className="flex items-center gap-1 text-xs text-yellow-500 bg-yellow-500/10 px-2 py-1 rounded-lg">
+                        <span className="flex items-center gap-1 text-xs text-amber-500 bg-amber-500/10 px-2 py-1 rounded-lg">
                           <Pin size={12} />
                           Pinned
                         </span>
                       )}
                     </div>
                     <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => handleEmailReply(selectedEmail)}
-                        className="p-2 hover:bg-[#333333] rounded-lg transition-colors text-gray-400 hover:text-white"
-                        title="Reply"
-                      >
-                        <Reply size={18} />
-                      </button>
-                      <button
-                        onClick={() => updateEmailStatus(selectedEmail.id, { isPinned: !selectedEmail.isPinned })}
-                        className={`p-2 hover:bg-[#333333] rounded-lg transition-colors ${selectedEmail.isPinned ? "text-yellow-500" : "text-gray-400 hover:text-white"}`}
-                        title={selectedEmail.isPinned ? "Unpin" : "Pin"}
-                      >
-                        {selectedEmail.isPinned ? <PinOff size={18} /> : <Pin size={18} />}
-                      </button>
+                      {/* Retry button for failed emails */}
+                      {emailTab === "error" && (
+                        <button
+                          onClick={() => retryFailedEmail(selectedEmail)}
+                          className="p-2 hover:bg-[#333333] rounded-lg transition-colors text-gray-400 hover:text-white"
+                          title="Retry Send"
+                        >
+                          <RefreshCw size={18} />
+                        </button>
+                      )}
+                      {/* Reply button - not for drafts, error, or trash */}
+                      {emailTab !== "draft" && emailTab !== "error" && emailTab !== "trash" && (
+                        <button
+                          onClick={() => handleEmailReply(selectedEmail)}
+                          className="p-2 hover:bg-[#333333] rounded-lg transition-colors text-gray-400 hover:text-white"
+                          title="Reply"
+                        >
+                          <Reply size={18} />
+                        </button>
+                      )}
+                      {/* Pin button - not for trash or error */}
+                      {emailTab !== "trash" && emailTab !== "error" && (
+                        <button
+                          onClick={() => updateEmailStatus(selectedEmail.id, { isPinned: !selectedEmail.isPinned })}
+                          className={`p-2 hover:bg-[#333333] rounded-lg transition-colors ${selectedEmail.isPinned ? "text-amber-500" : "text-gray-400 hover:text-white"}`}
+                          title={selectedEmail.isPinned ? "Unpin" : "Pin"}
+                        >
+                          {selectedEmail.isPinned ? <PinOff size={18} /> : <Pin size={18} />}
+                        </button>
+                      )}
+                      {/* Archive button - not for trash or error */}
+                      {emailTab !== "trash" && emailTab !== "error" && (
+                        <button
+                          onClick={() => {
+                            updateEmailStatus(selectedEmail.id, { isArchived: !selectedEmail.isArchived })
+                            setSelectedEmail(null)
+                          }}
+                          className="p-2 hover:bg-[#333333] rounded-lg transition-colors text-gray-400 hover:text-white"
+                          title={selectedEmail.isArchived ? "Unarchive" : "Archive"}
+                        >
+                          <Archive size={18} />
+                        </button>
+                      )}
+                      {/* Delete button - permanent for trash only, move to trash for others including error */}
                       <button
                         onClick={() => {
-                          updateEmailStatus(selectedEmail.id, { isArchived: !selectedEmail.isArchived })
-                          setSelectedEmail(null)
+                          if (emailTab === "trash") {
+                            permanentlyDeleteEmail(selectedEmail.id)
+                          } else {
+                            moveEmailToTrash(selectedEmail.id)
+                          }
                         }}
-                        className="p-2 hover:bg-[#333333] rounded-lg transition-colors text-gray-400 hover:text-white"
-                        title={selectedEmail.isArchived ? "Unarchive" : "Archive"}
-                      >
-                        <Archive size={18} />
-                      </button>
-                      <button
-                        onClick={() => moveEmailToTrash(selectedEmail.id)}
                         className="p-2 hover:bg-[#333333] rounded-lg transition-colors text-gray-400 hover:text-red-400"
-                        title="Delete"
+                        title={emailTab === "trash" ? "Delete Permanently" : "Delete"}
                       >
                         <Trash2 size={18} />
                       </button>
@@ -2876,14 +3784,9 @@ export default function Communications() {
                     </div>
                     <div className="text-right">
                       <p className="text-xs text-gray-500">{new Date(selectedEmail.time).toLocaleString()}</p>
-                      {selectedEmail.status && (
-                        <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded mt-1 ${
-                          selectedEmail.status === "Delivered" ? "bg-green-500/20 text-green-400" :
-                          selectedEmail.status === "Read" ? "bg-blue-500/20 text-blue-400" :
-                          selectedEmail.status === "Failed" ? "bg-red-500/20 text-red-400" :
-                          "bg-gray-500/20 text-gray-400"
-                        }`}>
-                          {selectedEmail.status}
+                      {selectedEmail.status === "Failed" && (
+                        <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded mt-1 bg-red-500/20 text-red-400">
+                          Failed
                         </span>
                       )}
                     </div>
@@ -2892,13 +3795,9 @@ export default function Communications() {
 
                 {/* Email Body */}
                 <div className="flex-1 overflow-y-auto p-6">
-                  <div 
-                    className="prose prose-invert max-w-none text-gray-300"
-                    dangerouslySetInnerHTML={{ __html: selectedEmail.body }}
-                  />
-                  
+                  {/* Attachments - Show at top */}
                   {selectedEmail.attachments?.length > 0 && (
-                    <div className="mt-8 pt-6 border-t border-[#333333]">
+                    <div className="mb-6 pb-4 border-b border-[#333333] select-none">
                       <p className="text-sm font-medium text-gray-400 mb-3 flex items-center gap-2">
                         <Paperclip size={16} />
                         Attachments ({selectedEmail.attachments.length})
@@ -2911,22 +3810,19 @@ export default function Communications() {
                           >
                             <Paperclip size={14} className="text-gray-500" />
                             <span className="text-sm text-gray-300">{file.name || file}</span>
+                            {file.size && <span className="text-xs text-gray-500">({file.size})</span>}
                           </div>
                         ))}
                       </div>
                     </div>
                   )}
-                </div>
 
-                {/* Quick Reply Bar */}
-                <div className="p-4 border-t border-[#333333] flex-shrink-0 bg-[#181818]">
-                  <button
-                    onClick={() => handleEmailReply(selectedEmail)}
-                    className="w-full py-3 bg-[#222222] hover:bg-[#333333] text-white rounded-xl text-sm font-medium flex items-center justify-center gap-2 transition-colors border border-[#333333]"
-                  >
-                    <Reply size={16} />
-                    Reply to this email
-                  </button>
+                  {/* Email Content */}
+                  <div 
+                    className="prose max-w-none bg-white p-6 rounded-xl"
+                    style={{ color: '#1f2937' }}
+                    dangerouslySetInnerHTML={{ __html: selectedEmail.body }}
+                  />
                 </div>
               </div>
             ) : (
@@ -3466,14 +4362,32 @@ export default function Communications() {
               <span className="font-medium text-white text-sm">Email</span>
             </div>
             <div className="flex items-center gap-1">
+              {/* Retry button for failed emails */}
+              {emailTab === "error" && (
+                <button
+                  onClick={() => retryFailedEmail(selectedEmail)}
+                  className="p-2 hover:bg-[#333333] rounded-lg text-gray-400 hover:text-white"
+                >
+                  <RefreshCw size={18} />
+                </button>
+              )}
+              {/* Reply button - not for drafts, error, or trash */}
+              {emailTab !== "draft" && emailTab !== "error" && emailTab !== "trash" && (
+                <button
+                  onClick={() => handleEmailReply(selectedEmail)}
+                  className="p-2 hover:bg-[#333333] rounded-lg text-gray-400"
+                >
+                  <Reply size={18} />
+                </button>
+              )}
               <button
-                onClick={() => handleEmailReply(selectedEmail)}
-                className="p-2 hover:bg-[#333333] rounded-lg text-gray-400"
-              >
-                <Reply size={18} />
-              </button>
-              <button
-                onClick={() => moveEmailToTrash(selectedEmail.id)}
+                onClick={() => {
+                  if (emailTab === "trash") {
+                    permanentlyDeleteEmail(selectedEmail.id)
+                  } else {
+                    moveEmailToTrash(selectedEmail.id)
+                  }
+                }}
                 className="p-2 hover:bg-[#333333] rounded-lg text-gray-400 hover:text-red-400"
               >
                 <Trash2 size={18} />
@@ -3497,13 +4411,12 @@ export default function Communications() {
               </div>
               <p className="text-xs text-gray-500">{formatEmailTime(selectedEmail.time)}</p>
             </div>
-            <div 
-              className="prose prose-invert prose-sm max-w-none text-gray-300"
-              dangerouslySetInnerHTML={{ __html: selectedEmail.body }}
-            />
+            
+            {/* Attachments - Show at top */}
             {selectedEmail.attachments?.length > 0 && (
-              <div className="mt-6 pt-4 border-t border-[#333333]">
-                <p className="text-sm font-medium text-gray-400 mb-2">
+              <div className="mb-4 pb-4 border-b border-[#333333] select-none">
+                <p className="text-sm font-medium text-gray-400 mb-2 flex items-center gap-2">
+                  <Paperclip size={14} />
                   Attachments ({selectedEmail.attachments.length})
                 </p>
                 <div className="space-y-2">
@@ -3511,23 +4424,43 @@ export default function Communications() {
                     <div key={index} className="flex items-center gap-2 px-3 py-2 bg-[#222222] rounded-lg">
                       <Paperclip size={14} className="text-gray-500" />
                       <span className="text-sm text-gray-300">{file.name || file}</span>
+                      {file.size && <span className="text-xs text-gray-500">({file.size})</span>}
                     </div>
                   ))}
                 </div>
               </div>
             )}
+
+            {/* Email Content */}
+            <div 
+              className="prose prose-sm max-w-none bg-white p-4 rounded-xl"
+              style={{ color: '#1f2937' }}
+              dangerouslySetInnerHTML={{ __html: selectedEmail.body }}
+            />
           </div>
 
-          {/* Mobile Reply Button */}
-          <div className="p-3 border-t border-[#333333] bg-[#181818]">
-            <button
-              onClick={() => handleEmailReply(selectedEmail)}
-              className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-sm font-medium flex items-center justify-center gap-2"
-            >
-              <Reply size={16} />
-              Reply
-            </button>
-          </div>
+          {/* Mobile Action Button - Reply for inbox/sent, Retry for error */}
+          {emailTab !== "trash" && emailTab !== "draft" && (
+            <div className="p-3 border-t border-[#333333] bg-[#181818]">
+              {emailTab === "error" ? (
+                <button
+                  onClick={() => retryFailedEmail(selectedEmail)}
+                  className="w-full py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl text-sm font-medium flex items-center justify-center gap-2"
+                >
+                  <RefreshCw size={16} />
+                  Retry Send
+                </button>
+              ) : (
+                <button
+                  onClick={() => handleEmailReply(selectedEmail)}
+                  className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-sm font-medium flex items-center justify-center gap-2"
+                >
+                  <Reply size={16} />
+                  Reply
+                </button>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -3572,92 +4505,234 @@ export default function Communications() {
 
         <SendEmailModal
           showEmailModal={showEmailModal}
-          handleCloseEmailModal={() => setShowEmailModal(false)}
+          handleCloseEmailModal={() => {
+            setShowEmailModal(false)
+            setEditingDraft(null)
+            setEmailData({ to: "", subject: "", body: "" })
+          }}
           handleSendEmail={handleSendEmail}
-          setShowTemplateDropdown={setShowTemplateDropdown}
-          showTemplateDropdown={showTemplateDropdown}
-          selectedEmailTemplate={selectedEmailTemplate}
-          emailTemplates={emailTemplates}
-          handleTemplateSelect={handleTemplateSelect}
-          setSelectedEmailTemplate={setSelectedEmailTemplate}
           emailData={emailData}
           setEmailData={setEmailData}
           handleSearchMemberForEmail={handleSearchMemberForEmail}
           signature={settings?.emailSignature || ""}
+          editingDraft={editingDraft}
+          onSaveAsDraft={handleSaveEmailAsDraft}
       />
 
       {/* Email Reply Modal */}
       {showReplyModal && selectedEmail && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[70] p-4">
-          <div className="bg-[#1C1C1C] rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
-            <div className="p-4 border-b border-[#333333] flex items-center justify-between">
+          <div className="bg-[#1C1C1C] rounded-2xl w-full max-w-4xl max-h-[95vh] overflow-hidden flex flex-col">
+            {/* Header */}
+            <div className="p-4 border-b border-[#333333] flex items-center justify-between flex-shrink-0">
               <h3 className="text-lg font-semibold text-white">Reply to {selectedEmail.sender}</h3>
               <button
-                onClick={() => setShowReplyModal(false)}
+                onClick={handleCloseReplyModal}
                 className="p-2 hover:bg-[#333333] rounded-lg transition-colors"
               >
                 <X size={20} className="text-gray-400" />
               </button>
             </div>
 
+            {/* Content */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1.5">To</label>
-                <div className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm border border-[#333333]">
-                  {replyData.toName && replyData.toName !== replyData.to ? (
-                    <span>{replyData.toName} <span className="text-gray-500">&lt;{replyData.to}&gt;</span></span>
-                  ) : (
-                    <span>{replyData.to}</span>
-                  )}
-                </div>
-              </div>
+              {/* To Field with Tags */}
+              <ReplyEmailTagInput
+                recipients={replyToRecipients}
+                setRecipients={setReplyToRecipients}
+                searchMembers={handleSearchMemberForReply}
+                placeholder="Search by name, or type email..."
+                label="To"
+                showAddCc={!showReplyCc}
+                onAddCc={() => setShowReplyCc(true)}
+                showAddBcc={!showReplyBcc}
+                onAddBcc={() => setShowReplyBcc(true)}
+              />
 
+              {/* CC Field */}
+              {showReplyCc && (
+                <ReplyEmailTagInput
+                  recipients={replyCcRecipients}
+                  setRecipients={setReplyCcRecipients}
+                  searchMembers={handleSearchMemberForReply}
+                  placeholder="Search by name, or type email..."
+                  label="CC"
+                  showRemoveButton={true}
+                  onRemoveField={() => {
+                    setShowReplyCc(false)
+                    setReplyCcRecipients([])
+                  }}
+                />
+              )}
+
+              {/* BCC Field */}
+              {showReplyBcc && (
+                <ReplyEmailTagInput
+                  recipients={replyBccRecipients}
+                  setRecipients={setReplyBccRecipients}
+                  searchMembers={handleSearchMemberForReply}
+                  placeholder="Search by name, or type email..."
+                  label="BCC"
+                  showRemoveButton={true}
+                  onRemoveField={() => {
+                    setShowReplyBcc(false)
+                    setReplyBccRecipients([])
+                  }}
+                />
+              )}
+
+              {/* Subject */}
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1.5">Subject</label>
+                <label className="block text-sm font-medium text-gray-400 mb-1">Subject</label>
                 <input
+                  ref={replySubjectRef}
                   type="text"
                   value={replyData.subject}
                   onChange={(e) => setReplyData({ ...replyData, subject: e.target.value })}
-                  className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm border border-[#333333] focus:border-orange-500 outline-none"
+                  className="w-full bg-[#222222] hover:bg-[#2a2a2a] focus:bg-[#2a2a2a] text-white rounded-xl px-4 py-2.5 text-sm outline-none transition-colors"
+                  placeholder="Email subject"
                 />
               </div>
 
+              {/* Message */}
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-1.5">Message</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-sm font-medium text-gray-400">Message</label>
+                  <button
+                    onClick={insertReplySignature}
+                    className="px-2 py-1.5 bg-orange-500 text-white text-xs rounded-lg hover:bg-orange-600 flex items-center gap-1 transition-colors whitespace-nowrap"
+                  >
+                    <FileText className="w-3 h-3" />
+                    Insert Signature
+                  </button>
+                </div>
                 <WysiwygEditor
+                  ref={replyEditorRef}
                   value={replyData.body}
                   onChange={(content) => setReplyData({ ...replyData, body: content })}
                   placeholder="Write your reply..."
-                  minHeight={150}
-                  maxHeight={300}
+                  minHeight={200}
+                  maxHeight={350}
+                  showImages={true}
                 />
               </div>
 
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={showOriginalMessage}
-                  onChange={(e) => setShowOriginalMessage(e.target.checked)}
-                  className="rounded border-gray-600 bg-transparent text-orange-500 focus:ring-orange-500"
-                />
-                <span className="text-sm text-gray-400">Include original message</span>
-              </label>
+              {/* Attachments */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-medium text-gray-400">Attachments</label>
+                  <input
+                    ref={replyAttachmentInputRef}
+                    type="file"
+                    multiple
+                    onChange={handleReplyAttachmentUpload}
+                    className="hidden"
+                  />
+                  <button
+                    onClick={() => replyAttachmentInputRef.current?.click()}
+                    className="flex items-center gap-1.5 text-xs text-orange-500 hover:text-orange-400 transition-colors"
+                  >
+                    <Paperclip className="w-3.5 h-3.5" />
+                    Add Attachment
+                  </button>
+                </div>
+                
+                {replyAttachments.length > 0 ? (
+                  <div className="bg-[#222222] rounded-xl p-2 space-y-2">
+                    {replyAttachments.map((attachment) => (
+                      <div
+                        key={attachment.id}
+                        className="flex items-center justify-between bg-[#1a1a1a] rounded-lg px-3 py-2"
+                      >
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                          <Paperclip size={14} className="text-gray-500 flex-shrink-0" />
+                          <span className="text-sm text-white truncate">{attachment.name}</span>
+                          <span className="text-xs text-gray-500 flex-shrink-0">
+                            ({formatFileSize(attachment.size)})
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => removeReplyAttachment(attachment.id)}
+                          className="p-1.5 text-gray-500 hover:text-red-400 transition-colors ml-2"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div 
+                    onClick={() => replyAttachmentInputRef.current?.click()}
+                    className="border border-dashed border-gray-700 rounded-xl p-3 text-center cursor-pointer hover:border-gray-600 transition-colors"
+                  >
+                    <Paperclip className="w-5 h-5 text-gray-500 mx-auto mb-1" />
+                    <p className="text-xs text-gray-500">Click to add attachments</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Original Message Preview (like Outlook) */}
+              {selectedEmail && (
+                <div className="border-t border-[#333333] pt-4 mt-2">
+                  <div className="text-xs text-gray-500 mb-2 font-medium">Original Message</div>
+                  <div className="bg-[#1a1a1a] rounded-xl overflow-hidden max-h-[250px] overflow-y-auto">
+                    <div className="text-xs text-gray-400 space-y-1 p-4 border-b border-[#333333]">
+                      <div><span className="text-gray-500">From:</span> {selectedEmail.sender}{selectedEmail.senderEmail && ` <${selectedEmail.senderEmail}>`}</div>
+                      <div><span className="text-gray-500">Date:</span> {new Date(selectedEmail.time).toLocaleString()}</div>
+                      <div><span className="text-gray-500">Subject:</span> {selectedEmail.subject}</div>
+                    </div>
+                    {/* White background for email body - consistent with email detail view */}
+                    <div 
+                      className="bg-white rounded-b-xl p-4 text-sm prose prose-sm max-w-none"
+                      style={{ color: '#1a1a1a' }}
+                      dangerouslySetInnerHTML={{ __html: selectedEmail.body }}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
-            <div className="p-4 border-t border-[#333333] flex justify-end gap-3">
+            {/* Footer */}
+            <div className="p-4 border-t border-[#333333] flex justify-end gap-3 flex-shrink-0">
               <button
-                onClick={() => setShowReplyModal(false)}
-                className="px-4 py-2.5 bg-[#333333] hover:bg-[#444444] text-white rounded-xl text-sm font-medium transition-colors"
+                onClick={handleCloseReplyModal}
+                className="px-5 py-3 bg-[#333333] hover:bg-[#444444] text-white rounded-xl text-sm font-medium transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={sendEmailReply}
-                disabled={!replyData.to || !replyData.body}
-                className="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-500/50 disabled:cursor-not-allowed text-white rounded-xl text-sm font-medium flex items-center gap-2 transition-colors"
+                disabled={replyToRecipients.length === 0 || !replyData.body.trim()}
+                className="px-8 py-3 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-500/50 disabled:cursor-not-allowed text-white rounded-xl text-sm font-medium flex items-center gap-2 transition-colors"
               >
-                <Send size={16} />
+                <Send size={18} />
                 Send Reply
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Draft Confirmation Modal */}
+      {showDraftConfirmModal && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[80] p-4">
+          <div className="bg-[#1C1C1C] rounded-2xl w-full max-w-md p-6">
+            <h3 className="text-lg font-semibold text-white mb-2">Save as Draft?</h3>
+            <p className="text-gray-400 text-sm mb-6">
+              You have unsent content. Would you like to save it as a draft?
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={closeReplyModal}
+                className="px-4 py-2 bg-[#333333] hover:bg-[#444444] text-white rounded-xl text-sm font-medium transition-colors"
+              >
+                Discard
+              </button>
+              <button
+                onClick={saveReplyAsDraft}
+                className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-sm font-medium transition-colors"
+              >
+                Save Draft
               </button>
             </div>
           </div>
@@ -3732,6 +4807,7 @@ export default function Communications() {
         onSave={handleSaveDraft}
       />
 
+      {/* CreateMessageModal removed - using BroadcastModal instead
       <CreateMessageModal
         show={showCreateMessageModal}
         setShow={setShowCreateMessageModal}
@@ -3740,6 +4816,7 @@ export default function Communications() {
         setNewMessage={setNewMessage}
         handleSaveNewMessage={handleSaveNewMessage}
       />
+      */}
 
       <ContingentModal
         show={showContingentModal}

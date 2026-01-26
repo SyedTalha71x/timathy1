@@ -48,7 +48,7 @@ import AppointmentModalMain from "../../components/shared/appointments/ShowAppoi
 import DocumentManagementModal from "../../components/shared/DocumentManagementModal"
 import AssessmentFormModal from "../../components/shared/medical-history-form-modal"
 import AssessmentSelectionModal from "../../components/shared/medical-history-selection-modal"
-import { appointmentsMainData, appointmentTypeMainData, availableMembersLeadsMain, freeAppointmentsMainData, memberHistoryMainData, memberRelationsMainData, membersData, relationOptionsMain } from "../../utils/user-panel-states/app-states"
+import { appointmentsMainData, appointmentTypeMainData, availableMembersLeadsMain, freeAppointmentsMainData, memberHistoryMainData, memberRelationsMainData, membersData, relationOptionsMain, staffData, communicationSettingsData } from "../../utils/user-panel-states/app-states"
 import CreateAppointmentModal from "../../components/shared/appointments/CreateAppointmentModal"
 import EditAppointmentModalMain from "../../components/shared/appointments/EditAppointmentModal"
 
@@ -1200,6 +1200,12 @@ export default function Members() {
     handleCloseEmailModal();
   };
 
+  // Save email as draft
+  const handleSaveEmailAsDraft = (draftData) => {
+    console.log("Saving draft:", draftData);
+    toast.success("Draft saved!");
+  };
+
   // Template auswählen
   const handleTemplateSelect = (template) => {
     setSelectedEmailTemplate(template);
@@ -1211,13 +1217,44 @@ export default function Members() {
     setShowTemplateDropdown(false);
   };
 
-  // Mitglied für Email suchen
+  // Mitglied oder Staff für Email suchen
   const handleSearchMemberForEmail = (query) => {
     if (!query) return [];
-    return members.filter(m => 
-      `${m.firstName} ${m.lastName}`.toLowerCase().includes(query.toLowerCase()) ||
-      m.email?.toLowerCase().includes(query.toLowerCase())
-    );
+    const q = query.toLowerCase();
+    
+    // Search in members
+    const memberResults = members.filter(m => 
+      m.firstName?.toLowerCase().includes(q) ||
+      m.lastName?.toLowerCase().includes(q) ||
+      m.email?.toLowerCase().includes(q) ||
+      `${m.firstName} ${m.lastName}`.toLowerCase().includes(q)
+    ).map(m => ({
+      id: `member-${m.id}`,
+      email: m.email,
+      name: `${m.firstName || ''} ${m.lastName || ''}`.trim(),
+      firstName: m.firstName,
+      lastName: m.lastName,
+      image: m.image || m.avatar,
+      type: 'member'
+    }));
+    
+    // Search in staff (staffData uses 'img' not 'image')
+    const staffResults = staffData.filter(s => 
+      s.firstName?.toLowerCase().includes(q) ||
+      s.lastName?.toLowerCase().includes(q) ||
+      s.email?.toLowerCase().includes(q) ||
+      `${s.firstName} ${s.lastName}`.toLowerCase().includes(q)
+    ).map(s => ({
+      id: `staff-${s.id}`,
+      email: s.email,
+      name: `${s.firstName || ''} ${s.lastName || ''}`.trim(),
+      firstName: s.firstName,
+      lastName: s.lastName,
+      image: s.img, // staffData uses 'img' field
+      type: 'staff'
+    }));
+    
+    return [...memberResults, ...staffResults].slice(0, 10);
   };
 
   // Select email recipient
@@ -2838,16 +2875,12 @@ export default function Members() {
         showEmailModal={showEmailModal}
         handleCloseEmailModal={handleCloseEmailModal}
         handleSendEmail={handleSendEmail}
-        setShowTemplateDropdown={setShowTemplateDropdown}
-        showTemplateDropdown={showTemplateDropdown}
-        selectedEmailTemplate={selectedEmailTemplate}
-        emailTemplates={emailTemplates}
-        handleTemplateSelect={handleTemplateSelect}
-        setSelectedEmailTemplate={setSelectedEmailTemplate}
         emailData={emailData}
         setEmailData={setEmailData}
         handleSearchMemberForEmail={handleSearchMemberForEmail}
         preselectedMember={selectedMemberForEmail}
+        onSaveAsDraft={handleSaveEmailAsDraft}
+        signature={communicationSettingsData?.emailSignature || ""}
       />
 
       {/* sidebar related modal  */}

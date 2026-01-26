@@ -643,7 +643,7 @@ export const emailListData = {
       body: `<p>Hey Team!</p>
 <p>First off, I wanted to say a <strong>huge thank you</strong> for the personalized training plan you put together for me. I've been following it for 3 weeks now and already seeing great results!</p>
 <p>I do have some questions about the <strong>cardio section</strong>:</p>
-<blockquote style="border-left: 3px solid #666; padding-left: 15px; margin-left: 0; color: #aaa;">
+<blockquote style="border-left: 3px solid #d1d5db; padding-left: 15px; margin-left: 0; color: #555;">
   "Complete 20 minutes of HIIT training 3x per week"
 </blockquote>
 <p>Is it okay if I substitute some HIIT sessions with swimming? I find it easier on my joints and I enjoy it more.</p>
@@ -745,20 +745,20 @@ export const emailListData = {
 </ul>
 <p>I even found a few potential instructors:</p>
 <table style="border-collapse: collapse; width: 100%; margin: 15px 0;">
-  <tr style="background: #333;">
-    <td style="padding: 10px; border: 1px solid #444;"><strong>Name</strong></td>
-    <td style="padding: 10px; border: 1px solid #444;"><strong>Certification</strong></td>
-    <td style="padding: 10px; border: 1px solid #444;"><strong>Availability</strong></td>
+  <tr style="background: #f3f4f6;">
+    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Name</strong></td>
+    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Certification</strong></td>
+    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Availability</strong></td>
   </tr>
   <tr>
-    <td style="padding: 10px; border: 1px solid #444;">Maria Santos</td>
-    <td style="padding: 10px; border: 1px solid #444;">Zumba Certified</td>
-    <td style="padding: 10px; border: 1px solid #444;">Evenings</td>
+    <td style="padding: 10px; border: 1px solid #e5e7eb;">Maria Santos</td>
+    <td style="padding: 10px; border: 1px solid #e5e7eb;">Zumba Certified</td>
+    <td style="padding: 10px; border: 1px solid #e5e7eb;">Evenings</td>
   </tr>
   <tr>
-    <td style="padding: 10px; border: 1px solid #444;">Carlos Rivera</td>
-    <td style="padding: 10px; border: 1px solid #444;">Dance Fitness Pro</td>
-    <td style="padding: 10px; border: 1px solid #444;">Weekends</td>
+    <td style="padding: 10px; border: 1px solid #e5e7eb;">Carlos Rivera</td>
+    <td style="padding: 10px; border: 1px solid #e5e7eb;">Dance Fitness Pro</td>
+    <td style="padding: 10px; border: 1px solid #e5e7eb;">Weekends</td>
   </tr>
 </table>
 <p>Would love to hear your thoughts on this! 🙏</p>
@@ -810,7 +810,7 @@ export const emailListData = {
       subject: "⚠️ Complaint: Equipment Issue in Weight Room",
       body: `<p>Dear Management,</p>
 <p>I'm writing to report an issue I encountered during my workout session on <strong>January 23rd at approximately 6:30 PM</strong>.</p>
-<div style="background: #3a2a2a; padding: 15px; border-radius: 8px; border-left: 4px solid #ef4444; margin: 15px 0;">
+<div style="background: #fee2e2; padding: 15px; border-radius: 8px; border-left: 4px solid #ef4444; margin: 15px 0;">
   <strong>⚠️ Safety Concern:</strong><br/>
   The cable on <strong>Machine #4 (Lat Pulldown)</strong> in the weight room appears to be frayed and could potentially snap during use.
 </div>
@@ -914,7 +914,7 @@ export const emailListData = {
   <li>🧘 <strong>Free guest passes</strong> (2 per month)</li>
   <li>🎁 <strong>20% discount</strong> on all merchandise</li>
 </ul>
-<div style="background: #2a3a2a; padding: 15px; border-radius: 8px; border-left: 4px solid #22c55e; margin: 15px 0;">
+<div style="background: #dcfce7; padding: 15px; border-radius: 8px; border-left: 4px solid #22c55e; margin: 15px 0;">
   <strong>Special Offer for Existing Members:</strong><br/>
   As a valued member, we'd like to offer you a <strong>15% loyalty discount</strong> on the upgrade fee! This brings your monthly rate to <strong>$89.99/month</strong> (regularly $105.99).
 </div>
@@ -947,29 +947,29 @@ export const emailListData = {
 <p>Great news - we have several <strong>alternative time slots</strong> available:</p>
 <h3>Evening Classes:</h3>
 <table style="border-collapse: collapse; width: 100%; margin: 15px 0;">
-  <tr style="background: #333;">
-    <td style="padding: 10px; border: 1px solid #444;"><strong>Day</strong></td>
-    <td style="padding: 10px; border: 1px solid #444;"><strong>Time</strong></td>
-    <td style="padding: 10px; border: 1px solid #444;"><strong>Instructor</strong></td>
-    <td style="padding: 10px; border: 1px solid #444;"><strong>Style</strong></td>
+  <tr style="background: #f3f4f6;">
+    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Day</strong></td>
+    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Time</strong></td>
+    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Instructor</strong></td>
+    <td style="padding: 10px; border: 1px solid #e5e7eb;"><strong>Style</strong></td>
   </tr>
   <tr>
-    <td style="padding: 10px; border: 1px solid #444;">Tuesday</td>
-    <td style="padding: 10px; border: 1px solid #444;">6:30 PM</td>
-    <td style="padding: 10px; border: 1px solid #444;">Maya</td>
-    <td style="padding: 10px; border: 1px solid #444;">Vinyasa Flow</td>
+    <td style="padding: 10px; border: 1px solid #e5e7eb;">Tuesday</td>
+    <td style="padding: 10px; border: 1px solid #e5e7eb;">6:30 PM</td>
+    <td style="padding: 10px; border: 1px solid #e5e7eb;">Maya</td>
+    <td style="padding: 10px; border: 1px solid #e5e7eb;">Vinyasa Flow</td>
   </tr>
   <tr>
-    <td style="padding: 10px; border: 1px solid #444;">Thursday</td>
-    <td style="padding: 10px; border: 1px solid #444;">7:00 PM</td>
-    <td style="padding: 10px; border: 1px solid #444;">David</td>
-    <td style="padding: 10px; border: 1px solid #444;">Hatha Yoga</td>
+    <td style="padding: 10px; border: 1px solid #e5e7eb;">Thursday</td>
+    <td style="padding: 10px; border: 1px solid #e5e7eb;">7:00 PM</td>
+    <td style="padding: 10px; border: 1px solid #e5e7eb;">David</td>
+    <td style="padding: 10px; border: 1px solid #e5e7eb;">Hatha Yoga</td>
   </tr>
   <tr>
-    <td style="padding: 10px; border: 1px solid #444;">Saturday</td>
-    <td style="padding: 10px; border: 1px solid #444;">9:00 AM</td>
-    <td style="padding: 10px; border: 1px solid #444;">Maya</td>
-    <td style="padding: 10px; border: 1px solid #444;">Restorative</td>
+    <td style="padding: 10px; border: 1px solid #e5e7eb;">Saturday</td>
+    <td style="padding: 10px; border: 1px solid #e5e7eb;">9:00 AM</td>
+    <td style="padding: 10px; border: 1px solid #e5e7eb;">Maya</td>
+    <td style="padding: 10px; border: 1px solid #e5e7eb;">Restorative</td>
   </tr>
 </table>
 <p>I've attached the complete class schedule for your reference. Let us know which classes you'd like to switch to!</p>
@@ -1007,7 +1007,7 @@ export const emailListData = {
   <li>Wearing a compression sleeve during exercise</li>
   <li>Avoiding sudden directional changes for now</li>
 </ol>
-<div style="background: #2a2a3a; padding: 15px; border-radius: 8px; margin: 15px 0;">
+<div style="background: #dbeafe; padding: 15px; border-radius: 8px; margin: 15px 0;">
   <strong>📅 Follow-up Consultation Scheduled:</strong><br/>
   <strong>Date:</strong> Thursday, January 30th<br/>
   <strong>Time:</strong> 11:00 AM<br/>
@@ -1042,7 +1042,7 @@ export const emailListData = {
   <li>Our maintenance team inspected the equipment this morning</li>
   <li>A new cable has been ordered and will arrive within 3-5 business days</li>
 </ul>
-<div style="background: #2a3a2a; padding: 15px; border-radius: 8px; border-left: 4px solid #22c55e; margin: 15px 0;">
+<div style="background: #dcfce7; padding: 15px; border-radius: 8px; border-left: 4px solid #22c55e; margin: 15px 0;">
   <strong>🎁 Token of Appreciation:</strong><br/>
   As thanks for your report, we'd like to offer you <strong>one complimentary personal training session</strong>!<br/>
   <em>Valid for the next 30 days. Simply mention this email at the front desk to redeem.</em>
@@ -1067,7 +1067,7 @@ export const emailListData = {
       body: `<p>Dear Lisa,</p>
 <p>Thank you for reaching out! We're very excited about the potential partnership with <strong>TechVision Inc.</strong> and would love to discuss corporate membership options with you.</p>
 <p>I've reviewed your company profile and wellness survey results - it's clear that TechVision values employee wellbeing, which aligns perfectly with our mission!</p>
-<div style="background: #2a2a3a; padding: 20px; border-radius: 8px; margin: 15px 0;">
+<div style="background: #dbeafe; padding: 20px; border-radius: 8px; margin: 15px 0;">
   <h3 style="color: #3F74FF; margin-top: 0;">📅 Meeting Confirmation</h3>
   <strong>Date:</strong> Tuesday, January 28th, 2025<br/>
   <strong>Time:</strong> 10:00 AM<br/>
@@ -1113,9 +1113,9 @@ export const emailListData = {
   <li>🎵 <strong>Latin Rhythms</strong> - Wednesdays at 7:00 PM</li>
 </ul>
 <h2 style="color: #FF843E;">❤️ Valentine's Day Special</h2>
-<div style="background: linear-gradient(135deg, #2a2a3a, #3a2a3a); padding: 20px; border-radius: 12px; text-align: center; margin: 15px 0;">
+<div style="background: linear-gradient(135deg, #fce7f3, #dbeafe); padding: 20px; border-radius: 12px; text-align: center; margin: 15px 0;">
   <strong style="font-size: 20px; color: #FF6B6B;">Bring Your Partner for FREE</strong><br/>
-  <span style="color: #aaa;">February 12-16, 2025</span><br/>
+  <span style="color: #555;">February 12-16, 2025</span><br/>
   <em>Couples who sweat together, stay together! 💕</em>
 </div>
 <h2 style="color: #FF843E;">🏆 Member Spotlight</h2>
@@ -1162,7 +1162,7 @@ export const emailListData = {
   <li>✅ Free fitness assessment</li>
 </ul>
 <h3>3. Current Promotions</h3>
-<div style="background: #2a3a2a; padding: 15px; border-radius: 8px; border-left: 4px solid #FF843E; margin: 15px 0;">
+<div style="background: #dcfce7; padding: 15px; border-radius: 8px; border-left: 4px solid #FF843E; margin: 15px 0;">
   <strong>🎁 January Special:</strong><br/>
   Sign up this month and get <strong>$0 enrollment fee</strong> (normally $99)!<br/>
   Plus: <strong>1 FREE personal training session</strong> to get you started.
@@ -1323,6 +1323,10 @@ export const communicationSettingsData = {
   birthdayMessageTemplate: "Happy Birthday! 🎂",
   birthdaySendTime: "09:00",
   appointmentNotificationEnabled: true,
+  // Email Signature - used by SendEmailModal and Reply Modal
+  // This is the single source of truth for email signatures
+  // Backend will provide this value when integrated
+  emailSignature: "<p>Best regards,<br><strong>FitLife Studio Team</strong></p><p>📞 +49 30 12345678<br>📧 info@fitlife-studio.de<br>🌐 www.fitlife-studio.de</p><p style=\"color: #666; font-size: 12px;\">Musterstraße 123, 10115 Berlin</p>",
 };
 
 // Notification Types

@@ -30,7 +30,7 @@ import EditStaffModal from "../../components/user-panel-components/staff-compone
 import StaffPlanningModal from "../../components/user-panel-components/staff-components/staff-planning-modal"
 import VacationCalendarModal from "../../components/user-panel-components/staff-components/vacation-calendar-modal"
 import StaffHistoryModal from "../../components/user-panel-components/staff-components/staff-history-modal"
-import { StaffColorIndicator, staffMemberDataNew } from "../../utils/user-panel-states/app-states"
+import { StaffColorIndicator, staffMemberDataNew, membersData, communicationSettingsData } from "../../utils/user-panel-states/app-states"
 import { useSidebarSystem } from "../../hooks/useSidebarSystem"
 import { trainingVideosData } from "../../utils/user-panel-states/training-states"
 import Sidebar from "../../components/central-sidebar"
@@ -594,6 +594,12 @@ export default function StaffManagement() {
     handleCloseEmailModal();
   };
 
+  // Save email as draft
+  const handleSaveEmailAsDraft = (draftData) => {
+    console.log("Saving draft:", draftData);
+    toast.success("Draft saved!");
+  };
+
   // Template select
   const handleTemplateSelect = (template) => {
     setSelectedEmailTemplate(template);
@@ -605,13 +611,44 @@ export default function StaffManagement() {
     setShowTemplateDropdown(false);
   };
 
-  // Search staff for email
+  // Search staff and members for email
   const handleSearchStaffForEmail = (query) => {
     if (!query) return [];
-    return staffMembers.filter(s => 
-      `${s.firstName} ${s.lastName}`.toLowerCase().includes(query.toLowerCase()) ||
-      s.email?.toLowerCase().includes(query.toLowerCase())
-    );
+    const q = query.toLowerCase();
+    
+    // Search in staff (staffMembers uses 'img' not 'image')
+    const staffResults = staffMembers.filter(s => 
+      s.firstName?.toLowerCase().includes(q) ||
+      s.lastName?.toLowerCase().includes(q) ||
+      s.email?.toLowerCase().includes(q) ||
+      `${s.firstName} ${s.lastName}`.toLowerCase().includes(q)
+    ).map(s => ({
+      id: `staff-${s.id}`,
+      email: s.email,
+      name: `${s.firstName || ''} ${s.lastName || ''}`.trim(),
+      firstName: s.firstName,
+      lastName: s.lastName,
+      image: s.img, // staffData uses 'img' field
+      type: 'staff'
+    }));
+    
+    // Search in members
+    const memberResults = membersData.filter(m => 
+      m.firstName?.toLowerCase().includes(q) ||
+      m.lastName?.toLowerCase().includes(q) ||
+      m.email?.toLowerCase().includes(q) ||
+      `${m.firstName} ${m.lastName}`.toLowerCase().includes(q)
+    ).map(m => ({
+      id: `member-${m.id}`,
+      email: m.email,
+      name: `${m.firstName || ''} ${m.lastName || ''}`.trim(),
+      firstName: m.firstName,
+      lastName: m.lastName,
+      image: m.image || m.avatar,
+      type: 'member'
+    }));
+    
+    return [...staffResults, ...memberResults].slice(0, 10);
   };
 
   // Select email recipient
@@ -1835,17 +1872,12 @@ export default function StaffManagement() {
           showEmailModal={showEmailModal}
           handleCloseEmailModal={handleCloseEmailModal}
           handleSendEmail={handleSendEmail}
-          setShowTemplateDropdown={setShowTemplateDropdown}
-          showTemplateDropdown={showTemplateDropdown}
-          selectedEmailTemplate={selectedEmailTemplate}
-          emailTemplates={emailTemplates}
-          handleTemplateSelect={handleTemplateSelect}
-          setSelectedEmailTemplate={setSelectedEmailTemplate}
           emailData={emailData}
           setEmailData={setEmailData}
           handleSearchMemberForEmail={handleSearchStaffForEmail}
           preselectedMember={selectedStaffForEmail}
-          context="staff"
+          onSaveAsDraft={handleSaveEmailAsDraft}
+          signature={communicationSettingsData?.emailSignature || ""}
         />
 
         {isVacationContingentModalOpen && selectedStaffForContingent && (

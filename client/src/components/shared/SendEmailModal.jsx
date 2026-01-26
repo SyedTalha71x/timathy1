@@ -5,16 +5,18 @@ import { Mail, X, Search, Send, ChevronDown, Paperclip, Image, FileText, File, T
 import { WysiwygEditor } from "./WysiwygEditor";
 
 // Initials Avatar Component
-const InitialsAvatar = ({ firstName, lastName, size = 32, className = "" }) => {
+const InitialsAvatar = ({ firstName, lastName, size = 32, className = "", isStaff = false }) => {
   const getInitials = () => {
     const firstInitial = firstName?.charAt(0)?.toUpperCase() || "";
     const lastInitial = lastName?.charAt(0)?.toUpperCase() || "";
     return `${firstInitial}${lastInitial}` || "?";
   };
 
+  const bgColor = isStaff ? 'bg-blue-500' : 'bg-orange-500';
+
   return (
     <div
-      className={`bg-orange-500 rounded-lg flex items-center justify-center text-white font-semibold ${className}`}
+      className={`${bgColor} rounded-lg flex items-center justify-center text-white font-semibold ${className}`}
       style={{ width: size, height: size, fontSize: size * 0.4 }}
     >
       {getInitials()}
@@ -25,26 +27,34 @@ const InitialsAvatar = ({ firstName, lastName, size = 32, className = "" }) => {
 // Email Tag Component
 const EmailTag = ({ recipient, onRemove }) => {
   const isManual = !recipient.id;
+  const displayName = recipient.name || `${recipient.firstName || ''} ${recipient.lastName || ''}`.trim();
+  const isStaff = recipient.type === 'staff';
   
   return (
     <div className="flex items-center gap-1.5 bg-[#2a2a2a] border border-gray-700 rounded-lg px-2 py-1 text-sm">
-      {!isManual && recipient.image ? (
+      {isManual ? (
+        <Mail className="w-3.5 h-3.5 text-gray-400" />
+      ) : recipient.image ? (
         <img 
           src={recipient.image} 
           alt="" 
           className="w-5 h-5 rounded object-cover"
         />
-      ) : !isManual ? (
+      ) : (
         <InitialsAvatar 
           firstName={recipient.firstName || recipient.name?.split(" ")[0]} 
           lastName={recipient.lastName || recipient.name?.split(" ")[1]} 
-          size={20} 
+          size={20}
+          isStaff={isStaff}
         />
-      ) : (
-        <Mail className="w-3.5 h-3.5 text-gray-400" />
       )}
       <span className="text-white text-xs">
-        {isManual ? recipient.email : (recipient.name || `${recipient.firstName} ${recipient.lastName}`)}
+        {isManual ? recipient.email : (
+          <>
+            {displayName}
+            {recipient.email && <span className="text-gray-400 ml-1">&lt;{recipient.email}&gt;</span>}
+          </>
+        )}
       </span>
       <button
         onClick={(e) => {
@@ -150,7 +160,8 @@ const EmailTagInput = ({
       name: member.name || `${member.firstName} ${member.lastName}`,
       firstName: member.firstName,
       lastName: member.lastName,
-      image: member.image
+      image: member.image,
+      type: member.type // Keep track of member/staff type
     }]);
     setInputValue("");
     setShowDropdown(false);
@@ -242,11 +253,13 @@ const EmailTagInput = ({
                     firstName={member.firstName || member.name?.split(" ")[0]}
                     lastName={member.lastName || member.name?.split(" ")[1]}
                     size={32}
+                    isStaff={member.type === 'staff'}
                   />
                 )}
                 <div>
                   <span className="text-sm text-white block">
                     {member.name || `${member.firstName} ${member.lastName}`}
+                    {member.type === 'staff' && <span className="ml-2 text-xs text-blue-400">(Staff)</span>}
                   </span>
                   <span className="text-xs text-gray-400">{member.email}</span>
                 </div>
@@ -291,48 +304,25 @@ const formatFileSize = (bytes) => {
   return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
 };
 
-// Insert variables helper - returns context-appropriate variables
-const getInsertVariables = (context) => {
-  if (context === "staff") {
-    return [
-      { id: 'first_name', label: 'Staff First Name', value: '{Staff_First_Name}' },
-      { id: 'last_name', label: 'Staff Last Name', value: '{Staff_Last_Name}' },
-      { id: 'studio_name', label: 'Studio Name', value: '{Studio_Name}' },
-    ];
-  }
-  // Default to member
-  return [
-    { id: 'first_name', label: 'Member First Name', value: '{Member_First_Name}' },
-    { id: 'last_name', label: 'Member Last Name', value: '{Member_Last_Name}' },
-    { id: 'studio_name', label: 'Studio Name', value: '{Studio_Name}' },
-  ];
-};
-
 const SendEmailModal = ({
   showEmailModal,
   handleCloseEmailModal,
   handleSendEmail,
-  setShowTemplateDropdown,
-  showTemplateDropdown,
-  selectedEmailTemplate,
-  emailTemplates,
-  handleTemplateSelect,
-  setSelectedEmailTemplate,
   emailData,
   setEmailData,
   handleSearchMemberForEmail,
   preselectedMember = null,
   signature = "",
-  context = "member", // "member" | "staff"
+  editingDraft = null, // Draft being edited
+  onSaveAsDraft = null, // Callback to save as draft
 }) => {
   const attachmentInputRef = useRef(null);
   const editorRef = useRef(null);
   const subjectInputRef = useRef(null);
   const [showCc, setShowCc] = useState(false);
   const [showBcc, setShowBcc] = useState(false);
+  const [showDraftConfirmModal, setShowDraftConfirmModal] = useState(false);
   
-  // Get context-appropriate insert variables
-  const insertVariables = getInsertVariables(context);
   const [attachments, setAttachments] = useState([]);
   const [toRecipients, setToRecipients] = useState([]);
   const [ccRecipients, setCcRecipients] = useState([]);
@@ -341,16 +331,61 @@ const SendEmailModal = ({
   // Set preselected member when modal opens
   useEffect(() => {
     if (showEmailModal && preselectedMember) {
+      // Determine if this is a staff member (has 'img' field or comes from staff context)
+      const isStaff = preselectedMember.img !== undefined || preselectedMember.role !== undefined;
+      
       setToRecipients([{
-        id: preselectedMember.id,
+        id: isStaff ? `staff-${preselectedMember.id}` : `member-${preselectedMember.id}`,
         email: preselectedMember.email,
         name: preselectedMember.name || `${preselectedMember.firstName || ''} ${preselectedMember.lastName || ''}`.trim(),
         firstName: preselectedMember.firstName,
         lastName: preselectedMember.lastName,
-        image: preselectedMember.image || preselectedMember.logo || preselectedMember.avatar
+        image: preselectedMember.image || preselectedMember.img || preselectedMember.logo || preselectedMember.avatar,
+        type: isStaff ? 'staff' : 'member'
       }]);
     }
   }, [showEmailModal, preselectedMember]);
+
+  // Load draft data when editing a draft
+  useEffect(() => {
+    if (showEmailModal && editingDraft) {
+      // Parse To recipients
+      if (editingDraft.recipientEmail) {
+        const emails = editingDraft.recipientEmail.split(",").map(e => e.trim()).filter(Boolean);
+        const names = editingDraft.recipient ? editingDraft.recipient.split(",").map(n => n.trim()) : [];
+        const toRecs = emails.map((email, idx) => ({
+          email,
+          name: names[idx] || email,
+          isManual: true
+        }));
+        setToRecipients(toRecs);
+      }
+      // Parse CC recipients
+      if (editingDraft.cc) {
+        const ccEmails = editingDraft.cc.split(",").map(e => e.trim()).filter(Boolean);
+        const ccRecs = ccEmails.map(email => ({ email, name: email, isManual: true }));
+        setCcRecipients(ccRecs);
+        if (ccRecs.length > 0) setShowCc(true);
+      }
+      // Parse BCC recipients
+      if (editingDraft.bcc) {
+        const bccEmails = editingDraft.bcc.split(",").map(e => e.trim()).filter(Boolean);
+        const bccRecs = bccEmails.map(email => ({ email, name: email, isManual: true }));
+        setBccRecipients(bccRecs);
+        if (bccRecs.length > 0) setShowBcc(true);
+      }
+      // Parse attachments
+      if (editingDraft.attachments && editingDraft.attachments.length > 0) {
+        const draftAttachments = editingDraft.attachments.map((att, idx) => ({
+          id: Date.now() + idx,
+          name: att.name || att,
+          size: att.size || 0,
+          type: att.type || 'application/octet-stream'
+        }));
+        setAttachments(draftAttachments);
+      }
+    }
+  }, [showEmailModal, editingDraft]);
 
   // Handle attachment upload
   const handleAttachmentUpload = (e) => {
@@ -371,34 +406,11 @@ const SendEmailModal = ({
     setAttachments(prev => prev.filter(a => a.id !== id));
   };
 
-  // Insert variable into body - using editor ref for direct insertion
-  const insertVariable = (variable) => {
-    if (editorRef.current?.insertText) {
-      editorRef.current.insertText(variable.value);
-    }
-  };
-
-  // Insert variable into subject field
-  const insertVariableToSubject = (variable) => {
-    if (subjectInputRef.current) {
-      const input = subjectInputRef.current;
-      const start = input.selectionStart;
-      const end = input.selectionEnd;
-      const text = emailData.subject || '';
-      const newText = text.substring(0, start) + variable.value + text.substring(end);
-      setEmailData({ ...emailData, subject: newText });
-      setTimeout(() => {
-        input.selectionStart = input.selectionEnd = start + variable.value.length;
-        input.focus();
-      }, 0);
-    }
-  };
-
-  // Insert signature - using editor ref for direct insertion
+  // Insert signature - using editor ref for HTML insertion
   const insertSignature = () => {
-    const signatureHtml = signature || '\n\n--\nMit freundlichen GrÃ¼ÃŸen\n{Member_First_Name} {Member_Last_Name}';
-    if (editorRef.current?.insertText) {
-      editorRef.current.insertText(signatureHtml);
+    const signatureHtml = signature || '<p>--<br>Mit freundlichen Grüßen</p>';
+    if (editorRef.current?.insertHtml) {
+      editorRef.current.insertHtml(`<br><br>${signatureHtml}`);
     }
   };
 
@@ -426,9 +438,85 @@ const SendEmailModal = ({
     setToRecipients([]);
     setCcRecipients([]);
     setBccRecipients([]);
+    setShowDraftConfirmModal(false);
   };
 
-  // Close and reset
+  // Normalize HTML for comparison (remove whitespace and empty tags)
+  const normalizeHtml = (html) => {
+    if (!html) return '';
+    return html
+      .replace(/<p><br><\/p>/gi, '')
+      .replace(/<br\s*\/?>/gi, '')
+      .replace(/&nbsp;/gi, ' ')
+      .replace(/<[^>]*>/g, '') // Strip all HTML tags
+      .replace(/\s+/g, ' ')
+      .trim();
+  };
+
+  // Check if there are unsaved changes (compared to original draft if editing)
+  const hasUnsavedChanges = () => {
+    if (editingDraft) {
+      // Compare current state with original draft
+      const currentToEmails = toRecipients.map(r => r.email).sort().join(',');
+      const originalToEmails = editingDraft.recipientEmail?.split(',').map(e => e.trim()).filter(Boolean).sort().join(',') || '';
+      
+      const currentCcEmails = ccRecipients.map(r => r.email).sort().join(',');
+      const originalCcEmails = editingDraft.cc?.split(',').map(e => e.trim()).filter(Boolean).sort().join(',') || '';
+      
+      const currentBccEmails = bccRecipients.map(r => r.email).sort().join(',');
+      const originalBccEmails = editingDraft.bcc?.split(',').map(e => e.trim()).filter(Boolean).sort().join(',') || '';
+      
+      const currentSubject = emailData.subject?.trim() || '';
+      const originalSubject = editingDraft.subject?.trim() || '';
+      
+      const currentBody = normalizeHtml(emailData.body);
+      const originalBody = normalizeHtml(editingDraft.body);
+      
+      // Check if anything changed
+      return currentToEmails !== originalToEmails ||
+             currentCcEmails !== originalCcEmails ||
+             currentBccEmails !== originalBccEmails ||
+             currentSubject !== originalSubject ||
+             currentBody !== originalBody;
+    }
+    
+    // Not editing a draft - check if there's any content
+    return toRecipients.length > 0 || 
+           ccRecipients.length > 0 || 
+           bccRecipients.length > 0 ||
+           (emailData.subject && emailData.subject.trim() !== "") ||
+           (normalizeHtml(emailData.body) !== "") ||
+           attachments.length > 0;
+  };
+
+  // Handle close with draft confirmation
+  const handleClose = () => {
+    if (hasUnsavedChanges() && onSaveAsDraft) {
+      setShowDraftConfirmModal(true);
+    } else {
+      onClose();
+    }
+  };
+
+  // Save as draft and close
+  const saveAsDraft = () => {
+    if (onSaveAsDraft) {
+      const draftData = {
+        id: editingDraft?.id, // Pass existing draft ID for updating
+        toRecipients,
+        ccRecipients,
+        bccRecipients,
+        subject: emailData.subject,
+        body: emailData.body,
+        attachments
+      };
+      onSaveAsDraft(draftData);
+    }
+    resetModal();
+    handleCloseEmailModal();
+  };
+
+  // Close and reset without saving
   const onClose = () => {
     handleCloseEmailModal();
     resetModal();
@@ -449,7 +537,7 @@ const SendEmailModal = ({
               Send Email
             </h2>
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="p-2 hover:bg-zinc-700 rounded-lg text-gray-400 hover:text-white transition-colors"
             >
               <X size={20} />
@@ -457,58 +545,12 @@ const SendEmailModal = ({
           </div>
 
           <div className="space-y-4 flex-1 overflow-y-auto custom-scrollbar pr-1">
-            {/* Template Selection */}
-            <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1">
-                Email Template
-              </label>
-              <div className="relative">
-                <button
-                  onClick={() => setShowTemplateDropdown(!showTemplateDropdown)}
-                  className="w-full bg-[#222222] hover:bg-[#2a2a2a] text-white rounded-xl px-4 py-2.5 text-sm text-left flex items-center justify-between transition-colors"
-                >
-                  <span className={selectedEmailTemplate ? "text-white" : "text-gray-500"}>
-                    {selectedEmailTemplate
-                      ? selectedEmailTemplate.name
-                      : "Select a template (optional)"}
-                  </span>
-                  <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform ${showTemplateDropdown ? 'rotate-180' : ''}`} />
-                </button>
-                {showTemplateDropdown && (
-                  <div className="absolute left-0 right-0 mt-1 bg-[#1C1C1C] border border-gray-800 rounded-xl shadow-xl z-10 max-h-48 overflow-y-auto">
-                    <button
-                      onClick={() => {
-                        setSelectedEmailTemplate(null);
-                        setEmailData({ ...emailData, subject: "", body: "" });
-                        setShowTemplateDropdown(false);
-                      }}
-                      className="w-full text-left p-3 hover:bg-[#2F2F2F] text-sm text-gray-400 border-b border-gray-700 transition-colors"
-                    >
-                      No template (blank email)
-                    </button>
-                    {emailTemplates?.map((template) => (
-                      <button
-                        key={template.id}
-                        onClick={() => handleTemplateSelect(template)}
-                        className="w-full text-left p-3 hover:bg-[#2F2F2F] transition-colors"
-                      >
-                        <div className="font-medium text-sm text-white">{template.name}</div>
-                        <div className="text-xs text-gray-400 truncate">
-                          {template.subject}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
             {/* To Field with Tags */}
             <EmailTagInput
               recipients={toRecipients}
               setRecipients={setToRecipients}
               searchMembers={handleSearchMemberForEmail}
-              placeholder="Search members or type email..."
+              placeholder="Search by name, or type email..."
               label="To"
               showAddCc={!showCc}
               onAddCc={() => setShowCc(true)}
@@ -522,7 +564,7 @@ const SendEmailModal = ({
                 recipients={ccRecipients}
                 setRecipients={setCcRecipients}
                 searchMembers={handleSearchMemberForEmail}
-                placeholder="Search members or type email..."
+                placeholder="Search by name, or type email..."
                 label="CC"
                 showRemoveButton={true}
                 onRemoveField={() => {
@@ -538,7 +580,7 @@ const SendEmailModal = ({
                 recipients={bccRecipients}
                 setRecipients={setBccRecipients}
                 searchMembers={handleSearchMemberForEmail}
-                placeholder="Search members or type email..."
+                placeholder="Search by name, or type email..."
                 label="BCC"
                 showRemoveButton={true}
                 onRemoveField={() => {
@@ -553,21 +595,6 @@ const SendEmailModal = ({
               <label className="block text-sm font-medium text-gray-400 mb-1">
                 Subject
               </label>
-              {/* Variables for Subject */}
-              <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 mb-2">
-                <div className="flex items-center gap-2 min-w-max">
-                  <span className="text-xs text-gray-500 mr-1">Variables:</span>
-                  {insertVariables.map((variable) => (
-                    <button
-                      key={`subject-${variable.id}`}
-                      onClick={() => insertVariableToSubject(variable)}
-                      className="px-2 py-1.5 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600 transition-colors whitespace-nowrap"
-                    >
-                      {variable.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
               <input
                 ref={subjectInputRef}
                 type="text"
@@ -584,30 +611,13 @@ const SendEmailModal = ({
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="text-sm font-medium text-gray-400">Message</label>
-              </div>
-              {/* Variables and Insert row - horizontal scrollable on mobile */}
-              <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 mb-2">
-                <div className="flex items-center gap-2 min-w-max">
-                  <span className="text-xs text-gray-500 mr-1">Variables:</span>
-                  {insertVariables.map((variable) => (
-                    <button
-                      key={variable.id}
-                      onClick={() => insertVariable(variable)}
-                      className="px-2 py-1.5 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600 transition-colors whitespace-nowrap"
-                    >
-                      {variable.label}
-                    </button>
-                  ))}
-                  <span className="text-xs text-gray-500 mx-1">|</span>
-                  <span className="text-xs text-gray-500 mr-1">Insert:</span>
-                  <button
-                    onClick={insertSignature}
-                    className="px-2 py-1.5 bg-orange-500 text-white text-xs rounded-lg hover:bg-orange-600 flex items-center gap-1 transition-colors whitespace-nowrap"
-                  >
-                    <FileText className="w-3 h-3" />
-                    Signature
-                  </button>
-                </div>
+                <button
+                  onClick={insertSignature}
+                  className="px-2 py-1.5 bg-orange-500 text-white text-xs rounded-lg hover:bg-orange-600 flex items-center gap-1 transition-colors whitespace-nowrap"
+                >
+                  <FileText className="w-3 h-3" />
+                  Insert Signature
+                </button>
               </div>
               <WysiwygEditor
                 ref={editorRef}
@@ -700,6 +710,32 @@ const SendEmailModal = ({
           </div>
         </div>
       </div>
+
+      {/* Draft Confirmation Modal */}
+      {showDraftConfirmModal && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[60] p-4">
+          <div className="bg-[#1C1C1C] rounded-2xl w-full max-w-md p-6">
+            <h3 className="text-lg font-semibold text-white mb-2">Save as Draft?</h3>
+            <p className="text-gray-400 text-sm mb-6">
+              You have unsent content. Would you like to save it as a draft?
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={onClose}
+                className="px-4 py-2 bg-[#333333] hover:bg-[#444444] text-white rounded-xl text-sm font-medium transition-colors"
+              >
+                Discard
+              </button>
+              <button
+                onClick={saveAsDraft}
+                className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-sm font-medium transition-colors"
+              >
+                Save Draft
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

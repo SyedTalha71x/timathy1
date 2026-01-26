@@ -105,9 +105,9 @@ const TemplateEditorModal = ({
   }
 
   const insertSignature = () => {
-    if (isEmailTemplate && editorRef.current) {
+    if (isEmailTemplate && editorRef.current?.insertHtml) {
       const signatureContent = signature || "{Signature}"
-      editorRef.current.insertText(`<br/><br/>${signatureContent}`)
+      editorRef.current.insertHtml(`<br><br>${signatureContent}`)
     }
   }
 
