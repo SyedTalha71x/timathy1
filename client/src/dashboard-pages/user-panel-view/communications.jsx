@@ -65,12 +65,13 @@ import ContingentModal from "../../components/shared/appointments/ShowContigentM
 import AddBillingPeriodModal from "../../components/shared/appointments/AddBillingPeriodModal"
 import NotifyMemberModal from "../../components/shared/appointments/NotifyMemberModal"
 import ArchiveModal from "../../components/user-panel-components/communication-components/ArchiveModal"
-import DraftModal from "../../components/user-panel-components/communication-components/DraftModal"
+import DraftModal from "../../components/shared/DraftModal"
 import SendEmailModal from "../../components/shared/SendEmailModal"
 import BroadcastModal from "../../components/user-panel-components/communication-components/broadcast-modal-components/BroadcastModal"
 import ShowAppointmentModal from "../../components/shared/appointments/ShowAppointmentModal"
 import EditAppointmentModalMain from '../../components/shared/appointments/EditAppointmentModal'
-import ViewMemberConfirmationModal from "../../components/user-panel-components/communication-components/broadcast-modal-components/ViewConfirmationModal"
+import ViewMemberModal from "../../components/shared/ViewMemberModal"
+import ViewStaffModal from "../../components/shared/ViewStaffModal"
 
 
 // ==========================================
@@ -314,7 +315,7 @@ const ReplyEmailTagInput = ({
 const HighlightedText = ({ text, isUserMessage }) => {
   if (!text) return null;
   
-  const dateTimeRegex = /(\d{1,2}\.\d{1,2}\.\d{2,4}|\d{4}-\d{2}-\d{2}|\d{1,2}\/\d{1,2}\/\d{2,4}|\d{1,2}:\d{2}(?:\s*(?:Uhr|AM|PM|am|pm))?|(?:Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag|Sonntag|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)|(?:heute|morgen|gestern|Ã¼bermorgen|today|tomorrow|yesterday))/gi;
+  const dateTimeRegex = /(\d{1,2}\.\d{1,2}\.\d{2,4}|\d{4}-\d{2}-\d{2}|\d{1,2}\/\d{1,2}\/\d{2,4}|\d{1,2}:\d{2}(?:\s*(?:Uhr|AM|PM|am|pm))?|(?:Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag|Sonntag|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)|(?:heute|morgen|gestern|ÃƒÂ¼bermorgen|today|tomorrow|yesterday))/gi;
 
   const parts = text.split(dateTimeRegex);
   const matches = text.match(dateTimeRegex) || [];
@@ -564,7 +565,6 @@ export default function Communications() {
   })
 
   // Modal States
-  const [showDraftModal, setShowDraftModal] = useState(false)
   const [showEmailModal, setShowEmailModal] = useState(false)
   const [editingDraft, setEditingDraft] = useState(null) // Track draft being edited
   const [showBroadcastModal, setShowBroadcastModal] = useState(false)
@@ -579,6 +579,8 @@ export default function Communications() {
   const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false)
   const [showMemberConfirmation, setShowMemberConfirmation] = useState(false)
   const [selectedMemberForConfirmation, setSelectedMemberForConfirmation] = useState(null)
+  const [showStaffConfirmation, setShowStaffConfirmation] = useState(false)
+  const [selectedStaffForConfirmation, setSelectedStaffForConfirmation] = useState(null)
   const [showEditMemberModal, setShowEditMemberModal] = useState(false)
   const [editingMember, setEditingMember] = useState(null)
   const [editMemberInitialTab, setEditMemberInitialTab] = useState("note")
@@ -1022,38 +1024,6 @@ export default function Communications() {
     setShowTemplateDropdown(false)
   }
 
-  const handleSaveDraft = () => {
-    const newDraft = {
-      id: Date.now(),
-      recipient: emailData.to || "draft@example.com",
-      subject: emailData.subject || "Draft Email Subject",
-      body: emailData.body || "This is a draft email.",
-      status: "Draft",
-      time: new Date().toISOString(),
-      isRead: true,
-      isPinned: false,
-      isArchived: false,
-    }
-
-    setEmailList((prev) => ({
-      ...prev,
-      draft: [newDraft, ...prev.draft],
-    }))
-
-    setShowDraftModal(false)
-    setShowEmailModal(false)
-    setEmailData({ to: "", subject: "", body: "" })
-    setSelectedEmailTemplate(null)
-    alert("Draft saved successfully!")
-  }
-
-  const handleDiscardDraft = () => {
-    setShowDraftModal(false)
-    setShowEmailModal(false)
-    setEmailData({ to: "", subject: "", body: "" })
-    setSelectedEmailTemplate(null)
-  }
-
   const handleArchiveChat = (chatId, e) => {
     e.stopPropagation();
     
@@ -1174,11 +1144,22 @@ export default function Communications() {
       return;
     }
 
-    let member = members.find((m) => m.id === chatId);
-    if (!member) {
-      const chat = chatList.find((c) => c.id === chatId) || archivedChats.find((c) => c.id === chatId);
-      if (chat) {
-        member = members.find((m) => m.name === chat.name);
+    // First, find the chat to get the memberId
+    const chat = chatList.find((c) => c.id === chatId) || archivedChats.find((c) => c.id === chatId);
+    
+    let member = null;
+    if (chat) {
+      // Use memberId from chat if available, otherwise fall back to chat.id
+      const memberIdToFind = chat.memberId || chat.id;
+      member = members.find((m) => m.id === memberIdToFind);
+      
+      // Fallback: try to find by name
+      if (!member) {
+        member = members.find((m) => 
+          m.name === chat.name || 
+          `${m.firstName} ${m.lastName}` === chat.name ||
+          m.title === chat.name
+        );
       }
     }
 
@@ -1193,10 +1174,63 @@ export default function Communications() {
 
   const handleConfirmViewMember = () => {
     if (selectedMemberForConfirmation) {
-      window.location.href = `/dashboard/member-details/${selectedMemberForConfirmation.id}`;
+      // Navigate to Members page with filter state
+      navigate('/dashboard/members', {
+        state: {
+          filterMemberId: selectedMemberForConfirmation.id,
+          filterMemberName: selectedMemberForConfirmation.name ||
+            `${selectedMemberForConfirmation.firstName} ${selectedMemberForConfirmation.lastName}`
+        }
+      });
     }
     setShowMemberConfirmation(false);
     setSelectedMemberForConfirmation(null);
+  };
+
+  // Handle viewing staff from chat
+  const handleViewStaff = (chatId, e) => {
+    if (e) e.stopPropagation();
+
+    // Find the staff chat
+    const chat = staffChatListState.find((c) => c.id === chatId);
+    
+    let staff = null;
+    if (chat) {
+      // Use staffId from chat if available
+      const staffIdToFind = chat.staffId || chat.id;
+      staff = staffData.find((s) => s.id === staffIdToFind);
+      
+      // Fallback: try to find by name
+      if (!staff) {
+        staff = staffData.find((s) => 
+          `${s.firstName} ${s.lastName}` === chat.name ||
+          s.name === chat.name
+        );
+      }
+    }
+
+    if (staff) {
+      setSelectedStaffForConfirmation(staff);
+      setShowStaffConfirmation(true);
+    } else {
+      alert("Staff details not found.");
+    }
+    setShowChatMenu(null);
+  };
+
+  const handleConfirmViewStaff = () => {
+    if (selectedStaffForConfirmation) {
+      // Navigate to Staff page with filter state
+      navigate('/dashboard/staff', {
+        state: {
+          filterStaffId: selectedStaffForConfirmation.id,
+          filterStaffName: selectedStaffForConfirmation.name ||
+            `${selectedStaffForConfirmation.firstName} ${selectedStaffForConfirmation.lastName}`
+        }
+      });
+    }
+    setShowStaffConfirmation(false);
+    setSelectedStaffForConfirmation(null);
   };
 
   // ==========================================
@@ -2105,7 +2139,7 @@ export default function Communications() {
   }
 
   const handleSendEmail = (emailDataWithAttachments) => {
-    // SendEmailModal liefert to als Array, also prÃ¼fen wir die LÃ¤nge
+    // SendEmailModal liefert to als Array, also prÃƒÂ¼fen wir die LÃƒÂ¤nge
     const toEmails = Array.isArray(emailDataWithAttachments.to) 
       ? emailDataWithAttachments.to 
       : [emailDataWithAttachments.to].filter(Boolean);
@@ -2628,6 +2662,13 @@ export default function Communications() {
       }));
   };
 
+  // Get relations count for a member
+  const getRelationsCount = (memberId) => {
+    const relations = memberRelationsState[memberId];
+    if (!relations) return 0;
+    return Object.values(relations).reduce((total, categoryRelations) => total + categoryRelations.length, 0);
+  };
+
   // Handle edit member for special notes and relations in CreateAppointmentModal
   const handleEditMember = (member, tab = "note") => {
     // Find the full member data from membersData
@@ -2755,7 +2796,11 @@ export default function Communications() {
               className="w-12 h-12 rounded-xl object-cover"
               onClick={(e) => {
                 e.stopPropagation();
-                !isCompanyChat && handleViewMember(chat.id, e);
+                if (isStaffChat) {
+                  handleViewStaff(chat.id, e);
+                } else if (!isCompanyChat) {
+                  handleViewMember(chat.id, e);
+                }
               }}
             />
           ) : chat.id === 100 ? (
@@ -2766,12 +2811,24 @@ export default function Communications() {
               className="w-12 h-12 rounded-xl object-cover"
             />
           ) : (
-            <InitialsAvatar 
-              firstName={firstName}
-              lastName={lastName}
-              size="lg"
-              isStaff={isStaffChat}
-            />
+            <div
+              onClick={(e) => {
+                e.stopPropagation();
+                if (isStaffChat) {
+                  handleViewStaff(chat.id, e);
+                } else if (!isCompanyChat) {
+                  handleViewMember(chat.id, e);
+                }
+              }}
+              className="cursor-pointer"
+            >
+              <InitialsAvatar 
+                firstName={firstName}
+                lastName={lastName}
+                size="lg"
+                isStaff={isStaffChat}
+              />
+            </div>
           )}
           {/* Birthday Badge */}
           <BirthdayBadge 
@@ -2865,7 +2922,8 @@ export default function Communications() {
             </button>
             
             {/* Additional options - only for member chats */}
-            {!isCompanyChat && (
+            {/* Member-specific actions */}
+            {!isCompanyChat && !isStaffChat && (
               <>
                 <button
                   className="w-full px-3 py-2 text-sm text-left hover:bg-gray-800 text-gray-300 flex items-center gap-2 transition-colors"
@@ -2889,6 +2947,16 @@ export default function Communications() {
                   View Member
                 </button>
               </>
+            )}
+            {/* Staff-specific actions */}
+            {isStaffChat && (
+              <button
+                className="w-full px-3 py-2 text-sm text-left hover:bg-gray-800 text-gray-300 flex items-center gap-2 transition-colors"
+                onClick={(e) => handleViewStaff(chat.id, e)}
+              >
+                <User className="w-4 h-4" />
+                View Staff
+              </button>
             )}
           </div>
         )}
@@ -3201,10 +3269,13 @@ export default function Communications() {
               <div className="flex items-center gap-3">
                 {/* Clickable Profile Container */}
                 <div 
-                  className={`flex items-center gap-3 px-3 py-2 bg-black rounded-xl ${chatType !== "company" ? "cursor-pointer hover:bg-gray-700 active:scale-[0.98] transition-all duration-200" : ""}`}
+                  className={`flex items-center gap-3 px-3 py-2 bg-black rounded-xl ${(chatType !== "company" || (chatType === "company" && selectedChat.id !== 100)) ? "cursor-pointer hover:bg-gray-700 active:scale-[0.98] transition-all duration-200" : ""}`}
                   onClick={(e) => {
-                    if (chatType !== "company") {
-                      handleViewMember(selectedChat.id, e)
+                    const isStaffChat = chatType === "company" && selectedChat.id !== 100;
+                    if (isStaffChat) {
+                      handleViewStaff(selectedChat.id, e);
+                    } else if (chatType !== "company") {
+                      handleViewMember(selectedChat.id, e);
                     }
                   }}
                 >
@@ -3405,7 +3476,7 @@ export default function Communications() {
                           title="Click to remove"
                         >
                           <span>{messageReactions[message.id]}</span>
-                          <span className="opacity-0 group-hover/reaction:opacity-100 text-xs text-gray-400">âœ•</span>
+                          <span className="opacity-0 group-hover/reaction:opacity-100 text-xs text-gray-400">Ã¢Å“â€¢</span>
                         </button>
                       </div>
                     )}
@@ -3926,7 +3997,7 @@ export default function Communications() {
                       <p className="text-xs text-gray-500 mt-1">
                         To: {selectedEmail.recipient}
                         {selectedEmail.recipientEmail && <span> &lt;{selectedEmail.recipientEmail}&gt;</span>}
-                        {selectedEmail.cc && <span> â€¢ CC: {selectedEmail.cc}</span>}
+                        {selectedEmail.cc && <span> Ã¢â‚¬Â¢ CC: {selectedEmail.cc}</span>}
                       </p>
                     </div>
                     <div className="text-right">
@@ -4135,9 +4206,12 @@ export default function Communications() {
               
               {/* Profile Container */}
               <div 
-                className={`flex items-center gap-2 px-2 py-1.5 bg-black rounded-xl ${chatType !== "company" ? "cursor-pointer hover:bg-gray-700 active:scale-[0.98] transition-all duration-200" : ""}`}
+                className={`flex items-center gap-2 px-2 py-1.5 bg-black rounded-xl ${(chatType !== "company" || (chatType === "company" && selectedChat.id !== 100)) ? "cursor-pointer hover:bg-gray-700 active:scale-[0.98] transition-all duration-200" : ""}`}
                 onClick={(e) => {
-                  if (chatType !== "company") {
+                  const isStaffChat = chatType === "company" && selectedChat.id !== 100;
+                  if (isStaffChat) {
+                    handleViewStaff(selectedChat.id, e);
+                  } else if (chatType !== "company") {
                     handleViewMember(selectedChat.id, e);
                   }
                 }}
@@ -5076,31 +5150,13 @@ export default function Communications() {
         </div>
       )}
 
-      {/* Draft Confirmation Modal */}
-      {showDraftConfirmModal && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[80] p-4">
-          <div className="bg-[#1C1C1C] rounded-2xl w-full max-w-md p-6">
-            <h3 className="text-lg font-semibold text-white mb-2">Save as Draft?</h3>
-            <p className="text-gray-400 text-sm mb-6">
-              You have unsent content. Would you like to save it as a draft?
-            </p>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={closeReplyModal}
-                className="px-4 py-2 bg-[#333333] hover:bg-[#444444] text-white rounded-xl text-sm font-medium transition-colors"
-              >
-                Discard
-              </button>
-              <button
-                onClick={saveReplyAsDraft}
-                className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-sm font-medium transition-colors"
-              >
-                Save Draft
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Draft Confirmation Modal - for Reply */}
+      <DraftModal
+        show={showDraftConfirmModal}
+        onClose={() => setShowDraftConfirmModal(false)}
+        onDiscard={closeReplyModal}
+        onSave={saveReplyAsDraft}
+      />
 
       {/* Permanent Delete Confirmation Modal */}
       {showPermanentDeleteConfirm && (
@@ -5204,13 +5260,6 @@ export default function Communications() {
         />
       )}
 
-      <DraftModal
-        show={showDraftModal}
-        onClose={() => setShowDraftModal(false)}
-        onDiscard={handleDiscardDraft}
-        onSave={handleSaveDraft}
-      />
-
       {/* CreateMessageModal removed - using BroadcastModal instead
       <CreateMessageModal
         show={showCreateMessageModal}
@@ -5250,14 +5299,29 @@ export default function Communications() {
         notifyAction={notifyAction}
       />
 
-      <ViewMemberConfirmationModal
+      <ViewMemberModal
         isOpen={showMemberConfirmation}
         onClose={() => {
           setShowMemberConfirmation(false);
           setSelectedMemberForConfirmation(null);
         }}
         onConfirm={handleConfirmViewMember}
-        memberName={selectedMemberForConfirmation ? `${selectedMemberForConfirmation.firstName || ''} ${selectedMemberForConfirmation.lastName || ''}`.trim() || selectedMemberForConfirmation.name : ''}
+        member={selectedMemberForConfirmation}
+        onEditMember={(member, tab) => {
+          // Keep confirmation modal open, just open edit modal on top
+          handleEditMember(member, tab);
+        }}
+        relationsCount={selectedMemberForConfirmation ? getRelationsCount(selectedMemberForConfirmation.id) : 0}
+      />
+
+      <ViewStaffModal
+        isOpen={showStaffConfirmation}
+        onClose={() => {
+          setShowStaffConfirmation(false);
+          setSelectedStaffForConfirmation(null);
+        }}
+        onConfirm={handleConfirmViewStaff}
+        staff={selectedStaffForConfirmation}
       />
 
       {/* Edit Member Modal for Special Notes and Relations */}

@@ -14,6 +14,7 @@ import {
   UserPlus,
   Clock,
   Users,
+  User,
   Filter,
   Grid3X3,
   List,
@@ -32,7 +33,7 @@ import {
 import DefaultAvatar1 from "../../../public/gray-avatar-fotor-20250912192528.png"
 import toast, { Toaster } from "react-hot-toast"
 import { IoIosMenu } from "react-icons/io"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useLocation } from "react-router-dom"
 
 import BirthdayBadge from "../../components/shared/BirthdayBadge"
 import HistoryModalMain from "../../components/user-panel-components/members-components/HistoryModal"
@@ -133,10 +134,21 @@ export default function Members() {
   const sidebarSystem = useSidebarSystem()
   const trainingVideos = trainingVideosData
   const navigate = useNavigate()
+  const location = useLocation()
+  
+  // Member filters - array of filtered members (can be multiple)
+  const [memberFilters, setMemberFilters] = useState([])
+  // [{ memberId: number, memberName: string }, ...]
+  
+  // Search autocomplete state
+  const [searchQuery, setSearchQuery] = useState("")
+  const [showSearchDropdown, setShowSearchDropdown] = useState(false)
+  const searchDropdownRef = useRef(null)
+  const searchInputRef = useRef(null)
+  
   const [isEditModalOpenMain, setIsEditModalOpenMain] = useState(false)
   const [isViewDetailsModalOpen, setIsViewDetailsModalOpen] = useState(false)
   const [selectedMemberMain, setSelectedMemberMain] = useState(null)
-  const [searchQuery, setSearchQuery] = useState("")
   const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false)
   // 
   const [isCompactView, setIsCompactView] = useState(false);
@@ -398,10 +410,10 @@ export default function Members() {
     type: "manual",
     selectedMemberId: null,
   })
-  // memberRelationsMain wird für EditMember Modal verwendet
+  // memberRelationsMain wird fÃ¼r EditMember Modal verwendet
   const [memberRelationsMain, setMemberRelationsMain] = useState(memberRelationsMainData)
 
-  // Countries hook für CreateTempMemberModal
+  // Countries hook fÃ¼r CreateTempMemberModal
   const { countries, loading: countriesLoading } = useCountries()
 
   // 
@@ -470,6 +482,70 @@ export default function Members() {
     }
   }, [selectedMemberMain])
 
+  // Handle navigation state from Communications "View Member"
+  useEffect(() => {
+    if (location.state?.filterMemberId) {
+      setMemberFilters([{
+        memberId: location.state.filterMemberId,
+        memberName: location.state.filterMemberName || 'Member'
+      }]);
+      // Clear the navigation state to prevent re-filtering on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
+
+  // Close search dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (searchDropdownRef.current && !searchDropdownRef.current.contains(event.target)) {
+        setShowSearchDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Get search suggestions based on query (exclude already filtered members)
+  const getSearchSuggestions = () => {
+    if (!searchQuery.trim()) return [];
+    return members.filter((member) => {
+      // Exclude already filtered members
+      const isAlreadyFiltered = memberFilters.some(f => f.memberId === member.id);
+      if (isAlreadyFiltered) return false;
+      
+      return member.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        member.firstName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        member.lastName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        member.email?.toLowerCase().includes(searchQuery.toLowerCase());
+    }).slice(0, 6);
+  };
+
+  // Handle selecting a member from search suggestions
+  const handleSelectMember = (member) => {
+    setMemberFilters([...memberFilters, {
+      memberId: member.id,
+      memberName: member.title || `${member.firstName} ${member.lastName}`
+    }]);
+    setSearchQuery("");
+    setShowSearchDropdown(false);
+    searchInputRef.current?.focus();
+  };
+
+  // Handle removing a member filter
+  const handleRemoveFilter = (memberId) => {
+    setMemberFilters(memberFilters.filter(f => f.memberId !== memberId));
+  };
+
+  // Handle keyboard navigation
+  const handleSearchKeyDown = (e) => {
+    if (e.key === 'Backspace' && !searchQuery && memberFilters.length > 0) {
+      // Remove last filter when backspace is pressed with empty input
+      setMemberFilters(memberFilters.slice(0, -1));
+    } else if (e.key === 'Escape') {
+      setShowSearchDropdown(false);
+    }
+  };
+
   // 
   const handleInputChangeMain = (e) => {
     const { name, value } = e.target
@@ -479,7 +555,7 @@ export default function Members() {
     }))
   }
 
-  // Handler für erfolgreiche Erstellung eines temporären Members (Shared Modal)
+  // Handler fÃ¼r erfolgreiche Erstellung eines temporÃ¤ren Members (Shared Modal)
   const handleTempMemberCreated = (newMemberData) => {
     const newId = Math.max(...members.map((m) => m.id), 0) + 1
     const newTempMember = {
@@ -802,7 +878,15 @@ export default function Members() {
   }
 
   const filteredAndSortedMembers = () => {
-    let filtered = members.filter((member) => member.title.toLowerCase().includes(searchQuery.toLowerCase()))
+    // If memberFilters are active, show only those members
+    if (memberFilters.length > 0) {
+      const filterIds = memberFilters.map(f => f.memberId);
+      const filteredMembers = members.filter((member) => filterIds.includes(member.id));
+      return filteredMembers;
+    }
+    
+    // No live filtering while typing - list only changes when chips are selected
+    let filtered = [...members]
 
     // Apply filters
     if (filterStatus === "active") {
@@ -1159,7 +1243,7 @@ export default function Members() {
     });
   };
 
-  // App Chat öffnen (vom Message Type Modal)
+  // App Chat Ã¶ffnen (vom Message Type Modal)
   const handleOpenAppChat = () => {
     if (messageTypeModal.member) {
       setChatPopup({
@@ -1169,7 +1253,7 @@ export default function Members() {
     }
   };
 
-  // Email Modal öffnen (vom Message Type Modal)
+  // Email Modal Ã¶ffnen (vom Message Type Modal)
   const handleOpenEmailModal = () => {
     if (messageTypeModal.member) {
       setSelectedMemberForEmail(messageTypeModal.member);
@@ -1183,7 +1267,7 @@ export default function Members() {
     }
   };
 
-  // Email Modal schließen
+  // Email Modal schlieÃŸen
   const handleCloseEmailModal = () => {
     setShowEmailModal(false);
     setSelectedMemberForEmail(null);
@@ -1206,7 +1290,7 @@ export default function Members() {
     toast.success("Draft saved!");
   };
 
-  // Template auswählen
+  // Template auswÃ¤hlen
   const handleTemplateSelect = (template) => {
     setSelectedEmailTemplate(template);
     setEmailData({
@@ -1217,7 +1301,7 @@ export default function Members() {
     setShowTemplateDropdown(false);
   };
 
-  // Mitglied oder Staff für Email suchen
+  // Mitglied oder Staff fÃ¼r Email suchen
   const handleSearchMemberForEmail = (query) => {
     if (!query) return [];
     const q = query.toLowerCase();
@@ -1739,17 +1823,102 @@ export default function Members() {
             </div>
           </div>
 
-          {/* Search Bar */}
-          <div className="mb-4">
+          {/* Search Bar with Inline Filter Chips */}
+          <div className="mb-4" ref={searchDropdownRef}>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-              <input
-                type="text"
-                placeholder="Search members..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-[#333333] focus:border-[#3F74FF] transition-colors"
-              />
+              <div 
+                className="bg-[#141414] rounded-xl px-3 py-2 min-h-[42px] flex flex-wrap items-center gap-1.5 border border-[#333333] focus-within:border-[#3F74FF] transition-colors cursor-text"
+                onClick={() => searchInputRef.current?.focus()}
+              >
+                <Search className="text-gray-400 flex-shrink-0" size={16} />
+                
+                {/* Filter Chips */}
+                {memberFilters.map((filter) => (
+                  <div 
+                    key={filter.memberId}
+                    className="flex items-center gap-1.5 bg-[#3F74FF]/20 border border-[#3F74FF]/40 rounded-lg px-2 py-1 text-sm"
+                  >
+                    <div className="w-5 h-5 rounded bg-orange-500 flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0">
+                      {filter.memberName.split(' ')[0]?.charAt(0)}{filter.memberName.split(' ')[1]?.charAt(0) || ''}
+                    </div>
+                    <span className="text-white text-xs whitespace-nowrap">{filter.memberName}</span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveFilter(filter.memberId);
+                      }}
+                      className="p-0.5 hover:bg-[#3F74FF]/30 rounded transition-colors"
+                    >
+                      <X size={12} className="text-gray-400 hover:text-white" />
+                    </button>
+                  </div>
+                ))}
+                
+                {/* Search Input */}
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  placeholder={memberFilters.length > 0 ? "Add more..." : "Search members..."}
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setShowSearchDropdown(true);
+                  }}
+                  onFocus={() => searchQuery && setShowSearchDropdown(true)}
+                  onKeyDown={handleSearchKeyDown}
+                  className="flex-1 min-w-[100px] bg-transparent outline-none text-sm text-white placeholder-gray-500"
+                />
+                
+                {/* Clear All Button */}
+                {memberFilters.length > 0 && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setMemberFilters([]);
+                    }}
+                    className="p-1 hover:bg-gray-700 rounded-lg transition-colors flex-shrink-0"
+                    title="Clear all filters"
+                  >
+                    <X size={14} className="text-gray-400 hover:text-white" />
+                  </button>
+                )}
+              </div>
+              
+              {/* Autocomplete Dropdown */}
+              {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a1a] border border-[#333333] rounded-xl shadow-lg z-50 overflow-hidden">
+                  {getSearchSuggestions().map((member) => (
+                    <button
+                      key={member.id}
+                      onClick={() => handleSelectMember(member)}
+                      className="w-full px-3 py-2.5 flex items-center gap-3 hover:bg-[#252525] transition-colors text-left"
+                    >
+                      {member.image ? (
+                        <img 
+                          src={member.image} 
+                          alt={member.title} 
+                          className="w-8 h-8 rounded-lg object-cover"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center text-white text-xs font-semibold">
+                          {member.firstName?.charAt(0)}{member.lastName?.charAt(0)}
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-white truncate">{member.title}</p>
+                        <p className="text-xs text-gray-500 truncate">{member.email}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+              
+              {/* No results message */}
+              {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length === 0 && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a1a] border border-[#333333] rounded-xl shadow-lg z-50 p-3">
+                  <p className="text-sm text-gray-500 text-center">No members found</p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -2168,7 +2337,7 @@ export default function Members() {
                                 )}
                                 {member.dateOfBirth && (
                                   <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-700/50 text-gray-300">
-                                    {calculateAgeMain(member.dateOfBirth)} yrs • {new Date(member.dateOfBirth).toLocaleDateString('de-DE')}
+                                    {calculateAgeMain(member.dateOfBirth)} yrs â€¢ {new Date(member.dateOfBirth).toLocaleDateString('de-DE')}
                                   </span>
                                 )}
                               </div>
@@ -2311,7 +2480,7 @@ export default function Members() {
                               <span className="text-gray-400">
                                 {calculateAgeMain(member.dateOfBirth)} yrs
                               </span>
-                              <span className="text-gray-600">•</span>
+                              <span className="text-gray-600">â€¢</span>
                               <span className="text-gray-500">
                                 {new Date(member.dateOfBirth).toLocaleDateString('de-DE')}
                               </span>
@@ -2482,7 +2651,7 @@ export default function Members() {
                                   <span className="text-gray-300">
                                     {calculateAgeMain(member.dateOfBirth)} years old
                                   </span>
-                                  <span className="text-gray-600">•</span>
+                                  <span className="text-gray-600">â€¢</span>
                                   <span className="text-gray-500">
                                     {new Date(member.dateOfBirth).toLocaleDateString('de-DE')}
                                   </span>
@@ -2494,7 +2663,7 @@ export default function Members() {
                                 {member.gender && (
                                   <>
                                     <span className="text-gray-400">{member.gender}</span>
-                                    <span className="text-gray-600">•</span>
+                                    <span className="text-gray-600">â€¢</span>
                                   </>
                                 )}
                                 <span className="text-gray-400">

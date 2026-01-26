@@ -3,6 +3,7 @@
 import React, { useRef, useState, useEffect } from "react";
 import { Mail, X, Search, Send, ChevronDown, Paperclip, Image, FileText, File, Trash2 } from "lucide-react";
 import { WysiwygEditor } from "./WysiwygEditor";
+import DraftModal from "../shared/DraftModal";
 
 // Initials Avatar Component
 const InitialsAvatar = ({ firstName, lastName, size = 32, className = "", isStaff = false }) => {
@@ -712,30 +713,12 @@ const SendEmailModal = ({
       </div>
 
       {/* Draft Confirmation Modal */}
-      {showDraftConfirmModal && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[60] p-4">
-          <div className="bg-[#1C1C1C] rounded-2xl w-full max-w-md p-6">
-            <h3 className="text-lg font-semibold text-white mb-2">Save as Draft?</h3>
-            <p className="text-gray-400 text-sm mb-6">
-              You have unsent content. Would you like to save it as a draft?
-            </p>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={onClose}
-                className="px-4 py-2 bg-[#333333] hover:bg-[#444444] text-white rounded-xl text-sm font-medium transition-colors"
-              >
-                Discard
-              </button>
-              <button
-                onClick={saveAsDraft}
-                className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-sm font-medium transition-colors"
-              >
-                Save Draft
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <DraftModal
+        show={showDraftConfirmModal}
+        onClose={() => setShowDraftConfirmModal(false)}
+        onDiscard={onClose}
+        onSave={saveAsDraft}
+      />
     </div>
   );
 };

@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
 import { useState, createContext, useRef, useEffect } from "react"
+import { useNavigate, useLocation } from "react-router-dom"
 import { 
   X, 
   Calendar, 
@@ -117,6 +118,9 @@ const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) =>
 
 export default function StaffManagement() {
   const sidebarSystem = useSidebarSystem();
+  const navigate = useNavigate();
+  const location = useLocation();
+  
   const [isShowDetails, setIsShowDetails] = useState(false)
   const [selectedStaff, setSelectedStaff] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -132,6 +136,15 @@ export default function StaffManagement() {
   const [isCompactView, setIsCompactView] = useState(false);
   const [expandedStaffId, setExpandedStaffId] = useState(null);
   const [expandedMobileRowId, setExpandedMobileRowId] = useState(null);
+
+  // Staff filter - array of filtered staff (can be multiple)
+  const [staffFilters, setStaffFilters] = useState([])
+  // [{ staffId: number, staffName: string }, ...]
+  
+  // Search autocomplete state  
+  const [showSearchDropdown, setShowSearchDropdown] = useState(false)
+  const searchDropdownRef = useRef(null)
+  const searchInputRef = useRef(null)
 
   const [showDocumentModal, setShowDocumentModal] = useState(false)
   const [selectedMemberForDocuments, setSelectedMemberForDocuments] = useState(null)
@@ -217,10 +230,66 @@ export default function StaffManagement() {
       if (mobileSortDropdownRef.current && !mobileSortDropdownRef.current.contains(event.target)) {
         setShowMobileSortDropdown(false)
       }
+      if (searchDropdownRef.current && !searchDropdownRef.current.contains(event.target)) {
+        setShowSearchDropdown(false)
+      }
     }
     document.addEventListener("click", handleClickOutside)
     return () => document.removeEventListener("click", handleClickOutside)
   }, [])
+
+  // Handle navigation state from Communications "View Staff"
+  useEffect(() => {
+    if (location.state?.filterStaffId) {
+      setStaffFilters([{
+        staffId: location.state.filterStaffId,
+        staffName: location.state.filterStaffName || 'Staff'
+      }]);
+      // Clear the navigation state to prevent re-filtering on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
+
+  // Get search suggestions based on query (exclude already filtered staff)
+  const getSearchSuggestions = () => {
+    if (!searchQuery.trim()) return [];
+    return staffMembers.filter((staff) => {
+      // Exclude already filtered staff
+      const isAlreadyFiltered = staffFilters.some(f => f.staffId === staff.id);
+      if (isAlreadyFiltered) return false;
+      
+      const fullName = `${staff.firstName} ${staff.lastName}`.toLowerCase();
+      return fullName.includes(searchQuery.toLowerCase()) ||
+        staff.role?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        staff.email?.toLowerCase().includes(searchQuery.toLowerCase());
+    }).slice(0, 6);
+  };
+
+  // Handle selecting a staff from search suggestions
+  const handleSelectStaff = (staff) => {
+    setStaffFilters([...staffFilters, {
+      staffId: staff.id,
+      staffName: `${staff.firstName} ${staff.lastName}`
+    }]);
+    setSearchQuery("");
+    setShowSearchDropdown(false);
+    searchInputRef.current?.focus();
+  };
+
+  // Handle removing a staff filter
+  const handleRemoveFilter = (staffId) => {
+    setStaffFilters(staffFilters.filter(f => f.staffId !== staffId));
+  };
+
+  // Handle keyboard navigation
+  const handleSearchKeyDown = (e) => {
+    if (e.key === 'Backspace' && !searchQuery && staffFilters.length > 0) {
+      // Remove last filter when backspace is pressed with empty input
+      setStaffFilters(staffFilters.slice(0, -1));
+    } else if (e.key === 'Escape') {
+      setShowSearchDropdown(false);
+    }
+  };
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -316,17 +385,15 @@ export default function StaffManagement() {
 
   // Filter and sort staff
   const filteredAndSortedStaff = () => {
-    let filtered = [...staffMembers]
-
-    // Search filter
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase()
-      filtered = filtered.filter(staff => 
-        `${staff.firstName} ${staff.lastName}`.toLowerCase().includes(query) ||
-        staff.role?.toLowerCase().includes(query) ||
-        staff.email?.toLowerCase().includes(query)
-      )
+    // If staffFilters are active, show only those staff members
+    if (staffFilters.length > 0) {
+      const filterIds = staffFilters.map(f => f.staffId);
+      const filteredStaff = staffMembers.filter((staff) => filterIds.includes(staff.id));
+      return filteredStaff;
     }
+    
+    // No live filtering while typing - list only changes when chips are selected
+    let filtered = [...staffMembers]
 
     // Role filter
     if (filterRole !== "all") {
@@ -1127,17 +1194,102 @@ export default function StaffManagement() {
               </button>
             </div>
 
-            {/* Search Bar */}
-            <div className="mb-4">
+            {/* Search Bar with Inline Filter Chips */}
+            <div className="mb-4" ref={searchDropdownRef}>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                <input
-                  type="text"
-                  placeholder="Search staff..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-[#333333] focus:border-orange-500 transition-colors"
-                />
+                <div 
+                  className="bg-[#141414] rounded-xl px-3 py-2 min-h-[42px] flex flex-wrap items-center gap-1.5 border border-[#333333] focus-within:border-orange-500 transition-colors cursor-text"
+                  onClick={() => searchInputRef.current?.focus()}
+                >
+                  <Search className="text-gray-400 flex-shrink-0" size={16} />
+                  
+                  {/* Filter Chips */}
+                  {staffFilters.map((filter) => (
+                    <div 
+                      key={filter.staffId}
+                      className="flex items-center gap-1.5 bg-blue-500/20 border border-blue-500/40 rounded-lg px-2 py-1 text-sm"
+                    >
+                      <div className="w-5 h-5 rounded bg-blue-600 flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0">
+                        {filter.staffName.split(' ')[0]?.charAt(0)}{filter.staffName.split(' ')[1]?.charAt(0) || ''}
+                      </div>
+                      <span className="text-white text-xs whitespace-nowrap">{filter.staffName}</span>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemoveFilter(filter.staffId);
+                        }}
+                        className="p-0.5 hover:bg-blue-500/30 rounded transition-colors"
+                      >
+                        <X size={12} className="text-gray-400 hover:text-white" />
+                      </button>
+                    </div>
+                  ))}
+                  
+                  {/* Search Input */}
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    placeholder={staffFilters.length > 0 ? "Add more..." : "Search staff..."}
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setShowSearchDropdown(true);
+                    }}
+                    onFocus={() => searchQuery && setShowSearchDropdown(true)}
+                    onKeyDown={handleSearchKeyDown}
+                    className="flex-1 min-w-[100px] bg-transparent outline-none text-sm text-white placeholder-gray-500"
+                  />
+                  
+                  {/* Clear All Button */}
+                  {staffFilters.length > 0 && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setStaffFilters([]);
+                      }}
+                      className="p-1 hover:bg-gray-700 rounded-lg transition-colors flex-shrink-0"
+                      title="Clear all filters"
+                    >
+                      <X size={14} className="text-gray-400 hover:text-white" />
+                    </button>
+                  )}
+                </div>
+                
+                {/* Autocomplete Dropdown */}
+                {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length > 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a1a] border border-[#333333] rounded-xl shadow-lg z-50 overflow-hidden">
+                    {getSearchSuggestions().map((staff) => (
+                      <button
+                        key={staff.id}
+                        onClick={() => handleSelectStaff(staff)}
+                        className="w-full px-3 py-2.5 flex items-center gap-3 hover:bg-[#252525] transition-colors text-left"
+                      >
+                        {staff.img ? (
+                          <img 
+                            src={staff.img} 
+                            alt={`${staff.firstName} ${staff.lastName}`} 
+                            className="w-8 h-8 rounded-lg object-cover"
+                          />
+                        ) : (
+                          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white text-xs font-semibold">
+                            {staff.firstName?.charAt(0)}{staff.lastName?.charAt(0)}
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-white truncate">{staff.firstName} {staff.lastName}</p>
+                          <p className="text-xs text-gray-500 truncate">{staff.role}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                
+                {/* No results message */}
+                {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length === 0 && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a1a] border border-[#333333] rounded-xl shadow-lg z-50 p-3">
+                    <p className="text-sm text-gray-500 text-center">No staff found</p>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -1311,14 +1463,14 @@ export default function StaffManagement() {
                           {/* Username */}
                           <div className="col-span-2">
                             <span className={`${isCompactView ? 'text-xs' : 'text-sm'} text-gray-400 truncate block`}>
-                              {staff.username || "â€”"}
+                              {staff.username || "Ã¢â‚¬â€"}
                             </span>
                           </div>
                           
                           {/* About */}
                           <div className="col-span-2">
                             <span className={`${isCompactView ? 'text-xs' : 'text-sm'} text-gray-400 line-clamp-2`}>
-                              {staff.description || staff.about || "ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â"}
+                              {staff.description || staff.about || "ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â"}
                             </span>
                           </div>
                           
