@@ -314,7 +314,7 @@ const ReplyEmailTagInput = ({
 const HighlightedText = ({ text, isUserMessage }) => {
   if (!text) return null;
   
-  const dateTimeRegex = /(\d{1,2}\.\d{1,2}\.\d{2,4}|\d{4}-\d{2}-\d{2}|\d{1,2}\/\d{1,2}\/\d{2,4}|\d{1,2}:\d{2}(?:\s*(?:Uhr|AM|PM|am|pm))?|(?:Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag|Sonntag|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)|(?:heute|morgen|gestern|übermorgen|today|tomorrow|yesterday))/gi;
+  const dateTimeRegex = /(\d{1,2}\.\d{1,2}\.\d{2,4}|\d{4}-\d{2}-\d{2}|\d{1,2}\/\d{1,2}\/\d{2,4}|\d{1,2}:\d{2}(?:\s*(?:Uhr|AM|PM|am|pm))?|(?:Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag|Sonntag|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)|(?:heute|morgen|gestern|Ã¼bermorgen|today|tomorrow|yesterday))/gi;
 
   const parts = text.split(dateTimeRegex);
   const matches = text.match(dateTimeRegex) || [];
@@ -377,6 +377,130 @@ const InitialsAvatar = ({ firstName, lastName, size = "md", isStaff = false, cla
     </div>
   )
 };
+
+// ==========================================
+// MOBILE EMAIL ITEM COMPONENT
+// ==========================================
+const MobileEmailItem = ({ 
+  email, 
+  emailTab, 
+  selectedEmailIds, 
+  toggleEmailSelection, 
+  handleEmailItemClick, 
+  formatEmailTime, 
+  truncateEmailText,
+  moveEmailToTrash
+}) => {
+  const [touchStart, setTouchStart] = useState(null)
+  const [showActions, setShowActions] = useState(false)
+  
+  const handleTouchStart = (e) => {
+    setTouchStart(e.touches[0].clientX)
+  }
+  
+  const handleTouchEnd = (e) => {
+    if (touchStart !== null) {
+      const diff = e.changedTouches[0].clientX - touchStart
+      if (diff < -50) {
+        setShowActions(true)
+      } else if (diff > 50) {
+        setShowActions(false)
+      }
+      setTouchStart(null)
+    }
+  }
+  
+  return (
+    <div 
+      className="relative overflow-hidden select-none"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
+      <div 
+        className={`flex items-center gap-3 px-4 py-3 border-b border-gray-800/50 active:bg-[#222222] transition-transform duration-200 ${
+          showActions ? '-translate-x-20' : 'translate-x-0'
+        }`}
+        onClick={() => {
+          if (!showActions) {
+            handleEmailItemClick(email)
+          }
+        }}
+      >
+        {/* Selection Checkbox */}
+        <div 
+          className="flex-shrink-0"
+          onClick={(e) => {
+            e.stopPropagation()
+            toggleEmailSelection(email.id)
+          }}
+        >
+          <div className={`w-6 h-6 rounded-lg flex items-center justify-center transition-colors ${
+            selectedEmailIds.includes(email.id)
+              ? "bg-orange-500"
+              : "border-2 border-gray-600"
+          }`}>
+            {selectedEmailIds.includes(email.id) && (
+              <Check size={14} className="text-white" />
+            )}
+          </div>
+        </div>
+
+        {/* Email Icon with Unread Indicator */}
+        <div className="relative flex-shrink-0">
+          <div className="w-11 h-11 rounded-xl bg-[#222222] flex items-center justify-center">
+            <Mail size={18} className="text-gray-500" />
+          </div>
+          {!email.isRead && (
+            <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-orange-500 rounded-full border-2 border-[#1C1C1C]" />
+          )}
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between gap-2 mb-0.5">
+            <span className={`font-medium truncate ${!email.isRead ? 'text-white' : 'text-gray-300'}`}>
+              {emailTab === "sent" ? email.recipient : email.sender}
+            </span>
+            <span className="text-xs text-gray-500 flex-shrink-0">{formatEmailTime(email.time)}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <p className={`text-sm truncate ${!email.isRead ? "font-medium text-white" : "text-gray-400"}`}>
+              {email.subject || "(No subject)"}
+            </p>
+            {email.status === "Draft" && (
+              <span className="text-[10px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded flex-shrink-0">
+                Draft
+              </span>
+            )}
+          </div>
+          <p className="text-xs text-gray-500 truncate mt-0.5">{truncateEmailText(email.body, 50)}</p>
+          {email.attachments?.length > 0 && (
+            <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
+              <Paperclip size={10} />
+              <span>{email.attachments.length}</span>
+            </div>
+          )}
+        </div>
+      </div>
+      
+      {/* Swipe Actions */}
+      <div className={`absolute right-0 top-0 bottom-0 flex items-center transition-opacity duration-200 ${
+        showActions ? 'opacity-100' : 'opacity-0 pointer-events-none'
+      }`}>
+        <button 
+          className="h-full w-20 bg-red-500 flex items-center justify-center"
+          onClick={(e) => {
+            e.stopPropagation()
+            moveEmailToTrash(email.id)
+            setShowActions(false)
+          }}
+        >
+          <Trash2 size={20} className="text-white" />
+        </button>
+      </div>
+    </div>
+  )
+}
 
 // Truncate text for reply preview
 const truncateText = (text, maxLength = 50) => {
@@ -477,6 +601,8 @@ export default function Communications() {
   const [replyAttachments, setReplyAttachments] = useState([])
   const [selectedEmailIds, setSelectedEmailIds] = useState([])
   const [showDraftConfirmModal, setShowDraftConfirmModal] = useState(false)
+  const [showPermanentDeleteConfirm, setShowPermanentDeleteConfirm] = useState(false)
+  const [emailsToDelete, setEmailsToDelete] = useState([])
   const replyEditorRef = useRef(null)
   const replySubjectRef = useRef(null)
   const replyAttachmentInputRef = useRef(null)
@@ -1921,10 +2047,25 @@ export default function Communications() {
   }
 
   const bulkDelete = () => {
-    selectedEmailIds.forEach(id => {
-      moveEmailToTrash(id)
+    if (emailTab === "trash") {
+      // Show confirmation for permanent deletion
+      setEmailsToDelete(selectedEmailIds)
+      setShowPermanentDeleteConfirm(true)
+    } else {
+      selectedEmailIds.forEach(id => {
+        moveEmailToTrash(id)
+      })
+      setSelectedEmailIds([])
+    }
+  }
+
+  const confirmPermanentDelete = () => {
+    emailsToDelete.forEach(id => {
+      permanentlyDeleteEmail(id)
     })
     setSelectedEmailIds([])
+    setEmailsToDelete([])
+    setShowPermanentDeleteConfirm(false)
   }
 
   // Save email as draft from SendEmailModal
@@ -1964,7 +2105,7 @@ export default function Communications() {
   }
 
   const handleSendEmail = (emailDataWithAttachments) => {
-    // SendEmailModal liefert to als Array, also prüfen wir die Länge
+    // SendEmailModal liefert to als Array, also prÃ¼fen wir die LÃ¤nge
     const toEmails = Array.isArray(emailDataWithAttachments.to) 
       ? emailDataWithAttachments.to 
       : [emailDataWithAttachments.to].filter(Boolean);
@@ -3264,7 +3405,7 @@ export default function Communications() {
                           title="Click to remove"
                         >
                           <span>{messageReactions[message.id]}</span>
-                          <span className="opacity-0 group-hover/reaction:opacity-100 text-xs text-gray-400">✕</span>
+                          <span className="opacity-0 group-hover/reaction:opacity-100 text-xs text-gray-400">âœ•</span>
                         </button>
                       </div>
                     )}
@@ -3455,31 +3596,36 @@ export default function Communications() {
                   {/* Bulk Action Buttons */}
                   {selectedEmailIds.length > 0 && (
                     <div className="flex items-center gap-1 ml-auto">
-                      <button
-                        onClick={() => bulkMarkAsRead(true)}
-                        className="p-1.5 hover:bg-[#333333] rounded-lg transition-colors text-gray-400 hover:text-white"
-                        title="Mark as read"
-                      >
-                        <MailCheck size={16} />
-                      </button>
-                      <button
-                        onClick={() => bulkMarkAsRead(false)}
-                        className="p-1.5 hover:bg-[#333333] rounded-lg transition-colors text-gray-400 hover:text-white"
-                        title="Mark as unread"
-                      >
-                        <MailOpen size={16} />
-                      </button>
-                      <button
-                        onClick={bulkArchive}
-                        className="p-1.5 hover:bg-[#333333] rounded-lg transition-colors text-gray-400 hover:text-white"
-                        title="Archive"
-                      >
-                        <Archive size={16} />
-                      </button>
+                      {/* Read/Unread/Archive - only for inbox, sent, archive folders */}
+                      {emailTab !== "draft" && emailTab !== "error" && emailTab !== "trash" && (
+                        <>
+                          <button
+                            onClick={() => bulkMarkAsRead(true)}
+                            className="p-1.5 hover:bg-[#333333] rounded-lg transition-colors text-gray-400 hover:text-white"
+                            title="Mark as read"
+                          >
+                            <MailCheck size={16} />
+                          </button>
+                          <button
+                            onClick={() => bulkMarkAsRead(false)}
+                            className="p-1.5 hover:bg-[#333333] rounded-lg transition-colors text-gray-400 hover:text-white"
+                            title="Mark as unread"
+                          >
+                            <MailOpen size={16} />
+                          </button>
+                          <button
+                            onClick={bulkArchive}
+                            className="p-1.5 hover:bg-[#333333] rounded-lg transition-colors text-gray-400 hover:text-white"
+                            title="Archive"
+                          >
+                            <Archive size={16} />
+                          </button>
+                        </>
+                      )}
                       <button
                         onClick={bulkDelete}
                         className="p-1.5 hover:bg-[#333333] rounded-lg transition-colors text-gray-400 hover:text-red-400"
-                        title="Delete"
+                        title={emailTab === "trash" ? "Delete permanently" : "Delete"}
                       >
                         <Trash2 size={16} />
                       </button>
@@ -3497,14 +3643,14 @@ export default function Communications() {
                     <p className="text-gray-400 text-sm">No emails in this folder</p>
                   </div>
                 ) : (
-                  <div className="px-2 py-2">
+                  <div className="px-2 py-2 select-none">
                     {/* Pinned Emails Section */}
                     {getPinnedEmails().length > 0 && (
                       <>
                         <div className="flex items-center gap-2 px-2 py-1">
-                          <Pin size={12} className="text-amber-500 fill-amber-500" />
-                          <span className="text-xs text-amber-500 font-medium">Pinned</span>
-                          <div className="flex-1 h-px bg-amber-500/30"></div>
+                          <Pin size={12} className="text-orange-500 fill-orange-500" />
+                          <span className="text-xs text-orange-500 font-medium">Pinned</span>
+                          <div className="flex-1 h-px bg-orange-500/30"></div>
                         </div>
                         {getPinnedEmails().map((email) => (
                           <div
@@ -3755,7 +3901,8 @@ export default function Communications() {
                       <button
                         onClick={() => {
                           if (emailTab === "trash") {
-                            permanentlyDeleteEmail(selectedEmail.id)
+                            setEmailsToDelete([selectedEmail.id])
+                            setShowPermanentDeleteConfirm(true)
                           } else {
                             moveEmailToTrash(selectedEmail.id)
                           }
@@ -3779,7 +3926,7 @@ export default function Communications() {
                       <p className="text-xs text-gray-500 mt-1">
                         To: {selectedEmail.recipient}
                         {selectedEmail.recipientEmail && <span> &lt;{selectedEmail.recipientEmail}&gt;</span>}
-                        {selectedEmail.cc && <span> • CC: {selectedEmail.cc}</span>}
+                        {selectedEmail.cc && <span> â€¢ CC: {selectedEmail.cc}</span>}
                       </p>
                     </div>
                     <div className="text-right">
@@ -4345,6 +4492,190 @@ export default function Communications() {
         </>
       )}
 
+      {/* Mobile Email List View - Shows when no email is selected */}
+      {activeScreen === "email-frontend" && !selectedEmail && (
+        <div className="md:hidden fixed inset-0 bg-[#1C1C1C] z-[60] flex flex-col">
+          {/* Mobile Email Header */}
+          <div className="flex items-center justify-between p-3 border-b border-gray-800 flex-shrink-0">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => {
+                  setActiveScreen("chat")
+                  setIsMessagesOpen(true)
+                }}
+                className="text-gray-400 hover:text-white p-1.5 hover:bg-gray-800 rounded-lg transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <h2 className="text-lg font-semibold text-white">Email</h2>
+            </div>
+            <button
+              onClick={() => setShowEmailModal(true)}
+              className="p-2 bg-orange-500 hover:bg-orange-600 rounded-xl transition-colors"
+            >
+              <Send size={18} className="text-white" />
+            </button>
+          </div>
+
+          {/* Mobile Email Folder Tabs - Horizontal Scroll */}
+          <div className="border-b border-gray-800 flex-shrink-0">
+            <div className="flex overflow-x-auto px-2 py-2 gap-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+              {emailFolders.map((folder) => {
+                const Icon = folder.icon
+                const unreadCount = getUnreadCountForFolder(folder.id)
+                const isActive = emailTab === folder.id
+                
+                return (
+                  <button
+                    key={folder.id}
+                    onClick={() => {
+                      setEmailTab(folder.id)
+                      setSelectedEmailIds([])
+                    }}
+                    className={`flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                      isActive 
+                        ? "bg-orange-500 text-white" 
+                        : "bg-[#222222] text-gray-400 active:bg-[#2a2a2a]"
+                    }`}
+                  >
+                    <Icon size={16} />
+                    <span>{folder.label}</span>
+                    {unreadCount > 0 && (
+                      <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                        isActive ? "bg-white/20 text-white" : "bg-orange-500 text-white"
+                      }`}>
+                        {unreadCount}
+                      </span>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Mobile Email Search */}
+          <div className="px-3 py-2 border-b border-gray-800 flex-shrink-0">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+              <input
+                type="text"
+                placeholder="Search emails..."
+                value={emailSearchQuery}
+                onChange={(e) => setEmailSearchQuery(e.target.value)}
+                className="w-full bg-[#222222] text-white text-sm rounded-xl pl-10 pr-4 py-2.5 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-500/50"
+              />
+            </div>
+          </div>
+
+          {/* Mobile Bulk Actions - Only show when emails are selected */}
+          {selectedEmailIds.length > 0 && (
+            <div className="px-3 py-2 bg-[#181818] border-b border-gray-800 flex items-center justify-between flex-shrink-0">
+              <button
+                onClick={() => setSelectedEmailIds([])}
+                className="text-sm text-gray-400 flex items-center gap-1"
+              >
+                <X size={16} />
+                {selectedEmailIds.length} selected
+              </button>
+              <div className="flex items-center gap-2">
+                {/* Read/Unread/Archive - only for inbox, sent, archive folders */}
+                {emailTab !== "draft" && emailTab !== "error" && emailTab !== "trash" && (
+                  <>
+                    <button
+                      onClick={() => bulkMarkAsRead(true)}
+                      className="p-2 hover:bg-[#333333] rounded-lg transition-colors text-gray-400"
+                      title="Mark as read"
+                    >
+                      <MailCheck size={18} />
+                    </button>
+                    <button
+                      onClick={() => bulkMarkAsRead(false)}
+                      className="p-2 hover:bg-[#333333] rounded-lg transition-colors text-gray-400"
+                      title="Mark as unread"
+                    >
+                      <MailOpen size={18} />
+                    </button>
+                    <button
+                      onClick={bulkArchive}
+                      className="p-2 hover:bg-[#333333] rounded-lg transition-colors text-gray-400"
+                      title="Archive"
+                    >
+                      <Archive size={18} />
+                    </button>
+                  </>
+                )}
+                <button
+                  onClick={bulkDelete}
+                  className="p-2 hover:bg-[#333333] rounded-lg transition-colors text-red-400"
+                  title={emailTab === "trash" ? "Delete permanently" : "Delete"}
+                >
+                  <Trash2 size={18} />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Mobile Email List */}
+          <div className="flex-1 overflow-y-auto select-none">
+            {getPinnedEmails().length === 0 && getFilteredEmails(false).length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-center p-6">
+                <div className="w-20 h-20 rounded-2xl bg-[#222222] border border-[#333333] flex items-center justify-center mb-4">
+                  <Mail className="w-10 h-10 text-gray-600" />
+                </div>
+                <h3 className="text-white font-medium text-lg mb-2">No emails</h3>
+                <p className="text-gray-500 text-sm">No emails in this folder</p>
+              </div>
+            ) : (
+              <div className="pb-20">
+                {/* Pinned Emails Section */}
+                {getPinnedEmails().length > 0 && (
+                  <>
+                    <div className="flex items-center gap-2 px-4 py-2 bg-[#0E0E0E]">
+                      <Pin size={12} className="text-orange-500 fill-orange-500" />
+                      <span className="text-xs text-orange-500 font-medium">Pinned</span>
+                      <div className="flex-1 h-px bg-orange-500/30"></div>
+                    </div>
+                    {getPinnedEmails().map((email) => (
+                      <MobileEmailItem 
+                        key={email.id} 
+                        email={email} 
+                        emailTab={emailTab}
+                        selectedEmailIds={selectedEmailIds}
+                        toggleEmailSelection={toggleEmailSelection}
+                        handleEmailItemClick={handleEmailItemClick}
+                        formatEmailTime={formatEmailTime}
+                        truncateEmailText={truncateEmailText}
+                        moveEmailToTrash={moveEmailToTrash}
+                      />
+                    ))}
+                  </>
+                )}
+                
+                {/* Regular Emails */}
+                {getPinnedEmails().length > 0 && getFilteredEmails(false).length > 0 && (
+                  <div className="h-px bg-gray-800 mx-4 my-2" />
+                )}
+                {getFilteredEmails(false).map((email) => (
+                  <MobileEmailItem 
+                    key={email.id} 
+                    email={email} 
+                    emailTab={emailTab}
+                    selectedEmailIds={selectedEmailIds}
+                    toggleEmailSelection={toggleEmailSelection}
+                    handleEmailItemClick={handleEmailItemClick}
+                    formatEmailTime={formatEmailTime}
+                    truncateEmailText={truncateEmailText}
+                    moveEmailToTrash={moveEmailToTrash}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Mobile Fullscreen Email Overlay */}
       {activeScreen === "email-frontend" && selectedEmail && (
         <div className="md:hidden fixed inset-0 bg-[#1C1C1C] z-[60] flex flex-col">
@@ -4371,19 +4702,33 @@ export default function Communications() {
                   <RefreshCw size={18} />
                 </button>
               )}
-              {/* Reply button - not for drafts, error, or trash */}
-              {emailTab !== "draft" && emailTab !== "error" && emailTab !== "trash" && (
+              {/* Pin button - not for trash or error */}
+              {emailTab !== "trash" && emailTab !== "error" && (
                 <button
-                  onClick={() => handleEmailReply(selectedEmail)}
-                  className="p-2 hover:bg-[#333333] rounded-lg text-gray-400"
+                  onClick={() => updateEmailStatus(selectedEmail.id, { isPinned: !selectedEmail.isPinned })}
+                  className={`p-2 hover:bg-[#333333] rounded-lg ${selectedEmail.isPinned ? "text-orange-500" : "text-gray-400 hover:text-white"}`}
                 >
-                  <Reply size={18} />
+                  {selectedEmail.isPinned ? <PinOff size={18} /> : <Pin size={18} />}
                 </button>
               )}
+              {/* Archive button - not for trash or error */}
+              {emailTab !== "trash" && emailTab !== "error" && (
+                <button
+                  onClick={() => {
+                    updateEmailStatus(selectedEmail.id, { isArchived: !selectedEmail.isArchived })
+                    setSelectedEmail(null)
+                  }}
+                  className="p-2 hover:bg-[#333333] rounded-lg text-gray-400 hover:text-white"
+                >
+                  <Archive size={18} />
+                </button>
+              )}
+              {/* Delete button */}
               <button
                 onClick={() => {
                   if (emailTab === "trash") {
-                    permanentlyDeleteEmail(selectedEmail.id)
+                    setEmailsToDelete([selectedEmail.id])
+                    setShowPermanentDeleteConfirm(true)
                   } else {
                     moveEmailToTrash(selectedEmail.id)
                   }
@@ -4475,7 +4820,7 @@ export default function Communications() {
       {((activeScreen === "chat" && !selectedChat) || (activeScreen === "email-frontend" && !selectedEmail)) && (
         <button
           onClick={() => setShowBroadcastModal(true)}
-          className="md:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
+          className="md:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-[70]"
           aria-label="Broadcast Message"
         >
           <IoIosMegaphone size={22} />
@@ -4503,21 +4848,24 @@ export default function Communications() {
 
         {/* EmailManagement removed - Email is now natively integrated */}
 
-        <SendEmailModal
-          showEmailModal={showEmailModal}
-          handleCloseEmailModal={() => {
-            setShowEmailModal(false)
-            setEditingDraft(null)
-            setEmailData({ to: "", subject: "", body: "" })
-          }}
-          handleSendEmail={handleSendEmail}
-          emailData={emailData}
-          setEmailData={setEmailData}
-          handleSearchMemberForEmail={handleSearchMemberForEmail}
-          signature={settings?.emailSignature || ""}
-          editingDraft={editingDraft}
-          onSaveAsDraft={handleSaveEmailAsDraft}
-      />
+        {/* SendEmailModal - wrapped for mobile z-index compatibility */}
+        <div className="relative z-[80]">
+          <SendEmailModal
+            showEmailModal={showEmailModal}
+            handleCloseEmailModal={() => {
+              setShowEmailModal(false)
+              setEditingDraft(null)
+              setEmailData({ to: "", subject: "", body: "" })
+            }}
+            handleSendEmail={handleSendEmail}
+            emailData={emailData}
+            setEmailData={setEmailData}
+            handleSearchMemberForEmail={handleSearchMemberForEmail}
+            signature={settings?.emailSignature || ""}
+            editingDraft={editingDraft}
+            onSaveAsDraft={handleSaveEmailAsDraft}
+          />
+        </div>
 
       {/* Email Reply Modal */}
       {showReplyModal && selectedEmail && (
@@ -4733,6 +5081,47 @@ export default function Communications() {
                 className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-sm font-medium transition-colors"
               >
                 Save Draft
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Permanent Delete Confirmation Modal */}
+      {showPermanentDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[90] p-4">
+          <div className="bg-[#1C1C1C] rounded-2xl w-full max-w-md p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center">
+                <Trash2 className="w-6 h-6 text-red-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-white">Delete Permanently?</h3>
+                <p className="text-sm text-gray-500">This action cannot be undone</p>
+              </div>
+            </div>
+            <p className="text-gray-400 text-sm mb-6">
+              {emailsToDelete.length === 1 
+                ? "Are you sure you want to permanently delete this email? This action cannot be undone."
+                : `Are you sure you want to permanently delete ${emailsToDelete.length} emails? This action cannot be undone.`
+              }
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowPermanentDeleteConfirm(false)
+                  setEmailsToDelete([])
+                }}
+                className="px-4 py-2.5 bg-[#333333] hover:bg-[#444444] text-white rounded-xl text-sm font-medium transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmPermanentDelete}
+                className="px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl text-sm font-medium transition-colors flex items-center gap-2"
+              >
+                <Trash2 className="w-4 h-4" />
+                Delete Permanently
               </button>
             </div>
           </div>
