@@ -3,6 +3,8 @@ import { useEffect, useRef, useState, useMemo, useCallback, forwardRef, useImper
 import ReactQuill, { Quill } from "react-quill"
 import "react-quill/dist/quill.snow.css"
 import { X, Upload } from "lucide-react"
+import data from '@emoji-mart/data'
+import Picker from '@emoji-mart/react'
 
 // Register custom fonts
 const FontClass = Quill.import('formats/font')
@@ -27,7 +29,7 @@ const EditorModal = ({ show, onClose, title, children, onSubmit, submitText, sub
         {children}
         <div className="flex gap-3 mt-5">
           <button onClick={onClose} className="flex-1 px-4 py-2.5 bg-[#2F2F2F] text-white text-sm font-medium rounded-xl hover:bg-[#3F3F3F]">Cancel</button>
-          <button onClick={onSubmit} disabled={submitDisabled} className="flex-1 px-4 py-2.5 bg-[#FF843E] text-white text-sm font-medium rounded-xl hover:bg-[#e0733a] disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed">{submitText}</button>
+          <button onClick={onSubmit} disabled={submitDisabled} className="flex-1 px-4 py-2.5 bg-orange-500 text-white text-sm font-medium rounded-xl hover:bg-orange-600 disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed">{submitText}</button>
         </div>
       </div>
     </div>
@@ -50,6 +52,7 @@ export const WysiwygEditor = forwardRef(({
   
   const [showLinkModal, setShowLinkModal] = useState(false)
   const [showImageModal, setShowImageModal] = useState(false)
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const [linkUrl, setLinkUrl] = useState('')
   const [linkText, setLinkText] = useState('')
   const [imageUrl, setImageUrl] = useState('')
@@ -59,13 +62,14 @@ export const WysiwygEditor = forwardRef(({
   const isResizing = useRef(false)
   const isDraggingRef = useRef(false)
   const isDraggingFromHandle = useRef(false)
+  const emojiPickerRef = useRef(null)
   
   const lastValueRef = useRef(value)
   const isInternalUpdate = useRef(false)
   const savedContentRef = useRef(value || '')
   const hasInitialized = useRef(false)
 
-  // Expose insertText and insertHtml methods to parent components via ref
+  // Expose insertText method to parent components via ref
   useImperativeHandle(ref, () => ({
     insertText: (text) => {
       const quill = quillRef.current?.getEditor()
@@ -95,37 +99,82 @@ export const WysiwygEditor = forwardRef(({
       savedContentRef.current = newContent
       onChange(newContent)
     },
-    insertHtml: (html) => {
-      const quill = quillRef.current?.getEditor()
-      if (!quill) return
-      
-      // Focus the editor first
-      quill.focus()
-      
-      // Get current selection or move to end
-      let range = quill.getSelection()
-      if (!range) {
-        // If no selection, move cursor to end
-        const length = quill.getLength()
-        quill.setSelection(length - 1, 0)
-        range = { index: length - 1, length: 0 }
-      }
-      
-      // Insert HTML using clipboard API
-      quill.clipboard.dangerouslyPasteHTML(range.index, html)
-      
-      // Trigger onChange with new content
-      const newContent = quill.root.innerHTML
-      lastValueRef.current = newContent
-      savedContentRef.current = newContent
-      onChange(newContent)
-    },
     focus: () => {
       const quill = quillRef.current?.getEditor()
       if (quill) quill.focus()
     },
     getEditor: () => quillRef.current?.getEditor()
   }), [onChange])
+
+  // Insert emoji into editor
+  const insertEmoji = useCallback((emoji) => {
+    const quill = quillRef.current?.getEditor()
+    if (!quill) return
+    
+    quill.focus()
+    let range = quill.getSelection()
+    if (!range) {
+      const length = quill.getLength()
+      quill.setSelection(length - 1, 0)
+      range = { index: length - 1, length: 0 }
+    }
+    
+    quill.insertText(range.index, emoji.native)
+    quill.setSelection(range.index + emoji.native.length, 0)
+    
+    const newContent = quill.root.innerHTML
+    lastValueRef.current = newContent
+    savedContentRef.current = newContent
+    onChange(newContent)
+  }, [onChange])
+
+  // Click outside handler for emoji picker
+  useEffect(() => {
+    if (!showEmojiPicker) return
+
+    const handleClickOutside = (event) => {
+      const isInsideEmojiPicker = emojiPickerRef.current?.contains(event.target)
+      // Check if clicking on the toolbar emoji button
+      const isEmojiButton = event.target.closest('.ql-emoji')
+      
+      // Check for emoji-mart elements (Web Components with Shadow DOM)
+      const path = event.composedPath ? event.composedPath() : []
+      const isInEmojiMartPath = path.some(el => 
+        el.tagName?.toLowerCase() === 'em-emoji-picker' ||
+        el.classList?.contains('emoji-mart') ||
+        (el.getAttribute && el.getAttribute('data-emoji-picker'))
+      )
+      
+      const isEmojiMartElement = event.target.closest('em-emoji-picker') || 
+                                  event.target.closest('[data-emoji-picker]') ||
+                                  event.target.closest('.emoji-mart')
+
+      if (!isInsideEmojiPicker && !isEmojiButton && !isEmojiMartElement && !isInEmojiMartPath) {
+        setShowEmojiPicker(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener('touchstart', handleClickOutside)
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('touchstart', handleClickOutside)
+    }
+  }, [showEmojiPicker])
+
+  // Toggle active class on emoji button when picker is open
+  useEffect(() => {
+    if (!containerRef.current) return
+    const emojiButton = containerRef.current.querySelector('.ql-emoji')
+    if (emojiButton) {
+      if (showEmojiPicker) {
+        emojiButton.classList.add('ql-active')
+      } else {
+        emojiButton.classList.remove('ql-active')
+      }
+    }
+  }, [showEmojiPicker])
 
   // Visibility change handler - restore content if lost when switching tabs
   useEffect(() => {
@@ -975,7 +1024,7 @@ export const WysiwygEditor = forwardRef(({
         [{ 'color': [] }, { 'background': [] }],
         [{ 'list': 'ordered' }, { 'list': 'bullet' }],
         [{ 'align': [] }],
-        ['link', 'image'],
+        ['link', 'image', 'emoji'],
         ['clean']
       ]
     : [
@@ -985,9 +1034,14 @@ export const WysiwygEditor = forwardRef(({
         [{ 'color': [] }, { 'background': [] }],
         [{ 'list': 'ordered' }, { 'list': 'bullet' }],
         [{ 'align': [] }],
-        ['link'],
+        ['link', 'emoji'],
         ['clean']
       ], [showImages])
+
+  // Emoji handler for toolbar
+  const emojiHandler = useCallback(() => {
+    setShowEmojiPicker(prev => !prev)
+  }, [])
 
   const modules = useMemo(() => ({
     toolbar: {
@@ -995,12 +1049,13 @@ export const WysiwygEditor = forwardRef(({
       handlers: {
         link: linkHandler,
         image: imageHandler,
+        emoji: emojiHandler,
         undo: function() { this.quill.history.undo() },
         redo: function() { this.quill.history.redo() }
       }
     },
     history: { delay: 500, maxStack: 100, userOnly: false }
-  }), [toolbarConfig, linkHandler, imageHandler])
+  }), [toolbarConfig, linkHandler, imageHandler, emojiHandler])
 
   const formats = ['font', 'size', 'bold', 'italic', 'underline', 'strike', 'color', 'background', 'list', 'bullet', 'align', 'link', 'image']
 
@@ -1025,12 +1080,12 @@ export const WysiwygEditor = forwardRef(({
         max-height: ${maxHeight}px;
         overflow-y: auto;
         font-size: 14px;
-        line-height: 1.35;
+        line-height: 1.5;
         padding: 12px 16px;
         font-family: Arial, sans-serif;
       }
       .wysiwyg-editor-${editorId} .ql-editor.ql-blank::before { color: #9ca3af !important; font-style: normal !important; }
-      .wysiwyg-editor-${editorId} .ql-editor p { margin-bottom: 0.1em; }
+      .wysiwyg-editor-${editorId} .ql-editor p { margin: 0; }
       .wysiwyg-editor-${editorId} .ql-editor img {
         max-width: 100%;
         height: auto;
@@ -1142,6 +1197,20 @@ export const WysiwygEditor = forwardRef(({
       }
       .wysiwyg-editor-${editorId} .ql-redo:hover::before {
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2'%3E%3Cpath d='M21 7v6h-6'/%3E%3Cpath d='M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7'/%3E%3C/svg%3E");
+      }
+      
+      /* Emoji Button */
+      .wysiwyg-editor-${editorId} .ql-emoji { width: 36px !important; height: 36px !important; }
+      .wysiwyg-editor-${editorId} .ql-emoji::before {
+        content: ''; display: block; width: 20px; height: 20px;
+        background-repeat: no-repeat; background-position: center; background-size: 20px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a0a0a0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M8 14s1.5 2 4 2 4-2 4-2'/%3E%3Cline x1='9' y1='9' x2='9.01' y2='9'/%3E%3Cline x1='15' y1='9' x2='15.01' y2='9'/%3E%3C/svg%3E");
+      }
+      .wysiwyg-editor-${editorId} .ql-emoji:hover::before {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M8 14s1.5 2 4 2 4-2 4-2'/%3E%3Cline x1='9' y1='9' x2='9.01' y2='9'/%3E%3Cline x1='15' y1='9' x2='15.01' y2='9'/%3E%3C/svg%3E");
+      }
+      .wysiwyg-editor-${editorId} .ql-emoji.ql-active::before {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FF843E' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M8 14s1.5 2 4 2 4-2 4-2'/%3E%3Cline x1='9' y1='9' x2='9.01' y2='9'/%3E%3Cline x1='15' y1='9' x2='15.01' y2='9'/%3E%3C/svg%3E");
       }
       
       /* Pickers - same height */
@@ -1484,6 +1553,30 @@ export const WysiwygEditor = forwardRef(({
           preserveWhitespace
         />
         {renderImageSelection()}
+        
+        {/* Emoji Picker - positioned below toolbar */}
+        {showEmojiPicker && (
+          <div 
+            ref={emojiPickerRef}
+            className="absolute top-14 right-2 z-[1000]"
+            data-emoji-picker
+            onMouseDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+          >
+            <Picker
+              data={data}
+              onEmojiSelect={(emoji) => {
+                insertEmoji(emoji)
+                setShowEmojiPicker(false)
+              }}
+              theme="dark"
+              previewPosition="none"
+              skinTonePosition="none"
+              perLine={8}
+              maxFrequentRows={2}
+            />
+          </div>
+        )}
       </div>
 
       <EditorModal show={showLinkModal} onClose={() => setShowLinkModal(false)} title="Insert Link" onSubmit={insertLink} submitText="Insert Link" submitDisabled={!linkUrl}>

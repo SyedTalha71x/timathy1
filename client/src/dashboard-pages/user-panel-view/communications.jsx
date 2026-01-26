@@ -3966,8 +3966,13 @@ export default function Communications() {
 
                   {/* Email Content */}
                   <div 
-                    className="prose max-w-none bg-white p-6 rounded-xl"
-                    style={{ color: '#1f2937' }}
+                    className="max-w-none bg-white p-6 rounded-xl"
+                    style={{ 
+                      color: '#1f2937',
+                      fontSize: '14px',
+                      lineHeight: '1.5',
+                      fontFamily: 'Arial, sans-serif'
+                    }}
                     dangerouslySetInnerHTML={{ __html: selectedEmail.body }}
                   />
                 </div>
@@ -4778,8 +4783,13 @@ export default function Communications() {
 
             {/* Email Content */}
             <div 
-              className="prose prose-sm max-w-none bg-white p-4 rounded-xl"
-              style={{ color: '#1f2937' }}
+              className="max-w-none bg-white p-4 rounded-xl"
+              style={{ 
+                color: '#1f2937',
+                fontSize: '14px',
+                lineHeight: '1.5',
+                fontFamily: 'Arial, sans-serif'
+              }}
               dangerouslySetInnerHTML={{ __html: selectedEmail.body }}
             />
           </div>
@@ -5031,8 +5041,13 @@ export default function Communications() {
                     </div>
                     {/* White background for email body - consistent with email detail view */}
                     <div 
-                      className="bg-white rounded-b-xl p-4 text-sm prose prose-sm max-w-none"
-                      style={{ color: '#1a1a1a' }}
+                      className="bg-white rounded-b-xl p-4 max-w-none"
+                      style={{ 
+                        color: '#1a1a1a',
+                        fontSize: '14px',
+                        lineHeight: '1.5',
+                        fontFamily: 'Arial, sans-serif'
+                      }}
                       dangerouslySetInnerHTML={{ __html: selectedEmail.body }}
                     />
                   </div>
