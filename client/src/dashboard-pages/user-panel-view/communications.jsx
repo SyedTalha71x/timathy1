@@ -2,6 +2,7 @@
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable no-unused-vars */
 import { useState, useEffect, useRef } from "react"
+import { useLocation, useNavigate } from "react-router-dom"
 import {
   Menu,
   X,
@@ -44,11 +45,12 @@ import DefaultAvatar from "../../../public/gray-avatar-fotor-20250912192528.png"
 import data from '@emoji-mart/data'
 import Picker from '@emoji-mart/react'
 
-import { appointmentNotificationTypesNew, appointmentsNew, companyChatListNew, emailListNew, emailTemplatesNew, memberChatListNew, memberContingentDataNew, memberHistoryNew, membersNew, memberRelationsNew, preConfiguredMessagesNew, settingsNew, staffChatListNew, appointmentTypesData, freeAppointmentsData, availableMembersLeadsMain, staffData, getLastMessage, getLastMessageContent, getLastMessageTime, getUnreadCount, isChatRead, getLastMessageStatus } from "../../utils/user-panel-states/app-states"
+import { appointmentNotificationTypesNew, appointmentsNew, companyChatListNew, emailListNew, emailTemplatesNew, memberChatListNew, memberContingentDataNew, memberHistoryNew, membersNew, memberRelationsNew, preConfiguredMessagesNew, settingsNew, staffChatListNew, appointmentTypesData, freeAppointmentsData, availableMembersLeadsMain, staffData, getLastMessage, getLastMessageContent, getLastMessageTime, getUnreadCount, isChatRead, getLastMessageStatus, relationOptionsMain } from "../../utils/user-panel-states/app-states"
 import { membersData } from "../../utils/user-panel-states/app-states"
 
 import CreateAppointmentModal from "../../components/shared/appointments/CreateAppointmentModal"
 import BirthdayBadge from "../../components/shared/BirthdayBadge"
+import EditMemberModalMain from "../../components/user-panel-components/members-components/EditMemberModal"
 import EmailManagement from "../../components/user-panel-components/communication-components/EmailManagement"
 import ContingentModal from "../../components/shared/appointments/ShowContigentModal"
 import CreateMessageModal from "../../components/user-panel-components/communication-components/CreateMessageModal"
@@ -56,7 +58,7 @@ import AddBillingPeriodModal from "../../components/shared/appointments/AddBilli
 import NotifyMemberModal from "../../components/shared/appointments/NotifyMemberModal"
 import ArchiveModal from "../../components/user-panel-components/communication-components/ArchiveModal"
 import DraftModal from "../../components/user-panel-components/communication-components/DraftModal"
-import EmailModal from "../../components/user-panel-components/communication-components/EmailModal"
+import SendEmailModal from "../../components/shared/SendEmailModal"
 import BroadcastModal from "../../components/user-panel-components/communication-components/BroadcastModal"
 import ShowAppointmentModal from "../../components/shared/appointments/ShowAppointmentModal"
 import FolderModal from "../../components/user-panel-components/communication-components/broadcast-modal-components/FolderModal"
@@ -142,6 +144,10 @@ const truncateText = (text, maxLength = 50) => {
 };
 
 export default function Communications() {
+  // Router hooks for external navigation
+  const location = useLocation();
+  const navigate = useNavigate();
+  
   // UI States
   const [isMessagesOpen, setIsMessagesOpen] = useState(true)
   const [activeDropdownId, setActiveDropdownId] = useState(null)
@@ -203,6 +209,13 @@ export default function Communications() {
   const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false)
   const [showMemberConfirmation, setShowMemberConfirmation] = useState(false)
   const [selectedMemberForConfirmation, setSelectedMemberForConfirmation] = useState(null)
+  const [showEditMemberModal, setShowEditMemberModal] = useState(false)
+  const [editingMember, setEditingMember] = useState(null)
+  const [editMemberInitialTab, setEditMemberInitialTab] = useState("note")
+  const [editFormMain, setEditFormMain] = useState({})
+  const [editingRelationsMain, setEditingRelationsMain] = useState({})
+  const [newRelationMain, setNewRelationMain] = useState({ category: "", member: null })
+  const [memberRelationsState, setMemberRelationsState] = useState(memberRelationsNew)
 
   // Data States
   const [appointmentNotificationTypes, setAppointmentNotificationTypes] = useState(appointmentNotificationTypesNew)
@@ -317,9 +330,14 @@ export default function Communications() {
       today.getDate() === birthDate.getDate();
   };
 
+  // Track if member chat list was already initialized
+  const memberChatInitializedRef = useRef(false);
+
   // Single useEffect to handle chat list initialization based on chatType
   useEffect(() => {
-    if (chatType === "member") {
+    if (chatType === "member" && !memberChatInitializedRef.current) {
+      memberChatInitializedRef.current = true;
+      
       // Start with existing chat data (which has messages)
       // IMPORTANT: Use memberId as the chat id for consistency
       const existingChats = memberChatListNew.map(chat => {
@@ -358,6 +376,118 @@ export default function Communications() {
     // Note: For "staff" and "company" chatTypes, we use staffChatListState and companyChatListState directly
     // via getCombinedChatList(), so we don't need to set chatList here
   }, [chatType]);
+
+  // Handle navigation from ChatPopup or other components
+  // Stored in ref to prevent re-triggering
+  const pendingNavigationRef = useRef(null);
+  const hasProcessedNavigationRef = useRef(false);
+  
+  // Store navigation state when it arrives
+  useEffect(() => {
+    if (location.state?.openChatId && location.state?.openChatType && !hasProcessedNavigationRef.current) {
+      pendingNavigationRef.current = {
+        openChatId: location.state.openChatId,
+        openChatType: location.state.openChatType
+      };
+      // Clear navigation state immediately to prevent issues
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state]);
+
+  // Process pending navigation after chat lists are loaded
+  useEffect(() => {
+    if (!pendingNavigationRef.current || hasProcessedNavigationRef.current) return;
+    
+    const { openChatId, openChatType } = pendingNavigationRef.current;
+    
+    // Check if we have the necessary data loaded
+    const hasMemberData = chatList.length > 0;
+    const hasStaffData = staffChatListState.length > 0;
+    
+    if ((openChatType === "member" && !hasMemberData) || 
+        (openChatType === "company" && !hasStaffData)) {
+      return; // Wait for data to load
+    }
+    
+    // Mark as processed
+    hasProcessedNavigationRef.current = true;
+    pendingNavigationRef.current = null;
+    
+    // Set the correct chat type first (without triggering re-initialization)
+    if (chatType !== openChatType) {
+      setChatType(openChatType);
+    }
+    
+    // Small delay to ensure chatType change is reflected
+    setTimeout(() => {
+      let targetChat = null;
+      
+      if (openChatType === "member") {
+        // Find in member chat list - check both id and memberId with type coercion
+        const searchId = Number(openChatId);
+        targetChat = chatList.find(c => 
+          c.id === searchId || 
+          c.memberId === searchId ||
+          c.id === openChatId || 
+          c.memberId === openChatId
+        );
+        
+        // Don't create new chats - the initialization already adds all active members
+        if (targetChat) {
+          // Mark messages as read and select chat
+          const updatedMessages = (targetChat.messages || []).map(msg => ({
+            ...msg,
+            status: msg.sender !== "You" ? "read" : msg.status
+          }));
+          const updatedChat = { ...targetChat, messages: updatedMessages, markedUnread: false };
+          setSelectedChat(updatedChat);
+          setMessages(updatedMessages);
+          
+          // Update chat list
+          setChatList(prevList => prevList.map(c => 
+            (c.id === targetChat.id || c.memberId === targetChat.memberId) ? updatedChat : c
+          ));
+        }
+      } else if (openChatType === "company") {
+        // Find in staff chat list
+        const searchId = Number(openChatId);
+        targetChat = staffChatListState.find(c => 
+          c.id === searchId || 
+          c.staffId === searchId ||
+          c.id === openChatId || 
+          c.staffId === openChatId
+        );
+        
+        if (targetChat) {
+          const updatedMessages = (targetChat.messages || []).map(msg => ({
+            ...msg,
+            status: msg.sender !== "You" ? "read" : msg.status
+          }));
+          const updatedChat = { ...targetChat, messages: updatedMessages, markedUnread: false };
+          setSelectedChat(updatedChat);
+          setMessages(updatedMessages);
+          
+          // Update staff chat list
+          setStaffChatListState(prevList => prevList.map(c => 
+            (c.id === targetChat.id || c.staffId === targetChat.staffId) ? updatedChat : c
+          ));
+        }
+      }
+      
+      // Set UI state to show the chat
+      if (targetChat) {
+        setIsMessagesOpen(false);
+        setActiveScreen("chat");
+        setReplyingTo(null);
+        setSearchMember("");
+      }
+      
+      // Reset the flag after a delay so new navigations can work
+      setTimeout(() => {
+        hasProcessedNavigationRef.current = false;
+      }, 1000);
+    }, 150);
+  }, [chatList, staffChatListState]);
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -1011,7 +1141,12 @@ export default function Communications() {
   }
 
   const handleSendEmail = (emailDataWithAttachments) => {
-    if (!emailDataWithAttachments.to || !emailDataWithAttachments.subject || !emailDataWithAttachments.body) {
+    // SendEmailModal liefert to als Array, also prüfen wir die Länge
+    const toEmails = Array.isArray(emailDataWithAttachments.to) 
+      ? emailDataWithAttachments.to 
+      : [emailDataWithAttachments.to].filter(Boolean);
+    
+    if (toEmails.length === 0 || !emailDataWithAttachments.subject || !emailDataWithAttachments.body) {
       alert("Please fill in all required email fields");
       return;
     }
@@ -1022,7 +1157,9 @@ export default function Communications() {
 
     const newEmail = {
       id: Date.now(),
-      recipient: emailDataWithAttachments.to,
+      recipient: toEmails.join(", "),
+      cc: emailDataWithAttachments.cc?.join(", ") || "",
+      bcc: emailDataWithAttachments.bcc?.join(", ") || "",
       subject: emailDataWithAttachments.subject,
       body: bodyWithSignature,
       status: "Sent",
@@ -1498,7 +1635,85 @@ export default function Communications() {
         image: member.image,
         note: member.note,
         noteImportance: member.noteImportance,
+        noteStartDate: member.noteStartDate,
+        noteEndDate: member.noteEndDate,
       }));
+  };
+
+  // Handle edit member for special notes and relations in CreateAppointmentModal
+  const handleEditMember = (member, tab = "note") => {
+    // Find the full member data from membersData
+    const fullMember = membersData.find(m => m.id === member.id) || member;
+    const memberData = {
+      ...fullMember,
+      title: fullMember.title || `${fullMember.firstName} ${fullMember.lastName}`,
+    };
+    setEditingMember(memberData);
+    setEditFormMain({
+      ...memberData,
+      note: memberData.note || "",
+      noteImportance: memberData.noteImportance || "unimportant",
+      noteStartDate: memberData.noteStartDate || "",
+      noteEndDate: memberData.noteEndDate || "",
+    });
+    setEditingRelationsMain(memberRelationsState[memberData.id] || {});
+    setEditMemberInitialTab(tab);
+    setShowEditMemberModal(true);
+  };
+
+  // Handle input change for edit form
+  const handleEditInputChange = (field, value) => {
+    setEditFormMain(prev => ({ ...prev, [field]: value }));
+  };
+
+  // Handle save from EditMemberModal
+  const handleSaveEditedMember = () => {
+    // Update members data (in a real app, this would be an API call)
+    setMembers(prevMembers => 
+      prevMembers.map(m => m.id === editingMember.id ? { ...m, ...editFormMain } : m)
+    );
+    // Update relations
+    setMemberRelationsState(prev => ({
+      ...prev,
+      [editingMember.id]: editingRelationsMain
+    }));
+    setShowEditMemberModal(false);
+    setEditingMember(null);
+  };
+
+  // Handle add relation
+  const handleAddRelationMain = () => {
+    if (!newRelationMain.category || !newRelationMain.member) return;
+    
+    setEditingRelationsMain(prev => {
+      const category = newRelationMain.category;
+      const existingRelations = prev[category] || [];
+      return {
+        ...prev,
+        [category]: [...existingRelations, newRelationMain.member]
+      };
+    });
+    setNewRelationMain({ category: "", member: null });
+  };
+
+  // Handle delete relation
+  const handleDeleteRelationMain = (category, memberId) => {
+    setEditingRelationsMain(prev => ({
+      ...prev,
+      [category]: (prev[category] || []).filter(m => m.id !== memberId)
+    }));
+  };
+
+  // Handle archive member (placeholder)
+  const handleArchiveMemberMain = () => {
+    // Placeholder - implement if needed
+    console.log("Archive member:", editingMember?.id);
+  };
+
+  // Handle unarchive member (placeholder)
+  const handleUnarchiveMemberMain = () => {
+    // Placeholder - implement if needed
+    console.log("Unarchive member:", editingMember?.id);
   };
 
   // ==========================================
@@ -2115,7 +2330,9 @@ export default function Communications() {
                     <div className="relative flex-shrink-0">
                       <button
                         onClick={() => setActiveMessageMenu(activeMessageMenu === message.id ? null : message.id)}
-                        className="message-menu-trigger opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-gray-700 rounded-lg mt-2"
+                        className={`message-menu-trigger opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-gray-700 rounded-lg ${
+                          selectedChat?.id === 100 ? "mt-7" : "mt-2"
+                        }`}
                       >
                         <MoreVertical size={18} className="text-gray-400" />
                       </button>
@@ -2221,12 +2438,17 @@ export default function Communications() {
                 />
 
                 <button
-                  className="p-2 hover:bg-gray-700 rounded-full flex items-center justify-center"
+                  className={`p-2 rounded-lg flex items-center justify-center transition-colors ${
+                    messageText.trim() 
+                      ? 'bg-orange-500 hover:bg-orange-600 text-white' 
+                      : 'text-gray-500 cursor-not-allowed'
+                  }`}
                   aria-label="Send message"
                   onClick={handleSendMessage}
+                  disabled={!messageText.trim()}
                   type="button"
                 >
-                  <Send className="w-6 h-6 text-gray-200" />
+                  <Send className="w-6 h-6" />
                 </button>
               </div>
 
@@ -2621,12 +2843,17 @@ export default function Communications() {
                 style={{ height: '32px' }}
               />
               <button
-                className="p-2 hover:bg-gray-700 rounded-full flex-shrink-0"
+                className={`p-2 rounded-lg flex-shrink-0 transition-colors ${
+                  messageText.trim() 
+                    ? 'bg-orange-500 hover:bg-orange-600 text-white' 
+                    : 'text-gray-500 cursor-not-allowed'
+                }`}
                 aria-label="Send message"
                 onClick={handleSendMessage}
+                disabled={!messageText.trim()}
                 type="button"
               >
-                <Send className="w-5 h-5 text-gray-200" />
+                <Send className="w-5 h-5" />
               </button>
             </div>
           </div>
@@ -2800,21 +3027,20 @@ export default function Communications() {
           initialEmailList={emailList}
         />
 
-        <EmailModal
-          show={showEmailModal}
-          onClose={() => setShowEmailModal(false)}
+        <SendEmailModal
+          showEmailModal={showEmailModal}
+          handleCloseEmailModal={() => setShowEmailModal(false)}
+          handleSendEmail={handleSendEmail}
+          setShowTemplateDropdown={setShowTemplateDropdown}
+          showTemplateDropdown={showTemplateDropdown}
+          selectedEmailTemplate={selectedEmailTemplate}
+          emailTemplates={emailTemplates}
+          handleTemplateSelect={handleTemplateSelect}
+          setSelectedEmailTemplate={setSelectedEmailTemplate}
           emailData={emailData}
           setEmailData={setEmailData}
-          handleSendEmail={handleSendEmail}
-          emailTemplates={emailTemplates}
-          selectedEmailTemplate={selectedEmailTemplate}
-          handleTemplateSelect={handleTemplateSelect}
-          showTemplateDropdown={showTemplateDropdown}
-          setShowTemplateDropdown={setShowTemplateDropdown}
-          showRecipientDropdown={showRecipientDropdown}
-          setShowRecipientDropdown={setShowRecipientDropdown}
           handleSearchMemberForEmail={handleSearchMemberForEmail}
-          handleSelectEmailRecipient={handleSelectEmailRecipient}
+          signature={settings?.emailSignature || ""}
       />
 
       <ArchiveModal
@@ -2842,17 +3068,25 @@ export default function Communications() {
           freeAppointmentsMain={freeAppointmentsData}
           availableMembersLeads={availableMembersLeadsMain}
           searchMembersMain={searchMembersMain}
-          selectedMemberMain={selectedChat && chatType === "member" ? {
-            id: selectedChat.id,
-            name: selectedChat.name,
-            firstName: selectedChat.name?.split(" ")[0] || "",
-            lastName: selectedChat.name?.split(" ").slice(1).join(" ") || "",
-            image: selectedChat.logo,
-            title: selectedChat.name,
-          } : null}
+          selectedMemberMain={selectedChat && chatType === "member" ? (() => {
+            const member = membersData.find(m => m.id === selectedChat.id);
+            return {
+              id: selectedChat.id,
+              name: selectedChat.name,
+              firstName: member?.firstName || selectedChat.name?.split(" ")[0] || "",
+              lastName: member?.lastName || selectedChat.name?.split(" ").slice(1).join(" ") || "",
+              image: selectedChat.logo,
+              title: selectedChat.name,
+              note: member?.note || "",
+              noteImportance: member?.noteImportance || "unimportant",
+              noteStartDate: member?.noteStartDate || "",
+              noteEndDate: member?.noteEndDate || "",
+            };
+          })() : null}
           memberCredits={selectedChat && chatType === "member" ? memberContingentData[selectedChat.id] : null}
           currentBillingPeriod={currentBillingPeriod}
-          memberRelations={memberRelationsNew}
+          memberRelations={memberRelationsState}
+          onOpenEditMemberModal={handleEditMember}
         />
       )}
 
@@ -2927,6 +3161,32 @@ export default function Communications() {
         }}
         onConfirm={handleConfirmViewMember}
         memberName={selectedMemberForConfirmation ? `${selectedMemberForConfirmation.firstName || ''} ${selectedMemberForConfirmation.lastName || ''}`.trim() || selectedMemberForConfirmation.name : ''}
+      />
+
+      {/* Edit Member Modal for Special Notes and Relations */}
+      <EditMemberModalMain
+        isOpen={showEditMemberModal}
+        onClose={() => {
+          setShowEditMemberModal(false);
+          setEditingMember(null);
+        }}
+        selectedMemberMain={editingMember}
+        editModalTabMain={editMemberInitialTab}
+        setEditModalTabMain={setEditMemberInitialTab}
+        editFormMain={editFormMain}
+        handleInputChangeMain={handleEditInputChange}
+        handleEditSubmitMain={handleSaveEditedMember}
+        editingRelationsMain={editingRelationsMain}
+        setEditingRelationsMain={setEditingRelationsMain}
+        newRelationMain={newRelationMain}
+        setNewRelationMain={setNewRelationMain}
+        availableMembersLeadsMain={availableMembersLeadsMain}
+        relationOptionsMain={relationOptionsMain}
+        handleAddRelationMain={handleAddRelationMain}
+        memberRelationsMain={memberRelationsState}
+        handleDeleteRelationMain={handleDeleteRelationMain}
+        handleArchiveMemberMain={handleArchiveMemberMain}
+        handleUnarchiveMemberMain={handleUnarchiveMemberMain}
       />
       </>
     </div>

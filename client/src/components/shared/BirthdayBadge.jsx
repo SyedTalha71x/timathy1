@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import { Gift } from "lucide-react";
 
 /**
@@ -20,6 +21,8 @@ const BirthdayBadge = ({
   variant = "badge"
 }) => {
   const [showTooltip, setShowTooltip] = useState(false);
+  const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
+  const badgeRef = useRef(null);
 
   if (!show) return null;
 
@@ -50,6 +53,11 @@ const BirthdayBadge = ({
       icon: 8,
       position: "absolute -top-1 -right-1"
     },
+    ms: {
+      wrapper: "p-[3px] border-2",
+      icon: 12,
+      position: "absolute -top-1 -right-1"
+    },
     md: {
       wrapper: "p-1 border-[2.5px]",
       icon: 14,
@@ -71,6 +79,24 @@ const BirthdayBadge = ({
   };
 
   const tooltipTitle = `Birthday today!${age !== null ? ` Turns ${age} years old` : ''}`;
+
+  // Calculate tooltip position - directly above the badge center
+  const calculateTooltipPosition = () => {
+    if (badgeRef.current) {
+      const rect = badgeRef.current.getBoundingClientRect();
+      
+      // Position tooltip centered above the badge
+      const top = rect.top - 8;
+      const left = rect.left + rect.width / 2;
+      
+      setTooltipPosition({ top, left });
+    }
+  };
+
+  const handleMouseEnter = () => {
+    calculateTooltipPosition();
+    setShowTooltip(true);
+  };
 
   // Inline variant - simple icon next to text
   if (variant === "inline") {
@@ -102,33 +128,51 @@ const BirthdayBadge = ({
     );
   }
 
-  // Badge with interactive tooltip
+  // Tooltip component rendered via Portal
+  const TooltipPortal = () => {
+    if (!showTooltip) return null;
+    
+    return createPortal(
+      <div 
+        className="fixed bg-[#1C1C1C] border border-gray-700 rounded-lg px-3 py-2 shadow-xl whitespace-nowrap pointer-events-none"
+        style={{
+          top: tooltipPosition.top,
+          left: tooltipPosition.left,
+          transform: 'translate(-50%, -100%)',
+          zIndex: 99999
+        }}
+      >
+        <p className="text-xs text-white font-medium">Birthday today!</p>
+        {age !== null && (
+          <p className="text-[10px] text-gray-400 mt-0.5">Turns {age} years old</p>
+        )}
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-full">
+          <div className="border-4 border-transparent border-t-[#1C1C1C]"></div>
+        </div>
+      </div>,
+      document.body
+    );
+  };
+
+  // Badge with interactive tooltip (rendered via portal)
   return (
     <>
       <div 
+        ref={badgeRef}
         className={`${position} bg-orange-500 hover:bg-orange-400 rounded-full ${config.wrapper} border-white shadow-lg cursor-pointer transition-all duration-200 hover:scale-110`}
-        onMouseEnter={() => setShowTooltip(true)}
+        onMouseEnter={handleMouseEnter}
         onMouseLeave={() => setShowTooltip(false)}
         onClick={(e) => {
           e.stopPropagation();
+          if (!showTooltip) {
+            calculateTooltipPosition();
+          }
           setShowTooltip(!showTooltip);
         }}
       >
         <Gift size={config.icon} className="text-white" />
       </div>
-      
-      {/* Interactive Tooltip */}
-      {showTooltip && (
-        <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-[#1C1C1C] border border-gray-700 rounded-lg px-3 py-2 shadow-xl z-30 whitespace-nowrap">
-          <p className="text-xs text-white font-medium">Birthday today!</p>
-          {age !== null && (
-            <p className="text-[10px] text-gray-400 mt-0.5">Turns {age} years old</p>
-          )}
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-full">
-            <div className="border-4 border-transparent border-t-[#1C1C1C]"></div>
-          </div>
-        </div>
-      )}
+      <TooltipPortal />
     </>
   );
 };

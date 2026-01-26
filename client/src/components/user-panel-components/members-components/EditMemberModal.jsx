@@ -1258,7 +1258,7 @@ const EditMemberModalMain = ({
                               {option}
                             </option>
                           ))}
-                          <option disabled>â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</option>
+                          <option disabled>────────────</option>
                           <option value="custom">Custom...</option>
                         </select>
                       </div>
@@ -1304,7 +1304,7 @@ const EditMemberModalMain = ({
                           <div className="text-sm flex items-center flex-wrap gap-1.5">
                             <span className="text-white font-medium">{relation.name}</span>
                             <span className="text-gray-400">({relation.relation})</span>
-                            <span className="text-gray-500">â€¢</span>
+                            <span className="text-gray-500">•</span>
                             <span className="text-gray-400 capitalize">{category}</span>
                             <span className="bg-gray-700 text-gray-300 text-xs px-2 py-0.5 rounded capitalize">
                               {relation.type}

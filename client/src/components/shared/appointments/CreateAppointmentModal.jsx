@@ -138,6 +138,8 @@ const MemberTagInput = ({
       firstName: member.firstName, lastName: member.lastName, image: member.image,
       notes: member.notes || [], note: member.note || "",
       noteImportance: member.noteImportance || "unimportant",
+      noteStartDate: member.noteStartDate || "",
+      noteEndDate: member.noteEndDate || "",
     }]);
     setInputValue("");
     setShowDropdown(false);
@@ -239,6 +241,9 @@ const AddAppointmentModal = ({
     id: selectedMemberMain.id, name: selectedMemberMain.name || selectedMemberMain.title,
     firstName: selectedMemberMain.firstName, lastName: selectedMemberMain.lastName, image: selectedMemberMain.image,
     notes: selectedMemberMain.notes || [], note: selectedMemberMain.note || "",
+    noteImportance: selectedMemberMain.noteImportance || "unimportant",
+    noteStartDate: selectedMemberMain.noteStartDate || "",
+    noteEndDate: selectedMemberMain.noteEndDate || "",
   }] : [] });
 
   const updateAppointment = (field, value) => setAppointmentData({ ...appointmentData, [field]: value });

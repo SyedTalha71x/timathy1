@@ -466,19 +466,19 @@ const Sidebar = ({ isOpen = false, onClose }) => {
         <div className="hidden lg:block">
           <div className="flex justify-center items-center w-full">
             {isCollapsed ? (
-              <div className="w-full bg-orange-500 flex items-center justify-center p-4">
-                <img src={OrgaGymLogoWihoutText} className="h-auto w-auto max-w-full" alt="Orgagym Logo" />
+              <div className="w-full bg-orange-500 flex items-center justify-center p-2">
+                <img src={OrgaGymLogoWihoutText} className="h-auto w-auto max-w-[70%] select-none pointer-events-none" alt="Orgagym Logo" draggable="false" />
               </div>
             ) : (
-              <div className="w-full bg-orange-500 flex items-center justify-center p-4">
-                <img src="/Orgagym white.svg" className="h-20 w-auto max-w-full" alt="Orgagym Logo" />
+              <div className="w-full bg-orange-500 flex items-center justify-center p-2.5">
+                <img src="/Orgagym white.svg" className="h-16 w-auto max-w-full select-none pointer-events-none" alt="Orgagym Logo" draggable="false" />
               </div>
             )}
           </div>
         </div>
 
         {/* Collapse Button Section */}
-        <div className="p-4 hidden lg:block relative">
+        <div className="p-2 hidden lg:block relative">
           <div className={`flex ${isCollapsed ? "justify-center" : "items-center"} gap-4`}>
             {!isCollapsed && (
               <div className="absolute -right-1 top-1/2 transform -translate-y-1/2 bg-[#222222] rounded-full p-2 cursor-pointer z-50">
@@ -495,7 +495,7 @@ const Sidebar = ({ isOpen = false, onClose }) => {
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto custom-scrollbar">
-          <ul className="space-y-2 p-4">
+          <ul className="space-y-2 px-4 pt-1 pb-4">
             {menuItems.map((item) => {
               const hasActiveSubmenu = isSubmenuActive(item.submenu)
 
