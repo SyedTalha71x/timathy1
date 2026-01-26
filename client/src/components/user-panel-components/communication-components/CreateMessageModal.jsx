@@ -41,7 +41,7 @@ export default function CreateMessageModal({
             <h2 className="text-lg font-medium">Create New Template</h2>
             <button
               onClick={handleClose}
-              className="p-2 hover:bg-blue-700 rounded-lg"
+              className="p-2 hover:bg-gray-700 rounded-lg"
             >
               <X size={16} />
             </button>
@@ -152,7 +152,7 @@ export default function CreateMessageModal({
             {/* Save Button */}
             <button
               onClick={() => handleSaveNewMessage(attachments)}
-              className="w-full py-3 bg-white text-blue-600 text-sm hover:bg-gray-100 rounded-xl disabled:bg-gray-600 disabled:text-gray-400 disabled:cursor-not-allowed"
+              className="w-full py-3 bg-orange-500 hover:bg-orange-600 text-white text-sm rounded-xl disabled:bg-gray-600 disabled:text-gray-400 disabled:cursor-not-allowed transition-colors"
               disabled={
                 !newMessage.title.trim() || !newMessage.message.trim()
               }

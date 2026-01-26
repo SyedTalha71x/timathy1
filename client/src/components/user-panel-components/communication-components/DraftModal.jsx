@@ -22,7 +22,7 @@ const DraftModal = ({ show, onClose, onDiscard, onSave }) => {
             </button>
             <button
               onClick={onSave}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm"
+              className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-sm"
             >
               Save Draft
             </button>

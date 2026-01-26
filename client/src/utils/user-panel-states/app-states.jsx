@@ -571,22 +571,734 @@ export const companyChatListData = [
 ];
 
 // Email Data - Structured by folder
+// ============================================================================
+// EMAIL DATA - Umfangreiche Email-Daten für das Communications-Modul
+// ============================================================================
+// Feldnamen kompatibel mit communications.jsx:
+// - sender: Absender-Name | senderEmail: Absender-Email
+// - recipient: Empfänger-Name | recipientEmail: Empfänger-Email  
+// - time: ISO-Timestamp | status: Sent/Delivered/Read/Failed
+// ============================================================================
 export const emailListData = {
   inbox: [
-    { id: 1, from: "john@example.com", fromName: "John Doe", to: "studio@example.com", subject: "Membership question", preview: "Hi, I wanted to ask about upgrading...", date: "2025-01-25", time: "10:30 AM", isRead: false, isStarred: false, body: "Hi, I wanted to ask about upgrading my membership to premium. What are the benefits?" },
-    { id: 2, from: "sarah.w@example.com", fromName: "Sarah Williams", to: "studio@example.com", subject: "Class schedule inquiry", preview: "Hello, could you please send me...", date: "2025-01-24", time: "03:15 PM", isRead: false, isStarred: true, body: "Hello, could you please send me the updated yoga class schedule for next week?" },
-    { id: 3, from: "michael@example.com", fromName: "Michael Johnson", to: "studio@example.com", subject: "Training plan feedback", preview: "Thanks for the new training plan...", date: "2025-01-23", time: "11:00 AM", isRead: true, isStarred: false, body: "Thanks for the new training plan! I have a few questions about the cardio section." },
+    {
+      id: 1,
+      sender: "John Doe",
+      senderEmail: "john.doe@example.com",
+      recipient: "FitLife Studio",
+      recipientEmail: "studio@fitlife.com",
+      subject: "Membership Upgrade Request",
+      body: `<p>Hello FitLife Team,</p>
+<p>I've been a member for over <strong>6 months</strong> now and I'm absolutely loving the experience! The facilities are top-notch and the trainers are incredibly supportive.</p>
+<p>I wanted to inquire about upgrading my current membership to the <strong>Premium Plan</strong>. Specifically, I'm interested in:</p>
+<ul>
+  <li>Access to the spa and sauna facilities</li>
+  <li>Priority booking for group classes</li>
+  <li>Personal training sessions included</li>
+</ul>
+<p>Could you please send me the details about the upgrade process and any promotional offers currently available?</p>
+<p>Thank you!</p>
+<p>Best regards,<br/><strong>John Doe</strong><br/>Member #M001</p>`,
+      time: "2025-01-26T09:30:00Z",
+      isRead: false,
+      isPinned: true,
+      isArchived: false,
+      status: "Delivered",
+      attachments: []
+    },
+    {
+      id: 2,
+      sender: "Sarah Williams",
+      senderEmail: "sarah.w@example.com",
+      recipient: "FitLife Studio",
+      recipientEmail: "studio@fitlife.com",
+      subject: "Yoga Class Schedule Change Request",
+      body: `<p>Hi there,</p>
+<p>I hope this email finds you well! I'm writing regarding the <em>morning yoga classes</em> on Tuesdays and Thursdays.</p>
+<p>Due to a change in my work schedule, I'm no longer able to attend the <strong>7:00 AM sessions</strong>. I was wondering if there are any alternative time slots available, preferably:</p>
+<ol>
+  <li>Evening classes (6:00 PM - 8:00 PM)</li>
+  <li>Lunch break sessions (12:00 PM - 1:00 PM)</li>
+  <li>Weekend morning classes</li>
+</ol>
+<p>I've attached my current work schedule for reference. Please let me know what options might work best.</p>
+<p>Thank you for your flexibility!</p>
+<p>Warm regards,<br/><strong>Sarah Williams</strong></p>`,
+      time: "2025-01-26T08:15:00Z",
+      isRead: false,
+      isPinned: false,
+      isArchived: false,
+      status: "Delivered",
+      attachments: [
+        { name: "work_schedule_january.pdf", size: "245 KB", type: "application/pdf" }
+      ]
+    },
+    {
+      id: 3,
+      sender: "Michael Johnson",
+      senderEmail: "michael.j@example.com",
+      recipient: "FitLife Studio",
+      recipientEmail: "studio@fitlife.com",
+      subject: "Training Plan Feedback & Questions",
+      body: `<p>Hey Team!</p>
+<p>First off, I wanted to say a <strong>huge thank you</strong> for the personalized training plan you put together for me. I've been following it for 3 weeks now and already seeing great results!</p>
+<p>I do have some questions about the <strong>cardio section</strong>:</p>
+<blockquote style="border-left: 3px solid #666; padding-left: 15px; margin-left: 0; color: #aaa;">
+  "Complete 20 minutes of HIIT training 3x per week"
+</blockquote>
+<p>Is it okay if I substitute some HIIT sessions with swimming? I find it easier on my joints and I enjoy it more.</p>
+<p>Also, regarding the <strong>nutrition guidelines</strong>:</p>
+<ul>
+  <li>Should I increase protein intake on rest days?</li>
+  <li>What's your recommendation for pre-workout meals?</li>
+  <li>Any suggestions for healthy snacks between meals?</li>
+</ul>
+<p>Looking forward to your advice!</p>
+<p>Cheers,<br/><strong>Michael Johnson</strong> 💪</p>`,
+      time: "2025-01-25T16:45:00Z",
+      isRead: false,
+      isPinned: false,
+      isArchived: false,
+      status: "Delivered",
+      attachments: [
+        { name: "progress_photos.zip", size: "5.2 MB", type: "application/zip" },
+        { name: "weight_tracking.xlsx", size: "42 KB", type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }
+      ]
+    },
+    {
+      id: 4,
+      sender: "Emily Davis",
+      senderEmail: "emily.d@example.com",
+      recipient: "FitLife Studio",
+      recipientEmail: "studio@fitlife.com",
+      subject: "Rehabilitation Progress Update",
+      body: `<p>Dear FitLife Team,</p>
+<p>I wanted to provide an update on my <strong>knee rehabilitation</strong> progress following the program you designed for me.</p>
+<p><u>Week 4 Progress:</u></p>
+<ul>
+  <li>✅ Range of motion has improved by approximately 15%</li>
+  <li>✅ Pain level decreased from 6/10 to 3/10</li>
+  <li>✅ Successfully completed all prescribed exercises</li>
+  <li>⚠️ Still experiencing slight discomfort during lateral movements</li>
+</ul>
+<p>My physiotherapist has reviewed the attached medical report and believes we can <strong>gradually increase the intensity</strong> of the exercises next week.</p>
+<p>Could we schedule a <em>follow-up consultation</em> to discuss the next phase of my rehabilitation?</p>
+<p>Thank you for all your support during this recovery journey.</p>
+<p>Kind regards,<br/><strong>Emily Davis</strong></p>`,
+      time: "2025-01-25T14:20:00Z",
+      isRead: true,
+      isPinned: false,
+      isArchived: false,
+      status: "Read",
+      attachments: [
+        { name: "physiotherapy_report.pdf", size: "1.8 MB", type: "application/pdf" },
+        { name: "exercise_log.pdf", size: "520 KB", type: "application/pdf" }
+      ]
+    },
+    {
+      id: 5,
+      sender: "David Brown",
+      senderEmail: "david.brown@example.com",
+      recipient: "FitLife Studio",
+      recipientEmail: "studio@fitlife.com",
+      subject: "Question about Contract Renewal",
+      body: `<p>Hello,</p>
+<p>My membership contract is set to expire on <strong>September 1st, 2024</strong> and I'd like to discuss renewal options.</p>
+<p>I've been very happy with my experience at FitLife, especially:</p>
+<ul>
+  <li>The modern equipment and clean facilities</li>
+  <li>Friendly and knowledgeable staff</li>
+  <li>Convenient location and operating hours</li>
+</ul>
+<p>However, before renewing, I wanted to ask about:</p>
+<ol>
+  <li>Are there any loyalty discounts for returning members?</li>
+  <li>What are the differences between annual vs. monthly plans?</li>
+  <li>Can I add my wife to my membership with a family discount?</li>
+</ol>
+<p>Please send me the available options when you have a chance.</p>
+<p>Thanks,<br/><strong>David Brown</strong></p>`,
+      time: "2025-01-25T11:00:00Z",
+      isRead: true,
+      isPinned: false,
+      isArchived: false,
+      status: "Read",
+      attachments: []
+    },
+    {
+      id: 6,
+      sender: "Jennifer Martinez",
+      senderEmail: "jen.martinez@example.com",
+      recipient: "FitLife Studio",
+      recipientEmail: "studio@fitlife.com",
+      subject: "Group Fitness Class Suggestion 🎵",
+      body: `<p>Hi FitLife Team! 👋</p>
+<p>I've been attending your group fitness classes for the past few months and I absolutely <strong>love the variety</strong> you offer!</p>
+<p>I wanted to suggest adding a new class that I think many members would enjoy:</p>
+<h3 style="color: #FF843E;">🎵 Dance Fitness / Zumba</h3>
+<p>Here's why I think it would be a great addition:</p>
+<ul>
+  <li><strong>Fun cardio workout</strong> - Burns calories while having fun</li>
+  <li><strong>Social aspect</strong> - Great way to meet other members</li>
+  <li><strong>All fitness levels</strong> - Easy to modify for beginners</li>
+  <li><strong>Stress relief</strong> - Dancing is proven to improve mood</li>
+</ul>
+<p>I even found a few potential instructors:</p>
+<table style="border-collapse: collapse; width: 100%; margin: 15px 0;">
+  <tr style="background: #333;">
+    <td style="padding: 10px; border: 1px solid #444;"><strong>Name</strong></td>
+    <td style="padding: 10px; border: 1px solid #444;"><strong>Certification</strong></td>
+    <td style="padding: 10px; border: 1px solid #444;"><strong>Availability</strong></td>
+  </tr>
+  <tr>
+    <td style="padding: 10px; border: 1px solid #444;">Maria Santos</td>
+    <td style="padding: 10px; border: 1px solid #444;">Zumba Certified</td>
+    <td style="padding: 10px; border: 1px solid #444;">Evenings</td>
+  </tr>
+  <tr>
+    <td style="padding: 10px; border: 1px solid #444;">Carlos Rivera</td>
+    <td style="padding: 10px; border: 1px solid #444;">Dance Fitness Pro</td>
+    <td style="padding: 10px; border: 1px solid #444;">Weekends</td>
+  </tr>
+</table>
+<p>Would love to hear your thoughts on this! 🙏</p>
+<p>Best,<br/><strong>Jennifer</strong></p>`,
+      time: "2025-01-24T19:30:00Z",
+      isRead: true,
+      isPinned: false,
+      isArchived: false,
+      status: "Read",
+      attachments: []
+    },
+    {
+      id: 7,
+      sender: "Robert Miller",
+      senderEmail: "robert.m@example.com",
+      recipient: "FitLife Studio",
+      recipientEmail: "studio@fitlife.com",
+      subject: "Gym Tour Follow-Up",
+      body: `<p>Hello!</p>
+<p>Thank you so much for the <strong>gym tour yesterday</strong>. I was really impressed with what FitLife has to offer!</p>
+<p>A few things that stood out to me:</p>
+<ul>
+  <li>The <strong>free weights section</strong> is well-equipped</li>
+  <li><strong>Cleanliness</strong> of the locker rooms was excellent</li>
+  <li>The <strong>staff</strong> were friendly and welcoming</li>
+</ul>
+<p>I'm definitely interested in joining, but I have a few more questions:</p>
+<ol>
+  <li>Is there a trial period available before committing?</li>
+  <li>What's included in the basic membership?</li>
+  <li>Are there any sign-up promotions this month?</li>
+</ol>
+<p>I'd also like to know more about the <em>personal training packages</em> as I'm looking to work with a trainer for my first few months.</p>
+<p>Looking forward to hearing from you!</p>
+<p>Best regards,<br/><strong>Robert Miller</strong></p>`,
+      time: "2025-01-24T10:15:00Z",
+      isRead: true,
+      isPinned: false,
+      isArchived: false,
+      status: "Read",
+      attachments: []
+    },
+    {
+      id: 8,
+      sender: "Amanda Thompson",
+      senderEmail: "amanda.t@example.com",
+      recipient: "FitLife Studio",
+      recipientEmail: "studio@fitlife.com",
+      subject: "⚠️ Complaint: Equipment Issue in Weight Room",
+      body: `<p>Dear Management,</p>
+<p>I'm writing to report an issue I encountered during my workout session on <strong>January 23rd at approximately 6:30 PM</strong>.</p>
+<div style="background: #3a2a2a; padding: 15px; border-radius: 8px; border-left: 4px solid #ef4444; margin: 15px 0;">
+  <strong>⚠️ Safety Concern:</strong><br/>
+  The cable on <strong>Machine #4 (Lat Pulldown)</strong> in the weight room appears to be frayed and could potentially snap during use.
+</div>
+<p>I've attached a photo showing the damage for your reference.</p>
+<p>While I understand equipment wears out over time, I believe this is a <strong>safety hazard</strong> that should be addressed immediately. I recommend:</p>
+<ol>
+  <li>Taking the machine out of service until repaired</li>
+  <li>Posting a clear "Out of Order" sign</li>
+  <li>Scheduling maintenance ASAP</li>
+</ol>
+<p>I hope this can be resolved quickly. Thank you for your attention to this matter.</p>
+<p>Regards,<br/><strong>Amanda Thompson</strong><br/>Member since 2022</p>`,
+      time: "2025-01-23T20:45:00Z",
+      isRead: true,
+      isPinned: true,
+      isArchived: false,
+      status: "Read",
+      attachments: [
+        { name: "equipment_damage.jpg", size: "2.1 MB", type: "image/jpeg" }
+      ]
+    },
+    {
+      id: 9,
+      sender: "Lisa Chen",
+      senderEmail: "lisa.chen@techvision.com",
+      recipient: "FitLife Studio",
+      recipientEmail: "studio@fitlife.com",
+      subject: "Corporate Membership Inquiry - TechVision Inc.",
+      body: `<p>Dear FitLife Team,</p>
+<p>I'm the <strong>HR Manager</strong> at <em>TechVision Inc.</em> and I'm reaching out to inquire about <strong>corporate membership packages</strong> for our employees.</p>
+<p>Our company has approximately <strong>150 employees</strong> in the area, and we're looking to partner with a fitness facility to promote workplace wellness.</p>
+<p><u>We're interested in:</u></p>
+<ul>
+  <li>Discounted membership rates for employees</li>
+  <li>Flexible payment options (payroll deduction)</li>
+  <li>On-site fitness assessments or workshops</li>
+  <li>Group class reservations for team building</li>
+</ul>
+<p>I've attached our company profile for your reference. Could we schedule a meeting to discuss partnership opportunities?</p>
+<p><strong>Available times:</strong></p>
+<ul>
+  <li>Tuesday, Jan 28 - 10:00 AM or 2:00 PM</li>
+  <li>Wednesday, Jan 29 - 11:00 AM</li>
+  <li>Thursday, Jan 30 - Any time after 1:00 PM</li>
+</ul>
+<p>Looking forward to exploring this partnership!</p>
+<p>Best regards,<br/><strong>Lisa Chen</strong><br/>HR Manager, TechVision Inc.<br/>📞 (555) 123-4567<br/>✉️ lisa.chen@techvision.com</p>`,
+      time: "2025-01-22T09:00:00Z",
+      isRead: true,
+      isPinned: true,
+      isArchived: false,
+      status: "Read",
+      attachments: [
+        { name: "TechVision_Company_Profile.pdf", size: "3.4 MB", type: "application/pdf" },
+        { name: "Employee_Wellness_Survey.xlsx", size: "156 KB", type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }
+      ]
+    },
+    {
+      id: 10,
+      sender: "Chris Anderson",
+      senderEmail: "chris.a@example.com",
+      recipient: "FitLife Studio",
+      recipientEmail: "studio@fitlife.com",
+      subject: "Re: Personal Training Package",
+      body: `<p>Hi,</p>
+<p>Thanks for sending over the personal training options! After reviewing them, I'd like to go with <strong>Option B: 12 Sessions Package</strong>.</p>
+<p>My preferred schedule would be:</p>
+<ul>
+  <li><strong>Mondays</strong> at 7:00 AM</li>
+  <li><strong>Wednesdays</strong> at 7:00 AM</li>
+  <li><strong>Fridays</strong> at 6:00 PM</li>
+</ul>
+<p>I'd prefer to work with <strong>Trainer Mike</strong> if he's available, as we've worked together before and I really like his training style.</p>
+<p>Let me know the next steps to finalize the booking!</p>
+<p>Thanks,<br/><strong>Chris</strong></p>`,
+      time: "2025-01-21T14:30:00Z",
+      isRead: true,
+      isPinned: false,
+      isArchived: false,
+      status: "Read",
+      attachments: []
+    }
   ],
+
   sent: [
-    { id: 101, from: "studio@example.com", fromName: "Studio", to: "john@example.com", subject: "Re: Membership question", preview: "Thank you for your inquiry...", date: "2025-01-25", time: "11:00 AM", isRead: true, isStarred: false, body: "Thank you for your inquiry. Our premium membership includes unlimited group classes, priority booking, and access to our spa facilities." },
-    { id: 102, from: "studio@example.com", fromName: "Studio", to: "sarah.w@example.com", subject: "Your upcoming appointment", preview: "This is a reminder for your appointment...", date: "2025-01-24", time: "02:00 PM", isRead: true, isStarred: false, body: "This is a reminder for your appointment on January 27th at 11:00 AM with Sarah Coach." },
+    {
+      id: 101,
+      sender: "FitLife Studio",
+      senderEmail: "studio@fitlife.com",
+      recipient: "John Doe",
+      recipientEmail: "john.doe@example.com",
+      subject: "Re: Membership Upgrade Request",
+      body: `<p>Dear John,</p>
+<p>Thank you for reaching out and for your kind words about our facility! We're thrilled to hear you're enjoying your membership. 😊</p>
+<p>Regarding the <strong>Premium Plan upgrade</strong>, here's what's included:</p>
+<h3 style="color: #FF843E;">Premium Membership Benefits:</h3>
+<ul>
+  <li>✨ <strong>Unlimited spa & sauna access</strong> (normally $50/month extra)</li>
+  <li>🎯 <strong>Priority booking</strong> for all group classes</li>
+  <li>💪 <strong>2 personal training sessions</strong> per month included</li>
+  <li>🧘 <strong>Free guest passes</strong> (2 per month)</li>
+  <li>🎁 <strong>20% discount</strong> on all merchandise</li>
+</ul>
+<div style="background: #2a3a2a; padding: 15px; border-radius: 8px; border-left: 4px solid #22c55e; margin: 15px 0;">
+  <strong>Special Offer for Existing Members:</strong><br/>
+  As a valued member, we'd like to offer you a <strong>15% loyalty discount</strong> on the upgrade fee! This brings your monthly rate to <strong>$89.99/month</strong> (regularly $105.99).
+</div>
+<p>To proceed with the upgrade, simply:</p>
+<ol>
+  <li>Reply to this email confirming your interest</li>
+  <li>Visit the front desk to sign the updated agreement</li>
+  <li>Enjoy your new benefits immediately!</li>
+</ol>
+<p>Let us know if you have any questions!</p>
+<p>Best regards,<br/><strong>Sarah</strong><br/>FitLife Studio Customer Service<br/>📞 (555) 987-6543</p>`,
+      time: "2025-01-26T10:45:00Z",
+      isRead: true,
+      isPinned: false,
+      isArchived: false,
+      status: "Delivered",
+      attachments: [
+        { name: "Premium_Membership_Details.pdf", size: "890 KB", type: "application/pdf" }
+      ]
+    },
+    {
+      id: 102,
+      sender: "FitLife Studio",
+      senderEmail: "studio@fitlife.com",
+      recipient: "Sarah Williams",
+      recipientEmail: "sarah.w@example.com",
+      subject: "Re: Yoga Class Schedule Change Request",
+      body: `<p>Hi Sarah,</p>
+<p>Thank you for letting us know about your schedule change. We completely understand and want to make sure you can continue your yoga practice with us!</p>
+<p>Great news - we have several <strong>alternative time slots</strong> available:</p>
+<h3>Evening Classes:</h3>
+<table style="border-collapse: collapse; width: 100%; margin: 15px 0;">
+  <tr style="background: #333;">
+    <td style="padding: 10px; border: 1px solid #444;"><strong>Day</strong></td>
+    <td style="padding: 10px; border: 1px solid #444;"><strong>Time</strong></td>
+    <td style="padding: 10px; border: 1px solid #444;"><strong>Instructor</strong></td>
+    <td style="padding: 10px; border: 1px solid #444;"><strong>Style</strong></td>
+  </tr>
+  <tr>
+    <td style="padding: 10px; border: 1px solid #444;">Tuesday</td>
+    <td style="padding: 10px; border: 1px solid #444;">6:30 PM</td>
+    <td style="padding: 10px; border: 1px solid #444;">Maya</td>
+    <td style="padding: 10px; border: 1px solid #444;">Vinyasa Flow</td>
+  </tr>
+  <tr>
+    <td style="padding: 10px; border: 1px solid #444;">Thursday</td>
+    <td style="padding: 10px; border: 1px solid #444;">7:00 PM</td>
+    <td style="padding: 10px; border: 1px solid #444;">David</td>
+    <td style="padding: 10px; border: 1px solid #444;">Hatha Yoga</td>
+  </tr>
+  <tr>
+    <td style="padding: 10px; border: 1px solid #444;">Saturday</td>
+    <td style="padding: 10px; border: 1px solid #444;">9:00 AM</td>
+    <td style="padding: 10px; border: 1px solid #444;">Maya</td>
+    <td style="padding: 10px; border: 1px solid #444;">Restorative</td>
+  </tr>
+</table>
+<p>I've attached the complete class schedule for your reference. Let us know which classes you'd like to switch to!</p>
+<p>Namaste 🙏</p>
+<p><strong>Reception Team</strong><br/>FitLife Studio</p>`,
+      time: "2025-01-26T09:30:00Z",
+      isRead: true,
+      isPinned: false,
+      isArchived: false,
+      status: "Delivered",
+      attachments: [
+        { name: "January_February_Class_Schedule.pdf", size: "1.2 MB", type: "application/pdf" }
+      ]
+    },
+    {
+      id: 103,
+      sender: "FitLife Studio",
+      senderEmail: "studio@fitlife.com",
+      recipient: "Emily Davis",
+      recipientEmail: "emily.d@example.com",
+      subject: "Re: Rehabilitation Progress Update - Phase 2 Plan",
+      body: `<p>Dear Emily,</p>
+<p>What fantastic progress! 🎉 We're so proud of your dedication to your rehabilitation journey.</p>
+<p>Your physiotherapist's feedback is very encouraging. Based on your update, I've discussed your case with our rehabilitation specialist, and we recommend the following for <strong>Phase 2</strong>:</p>
+<h3 style="color: #FF843E;">Updated Exercise Plan:</h3>
+<ul>
+  <li>✅ Continue current exercises at same intensity (Week 1-2)</li>
+  <li>⬆️ Gradually increase resistance on leg press by 10% (Week 3)</li>
+  <li>➕ Add balance exercises using BOSU ball (Week 2)</li>
+  <li>🏊 Pool exercises can begin (low-impact cardio)</li>
+</ul>
+<p><strong>⚠️ Important:</strong> For the lateral movement discomfort, we suggest:</p>
+<ol>
+  <li>Applying ice for 15 minutes post-workout</li>
+  <li>Wearing a compression sleeve during exercise</li>
+  <li>Avoiding sudden directional changes for now</li>
+</ol>
+<div style="background: #2a2a3a; padding: 15px; border-radius: 8px; margin: 15px 0;">
+  <strong>📅 Follow-up Consultation Scheduled:</strong><br/>
+  <strong>Date:</strong> Thursday, January 30th<br/>
+  <strong>Time:</strong> 11:00 AM<br/>
+  <strong>With:</strong> Dr. Sarah Martinez (Rehabilitation Specialist)
+</div>
+<p>Please confirm this works for you!</p>
+<p>Keep up the amazing work! 💪</p>
+<p><strong>FitLife Rehabilitation Team</strong></p>`,
+      time: "2025-01-25T15:00:00Z",
+      isRead: true,
+      isPinned: false,
+      isArchived: false,
+      status: "Read",
+      attachments: [
+        { name: "Phase2_Exercise_Plan.pdf", size: "2.3 MB", type: "application/pdf" },
+        { name: "Pool_Exercises_Guide.pdf", size: "1.5 MB", type: "application/pdf" }
+      ]
+    },
+    {
+      id: 104,
+      sender: "FitLife Studio",
+      senderEmail: "studio@fitlife.com",
+      recipient: "Amanda Thompson",
+      recipientEmail: "amanda.t@example.com",
+      subject: "Re: Equipment Issue - RESOLVED ✅",
+      body: `<p>Dear Amanda,</p>
+<p>Thank you so much for bringing this safety concern to our attention. We take equipment maintenance <strong>very seriously</strong>, and your vigilance helps us maintain a safe environment for all members.</p>
+<h3>✅ Actions Taken:</h3>
+<ul>
+  <li>The Lat Pulldown machine (Machine #4) has been <strong>immediately taken out of service</strong></li>
+  <li>A clear "Out of Order" sign has been posted</li>
+  <li>Our maintenance team inspected the equipment this morning</li>
+  <li>A new cable has been ordered and will arrive within 3-5 business days</li>
+</ul>
+<div style="background: #2a3a2a; padding: 15px; border-radius: 8px; border-left: 4px solid #22c55e; margin: 15px 0;">
+  <strong>🎁 Token of Appreciation:</strong><br/>
+  As thanks for your report, we'd like to offer you <strong>one complimentary personal training session</strong>!<br/>
+  <em>Valid for the next 30 days. Simply mention this email at the front desk to redeem.</em>
+</div>
+<p>We've also conducted a full inspection of all equipment in the weight room to ensure everything else is in proper working condition.</p>
+<p>Thank you again for being a responsible member of our community!</p>
+<p>Best regards,<br/><strong>Marcus Johnson</strong><br/>Facility Manager, FitLife Studio</p>`,
+      time: "2025-01-24T08:00:00Z",
+      isRead: true,
+      isPinned: false,
+      isArchived: false,
+      status: "Read",
+      attachments: []
+    },
+    {
+      id: 105,
+      sender: "FitLife Studio",
+      senderEmail: "studio@fitlife.com",
+      recipient: "Lisa Chen",
+      recipientEmail: "lisa.chen@techvision.com",
+      subject: "Re: Corporate Membership Inquiry - Meeting Confirmed 🤝",
+      body: `<p>Dear Lisa,</p>
+<p>Thank you for reaching out! We're very excited about the potential partnership with <strong>TechVision Inc.</strong> and would love to discuss corporate membership options with you.</p>
+<p>I've reviewed your company profile and wellness survey results - it's clear that TechVision values employee wellbeing, which aligns perfectly with our mission!</p>
+<div style="background: #2a2a3a; padding: 20px; border-radius: 8px; margin: 15px 0;">
+  <h3 style="color: #3F74FF; margin-top: 0;">📅 Meeting Confirmation</h3>
+  <strong>Date:</strong> Tuesday, January 28th, 2025<br/>
+  <strong>Time:</strong> 10:00 AM<br/>
+  <strong>Location:</strong> FitLife Studio - Conference Room A<br/>
+  <strong>Attendees:</strong> You + Our Corporate Partnerships Manager
+</div>
+<p><strong>Agenda:</strong></p>
+<ol>
+  <li>Tour of our facilities</li>
+  <li>Overview of corporate membership tiers</li>
+  <li>Discussion of pricing and payment options</li>
+  <li>On-site services and team-building activities</li>
+  <li>Q&A and next steps</li>
+</ol>
+<p>I've attached our Corporate Partnership brochure and rate sheet for you to review before our meeting.</p>
+<p>Looking forward to meeting you!</p>
+<p>Best regards,<br/><strong>Jennifer Adams</strong><br/>Corporate Partnerships Manager<br/>FitLife Studio<br/>📞 (555) 987-6544</p>`,
+      time: "2025-01-22T11:30:00Z",
+      isRead: true,
+      isPinned: false,
+      isArchived: false,
+      status: "Read",
+      attachments: [
+        { name: "FitLife_Corporate_Partnership_Brochure.pdf", size: "4.7 MB", type: "application/pdf" },
+        { name: "Corporate_Rate_Sheet_2025.pdf", size: "320 KB", type: "application/pdf" }
+      ]
+    },
+    {
+      id: 106,
+      sender: "FitLife Studio",
+      senderEmail: "studio@fitlife.com",
+      recipient: "All Members",
+      recipientEmail: "members@fitlife.com",
+      subject: "🎉 February Newsletter - New Classes & Special Offers!",
+      body: `<p>Dear FitLife Family,</p>
+<p>Happy February! We hope your New Year's fitness resolutions are going strong! 💪</p>
+<h2 style="color: #FF843E;">🆕 New This Month</h2>
+<h3>Introducing: Dance Fitness Classes!</h3>
+<p>Based on popular demand, we're thrilled to announce our new <strong>Dance Fitness program</strong> starting February 3rd!</p>
+<ul>
+  <li>🕺 <strong>Zumba</strong> - Tuesdays & Thursdays at 6:30 PM</li>
+  <li>💃 <strong>Hip Hop Cardio</strong> - Saturdays at 10:00 AM</li>
+  <li>🎵 <strong>Latin Rhythms</strong> - Wednesdays at 7:00 PM</li>
+</ul>
+<h2 style="color: #FF843E;">❤️ Valentine's Day Special</h2>
+<div style="background: linear-gradient(135deg, #2a2a3a, #3a2a3a); padding: 20px; border-radius: 12px; text-align: center; margin: 15px 0;">
+  <strong style="font-size: 20px; color: #FF6B6B;">Bring Your Partner for FREE</strong><br/>
+  <span style="color: #aaa;">February 12-16, 2025</span><br/>
+  <em>Couples who sweat together, stay together! 💕</em>
+</div>
+<h2 style="color: #FF843E;">🏆 Member Spotlight</h2>
+<p>Congratulations to <strong>Michael Johnson</strong> for completing his 100th workout at FitLife! 🎊</p>
+<h2 style="color: #FF843E;">📅 Upcoming Events</h2>
+<ul>
+  <li><strong>Feb 8:</strong> Nutrition Workshop with Dr. Martinez</li>
+  <li><strong>Feb 15:</strong> Couples Workout Challenge</li>
+  <li><strong>Feb 22:</strong> Open House - Invite a Friend Day</li>
+</ul>
+<p>See you at the gym!</p>
+<p>Best,<br/><strong>The FitLife Team</strong></p>`,
+      time: "2025-01-25T08:00:00Z",
+      isRead: true,
+      isPinned: false,
+      isArchived: false,
+      status: "Delivered",
+      attachments: [
+        { name: "February_Calendar.pdf", size: "1.8 MB", type: "application/pdf" }
+      ]
+    },
+    {
+      id: 107,
+      sender: "FitLife Studio",
+      senderEmail: "studio@fitlife.com",
+      recipient: "Robert Miller",
+      recipientEmail: "robert.m@example.com",
+      subject: "Re: Gym Tour Follow-Up - Special Offer Inside! 🎁",
+      body: `<p>Hi Robert,</p>
+<p>Thank you for visiting FitLife yesterday and for your kind feedback! We're delighted that you enjoyed the tour.</p>
+<p>To answer your questions:</p>
+<h3>1. Trial Period</h3>
+<p>Yes! We offer a <strong>7-day free trial</strong> for new members. This gives you full access to:</p>
+<ul>
+  <li>All gym equipment and facilities</li>
+  <li>Group fitness classes</li>
+  <li>Locker room amenities</li>
+</ul>
+<h3>2. Basic Membership Includes</h3>
+<ul>
+  <li>✅ Unlimited gym access (6 AM - 10 PM)</li>
+  <li>✅ Access to cardio & weight areas</li>
+  <li>✅ Locker room & shower facilities</li>
+  <li>✅ Free fitness assessment</li>
+</ul>
+<h3>3. Current Promotions</h3>
+<div style="background: #2a3a2a; padding: 15px; border-radius: 8px; border-left: 4px solid #FF843E; margin: 15px 0;">
+  <strong>🎁 January Special:</strong><br/>
+  Sign up this month and get <strong>$0 enrollment fee</strong> (normally $99)!<br/>
+  Plus: <strong>1 FREE personal training session</strong> to get you started.
+</div>
+<p>Ready to start your fitness journey? Simply reply to this email or stop by the front desk!</p>
+<p>Best regards,<br/><strong>Reception Team</strong><br/>FitLife Studio</p>`,
+      time: "2025-01-24T11:00:00Z",
+      isRead: true,
+      isPinned: false,
+      isArchived: false,
+      status: "Delivered",
+      attachments: [
+        { name: "Membership_Plans_2025.pdf", size: "650 KB", type: "application/pdf" },
+        { name: "Personal_Training_Packages.pdf", size: "480 KB", type: "application/pdf" }
+      ]
+    }
   ],
-  drafts: [
-    { id: 201, from: "studio@example.com", fromName: "Studio", to: "", subject: "Monthly Newsletter - January", preview: "Dear Members, here are this month's...", date: "2025-01-20", time: "09:00 AM", isRead: true, isStarred: false, body: "Dear Members,\n\nHere are this month's highlights and upcoming events..." },
+
+  draft: [
+    {
+      id: 201,
+      sender: "FitLife Studio",
+      senderEmail: "studio@fitlife.com",
+      recipient: "",
+      recipientEmail: "",
+      subject: "March Promotions - Spring Into Fitness! 🌷",
+      body: `<p>Dear Members,</p>
+<p>Get ready for an amazing March at FitLife!</p>
+<h3>🌷 Spring Into Fitness Sale</h3>
+<ul>
+  <li>50% off all new memberships</li>
+  <li>Free personal training assessment</li>
+  <li>Bring a friend for free week</li>
+</ul>
+<h3>New Classes Starting</h3>
+<p><em>[Add details about new spring classes...]</em></p>
+<p><em>[Continue drafting...]</em></p>`,
+      time: "2025-01-24T16:00:00Z",
+      isRead: true,
+      isPinned: false,
+      isArchived: false,
+      status: "Draft",
+      attachments: []
+    },
+    {
+      id: 202,
+      sender: "FitLife Studio",
+      senderEmail: "studio@fitlife.com",
+      recipient: "Equipment Supplier",
+      recipientEmail: "orders@gymequip.com",
+      subject: "Equipment Order - Q1 2025",
+      body: `<p>Dear Supplier,</p>
+<p>We would like to place an order for the following equipment:</p>
+<ul>
+  <li>2x Commercial Treadmills (Model TRX-500)</li>
+  <li>1x Cable Crossover Machine</li>
+  <li>Set of Dumbbells (5-50 lbs, pairs)</li>
+  <li>3x Yoga mats (professional grade)</li>
+</ul>
+<p><strong>Delivery Address:</strong><br/>
+FitLife Studio<br/>
+123 Fitness Ave<br/>
+[City, State ZIP]</p>
+<p><em>[Need to confirm budget with management before sending]</em></p>`,
+      time: "2025-01-23T11:00:00Z",
+      isRead: true,
+      isPinned: false,
+      isArchived: false,
+      status: "Draft",
+      attachments: [
+        { name: "equipment_quote_request.pdf", size: "125 KB", type: "application/pdf" }
+      ]
+    }
   ],
+
+  archive: [],
+
   trash: [
-    { id: 301, from: "spam@example.com", fromName: "Spam", to: "studio@example.com", subject: "You've won!", preview: "Congratulations! You've been selected...", date: "2025-01-15", time: "08:00 AM", isRead: true, isStarred: false, body: "Congratulations! You've been selected to win..." },
+    {
+      id: 301,
+      sender: "Promo Deals",
+      senderEmail: "noreply@spam-promo.com",
+      recipient: "FitLife Studio",
+      recipientEmail: "studio@fitlife.com",
+      subject: "🎁 EXCLUSIVE: 90% OFF SUPPLEMENTS!!!",
+      body: `<p>CONGRATULATIONS! You've been selected for an EXCLUSIVE offer!</p>
+<p>BUY NOW and get 90% OFF all supplements!</p>
+<p>Click here: [suspicious link removed]</p>`,
+      time: "2025-01-20T03:00:00Z",
+      isRead: true,
+      isPinned: false,
+      isArchived: false,
+      status: "Read",
+      attachments: [],
+      deletedAt: "2025-01-20T08:00:00Z"
+    },
+    {
+      id: 302,
+      sender: "Old Member",
+      senderEmail: "olduser@example.com",
+      recipient: "FitLife Studio",
+      recipientEmail: "studio@fitlife.com",
+      subject: "Quick question",
+      body: `<p>Hi, do you offer swimming classes?</p>
+<p>Thanks!</p>`,
+      time: "2025-01-10T14:00:00Z",
+      isRead: true,
+      isPinned: false,
+      isArchived: false,
+      status: "Read",
+      attachments: [],
+      deletedAt: "2025-01-15T09:00:00Z"
+    }
   ],
+
+  error: [
+    {
+      id: 401,
+      sender: "FitLife Studio",
+      senderEmail: "studio@fitlife.com",
+      recipient: "Unknown User",
+      recipientEmail: "invalid.email@nonexistent-domain.xyz",
+      subject: "Your Membership Renewal Reminder",
+      body: `<p>Dear Member,</p>
+<p>This is a friendly reminder that your membership is due for renewal on February 1st, 2025.</p>
+<p>Please contact us to discuss renewal options.</p>
+<p>Best regards,<br/>FitLife Studio</p>`,
+      time: "2025-01-21T10:00:00Z",
+      isRead: true,
+      isPinned: false,
+      isArchived: false,
+      status: "Failed",
+      attachments: [],
+      errorMessage: "Recipient email address does not exist (550 5.1.1 User unknown)"
+    }
+  ]
 };
 
 // Email Templates

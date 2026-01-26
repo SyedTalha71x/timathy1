@@ -22,26 +22,113 @@ import {
   Edit2,
   GripVertical,
   Layers,
-  Pipette,
   Eye,
   AlertTriangle,
   FolderInput,
-  Info
+  Info,
+  MoreHorizontal
 } from 'lucide-react';
 
 // Components
 import TemplateGallery from '../../components/user-panel-components/media-library-components/Templates/TemplateGallery';
 import CreateDesignModal from '../../components/user-panel-components/media-library-components/Modals/CreateDesignModal';
 import Modal from '../../components/user-panel-components/media-library-components/Modals/Modal';
-import FolderCard from '../../components/user-panel-components/media-library-components/Folders/FolderCard';
 import DesignCard from '../../components/user-panel-components/media-library-components/Designs/DesignCard';
 import EditorModal from '../../components/user-panel-components/media-library-components/Editor/EditorModal';
+import SharedFolderModal from '../../components/shared/SharedFolderModal';
 
 // Hooks & Utils
 import useFolders from '../../components/user-panel-components/media-library-components/hooks/useFolders';
 import { generateThumbnail, generateId, deepClone, applyPersonalization } from '../../components/user-panel-components/media-library-components/utils/canvasUtils';
-import { folderColors } from '../../components/user-panel-components/media-library-components/constants/platformSizes';
 import { templates } from '../../components/user-panel-components/media-library-components/constants/templates';
+
+// Custom FolderCard with 3-dot menu always visible
+const FolderCardWithMenu = ({ folder, isSelected, designCount, onSelect, onEdit, onDelete }) => {
+  const [showMenu, setShowMenu] = useState(false);
+  
+  return (
+    <div
+      className={`relative group bg-[#1C1C1C] rounded-xl p-4 border transition-all cursor-pointer ${
+        isSelected 
+          ? 'border-orange-500 ring-2 ring-orange-500/20' 
+          : 'border-[#333333] hover:border-orange-500/50'
+      }`}
+      onClick={() => onSelect(folder.id === onSelect ? null : folder.id)}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <div 
+            className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+            style={{ backgroundColor: `${folder.color || '#FF843E'}20` }}
+          >
+            <FolderIcon 
+              size={20} 
+              style={{ color: folder.color || '#FF843E' }}
+            />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h4 className="text-sm font-medium text-white truncate">{folder.name}</h4>
+            <p className="text-xs text-gray-500">
+              {designCount} design{designCount !== 1 ? 's' : ''}
+              {folder.isDefault && <span className="ml-1.5 text-orange-400">• Default</span>}
+            </p>
+          </div>
+        </div>
+        
+        {/* 3-dot menu - always visible */}
+        <div className="relative">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowMenu(!showMenu);
+            }}
+            className="p-1.5 rounded-lg text-gray-400 hover:text-orange-400 hover:bg-gray-800 transition-colors"
+          >
+            <MoreHorizontal size={16} />
+          </button>
+          
+          {showMenu && (
+            <>
+              <div 
+                className="fixed inset-0 z-10" 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowMenu(false);
+                }}
+              />
+              <div className="absolute right-0 top-full mt-1 w-32 bg-[#1C1C1C] border border-gray-700 rounded-lg shadow-xl py-1 z-20">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit(folder);
+                    setShowMenu(false);
+                  }}
+                  className="w-full px-3 py-2 text-sm text-left hover:bg-gray-800 text-gray-300 flex items-center gap-2 transition-colors"
+                >
+                  <Edit2 size={14} />
+                  Edit
+                </button>
+                {!folder.isDefault && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(folder);
+                      setShowMenu(false);
+                    }}
+                    className="w-full px-3 py-2 text-sm text-left hover:bg-gray-800 text-red-400 flex items-center gap-2 transition-colors"
+                  >
+                    <Trash2 size={14} />
+                    Delete
+                  </button>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const MediaLibrary = () => {
   // State
@@ -93,12 +180,7 @@ const MediaLibrary = () => {
   } = useFolders();
 
   // Folder modal state
-  const [folderModalMode, setFolderModalMode] = useState('create');
   const [editingFolder, setEditingFolder] = useState(null);
-  const [newFolderName, setNewFolderName] = useState('');
-  const [newFolderColor, setNewFolderColor] = useState(folderColors[0]);
-  const [newFolderIsDefault, setNewFolderIsDefault] = useState(false);
-  const [showCustomColorPicker, setShowCustomColorPicker] = useState(false);
 
   // Keyboard shortcut for 'C' to create design (but NOT Ctrl+C)
   useEffect(() => {
@@ -403,34 +485,23 @@ const MediaLibrary = () => {
   };
 
   // Folder management
-  const openFolderModal = (mode, folder = null) => {
-    setFolderModalMode(mode);
+  const handleOpenFolderModal = (folder = null) => {
     setEditingFolder(folder);
-    setNewFolderName(folder?.name || '');
-    setNewFolderColor(folder?.color || folderColors[0]);
-    setNewFolderIsDefault(folder?.isDefault || false);
-    setShowCustomColorPicker(false);
     setShowFolderModal(true);
   };
 
-  const handleSaveFolder = () => {
-    if (!newFolderName.trim()) return;
-
-    if (folderModalMode === 'create') {
-      createFolder(newFolderName, newFolderColor);
-    } else if (editingFolder) {
+  const handleSaveFolder = (folderData) => {
+    if (editingFolder) {
       updateFolder(editingFolder.id, {
-        name: newFolderName,
-        color: newFolderColor,
-        isDefault: newFolderIsDefault
+        name: folderData.name,
+        color: folderData.color,
+        isDefault: folderData.isDefault
       });
+    } else {
+      createFolder(folderData.name, folderData.color);
     }
-
     setShowFolderModal(false);
     setEditingFolder(null);
-    setNewFolderName('');
-    setNewFolderColor(folderColors[0]);
-    setShowCustomColorPicker(false);
   };
 
   const handleDeleteFolder = (folder) => {
@@ -531,9 +602,6 @@ const MediaLibrary = () => {
       }
     }
   };
-
-  // Check if current color is a preset color
-  const isPresetColor = folderColors.includes(newFolderColor);
 
   return (
     <DndContext
@@ -638,7 +706,7 @@ const MediaLibrary = () => {
                 </button>
                 
                 <button
-                  onClick={() => openFolderModal('create')}
+                  onClick={() => handleOpenFolderModal()}
                   className="flex items-center gap-1.5 text-orange-500 hover:text-orange-400 text-xs transition-colors"
                 >
                   <FolderPlus size={14} />
@@ -657,13 +725,13 @@ const MediaLibrary = () => {
                   )}
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                     {folders.map((folder) => (
-                    <FolderCard
+                    <FolderCardWithMenu
                       key={folder.id}
                       folder={folder}
                       isSelected={selectedFolderId === folder.id}
                       designCount={getDesignsForFolder(folder.id).length}
                       onSelect={setSelectedFolderId}
-                      onEdit={(f) => openFolderModal('edit', f)}
+                      onEdit={(f) => handleOpenFolderModal(f)}
                       onDelete={handleDeleteFolder}
                     />
                   ))}
@@ -931,140 +999,19 @@ const MediaLibrary = () => {
         </div>
       </Modal>
 
-      {/* Folder Modal with Custom Color Picker */}
-      <Modal
+      {/* Folder Modal - Using SharedFolderModal */}
+      <SharedFolderModal
         isOpen={showFolderModal}
         onClose={() => {
           setShowFolderModal(false);
           setEditingFolder(null);
-          setShowCustomColorPicker(false);
         }}
-        title={folderModalMode === 'create' ? 'Create Folder' : 'Edit Folder'}
-        size="sm"
-      >
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm text-gray-400 mb-1.5">Folder Name</label>
-            <input
-              type="text"
-              value={newFolderName}
-              onChange={(e) => setNewFolderName(e.target.value)}
-              className="w-full bg-[#0a0a0a] border border-[#333333] rounded-xl py-2.5 px-4 text-white focus:outline-none focus:border-orange-500 transition-colors"
-              placeholder="Enter folder name"
-              autoFocus
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm text-gray-400 mb-1.5">Color</label>
-            <div className="space-y-3">
-              {/* Preset Colors */}
-              <div className="flex gap-2 flex-wrap">
-                {folderColors.map((color) => (
-                  <button
-                    key={color}
-                    onClick={() => {
-                      setNewFolderColor(color);
-                      setShowCustomColorPicker(false);
-                    }}
-                    className={`w-9 h-9 rounded-xl transition-all ${
-                      newFolderColor === color && !showCustomColorPicker
-                        ? 'ring-2 ring-white ring-offset-2 ring-offset-[#1C1C1C] scale-110' 
-                        : 'hover:scale-105'
-                    }`}
-                    style={{ backgroundColor: color }}
-                  />
-                ))}
-                
-                {/* Custom Color Button */}
-                <button
-                  onClick={() => setShowCustomColorPicker(!showCustomColorPicker)}
-                  className={`w-9 h-9 rounded-xl transition-all border-2 border-dashed flex items-center justify-center ${
-                    showCustomColorPicker || (!isPresetColor && newFolderColor)
-                      ? 'border-orange-500 bg-orange-500/10'
-                      : 'border-[#444444] hover:border-orange-500/50 bg-[#0a0a0a]'
-                  }`}
-                  title="Custom color"
-                >
-                  <Pipette size={16} className={showCustomColorPicker || !isPresetColor ? 'text-orange-500' : 'text-gray-500'} />
-                </button>
-              </div>
-
-              {/* Custom Color Picker */}
-              {showCustomColorPicker && (
-                <div className="flex items-center gap-3 p-3 bg-[#0a0a0a] rounded-xl border border-[#333333]">
-                  <div className="relative">
-                    <input
-                      type="color"
-                      value={newFolderColor}
-                      onChange={(e) => setNewFolderColor(e.target.value)}
-                      className="w-12 h-12 rounded-xl cursor-pointer border-2 border-[#333333] bg-transparent"
-                      style={{ padding: 0 }}
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <label className="text-gray-500 text-xs mb-1 block">Hex Color</label>
-                    <input
-                      type="text"
-                      value={newFolderColor}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        if (/^#[0-9A-Fa-f]{0,6}$/.test(value) || value === '') {
-                          setNewFolderColor(value || '#');
-                        }
-                      }}
-                      className="w-full bg-[#141414] border border-[#333333] rounded-lg py-2 px-3 text-white text-sm font-mono uppercase focus:outline-none focus:border-orange-500 transition-colors"
-                      placeholder="#FF843E"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Show current custom color if not a preset */}
-              {!isPresetColor && !showCustomColorPicker && newFolderColor && (
-                <div className="flex items-center gap-2 text-xs text-gray-400">
-                  <div 
-                    className="w-4 h-4 rounded border border-[#333333]"
-                    style={{ backgroundColor: newFolderColor }}
-                  />
-                  <span>Custom: {newFolderColor}</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {folderModalMode === 'edit' && (
-            <label className="flex items-center gap-2.5 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={newFolderIsDefault}
-                onChange={(e) => setNewFolderIsDefault(e.target.checked)}
-                className="w-4 h-4 rounded bg-[#0a0a0a] border-[#333333] text-orange-500 focus:ring-orange-500"
-              />
-              <span className="text-gray-300 text-sm">Set as default folder</span>
-            </label>
-          )}
-
-          <div className="flex gap-3 pt-2">
-            <button
-              onClick={() => {
-                setShowFolderModal(false);
-                setEditingFolder(null);
-                setShowCustomColorPicker(false);
-              }}
-              className="flex-1 py-2.5 bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white rounded-xl transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSaveFolder}
-              className="flex-1 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-medium rounded-xl transition-colors"
-            >
-              {folderModalMode === 'create' ? 'Create' : 'Save'}
-            </button>
-          </div>
-        </div>
-      </Modal>
+        folder={editingFolder}
+        onSave={handleSaveFolder}
+        showColorPicker={true}
+        showDefaultCheckbox={true}
+        defaultColor="#FF843E"
+      />
 
       {/* Folder Delete Confirmation Modal */}
       <Modal

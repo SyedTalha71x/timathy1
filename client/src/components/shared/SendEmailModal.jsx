@@ -327,6 +327,7 @@ const SendEmailModal = ({
 }) => {
   const attachmentInputRef = useRef(null);
   const editorRef = useRef(null);
+  const subjectInputRef = useRef(null);
   const [showCc, setShowCc] = useState(false);
   const [showBcc, setShowBcc] = useState(false);
   
@@ -374,6 +375,22 @@ const SendEmailModal = ({
   const insertVariable = (variable) => {
     if (editorRef.current?.insertText) {
       editorRef.current.insertText(variable.value);
+    }
+  };
+
+  // Insert variable into subject field
+  const insertVariableToSubject = (variable) => {
+    if (subjectInputRef.current) {
+      const input = subjectInputRef.current;
+      const start = input.selectionStart;
+      const end = input.selectionEnd;
+      const text = emailData.subject || '';
+      const newText = text.substring(0, start) + variable.value + text.substring(end);
+      setEmailData({ ...emailData, subject: newText });
+      setTimeout(() => {
+        input.selectionStart = input.selectionEnd = start + variable.value.length;
+        input.focus();
+      }, 0);
     }
   };
 
@@ -536,7 +553,23 @@ const SendEmailModal = ({
               <label className="block text-sm font-medium text-gray-400 mb-1">
                 Subject
               </label>
+              {/* Variables for Subject */}
+              <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0 mb-2">
+                <div className="flex items-center gap-2 min-w-max">
+                  <span className="text-xs text-gray-500 mr-1">Variables:</span>
+                  {insertVariables.map((variable) => (
+                    <button
+                      key={`subject-${variable.id}`}
+                      onClick={() => insertVariableToSubject(variable)}
+                      className="px-2 py-1.5 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600 transition-colors whitespace-nowrap"
+                    >
+                      {variable.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <input
+                ref={subjectInputRef}
                 type="text"
                 value={emailData.subject}
                 onChange={(e) =>
@@ -658,7 +691,7 @@ const SendEmailModal = ({
               <button
                 onClick={onSendEmail}
                 disabled={!canSend}
-                className="flex-1 md:flex-none px-4 py-3 md:py-2 bg-[#FF843E] hover:bg-[#e0733a] disabled:bg-gray-700 disabled:text-gray-500 text-white rounded-xl text-sm flex items-center justify-center gap-2 transition-colors disabled:cursor-not-allowed"
+                className="flex-1 md:flex-none px-4 py-3 md:py-2 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-700 disabled:text-gray-500 text-white rounded-xl text-sm flex items-center justify-center gap-2 transition-colors disabled:cursor-not-allowed"
               >
                 <Send className="w-4 h-4" />
                 Send Email
