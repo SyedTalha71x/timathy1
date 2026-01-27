@@ -147,14 +147,14 @@ function MiniCalendar({ onDateSelect, selectedDate }) {
             <button
               key={`${dateInfo.monthOffset}-${dateInfo.day}-${index}`}
               onClick={() => handleDateClick(dateInfo.day, dateInfo.monthOffset)}
-              className={`h-6 w-6 flex items-center justify-center rounded-full text-[11px] font-medium transition-all duration-200 hover:bg-gray-800 ${
-                isToday && !isSelected
-                  ? "bg-white text-blue-600 font-semibold"
-                  : isSelected
-                  ? "bg-[#3F74FF] text-white"
+              className={`h-6 w-6 flex items-center justify-center rounded-lg text-[11px] font-medium transition-all duration-200 ${
+                isSelected
+                  ? "bg-orange-500 text-white"
+                  : isToday
+                  ? "bg-orange-500/30 text-orange-400"
                   : dateInfo.isCurrentMonth
-                  ? "text-white"
-                  : "text-gray-600"
+                  ? "text-gray-300 hover:bg-[#2F2F2F]"
+                  : "text-gray-600 hover:bg-[#2F2F2F]"
               }`}
             >
               {dateInfo.day}

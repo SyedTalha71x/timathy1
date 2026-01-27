@@ -16,6 +16,7 @@ import {
   Dumbbell,
   Edit,
   Plus,
+  CalendarCheck,
 } from "lucide-react"
 import { useState, useEffect, useCallback, useRef } from "react"
 import toast, { Toaster } from "react-hot-toast"
@@ -458,7 +459,8 @@ export default function Appointments() {
             <div className={`hidden lg:flex items-center gap-3 absolute top-1/2 -translate-y-1/2 ${isSidebarCollapsed ? 'left-[calc(50%+18px)] -translate-x-1/2' : 'left-[calc(50%+168px)] -translate-x-1/2'}`}>
               {/* Free Slots Toggle */}
               <button onClick={() => calendarRef.current?.toggleFreeSlots()}
-                className={`py-2 px-4 text-sm rounded-xl flex items-center gap-2 transition-colors ${calendarViewMode === "free" ? "bg-orange-500 text-white" : "bg-black text-white hover:bg-[#1a1a1a]"}`}>
+                className={`text-sm px-3 py-2 rounded-xl flex items-center gap-1.5 transition-colors font-medium ${calendarViewMode === "free" ? "bg-orange-500 hover:bg-orange-600 text-white" : "bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300"}`}>
+                <CalendarCheck size={16} />
                 {calendarViewMode === "all" ? "Free Slots" : "All Slots"}
               </button>
 
@@ -567,7 +569,8 @@ export default function Appointments() {
               <button onClick={() => calendarRef.current?.next()} className="p-2 bg-black rounded-lg text-white"><GoArrowRight className="w-3 h-3" /></button>
             </div>
             <span className="text-white text-xs font-medium flex-1 text-center truncate">{calendarDateDisplay}</span>
-            <button onClick={() => calendarRef.current?.toggleFreeSlots()} className={`px-3 py-1.5 rounded-lg text-xs text-white ${calendarViewMode === "free" ? "bg-orange-500" : "bg-black"}`}>
+            <button onClick={() => calendarRef.current?.toggleFreeSlots()} className={`px-3 py-1.5 rounded-lg text-xs flex items-center gap-1 ${calendarViewMode === "free" ? "bg-orange-500 text-white" : "bg-[#2F2F2F] text-gray-300"}`}>
+              <CalendarCheck size={12} />
               {calendarViewMode === "all" ? "Free" : "All"}
             </button>
           </div>
