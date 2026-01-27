@@ -15,6 +15,7 @@ import {
   ChevronUp,
   Dumbbell,
   Edit,
+  Plus,
 } from "lucide-react"
 import { useState, useEffect, useCallback, useRef } from "react"
 import toast, { Toaster } from "react-hot-toast"
@@ -88,7 +89,7 @@ export default function Appointments() {
   const [isTrialModalOpen, setIsTrialModalOpen] = useState(false)
   const [activeDropdownId, setActiveDropdownId] = useState(null)
   const [selectedDate, setSelectedDate] = useState(null)
-  const [isViewDropdownOpen, setIsViewDropdownOpen] = useState(false)
+  const [isBookDropdownOpen, setIsBookDropdownOpen] = useState(false)
 
   // Calendar navigation state
   const [calendarDateDisplay, setCalendarDateDisplay] = useState("")
@@ -168,8 +169,8 @@ export default function Appointments() {
   useEffect(() => {
     const handleClickOutside = () => {
       setActiveDropdownId(null)
-      setIsViewDropdownOpen(false)
       setActiveNoteIdMain(null)
+      setIsBookDropdownOpen(false)
     }
     document.addEventListener("click", handleClickOutside)
     return () => document.removeEventListener("click", handleClickOutside)
@@ -448,72 +449,125 @@ export default function Appointments() {
       <div className={`relative h-[92vh] max-h-[92vh] flex flex-col rounded-3xl bg-[#1C1C1C] transition-all duration-500 ease-in-out overflow-hidden ${isRightSidebarOpen ? "lg:mr-84 mr-0" : "mr-0"}`}>
         <main className="flex-1 min-w-0 flex flex-col min-h-0 pt-4 pb-4 pl-4 pr-0">
           {/* Header with navigation controls */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0 mb-3 flex-shrink-0">
-            <div className="flex w-full md:w-auto justify-between items-center gap-2">
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl oxanium_font sm:text-2xl font-bold text-white">Appointments</h1>
-              </div>
+          <div className="flex items-center justify-between mb-4 flex-shrink-0 relative">
+            <div className="flex items-center gap-3">
+              <h1 className="text-xl sm:text-2xl oxanium_font font-bold text-white">Appointments</h1>
+            </div>
 
-              {/* Calendar Navigation Controls - Desktop */}
-              <div className="hidden lg:flex items-center gap-2">
-                <button onClick={() => calendarRef.current?.prev()} className="p-1.5 rounded-md bg-gray-600 hover:bg-gray-700 cursor-pointer text-white transition-colors">
-                  <GoArrowLeft className="w-4 h-4" />
-                </button>
-                <button onClick={() => calendarRef.current?.next()} className="p-1.5 rounded-md bg-gray-600 hover:bg-gray-700 cursor-pointer text-white transition-colors">
-                  <GoArrowRight className="w-4 h-4" />
-                </button>
-                <div className="flex bg-gray-700 rounded-md overflow-hidden">
-                  <button onClick={() => { calendarRef.current?.changeView("dayGridMonth"); setCurrentView("dayGridMonth") }}
-                    className={`px-3 py-1.5 text-white border-r border-slate-200/20 cursor-pointer hover:bg-gray-600 transition-colors text-xs ${currentView === "dayGridMonth" ? "bg-gray-500" : "bg-gray-600"}`}>
-                    Month
-                  </button>
-                  <button onClick={() => { calendarRef.current?.changeView("timeGridWeek"); setCurrentView("timeGridWeek") }}
-                    className={`px-3 py-1.5 text-white border-r border-slate-200/20 cursor-pointer hover:bg-gray-600 transition-colors text-xs ${currentView === "timeGridWeek" ? "bg-gray-500" : "bg-gray-600"}`}>
-                    Week
-                  </button>
-                  <button onClick={() => { calendarRef.current?.changeView("timeGridDay"); setCurrentView("timeGridDay") }}
-                    className={`px-3 py-1.5 text-white cursor-pointer hover:bg-gray-600 transition-colors text-xs ${currentView === "timeGridDay" ? "bg-gray-500" : "bg-gray-600"}`}>
-                    Day
-                  </button>
-                </div>
-                <span className="text-white text-sm font-medium min-w-[140px] text-center">{calendarDateDisplay}</span>
-                <button onClick={() => calendarRef.current?.toggleFreeSlots()}
-                  className={`px-3 py-1.5 rounded-md text-white text-xs font-medium transition-colors ${calendarViewMode === "all" ? "bg-gray-600 hover:bg-gray-500" : "bg-gray-500 hover:bg-gray-600"}`}>
-                  {calendarViewMode === "all" ? "Free Slots" : "All Slots"}
-                </button>
-              </div>
+            {/* Calendar Navigation - Centered over calendar days (offset for sidebar + time column) - Desktop */}
+            <div className={`hidden lg:flex items-center gap-3 absolute top-1/2 -translate-y-1/2 ${isSidebarCollapsed ? 'left-[calc(50%+18px)] -translate-x-1/2' : 'left-[calc(50%+168px)] -translate-x-1/2'}`}>
+              {/* Free Slots Toggle */}
+              <button onClick={() => calendarRef.current?.toggleFreeSlots()}
+                className={`py-2 px-4 text-sm rounded-xl flex items-center gap-2 transition-colors ${calendarViewMode === "free" ? "bg-orange-500 text-white" : "bg-black text-white hover:bg-[#1a1a1a]"}`}>
+                {calendarViewMode === "all" ? "Free Slots" : "All Slots"}
+              </button>
 
-              <div onClick={toggleRightSidebar} className="lg:hidden md:hidden block">
-                <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
+              {/* Navigation Arrows */}
+              <button onClick={() => calendarRef.current?.prev()} className="p-2 bg-black rounded-lg text-gray-400 hover:text-white hover:bg-[#1a1a1a] transition-colors">
+                <GoArrowLeft className="w-4 h-4" />
+              </button>
+
+              {/* Date Display */}
+              <span className="text-white text-sm font-medium min-w-[140px] text-center">{calendarDateDisplay}</span>
+
+              {/* Next Arrow */}
+              <button onClick={() => calendarRef.current?.next()} className="p-2 bg-black rounded-lg text-gray-400 hover:text-white hover:bg-[#1a1a1a] transition-colors">
+                <GoArrowRight className="w-4 h-4" />
+              </button>
+
+              {/* View Toggle */}
+              <div className="flex items-center bg-black rounded-xl p-1">
+                <button 
+                  onClick={() => { calendarRef.current?.changeView("dayGridMonth"); setCurrentView("dayGridMonth"); }}
+                  className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${currentView === "dayGridMonth" ? "bg-orange-500 text-white" : "text-gray-400 hover:text-white"}`}
+                >
+                  Month
+                </button>
+                <button 
+                  onClick={() => { calendarRef.current?.changeView("timeGridWeek"); setCurrentView("timeGridWeek"); }}
+                  className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${currentView === "timeGridWeek" ? "bg-orange-500 text-white" : "text-gray-400 hover:text-white"}`}
+                >
+                  Week
+                </button>
+                <button 
+                  onClick={() => { calendarRef.current?.changeView("timeGridDay"); setCurrentView("timeGridDay"); }}
+                  className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${currentView === "timeGridDay" ? "bg-orange-500 text-white" : "text-gray-400 hover:text-white"}`}
+                >
+                  Day
+                </button>
               </div>
             </div>
 
-            <div className="flex items-center md:flex-row flex-col gap-2 w-full sm:w-auto">
-              <button onClick={() => setIsModalOpen(true)} className="w-full sm:w-auto bg-orange-500 text-white px-3 py-1.5 rounded-xl lg:text-xs text-xs font-medium hover:bg-[#FF843E]/90 transition-colors duration-200 flex items-center justify-center gap-1">
-                <span>+</span> Book Appointment
-              </button>
-              <button onClick={() => setIsTrialModalOpen(true)} className="w-full sm:w-auto bg-[#3F74FF] text-white px-3 py-1.5 rounded-xl lg:text-xs text-xs font-medium hover:bg-[#3F74FF]/90 transition-colors duration-200 flex items-center justify-center gap-1">
-                <span>+</span> Trial Training
-              </button>
-              <button onClick={() => setIsBlockModalOpen(true)} className="w-full sm:w-auto bg-gray-600 text-white px-3 py-1.5 rounded-xl lg:text-xs text-xs font-medium hover:bg-gray-700/90 transition-colors duration-200 flex items-center justify-center gap-1">
-                Block Time
-              </button>
+            {/* Right side - Book Button + Sidebar */}
+            <div className="flex items-center gap-2">
+              {/* Book Dropdown - Desktop */}
+              <div className="hidden lg:block relative" onClick={(e) => e.stopPropagation()}>
+                <button 
+                  onClick={() => setIsBookDropdownOpen(!isBookDropdownOpen)}
+                  className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl text-sm flex items-center gap-2 transition-colors"
+                >
+                  <Plus size={14} />
+                  Book
+                  <ChevronDown size={14} className={`transition-transform ${isBookDropdownOpen ? "rotate-180" : ""}`} />
+                </button>
+                {isBookDropdownOpen && (
+                  <div className="absolute top-full right-0 mt-1 bg-[#1F1F1F] rounded-xl shadow-lg border border-gray-700 overflow-hidden z-50 min-w-[180px]">
+                    <button 
+                      onClick={() => { setIsModalOpen(true); setIsBookDropdownOpen(false); }}
+                      className="w-full px-4 py-2.5 text-left text-sm text-white hover:bg-gray-800 transition-colors flex items-center gap-2"
+                    >
+                      <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                      Book Appointment
+                    </button>
+                    <button 
+                      onClick={() => { setIsTrialModalOpen(true); setIsBookDropdownOpen(false); }}
+                      className="w-full px-4 py-2.5 text-left text-sm text-white hover:bg-gray-800 transition-colors flex items-center gap-2"
+                    >
+                      <div className="w-2 h-2 rounded-full bg-[#3F74FF]"></div>
+                      Book Trial Training
+                    </button>
+                    <div className="border-t border-gray-700"></div>
+                    <button 
+                      onClick={() => { setIsBlockModalOpen(true); setIsBookDropdownOpen(false); }}
+                      className="w-full px-4 py-2.5 text-left text-sm text-white hover:bg-gray-800 transition-colors flex items-center gap-2"
+                    >
+                      <div className="w-2 h-2 rounded-full bg-gray-500"></div>
+                      Block Time Slot
+                    </button>
+                  </div>
+                )}
+              </div>
+
               {isRightSidebarOpen ? (
-                <div onClick={toggleRightSidebar} className="md:block hidden"><img src='/expand-sidebar mirrored.svg' className="h-5 w-5 cursor-pointer" alt="" /></div>
+                <div onClick={toggleRightSidebar} className="cursor-pointer"><img src='/expand-sidebar mirrored.svg' className="h-5 w-5" alt="" /></div>
               ) : (
-                <div onClick={toggleRightSidebar} className="md:block hidden"><img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" /></div>
+                <div onClick={toggleRightSidebar} className="cursor-pointer"><img src="/icon.svg" className="h-5 w-5" alt="" /></div>
               )}
             </div>
           </div>
 
+          {/* Mobile Action Buttons */}
+          <div className="lg:hidden flex gap-2 mb-4">
+            <button onClick={() => setIsModalOpen(true)} className="flex-1 bg-orange-500 py-2.5 px-3 text-sm rounded-xl flex items-center justify-center gap-2 text-white">
+              <Plus size={14} />
+              Appointment
+            </button>
+            <button onClick={() => setIsTrialModalOpen(true)} className="flex-1 bg-black py-2.5 px-3 text-sm rounded-xl flex items-center justify-center gap-2 text-white">
+              Trial
+            </button>
+            <button onClick={() => setIsBlockModalOpen(true)} className="flex-1 bg-black py-2.5 px-3 text-sm rounded-xl flex items-center justify-center gap-2 text-white">
+              Block
+            </button>
+          </div>
+
           {/* Mobile Navigation */}
-          <div className="lg:hidden flex items-center justify-between gap-2 mb-3 flex-shrink-0">
+          <div className="lg:hidden flex items-center justify-between gap-2 mb-4 flex-shrink-0">
             <div className="flex items-center gap-1">
-              <button onClick={() => calendarRef.current?.prev()} className="p-1.5 rounded-md bg-gray-600 text-white"><GoArrowLeft className="w-3 h-3" /></button>
-              <button onClick={() => calendarRef.current?.next()} className="p-1.5 rounded-md bg-gray-600 text-white"><GoArrowRight className="w-3 h-3" /></button>
+              <button onClick={() => calendarRef.current?.prev()} className="p-2 bg-black rounded-lg text-white"><GoArrowLeft className="w-3 h-3" /></button>
+              <button onClick={() => calendarRef.current?.next()} className="p-2 bg-black rounded-lg text-white"><GoArrowRight className="w-3 h-3" /></button>
             </div>
             <span className="text-white text-xs font-medium flex-1 text-center truncate">{calendarDateDisplay}</span>
-            <button onClick={() => calendarRef.current?.toggleFreeSlots()} className="px-2 py-1 rounded-md bg-gray-600 text-white text-xs">
+            <button onClick={() => calendarRef.current?.toggleFreeSlots()} className={`px-3 py-1.5 rounded-lg text-xs text-white ${calendarViewMode === "free" ? "bg-orange-500" : "bg-black"}`}>
               {calendarViewMode === "all" ? "Free" : "All"}
             </button>
           </div>
