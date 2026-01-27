@@ -14,13 +14,24 @@ function MiniCalendar({ onDateSelect, selectedDate }) {
     0
   ).getDate();
   
-  const firstDayOfMonth = new Date(
+  const daysInPrevMonth = new Date(
+    currentDate.getFullYear(),
+    currentDate.getMonth(),
+    0
+  ).getDate();
+  
+  // Get the first day of month (0 = Sunday, 1 = Monday, etc.)
+  const firstDayOfMonthRaw = new Date(
     currentDate.getFullYear(),
     currentDate.getMonth(),
     1
   ).getDay();
   
-  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  // Convert to Monday-based (Monday = 0, Tuesday = 1, ..., Sunday = 6)
+  const firstDayOfMonth = firstDayOfMonthRaw === 0 ? 6 : firstDayOfMonthRaw - 1;
+  
+  // Days starting from Monday
+  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   
   const handlePrevMonth = () => {
     setCurrentDate(
@@ -34,10 +45,10 @@ function MiniCalendar({ onDateSelect, selectedDate }) {
     );
   };
   
-  const handleDateClick = (day) => {
+  const handleDateClick = (day, monthOffset = 0) => {
     const clickedDate = new Date(
       currentDate.getFullYear(),
-      currentDate.getMonth(),
+      currentDate.getMonth() + monthOffset,
       day
     );
     onDateSelect(clickedDate);
@@ -48,71 +59,105 @@ function MiniCalendar({ onDateSelect, selectedDate }) {
     const day = String(date.getDate()).padStart(2, "0");
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
-    return `${day}-${month}-${year}`; // Format: dd-mm-yyyy
+    return `${day}-${month}-${year}`;
   };
   
   const isSameDay = (date1, date2) => {
     return formatDate(date1) === formatDate(date2);
   };
   
+  // Generate calendar days including prev/next month days
+  const generateCalendarDays = () => {
+    const calendarDays = [];
+    
+    // Previous month days
+    for (let i = firstDayOfMonth - 1; i >= 0; i--) {
+      const day = daysInPrevMonth - i;
+      calendarDays.push({
+        day,
+        monthOffset: -1,
+        isCurrentMonth: false
+      });
+    }
+    
+    // Current month days
+    for (let i = 1; i <= daysInMonth; i++) {
+      calendarDays.push({
+        day: i,
+        monthOffset: 0,
+        isCurrentMonth: true
+      });
+    }
+    
+    // Next month days (fill to 42 total = 6 rows)
+    const remainingDays = 42 - calendarDays.length;
+    for (let i = 1; i <= remainingDays; i++) {
+      calendarDays.push({
+        day: i,
+        monthOffset: 1,
+        isCurrentMonth: false
+      });
+    }
+    
+    return calendarDays;
+  };
+  
+  const calendarDays = generateCalendarDays();
+  
   return (
-    <div className="bg-[#000000] rounded-xl lg:block md:block hidden p-4 w-full md:w-78 max-w-xs mx-auto">
-      <div className="flex justify-between items-center mb-3">
+    <div className="bg-[#000000] rounded-xl lg:block md:block hidden p-3 w-full">
+      <div className="grid grid-cols-7 gap-0.5 mb-2">
         <button
           onClick={handlePrevMonth}
-          className="text-white hover:text-gray-300 p-1"
+          className="text-white hover:text-gray-300 p-0.5 flex items-center justify-center"
         >
-          <ChevronLeft size={16} />
+          <ChevronLeft size={14} />
         </button>
-        <h2 className="text-white text-sm font-semibold">
-          {currentDate.toLocaleString("default", {
+        <h2 className="text-white text-xs font-semibold col-span-5 text-center">
+          {currentDate.toLocaleString("en-US", {
             month: "long",
             year: "numeric",
           })}
         </h2>
         <button
           onClick={handleNextMonth}
-          className="text-white hover:text-gray-300 p-1"
+          className="text-white hover:text-gray-300 p-0.5 flex items-center justify-center"
         >
-          <ChevronRight size={16} />
+          <ChevronRight size={14} />
         </button>
       </div>
       
-      <div className="grid grid-cols-7 gap-1 text-center">
+      <div className="grid grid-cols-7 gap-0.5 text-center">
         {days.map((day) => (
-          <div key={day} className="text-gray-400 font-medium text-xs py-1">
+          <div key={day} className="text-gray-400 font-medium text-[10px] py-0.5">
             {day.charAt(0)}
           </div>
         ))}
         
-        {Array.from({ length: firstDayOfMonth }, (_, i) => (
-          <div key={`empty-${i}`} className="h-8" />
-        ))}
-        
-        {Array.from({ length: daysInMonth }, (_, i) => {
-          const day = i + 1;
-          const currentDateObj = new Date(
+        {calendarDays.map((dateInfo, index) => {
+          const dateObj = new Date(
             currentDate.getFullYear(),
-            currentDate.getMonth(),
-            day
+            currentDate.getMonth() + dateInfo.monthOffset,
+            dateInfo.day
           );
-          const isToday = isSameDay(currentDateObj, today);
-          const isSelected =
-            selectedDate && isSameDay(currentDateObj, selectedDate);
+          const isToday = isSameDay(dateObj, today);
+          const isSelected = selectedDate && isSameDay(dateObj, selectedDate);
           
           return (
             <button
-              key={day}
-              onClick={() => handleDateClick(day)}
-              className={`h-8 w-8 flex items-center justify-center rounded-full text-xs font-medium transition-all duration-200 hover:bg-gray-800 ${
+              key={`${dateInfo.monthOffset}-${dateInfo.day}-${index}`}
+              onClick={() => handleDateClick(dateInfo.day, dateInfo.monthOffset)}
+              className={`h-6 w-6 flex items-center justify-center rounded-full text-[11px] font-medium transition-all duration-200 hover:bg-gray-800 ${
                 isToday && !isSelected
                   ? "bg-white text-blue-600 font-semibold"
                   : isSelected
                   ? "bg-[#3F74FF] text-white"
-                  : "text-white"
+                  : dateInfo.isCurrentMonth
+                  ? "text-white"
+                  : "text-gray-600"
               }`}
             >
-              {day}
+              {dateInfo.day}
             </button>
           );
         })}
