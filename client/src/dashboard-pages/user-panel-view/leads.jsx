@@ -44,20 +44,10 @@ import SortableLeadCard from "../../components/user-panel-components/lead-user-p
 
 // Data and hooks
 import { hardcodedLeads, memberRelationsLeadNew, availableTimeSlots } from "../../utils/user-panel-states/lead-states"
-import { useSidebarSystem } from "../../hooks/useSidebarSystem"
 import { trainingVideosData } from "../../utils/user-panel-states/training-states"
-
-// Sidebar components (keeping all existing imports)
-import EditTaskModal from "../../components/user-panel-components/todo-components/edit-task-modal"
-import { WidgetSelectionModal } from "../../components/widget-selection-modal"
-import NotifyMemberModal from "../../components/myarea-components/NotifyMemberModal"
-import Sidebar from "../../components/central-sidebar"
-import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"
-import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
-import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
+import { availableMembersLeadsMain as availableMembersLeads } from "../../utils/user-panel-states/app-states"
 
 export default function LeadManagement() {
-  const sidebarSystem = useSidebarSystem()
   const [showHistoryModalLead, setShowHistoryModalLead] = useState(false)
 
   const [columns, setColumns] = useState([
@@ -1145,126 +1135,6 @@ export default function LeadManagement() {
     handleCreateContract(selectedLead)
   }
 
-  // Sidebar system (keeping all existing sidebar logic)
-  const {
-    isRightSidebarOpen,
-    isSidebarEditing,
-    isRightWidgetModalOpen,
-    openDropdownIndex,
-    selectedMemberType,
-    isChartDropdownOpen,
-    isWidgetModalOpen,
-    editingTask,
-    todoFilter,
-    isEditTaskModalOpen,
-    isTodoFilterDropdownOpen,
-    taskToCancel,
-    taskToDelete,
-    activeNoteId,
-    isSpecialNoteModalOpen,
-    selectedAppointmentForNote,
-    isTrainingPlanModalOpen,
-    selectedUserForTrainingPlan,
-    selectedAppointment,
-    isEditAppointmentModalOpen,
-    showAppointmentOptionsModal,
-    showAppointmentModal,
-    freeAppointments,
-    isNotifyMemberOpen,
-    notifyAction,
-    rightSidebarWidgets,
-    notePopoverRef,
-    setIsRightSidebarOpen,
-    setIsSidebarEditing,
-    setIsRightWidgetModalOpen,
-    setOpenDropdownIndex,
-    setSelectedMemberType,
-    setIsChartDropdownOpen,
-    setIsWidgetModalOpen,
-    setEditingTask,
-    setTodoFilter,
-    setIsEditTaskModalOpen,
-    setIsTodoFilterDropdownOpen,
-    setTaskToCancel,
-    setTaskToDelete,
-    setActiveNoteId,
-    setIsSpecialNoteModalOpen,
-    setSelectedAppointmentForNote,
-    setIsTrainingPlanModalOpen,
-    setSelectedUserForTrainingPlan,
-    setSelectedAppointment,
-    setIsEditAppointmentModalOpen,
-    setShowAppointmentOptionsModal,
-    setIsNotifyMemberOpen,
-    setNotifyAction,
-    toggleRightSidebar,
-    closeSidebar,
-    toggleSidebarEditing,
-    toggleDropdown,
-    redirectToCommunication,
-    moveRightSidebarWidget,
-    removeRightSidebarWidget,
-    getWidgetPlacementStatus,
-    handleAddRightSidebarWidget,
-    handleTaskComplete,
-    handleEditTask,
-    handleUpdateTask,
-    handleCancelTask,
-    handleDeleteTask,
-    isBirthdayToday,
-    handleSendBirthdayMessage,
-    handleEditNote,
-    handleDumbbellClick,
-    handleCheckIn,
-    handleAppointmentOptionsModal,
-    handleSaveSpecialNote,
-    isEventInPast,
-    handleCancelAppointment,
-    actuallyHandleCancelAppointment,
-    handleDeleteAppointment,
-    handleViewMemberDetails,
-    handleNotifyMember,
-    truncateUrl,
-    renderSpecialNoteIcon,
-    customLinks,
-    setCustomLinks,
-    communications,
-    setCommunications,
-    todos,
-    setTodos,
-    expiringContracts,
-    setExpiringContracts,
-    birthdays,
-    setBirthdays,
-    notifications,
-    setNotifications,
-    appointments,
-    setAppointments,
-    memberTypes,
-    availableMembersLeads,
-    mockTrainingPlans,
-    mockVideos,
-    todoFilterOptions,
-    relationOptions,
-    appointmentTypes,
-    handleAssignTrainingPlan,
-    handleRemoveTrainingPlan,
-    memberTrainingPlans,
-    setMemberTrainingPlans,
-    availableTrainingPlans,
-    setAvailableTrainingPlans,
-  } = sidebarSystem
-
-  // Wrapper functions for sidebar
-  const handleTaskCompleteWrapper = (taskId) => handleTaskComplete(taskId, todos, setTodos)
-  const handleUpdateTaskWrapper = (updatedTask) => handleUpdateTask(updatedTask, setTodos)
-  const handleCancelTaskWrapper = (taskId) => handleCancelTask(taskId, setTodos)
-  const handleDeleteTaskWrapper = (taskId) => handleDeleteTask(taskId, setTodos)
-  const handleEditNoteWrapper = (appointmentId, currentNote) => handleEditNote(appointmentId, currentNote, appointments)
-  const handleCheckInWrapper = (appointmentId) => handleCheckIn(appointmentId, appointments, setAppointments)
-  const handleSaveSpecialNoteWrapper = (appointmentId, updatedNote) => handleSaveSpecialNote(appointmentId, updatedNote, setAppointments)
-  const actuallyHandleCancelAppointmentWrapper = (shouldNotify) => actuallyHandleCancelAppointment(shouldNotify, appointments, setAppointments)
-  const handleDeleteAppointmentWrapper = (id) => handleDeleteAppointment(id, appointments, setAppointments)
 
   return (
     <div className="min-h-screen rounded-3xl p-6 bg-[#1C1C1C] transition-all duration-300 ease-in-out flex-1 overflow-x-hidden md:overflow-x-visible">
@@ -1330,16 +1200,6 @@ export default function LeadManagement() {
               <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
             </div>
           </div>
-          
-          {isRightSidebarOpen ? (
-            <div onClick={toggleRightSidebar}>
-              <img src="/expand-sidebar mirrored.svg" className="h-5 w-5 cursor-pointer" alt="" />
-            </div>
-          ) : (
-            <div onClick={toggleRightSidebar}>
-              <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
-            </div>
-          )}
         </div>
       </div>
 
@@ -1364,14 +1224,12 @@ export default function LeadManagement() {
         onDragEnd={handleDragEnd}
         autoScroll={false}
       >
-        {/* Mobile: CSS Grid (1 column), Desktop: Flexbox for collapse feature */}
+        {/* Mobile: CSS Grid (1 column), Desktop: Flexbox for equal width columns */}
         <div 
           className="
             grid grid-cols-1 gap-4 pb-4
-            md:flex md:flex-row md:flex-nowrap md:h-[calc(100vh-220px)] md:min-h-[400px] md:overflow-x-auto md:overflow-y-visible md:pr-4
-            [&::-webkit-scrollbar]:hidden
+            md:flex md:flex-row md:flex-nowrap md:h-[calc(100vh-220px)] md:min-h-[400px] md:overflow-y-visible
           "
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
           {columns.map((column) => {
             const isCollapsed = collapsedColumns.includes(column.id)
@@ -1477,13 +1335,11 @@ export default function LeadManagement() {
             }
             
             // Expanded state - show full column
-            // Mobile: Grid cell (full width), Desktop: Flex item with min-width
+            // Mobile: Grid cell (full width), Desktop: Flex item with equal width
             return (
               <div 
                 key={column.id}
-                className={`w-full min-h-[300px] md:h-full md:flex-1 md:flex-shrink-0 transition-all duration-300 ease-in-out overflow-visible ${
-                  expandedCount <= 2 ? 'md:min-w-[300px]' : 'md:min-w-[200px]'
-                }`}
+                className="w-full min-h-[300px] md:h-full md:flex-1 md:basis-0 md:min-w-0 transition-all duration-300 ease-in-out overflow-visible"
               >
                 <SortableColumn
                   id={column.id}
@@ -1501,7 +1357,7 @@ export default function LeadManagement() {
                   setShowHistoryModalLead={setShowHistoryModalLead}
                   setSelectedLead={setSelectedLead}
                   onManageTrialAppointments={handleManageTrialAppointments}
-                  onEditNote={handleEditNote}
+                  onEditNote={() => {}}
                   onOpenDocuments={handleOpenDocuments}
                   onCreateAssessment={handleCreateAssessmentClick}
                   isCompactView={isCompactView}
@@ -1860,193 +1716,6 @@ export default function LeadManagement() {
         targetColumnId={targetColumnForNote}
       />
 
-      {/* Sidebar (keeping all existing sidebar code) */}
-      <Sidebar
-        isRightSidebarOpen={isRightSidebarOpen}
-        toggleRightSidebar={toggleRightSidebar}
-        isSidebarEditing={isSidebarEditing}
-        toggleSidebarEditing={toggleSidebarEditing}
-        rightSidebarWidgets={rightSidebarWidgets}
-        moveRightSidebarWidget={moveRightSidebarWidget}
-        removeRightSidebarWidget={removeRightSidebarWidget}
-        setIsRightWidgetModalOpen={setIsRightWidgetModalOpen}
-        communications={communications}
-        redirectToCommunication={redirectToCommunication}
-        todos={todos}
-        handleTaskComplete={handleTaskCompleteWrapper}
-        todoFilter={todoFilter}
-        setTodoFilter={setTodoFilter}
-        todoFilterOptions={todoFilterOptions}
-        isTodoFilterDropdownOpen={isTodoFilterDropdownOpen}
-        setIsTodoFilterDropdownOpen={setIsTodoFilterDropdownOpen}
-        openDropdownIndex={openDropdownIndex}
-        toggleDropdown={toggleDropdown}
-        handleEditTask={handleEditTask}
-        setTaskToCancel={setTaskToCancel}
-        setTaskToDelete={setTaskToDelete}
-        birthdays={birthdays}
-        isBirthdayToday={isBirthdayToday}
-        handleSendBirthdayMessage={handleSendBirthdayMessage}
-        customLinks={customLinks}
-        truncateUrl={truncateUrl}
-        appointments={appointments}
-        renderSpecialNoteIcon={renderSpecialNoteIcon}
-        handleDumbbellClick={handleDumbbellClick}
-        handleCheckIn={handleCheckInWrapper}
-        handleAppointmentOptionsModal={handleAppointmentOptionsModal}
-        selectedMemberType={selectedMemberType}
-        setSelectedMemberType={setSelectedMemberType}
-        memberTypes={memberTypes}
-        isChartDropdownOpen={isChartDropdownOpen}
-        setIsChartDropdownOpen={setIsChartDropdownOpen}
-        expiringContracts={expiringContracts}
-        getWidgetPlacementStatus={getWidgetPlacementStatus}
-        onClose={toggleRightSidebar}
-        hasUnreadNotifications={2}
-        setIsWidgetModalOpen={setIsWidgetModalOpen}
-        handleEditNote={handleEditNoteWrapper}
-        activeNoteId={activeNoteId}
-        setActiveNoteId={setActiveNoteId}
-        isSpecialNoteModalOpen={isSpecialNoteModalOpen}
-        setIsSpecialNoteModalOpen={setIsSpecialNoteModalOpen}
-        selectedAppointmentForNote={selectedAppointmentForNote}
-        setSelectedAppointmentForNote={setSelectedAppointmentForNote}
-        handleSaveSpecialNote={handleSaveSpecialNoteWrapper}
-        onSaveSpecialNote={handleSaveSpecialNoteWrapper}
-        notifications={notifications}
-        setTodos={setTodos}
-      />
-
-      {isRightSidebarOpen && (
-        <div className="fixed inset-0 bg-black/50 z-10" onClick={toggleRightSidebar} aria-hidden="true" />
-      )}
-
-      <TrainingPlansModal
-        isOpen={isTrainingPlanModalOpen}
-        onClose={() => {
-          setIsTrainingPlanModalOpen(false)
-          setSelectedUserForTrainingPlan(null)
-        }}
-        selectedMember={selectedUserForTrainingPlan}
-        memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
-        availableTrainingPlans={availableTrainingPlans}
-        onAssignPlan={handleAssignTrainingPlan}
-        onRemovePlan={handleRemoveTrainingPlan}
-      />
-
-      <AppointmentActionModalV2
-        isOpen={showAppointmentOptionsModal}
-        onClose={() => {
-          setShowAppointmentOptionsModal(false)
-          setSelectedAppointment(null)
-        }}
-        appointment={selectedAppointment}
-        isEventInPast={isEventInPast}
-        onEdit={() => {
-          setShowAppointmentOptionsModal(false)
-          setIsEditAppointmentModalOpen(true)
-        }}
-        onCancel={handleCancelAppointment}
-        onViewMember={handleViewMemberDetails}
-      />
-
-      <NotifyMemberModal
-        isOpen={isNotifyMemberOpen}
-        onClose={() => setIsNotifyMemberOpen(false)}
-        notifyAction={notifyAction}
-        actuallyHandleCancelAppointment={actuallyHandleCancelAppointmentWrapper}
-        handleNotifyMember={handleNotifyMember}
-      />
-
-      {isEditAppointmentModalOpen && selectedAppointment && (
-        <EditAppointmentModalV2
-          selectedAppointment={selectedAppointment}
-          setSelectedAppointment={setSelectedAppointment}
-          appointmentTypes={appointmentTypes}
-          freeAppointments={freeAppointments}
-          handleAppointmentChange={(changes) => {
-            setSelectedAppointment({ ...selectedAppointment, ...changes })
-          }}
-          appointments={appointments}
-          setAppointments={setAppointments}
-          setIsNotifyMemberOpen={setIsNotifyMemberOpen}
-          setNotifyAction={setNotifyAction}
-          onDelete={handleDeleteAppointmentWrapper}
-          onClose={() => {
-            setIsEditAppointmentModalOpen(false)
-            setSelectedAppointment(null)
-          }}
-        />
-      )}
-
-      <WidgetSelectionModal
-        isOpen={isRightWidgetModalOpen}
-        onClose={() => setIsRightWidgetModalOpen(false)}
-        onSelectWidget={handleAddRightSidebarWidget}
-        getWidgetStatus={(widgetType) => getWidgetPlacementStatus(widgetType, "sidebar")}
-        widgetArea="sidebar"
-      />
-
-      {isRightSidebarOpen && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={closeSidebar} />}
-
-      {isEditTaskModalOpen && editingTask && (
-        <EditTaskModal
-          task={editingTask}
-          onClose={() => {
-            setIsEditTaskModalOpen(false)
-            setEditingTask(null)
-          }}
-          onUpdateTask={handleUpdateTaskWrapper}
-        />
-      )}
-
-      {taskToDelete && (
-        <div className="fixed inset-0 text-white bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
-            <h3 className="text-lg font-semibold mb-4">Delete Task</h3>
-            <p className="text-gray-300 mb-6">
-              Are you sure you want to delete this task? This action cannot be undone.
-            </p>
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => setTaskToDelete(null)}
-                className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#2F2F2F]/90"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => handleDeleteTaskWrapper(taskToDelete)}
-                className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {taskToCancel && (
-        <div className="fixed inset-0 bg-black/50 text-white flex items-center justify-center z-50">
-          <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
-            <h3 className="text-lg font-semibold mb-4">Cancel Task</h3>
-            <p className="text-gray-300 mb-6">Are you sure you want to cancel this task?</p>
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => setTaskToCancel(null)}
-                className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#2F2F2F]/90"
-              >
-                No
-              </button>
-              <button
-                onClick={() => handleCancelTaskWrapper(taskToCancel)}
-                className="px-4 py-2 bg-orange-500 text-white rounded-xl hover:bg-orange-600"
-              >
-                Cancel Task
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Floating Action Button - Mobile Only */}
       <button

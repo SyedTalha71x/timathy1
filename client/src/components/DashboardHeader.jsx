@@ -3,20 +3,37 @@
 /* eslint-disable no-unused-vars */
 import { useState, useEffect, useRef } from "react"
 import { useNavigate } from "react-router-dom"
-import { Globe, X, Building2, History, Menu } from "lucide-react"
+import { Globe, X, Building2, History, Menu, ShoppingCart } from "lucide-react"
 import OrgaGymLogoWihoutText from '../../public/Orgagym white without text.svg'
 
 /**
  * DashboardHeader Component
  * 
  * Unified header component that handles both mobile and desktop views.
- * Contains: Language dropdown, Profile dropdown, Activity Log, and all modals.
+ * Contains: Language dropdown, Profile dropdown, Activity Log, Right Sidebar toggle, and all modals.
  * 
  * Props:
  * - onToggleSidebar: Function to toggle mobile sidebar
  * - isSidebarOpen: Boolean for sidebar state (mobile)
+ * - isRightSidebarOpen: Boolean for right sidebar state
+ * - toggleRightSidebar: Function to toggle right sidebar
+ * - isLeftSidebarCollapsed: Boolean for left sidebar collapsed state (desktop)
+ * - toggleLeftSidebarCollapse: Function to toggle left sidebar collapse (desktop)
+ * - hideRightSidebarToggle: Boolean to hide the right sidebar toggle (for pages with custom sidebars like Selling)
+ * - showShoppingCartToggle: Boolean to show shopping cart icon instead of sidebar icon
+ * - cartItemCount: Number of items in cart (for badge display)
  */
-const DashboardHeader = ({ onToggleSidebar, isSidebarOpen }) => {
+const DashboardHeader = ({ 
+  onToggleSidebar, 
+  isSidebarOpen, 
+  isRightSidebarOpen, 
+  toggleRightSidebar, 
+  isLeftSidebarCollapsed, 
+  toggleLeftSidebarCollapse, 
+  hideRightSidebarToggle = false,
+  showShoppingCartToggle = false,
+  cartItemCount = 0
+}) => {
   const navigate = useNavigate()
   
   // Dropdown states
@@ -59,11 +76,6 @@ const DashboardHeader = ({ onToggleSidebar, isSidebarOpen }) => {
     { id: 7, action: "Class Created", description: "Created new HIIT class schedule", timestamp: "2024-12-14 15:20", type: "class" },
     { id: 8, action: "Contract Renewed", description: "Renewed contract for Lisa Garcia", timestamp: "2024-12-14 14:10", type: "contract" },
   ]
-  
-  // ============================================
-  // Click Outside Handler - using overlay approach for mobile compatibility
-  // ============================================
-  // No document-level event listeners needed - we use an overlay instead
   
   // Close dropdowns on scroll (mobile)
   useEffect(() => {
@@ -160,11 +172,11 @@ const DashboardHeader = ({ onToggleSidebar, isSidebarOpen }) => {
       <button
         onClick={toggleLanguageDropdown}
         className={`rounded-xl text-gray-400 bg-[#161616] hover:bg-[#252525] transition-colors cursor-pointer flex items-center gap-1 ${
-          isMobile ? "p-2 px-3" : "p-2 px-3"
+          isMobile ? "p-2 px-3" : "p-1.5 px-2.5"
         }`}
         aria-label="Language Selection"
       >
-        <Globe size={isMobile ? 18 : 20} />
+        <Globe size={isMobile ? 18 : 18} />
       </button>
       {isLanguageDropdownOpen && (
         <>
@@ -174,19 +186,25 @@ const DashboardHeader = ({ onToggleSidebar, isSidebarOpen }) => {
             onClick={() => setIsLanguageDropdownOpen(false)}
           />
           <div 
-            className={`absolute right-0 ${isMobile ? "top-10 w-36" : "top-12 w-40"} bg-[#222222]/50 backdrop-blur-3xl rounded-lg shadow-lg z-[100]`}
+            className={`absolute ${
+              isMobile 
+                ? "right-0 top-11 w-36" 
+                : "right-0 top-10 w-40"
+            } bg-[#222222]/95 backdrop-blur-3xl rounded-lg shadow-lg z-[100]`}
           >
-            <div className={isMobile ? "py-1" : "py-2"} role="menu">
+            <div className="py-2" role="menu">
               {languages.map((language) => (
                 <button
                   key={language.code}
                   onClick={() => handleLanguageSelect(language)}
-                  className={`w-full ${isMobile ? "px-3 py-1.5 text-xs" : "px-4 py-2 text-sm"} text-left hover:bg-zinc-700 flex items-center gap-${isMobile ? "2" : "3"} ${
-                    selectedLanguage === language.name ? "text-white bg-zinc-600" : "text-zinc-300"
-                  }`}
+                  className={`block w-full ${isMobile ? "px-3 py-1.5" : "px-4 py-2"} text-white hover:bg-zinc-700 text-left flex items-center gap-2`}
                 >
-                  <img src={language.flag} className={`rounded-sm ${isMobile ? "h-5 w-6" : "w-8"}`} alt={language.name} />
-                  <span>{language.name}</span>
+                  <img 
+                    src={language.flag} 
+                    alt={`${language.name} flag`} 
+                    className={`${isMobile ? "w-4 h-3" : "w-5 h-3"} rounded`}
+                  />
+                  <span className={isMobile ? "text-xs" : "text-sm"}>{language.name}</span>
                 </button>
               ))}
             </div>
@@ -201,10 +219,10 @@ const DashboardHeader = ({ onToggleSidebar, isSidebarOpen }) => {
       <div 
         onClick={toggleProfileDropdown} 
         className={`flex items-center cursor-pointer ${
-          isMobile ? "" : "gap-2 p-2 px-3 rounded-xl bg-[#161616] hover:bg-[#252525] transition-colors"
+          isMobile ? "" : "gap-2 p-1.5 px-2.5 rounded-xl bg-[#161616] hover:bg-[#252525] transition-colors"
         }`}
       >
-        <img src="/gray-avatar-fotor-20250912192528.png" alt="Profile" className={`rounded-${isMobile ? "md" : "lg"} ${isMobile ? "w-7 h-7" : "w-7 h-7"}`} />
+        <img src="/gray-avatar-fotor-20250912192528.png" alt="Profile" className={`rounded-${isMobile ? "md" : "lg"} ${isMobile ? "w-7 h-7" : "w-6 h-6"}`} />
         {!isMobile && <h2 className="font-semibold text-white text-sm leading-tight">{fullName}</h2>}
       </div>
       
@@ -216,7 +234,7 @@ const DashboardHeader = ({ onToggleSidebar, isSidebarOpen }) => {
             onClick={() => setIsDropdownOpen(false)}
           />
           <div 
-            className={`absolute right-0 ${isMobile ? "top-11 w-40" : "top-12 w-48"} bg-[#222222]/50 backdrop-blur-3xl rounded-lg shadow-lg z-[100]`}
+            className={`absolute right-0 ${isMobile ? "top-11 w-40" : "top-10 w-48"} bg-[#222222]/50 backdrop-blur-3xl rounded-lg shadow-lg z-[100]`}
           >
             {/* Mobile shows user info in dropdown */}
             {isMobile && (
@@ -270,6 +288,35 @@ const DashboardHeader = ({ onToggleSidebar, isSidebarOpen }) => {
       )}
     </div>
   )
+
+  // ============================================
+  // Right Sidebar Toggle Button Component
+  // ============================================
+  const SidebarToggleButton = ({ isMobile = false }) => (
+    <div 
+      onClick={toggleRightSidebar} 
+      className={`cursor-pointer relative ${isMobile ? "p-2 px-3 rounded-xl bg-[#161616]" : "p-1.5 px-2.5 rounded-xl bg-[#161616] hover:bg-[#252525] transition-colors"}`}
+    >
+      {showShoppingCartToggle ? (
+        // Shopping Cart Mode (Selling page)
+        <>
+          <ShoppingCart className={`${isMobile ? "h-[18px] w-[18px]" : "h-5 w-5"} text-white`} />
+          {cartItemCount > 0 && (
+            <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 border-2 border-[#161616]">
+              {cartItemCount > 99 ? '99+' : cartItemCount}
+            </span>
+          )}
+        </>
+      ) : (
+        // Normal Sidebar Mode
+        isRightSidebarOpen ? (
+          <img key="open" src='/expand-sidebar mirrored.svg' className={`${isMobile ? "h-[18px] w-[18px]" : "h-5 w-5"}`} alt="Close sidebar" />
+        ) : (
+          <img key="closed" src="/icon.svg" className={`${isMobile ? "h-[18px] w-[18px]" : "h-5 w-5"}`} alt="Open sidebar" />
+        )
+      )}
+    </div>
+  )
   
   // ============================================
   // Render
@@ -277,8 +324,6 @@ const DashboardHeader = ({ onToggleSidebar, isSidebarOpen }) => {
   return (
     <>
       {/* ===== MOBILE OVERLAY - MUST be outside header for proper z-index stacking ===== */}
-      {/* FIX: Moved overlay outside the header so it has its own stacking context */}
-      {/* This prevents the overlay from blocking the left sidebar (z-50) */}
       {isSidebarOpen && (
         <div 
           className="fixed inset-0 bg-black/50 z-40 lg:hidden" 
@@ -294,10 +339,14 @@ const DashboardHeader = ({ onToggleSidebar, isSidebarOpen }) => {
           </div>
           <button
             onClick={onToggleSidebar}
-            className="p-1.5 rounded-lg text-white hover:bg-zinc-700"
+            className="p-1.5 px-2.5 rounded-xl bg-[#161616] text-white"
             aria-label="Toggle Sidebar"
           >
-            <Menu size={20} />
+            {isSidebarOpen ? (
+              <img key="open" src="/icon.svg" className="h-[18px] w-[18px]" alt="Close sidebar" />
+            ) : (
+              <img key="closed" src='/expand-sidebar mirrored.svg' className="h-[18px] w-[18px]" alt="Open sidebar" />
+            )}
           </button>
         </div>
         
@@ -318,15 +367,35 @@ const DashboardHeader = ({ onToggleSidebar, isSidebarOpen }) => {
           
           {/* Profile Dropdown */}
           <ProfileDropdown isMobile={true} />
+
+          {/* Right Sidebar Toggle - Shows cart icon on Selling page, sidebar icon elsewhere */}
+          {(!hideRightSidebarToggle || showShoppingCartToggle) && <SidebarToggleButton isMobile={true} />}
         </div>
       </div>
       
       {/* ===== DESKTOP HEADER (hidden lg:flex) ===== */}
-      <div className="lg:flex hidden rounded-md justify-start bg-[#1f1e1e] z-10 p-2 mb-2 items-center gap-2">
+      <div className="lg:flex hidden rounded-md justify-between bg-[#1f1e1e] z-10 py-1.5 px-2 mb-2 items-center gap-2">
+        {/* Left - Menu Toggle */}
+        <div className="flex items-center">
+          {toggleLeftSidebarCollapse && (
+            <div
+              onClick={toggleLeftSidebarCollapse}
+              className="p-1.5 px-2.5 rounded-xl bg-[#161616] hover:bg-[#252525] transition-colors cursor-pointer"
+            >
+              {isLeftSidebarCollapsed ? (
+                <img key="collapsed" src='/expand-sidebar mirrored.svg' className="h-5 w-5" alt="Open sidebar" />
+              ) : (
+                <img key="expanded" src="/icon.svg" className="h-5 w-5" alt="Close sidebar" />
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Right - All other controls */}
         <div className="flex gap-1 items-center">
           <div className="flex items-center gap-2">
             {/* Studio Name */}
-            <div className="flex items-center bg-[#161616] gap-1 p-2 px-3 rounded-xl w-fit">
+            <div className="flex items-center bg-[#161616] gap-1 p-1.5 px-2.5 rounded-xl w-fit">
               <Building2 size={14} className="text-white" />
               <p className="text-sm font-bold text-white">{studioName}</p>
             </div>
@@ -334,10 +403,10 @@ const DashboardHeader = ({ onToggleSidebar, isSidebarOpen }) => {
             {/* Activity Log */}
             <button
               onClick={handleActivityLogClick}
-              className="p-2 px-3 rounded-xl text-gray-400 bg-[#161616] hover:bg-[#252525] transition-colors cursor-pointer flex items-center gap-1"
+              className="p-1.5 px-2.5 rounded-xl text-gray-400 bg-[#161616] hover:bg-[#252525] transition-colors cursor-pointer flex items-center gap-1"
               aria-label="Activity Log"
             >
-              <History size={20} />
+              <History size={18} />
             </button>
           </div>
           
@@ -348,6 +417,9 @@ const DashboardHeader = ({ onToggleSidebar, isSidebarOpen }) => {
           
           {/* Profile Dropdown */}
           <ProfileDropdown isMobile={false} />
+
+          {/* Right Sidebar Toggle - Desktop - Shows cart icon on Selling page, sidebar icon elsewhere */}
+          {(!hideRightSidebarToggle || showShoppingCartToggle) && <SidebarToggleButton isMobile={false} />}
         </div>
       </div>
       
@@ -378,10 +450,13 @@ const DashboardHeader = ({ onToggleSidebar, isSidebarOpen }) => {
           </div>
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 md:gap-0 mt-4 md:mt-6 pt-3 md:pt-4 border-t border-zinc-700">
             <p className="text-xs md:text-sm text-zinc-400 text-center sm:text-left order-2 sm:order-1">
-              Showing {activityLogs.length} recent activities
+              Showing {activityLogs.length} most recent activities
             </p>
-            <button className="px-3 py-2 md:px-4 md:py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm w-full sm:w-auto order-1 sm:order-2">
-              Load More
+            <button 
+              className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors text-sm order-1 sm:order-2"
+              onClick={() => setIsActivityLogModalOpen(false)}
+            >
+              Close
             </button>
           </div>
         </div>
@@ -393,56 +468,54 @@ const DashboardHeader = ({ onToggleSidebar, isSidebarOpen }) => {
           <div>
             <h3 className="text-lg font-semibold text-white mb-3">1. Acceptance of Terms</h3>
             <p className="leading-relaxed">
-              By accessing and using this fitness studio management platform, you accept and agree to be bound by the
-              terms and provision of this agreement. If you do not agree to abide by the above, please do not use this
-              service.
+              By accessing and using the Studio One fitness management platform, you accept and agree to be bound by
+              the terms and provisions of this agreement. If you do not agree to abide by the above, please do not use
+              this service.
             </p>
           </div>
           <div>
             <h3 className="text-lg font-semibold text-white mb-3">2. Use License</h3>
             <p className="leading-relaxed mb-3">
-              Permission is granted to temporarily download one copy of the materials on Studio One's platform for
-              personal, non-commercial transitory viewing only. This is the grant of a license, not a transfer of title,
-              and under this license you may not:
+              Permission is granted to temporarily access the platform for personal, non-commercial use only. This is
+              the grant of a license, not a transfer of title, and under this license you may not:
             </p>
             <ul className="list-disc list-inside space-y-2 ml-4">
-              <li>modify or copy the materials</li>
-              <li>use the materials for any commercial purpose or for any public display</li>
-              <li>attempt to reverse engineer any software contained on the platform</li>
-              <li>remove any copyright or other proprietary notations from the materials</li>
+              <li>Modify or copy the materials</li>
+              <li>Use the materials for any commercial purpose</li>
+              <li>Attempt to decompile or reverse engineer any software</li>
+              <li>Remove any copyright or proprietary notations</li>
+              <li>Transfer the materials to another person</li>
             </ul>
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-white mb-3">3. Disclaimer</h3>
+            <h3 className="text-lg font-semibold text-white mb-3">3. Account Responsibilities</h3>
             <p className="leading-relaxed">
-              The materials on Studio One's platform are provided on an 'as is' basis. Studio One makes no warranties,
-              expressed or implied, and hereby disclaims and negates all other warranties including without limitation,
-              implied warranties or conditions of merchantability, fitness for a particular purpose, or non-infringement
-              of intellectual property or other violation of rights.
+              You are responsible for maintaining the confidentiality of your account and password, including but not
+              limited to the restriction of access to your computer and/or account. You agree to accept responsibility
+              for any and all activities that occur under your account.
             </p>
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-white mb-3">4. Limitations</h3>
+            <h3 className="text-lg font-semibold text-white mb-3">4. Service Availability</h3>
             <p className="leading-relaxed">
-              In no event shall Studio One or its suppliers be liable for any damages (including, without limitation,
-              damages for loss of data or profit, or due to business interruption) arising out of the use or inability
-              to use the materials on Studio One's platform, even if Studio One or a Studio One authorized
-              representative has been notified orally or in writing of the possibility of such damage.
+              We reserve the right to withdraw or amend our service, and any service or material we provide, in our
+              sole discretion without notice. We will not be liable if for any reason all or any part of the service is
+              unavailable at any time.
             </p>
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-white mb-3">5. Privacy Policy</h3>
+            <h3 className="text-lg font-semibold text-white mb-3">5. Limitation of Liability</h3>
             <p className="leading-relaxed">
-              Your privacy is important to us. Our Privacy Policy explains how we collect, use, and protect your
-              information when you use our service. By using our service, you agree to the collection and use of
-              information in accordance with our Privacy Policy.
+              In no event shall Studio One or its suppliers be liable for any damages arising out of the use or
+              inability to use the materials or services, even if we have been notified of the possibility of such
+              damage.
             </p>
           </div>
           <div>
             <h3 className="text-lg font-semibold text-white mb-3">6. Governing Law</h3>
             <p className="leading-relaxed">
-              These terms and conditions are governed by and construed in accordance with the laws and you irrevocably
-              submit to the exclusive jurisdiction of the courts in that state or location.
+              These terms and conditions are governed by and construed in accordance with applicable laws and you
+              irrevocably submit to the exclusive jurisdiction of the courts in that location.
             </p>
           </div>
         </div>

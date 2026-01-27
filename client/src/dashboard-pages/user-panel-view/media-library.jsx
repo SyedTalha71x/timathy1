@@ -609,88 +609,83 @@ const MediaLibrary = () => {
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-    <div className="min-h-screen bg-[#0a0a0a] p-4 sm:p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-4 sm:mb-6">
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl sm:text-2xl font-bold text-white">Media Library</h1>
-              
-              {/* Mobile Info Tooltip - only visible on mobile */}
-              <div className="sm:hidden relative">
-                <button
-                  onClick={() => setShowMobileInfoTooltip(!showMobileInfoTooltip)}
-                  onMouseEnter={() => setShowMobileInfoTooltip(true)}
-                  onMouseLeave={() => setShowMobileInfoTooltip(false)}
-                  className="text-gray-400 hover:text-gray-300 transition-colors p-1"
-                  aria-label="Design Information"
-                >
-                  <Info size={16} />
-                </button>
-                
-                {showMobileInfoTooltip && (
-                  <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-64 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-xl p-4 z-50">
-                    <div className="text-sm space-y-2">
-                      <p className="text-orange-400 font-medium">Desktop Only</p>
-                      <p className="text-gray-300 text-xs leading-relaxed">
-                        Creating and editing designs is only available on desktop devices for the best experience.
-                      </p>
-                    </div>
-                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-[#2a2a2a] border-l border-t border-gray-700 transform rotate-45"></div>
-                  </div>
-                )}
-              </div>
-            </div>
+    <div className="min-h-screen rounded-3xl p-4 md:p-6 bg-[#1C1C1C] transition-all duration-300 ease-in-out flex-1">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4 sm:mb-6">
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl sm:text-2xl text-white oxanium_font">Media Library</h1>
+          
+          {/* Mobile Info Tooltip - only visible on mobile */}
+          <div className="sm:hidden relative">
+            <button
+              onClick={() => setShowMobileInfoTooltip(!showMobileInfoTooltip)}
+              onMouseEnter={() => setShowMobileInfoTooltip(true)}
+              onMouseLeave={() => setShowMobileInfoTooltip(false)}
+              className="text-gray-400 hover:text-gray-300 transition-colors p-1"
+              aria-label="Design Information"
+            >
+              <Info size={16} />
+            </button>
             
-            {/* Create Design Button with Tooltip */}
-            <div className="hidden sm:block relative group">
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="flex items-center gap-2 px-4 sm:px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-xl transition-colors"
-              >
-                <Plus size={18} />
-                <span>Create Design</span>
-              </button>
-              
-              {/* Tooltip */}
-              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-                <span className="font-medium">Create Design</span>
-                <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
-                  C
-                </span>
-                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+            {showMobileInfoTooltip && (
+              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-64 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-xl p-4 z-50">
+                <div className="text-sm space-y-2">
+                  <p className="text-orange-400 font-medium">Desktop Only</p>
+                  <p className="text-gray-300 text-xs leading-relaxed">
+                    Creating and editing designs is only available on desktop devices for the best experience.
+                  </p>
+                </div>
+                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-[#2a2a2a] border-l border-t border-gray-700 transform rotate-45"></div>
               </div>
-            </div>
-
-            {/* Mobile Create Button - disabled (design creation not supported on mobile) */}
+            )}
           </div>
-
-          {/* Search Bar */}
-          <div className="flex items-center gap-3">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-              <input
-                type="text"
-                placeholder="Search all designs..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-[#141414] border border-[#333333] rounded-xl py-2.5 pl-10 pr-4 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
-                >
-                  <X size={14} />
-                </button>
-              )}
+        </div>
+        
+        {/* Create Design Button with Tooltip */}
+        <div className="flex items-center gap-2">
+          <div className="hidden sm:block relative group">
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs sm:text-sm font-medium rounded-xl transition-colors"
+            >
+              <Plus size={14} className="sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Create Design</span>
+            </button>
+            
+            {/* Tooltip */}
+            <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+              <span className="font-medium">Create Design</span>
+              <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
+                C
+              </span>
+              <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Main Content */}
-        <div className="space-y-6">
+      {/* Search */}
+      <div className="mb-4 sm:mb-6 relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+        <input
+          type="text"
+          placeholder="Search all designs..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-[#333333] focus:border-[#3F74FF] transition-colors"
+        />
+        {searchQuery && (
+          <button
+            onClick={() => setSearchQuery('')}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
+          >
+            <X size={14} />
+          </button>
+        )}
+      </div>
+
+      {/* Main Content */}
+      <div className="space-y-6">
           {/* Folders Section */}
           {!isSearching && (
             <section>
@@ -788,7 +783,7 @@ const MediaLibrary = () => {
                 </div>
               ) : (
                 <div className="text-center py-12 bg-[#141414] rounded-xl border border-[#333333]">
-                  <div className="w-16 h-16 bg-[#0a0a0a] rounded-xl flex items-center justify-center mx-auto mb-3">
+                  <div className="w-16 h-16 bg-[#141414] rounded-xl flex items-center justify-center mx-auto mb-3">
                     {isSearching ? <Search size={28} className="text-gray-600" /> : <Sparkles size={28} className="text-gray-600" />}
                   </div>
                   <h3 className="text-white font-medium mb-1">
@@ -929,7 +924,6 @@ const MediaLibrary = () => {
             )}
           </section>
         </div>
-      </div>
 
       {/* Modals */}
       <CreateDesignModal

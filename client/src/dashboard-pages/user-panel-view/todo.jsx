@@ -14,14 +14,7 @@ import CalendarModal from "../../components/user-panel-components/todo-component
 import { UserCheck } from "lucide-react"
 import { todosTaskData, configuredTagsData, availableAssigneesData } from "../../utils/user-panel-states/todo-states"
 import DeleteModal from "../../components/user-panel-components/todo-components/delete-task"
-import { useSidebarSystem } from "../../hooks/useSidebarSystem"
 import { trainingVideosData } from "../../utils/user-panel-states/training-states"
-import Sidebar from "../../components/central-sidebar"
-import { WidgetSelectionModal } from "../../components/widget-selection-modal"
-import NotifyMemberModal from "../../components/myarea-components/NotifyMemberModal"
-import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"
-import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
-import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
 import { OptimizedTextarea } from "../../components/user-panel-components/todo-components/optimized-text-area"
 import TagManagerModal from "../../components/shared/TagManagerModal"
 
@@ -831,7 +824,6 @@ const SelectedDateTimeDisplay = ({ date, time, onClear }) => {
 }
 
 export default function TodoApp() {
-  const sidebarSystem = useSidebarSystem()
   
   // ============================================
   // Column Configuration
@@ -1662,114 +1654,6 @@ export default function TodoApp() {
     setNewTaskInput(newValue)
   }, [])
 
-  // ============================================
-  // Sidebar System Integration
-  // ============================================
-  const {
-    isRightSidebarOpen,
-    isSidebarEditing,
-    isRightWidgetModalOpen,
-    openDropdownIndex,
-    selectedMemberType,
-    isChartDropdownOpen,
-    isWidgetModalOpen,
-    editingTask,
-    todoFilter,
-    isEditTaskModalOpen,
-    isTodoFilterDropdownOpen,
-    taskToCancel,
-    taskToDelete,
-    activeNoteId,
-    isSpecialNoteModalOpen,
-    selectedAppointmentForNote,
-    isTrainingPlanModalOpen,
-    selectedUserForTrainingPlan,
-    selectedAppointment,
-    isEditAppointmentModalOpen,
-    showAppointmentOptionsModal,
-    isNotifyMemberOpen,
-    notifyAction,
-    rightSidebarWidgets,
-    setIsRightSidebarOpen,
-    setIsSidebarEditing,
-    setIsRightWidgetModalOpen,
-    setOpenDropdownIndex,
-    setSelectedMemberType,
-    setIsChartDropdownOpen,
-    setIsWidgetModalOpen,
-    setEditingTask,
-    setTodoFilter,
-    setIsEditTaskModalOpen,
-    setIsTodoFilterDropdownOpen,
-    setTaskToCancel,
-    setTaskToDelete,
-    setActiveNoteId,
-    setIsSpecialNoteModalOpen,
-    setSelectedAppointmentForNote,
-    setIsTrainingPlanModalOpen,
-    setSelectedUserForTrainingPlan,
-    setSelectedAppointment,
-    setIsEditAppointmentModalOpen,
-    setShowAppointmentOptionsModal,
-    setIsNotifyMemberOpen,
-    setNotifyAction,
-    toggleRightSidebar,
-    closeSidebar,
-    toggleSidebarEditing,
-    toggleDropdown,
-    redirectToCommunication,
-    moveRightSidebarWidget,
-    removeRightSidebarWidget,
-    getWidgetPlacementStatus,
-    handleAddRightSidebarWidget,
-    handleTaskComplete,
-    handleEditTask,
-    handleUpdateTask,
-    handleCancelTask,
-    handleDeleteTask,
-    isBirthdayToday,
-    handleSendBirthdayMessage,
-    handleEditNote,
-    handleDumbbellClick,
-    handleCheckIn,
-    handleAppointmentOptionsModal,
-    handleSaveSpecialNote,
-    isEventInPast,
-    handleCancelAppointment,
-    actuallyHandleCancelAppointment,
-    handleDeleteAppointment,
-    handleViewMemberDetails,
-    handleNotifyMember,
-    truncateUrl,
-    renderSpecialNoteIcon,
-    customLinks,
-    communications,
-    todos,
-    setTodos,
-    expiringContracts,
-    birthdays,
-    notifications,
-    appointments,
-    setAppointments,
-    memberTypes,
-    todoFilterOptions,
-    appointmentTypes,
-    freeAppointments,
-    handleAssignTrainingPlan,
-    handleRemoveTrainingPlan,
-    memberTrainingPlans,
-    availableTrainingPlans,
-  } = sidebarSystem
-
-  const handleTaskCompleteWrapper = (taskId) => handleTaskComplete(taskId, todos, setTodos)
-  const handleUpdateTaskWrapper = (updatedTask) => handleUpdateTask(updatedTask, setTodos)
-  const handleCancelTaskWrapper = (taskId) => handleCancelTask(taskId, setTodos)
-  const handleDeleteTaskWrapper = (taskId) => handleDeleteTask(taskId, setTodos)
-  const handleEditNoteWrapper = (appointmentId, currentNote) => handleEditNote(appointmentId, currentNote, appointments)
-  const handleCheckInWrapper = (appointmentId) => handleCheckIn(appointmentId, appointments, setAppointments)
-  const handleSaveSpecialNoteWrapper = (appointmentId, updatedNote) => handleSaveSpecialNote(appointmentId, updatedNote, setAppointments)
-  const actuallyHandleCancelAppointmentWrapper = (shouldNotify) => actuallyHandleCancelAppointment(shouldNotify, appointments, setAppointments)
-  const handleDeleteAppointmentWrapper = (id) => handleDeleteAppointment(id, appointments, setAppointments)
 
   // Get task counts
   const filteredTasks = getAllFilteredTasks()
@@ -1810,9 +1694,7 @@ export default function TodoApp() {
         `}
       </style>
       <div
-        className={`flex flex-col lg:flex-row rounded-3xl transition-all duration-500 bg-[#1C1C1C] text-white relative min-h-screen md:min-h-0 md:h-[105vh] overflow-hidden ${
-          isRightSidebarOpen ? "lg:mr-86 mr-0" : "mr-0"
-        }`}
+        className="flex flex-col lg:flex-row rounded-3xl transition-all duration-500 bg-[#1C1C1C] text-white relative min-h-screen md:min-h-0 md:h-[105vh] overflow-hidden"
       >
 
         
@@ -1877,17 +1759,6 @@ export default function TodoApp() {
                 >
                   <Tag size={18} />
                 </button>
-
-                {/* Sidebar Toggle */}
-                {isRightSidebarOpen ? (
-                  <div onClick={toggleRightSidebar} className="cursor-pointer p-2 hover:bg-gray-800 rounded-lg transition-colors">
-                    <img src="/expand-sidebar mirrored.svg" className="h-5 w-5" alt="" />
-                  </div>
-                ) : (
-                  <div onClick={toggleRightSidebar} className="cursor-pointer p-2 hover:bg-gray-800 rounded-lg transition-colors">
-                    <img src="/icon.svg" className="h-5 w-5" alt="" />
-                  </div>
-                )}
               </div>
             </div>
 
@@ -2671,198 +2542,6 @@ export default function TodoApp() {
           />
         </div>
 
-        {/* Sidebar */}
-        <Sidebar
-          isRightSidebarOpen={isRightSidebarOpen}
-          toggleRightSidebar={toggleRightSidebar}
-          isSidebarEditing={isSidebarEditing}
-          toggleSidebarEditing={toggleSidebarEditing}
-          rightSidebarWidgets={rightSidebarWidgets}
-          moveRightSidebarWidget={moveRightSidebarWidget}
-          removeRightSidebarWidget={removeRightSidebarWidget}
-          setIsRightWidgetModalOpen={setIsRightWidgetModalOpen}
-          communications={communications}
-          redirectToCommunication={redirectToCommunication}
-          todos={todos}
-          handleTaskComplete={handleTaskCompleteWrapper}
-          todoFilter={todoFilter}
-          setTodoFilter={setTodoFilter}
-          todoFilterOptions={todoFilterOptions}
-          isTodoFilterDropdownOpen={isTodoFilterDropdownOpen}
-          setIsTodoFilterDropdownOpen={setIsTodoFilterDropdownOpen}
-          openDropdownIndex={openDropdownIndex}
-          toggleDropdown={toggleDropdown}
-          handleEditTask={handleEditTask}
-          setTaskToCancel={setTaskToCancel}
-          setTaskToDelete={setTaskToDelete}
-          birthdays={birthdays}
-          isBirthdayToday={isBirthdayToday}
-          handleSendBirthdayMessage={handleSendBirthdayMessage}
-          customLinks={customLinks}
-          truncateUrl={truncateUrl}
-          appointments={appointments}
-          renderSpecialNoteIcon={renderSpecialNoteIcon}
-          handleDumbbellClick={handleDumbbellClick}
-          handleCheckIn={handleCheckInWrapper}
-          handleAppointmentOptionsModal={handleAppointmentOptionsModal}
-          selectedMemberType={selectedMemberType}
-          setSelectedMemberType={setSelectedMemberType}
-          memberTypes={memberTypes}
-          isChartDropdownOpen={isChartDropdownOpen}
-          setIsChartDropdownOpen={setIsChartDropdownOpen}
-          expiringContracts={expiringContracts}
-          getWidgetPlacementStatus={getWidgetPlacementStatus}
-          onClose={toggleRightSidebar}
-          hasUnreadNotifications={2}
-          setIsWidgetModalOpen={setIsWidgetModalOpen}
-          handleEditNote={handleEditNoteWrapper}
-          activeNoteId={activeNoteId}
-          setActiveNoteId={setActiveNoteId}
-          isSpecialNoteModalOpen={isSpecialNoteModalOpen}
-          setIsSpecialNoteModalOpen={setIsSpecialNoteModalOpen}
-          selectedAppointmentForNote={selectedAppointmentForNote}
-          setSelectedAppointmentForNote={setSelectedAppointmentForNote}
-          handleSaveSpecialNote={handleSaveSpecialNoteWrapper}
-          onSaveSpecialNote={handleSaveSpecialNoteWrapper}
-          notifications={notifications}
-          setTodos={setTodos}
-        />
-
-        {/* Training Plans Modal */}
-        <TrainingPlansModal
-          isOpen={isTrainingPlanModalOpen}
-          onClose={() => {
-            setIsTrainingPlanModalOpen(false)
-            setSelectedUserForTrainingPlan(null)
-          }}
-          selectedMember={selectedUserForTrainingPlan}
-          memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
-          availableTrainingPlans={availableTrainingPlans}
-          onAssignPlan={handleAssignTrainingPlan}
-          onRemovePlan={handleRemoveTrainingPlan}
-        />
-
-        {/* Appointment Action Modal */}
-        <AppointmentActionModalV2
-          isOpen={showAppointmentOptionsModal}
-          onClose={() => {
-            setShowAppointmentOptionsModal(false)
-            setSelectedAppointment(null)
-          }}
-          appointment={selectedAppointment}
-          isEventInPast={isEventInPast}
-          onEdit={() => {
-            setShowAppointmentOptionsModal(false)
-            setIsEditAppointmentModalOpen(true)
-          }}
-          onCancel={handleCancelAppointment}
-          onViewMember={handleViewMemberDetails}
-        />
-
-        {/* Notify Member Modal */}
-        <NotifyMemberModal
-          isOpen={isNotifyMemberOpen}
-          onClose={() => setIsNotifyMemberOpen(false)}
-          notifyAction={notifyAction}
-          actuallyHandleCancelAppointment={actuallyHandleCancelAppointmentWrapper}
-          handleNotifyMember={handleNotifyMember}
-        />
-
-        {/* Edit Appointment Modal */}
-        {isEditAppointmentModalOpen && selectedAppointment && (
-          <EditAppointmentModalV2
-            selectedAppointment={selectedAppointment}
-            setSelectedAppointment={setSelectedAppointment}
-            appointmentTypes={appointmentTypes}
-            freeAppointments={freeAppointments}
-            handleAppointmentChange={(changes) => {
-              setSelectedAppointment({ ...selectedAppointment, ...changes })
-            }}
-            appointments={appointments}
-            setAppointments={setAppointments}
-            setIsNotifyMemberOpen={setIsNotifyMemberOpen}
-            setNotifyAction={setNotifyAction}
-            onDelete={handleDeleteAppointmentWrapper}
-            onClose={() => {
-              setIsEditAppointmentModalOpen(false)
-              setSelectedAppointment(null)
-            }}
-          />
-        )}
-
-        {/* Widget Selection Modal */}
-        <WidgetSelectionModal
-          isOpen={isRightWidgetModalOpen}
-          onClose={() => setIsRightWidgetModalOpen(false)}
-          onSelectWidget={handleAddRightSidebarWidget}
-          getWidgetStatus={(widgetType) => getWidgetPlacementStatus(widgetType, "sidebar")}
-          widgetArea="sidebar"
-        />
-
-        {/* Mobile sidebar overlay */}
-        {isRightSidebarOpen && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={closeSidebar} />}
-
-        {/* Edit Task Modal from Sidebar */}
-        {isEditTaskModalOpen && editingTask && (
-          <EditTaskModal
-            task={editingTask}
-            onClose={() => {
-              setIsEditTaskModalOpen(false)
-              setEditingTask(null)
-            }}
-            onUpdateTask={handleUpdateTaskWrapper}
-          />
-        )}
-
-        {/* Task Delete Confirmation */}
-        {taskToDelete && (
-          <div className="fixed inset-0 text-white bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-[#181818] rounded-xl p-6 max-w-md w-full">
-              <h3 className="text-lg font-semibold mb-4">Delete Task</h3>
-              <p className="text-gray-300 mb-6">
-                Are you sure you want to delete this task? This action cannot be undone.
-              </p>
-              <div className="flex gap-3 justify-end">
-                <button
-                  onClick={() => setTaskToDelete(null)}
-                  className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#2F2F2F]/90"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => handleDeleteTaskWrapper(taskToDelete)}
-                  className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Task Cancel Confirmation */}
-        {taskToCancel && (
-          <div className="fixed inset-0 bg-black/50 text-white flex items-center justify-center z-50 p-4">
-            <div className="bg-[#181818] rounded-xl p-6 max-w-md w-full">
-              <h3 className="text-lg font-semibold mb-4">Cancel Task</h3>
-              <p className="text-gray-300 mb-6">Are you sure you want to cancel this task?</p>
-              <div className="flex gap-3 justify-end">
-                <button
-                  onClick={() => setTaskToCancel(null)}
-                  className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#2F2F2F]/90"
-                >
-                  No
-                </button>
-                <button
-                  onClick={() => handleCancelTaskWrapper(taskToCancel)}
-                  className="px-4 py-2 bg-orange-600 text-white rounded-xl hover:bg-orange-700"
-                >
-                  Cancel Task
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </>
   )

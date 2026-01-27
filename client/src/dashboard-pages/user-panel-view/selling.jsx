@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react/no-unknown-property */
 /* eslint-disable no-unused-vars */
-import { useState, useRef, useEffect, useCallback } from "react"
+import { useState, useRef, useEffect, useCallback, useContext } from "react"
 import { X, Plus, ShoppingBasket, ExternalLink, History, Search, Trash2, ShoppingCart, ArrowUpDown, ArrowUp, ArrowDown, GripVertical, Edit, Copy } from "lucide-react"
 import { RiServiceFill } from "react-icons/ri"
 import SidebarAreaSelling from "../../components/user-panel-components/selling-components/custom-sidebar-selling"
@@ -12,12 +12,11 @@ import DeleteConfirmationModal from "../../components/user-panel-components/sell
 import SalesJournalModal from "../../components/user-panel-components/selling-components/sales-journal-modal"
 import CheckoutConfirmationModal from "../../components/user-panel-components/selling-components/checkout-confirmation-modal"
 import { productsMainData, sellingMainData, serviceMainData, formatCurrency, getCurrencySymbol } from "../../utils/user-panel-states/selling-states"
-import { useSidebarSystem } from "../../hooks/useSidebarSystem"
-import { trainingVideosData } from "../../utils/user-panel-states/training-states"
 import ProductServiceModal from "../../components/user-panel-components/selling-components/product-service-modal"
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import { ExternalSidebarContext } from "../../layouts/dashboard-layout"
 
 // Sortable Product/Service Card Component
 const SortableItemCard = ({ item, children, isDragDisabled }) => {
@@ -80,8 +79,9 @@ const getTextSizeClass = (text, isCard = false) => {
 }
 
 const Selling = () => {
-  const sidebarSystem = useSidebarSystem()
-  const trainingVideos = trainingVideosData
+  // Use context to communicate sidebar state to dashboard layout
+  const { isExternalSidebarOpen: isRightSidebarOpen, setIsExternalSidebarOpen: setIsRightSidebarOpen } = useContext(ExternalSidebarContext)
+  
   const [dropdownOpen, setDropdownOpen] = useState(null)
 
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -745,11 +745,6 @@ Payment: ${sale.paymentMethod}
     setCart(cart.map((item) => (item.id === itemId ? { ...item, vatRate: newVatRate } : item)))
   }
 
-  const {
-    isRightSidebarOpen,
-    setIsRightSidebarOpen,
-  } = sidebarSystem
-
   const sortedItems = getFilteredAndSortedItems()
   const itemIds = sortedItems.map(item => item.id)
 
@@ -776,7 +771,6 @@ Payment: ${sale.paymentMethod}
         className={`
           min-h-screen rounded-3xl text-white bg-[#1C1C1C] md:p-6 p-3
           transition-all duration-500 ease-in-out flex-1
-          ${isRightSidebarOpen ? "lg:mr-86 mr-0" : "mr-0"}
         `}
       >
         <main className="flex-1 min-w-0">

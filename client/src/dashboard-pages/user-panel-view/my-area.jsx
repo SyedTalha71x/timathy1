@@ -36,7 +36,6 @@ import TrainingPlanModal from "../../components/myarea-components/TrainingPlanMo
 import DraggableWidget from "../../components/myarea-components/DraggableWidget"
 import ContingentModal from "../../components/myarea-components/ContigentModal"
 
-import Sidebar from "../../components/myarea-components/MyAreaSidebar"
 import { SpecialNoteEditModal } from "../../components/myarea-components/SpecialNoteEditModal"
 import { WidgetSelectionModal } from "../../components/widget-selection-modal"
 
@@ -58,7 +57,6 @@ import AnalyticsChartWidget from "../../components/myarea-components/widgets/Ana
 import { appointmentsData } from "../../utils/user-panel-states/app-states"
 
 export default function MyArea() {
-  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
   const [openDropdownIndex, setOpenDropdownIndex] = useState(null)
   const [selectedMemberType, setSelectedMemberType] = useState("All members")
   const [isChartDropdownOpen, setIsChartDropdownOpen] = useState(false)
@@ -66,9 +64,7 @@ export default function MyArea() {
   const chartDropdownRef = useRef(null)
   const navigate = useNavigate()
   const [isWidgetModalOpen, setIsWidgetModalOpen] = useState(false)
-  const [isRightWidgetModalOpen, setIsRightWidgetModalOpen] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
-  const [isSidebarEditing, setIsSidebarEditing] = useState(false)
 
   const [notePosition, setNotePosition] = useState({ top: 0, left: 0 })
 
@@ -188,24 +184,8 @@ export default function MyArea() {
     { id: "shiftSchedule", type: "shiftSchedule", position: 9 }
   ])
 
-  // Add right sidebar widgets state
-  const [rightSidebarWidgets, setRightSidebarWidgets] = useState([
-    { id: "todo", type: "todo", position: 0 },
-    { id: "birthday", type: "birthday", position: 1 },
-    { id: "websiteLinks", type: "websiteLinks", position: 2 },
-    { id: "sidebarAppointments", type: "appointments", position: 3 },
-    { id: "sidebarExpiringContracts", type: "expiringContracts", position: 4 },
-    { id: "bulletinBoard", type: "bulletinBoard", position: 5 }, // Add this line
-
-    { id: "sidebarStaffCheckIn", type: "staffCheckIn", position: 6 },
-    { id: "notes", type: "notes", position: 7 },
-    { id: "shiftSchedule", type: "shiftSchedule", position: 8 }
-  ])
-
-  const toggleRightSidebar = () => setIsRightSidebarOpen(!isRightSidebarOpen)
   const toggleDropdown = (index) => setOpenDropdownIndex(openDropdownIndex === index ? null : index)
   const toggleEditing = () => setIsEditing(!isEditing)
-  const toggleSidebarEditing = () => setIsSidebarEditing(!isSidebarEditing) // Toggle sidebar edit mode
   const [activeNoteId, setActiveNoteId] = useState(null)
   const todoFilterDropdownRef = useRef(null)
 
@@ -561,17 +541,10 @@ export default function MyArea() {
           return { canAdd: false, location: "dashboard" }
         }
         return { canAdd: true, location: null }
-      } else if (widgetArea === "sidebar") {
-        // Only check sidebar widgets for sidebar area
-        const existsInSidebar = rightSidebarWidgets.some((widget) => widget.type === widgetType)
-        if (existsInSidebar) {
-          return { canAdd: false, location: "sidebar" }
-        }
-        return { canAdd: true, location: null }
       }
       return { canAdd: true, location: null }
     },
-    [widgets, rightSidebarWidgets],
+    [widgets],
   )
 
   const moveWidget = (fromIndex, toIndex) => {
@@ -589,30 +562,6 @@ export default function MyArea() {
 
   const removeWidget = (id) => {
     setWidgets((currentWidgets) => {
-      const filtered = currentWidgets.filter((w) => w.id !== id)
-      // Update positions after removal
-      return filtered.map((widget, index) => ({
-        ...widget,
-        position: index,
-      }))
-    })
-  }
-
-  const moveRightSidebarWidget = (fromIndex, toIndex) => {
-    if (toIndex < 0 || toIndex >= rightSidebarWidgets.length) return
-    const newWidgets = [...rightSidebarWidgets]
-    const [movedWidget] = newWidgets.splice(fromIndex, 1)
-    newWidgets.splice(toIndex, 0, movedWidget)
-    // Update positions
-    const updatedWidgets = newWidgets.map((widget, index) => ({
-      ...widget,
-      position: index,
-    }))
-    setRightSidebarWidgets(updatedWidgets)
-  }
-
-  const removeRightSidebarWidget = (id) => {
-    setRightSidebarWidgets((currentWidgets) => {
       const filtered = currentWidgets.filter((w) => w.id !== id)
       // Update positions after removal
       return filtered.map((widget, index) => ({
@@ -902,25 +851,6 @@ export default function MyArea() {
     setIsWidgetModalOpen(false)
     toast.success(`${widgetType} widget has been added successfully`)
   }
-
-
-
-  const handleAddRightSidebarWidget = (widgetType) => {
-    const { canAdd, location } = getWidgetPlacementStatus(widgetType, "sidebar")
-    if (!canAdd) {
-      toast.error(`This widget is already added to your ${location}.`)
-      return
-    }
-    const newWidget = {
-      id: `rightWidget_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      type: widgetType,
-      position: rightSidebarWidgets.length,
-    }
-    setRightSidebarWidgets((currentWidgets) => [...currentWidgets, newWidget])
-    setIsRightWidgetModalOpen(false)
-    toast.success(`${widgetType} widget has been added to sidebar`)
-  }
-
 
   const renderSpecialNoteIcon = useCallback(
     (specialNote, memberId, event) => {
@@ -1248,22 +1178,14 @@ export default function MyArea() {
         }}
       />
       <div className="flex flex-col md:flex-row rounded-3xl bg-[#1C1C1C] text-white min-h-screen">
-        {isRightSidebarOpen && (
-          <div className="fixed inset-0 bg-black/50 z-40 lg:hidden block" onClick={toggleRightSidebar} />
-        )}
         <main className="flex-1 min-w-0 p-2 overflow-hidden">
           <div className="p-1 md:p-5 space-y-4">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              {/* Top Row (Title + Menu on mobile, Title only on desktop) */}
+              {/* Top Row (Title) */}
               <div className="flex items-center gap-2 justify-between">
                 <div className="flex items-center gap-3">
                   <h1 className="text-xl font-bold">My Area</h1>
 
-                </div>
-
-                {/* Menu Icon → visible on mobile and medium screens */}
-                <div onClick={toggleRightSidebar} className="lg:hidden block">
-                  <img src="/icon.svg" className="h-5 w-5 cursor-pointer" alt="" />
                 </div>
               </div>
 
@@ -1798,63 +1720,6 @@ export default function MyArea() {
           </div>
         )}
 
-        <Sidebar
-          isRightSidebarOpen={isRightSidebarOpen}
-          toggleRightSidebar={toggleRightSidebar}
-          isSidebarEditing={isSidebarEditing}
-          toggleSidebarEditing={toggleSidebarEditing}
-          rightSidebarWidgets={rightSidebarWidgets}
-          moveRightSidebarWidget={moveRightSidebarWidget}
-          removeRightSidebarWidget={removeRightSidebarWidget}
-          setIsRightWidgetModalOpen={setIsRightWidgetModalOpen}
-          communications={communications}
-          todos={todos}
-          setTodos={setTodos}
-          handleTaskComplete={handleTaskComplete}
-          todoFilter={todoFilter}
-          setTodoFilter={setTodoFilter}
-          todoFilterOptions={todoFilterOptions}
-          isTodoFilterDropdownOpen={isTodoFilterDropdownOpen}
-          setIsTodoFilterDropdownOpen={setIsTodoFilterDropdownOpen}
-          openDropdownIndex={openDropdownIndex}
-          toggleDropdown={toggleDropdown}
-          handleEditTask={handleEditTask}
-          setTaskToCancel={setTaskToCancel}
-          setTaskToDelete={setTaskToDelete}
-          birthdays={birthdays}
-          isBirthdayToday={isBirthdayToday}
-          handleSendBirthdayMessage={handleSendBirthdayMessage}
-          customLinks={customLinks}
-          truncateUrl={truncateUrl}
-          appointments={appointments}
-          renderSpecialNoteIcon={renderSpecialNoteIcon}
-          handleDumbbellClick={handleDumbbellClick}
-          handleCheckIn={handleCheckIn}
-          handleAppointmentOptionsModal={handleAppointmentOptionsModal}
-          selectedMemberType={selectedMemberType}
-          setSelectedMemberType={setSelectedMemberType}
-          memberTypes={memberTypes}
-          isChartDropdownOpen={isChartDropdownOpen}
-          setIsChartDropdownOpen={setIsChartDropdownOpen}
-          chartOptions={chartOptions}
-          chartSeries={chartSeries}
-          expiringContracts={expiringContracts}
-          getWidgetPlacementStatus={getWidgetPlacementStatus}
-          onClose={toggleRightSidebar}
-          hasUnreadNotifications={2} // Add appropriate value
-          setIsWidgetModalOpen={setIsWidgetModalOpen}
-          handleEditNote={handleEditNote}
-          activeNoteId={activeNoteId}
-          setActiveNoteId={setActiveNoteId}
-          isSpecialNoteModalOpen={isSpecialNoteModalOpen}
-          setIsSpecialNoteModalOpen={setIsSpecialNoteModalOpen}
-          selectedAppointmentForNote={selectedAppointmentForNote}
-          setSelectedAppointmentForNote={setSelectedAppointmentForNote}
-          handleSaveSpecialNote={handleSaveSpecialNote}
-          onSaveSpecialNote={handleSaveSpecialNote}
-          notifications={notifications}
-
-        />
         {isAddTaskModalOpen && <AddTaskModal
           onClose={() => setIsAddTaskModalOpen(false)}
           onAddTask={handleAddTask}
@@ -1929,13 +1794,6 @@ export default function MyArea() {
           onSelectWidget={handleAddWidget}
           getWidgetStatus={(widgetType) => getWidgetPlacementStatus(widgetType, "dashboard")}
           widgetArea="dashboard"
-        />
-        <WidgetSelectionModal
-          isOpen={isRightWidgetModalOpen}
-          onClose={() => setIsRightWidgetModalOpen(false)}
-          onSelectWidget={handleAddRightSidebarWidget}
-          getWidgetStatus={(widgetType) => getWidgetPlacementStatus(widgetType, "sidebar")}
-          widgetArea="sidebar"
         />
 
         {isEditAppointmentModalOpen && selectedAppointment && (
