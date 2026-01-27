@@ -46,15 +46,24 @@ import AppointmentActionModalV2 from "../../components/myarea-components/Appoint
 import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
 import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
 
+// Communication imports
+import ChatPopup from "../../components/shared/ChatPopup"
+import MessageTypeSelectionModal from "../../components/shared/MessageTypeSelectionModal"
+import SendEmailModal from "../../components/shared/SendEmailModal"
+import DraftModal from "../../components/shared/DraftModal"
+import { membersData, staffData } from "../../utils/user-panel-states/app-states"
+
 // ============================================
 // Sample Data for Activity Monitor
+// Using REAL IDs from app-states.jsx
 // ============================================
 const initialVacationRequests = [
   {
     id: "vac-1",
-    employeeFirstName: "Max",
-    employeeLastName: "Mustermann",
-    department: "Fitness",
+    staffId: 2, // John Trainer from staffData
+    employeeFirstName: "John",
+    employeeLastName: "Trainer",
+    department: "Training",
     startDate: "2026-02-15",
     endDate: "2026-02-22",
     days: 6,
@@ -64,8 +73,9 @@ const initialVacationRequests = [
   },
   {
     id: "vac-2",
-    employeeFirstName: "Anna",
-    employeeLastName: "Schmidt",
+    staffId: 5, // Lisa Reception from staffData
+    employeeFirstName: "Lisa",
+    employeeLastName: "Reception",
     department: "Reception",
     startDate: "2026-03-01",
     endDate: "2026-03-05",
@@ -76,9 +86,10 @@ const initialVacationRequests = [
   },
   {
     id: "vac-3",
-    employeeFirstName: "Thomas",
-    employeeLastName: "Weber",
-    department: "Personal Training",
+    staffId: 3, // Sarah Coach from staffData
+    employeeFirstName: "Sarah",
+    employeeLastName: "Coach",
+    department: "Training",
     startDate: "2026-01-25",
     endDate: "2026-01-26",
     days: 2,
@@ -91,37 +102,40 @@ const initialVacationRequests = [
 const initialAppointmentRequests = [
   {
     id: "app-1",
-    memberFirstName: "Lisa",
-    memberLastName: "Müller",
+    memberId: 1, // John Doe from membersData
+    memberFirstName: "John",
+    memberLastName: "Doe",
     appointmentType: "Trial Training",
     requestedDate: "2026-01-22",
     requestedTimeStart: "14:00",
     requestedTimeEnd: "15:00",
-    trainer: "Max Mustermann",
+    trainer: "John Trainer",
     status: "pending",
     submittedAt: "2026-01-19T16:45:00",
   },
   {
     id: "app-2",
-    memberFirstName: "Peter",
-    memberLastName: "Klein",
+    memberId: 3, // Michael Johnson from membersData
+    memberFirstName: "Michael",
+    memberLastName: "Johnson",
     appointmentType: "Nutrition Consultation",
     requestedDate: "2026-01-23",
     requestedTimeStart: "10:00",
     requestedTimeEnd: "10:30",
-    trainer: "Anna Schmidt",
+    trainer: "Sarah Coach",
     status: "pending",
     submittedAt: "2026-01-18T11:20:00",
   },
   {
     id: "app-3",
+    memberId: 4, // Sarah Williams from membersData
     memberFirstName: "Sarah",
-    memberLastName: "Wagner",
+    memberLastName: "Williams",
     appointmentType: "Personal Training",
     requestedDate: "2026-01-21",
     requestedTimeStart: "09:00",
     requestedTimeEnd: "10:00",
-    trainer: "Thomas Weber",
+    trainer: "John Trainer",
     status: "approved",
     submittedAt: "2026-01-17T08:30:00",
   },
@@ -130,34 +144,37 @@ const initialAppointmentRequests = [
 const initialExpiringContracts = [
   {
     id: "con-1",
-    memberFirstName: "Julia",
-    memberLastName: "Hoffmann",
+    memberId: 10, // Jennifer Martinez from membersData
+    memberFirstName: "Jennifer",
+    memberLastName: "Martinez",
     membershipType: "Premium",
     contractStart: "2025-02-01",
     contractEnd: "2026-01-31",
-    daysRemaining: 11,
+    daysRemaining: 4,
     monthlyFee: 79.99,
     autoRenewal: false,
   },
   {
     id: "con-2",
-    memberFirstName: "Michael",
-    memberLastName: "Braun",
+    memberId: 8, // Lisa Garcia from membersData
+    memberFirstName: "Lisa",
+    memberLastName: "Garcia",
     membershipType: "Standard",
     contractStart: "2024-08-15",
-    contractEnd: "2026-02-14",
-    daysRemaining: 25,
+    contractEnd: "2026-02-01",
+    daysRemaining: 5,
     monthlyFee: 49.99,
     autoRenewal: true,
   },
   {
     id: "con-3",
-    memberFirstName: "Elena",
-    memberLastName: "Fischer",
+    memberId: 4, // Sarah Williams from membersData
+    memberFirstName: "Sarah",
+    memberLastName: "Williams",
     membershipType: "Premium Plus",
     contractStart: "2025-03-01",
-    contractEnd: "2026-02-28",
-    daysRemaining: 39,
+    contractEnd: "2026-02-09",
+    daysRemaining: 13,
     monthlyFee: 99.99,
     autoRenewal: false,
   },
@@ -166,9 +183,10 @@ const initialExpiringContracts = [
 const initialFailedEmails = [
   {
     id: "mail-1",
-    recipient: "customer@example.com",
-    recipientFirstName: "Martin",
-    recipientLastName: "Schulz",
+    memberId: 5, // David Brown from membersData
+    recipient: "david.brown@example.com",
+    recipientFirstName: "David",
+    recipientLastName: "Brown",
     subject: "Your Membership Confirmation",
     sentAt: "2026-01-19T08:00:00",
     errorType: "bounced",
@@ -178,9 +196,10 @@ const initialFailedEmails = [
   },
   {
     id: "mail-2",
-    recipient: "info@company.de",
-    recipientFirstName: "Corporate",
-    recipientLastName: "Client",
+    memberId: 6, // Emily Davis from membersData
+    recipient: "emily.davis@example.com",
+    recipientFirstName: "Emily",
+    recipientLastName: "Davis",
     subject: "Invoice January 2026",
     sentAt: "2026-01-18T14:30:00",
     errorType: "rejected",
@@ -190,9 +209,10 @@ const initialFailedEmails = [
   },
   {
     id: "mail-3",
-    recipient: "m.mustermann@studio.de",
-    recipientFirstName: "Max",
-    recipientLastName: "Mustermann",
+    staffId: 2, // John Trainer from staffData
+    recipient: "john.trainer@studio.de",
+    recipientFirstName: "John",
+    recipientLastName: "Trainer",
     subject: "Shift Schedule Update",
     sentAt: "2026-01-19T09:15:00",
     errorType: "bounced",
@@ -202,9 +222,10 @@ const initialFailedEmails = [
   },
   {
     id: "mail-4",
-    recipient: "a.schmidt@studio.de",
-    recipientFirstName: "Anna",
-    recipientLastName: "Schmidt",
+    staffId: 3, // Sarah Coach from staffData
+    recipient: "sarah.coach@studio.de",
+    recipientFirstName: "Sarah",
+    recipientLastName: "Coach",
     subject: "Vacation Request Approved",
     sentAt: "2026-01-18T11:00:00",
     errorType: "rejected",
@@ -218,8 +239,9 @@ const initialFailedEmails = [
 const initialContractPauseRequests = [
   {
     id: "pause-1",
-    memberFirstName: "Sophie",
-    memberLastName: "Becker",
+    memberId: 2, // Jane Smith from membersData
+    memberFirstName: "Jane",
+    memberLastName: "Smith",
     membershipType: "Premium",
     pauseStart: "2026-02-01",
     pauseEnd: "2026-03-15",
@@ -232,8 +254,9 @@ const initialContractPauseRequests = [
   },
   {
     id: "pause-2",
-    memberFirstName: "Lukas",
-    memberLastName: "Zimmermann",
+    memberId: 6, // Emily Davis from membersData
+    memberFirstName: "Emily",
+    memberLastName: "Davis",
     membershipType: "Standard",
     pauseStart: "2026-02-15",
     pauseEnd: "2026-03-31",
@@ -246,17 +269,18 @@ const initialContractPauseRequests = [
   },
   {
     id: "pause-3",
-    memberFirstName: "Hannah",
-    memberLastName: "Wolf",
+    memberId: 7, // Robert Miller from membersData
+    memberFirstName: "Robert",
+    memberLastName: "Miller",
     membershipType: "Premium Plus",
     pauseStart: "2026-01-20",
     pauseEnd: "2026-02-20",
     pauseDuration: 4,
-    reason: "Pregnancy",
+    reason: "Work relocation",
     status: "approved",
     submittedAt: "2026-01-10T11:00:00",
     monthlyFee: 99.99,
-    attachments: [{ name: "pregnancy_confirmation.pdf", type: "pdf" }],
+    attachments: [{ name: "relocation_confirmation.pdf", type: "pdf" }],
   },
 ]
 
@@ -264,8 +288,9 @@ const initialContractPauseRequests = [
 const initialBankDataRequests = [
   {
     id: "bank-1",
-    memberFirstName: "Felix",
-    memberLastName: "Neumann",
+    memberId: 3, // Michael Johnson from membersData
+    memberFirstName: "Michael",
+    memberLastName: "Johnson",
     membershipType: "Premium",
     changeType: "fullBankChange",
     oldBankName: "Deutsche Bank",
@@ -279,19 +304,21 @@ const initialBankDataRequests = [
   },
   {
     id: "bank-2",
-    memberFirstName: "Lena",
-    memberLastName: "Krause",
+    memberId: 1, // John Doe from membersData
+    memberFirstName: "John",
+    memberLastName: "Doe",
     membershipType: "Standard",
     changeType: "accountHolder",
-    oldValue: "Lena Krause",
-    newValue: "Lena Krause-Meyer",
+    oldValue: "John Doe",
+    newValue: "John M. Doe",
     status: "pending",
     submittedAt: "2026-01-18T10:45:00",
   },
   {
     id: "bank-3",
-    memberFirstName: "Jan",
-    memberLastName: "Richter",
+    memberId: 9, // Thomas Anderson from membersData
+    memberFirstName: "Thomas",
+    memberLastName: "Anderson",
     membershipType: "Premium Plus",
     changeType: "fullBankChange",
     oldBankName: "Sparkasse Berlin",
@@ -309,8 +336,9 @@ const initialBankDataRequests = [
 const initialMemberDataRequests = [
   {
     id: "member-1",
-    memberFirstName: "Christina",
-    memberLastName: "Lang",
+    memberId: 4, // Sarah Williams from membersData
+    memberFirstName: "Sarah",
+    memberLastName: "Williams",
     membershipType: "Premium",
     changeType: "address",
     fieldLabel: "Address",
@@ -321,32 +349,35 @@ const initialMemberDataRequests = [
   },
   {
     id: "member-2",
-    memberFirstName: "Tobias",
-    memberLastName: "Schröder",
+    memberId: 8, // Lisa Garcia from membersData
+    memberFirstName: "Lisa",
+    memberLastName: "Garcia",
     membershipType: "Standard",
     changeType: "lastName",
     fieldLabel: "Last Name",
-    oldValue: "Schröder",
-    newValue: "Schröder-Hansen",
+    oldValue: "Garcia",
+    newValue: "Garcia-Rodriguez",
     status: "pending",
     submittedAt: "2026-01-18T15:00:00",
   },
   {
     id: "member-3",
-    memberFirstName: "Melanie",
-    memberLastName: "Vogel",
+    memberId: 9, // Thomas Anderson from membersData
+    memberFirstName: "Thomas",
+    memberLastName: "Anderson",
     membershipType: "Premium Plus",
     changeType: "email",
     fieldLabel: "Email",
-    oldValue: "m.vogel@oldmail.de",
-    newValue: "melanie.vogel@newmail.de",
+    oldValue: "t.anderson@oldmail.de",
+    newValue: "thomas.anderson@newmail.de",
     status: "pending",
     submittedAt: "2026-01-17T13:15:00",
   },
   {
     id: "member-4",
-    memberFirstName: "Markus",
-    memberLastName: "Keller",
+    memberId: 5, // David Brown from membersData
+    memberFirstName: "David",
+    memberLastName: "Brown",
     membershipType: "Standard",
     changeType: "phone",
     fieldLabel: "Phone",
@@ -510,6 +541,15 @@ export default function ActivityMonitor() {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
   const [showFilterDropdown, setShowFilterDropdown] = useState(false)
   const filterDropdownRef = useRef(null)
+
+  // Communication Modal States (like members.jsx pattern)
+  const [selectedMemberForContact, setSelectedMemberForContact] = useState(null)
+  const [selectedMemberForEmail, setSelectedMemberForEmail] = useState(null)
+  const [showMessageTypeModal, setShowMessageTypeModal] = useState(false)
+  const [chatPopup, setChatPopup] = useState({ isOpen: false, member: null })
+  const [showSendEmailModal, setShowSendEmailModal] = useState(false)
+  const [showDraftModal, setShowDraftModal] = useState(false)
+  const [emailData, setEmailData] = useState({ to: "", subject: "", body: "", recipientName: "" })
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -773,9 +813,113 @@ export default function ActivityMonitor() {
     // In production: trigger email resend
   }
 
-  const handleContactMember = (contract) => {
-    toast.success(`Contacting ${contract.memberFirstName} ${contract.memberLastName}...`)
-    // In production: open communication modal or redirect
+  // ============================================
+  // Communication Handlers
+  // ============================================
+  const handleContactMember = (item) => {
+    // Find the real member data from membersData based on memberId
+    const memberId = item.memberId
+    const realMember = memberId ? membersData.find(m => m.id === memberId) : null
+    
+    const memberData = realMember ? {
+      id: realMember.id,
+      firstName: realMember.firstName,
+      lastName: realMember.lastName,
+      email: realMember.email,
+      image: realMember.image,
+      type: 'member'
+    } : {
+      // Fallback if no real member found
+      id: item.id,
+      firstName: item.memberFirstName,
+      lastName: item.memberLastName,
+      email: item.email || `${item.memberFirstName?.toLowerCase()}.${item.memberLastName?.toLowerCase()}@example.com`,
+      image: null,
+      type: 'member'
+    }
+    
+    setSelectedMemberForContact(memberData)
+    setShowMessageTypeModal(true)
+  }
+
+  const handleSelectAppChat = () => {
+    // Copy member to chatPopup state (like members.jsx pattern)
+    if (selectedMemberForContact) {
+      setChatPopup({
+        isOpen: true,
+        member: selectedMemberForContact
+      })
+    }
+  }
+
+  const handleSelectEmail = () => {
+    // Copy member to separate email state (like members.jsx pattern)
+    if (selectedMemberForContact) {
+      setSelectedMemberForEmail(selectedMemberForContact)
+      setEmailData({
+        to: selectedMemberForContact.email || "",
+        subject: "",
+        body: "",
+        recipientName: `${selectedMemberForContact.firstName || ""} ${selectedMemberForContact.lastName || ""}`.trim()
+      })
+      setShowSendEmailModal(true)
+    }
+  }
+
+  const handleCloseChatPopup = () => {
+    setChatPopup({ isOpen: false, member: null })
+  }
+
+  const handleCloseEmailModal = () => {
+    // Check if there's unsaved content
+    if (emailData.subject || emailData.body) {
+      setShowDraftModal(true)
+    } else {
+      setShowSendEmailModal(false)
+      setSelectedMemberForEmail(null)
+      setEmailData({ to: "", subject: "", body: "", recipientName: "" })
+    }
+  }
+
+  const handleSendEmail = (data) => {
+    toast.success(`Email sent to ${data.to}`)
+    setShowSendEmailModal(false)
+    setSelectedMemberForEmail(null)
+    setEmailData({ to: "", subject: "", body: "", recipientName: "" })
+  }
+
+  const handleSaveAsDraft = () => {
+    toast.success("Email saved as draft")
+    setShowDraftModal(false)
+    setShowSendEmailModal(false)
+    setSelectedMemberForEmail(null)
+    setEmailData({ to: "", subject: "", body: "", recipientName: "" })
+  }
+
+  const handleDiscardDraft = () => {
+    setShowDraftModal(false)
+    setShowSendEmailModal(false)
+    setSelectedMemberForEmail(null)
+    setEmailData({ to: "", subject: "", body: "", recipientName: "" })
+  }
+
+  const handleSearchMemberForEmail = (query) => {
+    if (!query) return []
+    const q = query.toLowerCase()
+    return membersData.filter(m => 
+      m.firstName?.toLowerCase().includes(q) ||
+      m.lastName?.toLowerCase().includes(q) ||
+      m.email?.toLowerCase().includes(q) ||
+      `${m.firstName} ${m.lastName}`.toLowerCase().includes(q)
+    ).map(m => ({
+      id: m.id,
+      email: m.email,
+      name: `${m.firstName || ''} ${m.lastName || ''}`.trim(),
+      firstName: m.firstName,
+      lastName: m.lastName,
+      image: m.image,
+      type: 'member'
+    })).slice(0, 10)
   }
 
   const handleRefresh = () => {
@@ -2312,6 +2456,45 @@ export default function ActivityMonitor() {
           </div>
         </div>
       )}
+
+      {/* Communication Modals */}
+      <MessageTypeSelectionModal
+        isOpen={showMessageTypeModal}
+        onClose={() => {
+          setShowMessageTypeModal(false)
+          setSelectedMemberForContact(null)
+        }}
+        member={selectedMemberForContact}
+        onSelectAppChat={handleSelectAppChat}
+        onSelectEmail={handleSelectEmail}
+        context="member"
+      />
+
+      {chatPopup.isOpen && chatPopup.member && (
+        <ChatPopup
+          member={chatPopup.member}
+          isOpen={chatPopup.isOpen}
+          onClose={handleCloseChatPopup}
+          context="member"
+        />
+      )}
+
+      <SendEmailModal
+        showEmailModal={showSendEmailModal}
+        handleCloseEmailModal={handleCloseEmailModal}
+        handleSendEmail={handleSendEmail}
+        emailData={emailData}
+        setEmailData={setEmailData}
+        handleSearchMemberForEmail={handleSearchMemberForEmail}
+        preselectedMember={selectedMemberForEmail}
+      />
+
+      <DraftModal
+        show={showDraftModal}
+        onClose={() => setShowDraftModal(false)}
+        onDiscard={handleDiscardDraft}
+        onSave={handleSaveAsDraft}
+      />
     </>
   )
 }

@@ -315,7 +315,7 @@ const ReplyEmailTagInput = ({
 const HighlightedText = ({ text, isUserMessage }) => {
   if (!text) return null;
   
-  const dateTimeRegex = /(\d{1,2}\.\d{1,2}\.\d{2,4}|\d{4}-\d{2}-\d{2}|\d{1,2}\/\d{1,2}\/\d{2,4}|\d{1,2}:\d{2}(?:\s*(?:Uhr|AM|PM|am|pm))?|(?:Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag|Sonntag|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)|(?:heute|morgen|gestern|ÃƒÂ¼bermorgen|today|tomorrow|yesterday))/gi;
+  const dateTimeRegex = /(\d{1,2}\.\d{1,2}\.\d{2,4}|\d{4}-\d{2}-\d{2}|\d{1,2}\/\d{1,2}\/\d{2,4}|\d{1,2}:\d{2}(?:\s*(?:Uhr|AM|PM|am|pm))?|(?:Montag|Dienstag|Mittwoch|Donnerstag|Freitag|Samstag|Sonntag|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)|(?:heute|morgen|gestern|ÃƒÆ’Ã‚Â¼bermorgen|today|tomorrow|yesterday))/gi;
 
   const parts = text.split(dateTimeRegex);
   const matches = text.match(dateTimeRegex) || [];
@@ -2139,7 +2139,7 @@ export default function Communications() {
   }
 
   const handleSendEmail = (emailDataWithAttachments) => {
-    // SendEmailModal liefert to als Array, also prÃƒÂ¼fen wir die LÃƒÂ¤nge
+    // SendEmailModal liefert to als Array, also prÃƒÆ’Ã‚Â¼fen wir die LÃƒÆ’Ã‚Â¤nge
     const toEmails = Array.isArray(emailDataWithAttachments.to) 
       ? emailDataWithAttachments.to 
       : [emailDataWithAttachments.to].filter(Boolean);
@@ -2245,6 +2245,14 @@ export default function Communications() {
     const fullAppointment = {
       ...appointment,
       name: member ? `${member.firstName} ${member.lastName}` : "Member",
+      // Include member image for avatar display
+      memberImage: member?.image || null,
+      // Include member note data for special note icon
+      memberNote: member?.note || "",
+      memberNoteImportance: member?.noteImportance || "unimportant",
+      memberNoteStartDate: member?.noteStartDate || "",
+      memberNoteEndDate: member?.noteEndDate || "",
+      memberNotes: member?.notes || [],
       specialNote: appointment.specialNote || {
         text: "",
         isImportant: false,
@@ -3476,7 +3484,7 @@ export default function Communications() {
                           title="Click to remove"
                         >
                           <span>{messageReactions[message.id]}</span>
-                          <span className="opacity-0 group-hover/reaction:opacity-100 text-xs text-gray-400">Ã¢Å“â€¢</span>
+                          <span className="opacity-0 group-hover/reaction:opacity-100 text-xs text-gray-400">ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¢</span>
                         </button>
                       </div>
                     )}
@@ -3997,7 +4005,7 @@ export default function Communications() {
                       <p className="text-xs text-gray-500 mt-1">
                         To: {selectedEmail.recipient}
                         {selectedEmail.recipientEmail && <span> &lt;{selectedEmail.recipientEmail}&gt;</span>}
-                        {selectedEmail.cc && <span> Ã¢â‚¬Â¢ CC: {selectedEmail.cc}</span>}
+                        {selectedEmail.cc && <span> ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ CC: {selectedEmail.cc}</span>}
                       </p>
                     </div>
                     <div className="text-right">
@@ -5253,6 +5261,8 @@ export default function Communications() {
           setIsNotifyMemberOpenMain={setIsNotifyMemberOpen}
           setNotifyActionMain={setNotifyAction}
           onDelete={handleDeleteAppointment}
+          onOpenEditMemberModal={handleEditMember}
+          memberRelations={memberRelationsState}
           onClose={() => {
             setShowSelectedAppointmentModal(false);
             setSelectedAppointmentData(null);
