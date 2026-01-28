@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState, forwardRef, useImperativeHand
 import dayGridPlugin from "@fullcalendar/daygrid"
 import timeGridPlugin from "@fullcalendar/timegrid"
 import interactionPlugin from "@fullcalendar/interaction"
+import { X } from "lucide-react"
 
 import CreateAppointmentModal from "./add-appointment-modal"
 import BlockAppointmentModal from "./block-appointment-modal"
@@ -16,7 +17,7 @@ import NotifyMemberModalMain from "./calendar-components/NotifyMemberModalMain"
 import TypeSelectionModalMain from "./calendar-components/TypeSelectionModalMain"
 import EditBlockedSlotModalMain from "./calendar-components/EditBlockedSlotModalMain"
 
-import "../../../custom-css/calendar-fixes.css"
+
 import { useNavigate } from "react-router-dom"
 
 const Calendar = forwardRef(({
@@ -76,6 +77,7 @@ const Calendar = forwardRef(({
   const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false)
   const [notifyAction, setNotifyAction] = useState("change")
   const [pendingEventInfo, setPendingEventInfo] = useState(null)
+  const [originalEventData, setOriginalEventData] = useState(null)
   const [isTypeSelectionOpen, setIsTypeSelectionOpen] = useState(false)
   const [selectedSlotInfo, setSelectedSlotInfo] = useState(null)
   const [isTrialModalOpen, setIsTrialModalOpen] = useState(false)
@@ -112,6 +114,32 @@ const Calendar = forwardRef(({
     return currentDateDisplay
   }
 
+  // Helper function to get the appropriate date for selection
+  // If today is within the view range, return today, otherwise return the view start
+  const getDateForSelection = (view) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const viewStart = new Date(view.currentStart);
+    viewStart.setHours(0, 0, 0, 0);
+    const viewEnd = new Date(view.currentEnd);
+    viewEnd.setHours(0, 0, 0, 0);
+    
+    // Check if today is within the view range
+    if (today >= viewStart && today < viewEnd) {
+      return today;
+    }
+    
+    // Otherwise return the first day of the view
+    if (view.type === "dayGridMonth") {
+      // For month view, return the first day of the actual month (not the view start which might be from prev month)
+      const midDate = new Date(view.currentStart);
+      midDate.setDate(midDate.getDate() + 15);
+      return new Date(midDate.getFullYear(), midDate.getMonth(), 1);
+    }
+    
+    return viewStart;
+  };
+
   // Expose calendar API methods via ref
   useImperativeHandle(ref, () => ({
     prev: () => {
@@ -120,15 +148,9 @@ const Calendar = forwardRef(({
         calendarApi.prev();
         setCurrentDate(calendarApi.getDate().toISOString().split("T")[0]);
         
-        // Berechne das richtige Datum basierend auf dem View-Typ
         const view = calendarApi.view;
-        let dateForMiniCalendar = view.currentStart;
-        if (view.type === "dayGridMonth") {
-          const midDate = new Date(view.currentStart);
-          midDate.setDate(midDate.getDate() + 15);
-          dateForMiniCalendar = new Date(midDate.getFullYear(), midDate.getMonth(), 1);
-        }
-        onCurrentDateChange?.(dateForMiniCalendar, true);
+        const dateForSelection = getDateForSelection(view);
+        onCurrentDateChange?.(dateForSelection, true);
         
         setTimeout(() => {
           const display = formatDateRange(calendarApi.getDate());
@@ -143,15 +165,9 @@ const Calendar = forwardRef(({
         calendarApi.next();
         setCurrentDate(calendarApi.getDate().toISOString().split("T")[0]);
         
-        // Berechne das richtige Datum basierend auf dem View-Typ
         const view = calendarApi.view;
-        let dateForMiniCalendar = view.currentStart;
-        if (view.type === "dayGridMonth") {
-          const midDate = new Date(view.currentStart);
-          midDate.setDate(midDate.getDate() + 15);
-          dateForMiniCalendar = new Date(midDate.getFullYear(), midDate.getMonth(), 1);
-        }
-        onCurrentDateChange?.(dateForMiniCalendar, true);
+        const dateForSelection = getDateForSelection(view);
+        onCurrentDateChange?.(dateForSelection, true);
         
         setTimeout(() => {
           const display = formatDateRange(calendarApi.getDate());
@@ -165,15 +181,10 @@ const Calendar = forwardRef(({
       if (calendarApi) {
         calendarApi.changeView(viewType);
         
-        // Berechne das richtige Datum basierend auf dem View-Typ
-        const view = calendarApi.view;
-        let dateForMiniCalendar = view.currentStart;
-        if (viewType === "dayGridMonth") {
-          const midDate = new Date(view.currentStart);
-          midDate.setDate(midDate.getDate() + 15);
-          dateForMiniCalendar = new Date(midDate.getFullYear(), midDate.getMonth(), 1);
+        // Nach View-Wechsel zum ausgewählten Datum navigieren
+        if (selectedDate) {
+          calendarApi.gotoDate(selectedDate);
         }
-        onCurrentDateChange?.(dateForMiniCalendar, true);
         
         setTimeout(() => {
           const display = formatDateRange(calendarApi.getDate());
@@ -194,7 +205,7 @@ const Calendar = forwardRef(({
     setIsAppointmentActionModalOpen(true)
   }
 
-  // Kalender navigiert zu selectedDate wenn es außerhalb der aktuellen Ansicht liegt
+  // Kalender navigiert zu selectedDate wenn es auÃŸerhalb der aktuellen Ansicht liegt
   useEffect(() => {
     if (selectedDate && calendarRef.current) {
       const calendarApi = calendarRef.current.getApi()
@@ -203,7 +214,7 @@ const Calendar = forwardRef(({
       const viewEnd = new Date(view.currentEnd)
       const selected = new Date(selectedDate)
       
-      // Nur navigieren wenn selectedDate außerhalb der aktuellen Ansicht liegt
+      // Nur navigieren wenn selectedDate auÃŸerhalb der aktuellen Ansicht liegt
       if (selected < viewStart || selected >= viewEnd) {
         calendarApi.gotoDate(selectedDate)
       }
@@ -234,15 +245,16 @@ const Calendar = forwardRef(({
   }, [])
 
   const showTooltip = (event, mouseEvent) => {
+    // Nicht anzeigen wenn ein Modal offen ist
+    if (isNotifyMemberOpen || isAppointmentActionModalOpen || isTypeSelectionOpen) return;
+    
     const appointment = event.extendedProps?.appointment
     if (!appointment) return
     const eventElement = mouseEvent.target.closest(".fc-event")
     if (!eventElement) return
     const rect = eventElement.getBoundingClientRect()
-    const scrollX = window.scrollX || document.documentElement.scrollLeft
-    const scrollY = window.scrollY || document.documentElement.scrollTop
-    const tooltipX = rect.left + scrollX + rect.width / 2
-    const tooltipY = rect.top + scrollY - 10
+    const tooltipX = rect.left + rect.width / 2
+    const tooltipY = rect.top - 4  // NÃ¤her am Termin (nur 4px Abstand)
 
     const dateParts = appointment.date?.split("|")
     let formattedDate = "N/A"
@@ -253,10 +265,14 @@ const Calendar = forwardRef(({
       formattedDate = `${day} ${monthNames[Number.parseInt(month) - 1]} ${year}`
     }
 
+    const fullName = appointment.lastName 
+      ? `${appointment.name} ${appointment.lastName}` 
+      : (appointment.name || event.title)
+
     setTooltip({
       show: true, x: tooltipX, y: tooltipY,
       content: {
-        name: appointment.name || event.title,
+        name: fullName,
         date: formattedDate,
         time: `${appointment.startTime || "N/A"} - ${appointment.endTime || "N/A"}`,
         type: appointment.type || event.extendedProps?.type || "N/A",
@@ -269,6 +285,13 @@ const Calendar = forwardRef(({
     const tooltips = document.querySelectorAll('.tooltip-container');
     tooltips.forEach(t => { t.style.display = 'none'; t.style.visibility = 'hidden'; });
   };
+
+  // Verstecke Tooltip wenn ein Modal geöffnet wird
+  useEffect(() => {
+    if (isNotifyMemberOpen || isAppointmentActionModalOpen || isTypeSelectionOpen) {
+      hideTooltip();
+    }
+  }, [isNotifyMemberOpen, isAppointmentActionModalOpen, isTypeSelectionOpen]);
 
   useEffect(() => {
     let resizeObserver
@@ -299,7 +322,7 @@ const Calendar = forwardRef(({
       date: `${new Date(appointmentData.date).toLocaleString("en-US", { weekday: "short" })} | ${formatDateForDisplay(new Date(appointmentData.date))}`,
     }
     setAppointmentsMain([...appointmentsMain, newAppointment])
-    toast.success("Appointment booked successfully")
+    
   }
 
   const handleTrialSubmit = (trialData) => {
@@ -309,7 +332,7 @@ const Calendar = forwardRef(({
       date: `${new Date(trialData.date).toLocaleString("en-US", { weekday: "short" })} | ${formatDateForDisplay(new Date(trialData.date))}`,
     }
     setAppointmentsMain([...appointmentsMain, newTrial])
-    toast.success("Trial training booked successfully")
+    
   }
 
   const handleShowAllAppointments = (dateString, appointments, e) => {
@@ -348,19 +371,73 @@ const Calendar = forwardRef(({
         slots.push({ id: `free-${i}`, date: formatDate(freeDate), time: freeDate.toTimeString().split(" ")[0].substring(0, 5) })
       }
       setFreeAppointments(slots)
-      toast.success("Free slots mode activated!")
+      
     } else {
       setFreeAppointments([])
-      toast.success("Showing all appointments.")
+      
     }
   }
 
-  const handleEventDrop = (info) => { setPendingEventInfo(info); setNotifyAction("change"); setIsNotifyMemberOpen(true) }
+  const handleEventDrop = (info) => { 
+    hideTooltip();
+    const { event } = info;
+    const appointmentId = Number(event.id);
+    const duration = event.end - event.start;
+    
+    // Finde die ursprünglichen Daten und speichere sie
+    const originalAppointment = appointmentsMain.find(app => app.id === appointmentId);
+    if (originalAppointment) {
+      setOriginalEventData({
+        id: appointmentId,
+        startTime: originalAppointment.startTime,
+        endTime: originalAppointment.endTime,
+        date: originalAppointment.date
+      });
+    }
+    
+    // Aktualisiere den State sofort (damit das Event visuell an der neuen Position bleibt)
+    const updatedAppointments = appointmentsMain.map((appointment) => {
+      if (appointment.id === appointmentId) {
+        return { 
+          ...appointment,
+          startTime: event.start.toTimeString().split(" ")[0].substring(0, 5),
+          endTime: new Date(event.start.getTime() + duration).toTimeString().split(" ")[0].substring(0, 5),
+          date: `${event.start.toLocaleString("en-US", { weekday: "short" })} | ${formatDate(event.start)}`,
+        };
+      }
+      return appointment;
+    });
+    setAppointmentsMain(updatedAppointments);
+    
+    setPendingEventInfo(info); 
+    setNotifyAction("change"); 
+    setIsNotifyMemberOpen(true); 
+  }
 
   const handleDateSelect = (selectInfo) => {
     const clickedElement = selectInfo.jsEvent?.target;
-    if (clickedElement && clickedElement.classList && (clickedElement.classList.contains('fc-daygrid-more-link') || clickedElement.closest('.fc-daygrid-more-link'))) return;
-    setSelectedSlotInfo(selectInfo)
+    // Ignoriere Klicks auf more-links und appointment tiles in der Monatsansicht
+    if (clickedElement) {
+      if (clickedElement.classList?.contains('fc-daygrid-more-link') || clickedElement.closest('.fc-daygrid-more-link')) return;
+      if (clickedElement.classList?.contains('month-apt-tile') || clickedElement.closest('.month-apt-tile')) return;
+      if (clickedElement.classList?.contains('month-more-link') || clickedElement.closest('.month-more-link')) return;
+    }
+    
+    // Check if we're in month view
+    const calendarApi = calendarRef.current?.getApi();
+    const viewType = calendarApi?.view?.type;
+    
+    if (viewType === "dayGridMonth") {
+      // In month view, set default time slot (9:00 - 10:00)
+      const startDate = new Date(selectInfo.start);
+      startDate.setHours(9, 0, 0, 0);
+      const endDate = new Date(selectInfo.start);
+      endDate.setHours(10, 0, 0, 0);
+      
+      setSelectedSlotInfo({ start: startDate, end: endDate });
+    } else {
+      setSelectedSlotInfo(selectInfo);
+    }
     setIsTypeSelectionOpen(true)
   }
 
@@ -374,27 +451,29 @@ const Calendar = forwardRef(({
 
   const handleNotifyMember = (shouldNotify) => {
     setIsNotifyMemberOpen(false)
-    if (pendingEventInfo) {
-      if (shouldNotify) {
-        const { event } = pendingEventInfo
-        const duration = event.end - event.start
-        const updatedAppointments = appointmentsMain.map((appointment) => {
-          if (appointment.id === Number(event.id)) {
-            return { ...appointment,
-              startTime: event.start.toTimeString().split(" ")[0].substring(0, 5),
-              endTime: new Date(event.start.getTime() + duration).toTimeString().split(" ")[0].substring(0, 5),
-              date: `${event.start.toLocaleString("en-US", { weekday: "short" })} | ${formatDate(event.start)}`,
-            }
+    if (pendingEventInfo && notifyAction === "change") {
+      // shouldNotify kann true, false oder null sein
+      // true = Ja, benachrichtigen (State ist bereits aktualisiert)
+      // false = Nein, nicht benachrichtigen (State ist bereits aktualisiert)
+      // null = Abbrechen, ursprüngliche Position wiederherstellen
+      if (shouldNotify === null && originalEventData) {
+        // Ursprüngliche Daten wiederherstellen
+        const restoredAppointments = appointmentsMain.map((appointment) => {
+          if (appointment.id === originalEventData.id) {
+            return { 
+              ...appointment,
+              startTime: originalEventData.startTime,
+              endTime: originalEventData.endTime,
+              date: originalEventData.date,
+            };
           }
-          return appointment
-        })
-        setAppointmentsMain(updatedAppointments)
-        toast.success("Appointment updated!")
-      } else {
-        pendingEventInfo.revert()
-        toast.success("Appointment change cancelled")
+          return appointment;
+        });
+        setAppointmentsMain(restoredAppointments);
       }
-      setPendingEventInfo(null)
+      // Bei true/false ist der State bereits korrekt (wurde in handleEventDrop gesetzt)
+      setPendingEventInfo(null);
+      setOriginalEventData(null);
     } else if (notifyAction === "cancel" && selectedAppointment) {
       if (shouldNotify !== null) actuallyHandleCancelAppointment(shouldNotify)
     }
@@ -432,7 +511,7 @@ const Calendar = forwardRef(({
     if (!window.confirm("Are you sure you want to delete this blocked time slot?")) return
     setAppointmentsMain(appointmentsMain.filter((a) => a.id !== selectedAppointment.id))
     setSelectedAppointment(null); setIsAppointmentActionModalOpen(false)
-    toast.success("Blocked time slot deleted")
+    
   }
 
   const handleCancelAppointment = () => {
@@ -447,7 +526,7 @@ const Calendar = forwardRef(({
   const actuallyHandleCancelAppointment = (shouldNotify) => {
     if (!appointmentsMain || !setAppointmentsMain || !selectedAppointment) return
     setAppointmentsMain(appointmentsMain.map((app) => app.id === selectedAppointment.id ? { ...app, status: "cancelled", isCancelled: true } : app))
-    toast.success("Appointment cancelled successfully")
+    
     setSelectedAppointment(null)
   }
 
@@ -463,14 +542,14 @@ const Calendar = forwardRef(({
     const newAppointment = { id: Math.max(0, ...memberAppointments.map((a) => a.id)) + 1, ...data, memberId: selectedMemberForAppointments?.id }
     setMemberAppointments([...memberAppointments, newAppointment])
     setShowCreateAppointmentModal(false)
-    toast.success("Appointment created successfully")
+    
   }
 
   const handleDeleteAppointment = (id) => {
     setMemberAppointments(memberAppointments.filter((app) => app.id !== id))
     setSelectedAppointmentData(null); setShowSelectedAppointmentModal(false)
     setIsNotifyMemberOpen(true); setNotifyAction("delete")
-    toast.success("Appointment deleted successfully")
+    
   }
 
   const isEventInPast = (eventStart) => new Date(eventStart) < new Date()
@@ -478,7 +557,7 @@ const Calendar = forwardRef(({
   const safeAppointments = appointmentsMain || []
   const safeSearchQuery = searchQuery || ""
 
-  // Für den Kalender: ALLE Termine anzeigen (kein Datumsfilter!)
+  // FÃ¼r den Kalender: ALLE Termine anzeigen (kein Datumsfilter!)
   const filteredAppointments = safeAppointments.filter((appointment) => {
     // Suchfilter
     const nameMatch = !safeSearchQuery || appointment.name?.toLowerCase().includes(safeSearchQuery.toLowerCase())
@@ -486,22 +565,22 @@ const Calendar = forwardRef(({
     // Typ-Filter anwenden
     let typeMatch = true
     if (appointmentFilters && Object.keys(appointmentFilters).length > 0) {
-      // Erst prüfen ob der Termin-Typ erlaubt ist
+      // Erst prÃ¼fen ob der Termin-Typ erlaubt ist
       if (appointment.isTrial) {
         typeMatch = appointmentFilters["Trial Training"] !== false
       } else if (appointment.isBlocked || appointment.type === "Blocked Time") {
         typeMatch = appointmentFilters["Blocked Time Slots"] !== false
       } else {
-        // Normaler Termin - prüfe den Typ
+        // Normaler Termin - prÃ¼fe den Typ
         typeMatch = appointmentFilters[appointment.type] !== false
       }
       
-      // Zusätzlich: Abgesagte Termine filtern
+      // ZusÃ¤tzlich: Abgesagte Termine filtern
       if (appointment.isCancelled && appointmentFilters["Cancelled Appointments"] === false) {
         typeMatch = false
       }
       
-      // Zusätzlich: Vergangene Termine filtern (nur wenn nicht abgesagt)
+      // ZusÃ¤tzlich: Vergangene Termine filtern (nur wenn nicht abgesagt)
       if (appointment.isPast && !appointment.isCancelled && appointmentFilters["Past Appointments"] === false) {
         typeMatch = false
       }
@@ -557,19 +636,6 @@ const Calendar = forwardRef(({
       }
     }),
   ]
-
-  const handleEventResize = (info) => {
-    const { event } = info
-    if (isEventInPast(event.start)) { info.revert(); toast.error("Cannot resize past appointments"); return }
-    if (!appointmentsMain || !setAppointmentsMain) return
-    setAppointmentsMain(appointmentsMain.map((appointment) => {
-      if (appointment.id === Number(event.id)) {
-        return { ...appointment, startTime: event.start.toTimeString().split(" ")[0], endTime: event.end.toTimeString().split(" ")[0] }
-      }
-      return appointment
-    }))
-    setNotifyAction("change"); setPendingEventInfo(info); setIsNotifyMemberOpen(true)
-  }
 
   useEffect(() => {
     setTimeout(() => {
@@ -640,10 +706,10 @@ const Calendar = forwardRef(({
           font-size: 12px !important;
         }
         .fc td.fc-day-today {
-          background-color: rgba(249, 115, 22, 0.08) !important;
+          background-color: rgba(249, 115, 22, 0.14) !important;
         }
         .fc-dayGridMonth-view td.fc-day-today {
-          background-color: rgba(249, 115, 22, 0.1) !important;
+          background-color: rgba(249, 115, 22, 0.14) !important;
         }
         .fc .fc-timegrid-slots {
           overflow: visible !important;
@@ -698,22 +764,9 @@ const Calendar = forwardRef(({
           pointer-events: none;
           border-radius: inherit;
         }
-        /* Vergangene Termine - abgeschwächt */
+        /* Vergangene Termine - abgeschwÃ¤cht */
         .past-event {
           opacity: 0.45;
-        }
-        /* Time container - zeigt Endzeit nur wenn genug Platz */
-        .fc-event-time-container {
-          container-type: inline-size;
-          width: 100%;
-        }
-        .fc-event-time-end {
-          display: none;
-        }
-        @container (min-width: 70px) {
-          .fc-event-time-end {
-            display: inline;
-          }
         }
         /* Modern event styling */
         .fc-timegrid-event {
@@ -722,6 +775,24 @@ const Calendar = forwardRef(({
           border-left-width: 3px !important;
           box-shadow: 0 1px 2px rgba(0,0,0,0.2) !important;
           overflow: hidden !important;
+          transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+          will-change: transform !important;
+          backface-visibility: hidden !important;
+          transform: translateZ(0) !important;
+        }
+        .fc-timegrid-event:hover:not(.fc-event-dragging) {
+          transform: translateZ(0) scale(1.06) !important;
+          box-shadow: 0 6px 12px rgba(0,0,0,0.35) !important;
+          z-index: 100 !important;
+        }
+        .fc-timegrid-event.fc-event-dragging {
+          opacity: 0.8 !important;
+          transform: translateZ(0) !important;
+          box-shadow: 0 8px 20px rgba(0,0,0,0.4) !important;
+          z-index: 1000 !important;
+        }
+        body.dragging-active .fc-timegrid-event:not(.fc-event-dragging) {
+          pointer-events: none !important;
         }
         .fc-timegrid-event .fc-event-main {
           padding: 2px 4px !important;
@@ -729,7 +800,7 @@ const Calendar = forwardRef(({
           display: flex !important;
           align-items: flex-start !important;
         }
-        /* Rand links/rechts für Klick-Bereich zum Buchen */
+        /* Rand links/rechts fÃ¼r Klick-Bereich zum Buchen */
         .fc-timegrid-col-events {
           margin: 0 3px !important;
         }
@@ -755,11 +826,14 @@ const Calendar = forwardRef(({
           min-height: 120px !important;
           max-height: 120px !important;
           height: 120px !important;
+          padding: 0 !important;
         }
         .fc-dayGridMonth-view .fc-daygrid-day-frame {
           min-height: 120px !important;
           max-height: 120px !important;
           height: 120px !important;
+          padding: 0 !important;
+          overflow: hidden !important;
         }
         .fc-dayGridMonth-view .fc-scrollgrid-sync-table {
           height: auto !important;
@@ -770,11 +844,8 @@ const Calendar = forwardRef(({
         .fc-dayGridMonth-view .fc-daygrid-body {
           height: auto !important;
         }
-        .fc-dayGridMonth-view .fc-daygrid-body-balanced .fc-daygrid-day-events {
-          position: relative !important;
-        }
         .fc-dayGridMonth-view .fc-daygrid-day-top {
-          padding: 4px 6px !important;
+          padding: 2px 4px !important;
         }
         .fc-dayGridMonth-view .fc-daygrid-day-number {
           font-size: 13px !important;
@@ -799,6 +870,11 @@ const Calendar = forwardRef(({
           visibility: visible !important;
           display: block !important;
         }
+        /* Force white text color for appointment tiles in other months */
+        .fc-dayGridMonth-view .fc-day-other div,
+        .fc-dayGridMonth-view .fc-day-other span {
+          color: inherit !important;
+        }
         .fc-dayGridMonth-view .fc-day-other .fc-daygrid-day-top span {
           color: #888888 !important;
           opacity: 1 !important;
@@ -808,6 +884,28 @@ const Calendar = forwardRef(({
         .fc-dayGridMonth-view .fc-day-other .fc-daygrid-day-frame {
           opacity: 1 !important;
         }
+        /* Force white text on all month appointment tiles */
+        .fc-dayGridMonth-view .month-apt-tile,
+        .fc-dayGridMonth-view .month-apt-tile * {
+          color: #ffffff !important;
+        }
+        .fc-dayGridMonth-view .fc-day-other .month-apt-tile,
+        .fc-dayGridMonth-view .fc-day-other .month-apt-tile * {
+          color: #ffffff !important;
+        }
+        /* Month appointment tile hover effect */
+        .month-apt-tile {
+          transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+          will-change: transform !important;
+          backface-visibility: hidden !important;
+          transform: translateZ(0) !important;
+        }
+        .month-apt-tile:hover {
+          transform: translateZ(0) scale(1.06) !important;
+          box-shadow: 0 4px 10px rgba(0,0,0,0.35) !important;
+          z-index: 10 !important;
+          position: relative !important;
+        }
         .fc-dayGridMonth-view .fc-day-today .fc-daygrid-day-number {
           color: #e5e7eb !important;
           font-weight: 700 !important;
@@ -816,14 +914,28 @@ const Calendar = forwardRef(({
           color: #e5e7eb !important;
           font-weight: 700 !important;
         }
+        /* More link hover styling */
+        .month-more-link {
+          transition: opacity 0.15s ease !important;
+          user-select: none !important;
+        }
+        .month-more-link:hover {
+          opacity: 0.7 !important;
+        }
       `}</style>
       {tooltip.show && tooltip.content && (
-        <div className="fixed z-[9999] bg-gray-800 text-white p-3 rounded-lg shadow-lg border border-gray-600 max-w-xs pointer-events-none tooltip-container"
-          style={{ left: `${tooltip.x}px`, top: `${tooltip.y}px`, transform: "translate(-50%, -100%)", marginTop: "10px" }}>
-          <div className="text-sm font-semibold mb-1">{tooltip.content.name}</div>
-          <div className="text-xs text-gray-300 mb-1">{tooltip.content.date}</div>
-          <div className="text-xs text-gray-300 mb-1">{tooltip.content.time}</div>
-          <div className="text-xs text-blue-300">{tooltip.content.type}</div>
+        <div className="fixed z-[9999] pointer-events-none tooltip-container"
+          style={{ left: `${tooltip.x}px`, top: `${tooltip.y}px`, transform: "translate(-50%, -100%)" }}>
+          <div className="bg-gray-800 text-white p-3 rounded-lg shadow-lg border border-gray-600 max-w-xs">
+            <div className="text-sm font-semibold mb-1">{tooltip.content.name}</div>
+            <div className="text-xs text-gray-300 mb-0.5">{tooltip.content.time}</div>
+            <div className="text-xs text-gray-300 mb-1">{tooltip.content.date}</div>
+            <div className="text-xs text-white">{tooltip.content.type}</div>
+          </div>
+          {/* Pfeil nach unten */}
+          <div className="w-full flex justify-center -mt-[1px]">
+            <div className="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[8px] border-t-gray-800"></div>
+          </div>
         </div>
       )}
 
@@ -842,6 +954,7 @@ const Calendar = forwardRef(({
               selectable={true}
               headerToolbar={false}
               editable={true}
+              eventDurationEditable={false}
               eventDrop={handleEventDrop}
               slotMinTime="06:00:00"
               slotMaxTime="23:00:00"
@@ -854,9 +967,23 @@ const Calendar = forwardRef(({
               slotEventOverlap={false}
               firstDay={1}
               eventClick={handleEventClick}
-              eventResize={handleEventResize}
               select={handleDateSelect}
               selectAllow={(selectInfo) => {
+                const calendarApi = calendarRef.current?.getApi();
+                const viewType = calendarApi?.view?.type;
+                
+                // In month view, check if clicking on more-link or appointment tile
+                if (viewType === "dayGridMonth") {
+                  const clickedElement = selectInfo.jsEvent?.target;
+                  if (clickedElement) {
+                    // Don't allow selection when clicking on more-link or appointment tiles
+                    if (clickedElement.classList?.contains('month-more-link') || clickedElement.closest('.month-more-link')) return false;
+                    if (clickedElement.classList?.contains('month-apt-tile') || clickedElement.closest('.month-apt-tile')) return false;
+                  }
+                  return true;
+                }
+                
+                // In week/day view, only allow 30-minute slots
                 const duration = selectInfo.end - selectInfo.start;
                 const thirtyMinutes = 30 * 60 * 1000;
                 return duration <= thirtyMinutes;
@@ -894,8 +1021,6 @@ const Calendar = forwardRef(({
               }}
               eventDragStart={(info) => { hideTooltip(); document.body.classList.add('dragging-active'); info.el.classList.add('fc-event-dragging'); }}
               eventDragStop={(info) => { document.body.classList.remove('dragging-active'); info.el.classList.remove('fc-event-dragging'); hideTooltip(); }}
-              eventResizeStart={(info) => { hideTooltip(); document.body.classList.add('dragging-active'); info.el.classList.add('fc-event-resizing'); }}
-              eventResizeStop={(info) => { document.body.classList.remove('dragging-active'); info.el.classList.remove('fc-event-resizing'); hideTooltip(); }}
               dayMaxEvents={false}
               eventMaxStack={10}
               eventDisplay={(args) => { const viewType = calendarRef.current?.getApi()?.view?.type; return viewType === "dayGridMonth" ? 'none' : 'auto'; }}
@@ -928,45 +1053,134 @@ const Calendar = forwardRef(({
                                   date.getMonth() === today.getMonth() && 
                                   date.getFullYear() === today.getFullYear()
                   
-                  const dayAppointments = filteredAppointments.filter(apt => {
+                  // Only show appointments for current month
+                  const dayAppointments = isCurrentMonth ? filteredAppointments.filter(apt => {
                     const dateParts = apt.date?.split("|") || []
                     if (dateParts.length < 2) return false
                     return dateParts[1].trim() === formattedDate
-                  })
+                  }) : []
                   const displayAppointments = dayAppointments.slice(0, 3)
                   const moreCount = dayAppointments.length - 3
 
+                  // Click handler for booking
+                  const handleCellClick = (e) => {
+                    // Don't trigger if clicking on an appointment tile
+                    if (e.target.closest('.month-apt-tile')) return
+                    
+                    const startDate = new Date(date)
+                    startDate.setHours(9, 0, 0, 0)
+                    const endDate = new Date(date)
+                    endDate.setHours(10, 0, 0, 0)
+                    
+                    setSelectedSlotInfo({ start: startDate, end: endDate })
+                    setIsTypeSelectionOpen(true)
+                  }
+
                   return (
-                    <div className="fc-daygrid-day-frame" style={{ height: '100%', minHeight: '120px' }}>
-                      <div className="fc-daygrid-day-top">
+                    <div 
+                      style={{ height: '100%', width: '100%', padding: 0, margin: 0, overflow: 'hidden', cursor: 'pointer' }}
+                      onClick={handleCellClick}
+                    >
+                      <div style={{ padding: '2px 4px', textAlign: 'right' }}>
                         <span 
-                          className="fc-daygrid-day-number" 
                           style={{ 
                             color: isCurrentMonth ? '#e5e7eb' : '#888888',
-                            fontWeight: isToday ? '700' : (isCurrentMonth ? '500' : '400')
+                            fontWeight: isToday ? '700' : (isCurrentMonth ? '500' : '400'),
+                            fontSize: '13px'
                           }}
                         >
                           {args.dayNumberText}
                         </span>
                       </div>
-                      <div className="fc-daygrid-day-events" style={{ minHeight: '95px', maxHeight: '95px', overflow: 'hidden' }}>
+                      <div style={{ overflow: 'hidden', padding: '0 4px', margin: 0, maxHeight: '82px' }}>
                         {displayAppointments.map((apt) => {
-                          let bg = apt.color?.split("bg-[")[1]?.slice(0, -1) || "#4169E1", op = 1
-                          if (apt.isCancelled) { bg = "#4a4a4a"; op = 0.6 }
-                          else if (apt.isPast) { bg = "#1a1a1a"; op = 0.4 }
-                          else if (apt.isBlocked || apt.type === "Blocked Time") { bg = "#dc2626"; op = 0.8 }
+                          const fullName = apt.lastName ? `${apt.name} ${apt.lastName}` : apt.name;
+                          let bg = apt.color?.split("bg-[")[1]?.slice(0, -1) || "#4169E1"
+                          let opacity = 1
+                          let extraStyle = {}
+                          
+                          if (apt.isCancelled) { 
+                            bg = "#6B7280"
+                            opacity = 0.6
+                            extraStyle = {
+                              backgroundImage: 'linear-gradient(-45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent)',
+                              backgroundSize: '8px 8px'
+                            }
+                          } else if (apt.isPast) { 
+                            opacity = 0.45
+                          } else if (apt.isBlocked || apt.type === "Blocked Time") { 
+                            bg = "#dc2626"
+                          }
+                          
                           return (
-                            <div key={apt.id} style={{ backgroundColor: bg, marginBottom: "2px", padding: "2px 4px", borderRadius: "3px", fontSize: "10px", lineHeight: "1.1", height: "18px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", opacity: op, color: "#fff", cursor: "pointer" }}
+                            <div 
+                              key={apt.id}
+                              className="month-apt-tile"
+                              style={{ 
+                                backgroundColor: bg, 
+                                marginBottom: "1px",
+                                padding: "3px 6px", 
+                                borderRadius: "3px", 
+                                height: "20px", 
+                                width: "100%",
+                                overflow: "hidden", 
+                                opacity: opacity, 
+                                color: "#fff", 
+                                cursor: "pointer",
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                boxSizing: 'border-box',
+                                ...extraStyle
+                              }}
                               onClick={(e) => { e.stopPropagation(); e.preventDefault(); handleMonthViewAppointmentClick(apt, e) }}
-                              onMouseEnter={(e) => { e.stopPropagation(); const rect = e.currentTarget.getBoundingClientRect(); setTooltip({ show: true, x: rect.left + rect.width / 2, y: rect.top - 10, content: { name: apt.name, date: formattedDate.split('-').join(' '), time: `${apt.startTime || "N/A"} - ${apt.endTime || "N/A"}`, type: apt.type || "N/A" } }) }}
-                              onMouseLeave={(e) => { e.stopPropagation(); hideTooltip() }}>
-                              <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '9px', fontWeight: '500' }}>{apt.name}</div>
+                              onMouseEnter={(e) => { 
+                                e.stopPropagation(); 
+                                const rect = e.currentTarget.getBoundingClientRect(); 
+                                setTooltip({ 
+                                  show: true, 
+                                  x: rect.left + rect.width / 2, 
+                                  y: rect.top - 4, 
+                                  content: { 
+                                    name: fullName, 
+                                    date: formattedDate.split('-').join(' '), 
+                                    time: `${apt.startTime || "N/A"} - ${apt.endTime || "N/A"}`, 
+                                    type: apt.type || "N/A" 
+                                  } 
+                                }) 
+                              }}
+                              onMouseLeave={(e) => { e.stopPropagation(); hideTooltip() }}
+                            >
+                              <span style={{ fontSize: '10px', fontWeight: '500', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, color: '#ffffff' }}>
+                                {fullName}
+                              </span>
+                              <span style={{ fontSize: '9px', opacity: 0.8, flexShrink: 0, color: '#ffffff' }}>
+                                {apt.startTime}-{apt.endTime}
+                              </span>
                             </div>
                           )
                         })}
                         {moreCount > 0 && (
-                          <div style={{ fontSize: "10px", color: "#3b82f6", marginTop: "2px", cursor: "pointer", padding: "2px 4px", height: "16px", textAlign: "center", fontWeight: "500", display: "flex", alignItems: "center", justifyContent: "center" }}
-                            onClick={(e) => { e.stopPropagation(); e.preventDefault(); handleShowAllAppointments(dateString, dayAppointments, e); }}>
+                          <div 
+                            className="month-more-link"
+                            style={{ 
+                              fontSize: "10px", 
+                              color: "#9ca3af", 
+                              cursor: "pointer", 
+                              padding: "2px 6px", 
+                              height: "18px", 
+                              fontWeight: "500", 
+                              display: "flex", 
+                              alignItems: "center", 
+                              justifyContent: "center"
+                            }}
+                            onClick={(e) => { 
+                              e.stopPropagation(); 
+                              e.preventDefault(); 
+                              // Remove any selection highlight
+                              calendarRef.current?.getApi()?.unselect();
+                              handleShowAllAppointments(dateString, dayAppointments, e); 
+                            }}>
                             +{moreCount} more
                           </div>
                         )}
@@ -992,27 +1206,28 @@ const Calendar = forwardRef(({
                 return <div style={{ textAlign: "center", lineHeight: "1", padding: "2px 0", fontSize: "11px" }}><span>{weekday} {day}</span></div>
               }}
               dayCellClassNames={(date) => new Date(date.date).toDateString() === new Date().toDateString() ? ["fc-day-today-custom"] : []}
-              eventMouseEnter={(info) => { if (!document.body.classList.contains('dragging-active') && !info.el.classList.contains('fc-event-dragging') && !info.el.classList.contains('fc-event-resizing')) showTooltip(info.event, info.jsEvent); }}
-              eventMouseLeave={() => { if (!document.body.classList.contains('dragging-active')) hideTooltip(); }}
+              eventMouseEnter={(info) => { 
+                if (!document.body.classList.contains('dragging-active') && !info.el.classList.contains('fc-event-dragging')) {
+                  showTooltip(info.event, info.jsEvent);
+                }
+              }}
+              eventMouseLeave={() => { hideTooltip(); }}
               eventContent={(eventInfo) => {
                 const appointment = eventInfo.event.extendedProps.appointment;
                 const startTime = appointment?.startTime || '';
-                const endTime = appointment?.endTime || '';
                 const name = appointment?.name || eventInfo.event.title || '';
                 const lastName = appointment?.lastName || '';
                 const fullName = lastName ? `${name} ${lastName}` : name;
                 
                 return (
-                  <div className="px-0.5 overflow-hidden">
-                    {/* Name hat Priorität */}
+                  <div className="px-1 pt-[2px] overflow-hidden">
+                    {/* Name hat PrioritÃ¤t */}
                     <div className="text-[10px] leading-tight overflow-hidden whitespace-nowrap text-white font-medium">
                       {fullName}
                     </div>
-                    {/* Zeit: Volle Zeit wenn Platz, sonst nur Startzeit */}
-                    <div className="fc-event-time-container overflow-hidden">
-                      <span className="whitespace-nowrap text-[9px] text-white/80">
-                        {startTime}<span className="fc-event-time-end"> - {endTime}</span>
-                      </span>
+                    {/* Nur Startzeit */}
+                    <div className="text-[9px] text-white/80">
+                      {startTime}
                     </div>
                   </div>
                 );
@@ -1035,41 +1250,97 @@ const Calendar = forwardRef(({
       <TrialTrainingModal isOpen={isTrialModalOpen} onClose={() => setIsTrialModalOpen(false)} freeAppointments={freeAppointments} onSubmit={handleTrialSubmit} />
       <BlockAppointmentModal isOpen={isBlockModalOpen} onClose={() => setIsBlockModalOpen(false)} appointmentTypesMain={appointmentTypesMain} selectedDate={selectedDate || new Date()} onSubmit={(blockData) => {
         const newBlock = { id: appointmentsMain.length + 1, name: "BLOCKED", time: `${blockData.startTime} - ${blockData.endTime}`, date: `${new Date(blockData.date).toLocaleString("en-US", { weekday: "short" })} | ${formatDateForDisplay(new Date(blockData.date))}`, color: "bg-[#FF4D4F]", startTime: blockData.startTime, endTime: blockData.endTime, type: "Blocked Time", specialNote: { text: blockData.note || "This time slot is blocked", startDate: null, endDate: null, isImportant: true }, status: "blocked", isBlocked: true, isCancelled: false, isPast: false }
-        setAppointmentsMain([...appointmentsMain, newBlock]); toast.success("Time slot blocked successfully"); setIsBlockModalOpen(false)
+        setAppointmentsMain([...appointmentsMain, newBlock]); setIsBlockModalOpen(false)
       }} />
       <TypeSelectionModalMain isOpen={isTypeSelectionOpen} onClose={() => setIsTypeSelectionOpen(false)} onSelect={handleTypeSelection} />
       <AppointmentActionModalMain isOpen={isAppointmentActionModalOpen} appointment={selectedAppointment} onClose={() => setIsAppointmentActionModalOpen(false)} onEdit={handleEditAppointment} onCancel={handleCancelAppointment} onViewMember={handleViewMemberDetails} />
-      <NotifyMemberModalMain isOpen={isNotifyMemberOpen} onClose={() => setIsNotifyMemberOpen(false)} notifyAction={notifyAction} pendingEventInfo={pendingEventInfo} actuallyHandleCancelAppointment={actuallyHandleCancelAppointment} handleNotifyMember={handleNotifyMember} setPendingEventInfo={setPendingEventInfo} />
+      <NotifyMemberModalMain isOpen={isNotifyMemberOpen} onClose={() => { 
+        setIsNotifyMemberOpen(false); 
+        if (pendingEventInfo && originalEventData) { 
+          // Ursprüngliche Daten wiederherstellen
+          const restoredAppointments = appointmentsMain.map((appointment) => {
+            if (appointment.id === originalEventData.id) {
+              return { 
+                ...appointment,
+                startTime: originalEventData.startTime,
+                endTime: originalEventData.endTime,
+                date: originalEventData.date,
+              };
+            }
+            return appointment;
+          });
+          setAppointmentsMain(restoredAppointments);
+          setPendingEventInfo(null);
+          setOriginalEventData(null);
+        } 
+      }} notifyAction={notifyAction} pendingEventInfo={pendingEventInfo} actuallyHandleCancelAppointment={actuallyHandleCancelAppointment} handleNotifyMember={handleNotifyMember} setPendingEventInfo={setPendingEventInfo} />
       {isEditBlockedModalOpen && blockedEditData && <EditBlockedSlotModalMain isOpen={isEditBlockedModalOpen} onClose={() => setIsEditBlockedModalOpen(false)} initialBlock={blockedEditData} appointmentTypesMain={appointmentTypesMain} onSubmit={(blockData) => {
         const newDateString = `${new Date(blockData.startDate).toLocaleString("en-US", { weekday: "short" })} | ${formatDateForDisplay(new Date(blockData.startDate))}`
         setAppointmentsMain(appointmentsMain.map((apt) => apt.id === blockedEditData.id ? { ...apt, startTime: blockData.startTime, endTime: blockData.endTime, date: newDateString, specialNote: { ...(apt.specialNote || {}), text: blockData.note || apt.specialNote?.text || "", isImportant: apt.specialNote?.isImportant ?? true } } : apt))
-        setIsEditBlockedModalOpen(false); setBlockedEditData(null); toast.success("Blocked time slot updated")
+        setIsEditBlockedModalOpen(false); setBlockedEditData(null); 
       }} />}
       {showSelectedAppointmentModal && selectedAppointmentData && <EditAppointmentModalMain selectedAppointmentMain={selectedAppointmentData} setSelectedAppointmentMain={setSelectedAppointmentData} appointmentTypesMain={appointmentTypesMain} freeAppointmentsMain={freeAppointments} handleAppointmentChange={(changes) => setSelectedAppointmentData({ ...selectedAppointmentData, ...changes })} appointmentsMain={appointmentsMain} setAppointmentsMain={setAppointmentsMain} setIsNotifyMemberOpenMain={setIsNotifyMemberOpen} setNotifyActionMain={setNotifyAction} onDelete={handleDeleteAppointment} />}
       {showAllAppointmentsModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-[#181818] rounded-lg shadow-xl w-full max-w-md max-h-[80vh] overflow-hidden">
-            <div className="flex items-center justify-between p-4 border-b border-gray-700">
-              <h3 className="text-lg font-semibold text-white">{new Date(selectedDayDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</h3>
-              <button onClick={handleCloseAllAppointmentsModal} className="text-gray-400 hover:text-white">Ã—</button>
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={handleCloseAllAppointmentsModal}>
+          <div className="bg-[#181818] rounded-xl shadow-xl w-full max-w-md max-h-[80vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-700">
+              <h3 className="text-lg font-medium text-white">{new Date(selectedDayDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</h3>
+              <button onClick={handleCloseAllAppointmentsModal} className="p-2 hover:bg-zinc-700 text-gray-400 hover:text-white rounded-lg transition-colors">
+                <X size={18} />
+              </button>
             </div>
             <div className="p-4 overflow-y-auto max-h-[60vh]">
-              {allAppointmentsForDay.length === 0 ? <div className="text-center text-gray-400 py-4">No appointments for this day</div> : (
-                <div className="space-y-2">
-                  {allAppointmentsForDay.map((apt) => (
-                    <div key={apt.id} className={`p-3 rounded-lg border cursor-pointer hover:bg-gray-700 ${apt.isCancelled ? 'border-gray-600' : 'border-gray-700'}`} style={{ borderLeft: `4px solid ${apt.color?.split("bg-[")[1]?.slice(0, -1) || "#4169E1"}`, opacity: apt.isPast ? 0.7 : 1 }}
-                      onClick={() => { setSelectedAppointment(apt); setIsAppointmentActionModalOpen(true); handleCloseAllAppointmentsModal() }}>
-                      <div className="flex justify-between items-start">
-                        <div><div className="font-semibold text-white text-sm">{apt.name}</div><div className="text-xs text-gray-300">{apt.type}{apt.isCancelled && " (Cancelled)"}{(apt.isBlocked || apt.type === "Blocked Time") && " (Blocked)"}</div></div>
-                        <div className="text-xs text-gray-400">{apt.startTime} - {apt.endTime}</div>
+              {allAppointmentsForDay.length === 0 ? (
+                <div className="text-center py-8 text-gray-400 bg-[#222222] rounded-xl">No appointments for this day</div>
+              ) : (
+                <div className="space-y-3">
+                  {allAppointmentsForDay.map((apt) => {
+                    const fullName = apt.lastName ? `${apt.name} ${apt.lastName}` : apt.name;
+                    let bgColor = apt.color?.split("bg-[")[1]?.slice(0, -1) || "#4169E1";
+                    let opacity = 1;
+                    let extraStyle = {};
+                    
+                    if (apt.isCancelled) {
+                      bgColor = "#6B7280";
+                      extraStyle = {
+                        backgroundImage: 'linear-gradient(135deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent)',
+                        backgroundSize: '10px 10px'
+                      };
+                    } else if (apt.isPast) {
+                      opacity = 0.6;
+                    } else if (apt.isBlocked || apt.type === "Blocked Time") {
+                      bgColor = "#dc2626";
+                    }
+                    
+                    return (
+                      <div 
+                        key={apt.id} 
+                        className="rounded-xl p-3 hover:opacity-90 transition-colors cursor-pointer"
+                        style={{ backgroundColor: bgColor, opacity: opacity, ...extraStyle }}
+                        onClick={() => { setSelectedAppointment(apt); setIsAppointmentActionModalOpen(true); handleCloseAllAppointmentsModal() }}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-medium text-sm text-white">{fullName}</p>
+                            <p className="text-xs text-white/70 mt-1">
+                              {apt.type}
+                              {apt.isCancelled && " (Cancelled)"}
+                              {(apt.isBlocked || apt.type === "Blocked Time") && " (Blocked)"}
+                            </p>
+                          </div>
+                          <div className="text-sm text-white/80 font-medium">
+                            {apt.startTime} - {apt.endTime}
+                          </div>
+                        </div>
                       </div>
-                      {apt.specialNote?.text && <div className="mt-2 text-xs text-gray-400 italic">{apt.specialNote.text}</div>}
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
-            <div className="p-4 border-t border-gray-700"><button onClick={handleCloseAllAppointmentsModal} className="w-full py-2 px-4 bg-gray-600 hover:bg-gray-700 text-white rounded-md">Close</button></div>
+            <div className="p-4 border-t border-gray-700">
+              <button onClick={handleCloseAllAppointmentsModal} className="w-full py-2.5 px-4 bg-zinc-700 hover:bg-zinc-600 text-white rounded-xl transition-colors">Close</button>
+            </div>
           </div>
         </div>
       )}

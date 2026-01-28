@@ -2,7 +2,6 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { X } from "lucide-react"
-import { toast } from "react-hot-toast"
 
 const NotifyMemberModalMain = ({
   isOpen,
@@ -16,15 +15,7 @@ const NotifyMemberModalMain = ({
   if (!isOpen) return null
 
   const handleClose = () => {
-    // Cancel action and revert drag/resize if any (for non-cancel flows)
-    if (notifyAction === "cancel") {
-      // no revert needed for explicit cancellation confirmation
-    } else if (pendingEventInfo) {
-      pendingEventInfo.revert()
-      toast.error("Action cancelled.")
-    }
     onClose()
-    setPendingEventInfo(null)
   }
 
   return (

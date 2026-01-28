@@ -93,7 +93,7 @@ export default function Appointments() {
   // Handler wenn im Hauptkalender navigiert wird (nur durch Pfeile, nicht durch datesSet beim Laden)
   const handleCalendarNavigate = useCallback((date, isUserNavigation = false) => {
     setMiniCalendarDate(date);
-    // Nur bei echter User-Navigation das selectedDate ändern
+    // Nur bei echter User-Navigation das selectedDate Ã¤ndern
     if (isUserNavigation) {
       setSelectedDate(new Date(date));
     }
@@ -247,7 +247,7 @@ export default function Appointments() {
       date: `${new Date(appointmentData.date).toLocaleString("en-US", { weekday: "short" })} | ${formatDateForDisplay(new Date(appointmentData.date))}`,
     }
     setAppointmentsMain([...appointmentsMain, newAppointment])
-    toast.success("Appointment booked successfully")
+    
   }
 
   const handleTrialSubmit = (trialData) => {
@@ -256,7 +256,7 @@ export default function Appointments() {
       date: `${new Date(trialData.date).toLocaleString("en-US", { weekday: "short" })} | ${formatDateForDisplay(new Date(trialData.date))}`,
     }
     setAppointmentsMain([...appointmentsMain, newTrial])
-    toast.success("Trial training booked successfully")
+    
   }
 
   const handleCheckInMain = (appointmentId) => {
@@ -265,13 +265,13 @@ export default function Appointments() {
         appointment.id === appointmentId ? { ...appointment, isCheckedIn: !appointment.isCheckedIn } : appointment
       )
     )
-    toast.success(appointmentsMain.find((app) => app.id === appointmentId)?.isCheckedIn ? "Member checked In successfully" : "Member check in successfully")
+    
   }
 
   const handleNotifyMemberMain = (shouldNotify) => {
     setIsNotifyMemberOpenMain(false)
-    if (shouldNotify) { toast.success("Appointment cancelled successfully"); toast.success("Member notified successfully") }
-    else { toast.success("Appointment cancelled successfully"); toast.success("Member not notified") }
+    if (shouldNotify) { }
+    else { }
   }
 
   const handleSearch = (e) => {
@@ -287,7 +287,7 @@ export default function Appointments() {
   const handleDeleteAppointmentMain = (appointmentId) => {
     setAppointmentsMain((prevAppointments) => prevAppointments.filter((appointment) => appointment.id !== appointmentId))
     setSelectedAppointmentMain(null)
-    toast.success("Appointment deleted successfully")
+    
   }
 
   const handleCancelAppointmentMain = (appointmentId) => {
@@ -324,7 +324,7 @@ export default function Appointments() {
         appointment.id === appointmentId ? { ...appointment, specialNote: updatedNote } : appointment
       )
     )
-    toast.success("Special note updated successfully")
+    
     setShowEditNoteModalMain(false)
     setSelectedAppointmentForNoteMain(null)
   }
@@ -395,13 +395,13 @@ export default function Appointments() {
     if (plan) {
       const assignedPlan = { ...plan, assignedDate: new Date().toLocaleDateString() }
       setMemberTrainingPlansMain((prev) => ({ ...prev, [memberId]: [...(prev[memberId] || []), assignedPlan] }))
-      toast.success(`Training plan "${plan.name}" assigned successfully!`)
+      
     }
   }
 
   const handleRemoveTrainingPlanMain = (memberId, planId) => {
     setMemberTrainingPlansMain((prev) => ({ ...prev, [memberId]: (prev[memberId] || []).filter((plan) => plan.id !== planId) }))
-    toast.success("Training plan removed successfully!")
+    
   }
 
   return (
@@ -415,6 +415,13 @@ export default function Appointments() {
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #555; }
+        .upcoming-apt-tile {
+          transition: filter 0.15s ease, box-shadow 0.15s ease;
+        }
+        .upcoming-apt-tile:hover {
+          filter: brightness(1.15);
+          box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
       `}</style>
       <Toaster position="top-right" toastOptions={{ duration: 2000, style: { background: "#333", color: "#fff" } }} />
 
@@ -451,10 +458,10 @@ export default function Appointments() {
               {/* View Toggle */}
               <div className="flex items-center bg-black rounded-xl p-1">
                 <button 
-                  onClick={() => { calendarRef.current?.changeView("dayGridMonth"); setCurrentView("dayGridMonth"); }}
-                  className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${currentView === "dayGridMonth" ? "bg-orange-500 text-white" : "text-gray-400 hover:text-white"}`}
+                  onClick={() => { calendarRef.current?.changeView("timeGridDay"); setCurrentView("timeGridDay"); }}
+                  className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${currentView === "timeGridDay" ? "bg-orange-500 text-white" : "text-gray-400 hover:text-white"}`}
                 >
-                  Month
+                  Day
                 </button>
                 <button 
                   onClick={() => { calendarRef.current?.changeView("timeGridWeek"); setCurrentView("timeGridWeek"); }}
@@ -463,10 +470,10 @@ export default function Appointments() {
                   Week
                 </button>
                 <button 
-                  onClick={() => { calendarRef.current?.changeView("timeGridDay"); setCurrentView("timeGridDay"); }}
-                  className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${currentView === "timeGridDay" ? "bg-orange-500 text-white" : "text-gray-400 hover:text-white"}`}
+                  onClick={() => { calendarRef.current?.changeView("dayGridMonth"); setCurrentView("dayGridMonth"); }}
+                  className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${currentView === "dayGridMonth" ? "bg-orange-500 text-white" : "text-gray-400 hover:text-white"}`}
                 >
-                  Day
+                  Month
                 </button>
               </div>
             </div>
@@ -559,7 +566,7 @@ export default function Appointments() {
                 </div>
 
                 <div className="w-full lg:max-w-[300px] flex flex-col gap-2 flex-1 min-h-0 overflow-hidden">
-                {/* Search - feste Größe */}
+                {/* Search - feste GrÃ¶ÃŸe */}
                 <div className="flex items-center gap-2 w-full flex-shrink-0">
                   <div className="relative w-full">
                     <input type="text" placeholder="Search member..." value={searchQuery} onChange={handleSearch}
@@ -568,7 +575,7 @@ export default function Appointments() {
                   </div>
                 </div>
 
-                {/* Filters - feste Größe */}
+                {/* Filters - feste GrÃ¶ÃŸe */}
                 <div className="bg-[#000000] rounded-xl p-3 w-full flex-shrink-0">
                   <div className="flex items-center justify-between">
                     <h3 className="text-white font-semibold text-sm">Filters</h3>
@@ -628,10 +635,10 @@ export default function Appointments() {
                   </div>
                   {!isUpcomingCollapsed && (
                     <div className="space-y-2 custom-scrollbar overflow-y-auto flex-1 w-full">
-                      {filteredAppointments.length > 0 ? (
-                        filteredAppointments.map((appointment) => (
+                      {filteredAppointments.filter(app => !app.isCancelled).length > 0 ? (
+                        filteredAppointments.filter(app => !app.isCancelled).map((appointment) => (
                           <div key={appointment.id}
-                            className={`${appointment.isCancelled ? "bg-gray-700 cancelled-appointment-bg" : appointment.isPast && !appointment.isCancelled ? "bg-gray-800 opacity-50" : appointment.color} rounded-xl cursor-pointer p-2 relative w-full`}
+                            className={`${appointment.isCancelled ? "bg-gray-700 cancelled-appointment-bg" : appointment.isPast && !appointment.isCancelled ? "bg-gray-800 opacity-50" : appointment.color} rounded-xl cursor-pointer p-2 relative w-full upcoming-apt-tile`}
                             onClick={() => handleAppointmentOptionsModalMain(appointment)}>
                             <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
                               {renderSpecialNoteIconMain(appointment.specialNote, appointment.id)}
@@ -721,7 +728,7 @@ export default function Appointments() {
             color: "bg-[#FF4D4F]", startTime: blockData.startTime, endTime: blockData.endTime, type: "Blocked Time",
             specialNote: { text: blockData.note || "This time slot is blocked", startDate: blockData.startDate, endDate: blockData.endDate, isImportant: true },
             status: "blocked", isBlocked: true, isCancelled: false, isPast: false }
-          setAppointmentsMain([...appointmentsMain, newBlock]); toast.success("Time slot blocked successfully"); setIsBlockModalOpen(false)
+          setAppointmentsMain([...appointmentsMain, newBlock]); setIsBlockModalOpen(false)
         }} />
         <TrainingPlansModalMain isOpen={isTrainingPlanModalOpenMain} onClose={() => { setIsTrainingPlanModalOpenMain(false); setSelectedUserForTrainingPlanMain(null) }} selectedMember={selectedUserForTrainingPlanMain} memberTrainingPlans={memberTrainingPlansMain[selectedUserForTrainingPlanMain?.id] || []} availableTrainingPlans={availableTrainingPlansMain} onAssignPlan={handleAssignTrainingPlanMain} onRemovePlan={handleRemoveTrainingPlanMain} />
         {showEditNoteModalMain && selectedAppointmentForNoteMain && (
