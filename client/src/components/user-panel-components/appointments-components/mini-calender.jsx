@@ -8,11 +8,11 @@ function MiniCalendar({ onDateSelect, selectedDate, externalDate }) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const today = new Date();
   
-  // Sync with external date (from main calendar)
+  // Sync with external date (from main calendar) - nur Monatswechsel
   useEffect(() => {
     if (externalDate) {
       const extDate = new Date(externalDate);
-      // Only update if month or year changed
+      // Update month view if month or year changed
       if (extDate.getMonth() !== currentDate.getMonth() || 
           extDate.getFullYear() !== currentDate.getFullYear()) {
         setCurrentDate(new Date(extDate.getFullYear(), extDate.getMonth(), 1));

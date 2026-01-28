@@ -118,9 +118,18 @@ const Calendar = forwardRef(({
       const calendarApi = calendarRef.current?.getApi();
       if (calendarApi) {
         calendarApi.prev();
-        const newDate = calendarApi.getDate();
-        setCurrentDate(newDate.toISOString().split("T")[0]);
-        onCurrentDateChange?.(newDate);
+        setCurrentDate(calendarApi.getDate().toISOString().split("T")[0]);
+        
+        // Berechne das richtige Datum basierend auf dem View-Typ
+        const view = calendarApi.view;
+        let dateForMiniCalendar = view.currentStart;
+        if (view.type === "dayGridMonth") {
+          const midDate = new Date(view.currentStart);
+          midDate.setDate(midDate.getDate() + 15);
+          dateForMiniCalendar = new Date(midDate.getFullYear(), midDate.getMonth(), 1);
+        }
+        onCurrentDateChange?.(dateForMiniCalendar, true);
+        
         setTimeout(() => {
           const display = formatDateRange(calendarApi.getDate());
           setCurrentDateDisplay(display);
@@ -132,9 +141,18 @@ const Calendar = forwardRef(({
       const calendarApi = calendarRef.current?.getApi();
       if (calendarApi) {
         calendarApi.next();
-        const newDate = calendarApi.getDate();
-        setCurrentDate(newDate.toISOString().split("T")[0]);
-        onCurrentDateChange?.(newDate);
+        setCurrentDate(calendarApi.getDate().toISOString().split("T")[0]);
+        
+        // Berechne das richtige Datum basierend auf dem View-Typ
+        const view = calendarApi.view;
+        let dateForMiniCalendar = view.currentStart;
+        if (view.type === "dayGridMonth") {
+          const midDate = new Date(view.currentStart);
+          midDate.setDate(midDate.getDate() + 15);
+          dateForMiniCalendar = new Date(midDate.getFullYear(), midDate.getMonth(), 1);
+        }
+        onCurrentDateChange?.(dateForMiniCalendar, true);
+        
         setTimeout(() => {
           const display = formatDateRange(calendarApi.getDate());
           setCurrentDateDisplay(display);
@@ -146,8 +164,17 @@ const Calendar = forwardRef(({
       const calendarApi = calendarRef.current?.getApi();
       if (calendarApi) {
         calendarApi.changeView(viewType);
-        const newDate = calendarApi.getDate();
-        onCurrentDateChange?.(newDate);
+        
+        // Berechne das richtige Datum basierend auf dem View-Typ
+        const view = calendarApi.view;
+        let dateForMiniCalendar = view.currentStart;
+        if (viewType === "dayGridMonth") {
+          const midDate = new Date(view.currentStart);
+          midDate.setDate(midDate.getDate() + 15);
+          dateForMiniCalendar = new Date(midDate.getFullYear(), midDate.getMonth(), 1);
+        }
+        onCurrentDateChange?.(dateForMiniCalendar, true);
+        
         setTimeout(() => {
           const display = formatDateRange(calendarApi.getDate());
           setCurrentDateDisplay(display);
@@ -167,10 +194,19 @@ const Calendar = forwardRef(({
     setIsAppointmentActionModalOpen(true)
   }
 
+  // Kalender navigiert zu selectedDate wenn es außerhalb der aktuellen Ansicht liegt
   useEffect(() => {
     if (selectedDate && calendarRef.current) {
       const calendarApi = calendarRef.current.getApi()
-      calendarApi.gotoDate(selectedDate)
+      const view = calendarApi.view
+      const viewStart = new Date(view.currentStart)
+      const viewEnd = new Date(view.currentEnd)
+      const selected = new Date(selectedDate)
+      
+      // Nur navigieren wenn selectedDate außerhalb der aktuellen Ansicht liegt
+      if (selected < viewStart || selected >= viewEnd) {
+        calendarApi.gotoDate(selectedDate)
+      }
     }
   }, [selectedDate])
 
@@ -688,7 +724,10 @@ const Calendar = forwardRef(({
           overflow: hidden !important;
         }
         .fc-timegrid-event .fc-event-main {
-          padding: 1px 3px !important;
+          padding: 2px 4px !important;
+          height: 100% !important;
+          display: flex !important;
+          align-items: flex-start !important;
         }
         /* Rand links/rechts für Klick-Bereich zum Buchen */
         .fc-timegrid-col-events {
@@ -867,7 +906,6 @@ const Calendar = forwardRef(({
                   const display = formatDateRange(info.view.currentStart);
                   setCurrentDateDisplay(display);
                   onDateDisplayChange?.(display);
-                  onCurrentDateChange?.(info.view.currentStart);
                   document.body.classList.remove('dragging-active');
                   hideTooltip();
                 }, 100);
@@ -965,7 +1003,7 @@ const Calendar = forwardRef(({
                 const fullName = lastName ? `${name} ${lastName}` : name;
                 
                 return (
-                  <div className="px-1 py-0.5 h-full overflow-hidden flex flex-col justify-start">
+                  <div className="px-0.5 overflow-hidden">
                     {/* Name hat Priorität */}
                     <div className="text-[10px] leading-tight overflow-hidden whitespace-nowrap text-white font-medium">
                       {fullName}

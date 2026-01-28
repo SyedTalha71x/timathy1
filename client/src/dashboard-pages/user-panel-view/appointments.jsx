@@ -90,6 +90,15 @@ export default function Appointments() {
   const [currentView, setCurrentView] = useState("timeGridWeek")
   const [miniCalendarDate, setMiniCalendarDate] = useState(new Date())
 
+  // Handler wenn im Hauptkalender navigiert wird (nur durch Pfeile, nicht durch datesSet beim Laden)
+  const handleCalendarNavigate = useCallback((date, isUserNavigation = false) => {
+    setMiniCalendarDate(date);
+    // Nur bei echter User-Navigation das selectedDate ändern
+    if (isUserNavigation) {
+      setSelectedDate(new Date(date));
+    }
+  }, []);
+
   const [hoveredNoteId, setHoveredNoteId] = useState(null)
   const [hoverTimeout, setHoverTimeout] = useState(null)
 
@@ -677,7 +686,7 @@ export default function Appointments() {
                 isSidebarCollapsed={isSidebarCollapsed}
                 onDateDisplayChange={setCalendarDateDisplay}
                 onViewModeChange={setCalendarViewMode}
-                onCurrentDateChange={setMiniCalendarDate}
+                onCurrentDateChange={handleCalendarNavigate}
               />
             </div>
           </div>
