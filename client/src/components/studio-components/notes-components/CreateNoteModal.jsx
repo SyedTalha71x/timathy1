@@ -1,0 +1,449 @@
+/* eslint-disable react/prop-types */
+import { useState, useRef, useEffect } from "react"
+import { Tag, X, Paperclip, Plus } from "lucide-react"
+import ReactQuill from "react-quill"
+import Modal from "./Modal"
+import ImageSourceModal from "../../shared/ImageSourceModal"
+import MediaLibraryPickerModal from "../../shared/MediaLibraryPickerModal"
+import { mediaLibraryFolders, mediaLibraryDesigns } from "../../../utils/studio-states/media-library-picker-modal-state"
+
+const WysiwygEditor = ({ value, onChange, placeholder }) => {
+  const modules = {
+    toolbar: [
+      [{ 'header': [1, 2, 3, false] }],
+      ['bold', 'italic', 'underline', 'strike'],
+      [{ 'color': [] }, { 'background': [] }],
+      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+      [{ 'align': [] }],
+      ['link'],
+      ['clean']
+    ],
+  }
+
+  const formats = [
+    'header',
+    'bold', 'italic', 'underline', 'strike',
+    'color', 'background',
+    'list', 'bullet',
+    'align',
+    'link'
+  ]
+
+  // Consistent styling with TicketView
+  useEffect(() => {
+    const style = document.createElement('style')
+    style.textContent = `
+      .ql-editor.ql-blank::before {
+        color: #ffffff !important;
+        opacity: 0.7 !important;
+      }
+      .ql-editor {
+        color: #ffffff !important;
+        min-height: 120px;
+        max-height: 200px;
+        overflow-y: auto;
+      }
+      .ql-toolbar {
+        border-color: #303030 !important;
+        background-color: #151515 !important;
+        position: relative;
+        z-index: 10;
+      }
+      .ql-container {
+        border-color: #303030 !important;
+        background-color: #101010 !important;
+      }
+      .ql-snow .ql-stroke {
+        stroke: #ffffff !important;
+      }
+      .ql-snow .ql-fill {
+        fill: #ffffff !important;
+      }
+      .ql-snow .ql-picker-label {
+        color: #ffffff !important;
+      }
+      .ql-snow .ql-picker-options {
+        background-color: #151515 !important;
+        border-color: #303030 !important;
+      }
+      .ql-snow .ql-picker-item {
+        color: #ffffff !important;
+      }
+      .ql-snow .ql-tooltip {
+        background-color: #151515 !important;
+        border-color: #303030 !important;
+        color: #ffffff !important;
+        z-index: 20;
+      }
+      .ql-snow .ql-tooltip input[type="text"] {
+        color: #000000 !important;
+      }
+    `
+    document.head.appendChild(style)
+
+    return () => {
+      document.head.removeChild(style)
+    }
+  }, [])
+
+  return (
+    <ReactQuill
+      value={value}
+      onChange={onChange}
+      modules={modules}
+      formats={formats}
+      placeholder={placeholder}
+      theme="snow"
+    />
+  )
+}
+
+function CreateNoteModal({ isOpen, onClose, onSave, availableTags = [] }) {
+  const [newNote, setNewNote] = useState({ 
+    title: "", 
+    content: "",
+    tags: [],
+    attachments: []
+  })
+  const [viewingImage, setViewingImage] = useState(null) // { image, images, index }
+  const fileInputRef = useRef(null)
+
+  // Image source modal states
+  const [showImageSourceModal, setShowImageSourceModal] = useState(false)
+  const [showMediaLibraryModal, setShowMediaLibraryModal] = useState(false)
+
+  // Lightbox keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (!viewingImage) return
+      
+      if (event.key === 'Escape') {
+        setViewingImage(null)
+      } else if (event.key === 'ArrowLeft') {
+        const newIndex = viewingImage.index > 0 ? viewingImage.index - 1 : viewingImage.images.length - 1
+        setViewingImage({
+          ...viewingImage,
+          image: viewingImage.images[newIndex],
+          index: newIndex
+        })
+      } else if (event.key === 'ArrowRight') {
+        const newIndex = viewingImage.index < viewingImage.images.length - 1 ? viewingImage.index + 1 : 0
+        setViewingImage({
+          ...viewingImage,
+          image: viewingImage.images[newIndex],
+          index: newIndex
+        })
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [viewingImage])
+
+  const handleSave = () => {
+    if (newNote.title.trim() || newNote.content.trim()) {
+      onSave({
+        title: newNote.title || "Untitled",
+        content: newNote.content,
+        tags: newNote.tags,
+        attachments: newNote.attachments,
+      })
+      setNewNote({ title: "", content: "", tags: [], attachments: [] })
+      onClose()
+    }
+  }
+
+  const handleClose = () => {
+    setNewNote({ title: "", content: "", tags: [], attachments: [] })
+    onClose()
+  }
+
+  const toggleTag = (tagId) => {
+    setNewNote(prev => ({
+      ...prev,
+      tags: prev.tags.includes(tagId)
+        ? prev.tags.filter(t => t !== tagId)
+        : [...prev.tags, tagId]
+    }))
+  }
+
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files)
+    const newAttachments = files.map(file => ({
+      name: file.name,
+      url: URL.createObjectURL(file),
+      file: file
+    }))
+    setNewNote(prev => ({
+      ...prev,
+      attachments: [...prev.attachments, ...newAttachments]
+    }))
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""
+    }
+  }
+
+  const handleMediaLibrarySelect = (imageUrl) => {
+    // Extract filename from URL or generate one
+    const filename = imageUrl.split('/').pop() || `media-${Date.now()}.jpg`
+    const newAttachment = {
+      name: filename,
+      url: imageUrl,
+      file: null // From media library, no file object
+    }
+    setNewNote(prev => ({
+      ...prev,
+      attachments: [...prev.attachments, newAttachment]
+    }))
+  }
+
+  const removeAttachment = (index) => {
+    setNewNote(prev => ({
+      ...prev,
+      attachments: prev.attachments.filter((_, i) => i !== index)
+    }))
+  }
+
+  return (
+    <>
+    <Modal 
+      isOpen={isOpen} 
+      onClose={handleClose} 
+      title="Create Note"
+      footer={
+        <div className="flex gap-3">
+          <button
+            onClick={handleClose}
+            className="flex-1 bg-gray-600 cursor-pointer text-sm hover:bg-gray-700 text-white px-6 py-3 rounded-xl font-medium transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={!newNote.content.trim()}
+            className="flex-1 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-500/50 disabled:cursor-not-allowed cursor-pointer text-sm text-white px-6 py-3 rounded-xl font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+          >
+            <Plus size={16} />
+            Create Note
+          </button>
+        </div>
+      }
+    >
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-2">Title</label>
+          <input
+            type="text"
+            value={newNote.title}
+            onChange={(e) => setNewNote((prev) => ({ ...prev, title: e.target.value }))}
+            className="w-full bg-[#181818] border outline-none border-slate-300/10 text-white rounded-xl px-4 py-2 text-sm"
+            placeholder="Enter note title..."
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-2">Content</label>
+          <WysiwygEditor
+            value={newNote.content}
+            onChange={(value) => setNewNote((prev) => ({ ...prev, content: value }))}
+            placeholder="Write your note here..."
+          />
+        </div>
+
+        {/* Tags Section */}
+        {availableTags.length > 0 && (
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
+              <Tag size={14} />
+              Tags
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {availableTags.map(tag => (
+                <button
+                  key={tag.id}
+                  type="button"
+                  onClick={() => toggleTag(tag.id)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
+                    newNote.tags.includes(tag.id)
+                      ? "text-white"
+                      : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                  }`}
+                  style={{
+                    backgroundColor: newNote.tags.includes(tag.id) ? tag.color : undefined
+                  }}
+                >
+                  <Tag size={10} />
+                  {tag.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Attachments Section */}
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
+            <Paperclip size={14} />
+            Attachments
+          </label>
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept="image/*"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+          <button
+            type="button"
+            onClick={() => setShowImageSourceModal(true)}
+            className="w-full bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300 px-4 py-2 rounded-xl text-sm transition-colors flex items-center justify-center gap-2"
+          >
+            <Paperclip size={14} />
+            Add Images
+          </button>
+          
+          {newNote.attachments.length > 0 && (
+            <div className="mt-3 grid grid-cols-3 gap-2">
+              {newNote.attachments.map((attachment, index) => (
+                <div key={index} className="relative group">
+                  <div
+                    className="cursor-pointer"
+                    onClick={() => setViewingImage({
+                      image: attachment,
+                      images: newNote.attachments,
+                      index: index
+                    })}
+                  >
+                    <img 
+                      src={attachment.url} 
+                      alt={attachment.name}
+                      className="w-full h-20 object-cover rounded-lg border border-gray-700"
+                    />
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                      <span className="text-white text-xs font-medium bg-gray-800 px-3 py-1 rounded">View</span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      removeAttachment(index)
+                    }}
+                    className="absolute top-1 right-1 bg-red-600 hover:bg-red-700 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </Modal>
+
+    {/* Image Source Modal */}
+    <ImageSourceModal
+      isOpen={showImageSourceModal}
+      onClose={() => setShowImageSourceModal(false)}
+      onSelectFile={() => fileInputRef.current?.click()}
+      onSelectMediaLibrary={() => setShowMediaLibraryModal(true)}
+    />
+
+    {/* Media Library Picker Modal */}
+    <MediaLibraryPickerModal
+      isOpen={showMediaLibraryModal}
+      onClose={() => setShowMediaLibraryModal(false)}
+      onSelectImage={handleMediaLibrarySelect}
+      folders={mediaLibraryFolders}
+      designs={mediaLibraryDesigns}
+    />
+
+    {/* Image Lightbox Modal */}
+    {viewingImage && viewingImage.image && (
+      <div 
+        className="fixed inset-0 bg-black/95 flex items-center justify-center z-[1010] p-4"
+        onClick={() => setViewingImage(null)}
+      >
+        {/* Close Button */}
+        <button
+          onClick={() => setViewingImage(null)}
+          className="absolute top-4 right-4 text-white hover:text-gray-300 p-2 rounded-lg hover:bg-white/10 transition-colors z-10"
+          aria-label="Close image"
+        >
+          <X size={32} />
+        </button>
+
+        {/* Previous Button */}
+        {viewingImage.images.length > 1 && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              const newIndex = viewingImage.index > 0 ? viewingImage.index - 1 : viewingImage.images.length - 1
+              setViewingImage({
+                ...viewingImage,
+                image: viewingImage.images[newIndex],
+                index: newIndex
+              })
+            }}
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 p-3 rounded-lg hover:bg-white/10 transition-colors z-10"
+            aria-label="Previous image"
+          >
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+        )}
+
+        {/* Next Button */}
+        {viewingImage.images.length > 1 && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              const newIndex = viewingImage.index < viewingImage.images.length - 1 ? viewingImage.index + 1 : 0
+              setViewingImage({
+                ...viewingImage,
+                image: viewingImage.images[newIndex],
+                index: newIndex
+              })
+            }}
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 p-3 rounded-lg hover:bg-white/10 transition-colors z-10"
+            aria-label="Next image"
+          >
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        )}
+
+        {/* Image Container */}
+        <div 
+          className="max-w-[90vw] max-h-[90vh] flex flex-col gap-3"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Filename above image */}
+          <div className="bg-black/60 rounded-lg px-4 py-3 backdrop-blur-sm">
+            <p className="text-white text-sm font-medium text-center">
+              {viewingImage.image.name}
+              {viewingImage.images.length > 1 && (
+                <span className="text-gray-400 ml-2">
+                  ({viewingImage.index + 1}/{viewingImage.images.length})
+                </span>
+              )}
+            </p>
+          </div>
+          
+          {/* Image */}
+          <img 
+            src={viewingImage.image.url} 
+            alt={viewingImage.image.name}
+            className="max-w-full max-h-[calc(90vh-80px)] object-contain rounded-lg"
+          />
+        </div>
+      </div>
+    )}
+  </>
+  )
+}
+
+export default CreateNoteModal

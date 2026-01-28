@@ -3,7 +3,7 @@
 /* eslint-disable react/prop-types */
 import { Search, X, Plus, Users, Calendar, Clock, ChevronDown, AlertTriangle, Check, Info, SkipForward, ChevronRight, RotateCcw } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
-import { MemberSpecialNoteIcon } from '../../shared/shared-special-note-icon';
+import { MemberSpecialNoteIcon } from '../shared-special-note-icon';
 
 const MAX_PARTICIPANTS = 5;
 
@@ -140,6 +140,7 @@ const MemberTagInput = ({
       noteImportance: member.noteImportance || "unimportant",
       noteStartDate: member.noteStartDate || "",
       noteEndDate: member.noteEndDate || "",
+      noteStatus: member.noteStatus || "general",
     }]);
     setInputValue("");
     setShowDropdown(false);
@@ -228,7 +229,10 @@ const AppointmentTypeDropdown = ({ value, onChange, appointmentTypes = [], showT
 };
 
 const AddAppointmentModal = ({
-  isOpen, onClose, appointmentTypesMain = [], onSubmit, setIsNotifyMemberOpenMain, setNotifyActionMain,
+  isOpen, onClose, appointmentTypesMain = [], onSubmit, 
+  setIsNotifyMemberOpenMain, setNotifyActionMain,
+  // Also accept alternative prop names from calendar.jsx
+  setIsNotifyMemberOpen, setNotifyAction,
   freeAppointmentsMain = [], availableMembersLeads = [], searchMembersMain, selectedMemberMain = null,
   memberCredits = null, currentBillingPeriod = "March 2025",
   onOpenEditMemberModal, // Callback to open EditMemberModal with specific tab
@@ -237,6 +241,11 @@ const AddAppointmentModal = ({
   if (!isOpen) return null;
   
   const [showRecurringOptions, setShowRecurringOptions] = useState(false);
+  const [showNotifyModal, setShowNotifyModal] = useState(false);
+  const [pendingAppointmentData, setPendingAppointmentData] = useState(null);
+  const [emailNotification, setEmailNotification] = useState(true);
+  const [pushNotification, setPushNotification] = useState(true);
+  
   const [appointmentData, setAppointmentData] = useState({ date: "", timeSlot: "", type: "", members: selectedMemberMain ? [{
     id: selectedMemberMain.id, name: selectedMemberMain.name || selectedMemberMain.title,
     firstName: selectedMemberMain.firstName, lastName: selectedMemberMain.lastName, image: selectedMemberMain.image,
@@ -261,9 +270,71 @@ const AddAppointmentModal = ({
   const getAvailableSlots = (date) => freeAppointmentsMain.filter(app => app?.date === date);
   const availableSlots = getAvailableSlots(appointmentData.date);
 
+  // Prepare appointment data but don't submit yet - show notify modal first
   const handleBook = () => {
     if (appointmentData.members.length === 0) { alert("Please add at least one member."); return; }
-    onClose(); setIsNotifyMemberOpenMain(true); setNotifyActionMain("book");
+    
+    // Get appointment type details
+    const selectedType = appointmentTypesMain.find(t => t.name === appointmentData.type);
+    const duration = selectedType?.duration || 30;
+    
+    // Calculate end time
+    const [hours, minutes] = appointmentData.timeSlot.split(':').map(Number);
+    const endDate = new Date(2000, 0, 1, hours, minutes + duration);
+    const endTime = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
+    
+    // Build appointment data for each member
+    const appointmentsToCreate = appointmentData.members.map((member) => ({
+      name: member.firstName || member.name?.split(" ")[0] || "",
+      lastName: member.lastName || member.name?.split(" ").slice(1).join(" ") || "",
+      memberId: member.id,
+      type: appointmentData.type,
+      date: appointmentData.date,
+      startTime: appointmentData.timeSlot,
+      endTime: endTime,
+      time: `${appointmentData.timeSlot} - ${endTime}`,
+      color: selectedType?.color || "bg-[#808080]",
+      colorHex: getColorHex(selectedType),
+      specialNote: member.note ? { text: member.note, isImportant: member.noteImportance === "important" } : null,
+    }));
+    
+    // Store pending data and show notify modal
+    setPendingAppointmentData(appointmentsToCreate);
+    setShowNotifyModal(true);
+  };
+
+  // Actually create the appointments after notify decision
+  const handleConfirmBooking = (shouldNotify) => {
+    if (pendingAppointmentData && onSubmit) {
+      pendingAppointmentData.forEach((aptData) => {
+        onSubmit(aptData);
+      });
+    }
+    
+    // Close everything
+    setShowNotifyModal(false);
+    setPendingAppointmentData(null);
+    onClose();
+    
+    // If notification was requested, you could handle it here or pass to parent
+    if (shouldNotify) {
+      console.log("Notification requested:", { email: emailNotification, push: pushNotification });
+    }
+  };
+
+  // Cancel booking from notify modal - go back to form
+  const handleCancelNotify = () => {
+    setShowNotifyModal(false);
+    setPendingAppointmentData(null);
+    // Don't close the main modal - let user continue editing
+  };
+
+  // Get member names for notify modal display
+  const getMemberNames = () => {
+    if (!pendingAppointmentData || pendingAppointmentData.length === 0) return "";
+    return pendingAppointmentData.map(apt => 
+      apt.lastName ? `${apt.name} ${apt.lastName}` : apt.name
+    ).join(", ");
   };
 
   return (
@@ -307,6 +378,80 @@ const AddAppointmentModal = ({
           </button>
         </div>
       </div>
+
+      {/* Integrated Notify Member Modal */}
+      {showNotifyModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000001] p-4" onClick={handleCancelNotify}>
+          <div className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
+              <h2 className="text-lg font-semibold text-white">Notify Member</h2>
+              <button onClick={handleCancelNotify} className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-6">
+              <p className="text-white text-sm">
+                New appointment for <span className="font-semibold text-orange-400">{getMemberNames()}</span> on{" "}
+                <span className="font-semibold text-orange-400">
+                  {pendingAppointmentData?.[0]?.date && new Date(pendingAppointmentData[0].date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                </span> at{" "}
+                <span className="font-semibold text-orange-400">{pendingAppointmentData?.[0]?.time}</span>.
+                <br /><br />
+                Do you want to notify the member about this booking?
+              </p>
+
+              {/* Notification Options */}
+              <div className="mt-4 space-y-3">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={emailNotification}
+                    onChange={(e) => setEmailNotification(e.target.checked)}
+                    className="w-4 h-4 text-orange-500 bg-gray-700 border-gray-600 rounded focus:ring-orange-500 focus:ring-2"
+                  />
+                  <span className="text-white text-sm">Email Notification</span>
+                </label>
+                
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={pushNotification}
+                    onChange={(e) => setPushNotification(e.target.checked)}
+                    className="w-4 h-4 text-orange-500 bg-gray-700 border-gray-600 rounded focus:ring-orange-500 focus:ring-2"
+                  />
+                  <span className="text-white text-sm">App Push Notification</span>
+                </label>
+              </div>
+            </div>
+
+            <div className="px-6 py-4 border-t border-gray-800 flex flex-col-reverse sm:flex-row gap-2 sm:justify-between">
+              <button
+                onClick={handleCancelNotify}
+                className="w-full sm:w-auto px-5 py-2.5 bg-gray-700 text-sm font-medium text-white rounded-xl hover:bg-gray-600 transition-colors"
+              >
+                Back
+              </button>
+
+              <div className="flex flex-col-reverse sm:flex-row gap-2">
+                <button
+                  onClick={() => handleConfirmBooking(false)}
+                  className="w-full sm:w-auto px-5 py-2.5 bg-gray-800 text-sm font-medium text-white rounded-xl hover:bg-gray-700 transition-colors border border-gray-600"
+                >
+                  No, Don't Notify
+                </button>
+
+                <button
+                  onClick={() => handleConfirmBooking(true)}
+                  className="w-full sm:w-auto px-5 py-2.5 bg-orange-500 text-sm font-medium text-white rounded-xl hover:bg-orange-600 transition-colors"
+                >
+                  Yes, Notify Member
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

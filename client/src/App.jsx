@@ -5,34 +5,34 @@ import Header from "./components/navbar";
 import Login from './landing-page/login';
 import Register from './landing-page/register'
 
-// User Panel Dashboard
-import Dashboardlayout from "./layouts/dashboard-layout";
-import MyArea from './dashboard-pages/user-panel-view/my-area'
-import Appointments from "./dashboard-pages/user-panel-view/appointments";
-import ToDo from './dashboard-pages/user-panel-view/todo'
-import Members from './dashboard-pages/user-panel-view/members'
-import Staff from './dashboard-pages/user-panel-view/staff'
-import MediaLibrary from './dashboard-pages/user-panel-view/media-library'
-import Communication from "./dashboard-pages/user-panel-view/communications";
-import Contract from './dashboard-pages/user-panel-view/contract'
-import Configuration from './dashboard-pages/user-panel-view/configuration'
-import Leads from './dashboard-pages/user-panel-view/leads'
-import Selling from "./dashboard-pages/user-panel-view/selling";
-import Finances from "./dashboard-pages/user-panel-view/finances";
-import Training from "./dashboard-pages/user-panel-view/training";
-import ActivityMonitor from "./dashboard-pages/user-panel-view/activity-monitor";
-import Analytics from './dashboard-pages/user-panel-view/analytics'
-import MarketPlace from './dashboard-pages/user-panel-view/market-place'
-import NotesApp from "./dashboard-pages/user-panel-view/notes";
-import BulletinBoard from './dashboard-pages/user-panel-view/bulletin-board'
-import MembersCheckIn from './dashboard-pages/user-panel-view/members-checkin'
-import Assessment from "./dashboard-pages/user-panel-view/medical-history";
-import HelpCenter from "./dashboard-pages/user-panel-view/help-center";
-import Tickets from "./dashboard-pages/user-panel-view/tickets";
+// Studio-View Dashboard
+import Dashboardlayout from "./layouts/studio-view-layout";
+import MyArea from './dashboard-pages/studio-view/my-area'
+import Appointments from "./dashboard-pages/studio-view/appointments";
+import ToDo from './dashboard-pages/studio-view/todo'
+import Members from './dashboard-pages/studio-view/members'
+import Staff from './dashboard-pages/studio-view/staff'
+import MediaLibrary from './dashboard-pages/studio-view/media-library'
+import Communication from "./dashboard-pages/studio-view/communications";
+import Contract from './dashboard-pages/studio-view/contract'
+import Configuration from './dashboard-pages/studio-view/configuration'
+import Leads from './dashboard-pages/studio-view/leads'
+import Selling from "./dashboard-pages/studio-view/selling";
+import Finances from "./dashboard-pages/studio-view/finances";
+import Training from "./dashboard-pages/studio-view/training";
+import ActivityMonitor from "./dashboard-pages/studio-view/activity-monitor";
+import Analytics from './dashboard-pages/studio-view/analytics'
+import MarketPlace from './dashboard-pages/studio-view/market-place'
+import NotesApp from "./dashboard-pages/studio-view/notes";
+import BulletinBoard from './dashboard-pages/studio-view/bulletin-board'
+import MembersCheckIn from './dashboard-pages/studio-view/members-checkin'
+import Assessment from "./dashboard-pages/studio-view/medical-history";
+import HelpCenter from "./dashboard-pages/studio-view/help-center";
+import Tickets from "./dashboard-pages/studio-view/tickets";
 
 
 // Admin Dashboard
-import AdminDashboardLayout from './layouts/admin-dashboard-layout'
+import AdminDashboardLayout from './layouts/admin-view-layout'
 import AdminMyArea from './dashboard-pages/admin-view/my-area'
 import Studios from "./dashboard-pages/admin-view/studios";
 import AdminLeads from './dashboard-pages/admin-view/leads'
@@ -50,13 +50,13 @@ import AdminDemoAccess from './dashboard-pages/admin-view/demo-access'
 
 
 // Member Dashboard  
+import MemberDashboardLayout from "./layouts/member-view-layout";
 import MemberAppointments from './dashboard-pages/member-view/appointment'
 import MemberCommuncation from './dashboard-pages/member-view/communication'
 import MemberStudioMenu from './dashboard-pages/member-view/studio-menu'
 import MemberSettings from './dashboard-pages/member-view/configuration'
 import MemberViewProfile from './dashboard-pages/member-view/edit-profile'
 import MemberTraining from './dashboard-pages/member-view/training'
-import MemberDashboardLayout from "./layouts/member-dashboard-layout";
 import EditAdminPage from "./dashboard-pages/admin-view/edit-admin-page";
 import EditStudioPage from "./dashboard-pages/admin-view/edit-studio-page";
 import MemberFoodLogs from './dashboard-pages/member-view/nutrition-tracking/food-log'

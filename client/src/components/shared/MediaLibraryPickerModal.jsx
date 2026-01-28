@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useState, useMemo } from 'react'
 import { X, Search, Folder as FolderIcon, Image as ImageIcon } from 'lucide-react'
-import { mediaLibraryFolders as defaultFolders, mediaLibraryDesigns as defaultDesigns } from '../../utils/user-panel-states/media-library-picker-modal-state'
+import { mediaLibraryFolders as defaultFolders, mediaLibraryDesigns as defaultDesigns } from '../../utils/studio-states/media-library-picker-modal-state'
 
 /**
  * Shared MediaLibraryPickerModal

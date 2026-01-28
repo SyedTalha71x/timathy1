@@ -1,11 +1,11 @@
 /* eslint-disable no-unused-vars */
 import { useState } from "react"
-import CreateNoteModal from "../../components/user-panel-components/notes-components/CreateNoteModal"
-import EditNoteModal from "../../components/user-panel-components/notes-components/EditNoteModal"
-import DeleteConfirmModal from "../../components/user-panel-components/notes-components/DeleteConfirmModal"
+import CreateNoteModal from "../../components/studio-components/notes-components/CreateNoteModal"
+import EditNoteModal from "../../components/studio-components/notes-components/EditNoteModal"
+import DeleteConfirmModal from "../../components/studio-components/notes-components/DeleteConfirmModal"
 
 
-import { demoNotes } from "../../utils/user-panel-states/notes-states"
+import { demoNotes } from "../../utils/studio-states/notes-states"
 import toast, { Toaster } from "react-hot-toast"
 import { IoIosMenu } from "react-icons/io"
 

@@ -17,7 +17,7 @@ import { Eye, Minus } from "react-feather"
 import ViewManagementModal from "../../components/admin-dashboard-components/myarea-components/view-management"
 import NotesWidget from "../../components/admin-dashboard-components/myarea-components/notes-widgets"
 import AddTaskModal from "../../components/admin-dashboard-components/myarea-components/add-task-modal"
-import { configuredTagsData } from "../../utils/user-panel-states/todo-states"
+import { configuredTagsData } from "../../utils/studio-states/todo-states"
 import EditTaskModal from "../../components/admin-dashboard-components/myarea-components/edit-task-modal"
 
 const DraggableWidget = ({

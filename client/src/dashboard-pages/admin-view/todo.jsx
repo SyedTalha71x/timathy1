@@ -10,7 +10,7 @@ import {
   todosTaskData,
   configuredTagsData,
   availableAssigneesData,
-} from "../../utils/user-panel-states/todo-states"
+} from "../../utils/studio-states/todo-states"
 
 import RepeatTaskModal from '../../components/admin-dashboard-components/todo-components/repeat-task-modal'
 import DeleteModal from '../../components/admin-dashboard-components/todo-components/delete-task'
