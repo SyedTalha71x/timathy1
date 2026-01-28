@@ -7,12 +7,12 @@ import timeGridPlugin from "@fullcalendar/timegrid"
 import interactionPlugin from "@fullcalendar/interaction"
 import { X } from "lucide-react"
 
-import CreateAppointmentModal from "./add-appointment-modal"
+import CreateAppointmentModal from "../../shared/appointments/CreateAppointmentModal"
 import BlockAppointmentModal from "./block-appointment-modal"
 import TrialTrainingModal from "./add-trial-training"
-import EditAppointmentModalMain from "./selected-appointment-modal"
+import EditAppointmentModalMain from "../../shared/appointments/EditAppointmentModal"
 
-import AppointmentActionModalMain from "./calendar-components/AppointmentActionModalMain"
+import AppointmentActionModal from "../../shared/appointments/AppointmentActionModal"
 import NotifyMemberModalMain from "./calendar-components/NotifyMemberModalMain"
 import TypeSelectionModalMain from "./calendar-components/TypeSelectionModalMain"
 import EditBlockedSlotModalMain from "./calendar-components/EditBlockedSlotModalMain"
@@ -384,7 +384,7 @@ const Calendar = forwardRef(({
     const appointmentId = Number(event.id);
     const duration = event.end - event.start;
     
-    // Finde die ursprünglichen Daten und speichere sie
+    // Speichere ursprüngliche Daten für Cancel
     const originalAppointment = appointmentsMain.find(app => app.id === appointmentId);
     if (originalAppointment) {
       setOriginalEventData({
@@ -395,7 +395,7 @@ const Calendar = forwardRef(({
       });
     }
     
-    // Aktualisiere den State sofort (damit das Event visuell an der neuen Position bleibt)
+    // State sofort aktualisieren (damit das Event visuell an der neuen Position bleibt)
     const updatedAppointments = appointmentsMain.map((appointment) => {
       if (appointment.id === appointmentId) {
         return { 
@@ -452,26 +452,9 @@ const Calendar = forwardRef(({
   const handleNotifyMember = (shouldNotify) => {
     setIsNotifyMemberOpen(false)
     if (pendingEventInfo && notifyAction === "change") {
-      // shouldNotify kann true, false oder null sein
-      // true = Ja, benachrichtigen (State ist bereits aktualisiert)
-      // false = Nein, nicht benachrichtigen (State ist bereits aktualisiert)
-      // null = Abbrechen, ursprüngliche Position wiederherstellen
-      if (shouldNotify === null && originalEventData) {
-        // Ursprüngliche Daten wiederherstellen
-        const restoredAppointments = appointmentsMain.map((appointment) => {
-          if (appointment.id === originalEventData.id) {
-            return { 
-              ...appointment,
-              startTime: originalEventData.startTime,
-              endTime: originalEventData.endTime,
-              date: originalEventData.date,
-            };
-          }
-          return appointment;
-        });
-        setAppointmentsMain(restoredAppointments);
-      }
-      // Bei true/false ist der State bereits korrekt (wurde in handleEventDrop gesetzt)
+      // State wurde bereits in handleEventDrop aktualisiert
+      // Bei Ja/Nein bleibt der Termin an der neuen Position
+      // Bei X (onClose) wird der State mit originalEventData wiederhergestellt
       setPendingEventInfo(null);
       setOriginalEventData(null);
     } else if (notifyAction === "cancel" && selectedAppointment) {
@@ -521,6 +504,15 @@ const Calendar = forwardRef(({
       setSelectedAppointment({ ...selectedAppointment, status: "cancelled", isCancelled: true })
       setIsNotifyMemberOpen(true)
     }
+  }
+
+  // Delete appointment permanently (for already cancelled appointments)
+  const handleDeleteCancelledAppointment = () => {
+    if (!selectedAppointment) return
+    setAppointmentsMain(appointmentsMain.filter((a) => a.id !== selectedAppointment.id))
+    setSelectedAppointment(null)
+    setIsAppointmentActionModalOpen(false)
+    // No notify modal - just delete directly
   }
 
   const actuallyHandleCancelAppointment = (shouldNotify) => {
@@ -988,7 +980,7 @@ const Calendar = forwardRef(({
                 const thirtyMinutes = 30 * 60 * 1000;
                 return duration <= thirtyMinutes;
               }}
-              eventOverlap={false}
+              eventOverlap={true}
               eventMinHeight={28}
               views={{
                 timeGridWeek: {
@@ -1253,11 +1245,11 @@ const Calendar = forwardRef(({
         setAppointmentsMain([...appointmentsMain, newBlock]); setIsBlockModalOpen(false)
       }} />
       <TypeSelectionModalMain isOpen={isTypeSelectionOpen} onClose={() => setIsTypeSelectionOpen(false)} onSelect={handleTypeSelection} />
-      <AppointmentActionModalMain isOpen={isAppointmentActionModalOpen} appointment={selectedAppointment} onClose={() => setIsAppointmentActionModalOpen(false)} onEdit={handleEditAppointment} onCancel={handleCancelAppointment} onViewMember={handleViewMemberDetails} />
+      <AppointmentActionModal isOpen={isAppointmentActionModalOpen} appointment={selectedAppointment} onClose={() => setIsAppointmentActionModalOpen(false)} onEdit={handleEditAppointment} onCancel={handleCancelAppointment} onDelete={handleDeleteCancelledAppointment} onViewMember={handleViewMemberDetails} />
       <NotifyMemberModalMain isOpen={isNotifyMemberOpen} onClose={() => { 
         setIsNotifyMemberOpen(false); 
         if (pendingEventInfo && originalEventData) { 
-          // Ursprüngliche Daten wiederherstellen
+          // State mit ursprünglichen Daten wiederherstellen
           const restoredAppointments = appointmentsMain.map((appointment) => {
             if (appointment.id === originalEventData.id) {
               return { 

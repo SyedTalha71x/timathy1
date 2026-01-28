@@ -26,13 +26,13 @@ import { GoArrowLeft, GoArrowRight } from "react-icons/go"
 import { appointmentsData as initialAppointmentsData } from "../../utils/user-panel-states/app-states"
 
 import TrialTrainingModal from "../../components/user-panel-components/appointments-components/add-trial-training"
-import CreateAppointmentModal from "../../components/user-panel-components/appointments-components/add-appointment-modal"
+import CreateAppointmentModal from "../../components/shared/appointments/CreateAppointmentModal"
 import MiniCalendar from "../../components/user-panel-components/appointments-components/mini-calender"
 import BlockAppointmentModal from "../../components/user-panel-components/appointments-components/block-appointment-modal"
 import Calendar from "../../components/user-panel-components/appointments-components/calendar"
-import AppointmentActionModal from "../../components/user-panel-components/appointments-components/appointment-action-modal"
+import AppointmentActionModal from "../../components/shared/appointments/AppointmentActionModal"
 
-import EditAppointmentModal from "../../components/user-panel-components/appointments-components/selected-appointment-modal"
+import EditAppointmentModal from "../../components/shared/appointments/EditAppointmentModal"
 import NotifyMemberModal from "../../components/myarea-components/NotifyMemberModal"
 import { createPortal } from "react-dom"
 import TrainingPlansModalMain from "../../components/user-panel-components/appointments-components/training-plan-modal"
@@ -284,20 +284,26 @@ export default function Appointments() {
     }
   }
 
-  const handleDeleteAppointmentMain = (appointmentId) => {
-    setAppointmentsMain((prevAppointments) => prevAppointments.filter((appointment) => appointment.id !== appointmentId))
-    setSelectedAppointmentMain(null)
-    
-  }
-
   const handleCancelAppointmentMain = (appointmentId) => {
+    const idToCancel = appointmentId || selectedAppointmentMain?.id
+    if (!idToCancel) return
     const updatedAppointments = appointmentsMain.map((app) =>
-      app.id === appointmentId ? { ...app, status: "cancelled", isCancelled: true } : app
+      app.id === idToCancel ? { ...app, status: "cancelled", isCancelled: true } : app
     )
     setAppointmentsMain(updatedAppointments)
     setSelectedAppointmentMain(null)
+    setshowAppointmentOptionsModalMain(false)
     setIsNotifyMemberOpenMain(true)
     setNotifyActionMain("cancel")
+  }
+
+  // Delete appointment permanently (for already cancelled appointments)
+  const handleDeleteAppointmentMain = () => {
+    if (!selectedAppointmentMain) return
+    setAppointmentsMain(appointmentsMain.filter((a) => a.id !== selectedAppointmentMain.id))
+    setSelectedAppointmentMain(null)
+    setshowAppointmentOptionsModalMain(false)
+    // No notify modal - just delete directly
   }
 
   const toggleSidebar = () => { setIsSidebarCollapsed(!isSidebarCollapsed) }
@@ -702,7 +708,7 @@ export default function Appointments() {
         {/* Modals */}
         <CreateAppointmentModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} appointmentTypesMain={appointmentTypesMain} onSubmit={handleAppointmentSubmit} setIsNotifyMemberOpenMain={setIsNotifyMemberOpenMain} setNotifyActionMain={setNotifyActionMain} availableMembersLeads={[]} />
         <TrialTrainingModal isOpen={isTrialModalOpen} onClose={() => setIsTrialModalOpen(false)} freeAppointmentsMain={freeAppointmentsMain} onSubmit={handleTrialSubmit} />
-        <AppointmentActionModal isOpen={showAppointmentOptionsModalMain} onClose={() => { setshowAppointmentOptionsModalMain(false); setSelectedAppointmentMain(null) }} appointmentMain={selectedAppointmentMain} onEdit={() => { setshowAppointmentOptionsModalMain(false); setisEditAppointmentModalOpenMain(true) }} onCancel={handleCancelAppointmentMain} onViewMember={handleViewMemberDetailsMain} />
+        <AppointmentActionModal isOpen={showAppointmentOptionsModalMain} onClose={() => { setshowAppointmentOptionsModalMain(false); setSelectedAppointmentMain(null) }} appointmentMain={selectedAppointmentMain} onEdit={() => { setshowAppointmentOptionsModalMain(false); setisEditAppointmentModalOpenMain(true) }} onCancel={handleCancelAppointmentMain} onDelete={handleDeleteAppointmentMain} onViewMember={handleViewMemberDetailsMain} />
         {isEditAppointmentModalOpenMain && selectedAppointmentMain && (
           <EditAppointmentModal selectedAppointmentMain={selectedAppointmentMain} setSelectedAppointmentMain={setSelectedAppointmentMain} appointmentTypesMain={appointmentTypesMain} freeAppointmentsMain={freeAppointmentsMain}
             handleAppointmentChange={(changes) => setSelectedAppointmentMain((prev) => ({ ...prev, ...changes }))} appointmentsMain={appointmentsMain} setAppointmentsMain={setAppointmentsMain} setIsNotifyMemberOpenMain={setIsNotifyMemberOpenMain} setNotifyActionMain={setNotifyActionMain} onDelete={handleDeleteAppointmentMain} onClose={() => { setisEditAppointmentModalOpenMain(false); setSelectedAppointmentMain(null) }} />
