@@ -581,7 +581,10 @@ const Calendar = forwardRef(({
           font-size: 12px !important;
         }
         .fc td.fc-day-today {
-          background-color: rgba(249, 115, 22, 0.05) !important;
+          background-color: rgba(249, 115, 22, 0.08) !important;
+        }
+        .fc-dayGridMonth-view td.fc-day-today {
+          background-color: rgba(249, 115, 22, 0.1) !important;
         }
         .fc .fc-timegrid-slots {
           overflow: visible !important;
@@ -625,6 +628,72 @@ const Calendar = forwardRef(({
         body.fc-not-allowed,
         body.fc-not-allowed * {
           cursor: pointer !important;
+        }
+        /* Month view specific styles */
+        .fc-dayGridMonth-view .fc-daygrid-day {
+          min-height: 120px !important;
+          max-height: 120px !important;
+          height: 120px !important;
+        }
+        .fc-dayGridMonth-view .fc-daygrid-day-frame {
+          min-height: 120px !important;
+          max-height: 120px !important;
+          height: 120px !important;
+        }
+        .fc-dayGridMonth-view .fc-scrollgrid-sync-table {
+          height: auto !important;
+        }
+        .fc-dayGridMonth-view .fc-scrollgrid-sync-table tbody tr {
+          height: 120px !important;
+        }
+        .fc-dayGridMonth-view .fc-daygrid-body {
+          height: auto !important;
+        }
+        .fc-dayGridMonth-view .fc-daygrid-body-balanced .fc-daygrid-day-events {
+          position: relative !important;
+        }
+        .fc-dayGridMonth-view .fc-daygrid-day-top {
+          padding: 4px 6px !important;
+        }
+        .fc-dayGridMonth-view .fc-daygrid-day-number {
+          font-size: 13px !important;
+          padding: 2px !important;
+        }
+        .fc-dayGridMonth-view .fc-col-header-cell-cushion {
+          font-size: 12px !important;
+          font-weight: 600 !important;
+          padding: 8px 0 !important;
+        }
+        .fc-dayGridMonth-view .fc-day-other {
+          opacity: 1 !important;
+          visibility: visible !important;
+        }
+        .fc-dayGridMonth-view .fc-day-other .fc-daygrid-day-top {
+          opacity: 1 !important;
+          visibility: visible !important;
+        }
+        .fc-dayGridMonth-view .fc-day-other .fc-daygrid-day-number {
+          color: #888888 !important;
+          opacity: 1 !important;
+          visibility: visible !important;
+          display: block !important;
+        }
+        .fc-dayGridMonth-view .fc-day-other .fc-daygrid-day-top span {
+          color: #888888 !important;
+          opacity: 1 !important;
+          visibility: visible !important;
+          display: inline !important;
+        }
+        .fc-dayGridMonth-view .fc-day-other .fc-daygrid-day-frame {
+          opacity: 1 !important;
+        }
+        .fc-dayGridMonth-view .fc-day-today .fc-daygrid-day-number {
+          color: #e5e7eb !important;
+          font-weight: 700 !important;
+        }
+        .fc-dayGridMonth-view .fc-day-today .fc-daygrid-day-top span {
+          color: #e5e7eb !important;
+          font-weight: 700 !important;
         }
       `}</style>
       {tooltip.show && tooltip.content && (
@@ -690,14 +759,16 @@ const Calendar = forwardRef(({
                     const day = date.getDate();
                     return `${weekday} ${day}`;
                   }
+                },
+                dayGridMonth: {
+                  dayHeaderContent: (args) => {
+                    const date = new Date(args.date);
+                    const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                    const dayIndex = date.getDay();
+                    const adjustedIndex = dayIndex === 0 ? 6 : dayIndex - 1;
+                    return weekdays[adjustedIndex];
+                  }
                 }
-              }}
-              dayHeaderContent={(args) => {
-                const date = new Date(args.date);
-                const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-                const weekday = weekdays[date.getDay()];
-                const day = date.getDate();
-                return `${weekday} ${day}`;
               }}
               eventDragStart={(info) => { hideTooltip(); document.body.classList.add('dragging-active'); info.el.classList.add('fc-event-dragging'); }}
               eventDragStop={(info) => { document.body.classList.remove('dragging-active'); info.el.classList.remove('fc-event-dragging'); hideTooltip(); }}
@@ -722,6 +793,19 @@ const Calendar = forwardRef(({
                   const date = new Date(args.date)
                   const formattedDate = formatDate(date)
                   const dateString = date.toISOString().split('T')[0]
+                  
+                  // Check if this day is from the current month or a neighboring month
+                  const calendarApi = calendarRef.current?.getApi()
+                  const currentViewStart = calendarApi?.view?.currentStart
+                  const currentMonth = currentViewStart ? new Date(currentViewStart).getMonth() : new Date().getMonth()
+                  const isCurrentMonth = date.getMonth() === currentMonth
+                  
+                  // Check if this is today
+                  const today = new Date()
+                  const isToday = date.getDate() === today.getDate() && 
+                                  date.getMonth() === today.getMonth() && 
+                                  date.getFullYear() === today.getFullYear()
+                  
                   const dayAppointments = filteredAppointments.filter(apt => {
                     const dateParts = apt.date?.split("|") || []
                     if (dateParts.length < 2) return false
@@ -732,15 +816,25 @@ const Calendar = forwardRef(({
 
                   return (
                     <div className="fc-daygrid-day-frame" style={{ height: '100%', minHeight: '120px' }}>
-                      <div className="fc-daygrid-day-top"><span className="fc-daygrid-day-number">{args.dayNumberText}</span></div>
-                      <div className="fc-daygrid-day-events" style={{ minHeight: '85px', maxHeight: '85px', overflow: 'hidden' }}>
+                      <div className="fc-daygrid-day-top">
+                        <span 
+                          className="fc-daygrid-day-number" 
+                          style={{ 
+                            color: isCurrentMonth ? '#e5e7eb' : '#888888',
+                            fontWeight: isToday ? '700' : (isCurrentMonth ? '500' : '400')
+                          }}
+                        >
+                          {args.dayNumberText}
+                        </span>
+                      </div>
+                      <div className="fc-daygrid-day-events" style={{ minHeight: '95px', maxHeight: '95px', overflow: 'hidden' }}>
                         {displayAppointments.map((apt) => {
                           let bg = apt.color?.split("bg-[")[1]?.slice(0, -1) || "#4169E1", op = 1
                           if (apt.isCancelled) { bg = "#4a4a4a"; op = 0.6 }
                           else if (apt.isPast) { bg = "#1a1a1a"; op = 0.4 }
                           else if (apt.isBlocked || apt.type === "Blocked Time") { bg = "#dc2626"; op = 0.8 }
                           return (
-                            <div key={apt.id} style={{ backgroundColor: bg, marginBottom: "2px", padding: "2px 4px", borderRadius: "3px", fontSize: "10px", lineHeight: "1.1", height: "20px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", opacity: op, color: "#fff", cursor: "pointer" }}
+                            <div key={apt.id} style={{ backgroundColor: bg, marginBottom: "2px", padding: "2px 4px", borderRadius: "3px", fontSize: "10px", lineHeight: "1.1", height: "18px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", opacity: op, color: "#fff", cursor: "pointer" }}
                               onClick={(e) => { e.stopPropagation(); e.preventDefault(); handleMonthViewAppointmentClick(apt, e) }}
                               onMouseEnter={(e) => { e.stopPropagation(); const rect = e.currentTarget.getBoundingClientRect(); setTooltip({ show: true, x: rect.left + rect.width / 2, y: rect.top - 10, content: { name: apt.name, date: formattedDate.split('-').join(' '), time: `${apt.startTime || "N/A"} - ${apt.endTime || "N/A"}`, type: apt.type || "N/A" } }) }}
                               onMouseLeave={(e) => { e.stopPropagation(); hideTooltip() }}>
@@ -749,7 +843,7 @@ const Calendar = forwardRef(({
                           )
                         })}
                         {moreCount > 0 && (
-                          <div style={{ fontSize: "10px", color: "#3b82f6", marginTop: "2px", cursor: "pointer", padding: "2px 4px", height: "18px", textAlign: "center", fontWeight: "500", display: "flex", alignItems: "center", justifyContent: "center" }}
+                          <div style={{ fontSize: "10px", color: "#3b82f6", marginTop: "2px", cursor: "pointer", padding: "2px 4px", height: "16px", textAlign: "center", fontWeight: "500", display: "flex", alignItems: "center", justifyContent: "center" }}
                             onClick={(e) => { e.stopPropagation(); e.preventDefault(); handleShowAllAppointments(dateString, dayAppointments, e); }}>
                             +{moreCount} more
                           </div>
@@ -762,6 +856,15 @@ const Calendar = forwardRef(({
               }}
               dayHeaderContent={(args) => {
                 const date = new Date(args.date)
+                const viewType = calendarRef.current?.getApi()?.view?.type
+                
+                if (viewType === "dayGridMonth") {
+                  const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                  const dayIndex = date.getDay();
+                  const adjustedIndex = dayIndex === 0 ? 6 : dayIndex - 1;
+                  return <div style={{ textAlign: "center", lineHeight: "1", padding: "8px 0", fontSize: "12px", fontWeight: "600" }}><span>{weekdays[adjustedIndex]}</span></div>
+                }
+                
                 const weekday = date.toLocaleDateString("en-US", { weekday: "short" })
                 const day = date.getDate()
                 return <div style={{ textAlign: "center", lineHeight: "1", padding: "2px 0", fontSize: "11px" }}><span>{weekday} {day}</span></div>
@@ -810,7 +913,7 @@ const Calendar = forwardRef(({
           <div className="bg-[#181818] rounded-lg shadow-xl w-full max-w-md max-h-[80vh] overflow-hidden">
             <div className="flex items-center justify-between p-4 border-b border-gray-700">
               <h3 className="text-lg font-semibold text-white">{new Date(selectedDayDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</h3>
-              <button onClick={handleCloseAllAppointmentsModal} className="text-gray-400 hover:text-white">×</button>
+              <button onClick={handleCloseAllAppointmentsModal} className="text-gray-400 hover:text-white">Ã—</button>
             </div>
             <div className="p-4 overflow-y-auto max-h-[60vh]">
               {allAppointmentsForDay.length === 0 ? <div className="text-center text-gray-400 py-4">No appointments for this day</div> : (
