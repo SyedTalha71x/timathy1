@@ -88,6 +88,7 @@ export default function Appointments() {
   const [calendarDateDisplay, setCalendarDateDisplay] = useState("")
   const [calendarViewMode, setCalendarViewMode] = useState("all")
   const [currentView, setCurrentView] = useState("timeGridWeek")
+  const [miniCalendarDate, setMiniCalendarDate] = useState(new Date())
 
   const [hoveredNoteId, setHoveredNoteId] = useState(null)
   const [hoverTimeout, setHoverTimeout] = useState(null)
@@ -111,9 +112,10 @@ export default function Appointments() {
   const [selectedAppointmentForNoteMain, setSelectedAppointmentForNoteMain] = useState(null)
 
   const [appointmentFilters, setAppointmentFilters] = useState({
-    "Strength Training": true,
-    Cardio: true,
-    Yoga: true,
+    "EMS Strength": true,
+    "EMS Cardio": true,
+    "EMP Chair": true,
+    "Body Check": true,
     "Trial Training": true,
     "Blocked Time Slots": true,
     "Cancelled Appointments": true,
@@ -127,9 +129,10 @@ export default function Appointments() {
   ])
 
   const [appointmentTypesMain, setAppointmentTypesMain] = useState([
-    { name: "Strength Training", color: "bg-[#4169E1]", duration: 60 },
-    { name: "Cardio", color: "bg-[#FF6B6B]", duration: 45 },
-    { name: "Yoga", color: "bg-[#50C878]", duration: 90 },
+    { name: "EMS Strength", color: "bg-[#EF4444]", duration: 30 },
+    { name: "EMS Cardio", color: "bg-[#10B981]", duration: 30 },
+    { name: "EMP Chair", color: "bg-[#8B5CF6]", duration: 30 },
+    { name: "Body Check", color: "bg-[#06B6D4]", duration: 30 },
   ])
 
   const [filteredAppointments, setFilteredAppointments] = useState(appointmentsMain)
@@ -199,8 +202,8 @@ export default function Appointments() {
     const allSelected = Object.values(appointmentFilters).every((value) => value)
     const newState = !allSelected
     setAppointmentFilters({
-      "Strength Training": newState, Cardio: newState, Yoga: newState, "Trial Training": newState,
-      "Blocked Time Slots": newState, "Cancelled Appointments": newState, "Past Appointments": newState,
+      "EMS Strength": newState, "EMS Cardio": newState, "EMP Chair": newState, "Body Check": newState,
+      "Trial Training": newState, "Blocked Time Slots": newState, "Cancelled Appointments": newState, "Past Appointments": newState,
     })
   }
 
@@ -543,7 +546,7 @@ export default function Appointments() {
             <div className={`transition-all duration-500 ease-in-out ${isSidebarCollapsed ? "lg:w-0 lg:opacity-0 lg:overflow-hidden lg:m-0 lg:p-0" : "lg:w-[300px] lg:min-w-[300px] lg:opacity-100"} w-full md:w-full flex-shrink-0 lg:h-full lg:overflow-y-auto lg:overflow-x-hidden custom-scrollbar`}>
               <div className="flex flex-col gap-3 lg:pb-2">
                 <div className="w-full lg:max-w-[300px]">
-                  <MiniCalendar onDateSelect={handleDateSelect} selectedDate={selectedDate} />
+                  <MiniCalendar onDateSelect={handleDateSelect} selectedDate={selectedDate} externalDate={miniCalendarDate} />
                 </div>
 
                 <div className="w-full lg:max-w-[300px] flex flex-col gap-2">
@@ -672,6 +675,7 @@ export default function Appointments() {
                 isSidebarCollapsed={isSidebarCollapsed}
                 onDateDisplayChange={setCalendarDateDisplay}
                 onViewModeChange={setCalendarViewMode}
+                onCurrentDateChange={setMiniCalendarDate}
               />
             </div>
           </div>

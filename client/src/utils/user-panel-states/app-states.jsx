@@ -203,31 +203,165 @@ export const staffData = [
 // - color ist Tailwind-Klasse für UI (bg-[#HEX])
 // - colorHex ist der reine Hex-Wert für Charts/Kalender
 
-export const appointmentsData = [
-  { id: 1, title: "EMS Strength", name: "John", lastName: "Doe", date: "2025-01-26T10:00", time: "10:00 - 10:30", startTime: "10:00", endTime: "10:30", status: "upcoming", type: "EMS Strength", typeId: 1, color: "bg-[#FF843E]", colorHex: "#FF843E", memberId: 1, staffId: 2, specialNote: { text: "First time client", isImportant: true }, isTrial: false, isCancelled: false, isPast: false },
-  { id: 2, title: "EMS Strength", name: "John", lastName: "Doe", date: "2025-01-28T14:00", time: "14:00 - 14:30", startTime: "14:00", endTime: "14:30", status: "upcoming", type: "EMS Strength", typeId: 1, color: "bg-[#FF843E]", colorHex: "#FF843E", memberId: 1, staffId: 2, specialNote: { text: "Focus on upper body", isImportant: true }, isTrial: false, isCancelled: false, isPast: false },
-  { id: 3, title: "Body Check", name: "Jane", lastName: "Smith", date: "2025-02-04T15:30", time: "15:30 - 16:00", startTime: "15:30", endTime: "16:00", status: "upcoming", type: "Body Check", typeId: 4, color: "bg-[#3B82F6]", colorHex: "#3B82F6", memberId: 2, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: false },
-  { id: 4, title: "EMS Cardio", name: "Michael", lastName: "Johnson", date: "2025-01-27T11:00", time: "11:00 - 11:30", startTime: "11:00", endTime: "11:30", status: "upcoming", type: "EMS Cardio", typeId: 2, color: "bg-[#10B981]", colorHex: "#10B981", memberId: 3, staffId: 2, specialNote: { text: "Marathon training", isImportant: true }, isTrial: false, isCancelled: false, isPast: false },
-  { id: 5, title: "EMS Strength", name: "Sarah", lastName: "Williams", date: "2025-02-01T11:00", time: "11:00 - 11:30", startTime: "11:00", endTime: "11:30", status: "upcoming", type: "EMS Strength", typeId: 1, color: "bg-[#FF843E]", colorHex: "#FF843E", memberId: 4, staffId: 3, recurring: { frequency: "weekly", dayOfWeek: "1", startDate: "2025-02-01", occurrences: 8 }, isTrial: false, isCancelled: false, isPast: false },
-  { id: 6, title: "EMS Strength", name: "David", lastName: "Brown", date: "2025-01-30T15:00", time: "15:00 - 15:30", startTime: "15:00", endTime: "15:30", status: "upcoming", type: "EMS Strength", typeId: 1, color: "bg-[#FF843E]", colorHex: "#FF843E", memberId: 5, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: false },
-  { id: 7, title: "EMP Chair", name: "Emily", lastName: "Davis", date: "2025-02-08T10:00", time: "10:00 - 10:30", startTime: "10:00", endTime: "10:30", status: "upcoming", type: "EMP Chair", typeId: 3, color: "bg-[#8B5CF6]", colorHex: "#8B5CF6", memberId: 6, staffId: 3, specialNote: { text: "Knee rehabilitation", isImportant: true }, isTrial: false, isCancelled: false, isPast: false },
-  { id: 8, title: "Trial Training", name: "Robert", lastName: "Miller", date: "2025-01-26T10:00", time: "10:00 - 11:00", startTime: "10:00", endTime: "11:00", status: "upcoming", type: "Trial Training", typeId: 5, color: "bg-[#F59E0B]", colorHex: "#F59E0B", memberId: 7, staffId: 5, specialNote: { text: "New trial member - bring ID", isImportant: true }, isTrial: true, isCancelled: false, isPast: false },
-  { id: 9, title: "EMS Cardio", name: "Lisa", lastName: "Garcia", date: "2025-01-28T09:00", time: "09:00 - 09:30", startTime: "09:00", endTime: "09:30", status: "upcoming", type: "EMS Cardio", typeId: 2, color: "bg-[#10B981]", colorHex: "#10B981", memberId: 8, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: false },
-  { id: 10, title: "EMS Strength", name: "John", lastName: "Doe", date: "2025-01-23T14:00", time: "14:00 - 14:30", startTime: "14:00", endTime: "14:30", status: "completed", type: "EMS Strength", typeId: 1, color: "bg-[#FF843E]", colorHex: "#FF843E", memberId: 1, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: true },
-  { id: 11, title: "Body Check", name: "Thomas", lastName: "Anderson", date: "2025-01-16T13:00", time: "13:00 - 13:30", startTime: "13:00", endTime: "13:30", status: "completed", type: "Body Check", typeId: 4, color: "bg-[#3B82F6]", colorHex: "#3B82F6", memberId: 9, staffId: 4, specialNote: null, isTrial: false, isCancelled: false, isPast: true },
-  { id: 12, title: "EMS Strength", name: "Jennifer", lastName: "Martinez", date: "2025-01-25T11:30", time: "11:30 - 12:00", startTime: "11:30", endTime: "12:00", status: "upcoming", type: "EMS Strength", typeId: 1, color: "bg-[#FF843E]", colorHex: "#FF843E", memberId: 10, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: false },
-];
-
 // Appointment Types - Synchron mit Configuration!
 // color = Tailwind-Klasse, colorHex = Hex für Charts
 // isTrialType = true bedeutet, dass dieser Typ NICHT in normalen Buchungs-Dropdowns erscheint
 export const appointmentTypesData = [
-  { id: 1, name: "EMS Strength", description: "High-intensity strength training with EMS technology", duration: 30, interval: 30, slotsRequired: 1, maxParallel: 2, contingentUsage: 1, color: "bg-[#FF843E]", colorHex: "#FF843E", category: "Personal Training", image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80", isTrialType: false },
+  { id: 1, name: "EMS Strength", description: "High-intensity strength training with EMS technology", duration: 30, interval: 30, slotsRequired: 1, maxParallel: 2, contingentUsage: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", category: "Personal Training", image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80", isTrialType: false },
   { id: 2, name: "EMS Cardio", description: "Cardiovascular training enhanced with EMS", duration: 30, interval: 30, slotsRequired: 1, maxParallel: 2, contingentUsage: 1, color: "bg-[#10B981]", colorHex: "#10B981", category: "Personal Training", image: "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&q=80", isTrialType: false },
   { id: 3, name: "EMP Chair", description: "Relaxing electromagnetic pulse therapy session", duration: 30, interval: 30, slotsRequired: 0, maxParallel: 1, contingentUsage: 0, color: "bg-[#8B5CF6]", colorHex: "#8B5CF6", category: "Wellness", image: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=800&q=80", isTrialType: false },
-  { id: 4, name: "Body Check", description: "Comprehensive body analysis and measurements", duration: 30, interval: 30, slotsRequired: 2, maxParallel: 1, contingentUsage: 1, color: "bg-[#3B82F6]", colorHex: "#3B82F6", category: "Health Check", image: null, isTrialType: false },
-  { id: 5, name: "Trial Training", description: "Introduction session for new potential members", duration: 60, interval: 30, slotsRequired: 3, maxParallel: 1, contingentUsage: 0, color: "bg-[#F59E0B]", colorHex: "#F59E0B", category: "Trial", image: null, isTrialType: true },
+  { id: 4, name: "Body Check", description: "Comprehensive body analysis and measurements", duration: 30, interval: 30, slotsRequired: 2, maxParallel: 1, contingentUsage: 1, color: "bg-[#06B6D4]", colorHex: "#06B6D4", category: "Health Check", image: null, isTrialType: false },
+  { id: 5, name: "Trial Training", description: "Introduction session for new potential members", duration: 60, interval: 30, slotsRequired: 3, maxParallel: 1, contingentUsage: 0, color: "bg-[#3B82F6]", colorHex: "#3B82F6", category: "Trial", image: null, isTrialType: true },
 ];
+
+// -----------------------------------------------------------------------------
+// DYNAMIC APPOINTMENTS GENERATOR
+// Generiert Termine relativ zum heutigen Datum für konsistentes Testen
+// -----------------------------------------------------------------------------
+
+// Helper to format date for display (e.g., "Mon | 27-01-2025")
+const formatDisplayDate = (daysOffset) => {
+  const date = new Date();
+  date.setDate(date.getDate() + daysOffset);
+  const weekday = date.toLocaleString('en-US', { weekday: 'short' });
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${weekday} | ${day}-${month}-${year}`;
+};
+
+// Generate dynamic appointments data - gut verteilt über alle Tage mit parallelen Terminen
+const generateAppointmentsData = () => [
+  // === VOR 5 TAGEN (Tag -5) ===
+  { id: 1, title: "EMS Strength", name: "John", lastName: "Doe", date: formatDisplayDate(-5), time: "09:00 - 09:30", startTime: "09:00", endTime: "09:30", status: "completed", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 1, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+  { id: 2, title: "EMS Cardio", name: "Jane", lastName: "Smith", date: formatDisplayDate(-5), time: "09:00 - 09:30", startTime: "09:00", endTime: "09:30", status: "completed", type: "EMS Cardio", typeId: 2, color: "bg-[#10B981]", colorHex: "#10B981", memberId: 2, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+  { id: 3, title: "Body Check", name: "Michael", lastName: "Johnson", date: formatDisplayDate(-5), time: "10:00 - 10:30", startTime: "10:00", endTime: "10:30", status: "completed", type: "Body Check", typeId: 4, color: "bg-[#06B6D4]", colorHex: "#06B6D4", memberId: 3, staffId: 4, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+  { id: 4, title: "EMS Strength", name: "Sarah", lastName: "Williams", date: formatDisplayDate(-5), time: "11:00 - 11:30", startTime: "11:00", endTime: "11:30", status: "completed", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 4, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+  { id: 5, title: "EMP Chair", name: "David", lastName: "Brown", date: formatDisplayDate(-5), time: "14:00 - 14:30", startTime: "14:00", endTime: "14:30", status: "completed", type: "EMP Chair", typeId: 3, color: "bg-[#8B5CF6]", colorHex: "#8B5CF6", memberId: 5, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+  { id: 6, title: "EMS Cardio", name: "Emily", lastName: "Davis", date: formatDisplayDate(-5), time: "14:00 - 14:30", startTime: "14:00", endTime: "14:30", status: "completed", type: "EMS Cardio", typeId: 2, color: "bg-[#10B981]", colorHex: "#10B981", memberId: 6, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+  { id: 7, title: "EMS Strength", name: "Lisa", lastName: "Garcia", date: formatDisplayDate(-5), time: "16:00 - 16:30", startTime: "16:00", endTime: "16:30", status: "completed", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 8, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+
+  // === VOR 4 TAGEN (Tag -4) ===
+  { id: 8, title: "EMS Cardio", name: "Thomas", lastName: "Anderson", date: formatDisplayDate(-4), time: "08:00 - 08:30", startTime: "08:00", endTime: "08:30", status: "completed", type: "EMS Cardio", typeId: 2, color: "bg-[#10B981]", colorHex: "#10B981", memberId: 9, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+  { id: 9, title: "EMS Strength", name: "Jennifer", lastName: "Martinez", date: formatDisplayDate(-4), time: "08:00 - 08:30", startTime: "08:00", endTime: "08:30", status: "completed", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 10, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+  { id: 10, title: "Body Check", name: "John", lastName: "Doe", date: formatDisplayDate(-4), time: "09:30 - 10:00", startTime: "09:30", endTime: "10:00", status: "completed", type: "Body Check", typeId: 4, color: "bg-[#06B6D4]", colorHex: "#06B6D4", memberId: 1, staffId: 4, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+  { id: 11, title: "Trial Training", name: "New", lastName: "Member", date: formatDisplayDate(-4), time: "10:00 - 11:00", startTime: "10:00", endTime: "11:00", status: "completed", type: "Trial Training", typeId: 5, color: "bg-[#3B82F6]", colorHex: "#3B82F6", memberId: null, staffId: 5, specialNote: { text: "Converted to member!", isImportant: true }, isTrial: true, isCancelled: false, isPast: true, isCheckedIn: true },
+  { id: 12, title: "EMS Strength", name: "Jane", lastName: "Smith", date: formatDisplayDate(-4), time: "11:00 - 11:30", startTime: "11:00", endTime: "11:30", status: "completed", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 2, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+  { id: 13, title: "EMP Chair", name: "Michael", lastName: "Johnson", date: formatDisplayDate(-4), time: "11:00 - 11:30", startTime: "11:00", endTime: "11:30", status: "completed", type: "EMP Chair", typeId: 3, color: "bg-[#8B5CF6]", colorHex: "#8B5CF6", memberId: 3, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+  { id: 14, title: "EMS Cardio", name: "Sarah", lastName: "Williams", date: formatDisplayDate(-4), time: "15:00 - 15:30", startTime: "15:00", endTime: "15:30", status: "completed", type: "EMS Cardio", typeId: 2, color: "bg-[#10B981]", colorHex: "#10B981", memberId: 4, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+  { id: 15, title: "EMS Strength", name: "David", lastName: "Brown", date: formatDisplayDate(-4), time: "17:00 - 17:30", startTime: "17:00", endTime: "17:30", status: "completed", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 5, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+
+  // === VOR 3 TAGEN (Tag -3) ===
+  { id: 16, title: "EMS Strength", name: "Emily", lastName: "Davis", date: formatDisplayDate(-3), time: "08:30 - 09:00", startTime: "08:30", endTime: "09:00", status: "completed", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 6, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+  { id: 17, title: "EMS Cardio", name: "Lisa", lastName: "Garcia", date: formatDisplayDate(-3), time: "08:30 - 09:00", startTime: "08:30", endTime: "09:00", status: "completed", type: "EMS Cardio", typeId: 2, color: "bg-[#10B981]", colorHex: "#10B981", memberId: 8, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+  { id: 18, title: "Body Check", name: "Thomas", lastName: "Anderson", date: formatDisplayDate(-3), time: "10:00 - 10:30", startTime: "10:00", endTime: "10:30", status: "completed", type: "Body Check", typeId: 4, color: "bg-[#06B6D4]", colorHex: "#06B6D4", memberId: 9, staffId: 4, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+  { id: 19, title: "EMS Strength", name: "Jennifer", lastName: "Martinez", date: formatDisplayDate(-3), time: "10:00 - 10:30", startTime: "10:00", endTime: "10:30", status: "cancelled", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 10, staffId: 2, specialNote: { text: "Cancelled - sick", isImportant: false }, isTrial: false, isCancelled: true, isPast: true, isCheckedIn: false },
+  { id: 20, title: "EMP Chair", name: "John", lastName: "Doe", date: formatDisplayDate(-3), time: "11:30 - 12:00", startTime: "11:30", endTime: "12:00", status: "completed", type: "EMP Chair", typeId: 3, color: "bg-[#8B5CF6]", colorHex: "#8B5CF6", memberId: 1, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+  { id: 21, title: "EMS Cardio", name: "Jane", lastName: "Smith", date: formatDisplayDate(-3), time: "14:00 - 14:30", startTime: "14:00", endTime: "14:30", status: "completed", type: "EMS Cardio", typeId: 2, color: "bg-[#10B981]", colorHex: "#10B981", memberId: 2, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+  { id: 22, title: "EMS Strength", name: "Michael", lastName: "Johnson", date: formatDisplayDate(-3), time: "14:00 - 14:30", startTime: "14:00", endTime: "14:30", status: "completed", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 3, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+  { id: 23, title: "EMS Strength", name: "Sarah", lastName: "Williams", date: formatDisplayDate(-3), time: "16:00 - 16:30", startTime: "16:00", endTime: "16:30", status: "completed", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 4, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+
+  // === VOR 2 TAGEN (Tag -2) ===
+  { id: 24, title: "EMS Cardio", name: "David", lastName: "Brown", date: formatDisplayDate(-2), time: "07:30 - 08:00", startTime: "07:30", endTime: "08:00", status: "completed", type: "EMS Cardio", typeId: 2, color: "bg-[#10B981]", colorHex: "#10B981", memberId: 5, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+  { id: 25, title: "EMS Strength", name: "Emily", lastName: "Davis", date: formatDisplayDate(-2), time: "09:00 - 09:30", startTime: "09:00", endTime: "09:30", status: "completed", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 6, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+  { id: 26, title: "EMP Chair", name: "Lisa", lastName: "Garcia", date: formatDisplayDate(-2), time: "09:00 - 09:30", startTime: "09:00", endTime: "09:30", status: "completed", type: "EMP Chair", typeId: 3, color: "bg-[#8B5CF6]", colorHex: "#8B5CF6", memberId: 8, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+  { id: 27, title: "Body Check", name: "Thomas", lastName: "Anderson", date: formatDisplayDate(-2), time: "09:00 - 09:30", startTime: "09:00", endTime: "09:30", status: "completed", type: "Body Check", typeId: 4, color: "bg-[#06B6D4]", colorHex: "#06B6D4", memberId: 9, staffId: 4, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+  { id: 28, title: "EMS Strength", name: "Jennifer", lastName: "Martinez", date: formatDisplayDate(-2), time: "10:30 - 11:00", startTime: "10:30", endTime: "11:00", status: "completed", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 10, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+  { id: 29, title: "EMS Cardio", name: "John", lastName: "Doe", date: formatDisplayDate(-2), time: "10:30 - 11:00", startTime: "10:30", endTime: "11:00", status: "completed", type: "EMS Cardio", typeId: 2, color: "bg-[#10B981]", colorHex: "#10B981", memberId: 1, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+  { id: 30, title: "Trial Training", name: "Max", lastName: "Weber", date: formatDisplayDate(-2), time: "11:00 - 12:00", startTime: "11:00", endTime: "12:00", status: "completed", type: "Trial Training", typeId: 5, color: "bg-[#3B82F6]", colorHex: "#3B82F6", memberId: null, staffId: 5, specialNote: { text: "Very interested!", isImportant: true }, isTrial: true, isCancelled: false, isPast: true, isCheckedIn: true },
+  { id: 31, title: "EMS Strength", name: "Jane", lastName: "Smith", date: formatDisplayDate(-2), time: "14:00 - 14:30", startTime: "14:00", endTime: "14:30", status: "completed", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 2, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+  { id: 32, title: "EMS Cardio", name: "Michael", lastName: "Johnson", date: formatDisplayDate(-2), time: "15:30 - 16:00", startTime: "15:30", endTime: "16:00", status: "completed", type: "EMS Cardio", typeId: 2, color: "bg-[#10B981]", colorHex: "#10B981", memberId: 3, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+  { id: 33, title: "EMP Chair", name: "Sarah", lastName: "Williams", date: formatDisplayDate(-2), time: "17:00 - 17:30", startTime: "17:00", endTime: "17:30", status: "completed", type: "EMP Chair", typeId: 3, color: "bg-[#8B5CF6]", colorHex: "#8B5CF6", memberId: 4, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+
+  // === GESTERN (Tag -1) ===
+  { id: 34, title: "EMS Strength", name: "David", lastName: "Brown", date: formatDisplayDate(-1), time: "08:00 - 08:30", startTime: "08:00", endTime: "08:30", status: "completed", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 5, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+  { id: 35, title: "EMS Cardio", name: "Emily", lastName: "Davis", date: formatDisplayDate(-1), time: "08:00 - 08:30", startTime: "08:00", endTime: "08:30", status: "completed", type: "EMS Cardio", typeId: 2, color: "bg-[#10B981]", colorHex: "#10B981", memberId: 6, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+  { id: 36, title: "Body Check", name: "Lisa", lastName: "Garcia", date: formatDisplayDate(-1), time: "09:30 - 10:00", startTime: "09:30", endTime: "10:00", status: "completed", type: "Body Check", typeId: 4, color: "bg-[#06B6D4]", colorHex: "#06B6D4", memberId: 8, staffId: 4, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+  { id: 37, title: "EMS Strength", name: "Thomas", lastName: "Anderson", date: formatDisplayDate(-1), time: "09:30 - 10:00", startTime: "09:30", endTime: "10:00", status: "completed", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 9, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+  { id: 38, title: "EMP Chair", name: "Jennifer", lastName: "Martinez", date: formatDisplayDate(-1), time: "09:30 - 10:00", startTime: "09:30", endTime: "10:00", status: "completed", type: "EMP Chair", typeId: 3, color: "bg-[#8B5CF6]", colorHex: "#8B5CF6", memberId: 10, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+  { id: 39, title: "EMS Cardio", name: "John", lastName: "Doe", date: formatDisplayDate(-1), time: "11:00 - 11:30", startTime: "11:00", endTime: "11:30", status: "completed", type: "EMS Cardio", typeId: 2, color: "bg-[#10B981]", colorHex: "#10B981", memberId: 1, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+  { id: 40, title: "EMS Strength", name: "Jane", lastName: "Smith", date: formatDisplayDate(-1), time: "11:00 - 11:30", startTime: "11:00", endTime: "11:30", status: "completed", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 2, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+  { id: 41, title: "EMS Strength", name: "Michael", lastName: "Johnson", date: formatDisplayDate(-1), time: "14:00 - 14:30", startTime: "14:00", endTime: "14:30", status: "completed", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 3, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+  { id: 42, title: "EMS Cardio", name: "Sarah", lastName: "Williams", date: formatDisplayDate(-1), time: "15:30 - 16:00", startTime: "15:30", endTime: "16:00", status: "completed", type: "EMS Cardio", typeId: 2, color: "bg-[#10B981]", colorHex: "#10B981", memberId: 4, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+  { id: 43, title: "Body Check", name: "David", lastName: "Brown", date: formatDisplayDate(-1), time: "17:00 - 17:30", startTime: "17:00", endTime: "17:30", status: "completed", type: "Body Check", typeId: 4, color: "bg-[#06B6D4]", colorHex: "#06B6D4", memberId: 5, staffId: 4, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+
+  // === HEUTE (Tag 0) - Viele parallele Termine ===
+  { id: 44, title: "EMS Strength", name: "John", lastName: "Doe", date: formatDisplayDate(0), time: "08:00 - 08:30", startTime: "08:00", endTime: "08:30", status: "upcoming", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 1, staffId: 2, specialNote: { text: "Focus on arms", isImportant: true }, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 45, title: "EMS Cardio", name: "Jane", lastName: "Smith", date: formatDisplayDate(0), time: "08:00 - 08:30", startTime: "08:00", endTime: "08:30", status: "upcoming", type: "EMS Cardio", typeId: 2, color: "bg-[#10B981]", colorHex: "#10B981", memberId: 2, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 46, title: "EMP Chair", name: "Michael", lastName: "Johnson", date: formatDisplayDate(0), time: "08:00 - 08:30", startTime: "08:00", endTime: "08:30", status: "upcoming", type: "EMP Chair", typeId: 3, color: "bg-[#8B5CF6]", colorHex: "#8B5CF6", memberId: 3, staffId: 4, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 47, title: "Body Check", name: "Sarah", lastName: "Williams", date: formatDisplayDate(0), time: "09:00 - 09:30", startTime: "09:00", endTime: "09:30", status: "upcoming", type: "Body Check", typeId: 4, color: "bg-[#06B6D4]", colorHex: "#06B6D4", memberId: 4, staffId: 4, specialNote: { text: "VIP member", isImportant: true }, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 48, title: "EMS Strength", name: "David", lastName: "Brown", date: formatDisplayDate(0), time: "09:00 - 09:30", startTime: "09:00", endTime: "09:30", status: "upcoming", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 5, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 49, title: "EMS Cardio", name: "Emily", lastName: "Davis", date: formatDisplayDate(0), time: "09:30 - 10:00", startTime: "09:30", endTime: "10:00", status: "upcoming", type: "EMS Cardio", typeId: 2, color: "bg-[#10B981]", colorHex: "#10B981", memberId: 6, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 50, title: "Trial Training", name: "Robert", lastName: "Miller", date: formatDisplayDate(0), time: "10:00 - 11:00", startTime: "10:00", endTime: "11:00", status: "upcoming", type: "Trial Training", typeId: 5, color: "bg-[#3B82F6]", colorHex: "#3B82F6", memberId: 7, staffId: 5, specialNote: { text: "New potential member", isImportant: true }, isTrial: true, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 51, title: "EMS Strength", name: "Lisa", lastName: "Garcia", date: formatDisplayDate(0), time: "10:00 - 10:30", startTime: "10:00", endTime: "10:30", status: "upcoming", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 8, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 52, title: "EMP Chair", name: "Thomas", lastName: "Anderson", date: formatDisplayDate(0), time: "10:00 - 10:30", startTime: "10:00", endTime: "10:30", status: "upcoming", type: "EMP Chair", typeId: 3, color: "bg-[#8B5CF6]", colorHex: "#8B5CF6", memberId: 9, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 53, title: "EMS Cardio", name: "Jennifer", lastName: "Martinez", date: formatDisplayDate(0), time: "11:00 - 11:30", startTime: "11:00", endTime: "11:30", status: "upcoming", type: "EMS Cardio", typeId: 2, color: "bg-[#10B981]", colorHex: "#10B981", memberId: 10, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 54, title: "Body Check", name: "John", lastName: "Doe", date: formatDisplayDate(0), time: "11:00 - 11:30", startTime: "11:00", endTime: "11:30", status: "upcoming", type: "Body Check", typeId: 4, color: "bg-[#06B6D4]", colorHex: "#06B6D4", memberId: 1, staffId: 4, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 55, title: "EMS Strength", name: "Jane", lastName: "Smith", date: formatDisplayDate(0), time: "11:30 - 12:00", startTime: "11:30", endTime: "12:00", status: "upcoming", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 2, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 56, title: "EMS Cardio", name: "Michael", lastName: "Johnson", date: formatDisplayDate(0), time: "14:00 - 14:30", startTime: "14:00", endTime: "14:30", status: "upcoming", type: "EMS Cardio", typeId: 2, color: "bg-[#10B981]", colorHex: "#10B981", memberId: 3, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 57, title: "EMS Strength", name: "Sarah", lastName: "Williams", date: formatDisplayDate(0), time: "14:00 - 14:30", startTime: "14:00", endTime: "14:30", status: "upcoming", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 4, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 58, title: "EMP Chair", name: "David", lastName: "Brown", date: formatDisplayDate(0), time: "14:30 - 15:00", startTime: "14:30", endTime: "15:00", status: "upcoming", type: "EMP Chair", typeId: 3, color: "bg-[#8B5CF6]", colorHex: "#8B5CF6", memberId: 5, staffId: 4, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 59, title: "Trial Training", name: "Anna", lastName: "Wilson", date: formatDisplayDate(0), time: "15:00 - 16:00", startTime: "15:00", endTime: "16:00", status: "upcoming", type: "Trial Training", typeId: 5, color: "bg-[#3B82F6]", colorHex: "#3B82F6", memberId: null, staffId: 5, specialNote: { text: "Referred by Sarah", isImportant: false }, isTrial: true, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 60, title: "EMS Strength", name: "Emily", lastName: "Davis", date: formatDisplayDate(0), time: "15:00 - 15:30", startTime: "15:00", endTime: "15:30", status: "upcoming", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 6, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 61, title: "EMS Cardio", name: "Lisa", lastName: "Garcia", date: formatDisplayDate(0), time: "16:00 - 16:30", startTime: "16:00", endTime: "16:30", status: "upcoming", type: "EMS Cardio", typeId: 2, color: "bg-[#10B981]", colorHex: "#10B981", memberId: 8, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 62, title: "Body Check", name: "Thomas", lastName: "Anderson", date: formatDisplayDate(0), time: "16:00 - 16:30", startTime: "16:00", endTime: "16:30", status: "upcoming", type: "Body Check", typeId: 4, color: "bg-[#06B6D4]", colorHex: "#06B6D4", memberId: 9, staffId: 4, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 63, title: "EMS Strength", name: "Jennifer", lastName: "Martinez", date: formatDisplayDate(0), time: "17:00 - 17:30", startTime: "17:00", endTime: "17:30", status: "upcoming", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 10, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 64, title: "EMP Chair", name: "John", lastName: "Doe", date: formatDisplayDate(0), time: "17:00 - 17:30", startTime: "17:00", endTime: "17:30", status: "upcoming", type: "EMP Chair", typeId: 3, color: "bg-[#8B5CF6]", colorHex: "#8B5CF6", memberId: 1, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 65, title: "EMS Cardio", name: "Jane", lastName: "Smith", date: formatDisplayDate(0), time: "18:00 - 18:30", startTime: "18:00", endTime: "18:30", status: "upcoming", type: "EMS Cardio", typeId: 2, color: "bg-[#10B981]", colorHex: "#10B981", memberId: 2, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+
+  // === MORGEN (Tag +1) ===
+  { id: 66, title: "EMS Strength", name: "Michael", lastName: "Johnson", date: formatDisplayDate(1), time: "08:00 - 08:30", startTime: "08:00", endTime: "08:30", status: "upcoming", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 3, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 67, title: "EMS Cardio", name: "Sarah", lastName: "Williams", date: formatDisplayDate(1), time: "08:00 - 08:30", startTime: "08:00", endTime: "08:30", status: "upcoming", type: "EMS Cardio", typeId: 2, color: "bg-[#10B981]", colorHex: "#10B981", memberId: 4, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 68, title: "Body Check", name: "David", lastName: "Brown", date: formatDisplayDate(1), time: "09:00 - 09:30", startTime: "09:00", endTime: "09:30", status: "upcoming", type: "Body Check", typeId: 4, color: "bg-[#06B6D4]", colorHex: "#06B6D4", memberId: 5, staffId: 4, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 69, title: "EMS Strength", name: "Emily", lastName: "Davis", date: formatDisplayDate(1), time: "09:00 - 09:30", startTime: "09:00", endTime: "09:30", status: "upcoming", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 6, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 70, title: "Trial Training", name: "Max", lastName: "Taylor", date: formatDisplayDate(1), time: "10:00 - 11:00", startTime: "10:00", endTime: "11:00", status: "upcoming", type: "Trial Training", typeId: 5, color: "bg-[#3B82F6]", colorHex: "#3B82F6", memberId: null, staffId: 5, specialNote: { text: "From Instagram", isImportant: false }, isTrial: true, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 71, title: "EMP Chair", name: "Lisa", lastName: "Garcia", date: formatDisplayDate(1), time: "10:00 - 10:30", startTime: "10:00", endTime: "10:30", status: "upcoming", type: "EMP Chair", typeId: 3, color: "bg-[#8B5CF6]", colorHex: "#8B5CF6", memberId: 8, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 72, title: "EMS Cardio", name: "Thomas", lastName: "Anderson", date: formatDisplayDate(1), time: "11:00 - 11:30", startTime: "11:00", endTime: "11:30", status: "upcoming", type: "EMS Cardio", typeId: 2, color: "bg-[#10B981]", colorHex: "#10B981", memberId: 9, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 73, title: "EMS Strength", name: "Jennifer", lastName: "Martinez", date: formatDisplayDate(1), time: "11:00 - 11:30", startTime: "11:00", endTime: "11:30", status: "upcoming", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 10, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 74, title: "Body Check", name: "John", lastName: "Doe", date: formatDisplayDate(1), time: "14:00 - 14:30", startTime: "14:00", endTime: "14:30", status: "upcoming", type: "Body Check", typeId: 4, color: "bg-[#06B6D4]", colorHex: "#06B6D4", memberId: 1, staffId: 4, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 75, title: "EMS Cardio", name: "Jane", lastName: "Smith", date: formatDisplayDate(1), time: "15:00 - 15:30", startTime: "15:00", endTime: "15:30", status: "upcoming", type: "EMS Cardio", typeId: 2, color: "bg-[#10B981]", colorHex: "#10B981", memberId: 2, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 76, title: "EMS Strength", name: "Michael", lastName: "Johnson", date: formatDisplayDate(1), time: "16:00 - 16:30", startTime: "16:00", endTime: "16:30", status: "upcoming", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 3, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 77, title: "EMP Chair", name: "Sarah", lastName: "Williams", date: formatDisplayDate(1), time: "17:00 - 17:30", startTime: "17:00", endTime: "17:30", status: "upcoming", type: "EMP Chair", typeId: 3, color: "bg-[#8B5CF6]", colorHex: "#8B5CF6", memberId: 4, staffId: 4, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+
+  // === ÜBERMORGEN (Tag +2) ===
+  { id: 78, title: "EMS Cardio", name: "David", lastName: "Brown", date: formatDisplayDate(2), time: "08:30 - 09:00", startTime: "08:30", endTime: "09:00", status: "upcoming", type: "EMS Cardio", typeId: 2, color: "bg-[#10B981]", colorHex: "#10B981", memberId: 5, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 79, title: "EMS Strength", name: "Emily", lastName: "Davis", date: formatDisplayDate(2), time: "08:30 - 09:00", startTime: "08:30", endTime: "09:00", status: "upcoming", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 6, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 80, title: "Body Check", name: "Lisa", lastName: "Garcia", date: formatDisplayDate(2), time: "10:00 - 10:30", startTime: "10:00", endTime: "10:30", status: "upcoming", type: "Body Check", typeId: 4, color: "bg-[#06B6D4]", colorHex: "#06B6D4", memberId: 8, staffId: 4, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 81, title: "Trial Training", name: "Sophie", lastName: "Brown", date: formatDisplayDate(2), time: "10:30 - 11:30", startTime: "10:30", endTime: "11:30", status: "upcoming", type: "Trial Training", typeId: 5, color: "bg-[#3B82F6]", colorHex: "#3B82F6", memberId: null, staffId: 5, specialNote: { text: "Referred by John", isImportant: false }, isTrial: true, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 82, title: "EMS Strength", name: "Thomas", lastName: "Anderson", date: formatDisplayDate(2), time: "14:00 - 14:30", startTime: "14:00", endTime: "14:30", status: "upcoming", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 9, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 83, title: "EMS Cardio", name: "Jennifer", lastName: "Martinez", date: formatDisplayDate(2), time: "14:00 - 14:30", startTime: "14:00", endTime: "14:30", status: "upcoming", type: "EMS Cardio", typeId: 2, color: "bg-[#10B981]", colorHex: "#10B981", memberId: 10, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 84, title: "EMP Chair", name: "John", lastName: "Doe", date: formatDisplayDate(2), time: "15:30 - 16:00", startTime: "15:30", endTime: "16:00", status: "upcoming", type: "EMP Chair", typeId: 3, color: "bg-[#8B5CF6]", colorHex: "#8B5CF6", memberId: 1, staffId: 4, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 85, title: "EMS Strength", name: "Jane", lastName: "Smith", date: formatDisplayDate(2), time: "17:00 - 17:30", startTime: "17:00", endTime: "17:30", status: "upcoming", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 2, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+
+  // === IN 3 TAGEN (Tag +3) ===
+  { id: 86, title: "EMS Cardio", name: "Michael", lastName: "Johnson", date: formatDisplayDate(3), time: "09:00 - 09:30", startTime: "09:00", endTime: "09:30", status: "upcoming", type: "EMS Cardio", typeId: 2, color: "bg-[#10B981]", colorHex: "#10B981", memberId: 3, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 87, title: "EMS Strength", name: "Sarah", lastName: "Williams", date: formatDisplayDate(3), time: "09:00 - 09:30", startTime: "09:00", endTime: "09:30", status: "upcoming", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 4, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 88, title: "Body Check", name: "David", lastName: "Brown", date: formatDisplayDate(3), time: "10:30 - 11:00", startTime: "10:30", endTime: "11:00", status: "upcoming", type: "Body Check", typeId: 4, color: "bg-[#06B6D4]", colorHex: "#06B6D4", memberId: 5, staffId: 4, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 89, title: "EMP Chair", name: "Emily", lastName: "Davis", date: formatDisplayDate(3), time: "11:00 - 11:30", startTime: "11:00", endTime: "11:30", status: "upcoming", type: "EMP Chair", typeId: 3, color: "bg-[#8B5CF6]", colorHex: "#8B5CF6", memberId: 6, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 90, title: "EMS Strength", name: "Lisa", lastName: "Garcia", date: formatDisplayDate(3), time: "14:00 - 14:30", startTime: "14:00", endTime: "14:30", status: "upcoming", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 8, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 91, title: "EMS Cardio", name: "Thomas", lastName: "Anderson", date: formatDisplayDate(3), time: "15:30 - 16:00", startTime: "15:30", endTime: "16:00", status: "upcoming", type: "EMS Cardio", typeId: 2, color: "bg-[#10B981]", colorHex: "#10B981", memberId: 9, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 92, title: "Trial Training", name: "Ben", lastName: "Taylor", date: formatDisplayDate(3), time: "16:00 - 17:00", startTime: "16:00", endTime: "17:00", status: "upcoming", type: "Trial Training", typeId: 5, color: "bg-[#3B82F6]", colorHex: "#3B82F6", memberId: null, staffId: 5, specialNote: { text: "Walk-in", isImportant: false }, isTrial: true, isCancelled: false, isPast: false, isCheckedIn: false },
+
+  // === IN 4 TAGEN (Tag +4) ===
+  { id: 93, title: "EMS Strength", name: "Jennifer", lastName: "Martinez", date: formatDisplayDate(4), time: "08:00 - 08:30", startTime: "08:00", endTime: "08:30", status: "upcoming", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 10, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 94, title: "EMS Cardio", name: "John", lastName: "Doe", date: formatDisplayDate(4), time: "09:00 - 09:30", startTime: "09:00", endTime: "09:30", status: "upcoming", type: "EMS Cardio", typeId: 2, color: "bg-[#10B981]", colorHex: "#10B981", memberId: 1, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 95, title: "Body Check", name: "Jane", lastName: "Smith", date: formatDisplayDate(4), time: "10:00 - 10:30", startTime: "10:00", endTime: "10:30", status: "upcoming", type: "Body Check", typeId: 4, color: "bg-[#06B6D4]", colorHex: "#06B6D4", memberId: 2, staffId: 4, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 96, title: "EMP Chair", name: "Michael", lastName: "Johnson", date: formatDisplayDate(4), time: "11:00 - 11:30", startTime: "11:00", endTime: "11:30", status: "upcoming", type: "EMP Chair", typeId: 3, color: "bg-[#8B5CF6]", colorHex: "#8B5CF6", memberId: 3, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 97, title: "EMS Strength", name: "Sarah", lastName: "Williams", date: formatDisplayDate(4), time: "14:00 - 14:30", startTime: "14:00", endTime: "14:30", status: "upcoming", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 4, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 98, title: "EMS Cardio", name: "David", lastName: "Brown", date: formatDisplayDate(4), time: "15:00 - 15:30", startTime: "15:00", endTime: "15:30", status: "upcoming", type: "EMS Cardio", typeId: 2, color: "bg-[#10B981]", colorHex: "#10B981", memberId: 5, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 99, title: "EMS Strength", name: "Emily", lastName: "Davis", date: formatDisplayDate(4), time: "16:00 - 16:30", startTime: "16:00", endTime: "16:30", status: "upcoming", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 6, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+
+  // === IN 5 TAGEN (Tag +5) ===
+  { id: 100, title: "EMS Cardio", name: "Lisa", lastName: "Garcia", date: formatDisplayDate(5), time: "09:00 - 09:30", startTime: "09:00", endTime: "09:30", status: "upcoming", type: "EMS Cardio", typeId: 2, color: "bg-[#10B981]", colorHex: "#10B981", memberId: 8, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 101, title: "Body Check", name: "Thomas", lastName: "Anderson", date: formatDisplayDate(5), time: "10:00 - 10:30", startTime: "10:00", endTime: "10:30", status: "upcoming", type: "Body Check", typeId: 4, color: "bg-[#06B6D4]", colorHex: "#06B6D4", memberId: 9, staffId: 4, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 102, title: "EMS Strength", name: "Jennifer", lastName: "Martinez", date: formatDisplayDate(5), time: "11:00 - 11:30", startTime: "11:00", endTime: "11:30", status: "upcoming", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 10, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 103, title: "Trial Training", name: "Emma", lastName: "White", date: formatDisplayDate(5), time: "14:00 - 15:00", startTime: "14:00", endTime: "15:00", status: "upcoming", type: "Trial Training", typeId: 5, color: "bg-[#3B82F6]", colorHex: "#3B82F6", memberId: null, staffId: 5, specialNote: { text: "Google search", isImportant: false }, isTrial: true, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 104, title: "EMP Chair", name: "John", lastName: "Doe", date: formatDisplayDate(5), time: "15:30 - 16:00", startTime: "15:30", endTime: "16:00", status: "upcoming", type: "EMP Chair", typeId: 3, color: "bg-[#8B5CF6]", colorHex: "#8B5CF6", memberId: 1, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 105, title: "EMS Cardio", name: "Jane", lastName: "Smith", date: formatDisplayDate(5), time: "17:00 - 17:30", startTime: "17:00", endTime: "17:30", status: "upcoming", type: "EMS Cardio", typeId: 2, color: "bg-[#10B981]", colorHex: "#10B981", memberId: 2, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+];
+
+// Export the dynamically generated data
+export const appointmentsData = generateAppointmentsData();
 
 // Regular appointment types (excluding trial) - für normale Buchungs-Dropdowns
 export const regularAppointmentTypesData = appointmentTypesData.filter(type => !type.isTrialType);
@@ -247,63 +381,71 @@ export const appointmentCategoriesData = [
 ];
 
 // Free Appointment Slots - Buchbare Termine
-// WICHTIG: date muss im Format YYYY-MM-DD sein (für HTML date input)
-export const freeAppointmentsData = [
-  // Heute + kommende Tage
-  { id: 1, date: "2025-01-25", time: "09:00 AM", typeId: 1 },
-  { id: 2, date: "2025-01-25", time: "10:00 AM", typeId: 1 },
-  { id: 3, date: "2025-01-25", time: "11:00 AM", typeId: 2 },
-  { id: 4, date: "2025-01-25", time: "02:00 PM", typeId: 1 },
-  { id: 5, date: "2025-01-25", time: "03:00 PM", typeId: 3 },
-  { id: 6, date: "2025-01-25", time: "04:00 PM", typeId: 2 },
+// Helper to get date string in YYYY-MM-DD format for a given offset
+const getDateString = (daysOffset) => {
+  const date = new Date();
+  date.setDate(date.getDate() + daysOffset);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+// Generate dynamic free appointments data
+const generateFreeAppointmentsData = () => [
+  // Heute (Tag 0)
+  { id: 1, date: getDateString(0), time: "08:00 AM", typeId: 1 },
+  { id: 2, date: getDateString(0), time: "12:00 PM", typeId: 2 },
+  { id: 3, date: getDateString(0), time: "01:00 PM", typeId: 1 },
+  { id: 4, date: getDateString(0), time: "03:00 PM", typeId: 3 },
   
-  { id: 7, date: "2025-01-26", time: "09:00 AM", typeId: 1 },
-  { id: 8, date: "2025-01-26", time: "10:00 AM", typeId: 2 },
-  { id: 9, date: "2025-01-26", time: "11:00 AM", typeId: 1 },
-  { id: 10, date: "2025-01-26", time: "02:00 PM", typeId: 3 },
-  { id: 11, date: "2025-01-26", time: "03:00 PM", typeId: 1 },
+  // Morgen (Tag +1)
+  { id: 5, date: getDateString(1), time: "09:00 AM", typeId: 1 },
+  { id: 6, date: getDateString(1), time: "10:00 AM", typeId: 2 },
+  { id: 7, date: getDateString(1), time: "02:00 PM", typeId: 1 },
+  { id: 8, date: getDateString(1), time: "03:00 PM", typeId: 3 },
+  { id: 9, date: getDateString(1), time: "04:00 PM", typeId: 2 },
   
-  { id: 12, date: "2025-01-27", time: "09:00 AM", typeId: 1 },
-  { id: 13, date: "2025-01-27", time: "10:00 AM", typeId: 1 },
-  { id: 14, date: "2025-01-27", time: "11:00 AM", typeId: 2 },
-  { id: 15, date: "2025-01-27", time: "02:00 PM", typeId: 1 },
-  { id: 16, date: "2025-01-27", time: "03:00 PM", typeId: 4 },
-  { id: 17, date: "2025-01-27", time: "04:00 PM", typeId: 2 },
+  // Übermorgen (Tag +2)
+  { id: 10, date: getDateString(2), time: "09:00 AM", typeId: 1 },
+  { id: 11, date: getDateString(2), time: "11:00 AM", typeId: 1 },
+  { id: 12, date: getDateString(2), time: "02:00 PM", typeId: 4 },
+  { id: 13, date: getDateString(2), time: "03:00 PM", typeId: 2 },
   
-  { id: 18, date: "2025-01-28", time: "09:00 AM", typeId: 2 },
-  { id: 19, date: "2025-01-28", time: "10:30 AM", typeId: 3 },
-  { id: 20, date: "2025-01-28", time: "11:00 AM", typeId: 1 },
-  { id: 21, date: "2025-01-28", time: "02:00 PM", typeId: 1 },
-  { id: 22, date: "2025-01-28", time: "03:30 PM", typeId: 2 },
+  // Tag +3
+  { id: 14, date: getDateString(3), time: "08:00 AM", typeId: 4 },
+  { id: 15, date: getDateString(3), time: "09:00 AM", typeId: 1 },
+  { id: 16, date: getDateString(3), time: "02:00 PM", typeId: 1 },
+  { id: 17, date: getDateString(3), time: "04:00 PM", typeId: 3 },
   
-  { id: 23, date: "2025-01-29", time: "08:00 AM", typeId: 4 },
-  { id: 24, date: "2025-01-29", time: "09:00 AM", typeId: 1 },
-  { id: 25, date: "2025-01-29", time: "10:00 AM", typeId: 2 },
-  { id: 26, date: "2025-01-29", time: "03:00 PM", typeId: 1 },
-  { id: 27, date: "2025-01-29", time: "04:00 PM", typeId: 3 },
+  // Tag +4
+  { id: 18, date: getDateString(4), time: "09:00 AM", typeId: 1 },
+  { id: 19, date: getDateString(4), time: "10:00 AM", typeId: 2 },
+  { id: 20, date: getDateString(4), time: "11:00 AM", typeId: 1 },
+  { id: 21, date: getDateString(4), time: "02:00 PM", typeId: 4 },
+  { id: 22, date: getDateString(4), time: "03:00 PM", typeId: 1 },
   
-  { id: 28, date: "2025-01-30", time: "09:00 AM", typeId: 1 },
-  { id: 29, date: "2025-01-30", time: "10:00 AM", typeId: 1 },
-  { id: 30, date: "2025-01-30", time: "11:00 AM", typeId: 2 },
-  { id: 31, date: "2025-01-30", time: "02:00 PM", typeId: 4 },
-  { id: 32, date: "2025-01-30", time: "03:00 PM", typeId: 1 },
+  // Tag +5
+  { id: 23, date: getDateString(5), time: "09:00 AM", typeId: 2 },
+  { id: 24, date: getDateString(5), time: "10:00 AM", typeId: 1 },
+  { id: 25, date: getDateString(5), time: "11:00 AM", typeId: 3 },
+  { id: 26, date: getDateString(5), time: "02:00 PM", typeId: 1 },
   
-  { id: 33, date: "2025-01-31", time: "09:00 AM", typeId: 2 },
-  { id: 34, date: "2025-01-31", time: "10:00 AM", typeId: 1 },
-  { id: 35, date: "2025-01-31", time: "11:00 AM", typeId: 3 },
-  { id: 36, date: "2025-01-31", time: "02:00 PM", typeId: 1 },
+  // Tag +6
+  { id: 27, date: getDateString(6), time: "09:00 AM", typeId: 1 },
+  { id: 28, date: getDateString(6), time: "10:00 AM", typeId: 2 },
+  { id: 29, date: getDateString(6), time: "02:00 PM", typeId: 1 },
   
-  // Februar
-  { id: 37, date: "2025-02-01", time: "09:00 AM", typeId: 1 },
-  { id: 38, date: "2025-02-01", time: "10:00 AM", typeId: 2 },
-  { id: 39, date: "2025-02-01", time: "02:00 PM", typeId: 1 },
-  
-  { id: 40, date: "2025-02-03", time: "09:00 AM", typeId: 1 },
-  { id: 41, date: "2025-02-03", time: "10:00 AM", typeId: 1 },
-  { id: 42, date: "2025-02-03", time: "11:00 AM", typeId: 2 },
-  { id: 43, date: "2025-02-03", time: "02:00 PM", typeId: 3 },
-  { id: 44, date: "2025-02-03", time: "03:00 PM", typeId: 1 },
+  // Tag +7
+  { id: 30, date: getDateString(7), time: "09:00 AM", typeId: 1 },
+  { id: 31, date: getDateString(7), time: "10:00 AM", typeId: 1 },
+  { id: 32, date: getDateString(7), time: "11:00 AM", typeId: 2 },
+  { id: 33, date: getDateString(7), time: "02:00 PM", typeId: 3 },
+  { id: 34, date: getDateString(7), time: "03:00 PM", typeId: 1 },
 ];
+
+// Export the dynamically generated data
+export const freeAppointmentsData = generateFreeAppointmentsData();
 
 // -----------------------------------------------------------------------------
 // 1.4 STUDIO DATA - Studio-Informationen für Chats und Branding

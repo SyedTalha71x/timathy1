@@ -29,6 +29,7 @@ const Calendar = forwardRef(({
   appointmentFilters = {},
   onDateDisplayChange,
   onViewModeChange,
+  onCurrentDateChange,
 }, ref) => {
   const navigate = useNavigate();
   const [isMobile, setIsMobile] = useState(false)
@@ -117,7 +118,9 @@ const Calendar = forwardRef(({
       const calendarApi = calendarRef.current?.getApi();
       if (calendarApi) {
         calendarApi.prev();
-        setCurrentDate(calendarApi.getDate().toISOString().split("T")[0]);
+        const newDate = calendarApi.getDate();
+        setCurrentDate(newDate.toISOString().split("T")[0]);
+        onCurrentDateChange?.(newDate);
         setTimeout(() => {
           const display = formatDateRange(calendarApi.getDate());
           setCurrentDateDisplay(display);
@@ -129,7 +132,9 @@ const Calendar = forwardRef(({
       const calendarApi = calendarRef.current?.getApi();
       if (calendarApi) {
         calendarApi.next();
-        setCurrentDate(calendarApi.getDate().toISOString().split("T")[0]);
+        const newDate = calendarApi.getDate();
+        setCurrentDate(newDate.toISOString().split("T")[0]);
+        onCurrentDateChange?.(newDate);
         setTimeout(() => {
           const display = formatDateRange(calendarApi.getDate());
           setCurrentDateDisplay(display);
@@ -141,6 +146,8 @@ const Calendar = forwardRef(({
       const calendarApi = calendarRef.current?.getApi();
       if (calendarApi) {
         calendarApi.changeView(viewType);
+        const newDate = calendarApi.getDate();
+        onCurrentDateChange?.(newDate);
         setTimeout(() => {
           const display = formatDateRange(calendarApi.getDate());
           setCurrentDateDisplay(display);
@@ -435,25 +442,35 @@ const Calendar = forwardRef(({
   const safeAppointments = appointmentsMain || []
   const safeSearchQuery = searchQuery || ""
 
+  // Für den Kalender: ALLE Termine anzeigen (kein Datumsfilter!)
   const filteredAppointments = safeAppointments.filter((appointment) => {
-    const nameMatch = appointment.name?.toLowerCase().includes(safeSearchQuery.toLowerCase()) || false
-    let dateMatch = true
-    if (selectedDate && appointment.date) {
-      const dateParts = appointment.date.split("|")
-      if (dateParts.length > 1) {
-        const appointmentDate = dateParts[1].trim()
-        dateMatch = appointmentDate === formatDate(new Date(selectedDate))
-      }
-    }
+    // Suchfilter
+    const nameMatch = !safeSearchQuery || appointment.name?.toLowerCase().includes(safeSearchQuery.toLowerCase())
+    
+    // Typ-Filter anwenden
     let typeMatch = true
     if (appointmentFilters && Object.keys(appointmentFilters).length > 0) {
-      if (appointment.isTrial) typeMatch = appointmentFilters["Trial Training"] || false
-      else if (appointment.isBlocked || appointment.type === "Blocked Time") typeMatch = appointmentFilters["Blocked Time Slots"] || false
-      else if (appointment.isCancelled) typeMatch = appointmentFilters["Cancelled Appointments"] || false
-      else if (appointment.isPast && !appointment.isCancelled) typeMatch = appointmentFilters["Past Appointments"] || false
-      else typeMatch = appointmentFilters[appointment.type] || false
+      // Erst prüfen ob der Termin-Typ erlaubt ist
+      if (appointment.isTrial) {
+        typeMatch = appointmentFilters["Trial Training"] !== false
+      } else if (appointment.isBlocked || appointment.type === "Blocked Time") {
+        typeMatch = appointmentFilters["Blocked Time Slots"] !== false
+      } else {
+        // Normaler Termin - prüfe den Typ
+        typeMatch = appointmentFilters[appointment.type] !== false
+      }
+      
+      // Zusätzlich: Abgesagte Termine filtern
+      if (appointment.isCancelled && appointmentFilters["Cancelled Appointments"] === false) {
+        typeMatch = false
+      }
+      
+      // Zusätzlich: Vergangene Termine filtern (nur wenn nicht abgesagt)
+      if (appointment.isPast && !appointment.isCancelled && appointmentFilters["Past Appointments"] === false) {
+        typeMatch = false
+      }
     }
-    return nameMatch && dateMatch && typeMatch
+    return nameMatch && typeMatch
   })
 
   const calendarEvents = [
@@ -471,15 +488,27 @@ const Calendar = forwardRef(({
       const isCancelledEvent = appointment.isCancelled || false
 
       let backgroundColor = appointment.color?.split("bg-[")[1]?.slice(0, -1) || "#4169E1"
-      let borderColor = backgroundColor, textColor = "#FFFFFF", opacity = 1
+      let borderColor = backgroundColor, textColor = "#FFFFFF"
 
-      if (isCancelledEvent) { backgroundColor = "#4a4a4a"; borderColor = "#777777"; textColor = "#bbbbbb"; opacity = 0.6 }
-      else if (isPastEvent) { backgroundColor = "#1a1a1a"; borderColor = "#2a2a2a"; textColor = "#555555"; opacity = 0.4 }
-      else if (viewMode === "free") { backgroundColor = "#2a2a2a"; borderColor = "#333333"; textColor = "#666666"; opacity = 0.15 }
+      if (isCancelledEvent) { 
+        backgroundColor = "#4a4a4a"
+        borderColor = "#6b7280"
+        textColor = "#9ca3af"
+      } else if (isPastEvent) { 
+        // Vergangene Termine: Original-Farbe aber abgedunkelt
+        const originalColor = appointment.color?.split("bg-[")[1]?.slice(0, -1) || "#4169E1"
+        backgroundColor = originalColor
+        borderColor = originalColor
+        textColor = "#FFFFFF"
+      } else if (viewMode === "free") { 
+        backgroundColor = "#2a2a2a"
+        borderColor = "#333333"
+        textColor = "#666666"
+      }
 
       return {
         id: appointment.id, title: appointment.name, start: startDateTimeStr, end: endDateTimeStr,
-        backgroundColor, borderColor, textColor, opacity, isPast: isPastEvent, isCancelled: isCancelledEvent,
+        backgroundColor, borderColor, textColor, isPast: isPastEvent, isCancelled: isCancelledEvent,
         extendedProps: { type: appointment.type || "Unknown", isPast: isPastEvent, isCancelled: isCancelledEvent,
           originalColor: appointment.color?.split("bg-[")[1]?.slice(0, -1) || "#4169E1", viewMode, appointment },
       }
@@ -491,9 +520,9 @@ const Calendar = forwardRef(({
       return {
         id: freeSlot.id, title: "Available", start: startDateTimeStr,
         end: new Date(new Date(startDateTimeStr).getTime() + 60 * 60 * 1000).toISOString(),
-        backgroundColor: viewMode === "free" ? "#e5e7eb" : "#4a4a4a",
-        borderColor: viewMode === "free" ? "#d1d5db" : "#555555",
-        textColor: "#FFFFFF", opacity: viewMode === "free" ? 1 : 0.4,
+        backgroundColor: viewMode === "free" ? "#10B981" : "#4a4a4a",
+        borderColor: viewMode === "free" ? "#059669" : "#555555",
+        textColor: "#FFFFFF",
         extendedProps: { isFree: true, viewMode },
       }
     }),
@@ -546,7 +575,7 @@ const Calendar = forwardRef(({
           display: none !important;
         }
         .fc .fc-timegrid-slot {
-          height: 32px !important;
+          height: 40px !important;
         }
         .fc .fc-timegrid-axis {
           border: none !important;
@@ -613,8 +642,68 @@ const Calendar = forwardRef(({
           cursor: pointer !important;
         }
         .fc .fc-timegrid-slot {
-          height: 32px !important;
+          height: 40px !important;
           cursor: pointer !important;
+        }
+        /* Abgesagte Termine - diagonale Streifen + grau */
+        .cancelled-event {
+          position: relative;
+          background-color: #6B7280 !important;
+          border-color: #6B7280 !important;
+        }
+        .cancelled-event::after {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: repeating-linear-gradient(
+            135deg,
+            transparent,
+            transparent 3px,
+            rgba(255, 255, 255, 0.15) 3px,
+            rgba(255, 255, 255, 0.15) 6px
+          );
+          pointer-events: none;
+          border-radius: inherit;
+        }
+        /* Vergangene Termine - abgeschwächt */
+        .past-event {
+          opacity: 0.5;
+        }
+        /* Time container - zeigt Endzeit nur wenn genug Platz */
+        .fc-event-time-container {
+          container-type: inline-size;
+          width: 100%;
+        }
+        .fc-event-time-end {
+          display: none;
+        }
+        @container (min-width: 70px) {
+          .fc-event-time-end {
+            display: inline;
+          }
+        }
+        /* Modern event styling - keine Überlappung */
+        .fc-timegrid-event {
+          border-radius: 4px !important;
+          border-width: 0 !important;
+          border-left-width: 3px !important;
+          box-shadow: 0 1px 2px rgba(0,0,0,0.2) !important;
+          margin: 1px 0 !important;
+          overflow: hidden !important;
+        }
+        .fc-timegrid-event .fc-event-main {
+          padding: 2px 4px !important;
+        }
+        /* Rand links/rechts für Klick-Bereich zum Buchen */
+        .fc-timegrid-col-events {
+          margin: 0 6px !important;
+        }
+        /* Parallele Events nebeneinander */
+        .fc-timegrid-event-harness {
+          margin-right: 2px !important;
         }
         .fc .fc-not-allowed,
         .fc .fc-not-allowed .fc-timegrid-col,
@@ -729,7 +818,7 @@ const Calendar = forwardRef(({
               slotDuration="00:30:00"
               slotLabelInterval="01:00:00"
               slotLabelFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
-              slotHeight={32}
+              slotHeight={40}
               slotEventOverlap={false}
               firstDay={1}
               eventClick={handleEventClick}
@@ -741,6 +830,7 @@ const Calendar = forwardRef(({
                 return duration <= thirtyMinutes;
               }}
               eventOverlap={false}
+              eventMinHeight={35}
               views={{
                 timeGridWeek: {
                   dayHeaderContent: (args) => {
@@ -784,6 +874,7 @@ const Calendar = forwardRef(({
                   const display = formatDateRange(info.view.currentStart);
                   setCurrentDateDisplay(display);
                   onDateDisplayChange?.(display);
+                  onCurrentDateChange?.(info.view.currentStart);
                   document.body.classList.remove('dragging-active');
                   hideTooltip();
                 }, 100);
@@ -872,13 +963,29 @@ const Calendar = forwardRef(({
               dayCellClassNames={(date) => new Date(date.date).toDateString() === new Date().toDateString() ? ["fc-day-today-custom"] : []}
               eventMouseEnter={(info) => { if (!document.body.classList.contains('dragging-active') && !info.el.classList.contains('fc-event-dragging') && !info.el.classList.contains('fc-event-resizing')) showTooltip(info.event, info.jsEvent); }}
               eventMouseLeave={() => { if (!document.body.classList.contains('dragging-active')) hideTooltip(); }}
-              eventContent={(eventInfo) => (
-                <div className={`p-0.5 sm:p-1 h-full overflow-hidden ${eventInfo.event.extendedProps.isPast ? "opacity-25" : ""} ${eventInfo.event.extendedProps.isCancelled ? "cancelled-event-content" : ""} ${eventInfo.event.extendedProps.viewMode === "free" && !eventInfo.event.extendedProps.isFree ? "opacity-20" : ""}`}>
-                  <div className={`font-semibold text-[10px] sm:text-xs truncate ${eventInfo.event.extendedProps.isPast ? "text-gray-500" : eventInfo.event.extendedProps.isCancelled ? "text-gray-300" : ""}`}>{eventInfo.event.title}</div>
-                  <div className={`text-[8px] sm:text-xs opacity-90 truncate ${eventInfo.event.extendedProps.isPast ? "text-gray-600" : eventInfo.event.extendedProps.isCancelled ? "text-gray-400" : ""}`}>{eventInfo.event.extendedProps.type || ""}</div>
-                  <div className="text-[8px] sm:text-xs mt-0.5">{eventInfo.timeText}</div>
-                </div>
-              )}
+              eventContent={(eventInfo) => {
+                const appointment = eventInfo.event.extendedProps.appointment;
+                const startTime = appointment?.startTime || '';
+                const endTime = appointment?.endTime || '';
+                const name = appointment?.name || eventInfo.event.title || '';
+                const lastName = appointment?.lastName || '';
+                const fullName = lastName ? `${name} ${lastName}` : name;
+                
+                return (
+                  <div className="px-1 py-0.5 h-full overflow-hidden flex flex-col justify-center">
+                    {/* Name hat Priorität */}
+                    <div className="text-[11px] leading-tight overflow-hidden whitespace-nowrap text-white font-medium">
+                      {fullName}
+                    </div>
+                    {/* Zeit: Volle Zeit wenn Platz, sonst nur Startzeit */}
+                    <div className="fc-event-time-container overflow-hidden">
+                      <span className="whitespace-nowrap text-[10px] text-white/80">
+                        {startTime}<span className="fc-event-time-end"> - {endTime}</span>
+                      </span>
+                    </div>
+                  </div>
+                );
+              }}
               eventClassNames={(eventInfo) => {
                 const classes = []
                 if (eventInfo.event.extendedProps.isPast) classes.push("past-event")
