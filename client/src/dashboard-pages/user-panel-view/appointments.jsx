@@ -235,10 +235,23 @@ export default function Appointments() {
   const handleViewMemberDetailsMain = () => {
     setIsAppointmentActionModalOpen(false);
     setshowAppointmentOptionsModalMain(false);
-    if (!selectedAppointmentMain) { toast.error("No appointment selected"); return }
-    const memberIdToNavigate = selectedAppointmentMain.memberId || selectedAppointmentMain.id;
-    if (memberIdToNavigate) navigate(`/dashboard/member-details/${memberIdToNavigate}`);
-    else toast.error("Member ID not found for this appointment");
+    if (!selectedAppointmentMain) return;
+    
+    // Get member info from appointment
+    const memberId = selectedAppointmentMain.memberId;
+    const memberName = selectedAppointmentMain.lastName 
+      ? `${selectedAppointmentMain.name} ${selectedAppointmentMain.lastName}`
+      : selectedAppointmentMain.name;
+    
+    if (memberId) {
+      // Navigate to Members page with filter state (like communications.jsx)
+      navigate('/dashboard/members', {
+        state: {
+          filterMemberId: memberId,
+          filterMemberName: memberName
+        }
+      });
+    }
   };
 
   const handleAppointmentSubmit = (appointmentData) => {

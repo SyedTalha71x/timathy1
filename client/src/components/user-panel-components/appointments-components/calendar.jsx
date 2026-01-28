@@ -524,10 +524,23 @@ const Calendar = forwardRef(({
 
   const handleViewMemberDetails = () => {
     setIsAppointmentActionModalOpen(false);
-    if (!selectedAppointment) { toast.error("No appointment selected"); return }
-    const memberIdToNavigate = selectedAppointment.memberId || selectedAppointment.id;
-    if (memberIdToNavigate) navigate(`/dashboard/member-details/${memberIdToNavigate}`);
-    else toast.error("Member ID not found for this appointment");
+    if (!selectedAppointment) return;
+    
+    // Get member info from appointment
+    const memberId = selectedAppointment.memberId;
+    const memberName = selectedAppointment.lastName 
+      ? `${selectedAppointment.name} ${selectedAppointment.lastName}`
+      : selectedAppointment.name;
+    
+    if (memberId) {
+      // Navigate to Members page with filter state (like communications.jsx)
+      navigate('/dashboard/members', {
+        state: {
+          filterMemberId: memberId,
+          filterMemberName: memberName
+        }
+      });
+    }
   };
 
   const handleAddAppointmentSubmit = (data) => {

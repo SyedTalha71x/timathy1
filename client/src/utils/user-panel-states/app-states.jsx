@@ -396,58 +396,35 @@ const getDateString = (daysOffset) => {
   return `${year}-${month}-${day}`;
 };
 
-// Generate dynamic free appointments data
-const generateFreeAppointmentsData = () => [
-  // Heute (Tag 0)
-  { id: 1, date: getDateString(0), time: "08:00 AM", typeId: 1 },
-  { id: 2, date: getDateString(0), time: "12:00 PM", typeId: 2 },
-  { id: 3, date: getDateString(0), time: "01:00 PM", typeId: 1 },
-  { id: 4, date: getDateString(0), time: "03:00 PM", typeId: 3 },
+// Generate dynamic free appointments data - SAME SLOTS EVERY DAY for easier testing
+// Standard slots: 08:00, 08:30, 09:00, 09:30, 10:00, 10:30, 11:00, 11:30, 12:00, 12:30, 
+//                 14:00, 14:30, 15:00, 15:30, 16:00, 16:30, 17:00, 17:30, 18:00
+const generateFreeAppointmentsData = () => {
+  const standardSlots = [
+    "08:00", "08:30", "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", 
+    "12:00", "12:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", 
+    "17:00", "17:30", "18:00"
+  ];
   
-  // Morgen (Tag +1)
-  { id: 5, date: getDateString(1), time: "09:00 AM", typeId: 1 },
-  { id: 6, date: getDateString(1), time: "10:00 AM", typeId: 2 },
-  { id: 7, date: getDateString(1), time: "02:00 PM", typeId: 1 },
-  { id: 8, date: getDateString(1), time: "03:00 PM", typeId: 3 },
-  { id: 9, date: getDateString(1), time: "04:00 PM", typeId: 2 },
+  const result = [];
+  let idCounter = 1;
   
-  // Übermorgen (Tag +2)
-  { id: 10, date: getDateString(2), time: "09:00 AM", typeId: 1 },
-  { id: 11, date: getDateString(2), time: "11:00 AM", typeId: 1 },
-  { id: 12, date: getDateString(2), time: "02:00 PM", typeId: 4 },
-  { id: 13, date: getDateString(2), time: "03:00 PM", typeId: 2 },
+  // Generate slots for 30 days ahead
+  for (let dayOffset = 0; dayOffset <= 30; dayOffset++) {
+    const dateStr = getDateString(dayOffset);
+    
+    standardSlots.forEach((time) => {
+      result.push({
+        id: idCounter++,
+        date: dateStr,
+        time: time,
+        typeId: null // Available for all types
+      });
+    });
+  }
   
-  // Tag +3
-  { id: 14, date: getDateString(3), time: "08:00 AM", typeId: 4 },
-  { id: 15, date: getDateString(3), time: "09:00 AM", typeId: 1 },
-  { id: 16, date: getDateString(3), time: "02:00 PM", typeId: 1 },
-  { id: 17, date: getDateString(3), time: "04:00 PM", typeId: 3 },
-  
-  // Tag +4
-  { id: 18, date: getDateString(4), time: "09:00 AM", typeId: 1 },
-  { id: 19, date: getDateString(4), time: "10:00 AM", typeId: 2 },
-  { id: 20, date: getDateString(4), time: "11:00 AM", typeId: 1 },
-  { id: 21, date: getDateString(4), time: "02:00 PM", typeId: 4 },
-  { id: 22, date: getDateString(4), time: "03:00 PM", typeId: 1 },
-  
-  // Tag +5
-  { id: 23, date: getDateString(5), time: "09:00 AM", typeId: 2 },
-  { id: 24, date: getDateString(5), time: "10:00 AM", typeId: 1 },
-  { id: 25, date: getDateString(5), time: "11:00 AM", typeId: 3 },
-  { id: 26, date: getDateString(5), time: "02:00 PM", typeId: 1 },
-  
-  // Tag +6
-  { id: 27, date: getDateString(6), time: "09:00 AM", typeId: 1 },
-  { id: 28, date: getDateString(6), time: "10:00 AM", typeId: 2 },
-  { id: 29, date: getDateString(6), time: "02:00 PM", typeId: 1 },
-  
-  // Tag +7
-  { id: 30, date: getDateString(7), time: "09:00 AM", typeId: 1 },
-  { id: 31, date: getDateString(7), time: "10:00 AM", typeId: 1 },
-  { id: 32, date: getDateString(7), time: "11:00 AM", typeId: 2 },
-  { id: 33, date: getDateString(7), time: "02:00 PM", typeId: 3 },
-  { id: 34, date: getDateString(7), time: "03:00 PM", typeId: 1 },
-];
+  return result;
+};
 
 // Export the dynamically generated data
 export const freeAppointmentsData = generateFreeAppointmentsData();
