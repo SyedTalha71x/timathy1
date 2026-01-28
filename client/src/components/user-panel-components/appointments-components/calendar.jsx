@@ -491,14 +491,8 @@ const Calendar = forwardRef(({
       let borderColor = backgroundColor, textColor = "#FFFFFF"
 
       if (isCancelledEvent) { 
-        backgroundColor = "#4a4a4a"
-        borderColor = "#6b7280"
-        textColor = "#9ca3af"
-      } else if (isPastEvent) { 
-        // Vergangene Termine: Original-Farbe aber abgedunkelt
-        const originalColor = appointment.color?.split("bg-[")[1]?.slice(0, -1) || "#4169E1"
-        backgroundColor = originalColor
-        borderColor = originalColor
+        backgroundColor = "#6B7280"
+        borderColor = "#6B7280"
         textColor = "#FFFFFF"
       } else if (viewMode === "free") { 
         backgroundColor = "#2a2a2a"
@@ -575,7 +569,7 @@ const Calendar = forwardRef(({
           display: none !important;
         }
         .fc .fc-timegrid-slot {
-          height: 40px !important;
+          height: 32px !important;
         }
         .fc .fc-timegrid-axis {
           border: none !important;
@@ -642,7 +636,7 @@ const Calendar = forwardRef(({
           cursor: pointer !important;
         }
         .fc .fc-timegrid-slot {
-          height: 40px !important;
+          height: 32px !important;
           cursor: pointer !important;
         }
         /* Abgesagte Termine - diagonale Streifen + grau */
@@ -670,7 +664,7 @@ const Calendar = forwardRef(({
         }
         /* Vergangene Termine - abgeschwächt */
         .past-event {
-          opacity: 0.5;
+          opacity: 0.45;
         }
         /* Time container - zeigt Endzeit nur wenn genug Platz */
         .fc-event-time-container {
@@ -685,21 +679,20 @@ const Calendar = forwardRef(({
             display: inline;
           }
         }
-        /* Modern event styling - keine Überlappung */
+        /* Modern event styling */
         .fc-timegrid-event {
           border-radius: 4px !important;
           border-width: 0 !important;
           border-left-width: 3px !important;
           box-shadow: 0 1px 2px rgba(0,0,0,0.2) !important;
-          margin: 1px 0 !important;
           overflow: hidden !important;
         }
         .fc-timegrid-event .fc-event-main {
-          padding: 2px 4px !important;
+          padding: 1px 3px !important;
         }
         /* Rand links/rechts für Klick-Bereich zum Buchen */
         .fc-timegrid-col-events {
-          margin: 0 6px !important;
+          margin: 0 3px !important;
         }
         /* Parallele Events nebeneinander */
         .fc-timegrid-event-harness {
@@ -818,7 +811,7 @@ const Calendar = forwardRef(({
               slotDuration="00:30:00"
               slotLabelInterval="01:00:00"
               slotLabelFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
-              slotHeight={40}
+              slotHeight={32}
               slotEventOverlap={false}
               firstDay={1}
               eventClick={handleEventClick}
@@ -830,7 +823,7 @@ const Calendar = forwardRef(({
                 return duration <= thirtyMinutes;
               }}
               eventOverlap={false}
-              eventMinHeight={35}
+              eventMinHeight={28}
               views={{
                 timeGridWeek: {
                   dayHeaderContent: (args) => {
@@ -972,14 +965,14 @@ const Calendar = forwardRef(({
                 const fullName = lastName ? `${name} ${lastName}` : name;
                 
                 return (
-                  <div className="px-1 py-0.5 h-full overflow-hidden flex flex-col justify-center">
+                  <div className="px-1 py-0.5 h-full overflow-hidden flex flex-col justify-start">
                     {/* Name hat Priorität */}
-                    <div className="text-[11px] leading-tight overflow-hidden whitespace-nowrap text-white font-medium">
+                    <div className="text-[10px] leading-tight overflow-hidden whitespace-nowrap text-white font-medium">
                       {fullName}
                     </div>
                     {/* Zeit: Volle Zeit wenn Platz, sonst nur Startzeit */}
                     <div className="fc-event-time-container overflow-hidden">
-                      <span className="whitespace-nowrap text-[10px] text-white/80">
+                      <span className="whitespace-nowrap text-[9px] text-white/80">
                         {startTime}<span className="fc-event-time-end"> - {endTime}</span>
                       </span>
                     </div>

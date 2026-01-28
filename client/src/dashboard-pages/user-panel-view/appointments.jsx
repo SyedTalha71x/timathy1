@@ -542,15 +542,16 @@ export default function Appointments() {
               {isSidebarCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
             </button>
 
-            {/* Left Sidebar - single scrollable container */}
-            <div className={`transition-all duration-500 ease-in-out ${isSidebarCollapsed ? "lg:w-0 lg:opacity-0 lg:overflow-hidden lg:m-0 lg:p-0" : "lg:w-[300px] lg:min-w-[300px] lg:opacity-100"} w-full md:w-full flex-shrink-0 lg:h-full lg:overflow-y-auto lg:overflow-x-hidden custom-scrollbar`}>
-              <div className="flex flex-col gap-3 lg:pb-2">
-                <div className="w-full lg:max-w-[300px]">
+            {/* Left Sidebar - flex container, nur Upcoming scrollt */}
+            <div className={`transition-all duration-500 ease-in-out ${isSidebarCollapsed ? "lg:w-0 lg:opacity-0 lg:overflow-hidden lg:m-0 lg:p-0" : "lg:w-[300px] lg:min-w-[300px] lg:opacity-100"} w-full md:w-full flex-shrink-0 lg:h-full lg:overflow-hidden`}>
+              <div className="flex flex-col gap-3 lg:pb-2 h-full">
+                <div className="w-full lg:max-w-[300px] flex-shrink-0">
                   <MiniCalendar onDateSelect={handleDateSelect} selectedDate={selectedDate} externalDate={miniCalendarDate} />
                 </div>
 
-                <div className="w-full lg:max-w-[300px] flex flex-col gap-2">
-                <div className="flex items-center gap-2 w-full">
+                <div className="w-full lg:max-w-[300px] flex flex-col gap-2 flex-1 min-h-0 overflow-hidden">
+                {/* Search - feste Größe */}
+                <div className="flex items-center gap-2 w-full flex-shrink-0">
                   <div className="relative w-full">
                     <input type="text" placeholder="Search member..." value={searchQuery} onChange={handleSearch}
                       className="w-full bg-[#000000] text-white rounded-xl px-4 py-2 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-[#3F74FF]" />
@@ -558,7 +559,8 @@ export default function Appointments() {
                   </div>
                 </div>
 
-                <div className="bg-[#000000] rounded-xl p-3 w-full">
+                {/* Filters - feste Größe */}
+                <div className="bg-[#000000] rounded-xl p-3 w-full flex-shrink-0">
                   <div className="flex items-center justify-between">
                     <h3 className="text-white font-semibold text-sm">Filters</h3>
                     <div className="flex items-center gap-2">
@@ -608,15 +610,15 @@ export default function Appointments() {
                   )}
                 </div>
 
-                <div className="w-full">
+                <div className="w-full flex-1 flex flex-col min-h-0">
                   <div className="flex items-center justify-between mb-2">
-                    <h2 className="text-white font-bold text-sm">Upcoming</h2>
+                    <h2 className="text-white font-bold text-sm">Upcoming Appointments</h2>
                     <button onClick={() => setIsUpcomingCollapsed(!isUpcomingCollapsed)} className="text-gray-400 hover:text-white transition-colors">
                       {isUpcomingCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
                     </button>
                   </div>
                   {!isUpcomingCollapsed && (
-                    <div className="space-y-2 custom-scrollbar overflow-y-auto max-h-[250px] w-full">
+                    <div className="space-y-2 custom-scrollbar overflow-y-auto flex-1 w-full">
                       {filteredAppointments.length > 0 ? (
                         filteredAppointments.map((appointment) => (
                           <div key={appointment.id}
