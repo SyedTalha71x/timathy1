@@ -162,8 +162,8 @@ export const leadsData = [
   {
     id: "h5",
     firstName: "Justin",
-    lastName: "Test",
-    surname: "Test",
+    lastName: "Multerio",
+    surname: "Multerio",
     email: "justintest@beispiel.com",
     phoneNumber: "+4915512345678",
     telephoneNumber: "+4915512345678",
