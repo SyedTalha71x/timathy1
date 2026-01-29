@@ -22,7 +22,7 @@ import { useState, useEffect, useCallback, useRef } from "react"
 import toast, { Toaster } from "react-hot-toast"
 import { GoArrowLeft, GoArrowRight } from "react-icons/go"
 
-import { appointmentsData as initialAppointmentsData, memberRelationsData, availableMembersLeadsMain, freeAppointmentsData, relationOptionsData as relationOptionsMain, appointmentTypesData } from "../../utils/studio-states"
+import { appointmentsData as initialAppointmentsData, memberRelationsData, availableMembersLeadsMain, freeAppointmentsData, relationOptionsData as relationOptionsMain, appointmentTypesData, membersData } from "../../utils/studio-states"
 
 import TrialTrainingModal from "../../components/studio-components/appointments-components/add-trial-training"
 import CreateAppointmentModal from "../../components/shared/appointments/CreateAppointmentModal"
@@ -42,6 +42,12 @@ import { MemberSpecialNoteIcon } from "../../components/shared/shared-special-no
 export default function Appointments() {
   const navigate = useNavigate();
   const calendarRef = useRef(null);
+
+  // Helper function to get member data by ID (for special notes)
+  const getMemberById = (memberId) => {
+    if (!memberId) return null;
+    return membersData.find(m => m.id === memberId) || null;
+  };
 
   // Disable main container scrolling on mount
   useEffect(() => {
@@ -1004,6 +1010,21 @@ export default function Appointments() {
                           const lastName = appointment.lastName || "";
                           const isBlocked = appointment.isBlocked || appointment.type === "Blocked Time";
                           
+                          // Get member data to access their special notes
+                          const memberData = getMemberById(appointment.memberId);
+                          const memberWithNotes = {
+                            ...appointment,
+                            id: appointment.memberId || appointment.id,
+                            firstName,
+                            lastName,
+                            // Merge member's note data if available
+                            note: memberData?.note || "",
+                            noteStartDate: memberData?.noteStartDate || "",
+                            noteEndDate: memberData?.noteEndDate || "",
+                            noteImportance: memberData?.noteImportance || "unimportant",
+                            notes: memberData?.notes || [],
+                          };
+                          
                           return (
                             <div key={appointment.id}
                               className={`${appointment.isCancelled ? "bg-gray-700 cancelled-appointment-bg" : appointment.isPast && !appointment.isCancelled ? "bg-gray-800 opacity-50" : appointment.color} rounded-xl cursor-pointer p-3 relative w-full upcoming-apt-tile`}
@@ -1013,11 +1034,7 @@ export default function Appointments() {
                                 <div className="flex items-center gap-1.5">
                                   {!isBlocked && (
                                     <MemberSpecialNoteIcon
-                                      member={{
-                                        ...appointment,
-                                        firstName,
-                                        lastName,
-                                      }}
+                                      member={memberWithNotes}
                                       onEditMember={(memberData, tab) => handleOpenEditMemberModal(memberData, tab || "note")}
                                       size="sm"
                                       position="relative"
