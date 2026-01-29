@@ -82,6 +82,7 @@ import {
   DEFAULT_APPOINTMENT_CATEGORIES,
   DEFAULT_APPOINTMENT_TYPES,
   DEFAULT_TRIAL_TRAINING,
+  DEFAULT_CALENDAR_SETTINGS,
   
   // Lead Config
   DEFAULT_LEAD_SOURCES,
@@ -131,6 +132,7 @@ const navigationItems = [
     label: "Appointments",
     icon: Calendar,
     sections: [
+      { id: "calendar-settings", label: "Calendar Settings" },
       { id: "capacity", label: "Capacity Settings" },
       { id: "appointment-types", label: "Appointment Types" },
       { id: "appointment-categories", label: "Categories" },
@@ -568,6 +570,9 @@ const ConfigurationPage = () => {
   const [studioCapacity, setStudioCapacity] = useState(DEFAULT_STUDIO_CAPACITY)
   const [trialTraining, setTrialTraining] = useState(DEFAULT_TRIAL_TRAINING)
   const [editingCategory, setEditingCategory] = useState({ index: null, value: "" })
+  
+  // Calendar Settings
+  const [calendarSettings, setCalendarSettings] = useState(DEFAULT_CALENDAR_SETTINGS)
   
   // Appointment Type Modal States
   const [showAppointmentTypeModal, setShowAppointmentTypeModal] = useState(false)
@@ -1815,6 +1820,149 @@ const ConfigurationPage = () => {
       // ========================
       // APPOINTMENT SECTIONS
       // ========================
+      case "calendar-settings":
+        return (
+          <div className="space-y-6">
+            <SectionHeader title="Calendar Settings" description="Configure how the calendar displays appointments" />
+            
+            {/* Hide Closed Days - Above Preview */}
+            <SettingsCard>
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-sm font-medium text-white block">Hide Closed Days</label>
+                  <p className="text-xs text-gray-500 mt-1">
+                    When enabled, days marked as closed in opening hours (e.g., weekends) will not appear as columns in week/day view
+                  </p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={calendarSettings.hideClosedDays}
+                    onChange={(e) => setCalendarSettings({
+                      ...calendarSettings,
+                      hideClosedDays: e.target.checked
+                    })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-[#333333] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
+                </label>
+              </div>
+              
+              {/* Week View Preview */}
+              <div className="mt-4 p-4 bg-[#141414] rounded-xl overflow-x-auto">
+                <p className="text-xs text-gray-500 mb-3">Preview:</p>
+                <div className="flex gap-1 min-w-[400px]">
+                  {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => {
+                    const isWeekend = day === 'Sat' || day === 'Sun';
+                    const isHidden = calendarSettings.hideClosedDays && isWeekend;
+                    
+                    if (isHidden) return null;
+                    
+                    return (
+                      <div 
+                        key={day}
+                        className={`flex-1 min-w-[50px] text-center py-3 rounded-lg ${
+                          isWeekend 
+                            ? 'bg-gray-700/30 text-gray-500' 
+                            : 'bg-[#1F1F1F] text-white'
+                        }`}
+                      >
+                        <span className="text-xs font-medium">{day}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <p className="text-xs text-gray-500 mt-3 text-center">
+                  {calendarSettings.hideClosedDays 
+                    ? 'Showing Monday - Friday (closed days hidden)'
+                    : 'Showing all days including weekends'
+                  }
+                </p>
+              </div>
+            </SettingsCard>
+
+            {/* Calendar Time Range */}
+            <SettingsCard>
+              <h4 className="text-white font-medium mb-4">Calendar Time Range</h4>
+              <p className="text-xs text-gray-500 mb-4">
+                Set the visible time range for the calendar. Times outside this range will not be displayed.
+              </p>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <div className="flex items-center gap-3">
+                  <label className="text-sm text-gray-400 w-16">Start</label>
+                  <input
+                    type="time"
+                    value={calendarSettings.calendarStartTime}
+                    onChange={(e) => setCalendarSettings({
+                      ...calendarSettings,
+                      calendarStartTime: e.target.value
+                    })}
+                    className="bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                  />
+                </div>
+                <span className="text-gray-500 hidden sm:block">—</span>
+                <div className="flex items-center gap-3">
+                  <label className="text-sm text-gray-400 w-16">End</label>
+                  <input
+                    type="time"
+                    value={calendarSettings.calendarEndTime}
+                    onChange={(e) => setCalendarSettings({
+                      ...calendarSettings,
+                      calendarEndTime: e.target.value
+                    })}
+                    className="bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                  />
+                </div>
+              </div>
+            </SettingsCard>
+
+            {/* Fade Past Appointments */}
+            <SettingsCard>
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-sm font-medium text-white block">Fade Past Appointments</label>
+                  <p className="text-xs text-gray-500 mt-1">
+                    When enabled, past appointments will be displayed with reduced opacity to distinguish them from upcoming ones
+                  </p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={calendarSettings.fadePastAppointments}
+                    onChange={(e) => setCalendarSettings({
+                      ...calendarSettings,
+                      fadePastAppointments: e.target.checked
+                    })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-[#333333] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
+                </label>
+              </div>
+              
+              {/* Preview */}
+              <div className="mt-4 p-4 bg-[#141414] rounded-xl">
+                <p className="text-xs text-gray-500 mb-3">Preview:</p>
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <p className="text-[10px] text-gray-500 mb-1.5 text-center">Past</p>
+                    <div 
+                      className={`p-3 rounded-lg bg-[#3B82F6] ${calendarSettings.fadePastAppointments ? 'opacity-45' : ''}`}
+                    >
+                      <span className="text-xs text-white font-medium">EMS Training</span>
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-[10px] text-gray-500 mb-1.5 text-center">Upcoming</p>
+                    <div className="p-3 rounded-lg bg-[#3B82F6]">
+                      <span className="text-xs text-white font-medium">EMS Training</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </SettingsCard>
+          </div>
+        )
+
       case "capacity":
         return (
           <div className="space-y-6">

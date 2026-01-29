@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */ /* eslint-disable react/prop-types */
 import FullCalendar from "@fullcalendar/react"
 import toast, { Toaster } from "react-hot-toast"
-import { useCallback, useEffect, useRef, useState, forwardRef, useImperativeHandle } from "react"
+import { useCallback, useEffect, useRef, useState, forwardRef, useImperativeHandle, useMemo } from "react"
 import dayGridPlugin from "@fullcalendar/daygrid"
 import timeGridPlugin from "@fullcalendar/timegrid"
 import interactionPlugin from "@fullcalendar/interaction"
@@ -17,10 +17,19 @@ import NotifyMemberModal from "../../shared/appointments/NotifyMemberModal"
 import TypeSelectionModalMain from "./TypeSelectionModalMain"
 import EditBlockedSlotModalMain from "./EditBlockedSlotModalMain"
 import EditMemberModalMain from "../../studio-components/members-components/EditMemberModal"
-import { memberRelationsData, availableMembersLeadsMain, freeAppointmentsData, relationOptionsData as relationOptionsMain, appointmentTypesData } from "../../../utils/studio-states"
+import { memberRelationsData, availableMembersLeadsMain, freeAppointmentsData, relationOptionsData as relationOptionsMain, appointmentTypesData, studioData, germanHolidaysData, isStudioClosedOnDate, getHolidayForDate, DEFAULT_CALENDAR_SETTINGS } from "../../../utils/studio-states"
 
 
 import { useNavigate } from "react-router-dom"
+
+// Helper function to format date as YYYY-MM-DD in local timezone (avoiding UTC shift issues)
+const formatDateLocal = (date) => {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 const Calendar = forwardRef(({
   appointmentsMain,
@@ -33,6 +42,7 @@ const Calendar = forwardRef(({
   onDateDisplayChange,
   onViewModeChange,
   onCurrentDateChange,
+  calendarSettings = DEFAULT_CALENDAR_SETTINGS,
 }, ref) => {
   const navigate = useNavigate();
   const [isMobile, setIsMobile] = useState(false)
@@ -53,13 +63,48 @@ const Calendar = forwardRef(({
   const [tooltip, setTooltip] = useState({ show: false, x: 0, y: 0, content: null })
   const hideTooltipTimeoutRef = useRef(null)
   const showTooltipTimeoutRef = useRef(null)
-  const [currentDate, setCurrentDate] = useState(selectedDate || new Date().toISOString().split('T')[0])
+  const [currentDate, setCurrentDate] = useState(selectedDate || formatDateLocal(new Date()))
 
   const [appointmentTypesMain] = useState(appointmentTypesData)
 
   const [memberAppointments, setMemberAppointments] = useState([])
   const [isEditBlockedModalOpen, setIsEditBlockedModalOpen] = useState(false)
   const [blockedEditData, setBlockedEditData] = useState(null)
+
+  // Calculate hidden days based on studioData.openingHours (closed days won't show as columns)
+  // Only hide days if calendarSettings.hideClosedDays is true
+  const hiddenDays = useMemo(() => {
+    // If hideClosedDays is disabled, don't hide any days
+    if (!calendarSettings.hideClosedDays) {
+      return [];
+    }
+    
+    const dayNameToIndex = {
+      'Sunday': 0,
+      'Monday': 1,
+      'Tuesday': 2,
+      'Wednesday': 3,
+      'Thursday': 4,
+      'Friday': 5,
+      'Saturday': 6,
+    };
+    
+    const days = [];
+    
+    // Safety check for studioData and openingHours
+    if (studioData?.openingHours && Array.isArray(studioData.openingHours)) {
+      studioData.openingHours.forEach(dayConfig => {
+        if (dayConfig?.closed) {
+          const dayIndex = dayNameToIndex[dayConfig.day];
+          if (dayIndex !== undefined) {
+            days.push(dayIndex);
+          }
+        }
+      });
+    }
+    
+    return days;
+  }, [calendarSettings.hideClosedDays]);
 
   const formatDate = (date) => {
     const day = String(date.getDate()).padStart(2, "0")
@@ -72,6 +117,7 @@ const Calendar = forwardRef(({
   const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false)
   const [notifyAction, setNotifyAction] = useState("change")
   const [pendingEventInfo, setPendingEventInfo] = useState(null)
+  const [originalEventData, setOriginalEventData] = useState(null)
   const [pendingEventData, setPendingEventData] = useState(null)
   const [isTypeSelectionOpen, setIsTypeSelectionOpen] = useState(false)
   const [selectedSlotInfo, setSelectedSlotInfo] = useState(null)
@@ -252,7 +298,7 @@ const Calendar = forwardRef(({
       const calendarApi = calendarRef.current?.getApi();
       if (calendarApi) {
         calendarApi.prev();
-        setCurrentDate(calendarApi.getDate().toISOString().split("T")[0]);
+        setCurrentDate(formatDateLocal(calendarApi.getDate()));
         
         const view = calendarApi.view;
         const dateForSelection = getDateForSelection(view);
@@ -269,7 +315,7 @@ const Calendar = forwardRef(({
       const calendarApi = calendarRef.current?.getApi();
       if (calendarApi) {
         calendarApi.next();
-        setCurrentDate(calendarApi.getDate().toISOString().split("T")[0]);
+        setCurrentDate(formatDateLocal(calendarApi.getDate()));
         
         const view = calendarApi.view;
         const dateForSelection = getDateForSelection(view);
@@ -520,18 +566,32 @@ const Calendar = forwardRef(({
     const appointmentId = Number(event.id);
     const duration = event.end - event.start;
     
-    // Store the new event data for applying on confirmation
-    const newEventData = {
-      id: appointmentId,
-      startTime: event.start.toTimeString().split(" ")[0].substring(0, 5),
-      endTime: new Date(event.start.getTime() + duration).toTimeString().split(" ")[0].substring(0, 5),
-      date: `${event.start.toLocaleString("en-US", { weekday: "short" })} | ${formatDate(event.start)}`,
-    };
+    // Store original data for potential revert
+    const originalAppointment = appointmentsMain.find(app => app.id === appointmentId);
+    if (originalAppointment) {
+      setOriginalEventData({
+        id: appointmentId,
+        startTime: originalAppointment.startTime,
+        endTime: originalAppointment.endTime,
+        date: originalAppointment.date
+      });
+    }
     
-    // Store pending info - DON'T update appointmentsMain yet!
-    // FullCalendar will keep the visual position until we confirm or revert
-    setPendingEventInfo(info);
-    setPendingEventData(newEventData);
+    // Update state immediately (so the event stays at new position after re-render)
+    const updatedAppointments = appointmentsMain.map((appointment) => {
+      if (appointment.id === appointmentId) {
+        return { 
+          ...appointment,
+          startTime: event.start.toTimeString().split(" ")[0].substring(0, 5),
+          endTime: new Date(event.start.getTime() + duration).toTimeString().split(" ")[0].substring(0, 5),
+          date: `${event.start.toLocaleString("en-US", { weekday: "short" })} | ${formatDate(event.start)}`,
+        };
+      }
+      return appointment;
+    });
+    setAppointmentsMain(updatedAppointments);
+    
+    setPendingEventInfo(info); 
     setNotifyAction("change"); 
     setIsNotifyMemberOpen(true); 
   }
@@ -573,22 +633,11 @@ const Calendar = forwardRef(({
 
   const handleNotifyMember = (shouldNotify) => {
     setIsNotifyMemberOpen(false)
-    if (pendingEventInfo && pendingEventData && notifyAction === "change") {
-      // NOW apply the change to appointmentsMain (user confirmed)
-      const updatedAppointments = appointmentsMain.map((appointment) => {
-        if (appointment.id === pendingEventData.id) {
-          return { 
-            ...appointment,
-            startTime: pendingEventData.startTime,
-            endTime: pendingEventData.endTime,
-            date: pendingEventData.date,
-          };
-        }
-        return appointment;
-      });
-      setAppointmentsMain(updatedAppointments);
+    if (pendingEventInfo && notifyAction === "change") {
+      // State was already updated in handleEventDrop
+      // Just clear the pending data (user confirmed the change)
       setPendingEventInfo(null);
-      setPendingEventData(null);
+      setOriginalEventData(null);
     } else if (notifyAction === "cancel" && selectedAppointment) {
       if (shouldNotify !== null) actuallyHandleCancelAppointment(shouldNotify)
     }
@@ -738,6 +787,136 @@ const Calendar = forwardRef(({
     return memberMatch && typeMatch
   })
 
+  // Get studio capacity from configuration (fallback to 3 if not set)
+  const studioCapacity = studioData?.capacity || 3;
+
+  // Calculate free slots dynamically based on existing appointments
+  const calculateFreeSlots = () => {
+    if (!calendarRef.current) return [];
+    
+    const calendarApi = calendarRef.current.getApi();
+    const view = calendarApi.view;
+    const viewStart = new Date(view.currentStart);
+    const viewEnd = new Date(view.currentEnd);
+    
+    const freeSlots = [];
+    let slotId = 10000; // Start with high ID to avoid conflicts
+    
+    // Get current time for comparison
+    const now = new Date();
+    const todayStr = formatDateLocal(now);
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    const currentTimeMins = currentHour * 60 + currentMinute;
+    
+    // Iterate through each day in the view
+    const currentDay = new Date(viewStart);
+    while (currentDay < viewEnd) {
+      const dayStr = formatDateLocal(currentDay);
+      const formattedDate = formatDate(currentDay);
+      
+      // Skip past days entirely
+      if (dayStr < todayStr) {
+        currentDay.setDate(currentDay.getDate() + 1);
+        continue;
+      }
+      
+      // Skip closed days (weekends, holidays, custom closing days)
+      const closedInfo = isStudioClosedOnDate(dayStr);
+      if (closedInfo.closed) {
+        currentDay.setDate(currentDay.getDate() + 1);
+        continue;
+      }
+      
+      const isToday = dayStr === todayStr;
+      
+      // Get appointments for this day (excluding cancelled)
+      const dayAppointments = filteredAppointments.filter(apt => {
+        if (apt.isCancelled) return false;
+        const aptDateParts = apt.date?.split("|") || [];
+        if (aptDateParts.length < 2) return false;
+        return aptDateParts[1].trim() === formattedDate;
+      });
+      
+      // Check each 30-minute slot from 06:00 to 23:00
+      for (let hour = 6; hour < 23; hour++) {
+        for (let minute = 0; minute < 60; minute += 30) {
+          const slotStartMins = hour * 60 + minute;
+          const slotEndMins = slotStartMins + 30;
+          
+          // Skip past slots for today
+          if (isToday && slotStartMins <= currentTimeMins) {
+            continue;
+          }
+          
+          // Count overlapping appointments for this slot
+          let totalOverlapping = 0;
+          let isBlocked = false;
+          
+          // Track per-type counts for maxParallel check
+          const typeCountMap = {};
+          
+          dayAppointments.forEach(apt => {
+            const aptStart = apt.startTime?.split(':').map(Number) || [0, 0];
+            const aptEnd = apt.endTime?.split(':').map(Number) || [0, 0];
+            const aptStartMins = aptStart[0] * 60 + aptStart[1];
+            const aptEndMins = aptEnd[0] * 60 + aptEnd[1];
+            
+            // Check if appointment overlaps with this slot
+            if (aptStartMins < slotEndMins && aptEndMins > slotStartMins) {
+              if (apt.isBlocked || apt.type === "Blocked Time") {
+                isBlocked = true;
+              } else {
+                totalOverlapping++;
+                // Track per-type count
+                const aptType = apt.type || 'Unknown';
+                typeCountMap[aptType] = (typeCountMap[aptType] || 0) + 1;
+              }
+            }
+          });
+          
+          // Skip if blocked
+          if (isBlocked) continue;
+          
+          // Calculate available slots based on studio capacity
+          const availableByCapacity = studioCapacity - totalOverlapping;
+          
+          // Check if any appointment type has reached its maxParallel limit
+          // This affects overall availability since some types might be fully booked
+          let typeConstraintInfo = [];
+          appointmentTypesData.forEach(type => {
+            const currentCount = typeCountMap[type.name] || 0;
+            const maxAllowed = type.maxParallel || studioCapacity;
+            const availableForType = maxAllowed - currentCount;
+            if (availableForType <= 0) {
+              typeConstraintInfo.push(type.name);
+            }
+          });
+          
+          if (availableByCapacity > 0) {
+            const slotEnd = new Date(currentDay);
+            slotEnd.setHours(hour, minute + 30, 0, 0);
+            
+            // Create one free slot entry (we'll display how many are available)
+            freeSlots.push({
+              id: `free-${slotId++}`,
+              date: dayStr,
+              startTime: `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`,
+              endTime: `${String(slotEnd.getHours()).padStart(2, '0')}:${String(slotEnd.getMinutes()).padStart(2, '0')}`,
+              availableCount: availableByCapacity,
+              fullyBookedTypes: typeConstraintInfo, // Types that reached maxParallel
+            });
+          }
+        }
+      }
+      
+      // Move to next day
+      currentDay.setDate(currentDay.getDate() + 1);
+    }
+    
+    return freeSlots;
+  };
+
   const calendarEvents = [
     ...filteredAppointments.map((appointment) => {
       const dateParts = appointment.date?.split("|") || []
@@ -773,22 +952,27 @@ const Calendar = forwardRef(({
       }
     }).filter(Boolean),
     // Only show free slots when viewMode is "free"
-    ...(viewMode === "free" ? freeAppointments.map((freeSlot) => {
-      // freeSlot.date is in YYYY-MM-DD format
-      const dateStr = freeSlot.date
-      const startDateTimeStr = `${dateStr}T${freeSlot.time}`
-      const startDate = new Date(startDateTimeStr)
-      // Check if date is valid
-      if (isNaN(startDate.getTime())) return null
+    ...(viewMode === "free" ? calculateFreeSlots().map((freeSlot) => {
+      const startDateTimeStr = `${freeSlot.date}T${freeSlot.startTime}`
+      const endDateTimeStr = `${freeSlot.date}T${freeSlot.endTime}`
+      
       return {
-        id: freeSlot.id, title: "Available", start: startDateTimeStr,
-        end: new Date(startDate.getTime() + 60 * 60 * 1000).toISOString(),
-        backgroundColor: "#10B981",
-        borderColor: "#059669",
+        id: freeSlot.id, 
+        title: "Available", 
+        start: startDateTimeStr,
+        end: endDateTimeStr,
+        backgroundColor: "#f97316", // Orange color
+        borderColor: "#ea580c",
         textColor: "#FFFFFF",
-        extendedProps: { isFree: true, viewMode },
+        extendedProps: { 
+          isFree: true, 
+          viewMode,
+          availableCount: freeSlot.availableCount,
+          startTime: freeSlot.startTime,
+          endTime: freeSlot.endTime,
+        },
       }
-    }).filter(Boolean) : []),
+    }) : []),
   ]
 
   useEffect(() => {
@@ -922,6 +1106,62 @@ const Calendar = forwardRef(({
         .past-event {
           opacity: 0.45;
         }
+        /* Closed days (weekends, holidays, and custom closing days) - unified intense styling */
+        .fc-day-closed {
+          background: repeating-linear-gradient(
+            -45deg,
+            rgba(75, 85, 99, 0.35),
+            rgba(75, 85, 99, 0.35) 5px,
+            rgba(55, 65, 81, 0.2) 5px,
+            rgba(55, 65, 81, 0.2) 10px
+          ) !important;
+          cursor: not-allowed !important;
+        }
+        .fc-day-closed .fc-timegrid-col-frame {
+          cursor: not-allowed !important;
+          background: rgba(75, 85, 99, 0.15) !important;
+        }
+        .fc-day-closed .fc-timegrid-slot {
+          cursor: not-allowed !important;
+          background: rgba(75, 85, 99, 0.08) !important;
+        }
+        /* Header styling for closed days */
+        .fc th.fc-day-closed {
+          background: rgba(75, 85, 99, 0.2) !important;
+        }
+        .fc th.fc-day-closed .fc-col-header-cell-cushion {
+          color: #9ca3af !important;
+        }
+        .fc-col-header-cell .closed-label {
+          display: block;
+          font-size: 9px !important;
+          font-weight: 500 !important;
+          color: #ffffff !important;
+          line-height: 1.1 !important;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          max-width: 100%;
+          padding: 0 2px;
+          opacity: 0.7;
+        }
+        /* Month view closed day styling */
+        .fc-dayGridMonth-view .fc-day-closed {
+          cursor: not-allowed !important;
+          background: repeating-linear-gradient(
+            -45deg,
+            rgba(75, 85, 99, 0.4),
+            rgba(75, 85, 99, 0.4) 5px,
+            rgba(55, 65, 81, 0.25) 5px,
+            rgba(55, 65, 81, 0.25) 10px
+          ) !important;
+        }
+        .fc-dayGridMonth-view .fc-day-closed .fc-daygrid-day-frame {
+          background: rgba(75, 85, 99, 0.1) !important;
+        }
+        .fc-dayGridMonth-view .fc-day-closed .fc-daygrid-day-number {
+          color: #6b7280 !important;
+        }
         /* Modern event styling */
         .fc-timegrid-event {
           border-radius: 4px !important;
@@ -929,21 +1169,21 @@ const Calendar = forwardRef(({
           border-left-width: 3px !important;
           box-shadow: 0 1px 2px rgba(0,0,0,0.2) !important;
           overflow: hidden !important;
-          transition: transform 0.15s ease, box-shadow 0.15s ease !important;
-          will-change: transform !important;
-          backface-visibility: hidden !important;
-          transform: translateZ(0) !important;
+          cursor: move !important;
+          pointer-events: auto !important;
         }
         .fc-timegrid-event:hover:not(.fc-event-dragging) {
-          transform: translateZ(0) scale(1.06) !important;
+          transform: scale(1.04) !important;
           box-shadow: 0 6px 12px rgba(0,0,0,0.35) !important;
           z-index: 100 !important;
+          cursor: move !important;
+          transition: transform 0.15s ease, box-shadow 0.15s ease !important;
         }
         .fc-timegrid-event.fc-event-dragging {
           opacity: 0.8 !important;
-          transform: translateZ(0) !important;
           box-shadow: 0 8px 20px rgba(0,0,0,0.4) !important;
           z-index: 1000 !important;
+          cursor: grabbing !important;
         }
         body.dragging-active .fc-timegrid-event:not(.fc-event-dragging) {
           pointer-events: none !important;
@@ -961,6 +1201,10 @@ const Calendar = forwardRef(({
         /* Parallele Events nebeneinander */
         .fc-timegrid-event-harness {
           margin-right: 2px !important;
+          pointer-events: auto !important;
+        }
+        .fc-timegrid-event-harness-inset {
+          pointer-events: auto !important;
         }
         .fc .fc-not-allowed,
         .fc .fc-not-allowed .fc-timegrid-col,
@@ -1100,7 +1344,7 @@ const Calendar = forwardRef(({
               ref={calendarRef}
               plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
               initialView="timeGridWeek"
-              initialDate={selectedDate || new Date().toISOString().split('T')[0]}
+              initialDate={selectedDate || formatDateLocal(new Date())}
               events={calendarEvents}
               height="auto"
               contentHeight="auto"
@@ -1110,8 +1354,9 @@ const Calendar = forwardRef(({
               editable={true}
               eventDurationEditable={false}
               eventDrop={handleEventDrop}
-              slotMinTime="06:00:00"
-              slotMaxTime="23:00:00"
+              hiddenDays={hiddenDays}
+              slotMinTime={`${calendarSettings.calendarStartTime}:00`}
+              slotMaxTime={`${calendarSettings.calendarEndTime}:00`}
               allDaySlot={false}
               nowIndicator={true}
               slotDuration="00:30:00"
@@ -1125,6 +1370,13 @@ const Calendar = forwardRef(({
               selectAllow={(selectInfo) => {
                 const calendarApi = calendarRef.current?.getApi();
                 const viewType = calendarApi?.view?.type;
+                
+                // Check if the selected date is a closed day
+                const dateStr = formatDateLocal(selectInfo.start);
+                const closedInfo = isStudioClosedOnDate(dateStr);
+                if (closedInfo.closed) {
+                  return false;
+                }
                 
                 // In month view, check if clicking on more-link or appointment tile
                 if (viewType === "dayGridMonth") {
@@ -1148,19 +1400,45 @@ const Calendar = forwardRef(({
                 timeGridWeek: {
                   dayHeaderContent: (args) => {
                     const date = new Date(args.date);
+                    const dateStr = formatDateLocal(date);
                     const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
                     const weekday = weekdays[date.getDay()];
                     const day = date.getDate();
-                    return `${weekday} ${day}`;
+                    
+                    // Check for holidays (weekends are hidden via hiddenDays)
+                    const closedInfo = isStudioClosedOnDate(dateStr);
+                    const isHoliday = closedInfo.closed && !closedInfo.isWeekend;
+                    
+                    return (
+                      <div style={{ textAlign: 'center', lineHeight: '1.1' }}>
+                        <div style={{ fontSize: '11px' }}>{weekday} {day}</div>
+                        {isHoliday && (
+                          <div className="closed-label">{closedInfo.reason}</div>
+                        )}
+                      </div>
+                    );
                   }
                 },
                 timeGridDay: {
                   dayHeaderContent: (args) => {
                     const date = new Date(args.date);
+                    const dateStr = formatDateLocal(date);
                     const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
                     const weekday = weekdays[date.getDay()];
                     const day = date.getDate();
-                    return `${weekday} ${day}`;
+                    
+                    // Check for holidays (weekends are hidden via hiddenDays)
+                    const closedInfo = isStudioClosedOnDate(dateStr);
+                    const isHoliday = closedInfo.closed && !closedInfo.isWeekend;
+                    
+                    return (
+                      <div style={{ textAlign: 'center', lineHeight: '1.1' }}>
+                        <div style={{ fontSize: '11px' }}>{weekday} {day}</div>
+                        {isHoliday && (
+                          <div className="closed-label">{closedInfo.reason}</div>
+                        )}
+                      </div>
+                    );
                   }
                 },
                 dayGridMonth: {
@@ -1179,7 +1457,17 @@ const Calendar = forwardRef(({
               eventMaxStack={10}
               eventDisplay={(args) => { const viewType = calendarRef.current?.getApi()?.view?.type; return viewType === "dayGridMonth" ? 'none' : 'auto'; }}
               eventDidMount={(info) => { if (info.view.type === "dayGridMonth") info.el.style.display = 'none'; }}
-              dayCellDidMount={(info) => { if (calendarRef.current?.getApi()?.view?.type === "dayGridMonth") info.el.style.cursor = 'pointer'; }}
+              dayCellDidMount={(info) => {
+                const dateStr = formatDateLocal(info.date);
+                const closedInfo = isStudioClosedOnDate(dateStr);
+                
+                if (closedInfo.closed) {
+                  info.el.classList.add('fc-day-closed');
+                  info.el.style.cursor = 'not-allowed';
+                } else if (calendarRef.current?.getApi()?.view?.type === "dayGridMonth") {
+                  info.el.style.cursor = 'pointer';
+                }
+              }}
               datesSet={(info) => {
                 setTimeout(() => {
                   const display = formatDateRange(info.view.currentStart);
@@ -1193,7 +1481,11 @@ const Calendar = forwardRef(({
                 if (calendarRef.current?.getApi()?.view?.type === "dayGridMonth") {
                   const date = new Date(args.date)
                   const formattedDate = formatDate(date)
-                  const dateString = date.toISOString().split('T')[0]
+                  const dateString = formatDateLocal(date)
+                  
+                  // Check if this day is closed
+                  const closedInfo = isStudioClosedOnDate(dateString)
+                  const isClosed = closedInfo.closed
                   
                   // Check if this day is from the current month or a neighboring month
                   const calendarApi = calendarRef.current?.getApi()
@@ -1207,8 +1499,8 @@ const Calendar = forwardRef(({
                                   date.getMonth() === today.getMonth() && 
                                   date.getFullYear() === today.getFullYear()
                   
-                  // Only show appointments for current month
-                  const dayAppointments = isCurrentMonth ? filteredAppointments.filter(apt => {
+                  // Only show appointments for current month and non-closed days
+                  const dayAppointments = (isCurrentMonth && !isClosed) ? filteredAppointments.filter(apt => {
                     const dateParts = apt.date?.split("|") || []
                     if (dateParts.length < 2) return false
                     return dateParts[1].trim() === formattedDate
@@ -1221,6 +1513,13 @@ const Calendar = forwardRef(({
                     // Don't trigger if clicking on an appointment tile
                     if (e.target.closest('.month-apt-tile')) return
                     
+                    // Block booking on closed days
+                    if (isClosed) {
+                      const toastMessage = closedInfo.isWeekend ? 'Closed' : closedInfo.reason;
+                      toast.error(`${toastMessage} - Studio closed`)
+                      return
+                    }
+                    
                     const startDate = new Date(date)
                     startDate.setHours(9, 0, 0, 0)
                     const endDate = new Date(date)
@@ -1230,15 +1529,35 @@ const Calendar = forwardRef(({
                     setIsTypeSelectionOpen(true)
                   }
 
+                  // Show "Closed" for weekends, holiday name for holidays
+                  const closedLabel = closedInfo.isWeekend ? 'Closed' : closedInfo.reason;
+
                   return (
                     <div 
-                      style={{ height: '100%', width: '100%', padding: 0, margin: 0, overflow: 'hidden', cursor: 'pointer' }}
+                      style={{ height: '100%', width: '100%', padding: 0, margin: 0, overflow: 'hidden', cursor: isClosed ? 'not-allowed' : 'pointer' }}
                       onClick={handleCellClick}
                     >
-                      <div style={{ padding: '2px 4px', textAlign: 'right' }}>
+                      <div style={{ padding: '2px 4px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        {/* Closed day label on the left */}
+                        {isClosed && (
+                          <span style={{ 
+                            fontSize: '8px', 
+                            color: '#ffffff', 
+                            fontWeight: '500',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            maxWidth: '60%',
+                            opacity: 0.7
+                          }}>
+                            {closedLabel}
+                          </span>
+                        )}
+                        {!isClosed && <span></span>}
+                        {/* Day number on the right */}
                         <span 
                           style={{ 
-                            color: isCurrentMonth ? '#e5e7eb' : '#888888',
+                            color: isClosed ? '#6b7280' : (isCurrentMonth ? '#e5e7eb' : '#888888'),
                             fontWeight: isToday ? '700' : (isCurrentMonth ? '500' : '400'),
                             fontSize: '13px'
                           }}
@@ -1260,7 +1579,7 @@ const Calendar = forwardRef(({
                               backgroundImage: 'linear-gradient(-45deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent)',
                               backgroundSize: '8px 8px'
                             }
-                          } else if (apt.isPast) { 
+                          } else if (apt.isPast && calendarSettings.fadePastAppointments) { 
                             opacity = 0.45
                           } else if (apt.isBlocked || apt.type === "Blocked Time") { 
                             bg = "#dc2626"
@@ -1367,6 +1686,25 @@ const Calendar = forwardRef(({
               }}
               eventMouseLeave={() => { hideTooltip(); }}
               eventContent={(eventInfo) => {
+                const isFree = eventInfo.event.extendedProps.isFree;
+                
+                if (isFree) {
+                  const startTime = eventInfo.event.extendedProps.startTime || '';
+                  const endTime = eventInfo.event.extendedProps.endTime || '';
+                  const availableCount = eventInfo.event.extendedProps.availableCount || 1;
+                  
+                  return (
+                    <div className="px-1 pt-[2px] overflow-hidden">
+                      <div className="text-[10px] leading-tight overflow-hidden whitespace-nowrap text-white font-medium">
+                        {availableCount}x Available
+                      </div>
+                      <div className="text-[9px] text-white/80">
+                        {startTime}{endTime ? ` - ${endTime}` : ''}
+                      </div>
+                    </div>
+                  );
+                }
+                
                 const appointment = eventInfo.event.extendedProps.appointment;
                 const startTime = appointment?.startTime || '';
                 const endTime = appointment?.endTime || '';
@@ -1376,7 +1714,7 @@ const Calendar = forwardRef(({
                 
                 return (
                   <div className="px-1 pt-[2px] overflow-hidden">
-                    {/* Name hat PrioritÃƒÆ'Ã†â€™Ãƒâ€šÃ‚Â¤t */}
+                    {/* Name hat Priorität */}
                     <div className="text-[10px] leading-tight overflow-hidden whitespace-nowrap text-white font-medium">
                       {fullName}
                     </div>
@@ -1389,7 +1727,7 @@ const Calendar = forwardRef(({
               }}
               eventClassNames={(eventInfo) => {
                 const classes = []
-                if (eventInfo.event.extendedProps.isPast) classes.push("past-event")
+                if (eventInfo.event.extendedProps.isPast && calendarSettings.fadePastAppointments) classes.push("past-event")
                 if (eventInfo.event.extendedProps.isCancelled) classes.push("cancelled-event")
                 if (eventInfo.event.extendedProps.isBlocked || eventInfo.event.extendedProps.appointment?.isBlocked) classes.push("blocked-event")
                 if (eventInfo.event.extendedProps.isFree) { classes.push("free-slot-event cursor-pointer"); if (eventInfo.event.extendedProps.viewMode === "free") classes.push("prominent-free-slot") }
@@ -1411,11 +1749,22 @@ const Calendar = forwardRef(({
       <AppointmentActionModal isOpen={isAppointmentActionModalOpen} appointment={selectedAppointment} onClose={() => setIsAppointmentActionModalOpen(false)} onEdit={handleEditAppointment} onCancel={handleCancelAppointment} onDelete={handleDeleteCancelledAppointment} onViewMember={handleViewMemberDetails} onEditMemberNote={handleOpenEditMemberModal} appointmentsMain={appointmentsMain} setAppointmentsMain={setAppointmentsMain} />
       <NotifyMemberModal isOpen={isNotifyMemberOpen} onClose={() => { 
         setIsNotifyMemberOpen(false); 
-        if (pendingEventInfo) { 
-          // Revert the visual position in FullCalendar
-          pendingEventInfo.revert();
+        if (pendingEventInfo && originalEventData) { 
+          // Revert the state to original data
+          const restoredAppointments = appointmentsMain.map((appointment) => {
+            if (appointment.id === originalEventData.id) {
+              return { 
+                ...appointment,
+                startTime: originalEventData.startTime,
+                endTime: originalEventData.endTime,
+                date: originalEventData.date,
+              };
+            }
+            return appointment;
+          });
+          setAppointmentsMain(restoredAppointments);
           setPendingEventInfo(null);
-          setPendingEventData(null);
+          setOriginalEventData(null);
         } 
       }} notifyAction={notifyAction} pendingEventInfo={pendingEventInfo} actuallyHandleCancelAppointment={actuallyHandleCancelAppointment} handleNotifyMember={handleNotifyMember} setPendingEventInfo={setPendingEventInfo} />
       {isEditBlockedModalOpen && blockedEditData && <EditBlockedSlotModalMain isOpen={isEditBlockedModalOpen} onClose={() => setIsEditBlockedModalOpen(false)} initialBlock={blockedEditData} appointmentTypesMain={appointmentTypesMain} onSubmit={(blockData) => {
@@ -1450,7 +1799,7 @@ const Calendar = forwardRef(({
                         backgroundImage: 'linear-gradient(135deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent)',
                         backgroundSize: '10px 10px'
                       };
-                    } else if (apt.isPast) {
+                    } else if (apt.isPast && calendarSettings.fadePastAppointments) {
                       opacity = 0.6;
                     } else if (apt.isBlocked || apt.type === "Blocked Time") {
                       bgColor = "#dc2626";

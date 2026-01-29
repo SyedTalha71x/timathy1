@@ -22,7 +22,7 @@ import { useState, useEffect, useCallback, useRef } from "react"
 import toast, { Toaster } from "react-hot-toast"
 import { GoArrowLeft, GoArrowRight } from "react-icons/go"
 
-import { appointmentsData as initialAppointmentsData, memberRelationsData, availableMembersLeadsMain, freeAppointmentsData, relationOptionsData as relationOptionsMain, appointmentTypesData, membersData } from "../../utils/studio-states"
+import { appointmentsData as initialAppointmentsData, memberRelationsData, availableMembersLeadsMain, freeAppointmentsData, relationOptionsData as relationOptionsMain, appointmentTypesData, membersData, DEFAULT_CALENDAR_SETTINGS } from "../../utils/studio-states"
 
 import TrialTrainingModal from "../../components/studio-components/appointments-components/add-trial-training"
 import CreateAppointmentModal from "../../components/shared/appointments/CreateAppointmentModal"
@@ -95,6 +95,9 @@ export default function Appointments() {
   const [calendarViewMode, setCalendarViewMode] = useState("all")
   const [currentView, setCurrentView] = useState("timeGridWeek")
   const [miniCalendarDate, setMiniCalendarDate] = useState(new Date())
+  
+  // Calendar settings (from configuration)
+  const [calendarSettings, setCalendarSettings] = useState(DEFAULT_CALENDAR_SETTINGS)
 
   // Handler wenn im Hauptkalender navigiert wird (nur durch Pfeile, nicht durch datesSet beim Laden)
   const handleCalendarNavigate = useCallback((date, isUserNavigation = false) => {
@@ -129,7 +132,16 @@ export default function Appointments() {
 
   const [isTrainingPlanModalOpenMain, setIsTrainingPlanModalOpenMain] = useState(false)
   const [selectedUserForTrainingPlanMain, setSelectedUserForTrainingPlanMain] = useState(null)
-  const [memberTrainingPlansMain, setMemberTrainingPlansMain] = useState({})
+  // Initialize with some assigned training plans for members
+  const [memberTrainingPlansMain, setMemberTrainingPlansMain] = useState({
+    1: [{ id: 1, name: "Beginner Full Body", description: "Complete full body workout for beginners", duration: "4 weeks", difficulty: "Beginner", assignedDate: "2025-01-15" }],
+    3: [{ id: 2, name: "Advanced Strength Training", description: "High intensity strength building program", duration: "8 weeks", difficulty: "Advanced", assignedDate: "2025-01-10" }],
+    4: [
+      { id: 4, name: "Muscle Building Split", description: "Targeted muscle building program", duration: "12 weeks", difficulty: "Intermediate", assignedDate: "2025-01-05" },
+      { id: 3, name: "Weight Loss Circuit", description: "Fat burning circuit training program", duration: "6 weeks", difficulty: "Intermediate", assignedDate: "2025-01-20" }
+    ],
+    6: [{ id: 1, name: "Beginner Full Body", description: "Complete full body workout for beginners", duration: "4 weeks", difficulty: "Beginner", assignedDate: "2025-01-18" }],
+  })
   const [showEditNoteModalMain, setShowEditNoteModalMain] = useState(false)
   const [selectedAppointmentForNoteMain, setSelectedAppointmentForNoteMain] = useState(null)
 
@@ -653,9 +665,9 @@ export default function Appointments() {
 
   const handleDumbbellClickMain = (appointment, e) => { 
     e.stopPropagation(); 
-    // Konvertiere Appointment zu einheitlichem Member-Format fÃ¼r TrainingPlanModal
+    // Konvertiere Appointment zu einheitlichem Member-Format für TrainingPlanModal
     const memberData = {
-      id: appointment.id,
+      id: appointment.memberId, // Use memberId to link to training plans
       firstName: appointment.name, // appointment.name ist der Vorname
       lastName: appointment.lastName || '',
       email: appointment.email || '',
@@ -1098,6 +1110,7 @@ export default function Appointments() {
                 onDateDisplayChange={setCalendarDateDisplay}
                 onViewModeChange={setCalendarViewMode}
                 onCurrentDateChange={handleCalendarNavigate}
+                calendarSettings={calendarSettings}
               />
             </div>
           </div>

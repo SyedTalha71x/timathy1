@@ -22,13 +22,45 @@ export const regularAppointmentTypesData = appointmentTypesData.filter(t => !t.i
 export const trialAppointmentTypesData = appointmentTypesData.filter(t => t.isTrialType);
 
 // =============================================================================
-// DYNAMIC DATE HELPERS
+// DYNAMIC DATE HELPERS - WITH CLOSED DAY AWARENESS
 // =============================================================================
 
-// Helper to format date for display (e.g., "Mon | 27-01-2025")
-const formatDisplayDate = (daysOffset) => {
+// Check if a date is a weekend (Saturday = 6, Sunday = 0)
+const isWeekend = (date) => {
+  const day = date.getDay();
+  return day === 0 || day === 6;
+};
+
+// Get the Nth working day from today (skips weekends)
+// Positive offset = future, Negative offset = past
+const getWorkingDay = (workingDaysOffset) => {
   const date = new Date();
-  date.setDate(date.getDate() + daysOffset);
+  date.setHours(12, 0, 0, 0); // Avoid timezone issues
+  
+  if (workingDaysOffset === 0) {
+    // For "today", if it's a weekend, find the next/previous working day
+    while (isWeekend(date)) {
+      date.setDate(date.getDate() + 1);
+    }
+    return date;
+  }
+  
+  const direction = workingDaysOffset > 0 ? 1 : -1;
+  let remainingDays = Math.abs(workingDaysOffset);
+  
+  while (remainingDays > 0) {
+    date.setDate(date.getDate() + direction);
+    if (!isWeekend(date)) {
+      remainingDays--;
+    }
+  }
+  
+  return date;
+};
+
+// Helper to format date for display (e.g., "Mon | 27-01-2025")
+const formatDisplayDate = (workingDaysOffset) => {
+  const date = getWorkingDay(workingDaysOffset);
   const weekday = date.toLocaleString('en-US', { weekday: 'short' });
   const day = String(date.getDate()).padStart(2, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -36,9 +68,19 @@ const formatDisplayDate = (daysOffset) => {
   return `${weekday} | ${day}-${month}-${year}`;
 };
 
-// Helper to get ISO date string
-const getDateString = (daysOffset) => {
+// Helper to get ISO date string for a working day
+const getDateString = (workingDaysOffset) => {
+  const date = getWorkingDay(workingDaysOffset);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+// Helper to get ISO date string for any day (including weekends)
+const getCalendarDateString = (daysOffset) => {
   const date = new Date();
+  date.setHours(12, 0, 0, 0);
   date.setDate(date.getDate() + daysOffset);
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -46,12 +88,19 @@ const getDateString = (daysOffset) => {
   return `${year}-${month}-${day}`;
 };
 
+// Check if a date string is a working day
+const isWorkingDay = (dateStr) => {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const date = new Date(year, month - 1, day, 12, 0, 0);
+  return !isWeekend(date);
+};
+
 // =============================================================================
-// APPOINTMENTS DATA (Dynamic)
+// APPOINTMENTS DATA (Dynamic - Only on Working Days)
 // =============================================================================
 
 const generateAppointmentsData = () => [
-  // === VOR 5 TAGEN (Tag -5) ===
+  // === 5 WORKING DAYS AGO ===
   { id: 1, title: "EMS Strength", name: "John", lastName: "Doe", date: formatDisplayDate(-5), time: "09:00 - 09:30", startTime: "09:00", endTime: "09:30", status: "completed", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 1, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
   { id: 2, title: "EMS Cardio", name: "Jane", lastName: "Smith", date: formatDisplayDate(-5), time: "09:00 - 09:30", startTime: "09:00", endTime: "09:30", status: "completed", type: "EMS Cardio", typeId: 2, color: "bg-[#10B981]", colorHex: "#10B981", memberId: 2, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
   { id: 3, title: "Body Check", name: "Michael", lastName: "Johnson", date: formatDisplayDate(-5), time: "10:00 - 10:30", startTime: "10:00", endTime: "10:30", status: "completed", type: "Body Check", typeId: 4, color: "bg-[#06B6D4]", colorHex: "#06B6D4", memberId: 3, staffId: 4, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
@@ -60,19 +109,27 @@ const generateAppointmentsData = () => [
   { id: 6, title: "EMS Cardio", name: "Emily", lastName: "Davis", date: formatDisplayDate(-5), time: "14:00 - 14:30", startTime: "14:00", endTime: "14:30", status: "completed", type: "EMS Cardio", typeId: 2, color: "bg-[#10B981]", colorHex: "#10B981", memberId: 6, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
   { id: 7, title: "EMS Strength", name: "Lisa", lastName: "Garcia", date: formatDisplayDate(-5), time: "16:00 - 16:30", startTime: "16:00", endTime: "16:30", status: "completed", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 8, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
 
-  // === VOR 4 TAGEN (Tag -4) ===
+  // === 4 WORKING DAYS AGO ===
   { id: 8, title: "EMS Cardio", name: "Thomas", lastName: "Anderson", date: formatDisplayDate(-4), time: "08:00 - 08:30", startTime: "08:00", endTime: "08:30", status: "completed", type: "EMS Cardio", typeId: 2, color: "bg-[#10B981]", colorHex: "#10B981", memberId: 9, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
   { id: 9, title: "EMS Strength", name: "Jennifer", lastName: "Martinez", date: formatDisplayDate(-4), time: "08:00 - 08:30", startTime: "08:00", endTime: "08:30", status: "completed", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 10, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
   { id: 10, title: "Body Check", name: "John", lastName: "Doe", date: formatDisplayDate(-4), time: "09:30 - 10:00", startTime: "09:30", endTime: "10:00", status: "completed", type: "Body Check", typeId: 4, color: "bg-[#06B6D4]", colorHex: "#06B6D4", memberId: 1, staffId: 4, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
   { id: 11, title: "Trial Training", name: "New", lastName: "Member", date: formatDisplayDate(-4), time: "10:00 - 11:00", startTime: "10:00", endTime: "11:00", status: "completed", type: "Trial Training", typeId: 5, color: "bg-[#3B82F6]", colorHex: "#3B82F6", memberId: null, staffId: 5, specialNote: { text: "Converted to member!", isImportant: true }, isTrial: true, isCancelled: false, isPast: true, isCheckedIn: true },
   { id: 12, title: "EMS Strength", name: "Jane", lastName: "Smith", date: formatDisplayDate(-4), time: "11:00 - 11:30", startTime: "11:00", endTime: "11:30", status: "completed", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 2, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
 
-  // === VOR 3 TAGEN (Tag -3) ===
+  // === 3 WORKING DAYS AGO ===
   { id: 16, title: "EMS Strength", name: "Emily", lastName: "Davis", date: formatDisplayDate(-3), time: "08:30 - 09:00", startTime: "08:30", endTime: "09:00", status: "completed", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 6, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
   { id: 17, title: "EMS Cardio", name: "Lisa", lastName: "Garcia", date: formatDisplayDate(-3), time: "08:30 - 09:00", startTime: "08:30", endTime: "09:00", status: "completed", type: "EMS Cardio", typeId: 2, color: "bg-[#10B981]", colorHex: "#10B981", memberId: 8, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
   { id: 19, title: "EMS Strength", name: "Jennifer", lastName: "Martinez", date: formatDisplayDate(-3), time: "10:00 - 10:30", startTime: "10:00", endTime: "10:30", status: "cancelled", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 10, staffId: 2, specialNote: { text: "Cancelled - sick", isImportant: false }, isTrial: false, isCancelled: true, isPast: true, isCheckedIn: false },
 
-  // === HEUTE (Tag 0) ===
+  // === 2 WORKING DAYS AGO ===
+  { id: 20, title: "EMS Cardio", name: "John", lastName: "Doe", date: formatDisplayDate(-2), time: "09:00 - 09:30", startTime: "09:00", endTime: "09:30", status: "completed", type: "EMS Cardio", typeId: 2, color: "bg-[#10B981]", colorHex: "#10B981", memberId: 1, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+  { id: 21, title: "EMS Strength", name: "Sarah", lastName: "Williams", date: formatDisplayDate(-2), time: "10:00 - 10:30", startTime: "10:00", endTime: "10:30", status: "completed", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 4, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+
+  // === 1 WORKING DAY AGO (Yesterday working day) ===
+  { id: 25, title: "EMS Strength", name: "Michael", lastName: "Johnson", date: formatDisplayDate(-1), time: "09:00 - 09:30", startTime: "09:00", endTime: "09:30", status: "completed", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 3, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+  { id: 26, title: "Body Check", name: "David", lastName: "Brown", date: formatDisplayDate(-1), time: "11:00 - 11:30", startTime: "11:00", endTime: "11:30", status: "completed", type: "Body Check", typeId: 4, color: "bg-[#06B6D4]", colorHex: "#06B6D4", memberId: 5, staffId: 4, specialNote: null, isTrial: false, isCancelled: false, isPast: true, isCheckedIn: true },
+
+  // === TODAY (Current working day) ===
   { id: 30, title: "EMS Strength", name: "John", lastName: "Doe", date: formatDisplayDate(0), time: "09:00 - 09:30", startTime: "09:00", endTime: "09:30", status: "scheduled", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 1, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
   { id: 31, title: "EMS Cardio", name: "Jane", lastName: "Smith", date: formatDisplayDate(0), time: "10:00 - 10:30", startTime: "10:00", endTime: "10:30", status: "scheduled", type: "EMS Cardio", typeId: 2, color: "bg-[#10B981]", colorHex: "#10B981", memberId: 2, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
   { id: 32, title: "Body Check", name: "Michael", lastName: "Johnson", date: formatDisplayDate(0), time: "11:00 - 11:30", startTime: "11:00", endTime: "11:30", status: "scheduled", type: "Body Check", typeId: 4, color: "bg-[#06B6D4]", colorHex: "#06B6D4", memberId: 3, staffId: 4, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
@@ -80,27 +137,35 @@ const generateAppointmentsData = () => [
   { id: 34, title: "EMP Chair", name: "David", lastName: "Brown", date: formatDisplayDate(0), time: "15:00 - 15:30", startTime: "15:00", endTime: "15:30", status: "scheduled", type: "EMP Chair", typeId: 3, color: "bg-[#8B5CF6]", colorHex: "#8B5CF6", memberId: 5, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
   { id: 35, title: "Trial Training", name: "Robert", lastName: "Miller", date: formatDisplayDate(0), time: "16:00 - 17:00", startTime: "16:00", endTime: "17:00", status: "scheduled", type: "Trial Training", typeId: 5, color: "bg-[#3B82F6]", colorHex: "#3B82F6", memberId: 7, staffId: 5, specialNote: { text: "Potential new member", isImportant: true }, isTrial: true, isCancelled: false, isPast: false, isCheckedIn: false },
 
-  // === MORGEN (Tag +1) ===
+  // === NEXT WORKING DAY (+1) ===
   { id: 40, title: "EMS Cardio", name: "Emily", lastName: "Davis", date: formatDisplayDate(1), time: "08:00 - 08:30", startTime: "08:00", endTime: "08:30", status: "scheduled", type: "EMS Cardio", typeId: 2, color: "bg-[#10B981]", colorHex: "#10B981", memberId: 6, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
   { id: 41, title: "EMS Strength", name: "Lisa", lastName: "Garcia", date: formatDisplayDate(1), time: "09:00 - 09:30", startTime: "09:00", endTime: "09:30", status: "scheduled", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 8, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
   { id: 42, title: "Body Check", name: "Thomas", lastName: "Anderson", date: formatDisplayDate(1), time: "10:00 - 10:30", startTime: "10:00", endTime: "10:30", status: "scheduled", type: "Body Check", typeId: 4, color: "bg-[#06B6D4]", colorHex: "#06B6D4", memberId: 9, staffId: 4, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
   { id: 43, title: "EMS Strength", name: "Jennifer", lastName: "Martinez", date: formatDisplayDate(1), time: "11:00 - 11:30", startTime: "11:00", endTime: "11:30", status: "scheduled", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 10, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
 
-  // === IN 2 TAGEN (Tag +2) ===
+  // === 2 WORKING DAYS FROM NOW (+2) ===
   { id: 50, title: "EMS Strength", name: "John", lastName: "Doe", date: formatDisplayDate(2), time: "09:00 - 09:30", startTime: "09:00", endTime: "09:30", status: "scheduled", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 1, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
   { id: 51, title: "EMS Cardio", name: "Sarah", lastName: "Williams", date: formatDisplayDate(2), time: "10:00 - 10:30", startTime: "10:00", endTime: "10:30", status: "scheduled", type: "EMS Cardio", typeId: 2, color: "bg-[#10B981]", colorHex: "#10B981", memberId: 4, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
   { id: 52, title: "EMP Chair", name: "Michael", lastName: "Johnson", date: formatDisplayDate(2), time: "11:00 - 11:30", startTime: "11:00", endTime: "11:30", status: "scheduled", type: "EMP Chair", typeId: 3, color: "bg-[#8B5CF6]", colorHex: "#8B5CF6", memberId: 3, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
 
-  // === IN 3 TAGEN (Tag +3) ===
+  // === 3 WORKING DAYS FROM NOW (+3) ===
   { id: 60, title: "EMS Cardio", name: "David", lastName: "Brown", date: formatDisplayDate(3), time: "08:00 - 08:30", startTime: "08:00", endTime: "08:30", status: "scheduled", type: "EMS Cardio", typeId: 2, color: "bg-[#10B981]", colorHex: "#10B981", memberId: 5, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
   { id: 61, title: "EMS Strength", name: "Emily", lastName: "Davis", date: formatDisplayDate(3), time: "09:00 - 09:30", startTime: "09:00", endTime: "09:30", status: "scheduled", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 6, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+
+  // === 4 WORKING DAYS FROM NOW (+4) ===
+  { id: 70, title: "EMS Strength", name: "Lisa", lastName: "Garcia", date: formatDisplayDate(4), time: "09:00 - 09:30", startTime: "09:00", endTime: "09:30", status: "scheduled", type: "EMS Strength", typeId: 1, color: "bg-[#EF4444]", colorHex: "#EF4444", memberId: 8, staffId: 2, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 71, title: "Body Check", name: "Thomas", lastName: "Anderson", date: formatDisplayDate(4), time: "10:00 - 10:30", startTime: "10:00", endTime: "10:30", status: "scheduled", type: "Body Check", typeId: 4, color: "bg-[#06B6D4]", colorHex: "#06B6D4", memberId: 9, staffId: 4, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+
+  // === 5 WORKING DAYS FROM NOW (+5) ===
+  { id: 80, title: "EMS Cardio", name: "Jane", lastName: "Smith", date: formatDisplayDate(5), time: "09:00 - 09:30", startTime: "09:00", endTime: "09:30", status: "scheduled", type: "EMS Cardio", typeId: 2, color: "bg-[#10B981]", colorHex: "#10B981", memberId: 2, staffId: 3, specialNote: null, isTrial: false, isCancelled: false, isPast: false, isCheckedIn: false },
+  { id: 81, title: "Trial Training", name: "Anna", lastName: "Wilson", date: formatDisplayDate(5), time: "14:00 - 15:00", startTime: "14:00", endTime: "15:00", status: "scheduled", type: "Trial Training", typeId: 5, color: "bg-[#3B82F6]", colorHex: "#3B82F6", memberId: null, staffId: 5, specialNote: { text: "Interested in EMS training", isImportant: false }, isTrial: true, isCancelled: false, isPast: false, isCheckedIn: false },
 ];
 
 // Export the dynamically generated appointments
 export const appointmentsData = generateAppointmentsData();
 
 // =============================================================================
-// FREE APPOINTMENTS (Available Slots)
+// FREE APPOINTMENTS (Available Slots) - Only on Working Days
 // =============================================================================
 
 const generateFreeAppointmentsData = () => {
@@ -113,9 +178,14 @@ const generateFreeAppointmentsData = () => {
   const result = [];
   let idCounter = 1;
   
-  // Generate slots for 30 days ahead
+  // Generate slots for 30 calendar days ahead, but only for working days
   for (let dayOffset = 0; dayOffset <= 30; dayOffset++) {
-    const dateStr = getDateString(dayOffset);
+    const dateStr = getCalendarDateString(dayOffset);
+    
+    // Skip weekends
+    if (!isWorkingDay(dateStr)) {
+      continue;
+    }
     
     standardSlots.forEach((time) => {
       result.push({

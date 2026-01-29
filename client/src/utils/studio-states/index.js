@@ -190,6 +190,14 @@ export {
   transformStudioToBackend,
   studioApi,
   
+  // German Holidays & Date Helpers
+  germanHolidaysData,
+  generateGermanHolidays,
+  getHolidayForDate,
+  isStudioClosedOnDate,
+  getOpeningHoursForDate,
+  formatDateToISO,
+  
   // Permissions
   PERMISSION_GROUPS,
   ALL_PERMISSION_KEYS,
@@ -217,6 +225,7 @@ export {
   DEFAULT_APPOINTMENT_CATEGORIES,
   DEFAULT_APPOINTMENT_TYPES,
   DEFAULT_TRIAL_TRAINING,
+  DEFAULT_CALENDAR_SETTINGS,
   DEFAULT_APPOINTMENT_NOTIFICATION_TYPES,
   
   // Lead Config

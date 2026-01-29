@@ -43,6 +43,98 @@ export const COUNTRIES_SIMPLE = [
 // =============================================================================
 // SECTION 2: STUDIO DATA
 // =============================================================================
+// =============================================================================
+// SECTION 2B: GERMAN PUBLIC HOLIDAYS
+// =============================================================================
+// Helper function to calculate Easter Sunday (Gauss Algorithm)
+const calculateEasterSunday = (year) => {
+  const a = year % 19;
+  const b = Math.floor(year / 100);
+  const c = year % 100;
+  const d = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31);
+  const day = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(year, month - 1, day);
+};
+
+// Helper to add days to a date
+const addDays = (date, days) => {
+  const result = new Date(date);
+  result.setDate(result.getDate() + days);
+  return result;
+};
+
+// Format date as YYYY-MM-DD
+const formatDateISO = (date) => {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+};
+
+// Generate holidays for a specific year (English names)
+export const generateGermanHolidays = (year) => {
+  const easter = calculateEasterSunday(year);
+  
+  return [
+    // Fixed national holidays
+    { date: `${year}-01-01`, name: "New Year's Day", type: "national" },
+    { date: `${year}-05-01`, name: "Labour Day", type: "national" },
+    { date: `${year}-10-03`, name: "German Unity Day", type: "national" },
+    { date: `${year}-12-25`, name: "Christmas Day", type: "national" },
+    { date: `${year}-12-26`, name: "Boxing Day", type: "national" },
+    
+    // Movable holidays (based on Easter)
+    { date: formatDateISO(addDays(easter, -2)), name: "Good Friday", type: "national" },
+    { date: formatDateISO(easter), name: "Easter Sunday", type: "national" },
+    { date: formatDateISO(addDays(easter, 1)), name: "Easter Monday", type: "national" },
+    { date: formatDateISO(addDays(easter, 39)), name: "Ascension Day", type: "national" },
+    { date: formatDateISO(addDays(easter, 49)), name: "Whit Sunday", type: "national" },
+    { date: formatDateISO(addDays(easter, 50)), name: "Whit Monday", type: "national" },
+    
+    // Regional holidays (commonly observed)
+    { date: `${year}-01-06`, name: "Epiphany", type: "regional" },
+    { date: formatDateISO(addDays(easter, 60)), name: "Corpus Christi", type: "regional" },
+    { date: `${year}-08-15`, name: "Assumption Day", type: "regional" },
+    { date: `${year}-10-31`, name: "Reformation Day", type: "regional" },
+    { date: `${year}-11-01`, name: "All Saints' Day", type: "regional" },
+    
+    // Custom closing days (commonly closed)
+    { date: `${year}-12-24`, name: "Christmas Eve", type: "custom" },
+    { date: `${year}-12-31`, name: "New Year's Eve", type: "custom" },
+  ];
+};
+
+// Pre-generate holidays for current and next 2 years
+const currentYear = new Date().getFullYear();
+export const germanHolidaysData = [
+  ...generateGermanHolidays(currentYear),
+  ...generateGermanHolidays(currentYear + 1),
+  ...generateGermanHolidays(currentYear + 2),
+];
+
+// Generate closingDays from national holidays (for studioData initialization)
+const generateClosingDays = () => {
+  const closingDays = [];
+  for (let year = currentYear; year <= currentYear + 2; year++) {
+    const holidays = generateGermanHolidays(year);
+    holidays.forEach(h => {
+      if (h.type === 'national' || h.type === 'custom') {
+        closingDays.push({ date: h.date, description: h.name });
+      }
+    });
+  }
+  return closingDays;
+};
+
 export const studioData = {
   id: 100,
   name: "FitnessPro Studio",
@@ -69,10 +161,10 @@ export const studioData = {
     { day: 'Wednesday', startTime: '09:00', endTime: '21:00', closed: false },
     { day: 'Thursday', startTime: '09:00', endTime: '21:00', closed: false },
     { day: 'Friday', startTime: '09:00', endTime: '21:00', closed: false },
-    { day: 'Saturday', startTime: '10:00', endTime: '18:00', closed: false },
+    { day: 'Saturday', startTime: null, endTime: null, closed: true },
     { day: 'Sunday', startTime: null, endTime: null, closed: true },
   ],
-  closingDays: [],
+  closingDays: generateClosingDays(),
   capacity: 3,
   timezone: "Europe/Berlin",
   taxId: "DE123456789",
@@ -97,6 +189,79 @@ export const studioData = {
     automaticReminders: true,
     reminderHoursBefore: 24,
   },
+};
+
+// Helper to check if a date is a holiday
+export const getHolidayForDate = (dateStr) => {
+  return germanHolidaysData.find(h => h.date === dateStr) || null;
+};
+
+// Helper to format date as YYYY-MM-DD (local timezone)
+export const formatDateToISO = (date) => {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+// Helper to check if studio is closed on a specific date
+export const isStudioClosedOnDate = (date) => {
+  // Handle both Date objects and string dates
+  let dateObj;
+  let dateStr;
+  
+  if (typeof date === 'string') {
+    // Parse string date carefully to avoid timezone issues
+    const parts = date.split('-');
+    if (parts.length === 3) {
+      dateObj = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+      dateStr = date;
+    } else {
+      dateObj = new Date(date);
+      dateStr = formatDateToISO(dateObj);
+    }
+  } else {
+    dateObj = date;
+    dateStr = formatDateToISO(dateObj);
+  }
+  
+  const dayOfWeek = dateObj.getDay();
+  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const dayName = dayNames[dayOfWeek];
+  
+  // Check custom closing days from studioData FIRST (highest priority)
+  const customClosing = studioData.closingDays.find(d => d.date === dateStr);
+  if (customClosing) {
+    return { closed: true, reason: customClosing.description || 'Closed', isClosingDay: true };
+  }
+  
+  // Check if it's a holiday
+  const holiday = getHolidayForDate(dateStr);
+  if (holiday && (holiday.type === 'national' || holiday.type === 'custom')) {
+    return { closed: true, reason: holiday.name, isHoliday: true };
+  }
+  
+  // Check opening hours for this day (weekend check)
+  const dayConfig = studioData.openingHours.find(d => d.day === dayName);
+  if (dayConfig?.closed) {
+    return { closed: true, reason: dayName, isWeekend: true };
+  }
+  
+  return { closed: false };
+};
+
+// Get opening hours for a specific date (returns null if closed)
+export const getOpeningHoursForDate = (date) => {
+  const closedInfo = isStudioClosedOnDate(date);
+  if (closedInfo.closed) return null;
+  
+  const dateObj = typeof date === 'string' ? new Date(date + 'T00:00:00') : date;
+  const dayOfWeek = dateObj.getDay();
+  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const dayName = dayNames[dayOfWeek];
+  
+  return studioData.openingHours.find(d => d.day === dayName);
 };
 
 // =============================================================================
@@ -505,6 +670,19 @@ export const DEFAULT_TRIAL_TRAINING = {
   maxParallel: 1,
   slotsRequired: 3,
   color: "#3B82F6",
+};
+
+// =============================================================================
+// SECTION 6B: CALENDAR SETTINGS
+// =============================================================================
+export const DEFAULT_CALENDAR_SETTINGS = {
+  // Whether to hide closed days (weekends) in the calendar week/day view
+  hideClosedDays: true,
+  // Calendar time display range
+  calendarStartTime: "06:00",
+  calendarEndTime: "23:00",
+  // Whether past appointments should be displayed faded
+  fadePastAppointments: true,
 };
 
 // =============================================================================
@@ -1070,6 +1248,13 @@ export default {
   // Studio
   studioData,
   
+  // Holidays
+  germanHolidaysData,
+  generateGermanHolidays,
+  getHolidayForDate,
+  isStudioClosedOnDate,
+  getOpeningHoursForDate,
+  
   // Permissions
   PERMISSION_GROUPS,
   ALL_PERMISSION_KEYS,
@@ -1097,6 +1282,7 @@ export default {
   DEFAULT_APPOINTMENT_CATEGORIES,
   DEFAULT_APPOINTMENT_TYPES,
   DEFAULT_TRIAL_TRAINING,
+  DEFAULT_CALENDAR_SETTINGS,
   DEFAULT_APPOINTMENT_NOTIFICATION_TYPES,
   
   // Lead Config
