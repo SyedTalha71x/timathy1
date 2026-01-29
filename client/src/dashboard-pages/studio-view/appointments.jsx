@@ -1023,7 +1023,11 @@ export default function Appointments() {
                                       position="relative"
                                     />
                                   )}
-                                  <div className="cursor-pointer rounded transition-colors hover:bg-white/10 p-0.5" onClick={(e) => handleDumbbellClickMain(appointment, e)}>
+                                  <div 
+                                    className="cursor-pointer rounded p-0.5 transition-all duration-200 hover:scale-110 active:scale-95" 
+                                    onClick={(e) => handleDumbbellClickMain(appointment, e)}
+                                    title="Training Plans"
+                                  >
                                     <Dumbbell className="text-white/80" size={14} />
                                   </div>
                                 </div>
