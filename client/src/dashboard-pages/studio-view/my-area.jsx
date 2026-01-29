@@ -54,7 +54,7 @@ import { createPortal } from "react-dom"
 import AnalyticsChartWidget from "../../components/myarea-components/widgets/AnalyticsChartWidget"
 
 
-import { appointmentsData } from "../../utils/studio-states/app-states"
+import { appointmentsData } from "../../utils/studio-states"
 
 export default function MyArea() {
   const [openDropdownIndex, setOpenDropdownIndex] = useState(null)

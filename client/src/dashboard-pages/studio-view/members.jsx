@@ -49,7 +49,7 @@ import AppointmentModalMain from "../../components/shared/appointments/ShowAppoi
 import DocumentManagementModal from "../../components/shared/DocumentManagementModal"
 import AssessmentFormModal from "../../components/shared/medical-history-form-modal"
 import AssessmentSelectionModal from "../../components/shared/medical-history-selection-modal"
-import { appointmentsMainData, appointmentTypeMainData, availableMembersLeadsMain, freeAppointmentsMainData, memberHistoryMainData, memberRelationsMainData, membersData, relationOptionsMain, staffData, communicationSettingsData } from "../../utils/studio-states/app-states"
+import { appointmentsMainData, appointmentTypeMainData, availableMembersLeadsMain, freeAppointmentsMainData, memberHistoryMainData, memberRelationsMainData, membersData, relationOptionsMain, staffData, communicationSettingsData } from "../../utils/studio-states"
 import CreateAppointmentModal from "../../components/shared/appointments/CreateAppointmentModal"
 import EditAppointmentModalMain from "../../components/shared/appointments/EditAppointmentModal"
 

@@ -31,7 +31,7 @@ import EditStaffModal from "../../components/studio-components/staff-components/
 import StaffPlanningModal from "../../components/studio-components/staff-components/staff-planning-modal"
 import VacationCalendarModal from "../../components/studio-components/staff-components/vacation-calendar-modal"
 import StaffHistoryModal from "../../components/studio-components/staff-components/staff-history-modal"
-import { StaffColorIndicator, staffMemberDataNew, membersData, communicationSettingsData } from "../../utils/studio-states/app-states"
+import { StaffColorIndicator, staffMemberDataNew, membersData, communicationSettingsData } from "../../utils/studio-states"
 import { trainingVideosData } from "../../utils/studio-states/training-states"
 import { TbPlusMinus } from "react-icons/tb";
 

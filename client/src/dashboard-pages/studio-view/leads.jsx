@@ -43,9 +43,14 @@ import SortableColumn from "../../components/studio-components/lead-studio-compo
 import SortableLeadCard from "../../components/studio-components/lead-studio-components/sortable-lead-card"
 
 // Data and hooks
-import { hardcodedLeads, memberRelationsLeadNew, availableTimeSlots } from "../../utils/studio-states/lead-states"
+import { 
+  hardcodedLeads, 
+  memberRelationsLeadNew, 
+  availableTimeSlots,
+  DEFAULT_LEAD_SOURCES,
+} from "../../utils/studio-states/leads-states"
 import { trainingVideosData } from "../../utils/studio-states/training-states"
-import { availableMembersLeadsMain as availableMembersLeads } from "../../utils/studio-states/app-states"
+import { availableMembersLeadsMain as availableMembersLeads } from "../../utils/studio-states"
 
 export default function LeadManagement() {
   const [showHistoryModalLead, setShowHistoryModalLead] = useState(false)
@@ -1543,6 +1548,7 @@ export default function LeadManagement() {
         onSave={handleSaveLead}
         columns={columns}
         availableMembersLeads={availableMembersLeads}
+        leadSources={DEFAULT_LEAD_SOURCES}
       />
 
       <EditLeadModal
@@ -1567,6 +1573,7 @@ export default function LeadManagement() {
         handleAddRelationLead={handleAddRelationLead}
         handleDeleteRelationLead={handleDeleteRelationLead}
         initialTab={selectedEditTab}
+        leadSources={DEFAULT_LEAD_SOURCES}
       />
 
       <ViewLeadDetailsModal

@@ -50,7 +50,7 @@ import dayjs from "dayjs"
 
 import ContractBuilder from "../../components/studio-components/configuration-components/ContractBuilder"
 import { WysiwygEditor } from "../../components/shared/WysiwygEditor"
-import { PERMISSION_DATA, PermissionModal } from "../../components/studio-components/configuration-components/PermissionModal"
+import { PermissionModal } from "../../components/studio-components/configuration-components/PermissionModal"
 import { RoleItem } from "../../components/studio-components/configuration-components/RoleItem"
 import { StaffAssignmentModal } from "../../components/studio-components/configuration-components/StaffAssignmentModal"
 import ImageSourceModal from "../../components/shared/ImageSourceModal"
@@ -58,6 +58,50 @@ import ImageCropModal from "../../components/shared/ImageCropModal"
 import IntroMaterialEditorModal from "../../components/studio-components/configuration-components/IntroMaterialEditorModal"
 import MediaLibraryPickerModal from "../../components/shared/MediaLibraryPickerModal"
 import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'
+
+// ============================================
+// Configuration State Imports (Single Source of Truth)
+// ============================================
+import {
+  // Studio Data
+  studioData,
+  COUNTRIES,
+  
+  // Permissions
+  PERMISSION_DATA,
+  
+  // Staff Config
+  DEFAULT_STAFF_ROLES,
+  DEFAULT_VACATION_DAYS,
+  DEFAULT_STAFF_ROLE_ID,
+  DEFAULT_STAFF_COUNTRY,
+  DEFAULT_STAFF_MEMBERS,
+  
+  // Appointment Config
+  DEFAULT_STUDIO_CAPACITY,
+  DEFAULT_APPOINTMENT_CATEGORIES,
+  DEFAULT_APPOINTMENT_TYPES,
+  DEFAULT_TRIAL_TRAINING,
+  
+  // Lead Config
+  DEFAULT_LEAD_SOURCES,
+  
+  // Contract Config
+  DEFAULT_CONTRACT_FORMS,
+  DEFAULT_CONTRACT_TYPES,
+  DEFAULT_CONTRACT_SETTINGS,
+  DEFAULT_CONTRACT_PAUSE_REASONS,
+  DEFAULT_VAT_RATES,
+  
+  // Communication Config
+  DEFAULT_COMMUNICATION_SETTINGS,
+  DEFAULT_APPOINTMENT_NOTIFICATION_TYPES,
+  
+  // Other Settings
+  DEFAULT_APPEARANCE_SETTINGS,
+  DEFAULT_INTRODUCTORY_MATERIALS,
+  DEFAULT_MEMBER_SETTINGS,
+} from "../../utils/studio-states/configuration-states"
 
 // ============================================
 // Navigation Items Configuration
@@ -479,190 +523,50 @@ const ConfigurationPage = () => {
   }
 
   // ============================================
-  // All State Variables (preserved from original)
+  // All State Variables - USING IMPORTED DEFAULTS
   // ============================================
   
-  // Basic studio information
-  const [studioName, setStudioName] = useState("FitnessPro Studio")
-  const [studioId] = useState("STU-2024-001847") // Read-only studio ID
-  const [studioOperator, setStudioOperator] = useState("Max Mustermann")
-  const [studioOperatorEmail, setStudioOperatorEmail] = useState("operator@fitnesspro.de")
-  const [studioOperatorPhone, setStudioOperatorPhone] = useState("+49 30 12345678")
-  const [studioOperatorMobile, setStudioOperatorMobile] = useState("+49 170 1234567")
-  const [studioStreet, setStudioStreet] = useState("Musterstraße 123")
-  const [studioZipCode, setStudioZipCode] = useState("10115")
-  const [studioCity, setStudioCity] = useState("Berlin")
-  const [studioCountry, setStudioCountry] = useState("DE")
-  const [studioPhoneNo, setStudioPhoneNo] = useState("+49 30 12345678")
-  const [studioMobileNo, setStudioMobileNo] = useState("+49 170 1234567")
-  const [studioEmail, setStudioEmail] = useState("info@fitnesspro.de")
-  const [studioWebsite, setStudioWebsite] = useState("https://fitnesspro.de")
-  const [currency, setCurrency] = useState("€")
+  // Basic studio information - FROM studioData
+  const [studioName, setStudioName] = useState(studioData.name)
+  const [studioId] = useState(studioData.studioId)
+  const [studioOperator, setStudioOperator] = useState(studioData.operator)
+  const [studioOperatorEmail, setStudioOperatorEmail] = useState(studioData.operatorEmail)
+  const [studioOperatorPhone, setStudioOperatorPhone] = useState(studioData.operatorPhone)
+  const [studioOperatorMobile, setStudioOperatorMobile] = useState(studioData.operatorMobile)
+  const [studioStreet, setStudioStreet] = useState(studioData.street)
+  const [studioZipCode, setStudioZipCode] = useState(studioData.zipCode)
+  const [studioCity, setStudioCity] = useState(studioData.city)
+  const [studioCountry, setStudioCountry] = useState(studioData.country)
+  const [studioPhoneNo, setStudioPhoneNo] = useState(studioData.phone)
+  const [studioMobileNo, setStudioMobileNo] = useState(studioData.mobile)
+  const [studioEmail, setStudioEmail] = useState(studioData.email)
+  const [studioWebsite, setStudioWebsite] = useState(studioData.website)
+  const [currency, setCurrency] = useState(studioData.currency)
   const [logo, setLogo] = useState([])
   const [logoUrl, setLogoUrl] = useState("")
 
-  // Opening hours and closing days
-  const [openingHours, setOpeningHours] = useState([])
-  const [closingDays, setClosingDays] = useState([])
+  // Opening hours and closing days - FROM studioData
+  const [openingHours, setOpeningHours] = useState(studioData.openingHours)
+  const [closingDays, setClosingDays] = useState(studioData.closingDays || [])
   const [publicHolidays, setPublicHolidays] = useState([])
   const [isLoadingHolidays, setIsLoadingHolidays] = useState(false)
 
-  // Staff & Roles
-  const [roles, setRoles] = useState([
-    {
-      id: 1,
-      name: "Admin",
-      permissions: PERMISSION_DATA.map(p => p.key),
-      color: "#FF843E",
-      isAdmin: true,
-      staffCount: 1,
-      assignedStaff: [1]
-    },
-    {
-      id: 2,
-      name: "Trainer",
-      permissions: [
-        "appointments.view",
-        "appointments.create",
-        "appointments.edit",
-        "appointments.cancel",
-        "communication.view",
-        "chat.member_send",
-        "members.view",
-        "members.history_view",
-        "notes.view",
-        "notes.personal_create",
-        "notes.studio_create",
-        "training.view",
-        "training_plans.create",
-        "training_plans.assign",
-        "profile.edit_own",
-      ],
-      color: "#10B981",
-      isAdmin: false,
-      staffCount: 0,
-      assignedStaff: []
-    },
-    {
-      id: 3,
-      name: "Studio Operator",
-      permissions: [
-        "appointments.view",
-        "appointments.create",
-        "appointments.edit",
-        "appointments.cancel",
-        "appointments.manage_contingent",
-        "communication.view",
-        "emails.send",
-        "chat.member_send",
-        "chat.studio_send",
-        "broadcasts.send",
-        "activity_monitor.view",
-        "activity_monitor.take_actions",
-        "todos.view",
-        "todos.create",
-        "todos.edit",
-        "notes.view",
-        "notes.personal_create",
-        "notes.studio_create",
-        "members.view",
-        "members.create",
-        "members.edit",
-        "members.history_view",
-        "leads.view",
-        "leads.create",
-        "leads.edit",
-        "contracts.view",
-        "contracts.create",
-        "selling.view",
-        "products.manage",
-        "profile.edit_own",
-      ],
-      color: "#3B82F6",
-      isAdmin: false,
-      staffCount: 0,
-      assignedStaff: []
-    }
-  ])
-  const [defaultVacationDays, setDefaultVacationDays] = useState(30)
-  const [defaultStaffRole, setDefaultStaffRole] = useState(2)
-  const [defaultStaffCountry, setDefaultStaffCountry] = useState("studio")
+  // Staff & Roles - FROM DEFAULT_STAFF_ROLES
+  const [roles, setRoles] = useState(DEFAULT_STAFF_ROLES)
+  const [defaultVacationDays, setDefaultVacationDays] = useState(DEFAULT_VACATION_DAYS)
+  const [defaultStaffRole, setDefaultStaffRole] = useState(DEFAULT_STAFF_ROLE_ID)
+  const [defaultStaffCountry, setDefaultStaffCountry] = useState(DEFAULT_STAFF_COUNTRY)
   const [permissionModalVisible, setPermissionModalVisible] = useState(false)
   const [selectedRoleIndex, setSelectedRoleIndex] = useState(null)
   const [staffAssignmentModalVisible, setStaffAssignmentModalVisible] = useState(false)
   const [selectedRoleForAssignment, setSelectedRoleForAssignment] = useState(null)
-  const [allStaff, setAllStaff] = useState([
-    { id: 1, name: "John Doe", email: "john@studio.com", avatar: null },
-    { id: 2, name: "Jane Smith", email: "jane@studio.com", avatar: null },
-    { id: 3, name: "Mike Johnson", email: "mike@studio.com", avatar: null },
-  ])
+  const [allStaff, setAllStaff] = useState(DEFAULT_STAFF_MEMBERS)
 
-  // Appointments
-  const [appointmentTypes, setAppointmentTypes] = useState([
-    {
-      id: 1,
-      name: "EMS Strength",
-      description: "High-intensity strength training with EMS technology",
-      duration: 30,
-      maxParallel: 2,
-      slotsRequired: 1,
-      color: "#FF843E",
-      interval: 30,
-      category: "Personal Training",
-      image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80",
-      contingentUsage: 1,
-    },
-    {
-      id: 2,
-      name: "EMS Cardio",
-      description: "Cardiovascular training enhanced with EMS",
-      duration: 30,
-      maxParallel: 2,
-      slotsRequired: 1,
-      color: "#10B981",
-      interval: 30,
-      category: "Personal Training",
-      image: "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&q=80",
-      contingentUsage: 1,
-    },
-    {
-      id: 3,
-      name: "EMP Chair",
-      description: "Relaxing electromagnetic pulse therapy session",
-      duration: 30,
-      maxParallel: 1,
-      slotsRequired: 0,
-      color: "#8B5CF6",
-      interval: 30,
-      category: "Wellness",
-      image: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=800&q=80",
-      contingentUsage: 0,
-    },
-    {
-      id: 4,
-      name: "Body Check",
-      description: "Comprehensive body analysis and measurements",
-      duration: 30,
-      maxParallel: 1,
-      slotsRequired: 2,
-      color: "#3B82F6",
-      interval: 30,
-      category: "Health Check",
-      image: null,
-      contingentUsage: 1,
-    },
-  ])
-  const [appointmentCategories, setAppointmentCategories] = useState([
-    "Health Check", "Personal Training", "Wellness", "Recovery", "Mindfulness", "Group Class"
-  ])
-  const [studioCapacity, setStudioCapacity] = useState(3)
-  const [trialTraining, setTrialTraining] = useState({
-    name: "Trial Training",
-    duration: 60,
-    maxParallel: 1,
-    slotsRequired: 3,
-    color: "#3B82F6",
-  })
+  // Appointments - FROM DEFAULT_APPOINTMENT_TYPES
+  const [appointmentTypes, setAppointmentTypes] = useState(DEFAULT_APPOINTMENT_TYPES)
+  const [appointmentCategories, setAppointmentCategories] = useState(DEFAULT_APPOINTMENT_CATEGORIES)
+  const [studioCapacity, setStudioCapacity] = useState(DEFAULT_STUDIO_CAPACITY)
+  const [trialTraining, setTrialTraining] = useState(DEFAULT_TRIAL_TRAINING)
   const [editingCategory, setEditingCategory] = useState({ index: null, value: "" })
   
   // Appointment Type Modal States
@@ -687,20 +591,11 @@ const ConfigurationPage = () => {
   const [tempImage, setTempImage] = useState(null)
   const appointmentImageInputRef = useRef(null)
 
-  // Members
-  const [allowMemberQRCheckIn, setAllowMemberQRCheckIn] = useState(false)
-  const [memberQRCodeUrl, setMemberQRCodeUrl] = useState("")
-  const [leadSources, setLeadSources] = useState([
-    { id: 1, name: "Website", color: "#3B82F6" },
-    { id: 2, name: "Referral", color: "#10B981" },
-  ])
-  const [introductoryMaterials, setIntroductoryMaterials] = useState([
-    {
-      id: 1,
-      name: "Welcome Guide",
-      pages: [{ id: 1, title: "Welcome", content: "<p>Welcome to our studio!</p>", elements: [] }]
-    }
-  ])
+  // Members - FROM DEFAULT_MEMBER_SETTINGS and DEFAULT_LEAD_SOURCES
+  const [allowMemberQRCheckIn, setAllowMemberQRCheckIn] = useState(DEFAULT_MEMBER_SETTINGS.allowMemberQRCheckIn)
+  const [memberQRCodeUrl, setMemberQRCodeUrl] = useState(DEFAULT_MEMBER_SETTINGS.memberQRCodeUrl)
+  const [leadSources, setLeadSources] = useState(DEFAULT_LEAD_SOURCES)
+  const [introductoryMaterials, setIntroductoryMaterials] = useState(DEFAULT_INTRODUCTORY_MATERIALS)
   const [introMaterialEditorVisible, setIntroMaterialEditorVisible] = useState(false)
   const [editingIntroMaterial, setEditingIntroMaterial] = useState(null)
   const [editingIntroMaterialIndex, setEditingIntroMaterialIndex] = useState(null)
@@ -715,240 +610,41 @@ const ConfigurationPage = () => {
   const [editingContractType, setEditingContractType] = useState(null)
   const [editingContractTypeIndex, setEditingContractTypeIndex] = useState(null)
 
-  // Contracts
-  const [allowMemberSelfCancellation, setAllowMemberSelfCancellation] = useState(true)
-  const [noticePeriod, setNoticePeriod] = useState(30)
-  const [extensionPeriod, setExtensionPeriod] = useState(12)
-  const [defaultBillingPeriod, setDefaultBillingPeriod] = useState("monthly")
-  const [defaultAutoRenewal, setDefaultAutoRenewal] = useState(true)
-  const [defaultRenewalIndefinite, setDefaultRenewalIndefinite] = useState(true)
-  const [defaultRenewalPeriod, setDefaultRenewalPeriod] = useState(1)
-  const [defaultAppointmentLimit, setDefaultAppointmentLimit] = useState(8)
-  const [contractTypes, setContractTypes] = useState([
-    {
-      id: 1,
-      name: "Basic Monthly",
-      description: "Entry-level membership with essential features",
-      duration: 12,
-      cost: 79,
-      billingPeriod: "monthly",
-      userCapacity: 4,
-      autoRenewal: true,
-      renewalIndefinite: true,
-      renewalPeriod: null,
-      renewalPrice: 79,
-      cancellationPeriod: 30,
-      contractFormId: 1,
-    },
-    {
-      id: 2,
-      name: "Standard Monthly",
-      description: "Our most popular membership option",
-      duration: 12,
-      cost: 99,
-      billingPeriod: "monthly",
-      userCapacity: 8,
-      autoRenewal: true,
-      renewalIndefinite: true,
-      renewalPeriod: null,
-      renewalPrice: 99,
-      cancellationPeriod: 30,
-      contractFormId: 1,
-    },
-    {
-      id: 3,
-      name: "Premium Unlimited",
-      description: "Full access with unlimited training sessions",
-      duration: 12,
-      cost: 149,
-      billingPeriod: "monthly",
-      userCapacity: 0,
-      autoRenewal: true,
-      renewalIndefinite: true,
-      renewalPeriod: null,
-      renewalPrice: 149,
-      cancellationPeriod: 30,
-      contractFormId: 2,
-    },
-    {
-      id: 4,
-      name: "Flex 10er Card",
-      description: "10 training credits, use anytime within 6 months",
-      duration: 6,
-      cost: 199,
-      billingPeriod: "monthly",
-      userCapacity: 10,
-      autoRenewal: false,
-      renewalIndefinite: false,
-      renewalPeriod: null,
-      renewalPrice: 0,
-      cancellationPeriod: 0,
-      contractFormId: 1,
-    },
-    {
-      id: 5,
-      name: "Annual Premium",
-      description: "Best value - pay annually, save 2 months",
-      duration: 12,
-      cost: 1490,
-      billingPeriod: "annually",
-      userCapacity: 0,
-      autoRenewal: true,
-      renewalIndefinite: false,
-      renewalPeriod: 12,
-      renewalPrice: 1490,
-      cancellationPeriod: 60,
-      contractFormId: 2,
-    },
-    {
-      id: 6,
-      name: "Trial Week",
-      description: "7-day trial membership to experience our studio",
-      duration: 1,
-      cost: 29,
-      billingPeriod: "weekly",
-      userCapacity: 3,
-      autoRenewal: false,
-      renewalIndefinite: false,
-      renewalPeriod: null,
-      renewalPrice: 0,
-      cancellationPeriod: 0,
-      contractFormId: 3,
-    },
-  ])
-  const [contractForms, setContractForms] = useState([
-    {
-      id: 1,
-      name: "Standard Membership Agreement",
-      pages: [
-        {
-          id: 1,
-          title: "Terms & Conditions",
-          elements: [
-            { id: 1, type: "heading", content: "Membership Agreement" },
-            { id: 2, type: "paragraph", content: "This agreement is entered into between {Studio_Name} and the member." },
-          ]
-        }
-      ],
-      createdAt: "2024-01-15T10:00:00Z",
-    },
-    {
-      id: 2,
-      name: "Premium Membership Contract",
-      pages: [
-        {
-          id: 1,
-          title: "Premium Terms",
-          elements: [
-            { id: 1, type: "heading", content: "Premium Membership Agreement" },
-            { id: 2, type: "paragraph", content: "Welcome to our Premium Membership program." },
-          ]
-        },
-        {
-          id: 2,
-          title: "Signatures",
-          elements: [
-            { id: 1, type: "field", fieldType: "signature", label: "Member Signature", required: true },
-          ]
-        }
-      ],
-      createdAt: "2024-02-01T14:30:00Z",
-    },
-    {
-      id: 3,
-      name: "Trial Membership Form",
-      pages: [
-        {
-          id: 1,
-          title: "Trial Agreement",
-          elements: [
-            { id: 1, type: "heading", content: "Trial Membership" },
-            { id: 2, type: "paragraph", content: "This trial membership allows you to experience our studio for a limited time." },
-          ]
-        }
-      ],
-      createdAt: "2024-03-01T08:00:00Z",
-    },
-  ])
+  // Contracts - FROM DEFAULT_CONTRACT_SETTINGS and DEFAULT_CONTRACT_TYPES
+  const [allowMemberSelfCancellation, setAllowMemberSelfCancellation] = useState(DEFAULT_CONTRACT_SETTINGS.allowMemberSelfCancellation)
+  const [noticePeriod, setNoticePeriod] = useState(DEFAULT_CONTRACT_SETTINGS.noticePeriod)
+  const [extensionPeriod, setExtensionPeriod] = useState(DEFAULT_CONTRACT_SETTINGS.extensionPeriod)
+  const [defaultBillingPeriod, setDefaultBillingPeriod] = useState(DEFAULT_CONTRACT_SETTINGS.defaultBillingPeriod)
+  const [defaultAutoRenewal, setDefaultAutoRenewal] = useState(DEFAULT_CONTRACT_SETTINGS.defaultAutoRenewal)
+  const [defaultRenewalIndefinite, setDefaultRenewalIndefinite] = useState(DEFAULT_CONTRACT_SETTINGS.defaultRenewalIndefinite)
+  const [defaultRenewalPeriod, setDefaultRenewalPeriod] = useState(DEFAULT_CONTRACT_SETTINGS.defaultRenewalPeriod)
+  const [defaultAppointmentLimit, setDefaultAppointmentLimit] = useState(DEFAULT_CONTRACT_SETTINGS.defaultAppointmentLimit)
+  const [contractTypes, setContractTypes] = useState(DEFAULT_CONTRACT_TYPES)
+  const [contractForms, setContractForms] = useState(DEFAULT_CONTRACT_FORMS)
   const [selectedContractForm, setSelectedContractForm] = useState(null)
   const [contractBuilderModalVisible, setContractBuilderModalVisible] = useState(false)
   const [newContractFormName, setNewContractFormName] = useState("")
   const [showCreateFormModal, setShowCreateFormModal] = useState(false)
-  const [contractPauseReasons, setContractPauseReasons] = useState([
-    { id: 1, name: "Vacation", maxDays: 30, requiresProof: false },
-    { id: 2, name: "Medical / Illness", maxDays: 90, requiresProof: true },
-    { id: 3, name: "Injury / Rehabilitation", maxDays: 120, requiresProof: true },
-    { id: 4, name: "Pregnancy", maxDays: 180, requiresProof: true },
-    { id: 5, name: "Parental Leave", maxDays: 365, requiresProof: true },
-    { id: 6, name: "Work Relocation", maxDays: 90, requiresProof: true },
-    { id: 7, name: "Military / Civil Service", maxDays: 365, requiresProof: true },
-    { id: 8, name: "Personal Reasons", maxDays: 30, requiresProof: false },
-  ])
+  const [contractPauseReasons, setContractPauseReasons] = useState(DEFAULT_CONTRACT_PAUSE_REASONS)
 
-  // Communication Settings
-  const [settings, setSettings] = useState({
-    autoArchiveDuration: 30,
-    // Birthday notification
-    birthdayNotificationEnabled: true,
-    birthdaySendEmail: true,
-    birthdaySendApp: true,
-    birthdaySubject: "🎂 Happy Birthday, {Member_First_Name}!",
-    birthdayTemplate: "<p>Dear {Member_First_Name},</p><p>The entire team at <strong>{Studio_Name}</strong> wishes you a wonderful birthday! 🎉</p><p>As a special gift, enjoy a <strong>free training session</strong> this week.</p><p>We look forward to seeing you!</p>",
-    birthdaySendTime: "09:00",
-    // SMTP
-    smtpHost: "smtp.gmail.com",
-    smtpPort: 587,
-    smtpUser: "noreply@fitnesspro.de",
-    smtpPass: "",
-    smtpSecure: true,
-    smtpFromEmail: "noreply@fitnesspro.de",
-    senderName: "FitnessPro Studio",
-    // Email signature
-    emailSignature: "<p>Best regards,<br><strong>FitnessPro Studio Team</strong></p><p>📞 +49 30 12345678<br>📧 info@fitnesspro.de<br>🌐 www.fitnesspro.de</p><p style=\"color: #666; font-size: 12px;\">Musterstraße 123, 10115 Berlin</p>",
-    // E-Invoice
-    einvoiceSubject: "Invoice {Invoice_Number} - {Selling_Date}",
-    einvoiceTemplate: "<p>Dear {Member_First_Name} {Member_Last_Name},</p><p>Please find attached your invoice <strong>#{Invoice_Number}</strong> dated {Selling_Date}.</p><p><strong>Total Amount: {Total_Amount}</strong></p><p>Thank you for your continued membership!</p>",
-  })
+  // Communication Settings - FROM DEFAULT_COMMUNICATION_SETTINGS
+  const [settings, setSettings] = useState(DEFAULT_COMMUNICATION_SETTINGS)
+  const [appointmentNotificationTypes, setAppointmentNotificationTypes] = useState(DEFAULT_APPOINTMENT_NOTIFICATION_TYPES)
 
-  const [appointmentNotificationTypes, setAppointmentNotificationTypes] = useState({
-    confirmation: { enabled: true, subject: "✅ Appointment Confirmed - {Appointment_Type}", template: "<p>Dear {Member_First_Name},</p><p>Your appointment has been confirmed:</p><p><strong>{Appointment_Type}</strong><br>📅 {Booked_Date}<br>🕐 {Booked_Time}</p><p>We look forward to seeing you!</p>", sendApp: true, sendEmail: true, hoursBefore: 24 },
-    cancellation: { enabled: true, subject: "❌ Appointment Cancelled - {Appointment_Type}", template: "<p>Dear {Member_First_Name},</p><p>Your appointment has been cancelled:</p><p><strong>{Appointment_Type}</strong><br>📅 {Booked_Date}<br>🕐 {Booked_Time}</p><p>Please book a new appointment if needed.</p>", sendApp: true, sendEmail: true, hoursBefore: 24 },
-    rescheduled: { enabled: true, subject: "🔄 Appointment Rescheduled - {Appointment_Type}", template: "<p>Dear {Member_First_Name},</p><p>Your appointment has been rescheduled to:</p><p><strong>{Appointment_Type}</strong><br>📅 {Booked_Date}<br>🕐 {Booked_Time}</p>", sendApp: true, sendEmail: true, hoursBefore: 24 },
-    reminder: { enabled: true, subject: "⏰ Reminder: {Appointment_Type} tomorrow", template: "<p>Dear {Member_First_Name},</p><p>This is a reminder for your upcoming appointment:</p><p><strong>{Appointment_Type}</strong><br>📅 {Booked_Date}<br>🕐 {Booked_Time}</p><p>See you soon!</p>", sendApp: true, sendEmail: true, hoursBefore: 24 },
-    registration: { enabled: true, subject: "🎉 Welcome to {Studio_Name}!", template: "<p>Dear {Member_First_Name} {Member_Last_Name},</p><p>Welcome to <strong>{Studio_Name}</strong>! We're excited to have you as a member.</p><p>Click the link below to complete your registration:</p><p>{Registration_Link}</p><p>If you have any questions, feel free to contact us.</p>", sendApp: false, sendEmail: true },
-  })
+  // Finances - FROM DEFAULT_VAT_RATES and studioData
+  const [vatRates, setVatRates] = useState(DEFAULT_VAT_RATES)
+  const [vatNumber, setVatNumber] = useState(studioData.taxId)
+  const [bankName, setBankName] = useState(studioData.bankAccount.bankName)
+  const [creditorId, setCreditorId] = useState(studioData.bankAccount.creditorId)
+  const [creditorName, setCreditorName] = useState(studioData.bankAccount.creditorName)
+  const [iban, setIban] = useState(studioData.bankAccount.iban)
+  const [bic, setBic] = useState(studioData.bankAccount.bic)
 
-  // Finances
-  const [vatRates, setVatRates] = useState([
-    { name: "Standard", percentage: 19, description: "Standard VAT rate" },
-    { name: "Reduced", percentage: 7, description: "Reduced VAT rate" },
-  ])
-  const [vatNumber, setVatNumber] = useState("DE123456789")
-  const [bankName, setBankName] = useState("Deutsche Bank")
-  const [creditorId, setCreditorId] = useState("DE98ZZZ09999999999")
-  const [creditorName, setCreditorName] = useState("FitnessPro GmbH")
-  const [iban, setIban] = useState("DE89 3704 0044 0532 0130 00")
-  const [bic, setBic] = useState("COBADEFFXXX")
+  // Appearance - FROM DEFAULT_APPEARANCE_SETTINGS
+  const [appearance, setAppearance] = useState(DEFAULT_APPEARANCE_SETTINGS)
 
-  // Appearance
-  const [appearance, setAppearance] = useState({
-    theme: "dark",
-    primaryColor: "#FF843E",
-    secondaryColor: "#1890ff",
-    allowStaffThemeToggle: true,
-    allowMemberThemeToggle: true
-  })
-
-  // Countries
-  const [countries, setCountries] = useState([
-    { code: "AT", name: "Austria", currency: "€" },
-    { code: "BE", name: "Belgium", currency: "€" },
-    { code: "CA", name: "Canada", currency: "$" },
-    { code: "DE", name: "Germany", currency: "€" },
-    { code: "FR", name: "France", currency: "€" },
-    { code: "GB", name: "United Kingdom", currency: "£" },
-    { code: "US", name: "United States", currency: "$" },
-  ])
+  // Countries - FROM COUNTRIES
+  const [countries, setCountries] = useState(COUNTRIES)
 
   // Refs for textareas (for variable insertion)
   const birthdayTextareaRef = useRef(null)
@@ -1058,21 +754,10 @@ const ConfigurationPage = () => {
   // Effects
   // ============================================
 
-  // Initialize opening hours
-  useEffect(() => {
-    if (openingHours.length === 0) {
-      const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-      const defaultHours = days.map(day => ({
-        day,
-        startTime: day === 'Sunday' ? null : '09:00',
-        endTime: day === 'Sunday' ? null : '21:00',
-        closed: day === 'Sunday'
-      }))
-      setOpeningHours(defaultHours)
-    }
-  }, [])
+  // Note: Opening hours are now initialized from studioData.openingHours
+  // No useEffect needed for initialization
 
-  // Fetch countries on mount
+  // Fetch countries on mount (optional - extends imported COUNTRIES with full list)
   useEffect(() => {
     const fetchCountries = async () => {
       try {
@@ -1091,6 +776,7 @@ const ConfigurationPage = () => {
         setCountries(formattedCountries)
       } catch (error) {
         console.error('Error fetching countries:', error)
+        // Fallback: Keep imported COUNTRIES from configuration-states
       }
     }
     fetchCountries()

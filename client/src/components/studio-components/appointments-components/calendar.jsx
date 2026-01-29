@@ -17,7 +17,7 @@ import NotifyMemberModal from "../../shared/appointments/NotifyMemberModal"
 import TypeSelectionModalMain from "./TypeSelectionModalMain"
 import EditBlockedSlotModalMain from "./EditBlockedSlotModalMain"
 import EditMemberModalMain from "../../studio-components/members-components/EditMemberModal"
-import { memberRelationsData, availableMembersLeadsMain, freeAppointmentsData, relationOptionsData as relationOptionsMain, appointmentTypesData } from "../../../utils/studio-states/app-states"
+import { memberRelationsData, availableMembersLeadsMain, freeAppointmentsData, relationOptionsData as relationOptionsMain, appointmentTypesData } from "../../../utils/studio-states"
 
 
 import { useNavigate } from "react-router-dom"

@@ -23,7 +23,7 @@ import toast, { Toaster } from "react-hot-toast"
 import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
 import { GoArrowLeft, GoArrowRight } from "react-icons/go"
 
-import { appointmentsData as initialAppointmentsData, memberRelationsData, availableMembersLeadsMain, freeAppointmentsData, relationOptionsData as relationOptionsMain, appointmentTypesData } from "../../utils/studio-states/app-states"
+import { appointmentsData as initialAppointmentsData, memberRelationsData, availableMembersLeadsMain, freeAppointmentsData, relationOptionsData as relationOptionsMain, appointmentTypesData } from "../../utils/studio-states"
 
 import TrialTrainingModal from "../../components/studio-components/appointments-components/add-trial-training"
 import CreateAppointmentModal from "../../components/shared/appointments/CreateAppointmentModal"

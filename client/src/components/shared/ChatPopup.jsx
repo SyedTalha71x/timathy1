@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import data from '@emoji-mart/data';
 import Picker from '@emoji-mart/react';
 import BirthdayBadge from "./BirthdayBadge";
-import { memberChatListNew, staffChatListNew } from "../../utils/studio-states/app-states";
+import { memberChatListNew, staffChatListNew } from "../../utils/studio-states";
 
 // Initials Avatar Component - supports context for different colors
 const InitialsAvatar = ({ firstName, lastName, size = 40, className = "", context = "member" }) => {

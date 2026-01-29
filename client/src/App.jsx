@@ -1,7 +1,9 @@
 import { Route, Routes, useLocation } from "react-router-dom";
+
+// Landing Page
 import Home from "./landing-page/home";
-import Footer from "./components/footer";
-import Header from "./components/navbar";
+import Footer from "./landing-page/footer";
+import Header from "./landing-page/navbar";
 import Login from './landing-page/login';
 import Register from './landing-page/register'
 

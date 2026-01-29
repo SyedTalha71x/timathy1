@@ -41,7 +41,7 @@ import ChatPopup from "../../components/shared/ChatPopup"
 import MessageTypeSelectionModal from "../../components/shared/MessageTypeSelectionModal"
 import SendEmailModal from "../../components/shared/SendEmailModal"
 import DraftModal from "../../components/shared/DraftModal"
-import { membersData, staffData } from "../../utils/studio-states/app-states"
+import { membersData, staffData } from "../../utils/studio-states"
 
 // ============================================
 // Sample Data for Activity Monitor

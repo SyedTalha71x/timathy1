@@ -1,32 +1,15 @@
-// ============================================================================
-// TRAINING-STATES.JSX - Konsolidierte State-Datei für das Training-Modul
-// ============================================================================
-// Diese Datei nutzt die Members und Staff aus app-states.jsx (keine Duplikate!)
-// und definiert Training-spezifische Daten.
-//
-// STRUKTUR:
-// 1. IMPORTS - Member/Staff-Referenzen aus app-states.jsx
-// 2. TRAINING_CATEGORIES - Video-Kategorien
-// 3. TRAINING_VIDEOS - Video-Bibliothek
-// 4. TRAINING_PLANS - Trainingspläne
-// 5. MEMBER_TRAINING_PLANS - Zuordnung von Plänen zu Mitgliedern
-// 6. HELPER FUNCTIONS - Hilfsfunktionen für Komponenten
-// 7. BACKEND TRANSFORMATION - Funktionen für API-Integration
-// 8. BACKWARDS COMPATIBILITY - Aliase für bestehende Komponenten
-// ============================================================================
 
-// ============================================================================
-// SECTION 1: IMPORTS FROM APP-STATES
-// ============================================================================
-// WICHTIG: Members und Staff kommen aus app-states.jsx - KEINE DUPLIKATE!
-// Bei Backend-Integration werden diese durch API-Calls ersetzt.
+
 
 import { 
   membersData as appMembersData, 
-  staffData as appStaffData,
   getMemberById,
+} from './members-states';
+
+import { 
+  staffData as appStaffData,
   getStaffById 
-} from './app-states';
+} from './staff-states';
 
 // ============================================================================
 // SECTION 2: TRAINING CATEGORIES

@@ -9,7 +9,7 @@ import {
 import DeleteConfirmationModal from "./DeleteConfirmationModal"
 import TemplateEditorModal from "./TemplateEditorModal"
 import SharedFolderModal from "../../../shared/SharedFolderModal"
-import { membersData, staffData } from "../../../../utils/studio-states/app-states"
+import { membersData, staffData } from "../../../../utils/studio-states"
 
 // Initials Avatar Component
 const InitialsAvatar = ({ firstName, lastName, size = "md", isStaff = false, className = "" }) => {

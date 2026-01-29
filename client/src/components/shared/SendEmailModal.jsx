@@ -5,6 +5,9 @@ import { Mail, X, Search, Send, ChevronDown, Paperclip, Image, FileText, File, T
 import { WysiwygEditor } from "./WysiwygEditor";
 import DraftModal from "../shared/DraftModal";
 
+// Import email signature from configuration (Single Source of Truth)
+import { DEFAULT_COMMUNICATION_SETTINGS } from "../../utils/studio-states/configuration-states";
+
 // Initials Avatar Component
 const InitialsAvatar = ({ firstName, lastName, size = 32, className = "", isStaff = false }) => {
   const getInitials = () => {
@@ -313,9 +316,9 @@ const SendEmailModal = ({
   setEmailData,
   handleSearchMemberForEmail,
   preselectedMember = null,
-  signature = "",
   editingDraft = null, // Draft being edited
   onSaveAsDraft = null, // Callback to save as draft
+  // Note: signature is now imported from configuration-states (Single Source of Truth)
 }) => {
   const attachmentInputRef = useRef(null);
   const editorRef = useRef(null);
@@ -407,12 +410,16 @@ const SendEmailModal = ({
     setAttachments(prev => prev.filter(a => a.id !== id));
   };
 
-  // Insert signature - using editor ref for HTML insertion
+  // Insert signature - directly append to email body
+  // Uses email signature from configuration-states (Single Source of Truth)
   const insertSignature = () => {
-    const signatureHtml = signature || '<p>--<br>Mit freundlichen Grüßen</p>';
-    if (editorRef.current?.insertHtml) {
-      editorRef.current.insertHtml(`<br><br>${signatureHtml}`);
-    }
+    const signatureHtml = DEFAULT_COMMUNICATION_SETTINGS?.emailSignature 
+      || '<p>--<br>Mit freundlichen Grüßen</p>';
+    
+    // Directly update the email body with signature appended
+    const currentBody = emailData.body || '';
+    const newBody = currentBody + `<br><br>${signatureHtml}`;
+    setEmailData({ ...emailData, body: newBody });
   };
 
   // Handle send with all data
