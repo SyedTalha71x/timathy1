@@ -280,12 +280,12 @@ const SharedSpecialNoteIcon = ({
       ) : (
         <div
           ref={iconRef}
-          className={`${positionClasses} bg-transparent border ${borderWidth} border-dashed border-gray-400 hover:border-gray-300 rounded-full ${containerSize} shadow-lg cursor-pointer transition-all duration-200 hover:scale-110 active:scale-95`}
+          className={`${positionClasses} group bg-transparent border ${borderWidth} border-dashed border-white/70 hover:border-white rounded-full ${containerSize} shadow-lg cursor-pointer transition-all duration-200 hover:scale-110 active:scale-95`}
           onClick={handleNoteClick}
           onPointerDown={(e) => e.stopPropagation()}
           title="Add special note"
         >
-          <StickyNote size={iconSize} className="text-gray-400" />
+          <StickyNote size={iconSize} className="text-white/70 group-hover:text-white transition-colors" />
         </div>
       )}
       

@@ -20,7 +20,6 @@ import {
 } from "lucide-react"
 import { useState, useEffect, useCallback, useRef } from "react"
 import toast, { Toaster } from "react-hot-toast"
-import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
 import { GoArrowLeft, GoArrowRight } from "react-icons/go"
 
 import { appointmentsData as initialAppointmentsData, memberRelationsData, availableMembersLeadsMain, freeAppointmentsData, relationOptionsData as relationOptionsMain, appointmentTypesData } from "../../utils/studio-states"
@@ -38,6 +37,7 @@ import TrainingPlansModalMain from "../../components/shared/training/TrainingPla
 import { SpecialNoteEditModal } from "../../components/myarea-components/SpecialNoteEditModal"
 import { useNavigate } from "react-router-dom"
 import EditMemberModalMain from "../../components/studio-components/members-components/EditMemberModal"
+import { MemberSpecialNoteIcon } from "../../components/shared/shared-special-note-icon"
 
 export default function Appointments() {
   const navigate = useNavigate();
@@ -93,7 +93,7 @@ export default function Appointments() {
   // Handler wenn im Hauptkalender navigiert wird (nur durch Pfeile, nicht durch datesSet beim Laden)
   const handleCalendarNavigate = useCallback((date, isUserNavigation = false) => {
     setMiniCalendarDate(date);
-    // Nur bei echter User-Navigation das selectedDate ÃƒÆ’Ã‚Â¤ndern
+    // Nur bei echter User-Navigation das selectedDate ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¤ndern
     if (isUserNavigation) {
       setSelectedDate(new Date(date));
     }
@@ -647,7 +647,7 @@ export default function Appointments() {
 
   const handleDumbbellClickMain = (appointment, e) => { 
     e.stopPropagation(); 
-    // Konvertiere Appointment zu einheitlichem Member-Format für TrainingPlanModal
+    // Konvertiere Appointment zu einheitlichem Member-Format fÃ¼r TrainingPlanModal
     const memberData = {
       id: appointment.id,
       firstName: appointment.name, // appointment.name ist der Vorname
@@ -938,7 +938,7 @@ export default function Appointments() {
                   </div>
                 </div>
 
-                {/* Filters - feste GrÃƒÆ’Ã‚Â¶ÃƒÆ’Ã…Â¸e */}
+                {/* Filters - feste GrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¶ÃƒÆ’Ã†â€™Ãƒâ€¦Ã‚Â¸e */}
                 <div className="bg-[#000000] rounded-xl p-3 w-full flex-shrink-0">
                   <div className="flex items-center justify-between">
                     <h3 className="text-white font-semibold text-sm">Filters</h3>
@@ -999,38 +999,58 @@ export default function Appointments() {
                   {!isUpcomingCollapsed && (
                     <div className="space-y-2 custom-scrollbar overflow-y-auto flex-1 w-full">
                       {filteredAppointments.filter(app => !app.isCancelled).length > 0 ? (
-                        filteredAppointments.filter(app => !app.isCancelled).map((appointment) => (
-                          <div key={appointment.id}
-                            className={`${appointment.isCancelled ? "bg-gray-700 cancelled-appointment-bg" : appointment.isPast && !appointment.isCancelled ? "bg-gray-800 opacity-50" : appointment.color} rounded-xl cursor-pointer p-2 relative w-full upcoming-apt-tile`}
-                            onClick={() => handleAppointmentOptionsModalMain(appointment)}>
-                            <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
-                              {renderSpecialNoteIconMain(appointment.specialNote, appointment.id)}
-                              <div className="cursor-pointer rounded transition-colors" onClick={(e) => handleDumbbellClickMain(appointment, e)}>
-                                <Dumbbell className="text-white" size={14} />
+                        filteredAppointments.filter(app => !app.isCancelled).map((appointment) => {
+                          const firstName = appointment.name || "";
+                          const lastName = appointment.lastName || "";
+                          const isBlocked = appointment.isBlocked || appointment.type === "Blocked Time";
+                          
+                          return (
+                            <div key={appointment.id}
+                              className={`${appointment.isCancelled ? "bg-gray-700 cancelled-appointment-bg" : appointment.isPast && !appointment.isCancelled ? "bg-gray-800 opacity-50" : appointment.color} rounded-xl cursor-pointer p-3 relative w-full upcoming-apt-tile`}
+                              onClick={() => handleAppointmentOptionsModalMain(appointment)}>
+                              {/* Icons row at top */}
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-1.5">
+                                  {!isBlocked && (
+                                    <MemberSpecialNoteIcon
+                                      member={{
+                                        ...appointment,
+                                        firstName,
+                                        lastName,
+                                      }}
+                                      onEditMember={(memberData, tab) => handleOpenEditMemberModal(memberData, tab || "note")}
+                                      size="sm"
+                                      position="relative"
+                                    />
+                                  )}
+                                  <div className="cursor-pointer rounded transition-colors hover:bg-white/10 p-0.5" onClick={(e) => handleDumbbellClickMain(appointment, e)}>
+                                    <Dumbbell className="text-white/80" size={14} />
+                                  </div>
+                                </div>
+                                <button onClick={(e) => { e.stopPropagation(); handleCheckInMain(appointment.id) }}
+                                  className={`min-w-[85px] px-3 py-1.5 text-xs font-semibold rounded-lg transition-all border ${appointment.isCheckedIn ? "bg-white/20 hover:bg-white/30 text-white/80 border-white/30" : "bg-black hover:bg-black/80 text-white border-transparent"}`}>
+                                  {appointment.isCheckedIn ? "Checked In" : "Check In"}
+                                </button>
+                              </div>
+                              {/* Content */}
+                              <div className="text-white">
+                                <p className="font-semibold text-[15px] truncate">{appointment.name} {appointment.lastName}</p>
+                                <div className="flex items-center justify-between mt-1.5">
+                                  <p className="text-xs flex gap-1.5 items-center opacity-80">
+                                    <Clock size={12} />
+                                    {appointment.startTime} - {appointment.endTime}
+                                  </p>
+                                  <p className="text-[11px] opacity-70">
+                                    {appointment.date?.split("|")[0]?.trim()}
+                                  </p>
+                                </div>
+                                <p className="text-xs mt-1 opacity-70">
+                                  {appointment.isTrial ? "Trial Session" : appointment.isCancelled ? <span className="text-red-400">Cancelled</span> : appointment.type}
+                                </p>
                               </div>
                             </div>
-                            <div className="flex flex-col mr-12 items-center justify-between gap-1 cursor-pointer">
-                              <div className="flex items-center gap-2 ml-4 relative w-full justify-center">
-                                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center relative">
-                                  <img src={Avatar || "/placeholder.svg"} alt="" className="w-full h-full rounded-full" />
-                                </div>
-                                <div className="text-white text-left">
-                                  <p className="font-semibold text-xs">{appointment.name} {appointment.lastName}</p>
-                                  <p className="text-[10px] flex gap-1 items-center opacity-80">
-                                    <Clock size={10} />{appointment.time} | {appointment.date?.split("|")[0]}
-                                  </p>
-                                  <p className="text-[10px] opacity-80">
-                                    {appointment.isTrial ? "Trial Session" : appointment.isCancelled ? <span className="text-red-400">Cancelled</span> : appointment.type}
-                                  </p>
-                                </div>
-                              </div>
-                              <button onClick={(e) => { e.stopPropagation(); handleCheckInMain(appointment.id) }}
-                                className={`px-2 py-0.5 ml-8 text-[10px] font-medium rounded-lg ${appointment.isCheckedIn ? "border border-white/50 text-white bg-transparent" : "bg-black text-white"}`}>
-                                {appointment.isCheckedIn ? "Checked In" : "Check In"}
-                              </button>
-                            </div>
-                          </div>
-                        ))
+                          );
+                        })
                       ) : (
                         <p className="text-white text-center text-xs">No appointments scheduled.</p>
                       )}

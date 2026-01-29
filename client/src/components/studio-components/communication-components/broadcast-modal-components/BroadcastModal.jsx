@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useState, useRef, useEffect } from "react"
+import { flushSync } from "react-dom"
 import { 
   X, FolderPlus, Search, Send, Plus, Edit, Trash2, Bell, Mail, 
   Folder, FileText, User, Building2, Check, ChevronLeft, ChevronRight,
@@ -25,6 +26,15 @@ const InitialsAvatar = ({ firstName, lastName, size = "md", isStaff = false, cla
       {getInitials()}
     </div>
   )
+}
+
+// Helper function to strip HTML tags and get plain text
+const stripHtmlTags = (html) => {
+  if (!html) return ""
+  // Create a temporary element to parse HTML
+  const tmp = document.createElement("div")
+  tmp.innerHTML = html
+  return tmp.textContent || tmp.innerText || ""
 }
 
 export default function BroadcastModal({
@@ -78,6 +88,8 @@ export default function BroadcastModal({
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 })
 
   const modalRef = useRef(null)
+  const templateListRef = useRef(null)
+  const templatePanelRef = useRef(null)
 
   const membersList = membersData.map(m => ({
     id: `member-${m.id}`, name: `${m.firstName} ${m.lastName}`,
@@ -617,14 +629,17 @@ export default function BroadcastModal({
                           const templateName = template.name || "Untitled template"
                           const subtitle = activeChannel === "push" ? template.title : template.subject
                           const preview = activeChannel === "push" ? template.message : template.body
+                          const previewText = stripHtmlTags(preview)
                           return (
                             <div 
                               key={template.id} 
-                              onClick={() => { 
+                              tabIndex={-1}
+                              onClick={(e) => { 
+                                e.stopPropagation()
                                 if (activeChannel === "push") setSelectedPushMessage(template)
                                 else setSelectedEmailTemplate(template)
                               }}
-                              className={`p-4 rounded-xl transition-all ${
+                              className={`p-4 rounded-xl transition-all outline-none ${
                                 isSelected 
                                   ? "bg-orange-500/20 border-2 border-orange-500" 
                                   : "bg-[#1a1a1a] border-2 border-transparent active:bg-[#222]"
@@ -639,7 +654,7 @@ export default function BroadcastModal({
                                 )}
                               </div>
                               {subtitle && <p className="text-xs text-gray-400 mb-1">{subtitle}</p>}
-                              <p className="text-xs text-gray-500 line-clamp-2" dangerouslySetInnerHTML={{ __html: preview }} />
+                              {previewText && <p className="text-xs text-gray-500 line-clamp-2">{previewText}</p>}
                             </div>
                           )
                         })}
@@ -798,6 +813,7 @@ export default function BroadcastModal({
                     const templateName = template.name || "Untitled template"
                     const subtitle = activeChannel === "push" ? template.title : template.subject
                     const preview = activeChannel === "push" ? template.message : template.body
+                    const previewText = stripHtmlTags(preview)
                     const folder = currentFolders.find(f => f.id === template.folderId)
                     return (
                       <div key={template.id} className="bg-[#1a1a1a] rounded-xl p-4 border border-gray-800/50">
@@ -821,7 +837,7 @@ export default function BroadcastModal({
                             </button>
                           </div>
                         </div>
-                        <p className="text-xs text-gray-500 line-clamp-2 mb-2" dangerouslySetInnerHTML={{ __html: preview }} />
+                        {previewText && <p className="text-xs text-gray-500 line-clamp-2 mb-2">{previewText}</p>}
                         {folder && (
                           <div className="flex items-center gap-1.5 text-xs text-gray-600">
                             <Folder className="w-3 h-3" style={{ color: folder.color || '#3B82F6' }} />
@@ -1046,7 +1062,7 @@ export default function BroadcastModal({
                 </div>
 
                 {/* Template & Send Panel */}
-                <div className="flex-1 flex flex-col p-4 overflow-y-auto">
+                <div ref={templatePanelRef} className="flex-1 flex flex-col p-4 overflow-y-auto">
                   {selectedRecipients.length > 0 && (
                     <div className="mb-4">
                       <p className="text-xs text-gray-500 mb-2">{selectedRecipients.length} recipient{selectedRecipients.length > 1 ? "s" : ""} selected</p>
@@ -1087,19 +1103,44 @@ export default function BroadcastModal({
                       <label className="text-xs text-gray-500">Select Template</label>
                       <button onClick={() => handleOpenTemplateModal()} className="text-xs text-orange-400 hover:text-orange-300 flex items-center gap-1"><Plus className="w-3 h-3" />New Template</button>
                     </div>
-                    <div className="bg-[#1a1a1a] rounded-xl max-h-64 overflow-y-auto">
+                    <div ref={templateListRef} className="bg-[#1a1a1a] rounded-xl max-h-64 overflow-y-auto">
                       {currentTemplates.length > 0 ? currentTemplates.map((template) => {
                         const isSelected = selectedTemplate?.id === template.id
                         const templateName = template.name || "Untitled template"
                         const subtitle = activeChannel === "push" ? template.title : template.subject
                         const preview = activeChannel === "push" ? template.message : template.body
+                        const previewText = stripHtmlTags(preview)
                         return (
-                          <div key={template.id} onClick={() => { if (activeChannel === "push") setSelectedPushMessage(template); else setSelectedEmailTemplate(template) }} className={`p-3 cursor-pointer transition-all ${isSelected ? "bg-blue-600/20 border-l-4 border-blue-500" : "hover:bg-white/5 border-l-4 border-transparent"}`}>
+                          <div 
+                            key={template.id} 
+                            tabIndex={-1}
+                            onClick={(e) => { 
+                              e.stopPropagation()
+                              // Save scroll positions before state update
+                              const listScrollTop = templateListRef.current?.scrollTop || 0
+                              const panelScrollTop = templatePanelRef.current?.scrollTop || 0
+                              
+                              // Use flushSync to update state synchronously
+                              flushSync(() => {
+                                if (activeChannel === "push") setSelectedPushMessage(template)
+                                else setSelectedEmailTemplate(template)
+                              })
+                              
+                              // Restore scroll positions immediately after synchronous update
+                              if (templateListRef.current) {
+                                templateListRef.current.scrollTop = listScrollTop
+                              }
+                              if (templatePanelRef.current) {
+                                templatePanelRef.current.scrollTop = panelScrollTop
+                              }
+                            }} 
+                            className={`p-3 cursor-pointer transition-all outline-none ${isSelected ? "bg-blue-600/20 border-l-4 border-blue-500" : "hover:bg-white/5 border-l-4 border-transparent"}`}
+                          >
                             <div className="flex items-start justify-between gap-2">
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium text-white truncate">{templateName}</p>
                                 {subtitle && <p className="text-xs text-gray-400 truncate">{subtitle}</p>}
-                                <p className="text-xs text-gray-500 truncate mt-0.5" dangerouslySetInnerHTML={{ __html: preview }} />
+                                {previewText && <p className="text-xs text-gray-500 line-clamp-2 mt-0.5">{previewText}</p>}
                               </div>
                               <div data-template-dropdown>
                                 <button onClick={(e) => handleDropdownClick(e, template.id, 'template')} className="text-gray-400 hover:text-orange-400 p-1.5 rounded-lg hover:bg-gray-800 transition-colors">
@@ -1153,6 +1194,7 @@ export default function BroadcastModal({
                     const templateName = template.name || "Untitled template"
                     const subtitle = activeChannel === "push" ? template.title : template.subject
                     const preview = activeChannel === "push" ? template.message : template.body
+                    const previewText = stripHtmlTags(preview)
                     const folder = currentFolders.find(f => f.id === template.folderId)
                     return (
                       <div key={template.id} className="bg-[#1a1a1a] rounded-xl p-4 border border-gray-800/50 hover:border-gray-700/50 transition-colors">
@@ -1167,7 +1209,7 @@ export default function BroadcastModal({
                             </button>
                           </div>
                         </div>
-                        <p className="text-xs text-gray-500 line-clamp-2 mb-3" dangerouslySetInnerHTML={{ __html: preview }} />
+                        {previewText && <p className="text-xs text-gray-500 line-clamp-2 mb-3">{previewText}</p>}
                         {folder && <div className="flex items-center gap-1.5 text-xs text-gray-600"><Folder className="w-3 h-3" style={{ color: folder.color || '#3B82F6' }} />{folder.name}</div>}
                       </div>
                     )
@@ -1242,7 +1284,7 @@ export default function BroadcastModal({
         showColorPicker={true}
         defaultColor="#FF843E"
       />
-      <TemplateEditorModal isOpen={showTemplateModal} onClose={() => { setShowTemplateModal(false); setEditingTemplate(null) }} template={editingTemplate} onSave={handleSaveTemplate} folders={currentFolders} selectedFolder={selectedFolder} isEmailTemplate={activeChannel === "email"} audienceType={audienceTab} signature={settings?.emailSignature || ""} />
+      <TemplateEditorModal isOpen={showTemplateModal} onClose={() => { setShowTemplateModal(false); setEditingTemplate(null) }} template={editingTemplate} onSave={handleSaveTemplate} folders={currentFolders} selectedFolder={selectedFolder} isEmailTemplate={activeChannel === "email"} audienceType={audienceTab} />
       <DeleteConfirmationModal isOpen={showDeleteModal} onClose={() => { setShowDeleteModal(false); setItemToDelete(null); setDeleteType("") }} onConfirm={handleConfirmDelete} itemName={itemToDelete?.name || itemToDelete?.title || itemToDelete?.subject || ""} itemType={deleteType === "pushFolder" || deleteType === "emailFolder" ? "folder" : deleteType === "pushMessage" ? "message" : "template"} />
       
       {/* Send Confirmation Modal */}

@@ -3,6 +3,9 @@ import { useState, useEffect, useRef } from "react"
 import { X, FileText, Paperclip, Image, File, Trash2 } from "lucide-react"
 import { WysiwygEditor } from "../../../shared/WysiwygEditor"
 
+// Import email signature from configuration (Single Source of Truth)
+import { DEFAULT_COMMUNICATION_SETTINGS } from "../../../../utils/studio-states/configuration-states"
+
 // Get variables based on audience type
 const getInsertVariables = (audienceType) => {
   if (audienceType === "staff") {
@@ -42,8 +45,7 @@ const TemplateEditorModal = ({
   folders = [],
   selectedFolder = null,
   isEmailTemplate = false,
-  audienceType = "member",
-  signature = ""
+  audienceType = "member"
 }) => {
   const [templateData, setTemplateData] = useState({
     name: "",
@@ -105,9 +107,12 @@ const TemplateEditorModal = ({
   }
 
   const insertSignature = () => {
-    if (isEmailTemplate && editorRef.current?.insertHtml) {
-      const signatureContent = signature || "{Signature}"
-      editorRef.current.insertHtml(`<br><br>${signatureContent}`)
+    if (isEmailTemplate && editorRef.current) {
+      // Get signature from configuration (Single Source of Truth)
+      const signatureHtml = DEFAULT_COMMUNICATION_SETTINGS?.emailSignature || "<p>--<br>Mit freundlichen Grüßen</p>";
+      const currentBody = templateData.body || "";
+      const newBody = currentBody + `<br><br>${signatureHtml}`;
+      setTemplateData(prev => ({ ...prev, body: newBody }));
     }
   }
 
@@ -226,6 +231,7 @@ const TemplateEditorModal = ({
                   type="text"
                   value={templateData.name}
                   onChange={(e) => setTemplateData(prev => ({ ...prev, name: e.target.value }))}
+                  onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
                   className="w-full bg-[#1a1a1a] text-white rounded-xl px-4 py-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
                   placeholder="Untitled template"
                 />
@@ -285,6 +291,7 @@ const TemplateEditorModal = ({
                   setTemplateData(prev => ({ ...prev, [field]: e.target.value }))
                   setErrors(prev => ({ ...prev, [field]: "" }))
                 }}
+                onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault() }}
                 className={`w-full bg-[#1a1a1a] text-white rounded-xl px-4 py-3 text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all ${
                   (isEmailTemplate ? errors.subject : errors.title) ? "ring-2 ring-red-500/50" : ""
                 }`}

@@ -72,7 +72,7 @@ const Calendar = forwardRef(({
   const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false)
   const [notifyAction, setNotifyAction] = useState("change")
   const [pendingEventInfo, setPendingEventInfo] = useState(null)
-  const [originalEventData, setOriginalEventData] = useState(null)
+  const [pendingEventData, setPendingEventData] = useState(null)
   const [isTypeSelectionOpen, setIsTypeSelectionOpen] = useState(false)
   const [selectedSlotInfo, setSelectedSlotInfo] = useState(null)
   const [isTrialModalOpen, setIsTrialModalOpen] = useState(false)
@@ -287,7 +287,7 @@ const Calendar = forwardRef(({
       if (calendarApi) {
         calendarApi.changeView(viewType);
         
-        // Nach View-Wechsel zum ausgewÃƒÂ¤hlten Datum navigieren
+        // Nach View-Wechsel zum ausgewÃƒÆ'Ã‚Â¤hlten Datum navigieren
         if (selectedDate) {
           calendarApi.gotoDate(selectedDate);
         }
@@ -311,7 +311,7 @@ const Calendar = forwardRef(({
     setIsAppointmentActionModalOpen(true)
   }
 
-  // Kalender navigiert zu selectedDate wenn es auÃƒÆ’Ã…Â¸erhalb der aktuellen Ansicht liegt
+  // Kalender navigiert zu selectedDate wenn es auÃƒÆ'Ã†â€™Ãƒâ€¦Ã‚Â¸erhalb der aktuellen Ansicht liegt
   useEffect(() => {
     if (selectedDate && calendarRef.current) {
       const calendarApi = calendarRef.current.getApi()
@@ -320,7 +320,7 @@ const Calendar = forwardRef(({
       const viewEnd = new Date(view.currentEnd)
       const selected = new Date(selectedDate)
       
-      // Nur navigieren wenn selectedDate auÃƒÆ’Ã…Â¸erhalb der aktuellen Ansicht liegt
+      // Nur navigieren wenn selectedDate auÃƒÆ'Ã†â€™Ãƒâ€¦Ã‚Â¸erhalb der aktuellen Ansicht liegt
       if (selected < viewStart || selected >= viewEnd) {
         calendarApi.gotoDate(selectedDate)
       }
@@ -434,7 +434,7 @@ const Calendar = forwardRef(({
     }
   };
 
-  // Verstecke Tooltip wenn ein Modal geöffnet wird
+  // Verstecke Tooltip wenn ein Modal geÃ¶ffnet wird
   useEffect(() => {
     if (isNotifyMemberOpen || isAppointmentActionModalOpen || isTypeSelectionOpen) {
       hideTooltip(true);
@@ -520,32 +520,18 @@ const Calendar = forwardRef(({
     const appointmentId = Number(event.id);
     const duration = event.end - event.start;
     
-    // Speichere ursprÃƒÂ¼ngliche Daten fÃƒÂ¼r Cancel
-    const originalAppointment = appointmentsMain.find(app => app.id === appointmentId);
-    if (originalAppointment) {
-      setOriginalEventData({
-        id: appointmentId,
-        startTime: originalAppointment.startTime,
-        endTime: originalAppointment.endTime,
-        date: originalAppointment.date
-      });
-    }
+    // Store the new event data for applying on confirmation
+    const newEventData = {
+      id: appointmentId,
+      startTime: event.start.toTimeString().split(" ")[0].substring(0, 5),
+      endTime: new Date(event.start.getTime() + duration).toTimeString().split(" ")[0].substring(0, 5),
+      date: `${event.start.toLocaleString("en-US", { weekday: "short" })} | ${formatDate(event.start)}`,
+    };
     
-    // State sofort aktualisieren (damit das Event visuell an der neuen Position bleibt)
-    const updatedAppointments = appointmentsMain.map((appointment) => {
-      if (appointment.id === appointmentId) {
-        return { 
-          ...appointment,
-          startTime: event.start.toTimeString().split(" ")[0].substring(0, 5),
-          endTime: new Date(event.start.getTime() + duration).toTimeString().split(" ")[0].substring(0, 5),
-          date: `${event.start.toLocaleString("en-US", { weekday: "short" })} | ${formatDate(event.start)}`,
-        };
-      }
-      return appointment;
-    });
-    setAppointmentsMain(updatedAppointments);
-    
-    setPendingEventInfo(info); 
+    // Store pending info - DON'T update appointmentsMain yet!
+    // FullCalendar will keep the visual position until we confirm or revert
+    setPendingEventInfo(info);
+    setPendingEventData(newEventData);
     setNotifyAction("change"); 
     setIsNotifyMemberOpen(true); 
   }
@@ -587,12 +573,22 @@ const Calendar = forwardRef(({
 
   const handleNotifyMember = (shouldNotify) => {
     setIsNotifyMemberOpen(false)
-    if (pendingEventInfo && notifyAction === "change") {
-      // State wurde bereits in handleEventDrop aktualisiert
-      // Bei Ja/Nein bleibt der Termin an der neuen Position
-      // Bei X (onClose) wird der State mit originalEventData wiederhergestellt
+    if (pendingEventInfo && pendingEventData && notifyAction === "change") {
+      // NOW apply the change to appointmentsMain (user confirmed)
+      const updatedAppointments = appointmentsMain.map((appointment) => {
+        if (appointment.id === pendingEventData.id) {
+          return { 
+            ...appointment,
+            startTime: pendingEventData.startTime,
+            endTime: pendingEventData.endTime,
+            date: pendingEventData.date,
+          };
+        }
+        return appointment;
+      });
+      setAppointmentsMain(updatedAppointments);
       setPendingEventInfo(null);
-      setOriginalEventData(null);
+      setPendingEventData(null);
     } else if (notifyAction === "cancel" && selectedAppointment) {
       if (shouldNotify !== null) actuallyHandleCancelAppointment(shouldNotify)
     }
@@ -706,9 +702,9 @@ const Calendar = forwardRef(({
   const safeAppointments = appointmentsMain || []
   const safeMemberFilters = memberFilters || []
 
-  // Für den Kalender: ALLE Termine anzeigen (kein Datumsfilter!)
+  // FÃ¼r den Kalender: ALLE Termine anzeigen (kein Datumsfilter!)
   const filteredAppointments = safeAppointments.filter((appointment) => {
-    // Member-Filter (nur wenn Tags ausgewählt wurden)
+    // Member-Filter (nur wenn Tags ausgewÃ¤hlt wurden)
     let memberMatch = true
     if (safeMemberFilters.length > 0) {
       const filterNames = safeMemberFilters.map(f => f.memberName.toLowerCase());
@@ -719,22 +715,22 @@ const Calendar = forwardRef(({
     // Typ-Filter anwenden
     let typeMatch = true
     if (appointmentFilters && Object.keys(appointmentFilters).length > 0) {
-      // Erst prüfen ob der Termin-Typ erlaubt ist
+      // Erst prÃ¼fen ob der Termin-Typ erlaubt ist
       if (appointment.isTrial) {
         typeMatch = appointmentFilters["Trial Training"] !== false
       } else if (appointment.isBlocked || appointment.type === "Blocked Time") {
         typeMatch = appointmentFilters["Blocked Time Slots"] !== false
       } else {
-        // Normaler Termin - prüfe den Typ
+        // Normaler Termin - prÃ¼fe den Typ
         typeMatch = appointmentFilters[appointment.type] !== false
       }
       
-      // Zusätzlich: Abgesagte Termine filtern
+      // ZusÃ¤tzlich: Abgesagte Termine filtern
       if (appointment.isCancelled && appointmentFilters["Cancelled Appointments"] === false) {
         typeMatch = false
       }
       
-      // Zusätzlich: Vergangene Termine filtern (nur wenn nicht abgesagt)
+      // ZusÃ¤tzlich: Vergangene Termine filtern (nur wenn nicht abgesagt)
       if (appointment.isPast && !appointment.isCancelled && appointmentFilters["Past Appointments"] === false) {
         typeMatch = false
       }
@@ -922,7 +918,7 @@ const Calendar = forwardRef(({
           pointer-events: none;
           border-radius: inherit;
         }
-        /* Vergangene Termine - abgeschwÃƒÆ’Ã‚Â¤cht */
+        /* Vergangene Termine - abgeschwÃƒÆ'Ã†â€™Ãƒâ€šÃ‚Â¤cht */
         .past-event {
           opacity: 0.45;
         }
@@ -958,7 +954,7 @@ const Calendar = forwardRef(({
           display: flex !important;
           align-items: flex-start !important;
         }
-        /* Rand links/rechts fÃƒÆ’Ã‚Â¼r Klick-Bereich zum Buchen */
+        /* Rand links/rechts fÃƒÆ'Ã†â€™Ãƒâ€šÃ‚Â¼r Klick-Bereich zum Buchen */
         .fc-timegrid-col-events {
           margin: 0 3px !important;
         }
@@ -1380,7 +1376,7 @@ const Calendar = forwardRef(({
                 
                 return (
                   <div className="px-1 pt-[2px] overflow-hidden">
-                    {/* Name hat PrioritÃƒÆ’Ã‚Â¤t */}
+                    {/* Name hat PrioritÃƒÆ'Ã†â€™Ãƒâ€šÃ‚Â¤t */}
                     <div className="text-[10px] leading-tight overflow-hidden whitespace-nowrap text-white font-medium">
                       {fullName}
                     </div>
@@ -1415,22 +1411,11 @@ const Calendar = forwardRef(({
       <AppointmentActionModal isOpen={isAppointmentActionModalOpen} appointment={selectedAppointment} onClose={() => setIsAppointmentActionModalOpen(false)} onEdit={handleEditAppointment} onCancel={handleCancelAppointment} onDelete={handleDeleteCancelledAppointment} onViewMember={handleViewMemberDetails} onEditMemberNote={handleOpenEditMemberModal} appointmentsMain={appointmentsMain} setAppointmentsMain={setAppointmentsMain} />
       <NotifyMemberModal isOpen={isNotifyMemberOpen} onClose={() => { 
         setIsNotifyMemberOpen(false); 
-        if (pendingEventInfo && originalEventData) { 
-          // State mit ursprÃƒÂ¼nglichen Daten wiederherstellen
-          const restoredAppointments = appointmentsMain.map((appointment) => {
-            if (appointment.id === originalEventData.id) {
-              return { 
-                ...appointment,
-                startTime: originalEventData.startTime,
-                endTime: originalEventData.endTime,
-                date: originalEventData.date,
-              };
-            }
-            return appointment;
-          });
-          setAppointmentsMain(restoredAppointments);
+        if (pendingEventInfo) { 
+          // Revert the visual position in FullCalendar
+          pendingEventInfo.revert();
           setPendingEventInfo(null);
-          setOriginalEventData(null);
+          setPendingEventData(null);
         } 
       }} notifyAction={notifyAction} pendingEventInfo={pendingEventInfo} actuallyHandleCancelAppointment={actuallyHandleCancelAppointment} handleNotifyMember={handleNotifyMember} setPendingEventInfo={setPendingEventInfo} />
       {isEditBlockedModalOpen && blockedEditData && <EditBlockedSlotModalMain isOpen={isEditBlockedModalOpen} onClose={() => setIsEditBlockedModalOpen(false)} initialBlock={blockedEditData} appointmentTypesMain={appointmentTypesMain} onSubmit={(blockData) => {
