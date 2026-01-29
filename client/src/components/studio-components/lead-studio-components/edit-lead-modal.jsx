@@ -500,7 +500,7 @@ const EditLeadModal = ({
 
   return (
     <div 
-      className="fixed inset-0 bg-black/50 flex p-2 justify-center items-center z-50 overflow-y-auto"
+      className="fixed inset-0 bg-black/50 flex p-2 justify-center items-center z-[1000002] overflow-y-auto"
     >
       <div 
         className="bg-[#1C1C1C] p-6 rounded-xl w-full max-w-md my-8"

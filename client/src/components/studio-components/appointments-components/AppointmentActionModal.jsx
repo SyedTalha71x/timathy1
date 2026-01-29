@@ -1,8 +1,9 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
 import React, { useState } from "react";
-import { X, Edit, User, Ban, Trash2, AlertTriangle } from "lucide-react";
+import { X, Edit, User, Ban, Trash2, AlertTriangle, Users } from "lucide-react";
 import { MemberSpecialNoteIcon } from '../../shared/shared-special-note-icon';
+import { useNavigate } from "react-router-dom";
 
 // Helper to parse date from appointment format "Mon | 27-01-2025" to Date object
 const parseDateFromAppointment = (dateString) => {
@@ -43,10 +44,15 @@ export default function AppointmentActionModal({
   onDelete,         // Optional: separate delete handler for cancelled appointments
   onViewMember,
   onEditMemberNote, // Callback to open EditMemberModal with specific tab
+  onOpenEditLeadModal, // Callback to open EditLeadModal with specific tab
+  // Relations data
+  memberRelations = {},
+  leadRelations = {},
   // Optional: direct state access for internal handling
   appointmentsMain,
   setAppointmentsMain,
 }) {
+  const navigate = useNavigate();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showNotifyModal, setShowNotifyModal] = useState(false);
   const [emailNotification, setEmailNotification] = useState(true);
@@ -60,6 +66,9 @@ export default function AppointmentActionModal({
   const isCancelled = appointmentData.isCancelled || appointmentData.status === "cancelled";
   const isBlocked = appointmentData.isBlocked || appointmentData.type === "Blocked Time";
   
+  // Check if this is a Lead (Trial Training with leadId)
+  const isLead = appointmentData.isTrial && appointmentData.leadId;
+  
   // Get member info
   const firstName = appointmentData.firstName || appointmentData.name?.split(" ")[0] || "";
   const lastName = appointmentData.lastName || appointmentData.name?.split(" ")[1] || "";
@@ -69,8 +78,54 @@ export default function AppointmentActionModal({
 
   // Handle clicking on special note icon
   const handleEditNote = (memberData, tab) => {
-    if (onEditMemberNote) {
+    if (isLead && onOpenEditLeadModal) {
+      // For leads, open Edit Lead Modal
+      onOpenEditLeadModal(appointmentData.leadId, tab || "note");
+    } else if (onEditMemberNote) {
       onEditMemberNote(memberData, tab || "note");
+    }
+  };
+
+  // Get relations count for member or lead
+  const getRelationsCount = () => {
+    const relations = isLead 
+      ? leadRelations[appointmentData.leadId] 
+      : memberRelations[appointmentData.memberId];
+    if (!relations) return 0;
+    return Object.values(relations).reduce((total, categoryRelations) => total + categoryRelations.length, 0);
+  };
+
+  // Handle clicking on relations button
+  const handleRelationsClick = () => {
+    if (isLead && onOpenEditLeadModal) {
+      // For leads, open Edit Lead Modal with relations tab
+      onOpenEditLeadModal(appointmentData.leadId, "relations");
+    } else if (onEditMemberNote) {
+      // For members, open Edit Member Modal with relations tab
+      onEditMemberNote({
+        ...appointmentData,
+        firstName,
+        lastName,
+        id: appointmentData.memberId,
+      }, "relations");
+    }
+  };
+
+  // Handle View Profile - navigate to Members or Leads page
+  const handleViewProfile = () => {
+    onClose();
+    
+    if (isLead) {
+      // Navigate to Leads page with filter
+      navigate('/dashboard/leads', {
+        state: {
+          filterLeadId: appointmentData.leadId,
+          filterLeadName: fullName
+        }
+      });
+    } else if (onViewMember) {
+      // Use existing handler for members
+      onViewMember();
     }
   };
 
@@ -161,8 +216,8 @@ export default function AppointmentActionModal({
               />
             )}
             
-            {/* Avatar */}
-            {!isBlocked && (
+            {/* Avatar - Hide for Leads, show for Members */}
+            {!isBlocked && !isLead && (
               appointmentData.image || appointmentData.avatar || appointmentData.logo ? (
                 <img 
                   src={appointmentData.image || appointmentData.avatar || appointmentData.logo} 
@@ -180,8 +235,25 @@ export default function AppointmentActionModal({
             
             {/* Name and Details */}
             <div className="flex-1 min-w-0">
-              <h3 className="text-white font-medium truncate">{fullName}</h3>
-              <p className="text-gray-400 text-sm">{appointmentData.type}</p>
+              <div className="flex items-center gap-2">
+                <h3 className="text-white font-medium truncate">{fullName}</h3>
+                {/* Relations Button - for both members and leads */}
+                {!isBlocked && (
+                  <button 
+                    onClick={handleRelationsClick}
+                    className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 px-1.5 py-0.5 rounded transition-colors"
+                    title="View Relations"
+                  >
+                    <Users size={12} />
+                    <span>{getRelationsCount()}</span>
+                  </button>
+                )}
+              </div>
+              <p className="text-gray-400 text-sm">
+                {appointmentData.isTrial && appointmentData.trialType 
+                  ? `Trial Training • ${appointmentData.trialType}` 
+                  : appointmentData.type}
+              </p>
               <p className="text-gray-400 text-sm">
                 {appointmentData.date && appointmentData.date.split("|")[1]?.trim()} • {appointmentData.startTime} - {appointmentData.endTime}
               </p>
@@ -237,7 +309,7 @@ export default function AppointmentActionModal({
             {/* View Full Profile - Blue (only show if not blocked) */}
             {!isBlocked && (
               <button
-                onClick={onViewMember}
+                onClick={handleViewProfile}
                 className="w-full px-5 py-3 bg-blue-600 hover:bg-blue-700 text-sm font-medium text-white rounded-xl cursor-pointer transition-colors flex items-center justify-center"
               >
                 <User className="mr-2" size={16} /> View Full Profile
@@ -299,7 +371,7 @@ export default function AppointmentActionModal({
             onClick={(e) => e.stopPropagation()}
           >
             <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-              <h2 className="text-lg font-semibold text-white">Notify Member</h2>
+              <h2 className="text-lg font-semibold text-white">Notify {isLead ? "Lead" : "Member"}</h2>
               <button onClick={handleCancelNotify} className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg">
                 <X size={20} />
               </button>
@@ -307,14 +379,19 @@ export default function AppointmentActionModal({
 
             <div className="p-6">
               <p className="text-white text-sm">
-                <span className="font-semibold text-orange-400">{fullName}'s</span> appointment on{" "}
+                <span className="font-semibold text-orange-400">{fullName}'s</span>{" "}
+                <span className="text-gray-400">
+                  ({appointmentData.isTrial && appointmentData.trialType 
+                    ? `Trial Training • ${appointmentData.trialType}` 
+                    : appointmentData.type})
+                </span> appointment on{" "}
                 <span className="font-semibold text-orange-400">
                   {appointmentData.date && parseDateFromAppointment(appointmentData.date)?.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
                 </span> at{" "}
                 <span className="font-semibold text-orange-400">{appointmentData.time || `${appointmentData.startTime} - ${appointmentData.endTime}`}</span>{" "}
                 will be <span className="font-semibold text-red-400">cancelled</span>.
                 <br /><br />
-                Do you want to notify the member about this cancellation?
+                Do you want to notify the {isLead ? "lead" : "member"} about this cancellation?
               </p>
 
               {/* Notification Options */}
@@ -329,15 +406,18 @@ export default function AppointmentActionModal({
                   <span className="text-white text-sm">Email Notification</span>
                 </label>
                 
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={pushNotification}
-                    onChange={(e) => setPushNotification(e.target.checked)}
-                    className="w-4 h-4 text-orange-500 bg-gray-700 border-gray-600 rounded focus:ring-orange-500 focus:ring-2"
-                  />
-                  <span className="text-white text-sm">App Push Notification</span>
-                </label>
+                {/* App Push Notification - only for members, not leads */}
+                {!isLead && (
+                  <label className="flex items-center gap-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={pushNotification}
+                      onChange={(e) => setPushNotification(e.target.checked)}
+                      className="w-4 h-4 text-orange-500 bg-gray-700 border-gray-600 rounded focus:ring-orange-500 focus:ring-2"
+                    />
+                    <span className="text-white text-sm">App Push Notification</span>
+                  </label>
+                )}
               </div>
             </div>
 
@@ -361,7 +441,7 @@ export default function AppointmentActionModal({
                   onClick={() => handleConfirmCancel(true)}
                   className="w-full sm:w-auto px-5 py-2.5 bg-orange-500 text-sm font-medium text-white rounded-xl hover:bg-orange-600 transition-colors"
                 >
-                  Yes, Notify Member
+                  Yes, Notify {isLead ? "Lead" : "Member"}
                 </button>
               </div>
             </div>

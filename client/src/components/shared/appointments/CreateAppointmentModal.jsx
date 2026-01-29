@@ -237,8 +237,21 @@ const AddAppointmentModal = ({
   memberCredits = null, currentBillingPeriod = "March 2025",
   onOpenEditMemberModal, // Callback to open EditMemberModal with specific tab
   memberRelations = {}, // Relations data for members
+  selectedDate = null, // Pre-selected date from MiniCalendar
 }) => {
   if (!isOpen) return null;
+  
+  // Format selectedDate to YYYY-MM-DD string
+  const getFormattedDate = (date) => {
+    if (!date) return "";
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+  
+  const initialDate = getFormattedDate(selectedDate);
   
   const [showRecurringOptions, setShowRecurringOptions] = useState(false);
   const [showNotifyModal, setShowNotifyModal] = useState(false);
@@ -246,7 +259,7 @@ const AddAppointmentModal = ({
   const [emailNotification, setEmailNotification] = useState(true);
   const [pushNotification, setPushNotification] = useState(true);
   
-  const [appointmentData, setAppointmentData] = useState({ date: "", timeSlot: "", type: "", members: selectedMemberMain ? [{
+  const [appointmentData, setAppointmentData] = useState({ date: initialDate, timeSlot: "", type: "", members: selectedMemberMain ? [{
     id: selectedMemberMain.id, name: selectedMemberMain.name || selectedMemberMain.title,
     firstName: selectedMemberMain.firstName, lastName: selectedMemberMain.lastName, image: selectedMemberMain.image,
     notes: selectedMemberMain.notes || [], note: selectedMemberMain.note || "",

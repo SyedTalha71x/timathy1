@@ -17,7 +17,8 @@ import NotifyMemberModal from "../../shared/appointments/NotifyMemberModal"
 import TypeSelectionModalMain from "./TypeSelectionModalMain"
 import EditBlockedSlotModalMain from "./EditBlockedSlotModalMain"
 import EditMemberModalMain from "../../studio-components/members-components/EditMemberModal"
-import { memberRelationsData, availableMembersLeadsMain, freeAppointmentsData, relationOptionsData as relationOptionsMain, appointmentTypesData, studioData, germanHolidaysData, isStudioClosedOnDate, getHolidayForDate, DEFAULT_CALENDAR_SETTINGS } from "../../../utils/studio-states"
+import EditLeadModal from "../../studio-components/lead-studio-components/edit-lead-modal"
+import { memberRelationsData, availableMembersLeadsMain, freeAppointmentsData, relationOptionsData as relationOptionsMain, appointmentTypesData, studioData, germanHolidaysData, isStudioClosedOnDate, getHolidayForDate, DEFAULT_CALENDAR_SETTINGS, leadsData } from "../../../utils/studio-states"
 
 
 import { useNavigate } from "react-router-dom"
@@ -156,6 +157,20 @@ const Calendar = forwardRef(({
     noteImportance: "unimportant",
     notes: [],
   })
+
+  // EditLeadModal state for special notes and relations from appointment modals
+  const [isEditLeadModalOpen, setIsEditLeadModalOpen] = useState(false)
+  const [selectedLeadForEdit, setSelectedLeadForEdit] = useState(null)
+  const [editLeadActiveTab, setEditLeadActiveTab] = useState("note")
+  const [leadRelationsMain, setLeadRelationsMain] = useState({})
+  const [leadColumnsData] = useState([
+    { id: "new", title: "New" },
+    { id: "contacted", title: "Contacted" },
+    { id: "qualified", title: "Qualified" },
+    { id: "negotiation", title: "Negotiation" },
+    { id: "won", title: "Won" },
+    { id: "lost", title: "Lost" },
+  ])
 
   // Sync editFormMain with selectedMemberForEdit data
   useEffect(() => {
@@ -353,6 +368,12 @@ const Calendar = forwardRef(({
 
   const handleMonthViewAppointmentClick = (appointment, e) => {
     e.stopPropagation()
+    // If it's a blocked slot, open EditBlockedSlotModal directly
+    if (appointment.isBlocked || appointment.type === "Blocked Time") {
+      setBlockedEditData({ ...appointment })
+      setIsEditBlockedModalOpen(true)
+      return
+    }
     setSelectedAppointment(appointment)
     setIsAppointmentActionModalOpen(true)
   }
@@ -447,7 +468,14 @@ const Calendar = forwardRef(({
           name: fullName,
           date: formattedDate,
           time: `${appointment.startTime || "N/A"} - ${appointment.endTime || "N/A"}`,
-          type: appointment.type || event.extendedProps?.type || "N/A",
+          type: appointment.isTrial && appointment.trialType 
+            ? `Trial Training • ${appointment.trialType}` 
+            : (appointment.type || event.extendedProps?.type || "N/A"),
+          // Include note for blocked slots
+          note: (appointment.isBlocked || appointment.type === "Blocked Time") 
+            ? (appointment.specialNote?.text || "") 
+            : null,
+          isBlocked: appointment.isBlocked || appointment.type === "Blocked Time",
         },
       })
     }, 150); // 150ms delay - prevents tooltip when quickly moving across screen
@@ -570,6 +598,7 @@ const Calendar = forwardRef(({
     const originalAppointment = appointmentsMain.find(app => app.id === appointmentId);
     if (originalAppointment) {
       setOriginalEventData({
+        ...originalAppointment, // Store full appointment data including isTrial, leadId, trialType
         id: appointmentId,
         startTime: originalAppointment.startTime,
         endTime: originalAppointment.endTime,
@@ -577,7 +606,7 @@ const Calendar = forwardRef(({
       });
     }
     
-    // Update state immediately (so the event stays at new position after re-render)
+    // Update state immediately (so the event stays at new position visually in calendar)
     const updatedAppointments = appointmentsMain.map((appointment) => {
       if (appointment.id === appointmentId) {
         return { 
@@ -585,6 +614,11 @@ const Calendar = forwardRef(({
           startTime: event.start.toTimeString().split(" ")[0].substring(0, 5),
           endTime: new Date(event.start.getTime() + duration).toTimeString().split(" ")[0].substring(0, 5),
           date: `${event.start.toLocaleString("en-US", { weekday: "short" })} | ${formatDate(event.start)}`,
+          // Store original time for Upcoming list sorting - it should keep showing at original position
+          _pendingMove: {
+            originalStartTime: originalAppointment?.startTime,
+            originalDate: originalAppointment?.date,
+          },
         };
       }
       return appointment;
@@ -634,8 +668,18 @@ const Calendar = forwardRef(({
   const handleNotifyMember = (shouldNotify) => {
     setIsNotifyMemberOpen(false)
     if (pendingEventInfo && notifyAction === "change") {
-      // State was already updated in handleEventDrop
-      // Just clear the pending data (user confirmed the change)
+      // User confirmed - remove the _pendingMove flag
+      const appointmentId = Number(pendingEventInfo.event.id);
+      const updatedAppointments = appointmentsMain.map((appointment) => {
+        if (appointment.id === appointmentId) {
+          const { _pendingMove, ...rest } = appointment;
+          return rest; // Remove _pendingMove flag
+        }
+        return appointment;
+      });
+      setAppointmentsMain(updatedAppointments);
+      
+      // Clear pending data
       setPendingEventInfo(null);
       setOriginalEventData(null);
     } else if (notifyAction === "cancel" && selectedAppointment) {
@@ -651,7 +695,16 @@ const Calendar = forwardRef(({
     }
     const appointmentId = Number.parseInt(clickInfo.event.id)
     const appointment = appointmentsMain?.find((app) => app.id === appointmentId)
-    if (appointment) { setSelectedAppointment(appointment); setIsAppointmentActionModalOpen(true) }
+    if (appointment) { 
+      // If it's a blocked slot, open EditBlockedSlotModal directly
+      if (appointment.isBlocked || appointment.type === "Blocked Time") {
+        setBlockedEditData({ ...appointment })
+        setIsEditBlockedModalOpen(true)
+        return
+      }
+      setSelectedAppointment(appointment)
+      setIsAppointmentActionModalOpen(true) 
+    }
     if (onEventClick) onEventClick(clickInfo)
   }
 
@@ -730,6 +783,30 @@ const Calendar = forwardRef(({
     setSelectedMemberForEdit(member);
     setEditMemberActiveTab(tab);
     setIsEditMemberModalOpen(true);
+  };
+
+  // Handler to open Edit Lead Modal from appointment modals (for special notes and relations)
+  const handleOpenEditLeadModal = (leadId, tab = "note") => {
+    // Find the lead data by ID
+    const lead = leadsData.find(l => l.id === leadId);
+    if (!lead) {
+      console.warn("Lead not found:", leadId);
+      return;
+    }
+    
+    // Set the selected lead and active tab
+    setSelectedLeadForEdit(lead);
+    setEditLeadActiveTab(tab);
+    setIsEditLeadModalOpen(true);
+  };
+
+  // Handler to save changes from EditLeadModal
+  const handleEditLeadSubmit = (updatedLeadData) => {
+    // Here you would update the lead data in your state/backend
+    console.log("Lead updated:", updatedLeadData);
+    setIsEditLeadModalOpen(false);
+    setSelectedLeadForEdit(null);
+    toast.success("Lead details have been updated successfully");
   };
 
   const handleAddAppointmentSubmit = (data) => {
@@ -944,11 +1021,21 @@ const Calendar = forwardRef(({
         textColor = "#666666"
       }
 
+      const isBlockedEvent = appointment.isBlocked || appointment.type === "Blocked Time";
+      
       return {
         id: appointment.id, title: appointment.name, start: startDateTimeStr, end: endDateTimeStr,
         backgroundColor, borderColor, textColor, isPast: isPastEvent, isCancelled: isCancelledEvent,
-        extendedProps: { type: appointment.type || "Unknown", isPast: isPastEvent, isCancelled: isCancelledEvent,
-          originalColor: appointment.color?.split("bg-[")[1]?.slice(0, -1) || "#4169E1", viewMode, appointment },
+        editable: !isBlockedEvent, // Blocked events cannot be dragged
+        extendedProps: { 
+          type: appointment.type || "Unknown", 
+          isPast: isPastEvent, 
+          isCancelled: isCancelledEvent,
+          isBlocked: isBlockedEvent,
+          originalColor: appointment.color?.split("bg-[")[1]?.slice(0, -1) || "#4169E1", 
+          viewMode, 
+          appointment 
+        },
       }
     }).filter(Boolean),
     // Only show free slots when viewMode is "free"
@@ -1105,6 +1192,30 @@ const Calendar = forwardRef(({
         /* Vergangene Termine - abgeschwÃƒÆ'Ã†â€™Ãƒâ€šÃ‚Â¤cht */
         .past-event {
           opacity: 0.45;
+        }
+        /* Blocked time slots - like cancelled events but in red */
+        .blocked-event {
+          position: relative;
+          opacity: 0.65;
+          background-color: #dc2626 !important;
+          border-color: #b91c1c !important;
+        }
+        .blocked-event::after {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: repeating-linear-gradient(
+            135deg,
+            transparent,
+            transparent 3px,
+            rgba(255, 255, 255, 0.15) 3px,
+            rgba(255, 255, 255, 0.15) 6px
+          );
+          pointer-events: none;
+          border-radius: inherit;
         }
         /* Closed days (weekends, holidays, and custom closing days) - unified intense styling */
         .fc-day-closed {
@@ -1329,6 +1440,12 @@ const Calendar = forwardRef(({
             <div className="text-xs text-gray-300 mb-0.5">{tooltip.content.time}</div>
             <div className="text-xs text-gray-300 mb-1">{tooltip.content.date}</div>
             <div className="text-xs text-white">{tooltip.content.type}</div>
+            {/* Show note for blocked slots */}
+            {tooltip.content.note && (
+              <div className="text-xs text-yellow-300 mt-2 pt-2 border-t border-gray-600 italic">
+                {tooltip.content.note}
+              </div>
+            )}
           </div>
           {/* Pfeil nach unten */}
           <div className="w-full flex justify-center -mt-[1px]">
@@ -1583,6 +1700,12 @@ const Calendar = forwardRef(({
                             opacity = 0.45
                           } else if (apt.isBlocked || apt.type === "Blocked Time") { 
                             bg = "#dc2626"
+                            opacity = 0.65
+                            // Add diagonal stripes for blocked slots (like cancelled but red)
+                            extraStyle = {
+                              backgroundImage: 'linear-gradient(135deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent)',
+                              backgroundSize: '8px 8px'
+                            }
                           }
                           
                           return (
@@ -1610,6 +1733,7 @@ const Calendar = forwardRef(({
                               onMouseEnter={(e) => { 
                                 e.stopPropagation(); 
                                 const rect = e.currentTarget.getBoundingClientRect(); 
+                                const isBlockedSlot = apt.isBlocked || apt.type === "Blocked Time";
                                 setTooltip({ 
                                   show: true, 
                                   x: rect.left + rect.width / 2, 
@@ -1618,7 +1742,12 @@ const Calendar = forwardRef(({
                                     name: fullName, 
                                     date: formattedDate.split('-').join(' '), 
                                     time: `${apt.startTime || "N/A"} - ${apt.endTime || "N/A"}`, 
-                                    type: apt.type || "N/A" 
+                                    type: apt.isTrial && apt.trialType 
+                                      ? `Trial Training • ${apt.trialType}` 
+                                      : (apt.type || "N/A"),
+                                    // Include note for blocked slots
+                                    note: isBlockedSlot ? (apt.specialNote?.text || "") : null,
+                                    isBlocked: isBlockedSlot,
                                   } 
                                 }) 
                               }}
@@ -1711,6 +1840,8 @@ const Calendar = forwardRef(({
                 const name = appointment?.name || eventInfo.event.title || '';
                 const lastName = appointment?.lastName || '';
                 const fullName = lastName ? `${name} ${lastName}` : name;
+                const isBlocked = appointment?.isBlocked || appointment?.type === "Blocked Time";
+                const blockNote = isBlocked ? (appointment?.specialNote?.text || "") : "";
                 
                 return (
                   <div className="px-1 pt-[2px] overflow-hidden">
@@ -1722,6 +1853,12 @@ const Calendar = forwardRef(({
                     <div className="text-[9px] text-white/80">
                       {startTime}{endTime ? ` - ${endTime}` : ''}
                     </div>
+                    {/* Show note for blocked slots */}
+                    {isBlocked && blockNote && (
+                      <div className="text-[8px] text-yellow-200/90 mt-0.5 leading-tight overflow-hidden" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                        {blockNote}
+                      </div>
+                    )}
                   </div>
                 );
               }}
@@ -1738,23 +1875,45 @@ const Calendar = forwardRef(({
         </div>
       </div>
 
-      {showCreateAppointmentModal && <CreateAppointmentModal isOpen={showCreateAppointmentModal} onClose={() => setShowCreateAppointmentModal(false)} appointmentTypesMain={appointmentTypesMain} onSubmit={handleAddAppointmentSubmit} setIsNotifyMemberOpen={setIsNotifyMemberOpen} setNotifyAction={setNotifyAction} freeAppointmentsMain={freeAppointments} availableMembersLeads={availableMembersLeadsMain} onOpenEditMemberModal={handleOpenEditMemberModal} memberRelations={memberRelationsData} />}
-      {isAppointmentModalOpen && <CreateAppointmentModal isOpen={isAppointmentModalOpen} onClose={() => setIsAppointmentModalOpen(false)} appointmentTypesMain={appointmentTypesMain} onSubmit={handleAppointmentSubmit} setIsNotifyMemberOpen={setIsNotifyMemberOpen} setNotifyAction={setNotifyAction} freeAppointmentsMain={freeAppointments} availableMembersLeads={availableMembersLeadsMain} onOpenEditMemberModal={handleOpenEditMemberModal} memberRelations={memberRelationsData} />}
+      {showCreateAppointmentModal && <CreateAppointmentModal isOpen={showCreateAppointmentModal} onClose={() => setShowCreateAppointmentModal(false)} appointmentTypesMain={appointmentTypesMain} onSubmit={handleAddAppointmentSubmit} setIsNotifyMemberOpen={setIsNotifyMemberOpen} setNotifyAction={setNotifyAction} freeAppointmentsMain={freeAppointments} availableMembersLeads={availableMembersLeadsMain} onOpenEditMemberModal={handleOpenEditMemberModal} memberRelations={memberRelationsData} selectedDate={selectedDate} />}
+      {isAppointmentModalOpen && <CreateAppointmentModal isOpen={isAppointmentModalOpen} onClose={() => setIsAppointmentModalOpen(false)} appointmentTypesMain={appointmentTypesMain} onSubmit={handleAppointmentSubmit} setIsNotifyMemberOpen={setIsNotifyMemberOpen} setNotifyAction={setNotifyAction} freeAppointmentsMain={freeAppointments} availableMembersLeads={availableMembersLeadsMain} onOpenEditMemberModal={handleOpenEditMemberModal} memberRelations={memberRelationsData} selectedDate={selectedDate} />}
       <TrialTrainingModal isOpen={isTrialModalOpen} onClose={() => setIsTrialModalOpen(false)} freeAppointments={freeAppointments} onSubmit={handleTrialSubmit} />
-      <BlockAppointmentModal isOpen={isBlockModalOpen} onClose={() => setIsBlockModalOpen(false)} appointmentTypesMain={appointmentTypesMain} selectedDate={selectedDate || new Date()} onSubmit={(blockData) => {
-        const newBlock = { id: appointmentsMain.length + 1, name: "BLOCKED", time: `${blockData.startTime} - ${blockData.endTime}`, date: `${new Date(blockData.date).toLocaleString("en-US", { weekday: "short" })} | ${formatDateForDisplay(new Date(blockData.date))}`, color: "bg-[#FF4D4F]", startTime: blockData.startTime, endTime: blockData.endTime, type: "Blocked Time", specialNote: { text: blockData.note || "This time slot is blocked", startDate: null, endDate: null, isImportant: true }, status: "blocked", isBlocked: true, isCancelled: false, isPast: false }
+      <BlockAppointmentModal isOpen={isBlockModalOpen} onClose={() => setIsBlockModalOpen(false)} selectedDate={selectedDate || new Date()} onSubmit={(blockData) => {
+        // Use formatDate (with dashes) - Calendar expects format: "Wed | 29-01-2025"
+        const newBlock = { 
+          id: appointmentsMain.length + 1, 
+          name: "BLOCKED", 
+          time: `${blockData.startTime} - ${blockData.endTime}`, 
+          date: `${new Date(blockData.startDate).toLocaleString("en-US", { weekday: "short" })} | ${formatDate(new Date(blockData.startDate))}`, 
+          color: "bg-[#dc2626]", 
+          startTime: blockData.startTime, 
+          endTime: blockData.endTime, 
+          type: "Blocked Time", 
+          specialNote: { 
+            text: blockData.note || "", 
+            startDate: blockData.startDate, 
+            endDate: blockData.endDate, 
+            isImportant: true 
+          }, 
+          status: "blocked", 
+          isBlocked: true, 
+          isCancelled: false, 
+          isPast: false 
+        }
         setAppointmentsMain([...appointmentsMain, newBlock]); setIsBlockModalOpen(false)
       }} />
       <TypeSelectionModalMain isOpen={isTypeSelectionOpen} onClose={() => setIsTypeSelectionOpen(false)} onSelect={handleTypeSelection} />
-      <AppointmentActionModal isOpen={isAppointmentActionModalOpen} appointment={selectedAppointment} onClose={() => setIsAppointmentActionModalOpen(false)} onEdit={handleEditAppointment} onCancel={handleCancelAppointment} onDelete={handleDeleteCancelledAppointment} onViewMember={handleViewMemberDetails} onEditMemberNote={handleOpenEditMemberModal} appointmentsMain={appointmentsMain} setAppointmentsMain={setAppointmentsMain} />
+      <AppointmentActionModal isOpen={isAppointmentActionModalOpen} appointment={selectedAppointment} onClose={() => setIsAppointmentActionModalOpen(false)} onEdit={handleEditAppointment} onCancel={handleCancelAppointment} onDelete={handleDeleteCancelledAppointment} onViewMember={handleViewMemberDetails} onEditMemberNote={handleOpenEditMemberModal} onOpenEditLeadModal={handleOpenEditLeadModal} memberRelations={localMemberRelations} leadRelations={leadRelationsMain} appointmentsMain={appointmentsMain} setAppointmentsMain={setAppointmentsMain} />
       <NotifyMemberModal isOpen={isNotifyMemberOpen} onClose={() => { 
         setIsNotifyMemberOpen(false); 
-        if (pendingEventInfo && originalEventData) { 
-          // Revert the state to original data
+        if (pendingEventInfo && originalEventData && notifyAction === "change") { 
+          // User cancelled - revert the state to original data
           const restoredAppointments = appointmentsMain.map((appointment) => {
             if (appointment.id === originalEventData.id) {
+              // Restore original values and remove _pendingMove flag
+              const { _pendingMove, ...rest } = appointment;
               return { 
-                ...appointment,
+                ...rest,
                 startTime: originalEventData.startTime,
                 endTime: originalEventData.endTime,
                 date: originalEventData.date,
@@ -1766,13 +1925,29 @@ const Calendar = forwardRef(({
           setPendingEventInfo(null);
           setOriginalEventData(null);
         } 
-      }} notifyAction={notifyAction} pendingEventInfo={pendingEventInfo} actuallyHandleCancelAppointment={actuallyHandleCancelAppointment} handleNotifyMember={handleNotifyMember} setPendingEventInfo={setPendingEventInfo} />
-      {isEditBlockedModalOpen && blockedEditData && <EditBlockedSlotModalMain isOpen={isEditBlockedModalOpen} onClose={() => setIsEditBlockedModalOpen(false)} initialBlock={blockedEditData} appointmentTypesMain={appointmentTypesMain} onSubmit={(blockData) => {
-        const newDateString = `${new Date(blockData.startDate).toLocaleString("en-US", { weekday: "short" })} | ${formatDateForDisplay(new Date(blockData.startDate))}`
-        setAppointmentsMain(appointmentsMain.map((apt) => apt.id === blockedEditData.id ? { ...apt, startTime: blockData.startTime, endTime: blockData.endTime, date: newDateString, specialNote: { ...(apt.specialNote || {}), text: blockData.note || apt.specialNote?.text || "", isImportant: apt.specialNote?.isImportant ?? true } } : apt))
+      }} notifyAction={notifyAction} pendingEventInfo={pendingEventInfo} appointment={originalEventData} actuallyHandleCancelAppointment={actuallyHandleCancelAppointment} handleNotifyMember={handleNotifyMember} setPendingEventInfo={setPendingEventInfo} />
+      {isEditBlockedModalOpen && blockedEditData && <EditBlockedSlotModalMain isOpen={isEditBlockedModalOpen} onClose={() => { setIsEditBlockedModalOpen(false); setBlockedEditData(null); }} initialBlock={blockedEditData} onDelete={(id) => {
+        setAppointmentsMain(appointmentsMain.filter((apt) => apt.id !== id));
+        setIsEditBlockedModalOpen(false);
+        setBlockedEditData(null);
+      }} onSubmit={(blockData) => {
+        // Use formatDate (with dashes) for calendar compatibility
+        const newDateString = `${new Date(blockData.startDate).toLocaleString("en-US", { weekday: "short" })} | ${formatDate(new Date(blockData.startDate))}`
+        setAppointmentsMain(appointmentsMain.map((apt) => apt.id === blockedEditData.id ? { 
+          ...apt, 
+          startTime: blockData.startTime, 
+          endTime: blockData.endTime, 
+          date: newDateString, 
+          time: `${blockData.startTime} - ${blockData.endTime}`,
+          specialNote: { 
+            ...(apt.specialNote || {}), 
+            text: blockData.note || apt.specialNote?.text || "", 
+            isImportant: apt.specialNote?.isImportant ?? true 
+          },
+        } : apt))
         setIsEditBlockedModalOpen(false); setBlockedEditData(null); 
       }} />}
-      {showSelectedAppointmentModal && selectedAppointmentData && <EditAppointmentModalMain selectedAppointmentMain={selectedAppointmentData} setSelectedAppointmentMain={setSelectedAppointmentData} appointmentTypesMain={appointmentTypesMain} freeAppointmentsMain={freeAppointments} handleAppointmentChange={(changes) => setSelectedAppointmentData({ ...selectedAppointmentData, ...changes })} appointmentsMain={appointmentsMain} setAppointmentsMain={setAppointmentsMain} setIsNotifyMemberOpenMain={setIsNotifyMemberOpen} setNotifyActionMain={setNotifyAction} onDelete={handleDeleteAppointment} onOpenEditMemberModal={handleOpenEditMemberModal} memberRelations={memberRelationsData} />}
+      {showSelectedAppointmentModal && selectedAppointmentData && <EditAppointmentModalMain selectedAppointmentMain={selectedAppointmentData} setSelectedAppointmentMain={setSelectedAppointmentData} appointmentTypesMain={appointmentTypesMain} freeAppointmentsMain={freeAppointments} handleAppointmentChange={(changes) => setSelectedAppointmentData({ ...selectedAppointmentData, ...changes })} appointmentsMain={appointmentsMain} setAppointmentsMain={setAppointmentsMain} setIsNotifyMemberOpenMain={setIsNotifyMemberOpen} setNotifyActionMain={setNotifyAction} onDelete={handleDeleteAppointment} onOpenEditMemberModal={handleOpenEditMemberModal} onOpenEditLeadModal={handleOpenEditLeadModal} memberRelations={memberRelationsData} leadRelations={leadRelationsMain} />}
       {showAllAppointmentsModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={handleCloseAllAppointmentsModal}>
           <div className="bg-[#181818] rounded-xl shadow-xl w-full max-w-md max-h-[80vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
@@ -1803,6 +1978,12 @@ const Calendar = forwardRef(({
                       opacity = 0.6;
                     } else if (apt.isBlocked || apt.type === "Blocked Time") {
                       bgColor = "#dc2626";
+                      opacity = 0.65;
+                      // Add diagonal stripes like cancelled but red
+                      extraStyle = {
+                        backgroundImage: 'linear-gradient(135deg, rgba(255,255,255,0.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0.15) 75%, transparent 75%, transparent)',
+                        backgroundSize: '10px 10px'
+                      };
                     }
                     
                     return (
@@ -1810,13 +1991,25 @@ const Calendar = forwardRef(({
                         key={apt.id} 
                         className="rounded-xl p-3 hover:opacity-90 transition-colors cursor-pointer"
                         style={{ backgroundColor: bgColor, opacity: opacity, ...extraStyle }}
-                        onClick={() => { setSelectedAppointment(apt); setIsAppointmentActionModalOpen(true); handleCloseAllAppointmentsModal() }}
+                        onClick={() => { 
+                          // If blocked slot, open EditBlockedSlotModal directly
+                          if (apt.isBlocked || apt.type === "Blocked Time") {
+                            setBlockedEditData({ ...apt });
+                            setIsEditBlockedModalOpen(true);
+                          } else {
+                            setSelectedAppointment(apt); 
+                            setIsAppointmentActionModalOpen(true); 
+                          }
+                          handleCloseAllAppointmentsModal() 
+                        }}
                       >
                         <div className="flex justify-between items-start">
                           <div>
                             <p className="font-medium text-sm text-white">{fullName}</p>
                             <p className="text-xs text-white/70 mt-1">
-                              {apt.type}
+                              {apt.isTrial && apt.trialType 
+                                ? `Trial Training • ${apt.trialType}` 
+                                : apt.type}
                               {apt.isCancelled && " (Cancelled)"}
                               {(apt.isBlocked || apt.type === "Blocked Time") && " (Blocked)"}
                             </p>
@@ -1861,6 +2054,23 @@ const Calendar = forwardRef(({
           handleAddRelationMain={handleAddRelationMain}
           memberRelationsMain={localMemberRelations}
           handleDeleteRelationMain={handleDeleteRelationMain}
+        />
+      )}
+      {/* EditLeadModal for special notes and relations from appointment modals */}
+      {isEditLeadModalOpen && selectedLeadForEdit && (
+        <EditLeadModal
+          isVisible={isEditLeadModalOpen}
+          onClose={() => { 
+            setIsEditLeadModalOpen(false); 
+            setSelectedLeadForEdit(null);
+          }}
+          onSave={handleEditLeadSubmit}
+          leadData={selectedLeadForEdit}
+          memberRelationsLead={leadRelationsMain[selectedLeadForEdit?.id] || {}}
+          setMemberRelationsLead={(relations) => setLeadRelationsMain(prev => ({ ...prev, [selectedLeadForEdit?.id]: relations }))}
+          availableMembersLeads={availableMembersLeadsMain}
+          columns={leadColumnsData}
+          initialTab={editLeadActiveTab}
         />
       )}
       <Toaster position="top-right" />

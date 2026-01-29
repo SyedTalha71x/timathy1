@@ -66,7 +66,7 @@ const InitialsAvatar = ({ firstName, lastName, name, size = 32, className = "" }
 };
 
 // Custom Appointment Type Dropdown with Colors
-const AppointmentTypeDropdown = ({ value, onChange, appointmentTypes = [], showTrialTypes = false }) => {
+const AppointmentTypeDropdown = ({ value, onChange, appointmentTypes = [], showTrialTypes = false, hideDuration = false }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -92,7 +92,7 @@ const AppointmentTypeDropdown = ({ value, onChange, appointmentTypes = [], showT
           <div className="flex items-center gap-3">
             <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: getColorHex(selectedType) }} />
             <span className="text-white">{selectedType.name}</span>
-            <span className="text-gray-500 text-xs">({selectedType.duration} min)</span>
+            {!hideDuration && <span className="text-gray-500 text-xs">({selectedType.duration} min)</span>}
           </div>
         ) : <span className="text-gray-500">Select type...</span>}
         <ChevronDown size={14} className={`text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
@@ -106,7 +106,7 @@ const AppointmentTypeDropdown = ({ value, onChange, appointmentTypes = [], showT
               <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: getColorHex(type) }} />
               <div className="flex-1">
                 <div className="text-sm text-white">{type.name}</div>
-                <div className="text-xs text-gray-500">{type.duration} min</div>
+                {!hideDuration && <div className="text-xs text-gray-500">{type.duration} min</div>}
               </div>
               {value === type.name && <Check size={16} className="text-green-500" />}
             </button>
@@ -130,7 +130,9 @@ const EditAppointmentModalMain = ({
   onDelete,
   onClose,
   onOpenEditMemberModal,
+  onOpenEditLeadModal,
   memberRelations = {},
+  leadRelations = {},
 }) => {
   if (!selectedAppointmentMain) return null;
 
@@ -140,8 +142,14 @@ const EditAppointmentModalMain = ({
   // Use startTime instead of time
   const currentTime = selectedAppointmentMain.startTime || selectedAppointmentMain.time || "";
   
+  // Check if this is a lead for initial state setup
+  const isLeadInit = selectedAppointmentMain.isTrial && selectedAppointmentMain.leadId;
+  
   // Store original values for change detection
-  const originalType = selectedAppointmentMain.type;
+  // For leads: use trialType, for members: use type
+  const originalType = isLeadInit 
+    ? (selectedAppointmentMain.trialType || selectedAppointmentMain.type)
+    : selectedAppointmentMain.type;
 
   const [showAlternatives, setShowAlternatives] = useState(false);
   const [alternativeSlots, setAlternativeSlots] = useState([]);
@@ -167,9 +175,13 @@ const EditAppointmentModalMain = ({
   useEffect(() => {
     const newParsedDate = parseDateFromAppointment(selectedAppointmentMain.date);
     const newTime = selectedAppointmentMain.startTime || selectedAppointmentMain.time || "";
+    const isLead = selectedAppointmentMain.isTrial && selectedAppointmentMain.leadId;
+    const newType = isLead 
+      ? (selectedAppointmentMain.trialType || selectedAppointmentMain.type)
+      : selectedAppointmentMain.type;
     setEditDate(newParsedDate);
     setEditTime(newTime);
-    setEditType(selectedAppointmentMain.type);
+    setEditType(newType);
     setOriginalDate(newParsedDate);
     setOriginalTime(newTime);
   }, [selectedAppointmentMain.id]);
@@ -251,9 +263,16 @@ const EditAppointmentModalMain = ({
   };
 
   const saveChanges = () => {
+    // Check if this is a lead (trial training with leadId)
+    const isLeadAppointment = selectedAppointmentMain.isTrial && selectedAppointmentMain.leadId;
+    
     // Calculate end time based on appointment type duration
+    // For leads: use Trial Training duration (60 min), not the trialType duration
     const selectedType = appointmentTypesMain.find(t => t.name === editType);
-    const duration = selectedType?.duration || 30;
+    const trialTrainingType = appointmentTypesMain.find(t => t.isTrialType || t.name === "Trial Training");
+    const duration = isLeadAppointment 
+      ? (trialTrainingType?.duration || 60) 
+      : (selectedType?.duration || 30);
     
     // Parse start time and calculate end time
     const [hours, minutes] = editTime.split(':').map(Number);
@@ -262,9 +281,12 @@ const EditAppointmentModalMain = ({
 
     const updatedAppointment = {
       ...selectedAppointmentMain,
-      type: editType,
-      color: selectedType?.color || selectedAppointmentMain.color,
-      colorHex: getColorHex(selectedType) || selectedAppointmentMain.colorHex,
+      // For leads: keep type as original, update trialType. For members: update type
+      type: isLeadAppointment ? selectedAppointmentMain.type : editType,
+      trialType: isLeadAppointment ? editType : selectedAppointmentMain.trialType,
+      // For leads: KEEP original Trial Training color (blue). For members: use selected type color
+      color: isLeadAppointment ? selectedAppointmentMain.color : (selectedType?.color || selectedAppointmentMain.color),
+      colorHex: isLeadAppointment ? selectedAppointmentMain.colorHex : (getColorHex(selectedType) || selectedAppointmentMain.colorHex),
       date: formatDateForAppointment(editDate),
       startTime: editTime,
       endTime: endTime,
@@ -302,7 +324,7 @@ const EditAppointmentModalMain = ({
     
     // If notification was requested, you could handle it here or pass to parent
     if (shouldNotify) {
-      console.log(`Notification requested for ${notifyAction}:`, { email: emailNotification, push: pushNotification });
+      console.log(`Notification requested for ${notifyAction}:`, { email: emailNotification, push: !isLead && pushNotification });
     }
   };
 
@@ -342,20 +364,34 @@ const EditAppointmentModalMain = ({
   };
 
   const getRelationsCount = (memberId) => {
-    const relations = memberRelations[memberId];
+    // Check if this is a lead
+    const isLeadAppt = selectedAppointmentMain.isTrial && selectedAppointmentMain.leadId;
+    const relations = isLeadAppt 
+      ? leadRelations[selectedAppointmentMain.leadId] 
+      : memberRelations[memberId];
     if (!relations) return 0;
     return Object.values(relations).reduce((total, categoryRelations) => total + categoryRelations.length, 0);
   };
 
   const handleEditMemberNote = (member, tab) => {
-    if (onOpenEditMemberModal) {
+    // Check if this is a lead
+    const isLeadAppt = selectedAppointmentMain.isTrial && selectedAppointmentMain.leadId;
+    if (isLeadAppt && onOpenEditLeadModal) {
+      // For leads, pass leadId and open Edit Lead Modal
+      onOpenEditLeadModal(selectedAppointmentMain.leadId, tab || "note");
+    } else if (onOpenEditMemberModal) {
       onOpenEditMemberModal(member, tab || "note");
     }
   };
 
   const handleRelationsClick = (e) => {
     e.stopPropagation();
-    if (onOpenEditMemberModal) {
+    // Check if this is a lead
+    const isLeadAppt = selectedAppointmentMain.isTrial && selectedAppointmentMain.leadId;
+    if (isLeadAppt && onOpenEditLeadModal) {
+      // For leads, open Edit Lead Modal with relations tab
+      onOpenEditLeadModal(selectedAppointmentMain.leadId, "relations");
+    } else if (onOpenEditMemberModal) {
       onOpenEditMemberModal(memberData, "relations");
     }
   };
@@ -364,6 +400,16 @@ const EditAppointmentModalMain = ({
   const fullName = selectedAppointmentMain.lastName 
     ? `${selectedAppointmentMain.name} ${selectedAppointmentMain.lastName}` 
     : selectedAppointmentMain.name;
+
+  // Check if this is a lead (trial training with leadId)
+  const isLead = selectedAppointmentMain.isTrial && selectedAppointmentMain.leadId;
+  const entityLabel = isLead ? "lead" : "member";
+  const EntityLabel = isLead ? "Lead" : "Member";
+
+  // Get appointment type display with trialType
+  const appointmentTypeDisplay = selectedAppointmentMain.isTrial && selectedAppointmentMain.trialType
+    ? `Trial Training • ${selectedAppointmentMain.trialType}`
+    : selectedAppointmentMain.type;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000001] p-4" onClick={handleClose}>
@@ -384,7 +430,7 @@ const EditAppointmentModalMain = ({
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2 flex items-center gap-2">
               <User size={14} className="text-gray-500" />
-              Member
+              {isLead ? "Lead" : "Member"}
             </label>
             <div className="bg-[#222222] rounded-xl px-3 py-2.5 min-h-[52px] flex flex-wrap items-center gap-2">
               <div className="flex items-center gap-2 bg-[#2a2a2a] border border-gray-700 rounded-xl px-2.5 py-1.5">
@@ -396,21 +442,23 @@ const EditAppointmentModalMain = ({
                   position="relative"
                 />
                 
-                {/* Avatar */}
-                {selectedAppointmentMain.memberImage || selectedAppointmentMain.image ? (
-                  <img src={selectedAppointmentMain.memberImage || selectedAppointmentMain.image} alt="" className="w-7 h-7 rounded-lg object-cover" />
-                ) : (
-                  <InitialsAvatar 
-                    firstName={memberData.firstName} 
-                    lastName={memberData.lastName} 
-                    size={28} 
-                  />
+                {/* Avatar - only for members, not leads */}
+                {!isLead && (
+                  selectedAppointmentMain.memberImage || selectedAppointmentMain.image ? (
+                    <img src={selectedAppointmentMain.memberImage || selectedAppointmentMain.image} alt="" className="w-7 h-7 rounded-lg object-cover" />
+                  ) : (
+                    <InitialsAvatar 
+                      firstName={memberData.firstName} 
+                      lastName={memberData.lastName} 
+                      size={28} 
+                    />
+                  )
                 )}
                 
                 {/* Name */}
                 <span className="text-white text-sm font-medium">{fullName}</span>
 
-                {/* Relations Button */}
+                {/* Relations Button - for both members and leads */}
                 <button onClick={handleRelationsClick}
                   className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 px-1.5 py-0.5 rounded transition-colors"
                   title="View Relations">
@@ -421,6 +469,19 @@ const EditAppointmentModalMain = ({
             </div>
           </div>
 
+          {/* Trial Training Info - only for leads */}
+          {isLead && (
+            <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-3 flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-[#3B82F6] flex items-center justify-center flex-shrink-0">
+                <Clock size={16} className="text-white" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-blue-400">Trial Training</p>
+                <p className="text-xs text-gray-400">Duration: 60 minutes</p>
+              </div>
+            </div>
+          )}
+
           {/* Appointment Type */}
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">Appointment Type</label>
@@ -428,23 +489,26 @@ const EditAppointmentModalMain = ({
               value={editType}
               onChange={(type) => setEditType(type)}
               appointmentTypes={appointmentTypesMain}
+              hideDuration={isLead}
             />
           </div>
 
-          {/* Booking Type Toggle */}
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Booking Type</label>
-            <div className="flex bg-[#222222] p-1 rounded-xl">
-              <button type="button" onClick={() => toggleBookingType(false)}
-                className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${!showRecurringOptions ? "bg-orange-500 text-white" : "text-gray-400 hover:text-white"}`}>
-                Single
-              </button>
-              <button type="button" onClick={() => toggleBookingType(true)}
-                className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${showRecurringOptions ? "bg-orange-500 text-white" : "text-gray-400 hover:text-white"}`}>
-                Recurring
-              </button>
+          {/* Booking Type Toggle - only for members, leads are always single */}
+          {!isLead && (
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Booking Type</label>
+              <div className="flex bg-[#222222] p-1 rounded-xl">
+                <button type="button" onClick={() => toggleBookingType(false)}
+                  className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${!showRecurringOptions ? "bg-orange-500 text-white" : "text-gray-400 hover:text-white"}`}>
+                  Single
+                </button>
+                <button type="button" onClick={() => toggleBookingType(true)}
+                  className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${showRecurringOptions ? "bg-orange-500 text-white" : "text-gray-400 hover:text-white"}`}>
+                  Recurring
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Single Booking Options */}
           {!showRecurringOptions && (
@@ -469,8 +533,8 @@ const EditAppointmentModalMain = ({
             </div>
           )}
 
-          {/* Recurring Options */}
-          {showRecurringOptions && (
+          {/* Recurring Options - only for members */}
+          {!isLead && showRecurringOptions && (
             <div className="space-y-4 bg-[#222222] rounded-xl p-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -565,7 +629,7 @@ const EditAppointmentModalMain = ({
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000002] p-4" onClick={handleCancelNotify}>
             <div className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
               <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-                <h2 className="text-lg font-semibold text-white">Notify Member</h2>
+                <h2 className="text-lg font-semibold text-white">Notify {EntityLabel}</h2>
                 <button onClick={handleCancelNotify} className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg">
                   <X size={20} />
                 </button>
@@ -574,24 +638,26 @@ const EditAppointmentModalMain = ({
               <div className="p-6">
                 {notifyAction === "cancel" ? (
                   <p className="text-white text-sm">
-                    <span className="font-semibold text-orange-400">{fullName}'s</span> appointment on{" "}
+                    <span className="font-semibold text-orange-400">{fullName}'s</span>
+                    <span className="text-gray-400"> ({appointmentTypeDisplay})</span> appointment on{" "}
                     <span className="font-semibold text-orange-400">
                       {selectedAppointmentMain.date && new Date(parseDateFromAppointment(selectedAppointmentMain.date)).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
                     </span> at{" "}
                     <span className="font-semibold text-orange-400">{selectedAppointmentMain.time || `${selectedAppointmentMain.startTime} - ${selectedAppointmentMain.endTime}`}</span>{" "}
                     will be <span className="font-semibold text-red-400">cancelled</span>.
                     <br /><br />
-                    Do you want to notify the member about this cancellation?
+                    Do you want to notify the {entityLabel} about this cancellation?
                   </p>
                 ) : (
                   <p className="text-white text-sm">
-                    <span className="font-semibold text-orange-400">{fullName}'s</span> appointment will be changed to{" "}
+                    <span className="font-semibold text-orange-400">{fullName}'s</span>
+                    <span className="text-gray-400"> ({appointmentTypeDisplay})</span> appointment will be changed to{" "}
                     <span className="font-semibold text-orange-400">
                       {pendingChanges?.date && new Date(parseDateFromAppointment(pendingChanges.date)).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
                     </span> at{" "}
                     <span className="font-semibold text-orange-400">{pendingChanges?.time}</span>.
                     <br /><br />
-                    Do you want to notify the member about this change?
+                    Do you want to notify the {entityLabel} about this change?
                   </p>
                 )}
 
@@ -607,15 +673,18 @@ const EditAppointmentModalMain = ({
                     <span className="text-white text-sm">Email Notification</span>
                   </label>
                   
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={pushNotification}
-                      onChange={(e) => setPushNotification(e.target.checked)}
-                      className="w-4 h-4 text-orange-500 bg-gray-700 border-gray-600 rounded focus:ring-orange-500 focus:ring-2"
-                    />
-                    <span className="text-white text-sm">App Push Notification</span>
-                  </label>
+                  {/* App Push Notification - only for members, not leads */}
+                  {!isLead && (
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={pushNotification}
+                        onChange={(e) => setPushNotification(e.target.checked)}
+                        className="w-4 h-4 text-orange-500 bg-gray-700 border-gray-600 rounded focus:ring-orange-500 focus:ring-2"
+                      />
+                      <span className="text-white text-sm">App Push Notification</span>
+                    </label>
+                  )}
                 </div>
               </div>
 
@@ -639,7 +708,7 @@ const EditAppointmentModalMain = ({
                     onClick={() => handleConfirmChanges(true)}
                     className="w-full sm:w-auto px-5 py-2.5 bg-orange-500 text-sm font-medium text-white rounded-xl hover:bg-orange-600 transition-colors"
                   >
-                    Yes, Notify Member
+                    Yes, Notify {EntityLabel}
                   </button>
                 </div>
               </div>

@@ -3,7 +3,7 @@ import React from "react"
 import { useState, useEffect, useRef, useMemo, useCallback } from "react"
 import { Search, Plus, X, ChevronLeft, ChevronRight, File, ClipboardList } from "lucide-react"
 import toast, { Toaster } from "react-hot-toast"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useLocation } from "react-router-dom"
 
 // @dnd-kit imports
 import {
@@ -53,6 +53,8 @@ import { trainingVideosData } from "../../utils/studio-states/training-states"
 import { availableMembersLeadsMain as availableMembersLeads } from "../../utils/studio-states"
 
 export default function LeadManagement() {
+  const navigate = useNavigate()
+  const location = useLocation()
   const [showHistoryModalLead, setShowHistoryModalLead] = useState(false)
 
   const [columns, setColumns] = useState([
@@ -562,6 +564,24 @@ export default function LeadManagement() {
     }
     setLeads(combinedLeads)
   }, [])
+
+  // Handle navigation state for filtering (from AppointmentActionModal)
+  useEffect(() => {
+    if (location.state?.filterLeadId) {
+      // Find the lead
+      const lead = leads.find(l => l.id === location.state.filterLeadId)
+      const leadName = location.state.filterLeadName || (lead ? `${lead.firstName} ${lead.lastName}` : 'Lead')
+      
+      // Add to filter (same behavior as members page)
+      setLeadFilters([{
+        leadId: location.state.filterLeadId,
+        leadName: leadName
+      }])
+      
+      // Clear the navigation state
+      navigate(location.pathname, { replace: true, state: {} })
+    }
+  }, [location.state, leads, navigate, location.pathname])
 
   // Keyboard shortcuts
   useEffect(() => {
