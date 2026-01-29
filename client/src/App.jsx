@@ -5,7 +5,6 @@ import Home from "./landing-page/home";
 import Footer from "./landing-page/footer";
 import Header from "./landing-page/navbar";
 import Login from './landing-page/login';
-import Register from './landing-page/register'
 
 // Studio-View Dashboard
 import Dashboardlayout from "./layouts/studio-view-layout";
@@ -74,7 +73,7 @@ import MemberNutritionAnalysis from './dashboard-pages/member-view/nutrition-ana
 
 function App() {
   const location = useLocation();
-  const isAuthOrDashboardPage = ["/login", "/register"].includes(location.pathname) || location.pathname.startsWith("/dashboard") || location.pathname.startsWith("/admin-dashboard") || location.pathname.startsWith("/member-view");
+  const isAuthOrDashboardPage = ["/login"].includes(location.pathname) || location.pathname.startsWith("/dashboard") || location.pathname.startsWith("/admin-dashboard") || location.pathname.startsWith("/member-view");
 
   // useEffect(() => {
   //   const observer = startModalWatcher();
@@ -86,7 +85,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="login" element={<Login />} />
-        <Route path="register" element={<Register />} />
+    
 
 
         <Route path="/dashboard" element={<Dashboardlayout />}>

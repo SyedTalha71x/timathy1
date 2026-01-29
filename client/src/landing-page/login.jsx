@@ -2,9 +2,11 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/no-unescaped-entities */
 import { useState, useRef, useEffect } from "react"
-import { useNavigate, Link } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 import { gsap } from "gsap"
-import Art from "../../public/Art.png"
+
+// Import logo
+import OrgaGymLogo from "../../public/Orgagym white without text.svg"
 
 // ============================================================================
 // LOGIN PAGE COMPONENT
@@ -229,24 +231,19 @@ export default function SignInPage() {
   // -------------------------------------------------------------------------
   return (
     <div className="min-h-screen bg-[#0E0E0E] flex items-center justify-center p-4 md:p-8">
-      <div className="flex w-full max-w-6xl h-full lg:min-h-[600px] flex-col lg:flex-row items-center justify-center gap-8 lg:gap-12">
+      <div className="flex w-full max-w-md flex-col items-center justify-center">
         
         {/* ================================================================= */}
-        {/* LEFT SIDE - Login Form */}
+        {/* Login Form - Centered */}
         {/* ================================================================= */}
-        <div className="flex flex-1 flex-col justify-center w-full max-w-md">
+        <div className="flex flex-col justify-center w-full">
           
-          {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">
-              Welcome Back{" "}
-              <span className="inline-block animate-pulse">👋</span>
-            </h1>
-            <p className="text-gray-400 text-sm sm:text-base">
-              Today is a new day. It's your day. You shape it.
-              <br className="hidden sm:block" />
-              Sign in to start managing your projects.
-            </p>
+          {/* OrgaGym Logo */}
+          <div className="flex justify-center mb-8">
+            <div className="flex items-center gap-2">
+              <img src={OrgaGymLogo} alt="ORGAGYM" className="w-10 h-10" />
+              <span className="text-2xl font-bold text-white">ORGAGYM</span>
+            </div>
           </div>
 
           {/* ============================================================= */}
@@ -300,39 +297,6 @@ export default function SignInPage() {
                 Sign In as {config.label}
               </button>
             </form>
-
-            {/* Divider */}
-            <div className="flex items-center my-6">
-              <div className="flex-1 h-px bg-gray-700" />
-              <span className="px-4 text-xs text-gray-500">or</span>
-              <div className="flex-1 h-px bg-gray-700" />
-            </div>
-
-            {/* Sign Up Link */}
-            <p className="text-center text-sm">
-              <span className="text-gray-400">Don't have an account? </span>
-              <Link
-                to="/register"
-                className="text-blue-500 hover:text-blue-400 transition-colors font-medium"
-              >
-                Sign Up
-              </Link>
-            </p>
-          </div>
-        </div>
-
-        {/* ================================================================= */}
-        {/* RIGHT SIDE - Image */}
-        {/* ================================================================= */}
-        <div className="hidden lg:flex flex-1 h-full min-h-[500px] max-h-[700px]">
-          <div className="relative w-full h-full rounded-2xl overflow-hidden">
-            <img
-              src={Art || "/placeholder.svg"}
-              alt="Fitness enthusiasts working out"
-              className="object-cover w-full h-full"
-            />
-            {/* Optional: Gradient Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
           </div>
         </div>
       </div>

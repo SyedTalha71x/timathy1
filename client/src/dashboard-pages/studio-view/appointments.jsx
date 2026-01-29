@@ -22,7 +22,7 @@ import { useState, useEffect, useCallback, useRef } from "react"
 import toast, { Toaster } from "react-hot-toast"
 import { GoArrowLeft, GoArrowRight } from "react-icons/go"
 
-import { appointmentsData as initialAppointmentsData, memberRelationsData, availableMembersLeadsMain, freeAppointmentsData, relationOptionsData as relationOptionsMain, appointmentTypesData, membersData, DEFAULT_CALENDAR_SETTINGS } from "../../utils/studio-states"
+import { appointmentsData as initialAppointmentsData, memberRelationsData, availableMembersLeadsMain, freeAppointmentsData, relationOptionsData as relationOptionsMain, appointmentTypesData, membersData, DEFAULT_CALENDAR_SETTINGS, leadsData } from "../../utils/studio-states"
 
 import TrialTrainingModal from "../../components/studio-components/appointments-components/add-trial-training"
 import CreateAppointmentModal from "../../components/shared/appointments/CreateAppointmentModal"
@@ -306,14 +306,14 @@ export default function Appointments() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Get unique members from appointments for search suggestions
+  // Get unique members from appointments AND leads for search suggestions
   const getSearchSuggestions = () => {
     if (!searchQuery.trim()) return [];
     
-    // Get unique members from appointments (by full name, not appointment ID!)
-    const uniqueMembers = [];
+    const results = [];
     const seenNames = new Set();
     
+    // Search through appointments (members)
     appointmentsMain.forEach((appointment) => {
       // Skip blocked time slots
       if (appointment.isBlocked || appointment.type === "Blocked Time") return;
@@ -328,25 +328,50 @@ export default function Appointments() {
       // Check if matches search query
       if (fullNameLower.includes(searchQuery.toLowerCase())) {
         seenNames.add(fullNameLower);
-        uniqueMembers.push({
-          id: fullName, // Use fullName as ID for consistency
+        results.push({
+          id: fullName,
           firstName: appointment.name || '',
           lastName: appointment.lastName || '',
           email: appointment.email || '',
           image: appointment.image || null,
+          type: 'member',
         });
       }
     });
     
-    return uniqueMembers.slice(0, 6);
+    // Search through leads
+    leadsData.forEach((lead) => {
+      const fullName = `${lead.firstName || ''} ${lead.lastName || ''}`.trim();
+      const fullNameLower = fullName.toLowerCase();
+      
+      // Skip if already seen or already filtered
+      if (seenNames.has(fullNameLower)) return;
+      if (memberFilters.some(f => f.memberName.toLowerCase() === fullNameLower)) return;
+      
+      // Check if matches search query (name only)
+      if (fullNameLower.includes(searchQuery.toLowerCase())) {
+        seenNames.add(fullNameLower);
+        results.push({
+          id: fullName,
+          firstName: lead.firstName || '',
+          lastName: lead.lastName || '',
+          email: null, // No email for leads in search
+          image: null, // No profile picture for leads
+          type: 'lead',
+        });
+      }
+    });
+    
+    return results.slice(0, 8);
   };
 
-  // Handle selecting a member from search suggestions
-  const handleSelectMember = (member) => {
-    const memberName = `${member.firstName} ${member.lastName}`.trim();
+  // Handle selecting a member/lead from search suggestions
+  const handleSelectMember = (person) => {
+    const personName = `${person.firstName} ${person.lastName}`.trim();
     setMemberFilters([...memberFilters, {
-      memberId: memberName, // Use name as ID
-      memberName: memberName
+      memberId: personName, // Use name as ID
+      memberName: personName,
+      type: person.type // Store type (member or lead)
     }]);
     setSearchQuery("");
     setShowSearchDropdown(false);
@@ -870,11 +895,13 @@ export default function Appointments() {
                       {memberFilters.map((filter) => (
                         <div 
                           key={filter.memberId}
-                          className="flex items-center gap-1.5 bg-[#3F74FF]/20 border border-[#3F74FF]/40 rounded-lg px-2 py-1 text-sm"
+                          className={`flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm ${filter.type === 'lead' ? 'bg-blue-500/20 border border-blue-500/40' : 'bg-[#3F74FF]/20 border border-[#3F74FF]/40'}`}
                         >
-                          <div className="w-5 h-5 rounded bg-orange-500 flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0">
-                            {filter.memberName.split(' ')[0]?.charAt(0)}{filter.memberName.split(' ')[1]?.charAt(0) || ''}
-                          </div>
+                          {filter.type !== 'lead' && (
+                            <div className="w-5 h-5 rounded bg-orange-500 flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0">
+                              {filter.memberName.split(' ')[0]?.charAt(0)}{filter.memberName.split(' ')[1]?.charAt(0) || ''}
+                            </div>
+                          )}
                           <span className="text-white text-xs whitespace-nowrap">{filter.memberName}</span>
                           <button
                             onClick={(e) => {
@@ -892,7 +919,7 @@ export default function Appointments() {
                       <input
                         ref={searchInputRef}
                         type="text"
-                        placeholder={memberFilters.length > 0 ? "Add more..." : "Search members..."}
+                        placeholder={memberFilters.length > 0 ? "Add more..." : "Search members or leads..."}
                         value={searchQuery}
                         onChange={(e) => {
                           setSearchQuery(e.target.value);
@@ -921,26 +948,33 @@ export default function Appointments() {
                     {/* Autocomplete Dropdown */}
                     {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length > 0 && (
                       <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a1a] border border-[#333333] rounded-xl shadow-lg z-50 overflow-hidden">
-                        {getSearchSuggestions().map((member) => (
+                        {getSearchSuggestions().map((person) => (
                           <button
-                            key={member.id}
-                            onClick={() => handleSelectMember(member)}
+                            key={person.id}
+                            onClick={() => handleSelectMember(person)}
                             className="w-full px-3 py-2.5 flex items-center gap-3 hover:bg-[#252525] transition-colors text-left"
                           >
-                            {member.image ? (
-                              <img 
-                                src={member.image} 
-                                alt={`${member.firstName} ${member.lastName}`} 
-                                className="w-8 h-8 rounded-lg object-cover"
-                              />
-                            ) : (
-                              <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center text-white text-xs font-semibold">
-                                {member.firstName?.charAt(0)}{member.lastName?.charAt(0)}
-                              </div>
+                            {person.type === 'member' && (
+                              person.image ? (
+                                <img 
+                                  src={person.image} 
+                                  alt={`${person.firstName} ${person.lastName}`} 
+                                  className="w-8 h-8 rounded-lg object-cover"
+                                />
+                              ) : (
+                                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-semibold bg-orange-500">
+                                  {person.firstName?.charAt(0)}{person.lastName?.charAt(0)}
+                                </div>
+                              )
                             )}
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm text-white truncate">{member.firstName} {member.lastName}</p>
-                              {member.email && <p className="text-xs text-gray-500 truncate">{member.email}</p>}
+                              <div className="flex items-center gap-2">
+                                <p className="text-sm text-white truncate">{person.firstName} {person.lastName}</p>
+                                <span className={`text-[10px] px-1.5 py-0.5 rounded ${person.type === 'lead' ? 'bg-blue-500/20 text-blue-400' : 'bg-orange-500/20 text-orange-400'}`}>
+                                  {person.type === 'lead' ? 'Lead' : 'Member'}
+                                </span>
+                              </div>
+                              {person.type === 'member' && person.email && <p className="text-xs text-gray-500 truncate">{person.email}</p>}
                             </div>
                           </button>
                         ))}
@@ -950,7 +984,7 @@ export default function Appointments() {
                     {/* No results message */}
                     {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length === 0 && (
                       <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a1a] border border-[#333333] rounded-xl shadow-lg z-50 p-3">
-                        <p className="text-sm text-gray-500 text-center">No members found</p>
+                        <p className="text-sm text-gray-500 text-center">No members or leads found</p>
                       </div>
                     )}
                   </div>
