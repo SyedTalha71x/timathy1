@@ -36,13 +36,13 @@ import { trainingVideosData } from "../../utils/studio-states/training-states"
 import { TbPlusMinus } from "react-icons/tb";
 
 import VacationContingentModal from "../../components/studio-components/staff-components/vacation-contigent"
-import ChatPopup from "../../components/shared/ChatPopup"
-import MessageTypeSelectionModal from "../../components/shared/MessageTypeSelectionModal"
-import SendEmailModal from "../../components/shared/SendEmailModal"
+import ChatPopup from "../../components/shared/communication/ChatPopup"
+import MessageTypeSelectionModal from "../../components/shared/communication/MessageTypeSelectionModal"
+import SendEmailModal from "../../components/shared/communication/SendEmailModal"
 import DocumentManagementModal from "../../components/shared/DocumentManagementModal"
 import StaffViewDetailsModal from "../../components/studio-components/staff-components/staff-view-details-modal"
-import AssessmentFormModal from "../../components/shared/medical-history-form-modal"
-import AssessmentSelectionModal from "../../components/shared/medical-history-selection-modal"
+import AssessmentFormModal from "../../components/shared/medical-history/medical-history-form-modal"
+import AssessmentSelectionModal from "../../components/shared/medical-history/medical-history-selection-modal"
 
 const StaffContext = createContext(null)
 

@@ -7,7 +7,7 @@ import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
 
 // Import shared special note icon component
-import { LeadSpecialNoteIcon, extractNotes } from '../../shared/shared-special-note-icon'
+import { LeadSpecialNoteIcon, extractNotes } from '../../shared/special-note/shared-special-note-icon'
 
 const SortableLeadCard = ({
   lead,

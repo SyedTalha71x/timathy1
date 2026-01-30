@@ -37,10 +37,10 @@ import {
 import toast, { Toaster } from "react-hot-toast"
 
 // Communication imports
-import ChatPopup from "../../components/shared/ChatPopup"
-import MessageTypeSelectionModal from "../../components/shared/MessageTypeSelectionModal"
-import SendEmailModal from "../../components/shared/SendEmailModal"
-import DraftModal from "../../components/shared/DraftModal"
+import ChatPopup from "../../components/shared/communication/ChatPopup"
+import MessageTypeSelectionModal from "../../components/shared/communication/MessageTypeSelectionModal"
+import SendEmailModal from "../../components/shared/communication/SendEmailModal"
+import DraftModal from "../../components/shared/communication/DraftModal"
 import { membersData, staffData } from "../../utils/studio-states"
 
 // ============================================

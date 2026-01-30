@@ -1,13 +1,13 @@
 /* eslint-disable react/prop-types */
 import { useState, useMemo } from 'react'
 import { X, Search, Folder as FolderIcon, Image as ImageIcon } from 'lucide-react'
-import { mediaLibraryFolders as defaultFolders, mediaLibraryDesigns as defaultDesigns } from '../../utils/studio-states/media-library-picker-modal-state'
+import { mediaLibraryFolders as defaultFolders, mediaLibraryDesigns as defaultDesigns } from '../../../utils/studio-states/media-library-picker-modal-state'
 
 /**
  * Shared MediaLibraryPickerModal
  * 
  * Usage:
- * import MediaLibraryPickerModal from '@/components/shared/MediaLibraryPickerModal'
+ * import MediaLibraryPickerModal from '@/components/shared/image-handler/MediaLibraryPickerModal'
  * 
  * // Option 1: Use default data (imported internally)
  * <MediaLibraryPickerModal

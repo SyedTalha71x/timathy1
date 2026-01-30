@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Mail, X, Send, Paperclip, Trash2, FileText } from "lucide-react";
 import { WysiwygEditor } from "../../shared/WysiwygEditor";
-import DraftModal from "../../shared/DraftModal";
+import DraftModal from "../../shared/communication/DraftModal";
 
 // Import email signature from configuration (Single Source of Truth)
 import { DEFAULT_COMMUNICATION_SETTINGS } from "../../../utils/studio-states/configuration-states";

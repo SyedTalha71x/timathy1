@@ -3,10 +3,10 @@ import { memo, useCallback, useState, useMemo, useEffect, useRef } from 'react'
 import { X, Image as ImageIcon, Crop, Tag, Calendar, Clock, Trash2 } from 'lucide-react'
 import ReactQuill from 'react-quill'
 import 'react-quill/dist/quill.snow.css'
-import ImageCropModal from '../../shared/ImageCropModal'
+import ImageCropModal from '../../shared/image-handler/ImageCropModal'
 import PostSchedulerModal from './PostSchedulerModal'
-import ImageSourceModal from '../../shared/ImageSourceModal'
-import MediaLibraryPickerModal from '../../shared/MediaLibraryPickerModal'
+import ImageSourceModal from '../../shared/image-handler/ImageSourceModal'
+import MediaLibraryPickerModal from '../../shared/image-handler/MediaLibraryPickerModal'
 
 // Quill editor configuration - compact toolbar
 const QUILL_MODULES = {

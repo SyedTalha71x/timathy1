@@ -38,17 +38,17 @@ import { useNavigate, useLocation } from "react-router-dom"
 import BirthdayBadge from "../../components/shared/BirthdayBadge"
 import HistoryModalMain from "../../components/studio-components/members-components/HistoryModal"
 import NotifyMemberModalMain from "../../components/shared/appointments/NotifyMemberModal"
-import CreateTempMemberModal from "../../components/shared/CreateTempMemberModal"
+import CreateTempMemberModal from "../../components/shared/members/CreateTempMemberModal"
 import useCountries from "../../hooks/useCountries"
 import EditMemberModalMain from "../../components/studio-components/members-components/EditMemberModal"
 import AddBillingPeriodModalMain from "../../components/shared/appointments/AddBillingPeriodModal"
 import ContingentModalMain from "../../components/shared/appointments/ShowContigentModal"
 import ViewDetailsModal from "../../components/studio-components/members-components/ViewDetailsModal"
-import { MemberSpecialNoteModal } from '../../components/shared/shared-special-note-modal'
+import { MemberSpecialNoteModal } from '../../components/shared/special-note/shared-special-note-modal'
 import AppointmentModalMain from "../../components/shared/appointments/ShowAppointmentModal"
 import DocumentManagementModal from "../../components/shared/DocumentManagementModal"
-import AssessmentFormModal from "../../components/shared/medical-history-form-modal"
-import AssessmentSelectionModal from "../../components/shared/medical-history-selection-modal"
+import AssessmentFormModal from "../../components/shared/medical-history/medical-history-form-modal"
+import AssessmentSelectionModal from "../../components/shared/medical-history/medical-history-selection-modal"
 import { appointmentsMainData, appointmentTypeMainData, availableMembersLeadsMain, freeAppointmentsMainData, memberHistoryMainData, memberRelationsMainData, membersData, relationOptionsMain, staffData, communicationSettingsData } from "../../utils/studio-states"
 import CreateAppointmentModal from "../../components/shared/appointments/CreateAppointmentModal"
 import EditAppointmentModalMain from "../../components/shared/appointments/EditAppointmentModal"
@@ -56,11 +56,11 @@ import EditAppointmentModalMain from "../../components/shared/appointments/EditA
 
 // sidebar related import
 import { trainingVideosData } from "../../utils/studio-states/training-states"
-import ChatPopup from "../../components/shared/ChatPopup"
-import MessageTypeSelectionModal from "../../components/shared/MessageTypeSelectionModal"
-import SendEmailModal from "../../components/shared/SendEmailModal"
+import ChatPopup from "../../components/shared/communication/ChatPopup"
+import MessageTypeSelectionModal from "../../components/shared/communication/MessageTypeSelectionModal"
+import SendEmailModal from "../../components/shared/communication/SendEmailModal"
 import TrainingPlansModalMain from "../../components/shared/training/TrainingPlanModal"
-import { MemberSpecialNoteIcon } from '../../components/shared/shared-special-note-icon'
+import { MemberSpecialNoteIcon } from '../../components/shared/special-note/shared-special-note-icon'
 
 const StatusTag = ({ status, reason = "", compact = false }) => {
   const getStatusColor = (status, isArchived) => {

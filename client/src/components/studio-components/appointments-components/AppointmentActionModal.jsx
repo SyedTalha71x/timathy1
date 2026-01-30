@@ -2,7 +2,7 @@
 /* eslint-disable no-unused-vars */
 import React, { useState } from "react";
 import { X, Edit, User, Ban, Trash2, AlertTriangle, Users } from "lucide-react";
-import { MemberSpecialNoteIcon } from '../../shared/shared-special-note-icon';
+import { MemberSpecialNoteIcon } from '../../shared/special-note/shared-special-note-icon';
 import { useNavigate } from "react-router-dom";
 
 // Helper to parse date from appointment format "Mon | 27-01-2025" to Date object

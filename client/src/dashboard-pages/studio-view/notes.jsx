@@ -8,8 +8,8 @@ import ReactQuill from "react-quill"
 import "react-quill/dist/quill.snow.css"
 import DeleteConfirmModal from "../../components/studio-components/notes-components/DeleteConfirmModal"
 import TagManagerModal from "../../components/shared/TagManagerModal"
-import ImageSourceModal from "../../components/shared/ImageSourceModal"
-import MediaLibraryPickerModal from "../../components/shared/MediaLibraryPickerModal"
+import ImageSourceModal from "../../components/shared/image-handler/ImageSourceModal"
+import MediaLibraryPickerModal from "../../components/shared/image-handler/MediaLibraryPickerModal"
 import { trainingVideosData } from "../../utils/studio-states/training-states"
 
 // Available tags

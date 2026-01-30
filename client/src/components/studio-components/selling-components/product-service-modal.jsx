@@ -2,9 +2,9 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { X, Plus, Crop } from "lucide-react"
 // Shared modals
-import ImageCropModal from '../../shared/ImageCropModal'
-import ImageSourceModal from '../../shared/ImageSourceModal'
-import MediaLibraryPickerModal from '../../shared/MediaLibraryPickerModal'
+import ImageCropModal from '../../shared/image-handler/ImageCropModal'
+import ImageSourceModal from '../../shared/image-handler/ImageSourceModal'
+import MediaLibraryPickerModal from '../../shared/image-handler/MediaLibraryPickerModal'
 
 // Helper function to get dynamic text size based on content length
 const getPreviewTextSize = (text) => {

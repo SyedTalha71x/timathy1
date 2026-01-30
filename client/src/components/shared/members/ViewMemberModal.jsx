@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useState } from "react"
 import { X, Mail, Phone, Calendar, MapPin, User, Users, Copy, Check, Smartphone } from "lucide-react"
-import { MemberSpecialNoteIcon } from './shared-special-note-icon'
+import { MemberSpecialNoteIcon } from '../special-note/shared-special-note-icon'
 
 // Initials Avatar Component
 const InitialsAvatar = ({ firstName, lastName, size = "lg", isStaff = false }) => {

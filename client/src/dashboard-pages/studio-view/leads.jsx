@@ -32,11 +32,11 @@ import TrialAppointmentModal from "../../components/studio-components/lead-studi
 import EditTrialModal from "../../components/studio-components/lead-studio-components/edit-trial-modal"
 import DeleteConfirmationModal from "../../components/studio-components/lead-studio-components/delete-confirmation-modal"
 import DocumentManagementModal from "../../components/shared/DocumentManagementModal"
-import AssessmentFormModal from "../../components/shared/medical-history-form-modal"
-import AssessmentSelectionModal from "../../components/shared/medical-history-selection-modal"
+import AssessmentFormModal from "../../components/shared/medical-history/medical-history-form-modal"
+import AssessmentSelectionModal from "../../components/shared/medical-history/medical-history-selection-modal"
 import ContractPromptModal from "../../components/studio-components/lead-studio-components/contract-prompt-modal"
 import MedicalHistoryPromptModal from "../../components/studio-components/lead-studio-components/medical-history-prompt-modal"
-import { LeadSpecialNoteModal } from '../../components/shared/shared-special-note-modal'
+import { LeadSpecialNoteModal } from '../../components/shared/special-note/shared-special-note-modal'
 
 // New DnD components
 import SortableColumn from "../../components/studio-components/lead-studio-components/sortable-column"

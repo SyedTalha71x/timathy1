@@ -62,13 +62,13 @@ import ContingentModal from "../../components/shared/appointments/ShowContigentM
 import AddBillingPeriodModal from "../../components/shared/appointments/AddBillingPeriodModal"
 import NotifyMemberModal from "../../components/shared/appointments/NotifyMemberModal"
 import ArchiveModal from "../../components/studio-components/communication-components/ArchiveModal"
-import DraftModal from "../../components/shared/DraftModal"
-import SendEmailModal from "../../components/shared/SendEmailModal"
+import DraftModal from "../../components/shared/communication/DraftModal"
+import SendEmailModal from "../../components/shared/communication/SendEmailModal"
 import SendEmailReplyModal from "../../components/studio-components/communication-components/SendEmailReplyModal"
 import BroadcastModal from "../../components/studio-components/communication-components/broadcast-modal-components/BroadcastModal"
 import ShowAppointmentModal from "../../components/shared/appointments/ShowAppointmentModal"
 import EditAppointmentModalMain from '../../components/shared/appointments/EditAppointmentModal'
-import ViewMemberModal from "../../components/shared/ViewMemberModal"
+import ViewMemberModal from "../../components/shared/members/ViewMemberModal"
 import ViewStaffModal from "../../components/shared/ViewStaffModal"
 
 

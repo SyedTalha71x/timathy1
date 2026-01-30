@@ -38,7 +38,7 @@ import { SpecialNoteEditModal } from "../../components/myarea-components/Special
 import { useNavigate } from "react-router-dom"
 import EditMemberModalMain from "../../components/studio-components/members-components/EditMemberModal"
 import EditLeadModal from "../../components/studio-components/lead-studio-components/edit-lead-modal"
-import { MemberSpecialNoteIcon } from "../../components/shared/shared-special-note-icon"
+import { MemberSpecialNoteIcon } from "../../components/shared/special-note/shared-special-note-icon"
 import EditBlockedSlotModalMain from "../../components/studio-components/appointments-components/EditBlockedSlotModalMain"
 
 export default function Appointments() {

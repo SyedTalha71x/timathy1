@@ -2,11 +2,11 @@
 /* eslint-disable react/prop-types */
 import React, { useRef, useState, useEffect } from "react";
 import { Mail, X, Search, Send, ChevronDown, Paperclip, Image, FileText, File, Trash2 } from "lucide-react";
-import { WysiwygEditor } from "./WysiwygEditor";
-import DraftModal from "../shared/DraftModal";
+import { WysiwygEditor } from "../WysiwygEditor";
+import DraftModal from "./DraftModal";
 
 // Import email signature from configuration (Single Source of Truth)
-import { DEFAULT_COMMUNICATION_SETTINGS } from "../../utils/studio-states/configuration-states";
+import { DEFAULT_COMMUNICATION_SETTINGS } from "../../../utils/studio-states/configuration-states";
 
 // Initials Avatar Component
 const InitialsAvatar = ({ firstName, lastName, size = 32, className = "", isStaff = false }) => {

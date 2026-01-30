@@ -3,8 +3,8 @@ import { useEffect, useState, useRef } from "react"
 import { Tag, X, Paperclip } from "lucide-react"
 import ReactQuill from "react-quill"
 import Modal from "./Modal"
-import ImageSourceModal from "../../shared/ImageSourceModal"
-import MediaLibraryPickerModal from "../../shared/MediaLibraryPickerModal"
+import ImageSourceModal from "../../shared/image-handler/ImageSourceModal"
+import MediaLibraryPickerModal from "../../shared/image-handler/MediaLibraryPickerModal"
 import { mediaLibraryFolders, mediaLibraryDesigns } from "../../../utils/studio-states/media-library-picker-modal-state"
 
 const WysiwygEditor = ({ value, onChange, placeholder }) => {

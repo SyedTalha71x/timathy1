@@ -53,10 +53,10 @@ import { WysiwygEditor } from "../../components/shared/WysiwygEditor"
 import { PermissionModal } from "../../components/studio-components/configuration-components/PermissionModal"
 import { RoleItem } from "../../components/studio-components/configuration-components/RoleItem"
 import { StaffAssignmentModal } from "../../components/studio-components/configuration-components/StaffAssignmentModal"
-import ImageSourceModal from "../../components/shared/ImageSourceModal"
-import ImageCropModal from "../../components/shared/ImageCropModal"
+import ImageSourceModal from "../../components/shared/image-handler/ImageSourceModal"
+import ImageCropModal from "../../components/shared/image-handler/ImageCropModal"
 import IntroMaterialEditorModal from "../../components/studio-components/configuration-components/IntroMaterialEditorModal"
-import MediaLibraryPickerModal from "../../components/shared/MediaLibraryPickerModal"
+import MediaLibraryPickerModal from "../../components/shared/image-handler/MediaLibraryPickerModal"
 import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'
 
 // ============================================
