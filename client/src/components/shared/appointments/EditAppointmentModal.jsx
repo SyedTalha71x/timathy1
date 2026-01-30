@@ -4,7 +4,7 @@
 /* eslint-disable react/prop-types */
 import React, { useState, useEffect, useRef } from "react";
 import { X, Clock, User, ChevronDown, AlertTriangle, Check, Users } from "lucide-react";
-import { MemberSpecialNoteIcon } from '../shared-special-note-icon';
+import { MemberSpecialNoteIcon } from '../special-note/shared-special-note-icon';
 
 // Helper function to extract hex color from various formats
 const getColorHex = (type) => {

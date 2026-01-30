@@ -3,7 +3,7 @@
 /* eslint-disable react/prop-types */
 import { Search, X, Plus, Users, Calendar, Clock, ChevronDown, AlertTriangle, Check, Info, SkipForward, ChevronRight, RotateCcw } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
-import { MemberSpecialNoteIcon } from '../shared-special-note-icon';
+import { MemberSpecialNoteIcon } from '../special-note/shared-special-note-icon';
 
 const MAX_PARTICIPANTS = 5;
 
