@@ -153,8 +153,18 @@ const TrialTrainingModal = ({
     return `${year}-${month}-${day}`;
   };
   
+  // Extract time from selectedTime (handles formats like "09:00" or "09:00 - 09:30")
+  const getInitialTime = (time) => {
+    if (!time) return "";
+    // If it's a range, take the start time
+    if (time.includes("-")) {
+      return time.split("-")[0].trim();
+    }
+    return time.trim();
+  };
+  
   const initialDate = getFormattedDate(selectedDate);
-  const initialTime = selectedTime || "";
+  const initialTime = getInitialTime(selectedTime);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLead, setSelectedLead] = useState(lockedLead || null);
@@ -184,7 +194,7 @@ const TrialTrainingModal = ({
     if (!isOpen) return;
     
     const newDate = getFormattedDate(selectedDate);
-    const newTime = selectedTime || "";
+    const newTime = getInitialTime(selectedTime);
     
     setTrialData(prev => ({
       ...prev,

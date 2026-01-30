@@ -652,9 +652,21 @@ const Calendar = forwardRef(({
       const endDate = new Date(selectInfo.start);
       endDate.setHours(10, 0, 0, 0);
       
-      setSelectedSlotInfo({ start: startDate, end: endDate });
+      setSelectedSlotInfo({ 
+        start: startDate, 
+        end: endDate,
+        formattedTime: "09:00" 
+      });
     } else {
-      setSelectedSlotInfo(selectInfo);
+      // Extract time from selectInfo.start and store as simple values
+      const startDate = new Date(selectInfo.start);
+      const formattedTime = `${String(startDate.getHours()).padStart(2, '0')}:${String(startDate.getMinutes()).padStart(2, '0')}`;
+      
+      setSelectedSlotInfo({ 
+        start: startDate, 
+        end: selectInfo.end ? new Date(selectInfo.end) : null,
+        formattedTime: formattedTime
+      });
     }
     setIsTypeSelectionOpen(true)
   }
@@ -662,14 +674,11 @@ const Calendar = forwardRef(({
   const handleTypeSelection = (type, slotData) => {
     setIsTypeSelectionOpen(false)
     
-    // Store the prefilled date and time from the slot click
-    if (slotData?.date) {
-      setPrefilledSlotDate(slotData.date)
-    }
-    if (slotData?.time) {
-      setPrefilledSlotTime(slotData.time)
-    }
+    // Store the prefilled date and time from the slot click (for fallback)
+    setPrefilledSlotDate(slotData?.date || null)
+    setPrefilledSlotTime(slotData?.time || null)
     
+    // Open the appropriate modal - selectedSlotInfo is already set and will be used directly
     if (type === "trial") setIsTrialModalOpen(true)
     else if (type === "appointment") setIsAppointmentModalOpen(true)
     else if (type === "block") setIsBlockModalOpen(true)
@@ -700,7 +709,13 @@ const Calendar = forwardRef(({
 
   const handleEventClick = (clickInfo) => {
     if (clickInfo.event.extendedProps.isFree) {
-      setSelectedSlotInfo({ start: clickInfo.event.start, end: clickInfo.event.end })
+      const startDate = new Date(clickInfo.event.start);
+      const formattedTime = `${String(startDate.getHours()).padStart(2, '0')}:${String(startDate.getMinutes()).padStart(2, '0')}`;
+      setSelectedSlotInfo({ 
+        start: startDate, 
+        end: clickInfo.event.end ? new Date(clickInfo.event.end) : null,
+        formattedTime: formattedTime
+      })
       setIsTypeSelectionOpen(true)
       return
     }
@@ -1670,7 +1685,11 @@ const Calendar = forwardRef(({
                     const endDate = new Date(date)
                     endDate.setHours(10, 0, 0, 0)
                     
-                    setSelectedSlotInfo({ start: startDate, end: endDate })
+                    setSelectedSlotInfo({ 
+                      start: startDate, 
+                      end: endDate,
+                      formattedTime: "09:00"
+                    })
                     setIsTypeSelectionOpen(true)
                   }
 
@@ -1904,9 +1923,9 @@ const Calendar = forwardRef(({
       </div>
 
       {showCreateAppointmentModal && <CreateAppointmentModal isOpen={showCreateAppointmentModal} onClose={() => setShowCreateAppointmentModal(false)} appointmentTypesMain={appointmentTypesMain} onSubmit={handleAddAppointmentSubmit} setIsNotifyMemberOpen={setIsNotifyMemberOpen} setNotifyAction={setNotifyAction} freeAppointmentsMain={freeAppointments} availableMembersLeads={availableMembersLeadsMain} onOpenEditMemberModal={handleOpenEditMemberModal} memberRelations={memberRelationsData} selectedDate={selectedDate} />}
-      {isAppointmentModalOpen && <CreateAppointmentModal isOpen={isAppointmentModalOpen} onClose={() => { setIsAppointmentModalOpen(false); setPrefilledSlotDate(null); setPrefilledSlotTime(null); }} appointmentTypesMain={appointmentTypesMain} onSubmit={handleAppointmentSubmit} setIsNotifyMemberOpen={setIsNotifyMemberOpen} setNotifyAction={setNotifyAction} freeAppointmentsMain={freeAppointments} availableMembersLeads={availableMembersLeadsMain} onOpenEditMemberModal={handleOpenEditMemberModal} memberRelations={memberRelationsData} selectedDate={prefilledSlotDate || selectedDate} selectedTime={prefilledSlotTime} />}
-      <TrialTrainingModal isOpen={isTrialModalOpen} onClose={() => { setIsTrialModalOpen(false); setPrefilledSlotDate(null); setPrefilledSlotTime(null); }} freeAppointments={freeAppointments} onSubmit={handleTrialSubmit} selectedDate={prefilledSlotDate || selectedDate} selectedTime={prefilledSlotTime} />
-      <BlockAppointmentModal isOpen={isBlockModalOpen} onClose={() => { setIsBlockModalOpen(false); setPrefilledSlotDate(null); setPrefilledSlotTime(null); }} selectedDate={prefilledSlotDate || selectedDate || new Date()} selectedTime={prefilledSlotTime} onSubmit={(blockData) => {
+      {isAppointmentModalOpen && <CreateAppointmentModal isOpen={isAppointmentModalOpen} onClose={() => { setIsAppointmentModalOpen(false); setPrefilledSlotDate(null); setPrefilledSlotTime(null); }} appointmentTypesMain={appointmentTypesMain} onSubmit={handleAppointmentSubmit} setIsNotifyMemberOpen={setIsNotifyMemberOpen} setNotifyAction={setNotifyAction} freeAppointmentsMain={freeAppointments} availableMembersLeads={availableMembersLeadsMain} onOpenEditMemberModal={handleOpenEditMemberModal} memberRelations={memberRelationsData} selectedDate={selectedSlotInfo?.start || prefilledSlotDate || selectedDate} selectedTime={selectedSlotInfo?.formattedTime || prefilledSlotTime} />}
+      <TrialTrainingModal isOpen={isTrialModalOpen} onClose={() => { setIsTrialModalOpen(false); setPrefilledSlotDate(null); setPrefilledSlotTime(null); }} appointmentTypesMain={appointmentTypesMain} freeAppointmentsMain={freeAppointments} leadsData={leadsData} leadRelations={leadRelationsMain} onOpenEditLeadModal={handleOpenEditLeadModal} onSubmit={handleTrialSubmit} selectedDate={selectedSlotInfo?.start || prefilledSlotDate || selectedDate} selectedTime={selectedSlotInfo?.formattedTime || prefilledSlotTime} />
+      <BlockAppointmentModal isOpen={isBlockModalOpen} onClose={() => { setIsBlockModalOpen(false); setPrefilledSlotDate(null); setPrefilledSlotTime(null); }} selectedDate={selectedSlotInfo?.start || prefilledSlotDate || selectedDate || new Date()} selectedTime={selectedSlotInfo?.formattedTime || prefilledSlotTime} onSubmit={(blockData) => {
         // Use formatDate (with dashes) - Calendar expects format: "Wed | 29-01-2025"
         const newBlock = { 
           id: Math.max(0, ...appointmentsMain.map(a => a.id)) + 1, 
@@ -1935,7 +1954,7 @@ const Calendar = forwardRef(({
         onClose={() => setIsTypeSelectionOpen(false)} 
         onSelect={handleTypeSelection}
         selectedDate={selectedSlotInfo?.start || selectedSlotInfo?.date || null}
-        selectedTime={selectedSlotInfo?.start ? `${String(selectedSlotInfo.start.getHours()).padStart(2, '0')}:${String(selectedSlotInfo.start.getMinutes()).padStart(2, '0')}` : null}
+        selectedTime={selectedSlotInfo?.formattedTime || null}
       />
       <AppointmentActionModal isOpen={isAppointmentActionModalOpen} appointment={selectedAppointment} onClose={() => setIsAppointmentActionModalOpen(false)} onEdit={handleEditAppointment} onCancel={handleCancelAppointment} onDelete={handleDeleteCancelledAppointment} onViewMember={handleViewMemberDetails} onEditMemberNote={handleOpenEditMemberModal} onOpenEditLeadModal={handleOpenEditLeadModal} memberRelations={localMemberRelations} leadRelations={leadRelationsMain} appointmentsMain={appointmentsMain} setAppointmentsMain={setAppointmentsMain} />
       <NotifyMemberModal isOpen={isNotifyMemberOpen} onClose={() => { 

@@ -34,7 +34,6 @@ import AppointmentActionModal from "../../components/studio-components/appointme
 import EditAppointmentModal from "../../components/shared/appointments/EditAppointmentModal"
 import { createPortal } from "react-dom"
 import TrainingPlansModalMain from "../../components/shared/training/TrainingPlanModal"
-import { SpecialNoteEditModal } from "../../components/myarea-components/SpecialNoteEditModal"
 import { useNavigate } from "react-router-dom"
 import EditMemberModalMain from "../../components/studio-components/members-components/EditMemberModal"
 import EditLeadModal from "../../components/studio-components/lead-studio-components/edit-lead-modal"

@@ -38,7 +38,6 @@ import { toast } from "react-hot-toast"
 import PersonImage from '../../public/avatar3.png'
 import Avatar from "../../public/gray-avatar-fotor-20250912192528.png"
 import RightSidebarWidget from "./myarea-components/sidebar-components/RightSidebarWidget"
-import { SpecialNoteEditModal } from "./myarea-components/SpecialNoteEditModal"
 import StaffCheckInWidget from "./myarea-components/widgets/StaffWidgetCheckIn"
 import ViewManagementModal from "./myarea-components/sidebar-components/ViewManagementModal"
 import { bulletinBoardData, demoNotifications, memberTypesData } from "../utils/studio-states/myarea-states"
@@ -1386,18 +1385,7 @@ const Sidebar = ({
                           </div>
                         )}
 
-                        {isSidebarSpecialNoteModalOpen && selectedSidebarAppointmentForNote && (
-                          <SpecialNoteEditModal
-                            isOpen={isSidebarSpecialNoteModalOpen}
-                            onClose={() => {
-                              setIsSidebarSpecialNoteModalOpen(false);
-                              setSelectedSidebarAppointmentForNote(null);
-                            }}
-                            appointment={selectedSidebarAppointmentForNote}
-                            onSave={handleSaveSidebarSpecialNote}
-                          />
-                        )}
-
+                     
 
                         {widget.type === "expiringContracts" && (
                           <div className={`space-y-3 p-4 rounded-xl bg-[#2F2F2F] ${getWidgetHeightClass(widget.id, "md:h-[340px]")} h-auto flex flex-col`}>

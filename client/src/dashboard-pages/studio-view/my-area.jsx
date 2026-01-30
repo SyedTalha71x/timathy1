@@ -19,10 +19,8 @@ import {
   CalendarIcon,
   Menu,
   ExternalLink,
-  Settings,
   MessageCircle,
   Dumbbell,
-  FileText,
   Eye,
 } from "lucide-react"
 import { Toaster, toast } from "react-hot-toast"
@@ -32,19 +30,13 @@ import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
 import EditTaskModal from "../../components/studio-components/todo-components/edit-task-modal"
 import ViewManagementModal from "../../components/myarea-components/ViewManagementModal"
 import StaffCheckInWidget from "../../components/myarea-components/widgets/StaffWidgetCheckIn"
-import TrainingPlanModal from "../../components/myarea-components/TrainingPlanModal"
 import DraggableWidget from "../../components/myarea-components/DraggableWidget"
 import ContingentModal from "../../components/myarea-components/ContigentModal"
 
-import { SpecialNoteEditModal } from "../../components/myarea-components/SpecialNoteEditModal"
 import { WidgetSelectionModal } from "../../components/widget-selection-modal"
 
 import { notificationData, memberContingentDataNew, mockTrainingPlansNew, mockVideosNew, memberRelationsData, mockMemberHistoryNew, mockMemberRelationsNew, availableMembersLeadsNew, customLinksData, communicationsData, todosData, birthdaysData, memberTypesData, expiringContractsData, bulletinBoardData } from "../../utils/studio-states/myarea-states"
-import NotifyMemberModal from "../../components/myarea-components/NotifyMemberModal"
 import BirthdayMessageModal from "../../components/myarea-components/BirthdayMessageModal"
-import AppointmentActionModalV2 from "../../components/myarea-components/AppointmentActionModal"
-import EditAppointmentModalV2 from "../../components/myarea-components/EditAppointmentModal"
-import TrainingPlansModal from "../../components/myarea-components/TrainingPlanModal"
 import NotesWidget from "../../components/myarea-components/widgets/NotesWidjets"
 import BulletinBoardWidget from "../../components/myarea-components/widgets/BulletinBoardWidget"
 import AddTaskModal from "../../components/studio-components/todo-components/add-task-modal"
@@ -68,11 +60,6 @@ export default function MyArea() {
 
   const [notePosition, setNotePosition] = useState({ top: 0, left: 0 })
 
-
-  const [showAppointmentOptionsModal, setshowAppointmentOptionsModal] = useState(false)
-  const [isNotifyMemberOpen, setIsNotifyMemberOpen] = useState(false)
-  const [notifyAction, setNotifyAction] = useState("change")
-
   const [todoFilter, setTodoFilter] = useState("all")
   const [isTodoFilterDropdownOpen, setIsTodoFilterDropdownOpen] = useState(false)
   const [editingTask, setEditingTask] = useState(null)
@@ -86,7 +73,6 @@ export default function MyArea() {
   const [savedViews, setSavedViews] = useState([])
   const [currentView, setCurrentView] = useState(null)
   const [isViewModalOpen, setIsViewModalOpen] = useState(false)
-  const [freeAppointments, setFreeAppointments] = useState([])
   const today = new Date().toISOString().split("T")[0]
 
   const [isSpecialNoteModalOpen, setIsSpecialNoteModalOpen] = useState(false)
@@ -189,10 +175,6 @@ export default function MyArea() {
   const [activeNoteId, setActiveNoteId] = useState(null)
   const todoFilterDropdownRef = useRef(null)
 
-  const [selectedAppointment, setselectedAppointment] = useState()
-  const [isEditAppointmentModalOpen, setisEditAppointmentModalOpen] = useState(false)
-
-  const [isTrainingPlanModalOpen, setIsTrainingPlanModalOpen] = useState(false)
   const [selectedUserForTrainingPlan, setSelectedUserForTrainingPlan] = useState(null)
 
   const [editingLink, setEditingLink] = useState(null)
@@ -998,30 +980,18 @@ export default function MyArea() {
   )
 
   const handleViewMemberDetails = (appointmentIdOrMemberId) => {
-    console.log("handleViewMemberDetails called with:", appointmentIdOrMemberId);
-
     // First, try to find the appointment
-    const appointment = appointments.find(app =>
-      app.id === appointmentIdOrMemberId
-    );
+    const appointment = appointments.find(app => app.id === appointmentIdOrMemberId)
 
     if (appointment) {
-      console.log("Found appointment:", appointment);
-      console.log("Appointment memberId:", appointment.memberId);
-
-      setshowAppointmentOptionsModal(false);
-
-      // If appointment has memberId, use that, otherwise use appointment.id
-      const memberIdToNavigate = appointment.memberId || appointment.id;
-
+      const memberIdToNavigate = appointment.memberId || appointment.id
       if (memberIdToNavigate) {
-        navigate(`/dashboard/member-details/${memberIdToNavigate}`);
+        navigate(`/dashboard/member-details/${memberIdToNavigate}`)
       } else {
-        toast.error("Member not found for this appointment");
+        toast.error("Member not found for this appointment")
       }
     } else {
-      console.log("Appointment not found for ID:", appointmentIdOrMemberId);
-      toast.error("Appointment not found");
+      toast.error("Appointment not found")
     }
   };
 
@@ -1053,60 +1023,11 @@ export default function MyArea() {
     return appointments.filter(app => app.id === memberId)
   }
 
-  const handleEditAppointment = (appointment) => {
-    setselectedAppointment(appointment)
-    setisEditAppointmentModalOpen(true)
-    setShowAppointmentModal(false)
-  }
-
-  const isEventInPast = (eventStart) => {
-    const now = new Date()
-    const eventDate = new Date(eventStart)
-    return eventDate < now
-  }
-
   const handleAppointmentOptionsModal = (appointment) => {
-    setselectedAppointment(appointment)
-    setshowAppointmentOptionsModal(true)
-    setisEditAppointmentModalOpen(false) // Ensure edit modal is closed
-  }
-
-  const handleCancelAppointment = () => {
-    setshowAppointmentOptionsModal(false)
-    setNotifyAction("cancel")
-    if (selectedAppointment) {
-      // Update the selected appointment's status locally for the modal
-      const updatedApp = { ...selectedAppointment, status: "cancelled", isCancelled: true }
-      setselectedAppointment(updatedApp)
-      setIsNotifyMemberOpen(true) // Show notification modal
+    // Navigate to member details when clicking on appointment
+    if (appointment?.memberId) {
+      navigate(`/dashboard/member-details/${appointment.memberId}`)
     }
-  }
-
-  const actuallyHandleCancelAppointment = (shouldNotify) => {
-    if (!appointments || !setAppointments || !selectedAppointment) return
-    const updatedAppointments = appointments.map((app) =>
-      app.id === selectedAppointment.id ? { ...app, status: "cancelled", isCancelled: true } : app,
-    )
-    setAppointments(updatedAppointments)
-    toast.success("Appointment cancelled successfully")
-    if (shouldNotify) {
-      console.log("Notifying member about cancellation")
-    }
-    setselectedAppointment(null) // Clear selected appointment after action
-  }
-
-  const handleDeleteAppointment = (id) => {
-    // setMemberAppointments(memberAppointments.filter((app) => app.id !== id))
-    setselectedAppointment(null)
-    setisEditAppointmentModalOpen(false)
-    setIsNotifyMemberOpen(true)
-    setNotifyAction("delete")
-    toast.success("Appointment deleted successfully")
-  }
-
-  const handleNotifyMember = (shouldNotify) => {
-    setIsNotifyMemberOpen(false)
-    toast.success("Member notified successfully!")
   }
 
   const handleSendBirthdayMessage = (person) => {
@@ -1134,11 +1055,7 @@ export default function MyArea() {
     { value: "canceled", label: "Canceled", color: "#ef4444" },
   ]
 
-  const handleDumbbellClick = (appointment, e) => {
-    e.stopPropagation()
-    setSelectedUserForTrainingPlan(appointment)
-    setIsTrainingPlanModalOpen(true)
-  }
+
 
 
 
@@ -1739,29 +1656,7 @@ export default function MyArea() {
 
 
 
-        <AppointmentActionModalV2
-          isOpen={showAppointmentOptionsModal}
-          onClose={() => {
-            setshowAppointmentOptionsModal(false)
-            setselectedAppointment(null) // Reset the selected appointment when closing
-          }}
-          appointment={selectedAppointment}
-          isEventInPast={isEventInPast}
-          onEdit={() => {
-            setshowAppointmentOptionsModal(false) // Close the options modal
-            setisEditAppointmentModalOpen(true) // Open the edit modal
-          }}
-          onCancel={handleCancelAppointment}
-          onViewMember={handleViewMemberDetails}
-        />
 
-        <NotifyMemberModal
-          isOpen={isNotifyMemberOpen}
-          onClose={() => setIsNotifyMemberOpen(false)}
-          notifyAction={notifyAction}
-          actuallyHandleCancelAppointment={actuallyHandleCancelAppointment}
-          handleNotifyMember={handleNotifyMember}
-        />
 
         <BirthdayMessageModal
           isOpen={isBirthdayMessageModalOpen}
@@ -1796,165 +1691,6 @@ export default function MyArea() {
           widgetArea="dashboard"
         />
 
-        {isEditAppointmentModalOpen && selectedAppointment && (
-          <EditAppointmentModalV2
-            selectedAppointment={selectedAppointment}
-            setSelectedAppointment={setselectedAppointment}
-            appointmentTypes={appointmentTypes}
-            freeAppointments={freeAppointments}
-            handleAppointmentChange={(changes) => {
-              setselectedAppointment({ ...selectedAppointment, ...changes })
-            }}
-            appointments={appointments}
-            setAppointments={setAppointments}
-            setIsNotifyMemberOpen={setIsNotifyMemberOpen}
-            setNotifyAction={setNotifyAction}
-            onDelete={handleDeleteAppointment}
-            onClose={() => {
-              setisEditAppointmentModalOpen(false)
-              setselectedAppointment(null) // Reset the selected appointment
-            }}
-          />
-        )}
-
-        <TrainingPlansModal
-          isOpen={isTrainingPlanModalOpen}
-          onClose={() => {
-            setIsTrainingPlanModalOpen(false)
-            setSelectedUserForTrainingPlan(null)
-          }}
-          selectedMember={selectedUserForTrainingPlan} // Make sure this is passed correctly
-          memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
-          availableTrainingPlans={availableTrainingPlans}
-          onAssignPlan={handleAssignTrainingPlan} // Make sure this function is passed
-          onRemovePlan={handleRemoveTrainingPlan} // Make sure this function is passed
-        />
-
-        <SpecialNoteEditModal
-          isOpen={isSpecialNoteModalOpen}
-          onClose={() => {
-            setIsSpecialNoteModalOpen(false)
-            setSelectedAppointmentForNote(null)
-          }}
-          appointment={selectedAppointmentForNote}
-          onSave={handleSaveSpecialNote}
-        />
-
-        {/* <MemberOverviewModal
-          isOpen={isMemberOverviewModalOpen}
-          onClose={() => {
-            setisMemberOverviewModalOpen(false)
-            setSelectedMember(null) // Clear selectedMember instead of selectedAppointment
-          }}
-          selectedMember={selectedMember} // Pass selectedMember instead of selectedAppointment
-          calculateAge={calculateAge}
-          isContractExpiringSoon={isContractExpiringSoon}
-          handleCalendarFromOverview={handleCalendarFromOverview}
-          handleHistoryFromOverview={handleHistoryFromOverview}
-          handleCommunicationFromOverview={handleCommunicationFromOverview}
-          handleViewDetailedInfo={handleViewDetailedInfo}
-          handleEditFromOverview={handleEditFromOverview}
-          handleTrainingPlansFromOverview={handleTrainingPlansFromOverview}
-          handleDocumentFromOverview={handleDocumentClick}
-        />
-
-        <MemberDocumentModal
-                member={selectedMemberForDocuments}
-                isOpen={showDocumentModal}
-                onClose={() => {
-                  setShowDocumentModal(false)
-                  setSelectedMemberForDocuments(null)
-                }}
-              />
-
-        <AppointmentModal
-          show={showAppointmentModal}
-          member={selectedMember}
-          onClose={() => {
-            setShowAppointmentModal(false)
-            setSelectedMember(null)
-          }}
-          getMemberAppointments={getMemberAppointments}
-          appointmentTypes={appointmentTypes}
-          handleEditAppointment={handleEditAppointment}
-          handleCancelAppointment={handleCancelAppointment}
-          currentBillingPeriod={currentBillingPeriod}
-          memberContingentData={memberContingentData}
-          handleManageContingent={handleManageContingent}
-          handleCreateNewAppointment={handleCreateNewAppointment}
-        />
-
-        <HistoryModal
-          show={showHistoryModal}
-          onClose={() => {
-            setShowHistoryModal(false);
-            setSelectedMember(null);
-          }}
-          selectedMember={selectedMember}
-          historyTab={historyTab}
-          setHistoryTab={setHistoryTab}
-          memberHistory={memberHistory}
-        />
-
-        <MemberDetailsModal
-          isOpen={isMemberDetailsModalOpen}
-          onClose={() => {
-            setIsMemberDetailsModalOpen(false)
-            setSelectedMember(null)
-          }}
-          selectedMember={selectedMember}
-          memberRelations={memberRelations}
-          DefaultAvatar={DefaultAvatar}
-          calculateAge={calculateAge}
-          isContractExpiringSoon={isContractExpiringSoon}
-          redirectToContract={redirectToContract}
-        />
-        <ContingentModal
-          show={showContingentModal}
-          setShow={setShowContingentModal}
-          selectedMember={selectedMember}
-          getBillingPeriods={getBillingPeriods}
-          selectedBillingPeriod={selectedBillingPeriod}
-          handleBillingPeriodChange={setSelectedBillingPeriod}
-          setShowAddBillingPeriodModal={setShowAddBillingPeriodModal}
-          tempContingent={tempContingent}
-          setTempContingent={setTempContingent}
-          currentBillingPeriod={currentBillingPeriod}
-          handleSaveContingent={handleSaveContingent}
-        />
-
-        <AddBillingPeriodModal
-          show={showAddBillingPeriodModal}
-          setShow={setShowAddBillingPeriodModal}
-          newBillingPeriod={newBillingPeriod}
-          setNewBillingPeriod={setNewBillingPeriod}
-          handleAddBillingPeriod={handleAddBillingPeriod}
-        />
-
-        <EditMemberModal
-          isOpen={isEditModalOpen}
-          onClose={() => {
-            setIsEditModalOpen(false)
-            setSelectedMember(null)
-          }}
-          selectedMember={selectedMember}
-          editModalTab={editModalTab}
-          setEditModalTab={setEditModalTab}
-          editForm={editForm}
-          handleInputChange={handleInputChange}
-          handleEditSubmit={handleEditSubmit}
-          editingRelations={editingRelations}
-          setEditingRelations={setEditingRelations}
-          newRelation={newRelation}
-          setNewRelation={setNewRelation}
-          availableMembersLeads={availableMembersLeads}
-          relationOptions={relationOptions}
-          handleAddRelation={handleAddRelation}
-          memberRelations={memberRelations}
-          handleDeleteRelation={handleDeleteRelation}
-          handleArchiveMember={handleArchiveMember}
-          handleUnarchiveMember={handleUnarchiveMember}
-        /> */}
 
 
 

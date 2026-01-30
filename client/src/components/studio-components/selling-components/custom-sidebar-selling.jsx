@@ -40,7 +40,6 @@ import { toast } from "react-hot-toast"
 import Avatar from "../../../../public/gray-avatar-fotor-20250912192528.png"
 import RightSidebarWidget from "../../myarea-components/sidebar-components/RightSidebarWidget"
 import StaffCheckInWidget from "../../myarea-components/widgets/StaffWidgetCheckIn"
-import { SpecialNoteEditModal } from "../../myarea-components/SpecialNoteEditModal"
 import ViewManagementModal from "../../myarea-components/sidebar-components/ViewManagementModal"
 import { bulletinBoardData, demoNotifications } from "../../../utils/studio-states/myarea-states"
 import PersonImage from '../../../../public/avatar3.png'
@@ -1769,18 +1768,7 @@ const SidebarAreaSelling = ({
         </div>
       </aside>
 
-      {/* Special Note Modal for Sidebar */}
-      {isSidebarSpecialNoteModalOpen && selectedSidebarAppointmentForNote && (
-        <SpecialNoteEditModal
-          isOpen={isSidebarSpecialNoteModalOpen}
-          onClose={() => {
-            setIsSidebarSpecialNoteModalOpen(false)
-            setSelectedSidebarAppointmentForNote(null)
-          }}
-          appointment={selectedSidebarAppointmentForNote}
-          onSave={handleSaveSidebarSpecialNote}
-        />
-      )}
+     
 
       {isWebsiteLinkModalOpen && (
         <WebsiteLinkModal
