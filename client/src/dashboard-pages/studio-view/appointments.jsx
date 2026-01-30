@@ -22,9 +22,9 @@ import { useState, useEffect, useCallback, useRef } from "react"
 import toast, { Toaster } from "react-hot-toast"
 import { GoArrowLeft, GoArrowRight } from "react-icons/go"
 
-import { appointmentsData as initialAppointmentsData, memberRelationsData, availableMembersLeadsMain, freeAppointmentsData, relationOptionsData as relationOptionsMain, appointmentTypesData, membersData, DEFAULT_CALENDAR_SETTINGS, leadsData } from "../../utils/studio-states"
+import { appointmentsData as initialAppointmentsData, memberRelationsData, availableMembersLeadsMain, freeAppointmentsData, relationOptionsData as relationOptionsMain, appointmentTypesData, membersData, DEFAULT_CALENDAR_SETTINGS, leadsData, leadRelationsData } from "../../utils/studio-states"
 
-import TrialTrainingModal from "../../components/studio-components/appointments-components/add-trial-training"
+import TrialTrainingModal from "../../components/shared/appointments/CreateTrialTrainingModal"
 import CreateAppointmentModal from "../../components/shared/appointments/CreateAppointmentModal"
 import MiniCalendar from "../../components/studio-components/appointments-components/mini-calender"
 import BlockAppointmentModal from "../../components/studio-components/appointments-components/block-appointment-modal"
@@ -181,7 +181,7 @@ export default function Appointments() {
   const [isEditLeadModalOpen, setIsEditLeadModalOpen] = useState(false)
   const [selectedLeadForEdit, setSelectedLeadForEdit] = useState(null)
   const [editLeadActiveTab, setEditLeadActiveTab] = useState("note")
-  const [leadRelationsMain, setLeadRelationsMain] = useState({})
+  const [leadRelationsMain, setLeadRelationsMain] = useState(leadRelationsData || {})
   const [leadColumnsData] = useState([
     { id: "new", title: "New" },
     { id: "contacted", title: "Contacted" },
@@ -838,7 +838,7 @@ export default function Appointments() {
               </button>
 
               {/* Date Display */}
-              <span className="text-white text-sm font-medium min-w-[140px] text-center">{calendarDateDisplay}</span>
+              <span className="text-white text-sm font-medium min-w-[140px] text-center select-none">{calendarDateDisplay}</span>
 
               {/* Next Arrow */}
               <button onClick={() => calendarRef.current?.next()} className="p-2 bg-black rounded-lg text-gray-400 hover:text-white hover:bg-[#1a1a1a] transition-colors">
@@ -930,7 +930,7 @@ export default function Appointments() {
               <button onClick={() => calendarRef.current?.prev()} className="p-2 bg-black rounded-lg text-white"><GoArrowLeft className="w-3 h-3" /></button>
               <button onClick={() => calendarRef.current?.next()} className="p-2 bg-black rounded-lg text-white"><GoArrowRight className="w-3 h-3" /></button>
             </div>
-            <span className="text-white text-xs font-medium flex-1 text-center truncate">{calendarDateDisplay}</span>
+            <span className="text-white text-xs font-medium flex-1 text-center truncate select-none">{calendarDateDisplay}</span>
             <button onClick={() => calendarRef.current?.toggleFreeSlots()} className={`px-3 py-1.5 rounded-lg text-xs flex items-center gap-1 ${calendarViewMode === "free" ? "bg-orange-500 text-white" : "bg-[#2F2F2F] text-gray-300"}`}>
               <CalendarCheck size={12} />
               {calendarViewMode === "all" ? "Free" : "All"}
@@ -1217,7 +1217,7 @@ export default function Appointments() {
                                 <p className="text-xs mt-1 opacity-70">
                                   {appointment.isTrial 
                                     ? (appointment.trialType 
-                                        ? `Trial Training â€¢ ${appointment.trialType}` 
+                                        ? `Trial Training • ${appointment.trialType}` 
                                         : "Trial Training") 
                                     : appointment.isCancelled 
                                       ? <span className="text-red-400">Cancelled</span> 
@@ -1267,7 +1267,18 @@ export default function Appointments() {
 
         {/* Modals */}
         <CreateAppointmentModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} appointmentTypesMain={appointmentTypesMain} onSubmit={handleAppointmentSubmit} setIsNotifyMemberOpenMain={setIsNotifyMemberOpenMain} setNotifyActionMain={setNotifyActionMain} freeAppointmentsMain={freeAppointmentsMain} availableMembersLeads={availableMembersLeadsMain} onOpenEditMemberModal={handleOpenEditMemberModal} memberRelations={memberRelationsData} selectedDate={selectedDate} />
-        <TrialTrainingModal isOpen={isTrialModalOpen} onClose={() => setIsTrialModalOpen(false)} freeAppointmentsMain={freeAppointmentsMain} onSubmit={handleTrialSubmit} />
+        <TrialTrainingModal 
+          isOpen={isTrialModalOpen} 
+          onClose={() => setIsTrialModalOpen(false)} 
+          appointmentTypesMain={appointmentTypesMain}
+          freeAppointmentsMain={freeAppointmentsMain}
+          leadsData={leadsData}
+          leadRelations={leadRelationsMain}
+          onOpenEditLeadModal={handleOpenEditLeadModal}
+          onSubmit={handleTrialSubmit}
+          selectedDate={selectedDate}
+          selectedTime={null}
+        />
         <AppointmentActionModal isOpen={showAppointmentOptionsModalMain} onClose={() => { setshowAppointmentOptionsModalMain(false); setSelectedAppointmentMain(null) }} appointmentMain={selectedAppointmentMain} onEdit={() => { setshowAppointmentOptionsModalMain(false); setisEditAppointmentModalOpenMain(true) }} onCancel={handleCancelAppointmentMain} onDelete={handleDeleteAppointmentMain} onViewMember={handleViewMemberDetailsMain} onEditMemberNote={handleOpenEditMemberModal} onOpenEditLeadModal={handleOpenEditLeadModal} memberRelations={memberRelationsMain} leadRelations={leadRelationsMain} appointmentsMain={appointmentsMain} setAppointmentsMain={setAppointmentsMain} />
         {isEditAppointmentModalOpenMain && selectedAppointmentMain && (
           <EditAppointmentModal selectedAppointmentMain={selectedAppointmentMain} setSelectedAppointmentMain={setSelectedAppointmentMain} appointmentTypesMain={appointmentTypesMain} freeAppointmentsMain={freeAppointmentsMain}

@@ -9,7 +9,7 @@ import { X } from "lucide-react"
 
 import CreateAppointmentModal from "../../shared/appointments/CreateAppointmentModal"
 import BlockAppointmentModal from "./block-appointment-modal"
-import TrialTrainingModal from "./add-trial-training"
+import TrialTrainingModal from "../../shared/appointments/CreateTrialTrainingModal"
 import EditAppointmentModalMain from "../../shared/appointments/EditAppointmentModal"
 
 import AppointmentActionModal from "./AppointmentActionModal"
@@ -1102,6 +1102,7 @@ const Calendar = forwardRef(({
           transform: translateY(-50%) !important;
           z-index: 10 !important;
           background: #000 !important;
+          user-select: none !important;
         }
         .fc .fc-timegrid-slots tbody tr:first-child .fc-timegrid-slot-label-cushion {
           display: none !important;
@@ -1121,11 +1122,13 @@ const Calendar = forwardRef(({
           padding: 0 !important;
           height: 24px !important;
           position: relative !important;
+          user-select: none !important;
         }
         .fc .fc-col-header-cell-cushion {
           font-size: 11px !important;
           font-weight: 500 !important;
           padding: 4px 0 !important;
+          user-select: none !important;
         }
         .fc .fc-scrollgrid {
           border: none !important;
@@ -1177,6 +1180,14 @@ const Calendar = forwardRef(({
           height: 32px !important;
           cursor: pointer !important;
         }
+        /* Prevent text selection in calendar cells */
+        .fc .fc-daygrid-day,
+        .fc .fc-daygrid-day-frame,
+        .fc .fc-daygrid-day-top,
+        .fc .fc-daygrid-day-number,
+        .fc .fc-daygrid-day-events {
+          user-select: none !important;
+        }
         /* Abgesagte Termine - diagonale Streifen + grau */
         .cancelled-event {
           position: relative;
@@ -1201,9 +1212,9 @@ const Calendar = forwardRef(({
           border-radius: inherit;
         }
         /* Vergangene Termine - abgeschwaecht */
-        .past-event {
-          opacity: 0.45;
-        }
+       .past-event {
+  filter: brightness(0.55) saturate(0.8);
+}
         /* Blocked time slots - like cancelled events but in red */
         .blocked-event {
           position: relative;
@@ -1266,6 +1277,7 @@ const Calendar = forwardRef(({
           max-width: 100%;
           padding: 0 2px;
           opacity: 0.7;
+          user-select: none;
         }
         /* Month view closed day styling */
         .fc-dayGridMonth-view .fc-day-closed {
@@ -1293,6 +1305,7 @@ const Calendar = forwardRef(({
           overflow: hidden !important;
           cursor: move !important;
           pointer-events: auto !important;
+          user-select: none !important;
         }
         .fc-timegrid-event:hover:not(.fc-event-dragging) {
           transform: scale(1.04) !important;
@@ -1419,6 +1432,7 @@ const Calendar = forwardRef(({
           will-change: transform !important;
           backface-visibility: hidden !important;
           transform: translateZ(0) !important;
+          user-select: none !important;
         }
         .month-apt-tile:hover {
           transform: translateZ(0) scale(1.06) !important;
@@ -1541,7 +1555,7 @@ const Calendar = forwardRef(({
                     const isHoliday = closedInfo.closed && !closedInfo.isWeekend;
                     
                     return (
-                      <div style={{ textAlign: 'center', lineHeight: '1.1' }}>
+                      <div style={{ textAlign: 'center', lineHeight: '1.1', userSelect: 'none' }}>
                         <div style={{ fontSize: '11px' }}>{weekday} {day}</div>
                         {isHoliday && (
                           <div className="closed-label">{closedInfo.reason}</div>
@@ -1563,7 +1577,7 @@ const Calendar = forwardRef(({
                     const isHoliday = closedInfo.closed && !closedInfo.isWeekend;
                     
                     return (
-                      <div style={{ textAlign: 'center', lineHeight: '1.1' }}>
+                      <div style={{ textAlign: 'center', lineHeight: '1.1', userSelect: 'none' }}>
                         <div style={{ fontSize: '11px' }}>{weekday} {day}</div>
                         {isHoliday && (
                           <div className="closed-label">{closedInfo.reason}</div>
@@ -1578,7 +1592,7 @@ const Calendar = forwardRef(({
                     const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
                     const dayIndex = date.getDay();
                     const adjustedIndex = dayIndex === 0 ? 6 : dayIndex - 1;
-                    return weekdays[adjustedIndex];
+                    return <span style={{ userSelect: 'none' }}>{weekdays[adjustedIndex]}</span>;
                   }
                 }
               }}
@@ -1665,7 +1679,7 @@ const Calendar = forwardRef(({
 
                   return (
                     <div 
-                      style={{ height: '100%', width: '100%', padding: 0, margin: 0, overflow: 'hidden', cursor: isClosed ? 'not-allowed' : 'pointer' }}
+                      style={{ height: '100%', width: '100%', padding: 0, margin: 0, overflow: 'hidden', cursor: isClosed ? 'not-allowed' : 'pointer', userSelect: 'none' }}
                       onClick={handleCellClick}
                     >
                       <div style={{ padding: '2px 4px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -1814,12 +1828,12 @@ const Calendar = forwardRef(({
                   const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
                   const dayIndex = date.getDay();
                   const adjustedIndex = dayIndex === 0 ? 6 : dayIndex - 1;
-                  return <div style={{ textAlign: "center", lineHeight: "1", padding: "8px 0", fontSize: "12px", fontWeight: "600" }}><span>{weekdays[adjustedIndex]}</span></div>
+                  return <div style={{ textAlign: "center", lineHeight: "1", padding: "8px 0", fontSize: "12px", fontWeight: "600", userSelect: "none" }}><span>{weekdays[adjustedIndex]}</span></div>
                 }
                 
                 const weekday = date.toLocaleDateString("en-US", { weekday: "short" })
                 const day = date.getDate()
-                return <div style={{ textAlign: "center", lineHeight: "1", padding: "2px 0", fontSize: "11px" }}><span>{weekday} {day}</span></div>
+                return <div style={{ textAlign: "center", lineHeight: "1", padding: "2px 0", fontSize: "11px", userSelect: "none" }}><span>{weekday} {day}</span></div>
               }}
               dayCellClassNames={(date) => new Date(date.date).toDateString() === new Date().toDateString() ? ["fc-day-today-custom"] : []}
               eventMouseEnter={(info) => { 
