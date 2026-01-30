@@ -104,7 +104,7 @@ export default function Appointments() {
   // Handler wenn im Hauptkalender navigiert wird (nur durch Pfeile, nicht durch datesSet beim Laden)
   const handleCalendarNavigate = useCallback((date, isUserNavigation = false) => {
     setMiniCalendarDate(date);
-    // Nur bei echter User-Navigation das selectedDate ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¤ndern
+    // Nur bei echter User-Navigation das selectedDate aendern
     if (isUserNavigation) {
       setSelectedDate(new Date(date));
     }
@@ -345,10 +345,13 @@ export default function Appointments() {
     const results = [];
     const seenNames = new Set();
     
-    // Search through appointments (members)
+    // Search through appointments (members only - skip trial trainings which are leads)
     appointmentsMain.forEach((appointment) => {
       // Skip blocked time slots
       if (appointment.isBlocked || appointment.type === "Blocked Time") return;
+      
+      // Skip trial trainings - they are leads, not members
+      if (appointment.isTrial || appointment.leadId) return;
       
       const fullName = `${appointment.name || ''} ${appointment.lastName || ''}`.trim();
       const fullNameLower = fullName.toLowerCase();
@@ -371,7 +374,7 @@ export default function Appointments() {
       }
     });
     
-    // Search through leads
+    // Search through leads (from leadsData)
     leadsData.forEach((lead) => {
       const fullName = `${lead.firstName || ''} ${lead.lastName || ''}`.trim();
       const fullNameLower = fullName.toLowerCase();
@@ -597,7 +600,7 @@ export default function Appointments() {
 
   const handleAppointmentSubmit = (appointmentData) => {
     const newAppointment = {
-      id: appointmentsMain.length + 1, ...appointmentData, status: "pending", isTrial: false, isCancelled: false, isPast: false,
+      id: Math.max(0, ...appointmentsMain.map(a => a.id)) + 1, ...appointmentData, status: "pending", isTrial: false, isCancelled: false, isPast: false,
       date: `${new Date(appointmentData.date).toLocaleString("en-US", { weekday: "short" })} | ${formatDate(new Date(appointmentData.date))}`,
     }
     setAppointmentsMain([...appointmentsMain, newAppointment])
@@ -605,7 +608,7 @@ export default function Appointments() {
 
   const handleTrialSubmit = (trialData) => {
     const newTrial = {
-      id: appointmentsMain.length + 1, ...trialData, status: "pending", isTrial: true, isCancelled: false, isPast: false,
+      id: Math.max(0, ...appointmentsMain.map(a => a.id)) + 1, ...trialData, status: "pending", isTrial: true, isCancelled: false, isPast: false,
       date: `${new Date(trialData.date).toLocaleString("en-US", { weekday: "short" })} | ${formatDate(new Date(trialData.date))}`,
     }
     setAppointmentsMain([...appointmentsMain, newTrial])
@@ -613,6 +616,10 @@ export default function Appointments() {
   }
 
   const handleCheckInMain = (appointmentId) => {
+    // Don't allow check-in changes for past appointments
+    const appointment = appointmentsMain.find(app => app.id === appointmentId);
+    if (appointment?.isPast) return;
+    
     setAppointmentsMain((prevAppointments) =>
       prevAppointments.map((appointment) =>
         appointment.id === appointmentId ? { ...appointment, isCheckedIn: !appointment.isCheckedIn } : appointment
@@ -752,7 +759,7 @@ export default function Appointments() {
 
   const handleDumbbellClickMain = (appointment, e) => { 
     e.stopPropagation(); 
-    // Konvertiere Appointment zu einheitlichem Member-Format für TrainingPlanModal
+    // Konvertiere Appointment zu einheitlichem Member-Format fuer TrainingPlanModal
     const memberData = {
       id: appointment.memberId, // Use memberId to link to training plans
       firstName: appointment.name, // appointment.name ist der Vorname
@@ -963,12 +970,19 @@ export default function Appointments() {
                       {memberFilters.map((filter) => (
                         <div 
                           key={filter.memberId}
-                          className={`flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm ${filter.type === 'lead' ? 'bg-blue-500/20 border border-blue-500/40' : 'bg-[#3F74FF]/20 border border-[#3F74FF]/40'}`}
+                          className={`flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm ${filter.type === 'lead' ? 'bg-blue-500/20 border border-blue-500/40' : 'bg-orange-500/20 border border-orange-500/40'}`}
                         >
+                          {/* Members: Show initials avatar */}
                           {filter.type !== 'lead' && (
                             <div className="w-5 h-5 rounded bg-orange-500 flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0">
                               {filter.memberName.split(' ')[0]?.charAt(0)}{filter.memberName.split(' ')[1]?.charAt(0) || ''}
                             </div>
+                          )}
+                          {/* Leads: Show "Lead" tag instead of avatar */}
+                          {filter.type === 'lead' && (
+                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/30 text-blue-300 font-medium flex-shrink-0">
+                              Lead
+                            </span>
                           )}
                           <span className="text-white text-xs whitespace-nowrap">{filter.memberName}</span>
                           <button
@@ -976,7 +990,7 @@ export default function Appointments() {
                               e.stopPropagation();
                               handleRemoveFilter(filter.memberId);
                             }}
-                            className="p-0.5 hover:bg-[#3F74FF]/30 rounded transition-colors"
+                            className={`p-0.5 rounded transition-colors ${filter.type === 'lead' ? 'hover:bg-blue-500/30' : 'hover:bg-orange-500/30'}`}
                           >
                             <X size={12} className="text-gray-400 hover:text-white" />
                           </button>
@@ -1022,6 +1036,7 @@ export default function Appointments() {
                             onClick={() => handleSelectMember(person)}
                             className="w-full px-3 py-2.5 flex items-center gap-3 hover:bg-[#252525] transition-colors text-left"
                           >
+                            {/* Members: Show profile image or initials avatar */}
                             {person.type === 'member' && (
                               person.image ? (
                                 <img 
@@ -1038,7 +1053,7 @@ export default function Appointments() {
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2">
                                 <p className="text-sm text-white truncate">{person.firstName} {person.lastName}</p>
-                                <span className={`text-[10px] px-1.5 py-0.5 rounded ${person.type === 'lead' ? 'bg-blue-500/20 text-blue-400' : 'bg-orange-500/20 text-orange-400'}`}>
+                                <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${person.type === 'lead' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : 'bg-orange-500/20 text-orange-400 border border-orange-500/30'}`}>
                                   {person.type === 'lead' ? 'Lead' : 'Member'}
                                 </span>
                               </div>
@@ -1058,7 +1073,7 @@ export default function Appointments() {
                   </div>
                 </div>
 
-                {/* Filters - feste GrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¶ÃƒÆ’Ã†â€™Ãƒâ€¦Ã‚Â¸e */}
+                {/* Filters - feste Groesse */}
                 <div className="bg-[#000000] rounded-xl p-3 w-full flex-shrink-0">
                   <div className="flex items-center justify-between">
                     <h3 className="text-white font-semibold text-sm">Filters</h3>
@@ -1149,12 +1164,18 @@ export default function Appointments() {
                                   {!isBlocked && (
                                     <MemberSpecialNoteIcon
                                       member={memberWithNotes}
-                                      onEditMember={(memberData, tab) => handleOpenEditMemberModal(memberData, tab || "note")}
+                                      onEditMember={(memberData, tab) => {
+                                        if (appointment.isTrial && appointment.leadId) {
+                                          handleOpenEditLeadModal(appointment.leadId, tab || "note");
+                                        } else {
+                                          handleOpenEditMemberModal(memberData, tab || "note");
+                                        }
+                                      }}
                                       size="sm"
                                       position="relative"
                                     />
                                   )}
-                                  {!isBlocked && (
+                                  {!isBlocked && !appointment.isTrial && (
                                     <div 
                                       className="cursor-pointer rounded p-0.5 transition-all duration-200 hover:scale-110 active:scale-95" 
                                       onClick={(e) => handleDumbbellClickMain(appointment, e)}
@@ -1165,8 +1186,16 @@ export default function Appointments() {
                                   )}
                                 </div>
                                 {!isBlocked && (
-                                  <button onClick={(e) => { e.stopPropagation(); handleCheckInMain(appointment.id) }}
-                                    className={`min-w-[85px] px-3 py-1.5 text-xs font-semibold rounded-lg transition-all border ${appointment.isCheckedIn ? "bg-white/20 hover:bg-white/30 text-white/80 border-white/30" : "bg-black hover:bg-black/80 text-white border-transparent"}`}>
+                                  <button 
+                                    onClick={(e) => { e.stopPropagation(); if (!appointment.isPast) handleCheckInMain(appointment.id) }}
+                                    disabled={appointment.isPast}
+                                    className={`min-w-[85px] px-3 py-1.5 text-xs font-semibold rounded-lg transition-all border ${
+                                      appointment.isPast 
+                                        ? "bg-white/10 text-white/50 border-white/20 cursor-not-allowed" 
+                                        : appointment.isCheckedIn 
+                                          ? "bg-white/20 hover:bg-white/30 text-white/80 border-white/30" 
+                                          : "bg-black hover:bg-black/80 text-white border-transparent"
+                                    }`}>
                                     {appointment.isCheckedIn ? "Checked In" : "Check In"}
                                   </button>
                                 )}
@@ -1188,7 +1217,7 @@ export default function Appointments() {
                                 <p className="text-xs mt-1 opacity-70">
                                   {appointment.isTrial 
                                     ? (appointment.trialType 
-                                        ? `Trial Training • ${appointment.trialType}` 
+                                        ? `Trial Training â€¢ ${appointment.trialType}` 
                                         : "Trial Training") 
                                     : appointment.isCancelled 
                                       ? <span className="text-red-400">Cancelled</span> 
@@ -1263,7 +1292,7 @@ export default function Appointments() {
           // Use formatDate (with dashes) instead of formatDateForDisplay (with slashes)
           // Calendar expects format: "Wed | 29-01-2025"
           const newBlock = { 
-            id: appointmentsMain.length + 1, 
+            id: Math.max(0, ...appointmentsMain.map(a => a.id)) + 1, 
             name: "BLOCKED", 
             time: `${blockData.startTime} - ${blockData.endTime}`,
             date: `${new Date(blockData.startDate).toLocaleString("en-US", { weekday: "short" })} | ${formatDate(new Date(blockData.startDate))}`,

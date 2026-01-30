@@ -1,11 +1,18 @@
 /* eslint-disable react/prop-types */
 import { useState, useEffect } from "react"
-import { X } from "lucide-react"
+import { X, Check } from "lucide-react"
+import { appointmentTypesData } from "../../../utils/studio-states"
 
 /* 
   Modal for editing blocked time slots
 */
 const EditBlockedSlotModalMain = ({ isOpen, onClose, initialBlock, onSubmit, onDelete }) => {
+  // Get all appointment types (regular + trial training)
+  const allAppointmentTypes = [
+    ...appointmentTypesData.filter(t => !t.isTrialType),
+    { id: 'trial', name: 'Trial Training', color: 'bg-[#3B82F6]', colorHex: '#3B82F6' }
+  ];
+
   const [blockData, setBlockData] = useState({
     startDate: "",
     endDate: "",
@@ -14,6 +21,15 @@ const EditBlockedSlotModalMain = ({ isOpen, onClose, initialBlock, onSubmit, onD
     note: "",
   })
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  
+  // State für geblockte Terminarten
+  const [blockedTypes, setBlockedTypes] = useState(() => {
+    const initial = {};
+    allAppointmentTypes.forEach(type => {
+      initial[type.id] = true;
+    });
+    return initial;
+  });
 
   useEffect(() => {
     if (initialBlock) {
@@ -41,6 +57,22 @@ const EditBlockedSlotModalMain = ({ isOpen, onClose, initialBlock, onSubmit, onD
         endTime: initialBlock.endTime || "",
         note: initialBlock?.specialNote?.text || "",
       })
+
+      // Set blocked types from initial block if available
+      if (initialBlock.blockedTypes && Array.isArray(initialBlock.blockedTypes)) {
+        const typesState = {};
+        allAppointmentTypes.forEach(type => {
+          typesState[type.id] = initialBlock.blockedTypes.includes(type.name);
+        });
+        setBlockedTypes(typesState);
+      } else {
+        // Default to all selected
+        const initial = {};
+        allAppointmentTypes.forEach(type => {
+          initial[type.id] = true;
+        });
+        setBlockedTypes(initial);
+      }
     }
   }, [initialBlock])
 
@@ -56,21 +88,52 @@ const EditBlockedSlotModalMain = ({ isOpen, onClose, initialBlock, onSubmit, onD
     if (blockData.startDate !== blockData.endDate) return true;
     return blockData.startTime < blockData.endTime;
   };
+
+  // Check if at least one type is selected
+  const hasSelectedTypes = Object.values(blockedTypes).some(v => v);
   
   // Check if form is valid
   const isFormValid = blockData.startDate && blockData.endDate && 
                       blockData.startTime && blockData.endTime && 
-                      isDateValid() && isTimeValid();
+                      isDateValid() && isTimeValid() && hasSelectedTypes;
 
   const handleChange = (e) => {
     const { name, value } = e.target
     setBlockData({ ...blockData, [name]: value })
   }
 
+  const handleTypeToggle = (typeId) => {
+    setBlockedTypes(prev => ({
+      ...prev,
+      [typeId]: !prev[typeId]
+    }));
+  };
+
+  const handleSelectAll = () => {
+    const allSelected = Object.values(blockedTypes).every(v => v);
+    const newState = {};
+    allAppointmentTypes.forEach(type => {
+      newState[type.id] = !allSelected;
+    });
+    setBlockedTypes(newState);
+  };
+
+  const areAllSelected = Object.values(blockedTypes).every(v => v);
+
   const handleSubmit = (e) => {
     e.preventDefault()
     if (!isFormValid) return;
-    onSubmit({ ...blockData, blockAll: true })
+    
+    // Get selected type names
+    const selectedTypeNames = allAppointmentTypes
+      .filter(type => blockedTypes[type.id])
+      .map(type => type.name);
+    
+    onSubmit({ 
+      ...blockData, 
+      blockAll: areAllSelected,
+      blockedTypes: selectedTypeNames
+    })
   }
 
   const handleDeleteClick = () => {
@@ -85,13 +148,20 @@ const EditBlockedSlotModalMain = ({ isOpen, onClose, initialBlock, onSubmit, onD
     onClose();
   }
 
+  // Get color hex from color string like "bg-[#EF4444]"
+  const getColorHex = (type) => {
+    if (type.colorHex) return type.colorHex;
+    const match = type.color?.match(/#[A-Fa-f0-9]{6}/);
+    return match ? match[0] : '#666666';
+  };
+
   if (!isOpen) return null
 
   return (
     <>
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4" onClick={onClose}>
         <div
-          className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl overflow-hidden"
+          className="bg-[#181818] w-[90%] sm:w-[520px] rounded-xl overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
@@ -159,6 +229,50 @@ const EditBlockedSlotModalMain = ({ isOpen, onClose, initialBlock, onSubmit, onD
               {!isTimeValid() && (
                 <p className="text-red-400 text-xs">Start time must be before end time on the same day</p>
               )}
+
+              {/* Appointment Types to Block */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <label className="block text-sm font-medium text-white">Block Appointment Types</label>
+                  <button
+                    type="button"
+                    onClick={handleSelectAll}
+                    className="text-xs text-orange-400 hover:text-orange-300 transition-colors"
+                  >
+                    {areAllSelected ? "Deselect All" : "Select All"}
+                  </button>
+                </div>
+                <div className="bg-[#0D0D0D] rounded-xl p-3 space-y-2">
+                  {allAppointmentTypes.map((type) => (
+                    <label 
+                      key={type.id} 
+                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-800/50 cursor-pointer transition-colors"
+                    >
+                      <div 
+                        className={`w-5 h-5 rounded flex items-center justify-center border-2 transition-colors ${
+                          blockedTypes[type.id] 
+                            ? 'border-orange-500 bg-orange-500' 
+                            : 'border-gray-600 bg-transparent'
+                        }`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleTypeToggle(type.id);
+                        }}
+                      >
+                        {blockedTypes[type.id] && <Check size={14} className="text-white" />}
+                      </div>
+                      <div 
+                        className="w-3 h-3 rounded-full flex-shrink-0" 
+                        style={{ backgroundColor: getColorHex(type) }}
+                      />
+                      <span className="text-white text-sm">{type.name}</span>
+                    </label>
+                  ))}
+                </div>
+                {!hasSelectedTypes && (
+                  <p className="text-red-400 text-xs mt-2">Please select at least one appointment type</p>
+                )}
+              </div>
 
               <div>
                 <label className="block text-sm font-medium text-white mb-2">Note (Optional)</label>

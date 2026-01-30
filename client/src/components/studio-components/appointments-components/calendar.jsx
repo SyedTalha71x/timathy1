@@ -122,6 +122,8 @@ const Calendar = forwardRef(({
   const [pendingEventData, setPendingEventData] = useState(null)
   const [isTypeSelectionOpen, setIsTypeSelectionOpen] = useState(false)
   const [selectedSlotInfo, setSelectedSlotInfo] = useState(null)
+  const [prefilledSlotDate, setPrefilledSlotDate] = useState(null)
+  const [prefilledSlotTime, setPrefilledSlotTime] = useState(null)
   const [isTrialModalOpen, setIsTrialModalOpen] = useState(false)
   const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false)
   const [isAppointmentActionModalOpen, setIsAppointmentActionModalOpen] = useState(false)
@@ -348,7 +350,7 @@ const Calendar = forwardRef(({
       if (calendarApi) {
         calendarApi.changeView(viewType);
         
-        // Nach View-Wechsel zum ausgewÃƒÆ'Ã‚Â¤hlten Datum navigieren
+        // Nach View-Wechsel zum ausgewaehlten Datum navigieren
         if (selectedDate) {
           calendarApi.gotoDate(selectedDate);
         }
@@ -378,7 +380,7 @@ const Calendar = forwardRef(({
     setIsAppointmentActionModalOpen(true)
   }
 
-  // Kalender navigiert zu selectedDate wenn es auÃƒÆ'Ã†â€™Ãƒâ€¦Ã‚Â¸erhalb der aktuellen Ansicht liegt
+  // Kalender navigiert zu selectedDate wenn es ausserhalb der aktuellen Ansicht liegt
   useEffect(() => {
     if (selectedDate && calendarRef.current) {
       const calendarApi = calendarRef.current.getApi()
@@ -387,7 +389,7 @@ const Calendar = forwardRef(({
       const viewEnd = new Date(view.currentEnd)
       const selected = new Date(selectedDate)
       
-      // Nur navigieren wenn selectedDate auÃƒÆ'Ã†â€™Ãƒâ€¦Ã‚Â¸erhalb der aktuellen Ansicht liegt
+      // Nur navigieren wenn selectedDate ausserhalb der aktuellen Ansicht liegt
       if (selected < viewStart || selected >= viewEnd) {
         calendarApi.gotoDate(selectedDate)
       }
@@ -508,7 +510,7 @@ const Calendar = forwardRef(({
     }
   };
 
-  // Verstecke Tooltip wenn ein Modal geÃ¶ffnet wird
+  // Verstecke Tooltip wenn ein Modal geoeffnet wird
   useEffect(() => {
     if (isNotifyMemberOpen || isAppointmentActionModalOpen || isTypeSelectionOpen) {
       hideTooltip(true);
@@ -551,7 +553,7 @@ const Calendar = forwardRef(({
 
   const handleAppointmentSubmit = (appointmentData) => {
     const newAppointment = {
-      id: appointmentsMain.length + 1, ...appointmentData,
+      id: Math.max(0, ...appointmentsMain.map(a => a.id)) + 1, ...appointmentData,
       status: "pending", isTrial: false, isCancelled: false, isPast: false,
       date: `${new Date(appointmentData.date).toLocaleString("en-US", { weekday: "short" })} | ${formatDate(new Date(appointmentData.date))}`,
     }
@@ -561,7 +563,7 @@ const Calendar = forwardRef(({
 
   const handleTrialSubmit = (trialData) => {
     const newTrial = {
-      id: appointmentsMain.length + 1, ...trialData,
+      id: Math.max(0, ...appointmentsMain.map(a => a.id)) + 1, ...trialData,
       status: "pending", isTrial: true, isCancelled: false, isPast: false,
       date: `${new Date(trialData.date).toLocaleString("en-US", { weekday: "short" })} | ${formatDate(new Date(trialData.date))}`,
     }
@@ -657,8 +659,17 @@ const Calendar = forwardRef(({
     setIsTypeSelectionOpen(true)
   }
 
-  const handleTypeSelection = (type) => {
+  const handleTypeSelection = (type, slotData) => {
     setIsTypeSelectionOpen(false)
+    
+    // Store the prefilled date and time from the slot click
+    if (slotData?.date) {
+      setPrefilledSlotDate(slotData.date)
+    }
+    if (slotData?.time) {
+      setPrefilledSlotTime(slotData.time)
+    }
+    
     if (type === "trial") setIsTrialModalOpen(true)
     else if (type === "appointment") setIsAppointmentModalOpen(true)
     else if (type === "block") setIsBlockModalOpen(true)
@@ -828,9 +839,9 @@ const Calendar = forwardRef(({
   const safeAppointments = appointmentsMain || []
   const safeMemberFilters = memberFilters || []
 
-  // FÃ¼r den Kalender: ALLE Termine anzeigen (kein Datumsfilter!)
+  // Fuer den Kalender: ALLE Termine anzeigen (kein Datumsfilter!)
   const filteredAppointments = safeAppointments.filter((appointment) => {
-    // Member-Filter (nur wenn Tags ausgewÃ¤hlt wurden)
+    // Member-Filter (nur wenn Tags ausgewaehlt wurden)
     let memberMatch = true
     if (safeMemberFilters.length > 0) {
       const filterNames = safeMemberFilters.map(f => f.memberName.toLowerCase());
@@ -841,22 +852,22 @@ const Calendar = forwardRef(({
     // Typ-Filter anwenden
     let typeMatch = true
     if (appointmentFilters && Object.keys(appointmentFilters).length > 0) {
-      // Erst prÃ¼fen ob der Termin-Typ erlaubt ist
+      // Erst pruefen ob der Termin-Typ erlaubt ist
       if (appointment.isTrial) {
         typeMatch = appointmentFilters["Trial Training"] !== false
       } else if (appointment.isBlocked || appointment.type === "Blocked Time") {
         typeMatch = appointmentFilters["Blocked Time Slots"] !== false
       } else {
-        // Normaler Termin - prÃ¼fe den Typ
+        // Normaler Termin - pruefe den Typ
         typeMatch = appointmentFilters[appointment.type] !== false
       }
       
-      // ZusÃ¤tzlich: Abgesagte Termine filtern
+      // Zusaetzlich: Abgesagte Termine filtern
       if (appointment.isCancelled && appointmentFilters["Cancelled Appointments"] === false) {
         typeMatch = false
       }
       
-      // ZusÃ¤tzlich: Vergangene Termine filtern (nur wenn nicht abgesagt)
+      // Zusaetzlich: Vergangene Termine filtern (nur wenn nicht abgesagt)
       if (appointment.isPast && !appointment.isCancelled && appointmentFilters["Past Appointments"] === false) {
         typeMatch = false
       }
@@ -1189,7 +1200,7 @@ const Calendar = forwardRef(({
           pointer-events: none;
           border-radius: inherit;
         }
-        /* Vergangene Termine - abgeschwÃƒÆ'Ã†â€™Ãƒâ€šÃ‚Â¤cht */
+        /* Vergangene Termine - abgeschwaecht */
         .past-event {
           opacity: 0.45;
         }
@@ -1305,7 +1316,7 @@ const Calendar = forwardRef(({
           display: flex !important;
           align-items: flex-start !important;
         }
-        /* Rand links/rechts fÃƒÆ'Ã†â€™Ãƒâ€šÃ‚Â¼r Klick-Bereich zum Buchen */
+        /* Rand links/rechts fuer Klick-Bereich zum Buchen */
         .fc-timegrid-col-events {
           margin: 0 3px !important;
         }
@@ -1439,10 +1450,13 @@ const Calendar = forwardRef(({
             <div className="text-sm font-semibold mb-1">{tooltip.content.name}</div>
             <div className="text-xs text-gray-300 mb-0.5">{tooltip.content.time}</div>
             <div className="text-xs text-gray-300 mb-1">{tooltip.content.date}</div>
-            <div className="text-xs text-white">{tooltip.content.type}</div>
-            {/* Show note for blocked slots */}
+            {/* Don't show type for blocked slots - it's redundant */}
+            {!tooltip.content.isBlocked && (
+              <div className="text-xs text-white">{tooltip.content.type}</div>
+            )}
+            {/* Show note for blocked slots - with overflow protection */}
             {tooltip.content.note && (
-              <div className="text-xs text-yellow-300 mt-2 pt-2 border-t border-gray-600 italic">
+              <div className="text-xs text-white/80 mt-2 pt-2 border-t border-gray-600 italic overflow-hidden" style={{ display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical', maxHeight: '4.5em' }}>
                 {tooltip.content.note}
               </div>
             )}
@@ -1845,7 +1859,7 @@ const Calendar = forwardRef(({
                 
                 return (
                   <div className="px-1 pt-[2px] overflow-hidden">
-                    {/* Name hat Priorität */}
+                    {/* Name hat Prioritaet */}
                     <div className="text-[10px] leading-tight overflow-hidden whitespace-nowrap text-white font-medium">
                       {fullName}
                     </div>
@@ -1855,7 +1869,7 @@ const Calendar = forwardRef(({
                     </div>
                     {/* Show note for blocked slots */}
                     {isBlocked && blockNote && (
-                      <div className="text-[8px] text-yellow-200/90 mt-0.5 leading-tight overflow-hidden" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                      <div className="text-[10px] text-white/90 mt-0.5 leading-tight overflow-hidden" style={{ display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
                         {blockNote}
                       </div>
                     )}
@@ -1876,12 +1890,12 @@ const Calendar = forwardRef(({
       </div>
 
       {showCreateAppointmentModal && <CreateAppointmentModal isOpen={showCreateAppointmentModal} onClose={() => setShowCreateAppointmentModal(false)} appointmentTypesMain={appointmentTypesMain} onSubmit={handleAddAppointmentSubmit} setIsNotifyMemberOpen={setIsNotifyMemberOpen} setNotifyAction={setNotifyAction} freeAppointmentsMain={freeAppointments} availableMembersLeads={availableMembersLeadsMain} onOpenEditMemberModal={handleOpenEditMemberModal} memberRelations={memberRelationsData} selectedDate={selectedDate} />}
-      {isAppointmentModalOpen && <CreateAppointmentModal isOpen={isAppointmentModalOpen} onClose={() => setIsAppointmentModalOpen(false)} appointmentTypesMain={appointmentTypesMain} onSubmit={handleAppointmentSubmit} setIsNotifyMemberOpen={setIsNotifyMemberOpen} setNotifyAction={setNotifyAction} freeAppointmentsMain={freeAppointments} availableMembersLeads={availableMembersLeadsMain} onOpenEditMemberModal={handleOpenEditMemberModal} memberRelations={memberRelationsData} selectedDate={selectedDate} />}
-      <TrialTrainingModal isOpen={isTrialModalOpen} onClose={() => setIsTrialModalOpen(false)} freeAppointments={freeAppointments} onSubmit={handleTrialSubmit} />
-      <BlockAppointmentModal isOpen={isBlockModalOpen} onClose={() => setIsBlockModalOpen(false)} selectedDate={selectedDate || new Date()} onSubmit={(blockData) => {
+      {isAppointmentModalOpen && <CreateAppointmentModal isOpen={isAppointmentModalOpen} onClose={() => { setIsAppointmentModalOpen(false); setPrefilledSlotDate(null); setPrefilledSlotTime(null); }} appointmentTypesMain={appointmentTypesMain} onSubmit={handleAppointmentSubmit} setIsNotifyMemberOpen={setIsNotifyMemberOpen} setNotifyAction={setNotifyAction} freeAppointmentsMain={freeAppointments} availableMembersLeads={availableMembersLeadsMain} onOpenEditMemberModal={handleOpenEditMemberModal} memberRelations={memberRelationsData} selectedDate={prefilledSlotDate || selectedDate} selectedTime={prefilledSlotTime} />}
+      <TrialTrainingModal isOpen={isTrialModalOpen} onClose={() => { setIsTrialModalOpen(false); setPrefilledSlotDate(null); setPrefilledSlotTime(null); }} freeAppointments={freeAppointments} onSubmit={handleTrialSubmit} selectedDate={prefilledSlotDate || selectedDate} selectedTime={prefilledSlotTime} />
+      <BlockAppointmentModal isOpen={isBlockModalOpen} onClose={() => { setIsBlockModalOpen(false); setPrefilledSlotDate(null); setPrefilledSlotTime(null); }} selectedDate={prefilledSlotDate || selectedDate || new Date()} selectedTime={prefilledSlotTime} onSubmit={(blockData) => {
         // Use formatDate (with dashes) - Calendar expects format: "Wed | 29-01-2025"
         const newBlock = { 
-          id: appointmentsMain.length + 1, 
+          id: Math.max(0, ...appointmentsMain.map(a => a.id)) + 1, 
           name: "BLOCKED", 
           time: `${blockData.startTime} - ${blockData.endTime}`, 
           date: `${new Date(blockData.startDate).toLocaleString("en-US", { weekday: "short" })} | ${formatDate(new Date(blockData.startDate))}`, 
@@ -1902,7 +1916,13 @@ const Calendar = forwardRef(({
         }
         setAppointmentsMain([...appointmentsMain, newBlock]); setIsBlockModalOpen(false)
       }} />
-      <TypeSelectionModalMain isOpen={isTypeSelectionOpen} onClose={() => setIsTypeSelectionOpen(false)} onSelect={handleTypeSelection} />
+      <TypeSelectionModalMain 
+        isOpen={isTypeSelectionOpen} 
+        onClose={() => setIsTypeSelectionOpen(false)} 
+        onSelect={handleTypeSelection}
+        selectedDate={selectedSlotInfo?.start || selectedSlotInfo?.date || null}
+        selectedTime={selectedSlotInfo?.start ? `${String(selectedSlotInfo.start.getHours()).padStart(2, '0')}:${String(selectedSlotInfo.start.getMinutes()).padStart(2, '0')}` : null}
+      />
       <AppointmentActionModal isOpen={isAppointmentActionModalOpen} appointment={selectedAppointment} onClose={() => setIsAppointmentActionModalOpen(false)} onEdit={handleEditAppointment} onCancel={handleCancelAppointment} onDelete={handleDeleteCancelledAppointment} onViewMember={handleViewMemberDetails} onEditMemberNote={handleOpenEditMemberModal} onOpenEditLeadModal={handleOpenEditLeadModal} memberRelations={localMemberRelations} leadRelations={leadRelationsMain} appointmentsMain={appointmentsMain} setAppointmentsMain={setAppointmentsMain} />
       <NotifyMemberModal isOpen={isNotifyMemberOpen} onClose={() => { 
         setIsNotifyMemberOpen(false); 

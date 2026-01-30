@@ -168,7 +168,7 @@ const MemberTagInput = ({
         <div className={`text-xs ${isFull ? 'text-orange-400' : 'text-gray-500'}`}>{members.length} / {maxMembers} participants</div>
       </div>
       {showDropdown && !isFull && (
-        <div className="absolute left-0 right-0 mt-1 bg-[#1C1C1C] border border-gray-700 rounded-xl shadow-xl z-[100] max-h-48 overflow-y-auto">
+        <div className="absolute left-0 right-0 mt-1 bg-[#1C1C1C] border border-gray-700 rounded-xl shadow-xl z-[1000] max-h-48 overflow-y-auto">
           {searchResults.length > 0 ? searchResults.map((member) => (
             <button key={member.id} onClick={() => selectMember(member)} className="w-full text-left p-3 hover:bg-[#2a2a2a] flex items-center gap-3">
               {member.image ? <img src={member.image} alt="" className="w-8 h-8 rounded-lg object-cover" /> : 
@@ -213,7 +213,7 @@ const AppointmentTypeDropdown = ({ value, onChange, appointmentTypes = [], showT
         <ChevronDown size={14} className={`text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
       {isOpen && (
-        <div className="absolute left-0 right-0 mt-1 bg-[#1C1C1C] border border-gray-700 rounded-xl shadow-xl z-[100] max-h-64 overflow-y-auto">
+        <div className="absolute left-0 right-0 mt-1 bg-[#1C1C1C] border border-gray-700 rounded-xl shadow-xl z-[1000] max-h-64 overflow-y-auto">
           {filteredTypes.map((type) => (
             <button key={type.name} onClick={() => { onChange(type.name); setIsOpen(false); }}
               className={`w-full text-left p-3 flex items-center gap-3 ${value === type.name ? 'bg-[#2a2a2a]' : 'hover:bg-[#2a2a2a]'}`}>
@@ -237,10 +237,9 @@ const AddAppointmentModal = ({
   memberCredits = null, currentBillingPeriod = "March 2025",
   onOpenEditMemberModal, // Callback to open EditMemberModal with specific tab
   memberRelations = {}, // Relations data for members
-  selectedDate = null, // Pre-selected date from MiniCalendar
+  selectedDate = null, // Pre-selected date from MiniCalendar or Calendar click
+  selectedTime = null, // Pre-selected time slot from Calendar click (e.g., "09:00")
 }) => {
-  if (!isOpen) return null;
-  
   // Format selectedDate to YYYY-MM-DD string
   const getFormattedDate = (date) => {
     if (!date) return "";
@@ -251,7 +250,18 @@ const AddAppointmentModal = ({
     return `${year}-${month}-${day}`;
   };
   
+  // Extract time from selectedTime (handles formats like "09:00" or "09:00 - 09:30")
+  const getInitialTime = (time) => {
+    if (!time) return "";
+    // If it's a range, take the start time
+    if (time.includes("-")) {
+      return time.split("-")[0].trim();
+    }
+    return time.trim();
+  };
+  
   const initialDate = getFormattedDate(selectedDate);
+  const initialTime = getInitialTime(selectedTime);
   
   const [showRecurringOptions, setShowRecurringOptions] = useState(false);
   const [showNotifyModal, setShowNotifyModal] = useState(false);
@@ -259,7 +269,15 @@ const AddAppointmentModal = ({
   const [emailNotification, setEmailNotification] = useState(true);
   const [pushNotification, setPushNotification] = useState(true);
   
-  const [appointmentData, setAppointmentData] = useState({ date: initialDate, timeSlot: "", type: "", members: selectedMemberMain ? [{
+  // Recurring options state
+  const [recurringOptions, setRecurringOptions] = useState({
+    frequency: "weekly",
+    dayOfWeek: "1",
+    startDate: initialDate,
+    occurrences: 5,
+  });
+  
+  const [appointmentData, setAppointmentData] = useState({ date: initialDate, timeSlot: initialTime, type: "", members: selectedMemberMain ? [{
     id: selectedMemberMain.id, name: selectedMemberMain.name || selectedMemberMain.title,
     firstName: selectedMemberMain.firstName, lastName: selectedMemberMain.lastName, image: selectedMemberMain.image,
     notes: selectedMemberMain.notes || [], note: selectedMemberMain.note || "",
@@ -268,7 +286,45 @@ const AddAppointmentModal = ({
     noteEndDate: selectedMemberMain.noteEndDate || "",
   }] : [] });
 
+  // Update appointmentData when modal opens with new selectedDate or selectedTime
+  useEffect(() => {
+    if (!isOpen) return;
+    
+    const newDate = getFormattedDate(selectedDate);
+    const newTime = getInitialTime(selectedTime);
+    
+    // Reset and set new values when modal opens
+    setAppointmentData(prev => ({
+      ...prev,
+      date: newDate || prev.date,
+      timeSlot: newTime || "",
+      type: "",
+      members: selectedMemberMain ? [{
+        id: selectedMemberMain.id, name: selectedMemberMain.name || selectedMemberMain.title,
+        firstName: selectedMemberMain.firstName, lastName: selectedMemberMain.lastName, image: selectedMemberMain.image,
+        notes: selectedMemberMain.notes || [], note: selectedMemberMain.note || "",
+        noteImportance: selectedMemberMain.noteImportance || "unimportant",
+        noteStartDate: selectedMemberMain.noteStartDate || "",
+        noteEndDate: selectedMemberMain.noteEndDate || "",
+      }] : prev.members,
+    }));
+    
+    if (newDate) {
+      setRecurringOptions(prev => ({
+        ...prev,
+        startDate: newDate,
+      }));
+    }
+  }, [isOpen, selectedDate, selectedTime]);
+
+  // Early return AFTER all hooks
+  if (!isOpen) return null;
+
   const updateAppointment = (field, value) => setAppointmentData({ ...appointmentData, [field]: value });
+  
+  const updateRecurringOptions = (field, value) => {
+    setRecurringOptions({ ...recurringOptions, [field]: value });
+  };
 
   const handleEditMemberNote = (member, tab) => {
     if (onOpenEditMemberModal) { onOpenEditMemberModal(member, tab || "note"); }
@@ -309,6 +365,8 @@ const AddAppointmentModal = ({
       color: selectedType?.color || "bg-[#808080]",
       colorHex: getColorHex(selectedType),
       specialNote: member.note ? { text: member.note, isImportant: member.noteImportance === "important" } : null,
+      // Include recurring data if applicable
+      recurring: showRecurringOptions ? recurringOptions : null,
     }));
     
     // Store pending data and show notify modal
@@ -367,27 +425,101 @@ const AddAppointmentModal = ({
             <label className="block text-sm font-medium text-gray-300 mb-2">Appointment Type</label>
             <AppointmentTypeDropdown value={appointmentData.type} onChange={(t) => updateAppointment("type", t)} appointmentTypes={appointmentTypesMain} />
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs text-gray-500 mb-2">Date</label>
-              <input type="date" value={appointmentData.date} onChange={(e) => updateAppointment("date", e.target.value)}
-                className="w-full bg-[#222222] border border-gray-700 text-sm rounded-xl px-4 py-2.5 text-white white-calendar-icon" />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-500 mb-2">Time Slot</label>
-              <select value={appointmentData.timeSlot} onChange={(e) => updateAppointment("timeSlot", e.target.value)}
-                disabled={!appointmentData.date} className="w-full bg-[#222222] border border-gray-700 text-sm rounded-xl px-4 py-2.5 text-white appearance-none disabled:opacity-50">
-                <option value="">Select time...</option>
-                {availableSlots.map((slot, idx) => <option key={idx} value={slot.time}>{slot.time}</option>)}
-              </select>
+          
+          {/* Booking Type Toggle */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Booking Type</label>
+            <div className="flex bg-[#222222] p-1 rounded-xl">
+              <button type="button" onClick={() => setShowRecurringOptions(false)}
+                className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${!showRecurringOptions ? "bg-orange-500 text-white" : "text-gray-400 hover:text-white"}`}>
+                Single
+              </button>
+              <button type="button" onClick={() => setShowRecurringOptions(true)}
+                className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${showRecurringOptions ? "bg-orange-500 text-white" : "text-gray-400 hover:text-white"}`}>
+                Recurring
+              </button>
             </div>
           </div>
+          
+          {/* Single Booking Options */}
+          {!showRecurringOptions && (
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs text-gray-500 mb-2">Date</label>
+                <input type="date" value={appointmentData.date} onChange={(e) => updateAppointment("date", e.target.value)}
+                  className="w-full bg-[#222222] border border-gray-700 text-sm rounded-xl px-4 py-2.5 text-white white-calendar-icon" />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-2">Time Slot</label>
+                <select value={appointmentData.timeSlot} onChange={(e) => updateAppointment("timeSlot", e.target.value)}
+                  disabled={!appointmentData.date} className="w-full bg-[#222222] border border-gray-700 text-sm rounded-xl px-4 py-2.5 text-white appearance-none disabled:opacity-50">
+                  <option value="">Select time...</option>
+                  {availableSlots.map((slot, idx) => <option key={idx} value={slot.time}>{slot.time}</option>)}
+                </select>
+              </div>
+            </div>
+          )}
+          
+          {/* Recurring Options */}
+          {showRecurringOptions && (
+            <div className="space-y-4 bg-[#222222] rounded-xl p-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs text-gray-500 mb-2">Frequency</label>
+                  <select value={recurringOptions.frequency} onChange={(e) => updateRecurringOptions("frequency", e.target.value)}
+                    className="w-full bg-[#181818] border border-gray-700 text-sm rounded-xl px-3 py-2.5 text-white appearance-none focus:outline-none focus:border-orange-500/50">
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="biweekly">Bi-weekly</option>
+                    <option value="monthly">Monthly</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-2">Day</label>
+                  <select value={recurringOptions.dayOfWeek} onChange={(e) => updateRecurringOptions("dayOfWeek", e.target.value)}
+                    className="w-full bg-[#181818] border border-gray-700 text-sm rounded-xl px-3 py-2.5 text-white appearance-none focus:outline-none focus:border-orange-500/50">
+                    <option value="1">Monday</option>
+                    <option value="2">Tuesday</option>
+                    <option value="3">Wednesday</option>
+                    <option value="4">Thursday</option>
+                    <option value="5">Friday</option>
+                    <option value="6">Saturday</option>
+                    <option value="0">Sunday</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs text-gray-500 mb-2">Start Date</label>
+                  <input type="date" value={recurringOptions.startDate} onChange={(e) => updateRecurringOptions("startDate", e.target.value)}
+                    className="w-full bg-[#181818] border border-gray-700 text-sm rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-orange-500/50 white-calendar-icon" />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-2">Occurrences</label>
+                  <input type="number" min={1} max={52} value={recurringOptions.occurrences}
+                    onChange={(e) => updateRecurringOptions("occurrences", parseInt(e.target.value) || 1)}
+                    className="w-full bg-[#181818] border border-gray-700 text-sm rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-orange-500/50" />
+                </div>
+              </div>
+              
+              {/* Time Slot for recurring */}
+              <div>
+                <label className="block text-xs text-gray-500 mb-2">Time Slot</label>
+                <select value={appointmentData.timeSlot} onChange={(e) => updateAppointment("timeSlot", e.target.value)}
+                  className="w-full bg-[#181818] border border-gray-700 text-sm rounded-xl px-3 py-2.5 text-white appearance-none focus:outline-none focus:border-orange-500/50">
+                  <option value="">Select time...</option>
+                  {getAvailableSlots(recurringOptions.startDate).map((slot, idx) => <option key={idx} value={slot.time}>{slot.time}</option>)}
+                </select>
+              </div>
+            </div>
+          )}
         </div>
         <div className="px-6 py-4 border-t border-gray-700 flex gap-3">
           <button onClick={onClose} className="flex-1 py-2.5 text-sm font-medium text-gray-400 bg-gray-700 hover:bg-gray-600 rounded-xl">Cancel</button>
-          <button disabled={!appointmentData.type || !appointmentData.members.length || !appointmentData.date || !appointmentData.timeSlot}
+          <button disabled={!appointmentData.type || !appointmentData.members.length || (!showRecurringOptions ? (!appointmentData.date || !appointmentData.timeSlot) : (!recurringOptions.startDate || !appointmentData.timeSlot))}
             onClick={handleBook} className="flex-1 py-2.5 text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 disabled:bg-gray-600 rounded-xl">
-            Book Appointment
+            {showRecurringOptions ? "Book Series" : "Book Appointment"}
           </button>
         </div>
       </div>
@@ -405,11 +537,22 @@ const AddAppointmentModal = ({
 
             <div className="p-6">
               <p className="text-white text-sm">
-                New appointment for <span className="font-semibold text-orange-400">{getMemberNames()}</span> on{" "}
-                <span className="font-semibold text-orange-400">
-                  {pendingAppointmentData?.[0]?.date && new Date(pendingAppointmentData[0].date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
-                </span> at{" "}
-                <span className="font-semibold text-orange-400">{pendingAppointmentData?.[0]?.time}</span>.
+                {showRecurringOptions ? (
+                  <>
+                    New <span className="font-semibold text-orange-400">recurring appointment</span> for <span className="font-semibold text-orange-400">{getMemberNames()}</span> starting{" "}
+                    <span className="font-semibold text-orange-400">
+                      {recurringOptions.startDate && new Date(recurringOptions.startDate).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                    </span> ({recurringOptions.occurrences} occurrences, {recurringOptions.frequency}).
+                  </>
+                ) : (
+                  <>
+                    New appointment for <span className="font-semibold text-orange-400">{getMemberNames()}</span> on{" "}
+                    <span className="font-semibold text-orange-400">
+                      {pendingAppointmentData?.[0]?.date && new Date(pendingAppointmentData[0].date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                    </span> at{" "}
+                    <span className="font-semibold text-orange-400">{pendingAppointmentData?.[0]?.time}</span>.
+                  </>
+                )}
                 <br /><br />
                 Do you want to notify the member about this booking?
               </p>

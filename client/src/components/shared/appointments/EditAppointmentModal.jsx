@@ -99,7 +99,7 @@ const AppointmentTypeDropdown = ({ value, onChange, appointmentTypes = [], showT
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 right-0 mt-1 bg-[#1C1C1C] border border-gray-700 rounded-xl shadow-xl z-20 max-h-64 overflow-y-auto">
+        <div className="absolute left-0 right-0 mt-1 bg-[#1C1C1C] border border-gray-700 rounded-xl shadow-xl z-[1000] max-h-64 overflow-y-auto">
           {filteredTypes.map((type) => (
             <button key={type.name} onClick={() => { onChange(type.name); setIsOpen(false); }}
               className={`w-full text-left p-3 flex items-center gap-3 transition-colors ${value === type.name ? 'bg-[#2a2a2a]' : 'hover:bg-[#2a2a2a]'}`}>
@@ -153,7 +153,6 @@ const EditAppointmentModalMain = ({
 
   const [showAlternatives, setShowAlternatives] = useState(false);
   const [alternativeSlots, setAlternativeSlots] = useState([]);
-  const [showRecurringOptions, setShowRecurringOptions] = useState(false);
   
   // Internal NotifyModal state
   const [showNotifyModal, setShowNotifyModal] = useState(false);
@@ -191,27 +190,6 @@ const EditAppointmentModalMain = ({
                      editTime !== originalTime || 
                      editType !== originalType;
 
-  const [recurringOptions, setRecurringOptions] = useState({
-    frequency: "weekly",
-    dayOfWeek: "1",
-    startDate: parsedDate,
-    occurrences: 5,
-  });
-
-  useEffect(() => {
-    if (selectedAppointmentMain?.recurring) {
-      setShowRecurringOptions(true);
-      setRecurringOptions({ ...recurringOptions, ...selectedAppointmentMain.recurring });
-    } else {
-      setShowRecurringOptions(false);
-    }
-  }, [selectedAppointmentMain]);
-
-  const updateRecurringOptions = (field, value) => {
-    setRecurringOptions({ ...recurringOptions, [field]: value });
-    handleAppointmentChange({ recurring: { ...recurringOptions, [field]: value } });
-  };
-
   const getAvailableSlots = (selectedDate) => {
     if (!selectedDate) return [];
     const slots = freeAppointmentsMain.filter((app) => app.date === selectedDate);
@@ -223,11 +201,6 @@ const EditAppointmentModalMain = ({
       }
     }
     return slots;
-  };
-
-  const toggleBookingType = (isRecurring) => {
-    setShowRecurringOptions(isRecurring);
-    handleAppointmentChange({ recurring: isRecurring ? recurringOptions : null });
   };
 
   const checkAvailability = () => {
@@ -493,90 +466,26 @@ const EditAppointmentModalMain = ({
             />
           </div>
 
-          {/* Booking Type Toggle - only for members, leads are always single */}
-          {!isLead && (
+          {/* Date and Time */}
+          <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Booking Type</label>
-              <div className="flex bg-[#222222] p-1 rounded-xl">
-                <button type="button" onClick={() => toggleBookingType(false)}
-                  className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${!showRecurringOptions ? "bg-orange-500 text-white" : "text-gray-400 hover:text-white"}`}>
-                  Single
-                </button>
-                <button type="button" onClick={() => toggleBookingType(true)}
-                  className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${showRecurringOptions ? "bg-orange-500 text-white" : "text-gray-400 hover:text-white"}`}>
-                  Recurring
-                </button>
+              <label className="block text-xs text-gray-500 mb-2">Date</label>
+              <input type="date" value={editDate} onChange={(e) => setEditDate(e.target.value)}
+                className="w-full bg-[#222222] border border-gray-700 text-sm rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-orange-500/50 transition-colors white-calendar-icon" />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-2">Time Slot</label>
+              <div className="relative">
+                <select value={editTime} onChange={(e) => setEditTime(e.target.value)}
+                  className="w-full bg-[#222222] border border-gray-700 text-sm rounded-xl px-4 py-2.5 text-white appearance-none focus:outline-none focus:border-orange-500/50 transition-colors">
+                  {getAvailableSlots(editDate).map((slot, idx) => (
+                    <option key={idx} value={slot.time}>{slot.time}</option>
+                  ))}
+                </select>
+                <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
               </div>
             </div>
-          )}
-
-          {/* Single Booking Options */}
-          {!showRecurringOptions && (
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs text-gray-500 mb-2">Date</label>
-                <input type="date" value={editDate} onChange={(e) => setEditDate(e.target.value)}
-                  className="w-full bg-[#222222] border border-gray-700 text-sm rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-orange-500/50 transition-colors white-calendar-icon" />
-              </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-2">Time Slot</label>
-                <div className="relative">
-                  <select value={editTime} onChange={(e) => setEditTime(e.target.value)}
-                    className="w-full bg-[#222222] border border-gray-700 text-sm rounded-xl px-4 py-2.5 text-white appearance-none focus:outline-none focus:border-orange-500/50 transition-colors">
-                    {getAvailableSlots(editDate).map((slot, idx) => (
-                      <option key={idx} value={slot.time}>{slot.time}</option>
-                    ))}
-                  </select>
-                  <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Recurring Options - only for members */}
-          {!isLead && showRecurringOptions && (
-            <div className="space-y-4 bg-[#222222] rounded-xl p-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs text-gray-500 mb-2">Frequency</label>
-                  <select value={recurringOptions.frequency} onChange={(e) => updateRecurringOptions("frequency", e.target.value)}
-                    className="w-full bg-[#181818] border border-gray-700 text-sm rounded-xl px-3 py-2.5 text-white appearance-none focus:outline-none focus:border-orange-500/50">
-                    <option value="daily">Daily</option>
-                    <option value="weekly">Weekly</option>
-                    <option value="biweekly">Bi-weekly</option>
-                    <option value="monthly">Monthly</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-500 mb-2">Day</label>
-                  <select value={recurringOptions.dayOfWeek} onChange={(e) => updateRecurringOptions("dayOfWeek", e.target.value)}
-                    className="w-full bg-[#181818] border border-gray-700 text-sm rounded-xl px-3 py-2.5 text-white appearance-none focus:outline-none focus:border-orange-500/50">
-                    <option value="1">Monday</option>
-                    <option value="2">Tuesday</option>
-                    <option value="3">Wednesday</option>
-                    <option value="4">Thursday</option>
-                    <option value="5">Friday</option>
-                    <option value="6">Saturday</option>
-                    <option value="0">Sunday</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs text-gray-500 mb-2">Start Date</label>
-                  <input type="date" value={recurringOptions.startDate} onChange={(e) => updateRecurringOptions("startDate", e.target.value)}
-                    className="w-full bg-[#181818] border border-gray-700 text-sm rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-orange-500/50 white-calendar-icon" />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-500 mb-2">Occurrences</label>
-                  <input type="number" min={1} max={52} value={recurringOptions.occurrences}
-                    onChange={(e) => updateRecurringOptions("occurrences", parseInt(e.target.value) || 1)}
-                    className="w-full bg-[#181818] border border-gray-700 text-sm rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-orange-500/50" />
-                </div>
-              </div>
-            </div>
-          )}
+          </div>
 
           {/* Alternative Slots Warning */}
           {showAlternatives && alternativeSlots.length > 0 && (
@@ -620,7 +529,7 @@ const EditAppointmentModalMain = ({
                 ? "text-white bg-orange-500 hover:bg-orange-600" 
                 : "text-gray-500 bg-gray-600 cursor-not-allowed"
             }`}>
-            {showRecurringOptions ? "Save Series" : "Save Changes"}
+            Save Changes
           </button>
         </div>
 
