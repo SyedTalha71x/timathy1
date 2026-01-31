@@ -30,6 +30,7 @@ import MiniCalendar from "../../components/studio-components/appointments-compon
 import BlockAppointmentModal from "../../components/studio-components/appointments-components/block-appointment-modal"
 import Calendar from "../../components/studio-components/appointments-components/calendar"
 import AppointmentActionModal from "../../components/studio-components/appointments-components/AppointmentActionModal"
+import UpcomingAppointmentsWidget from "../../components/myarea-components/widgets/UpcomingAppointmentsWidget"
 
 import EditAppointmentModal from "../../components/shared/appointments/EditAppointmentModal"
 import { createPortal } from "react-dom"
@@ -129,7 +130,6 @@ export default function Appointments() {
   const [showAppointmentOptionsModalMain, setshowAppointmentOptionsModalMain] = useState(false)
   const [isEditAppointmentModalOpenMain, setisEditAppointmentModalOpenMain] = useState(false)
   const [isFiltersCollapsed, setIsFiltersCollapsed] = useState(true)
-  const [isUpcomingCollapsed, setIsUpcomingCollapsed] = useState(false)
 
   const [isTrainingPlanModalOpenMain, setIsTrainingPlanModalOpenMain] = useState(false)
   const [selectedUserForTrainingPlanMain, setSelectedUserForTrainingPlanMain] = useState(null)
@@ -1123,120 +1123,18 @@ export default function Appointments() {
                   )}
                 </div>
 
+                {/* Upcoming Appointments Widget */}
                 <div className="w-full flex-1 flex flex-col min-h-0">
-                  <div className="flex items-center justify-between mb-2">
-                    <h2 className="text-white font-bold text-sm">Upcoming Appointments</h2>
-                    <button onClick={() => setIsUpcomingCollapsed(!isUpcomingCollapsed)} className="text-gray-400 hover:text-white transition-colors">
-                      {isUpcomingCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
-                    </button>
-                  </div>
-                  {!isUpcomingCollapsed && (
-                    <div className="space-y-2 custom-scrollbar overflow-y-auto flex-1 w-full">
-                      {filteredAppointments.filter(app => !app.isCancelled && !app.isBlocked && app.type !== "Blocked Time").length > 0 ? (
-                        filteredAppointments.filter(app => !app.isCancelled && !app.isBlocked && app.type !== "Blocked Time").map((appointment) => {
-                          const firstName = appointment.name || "";
-                          const lastName = appointment.lastName || "";
-                          const isBlocked = appointment.isBlocked || appointment.type === "Blocked Time";
-                          
-                          // Get member data to access their special notes
-                          const memberData = getMemberById(appointment.memberId);
-                          const memberWithNotes = {
-                            ...appointment,
-                            id: appointment.memberId || appointment.id,
-                            firstName,
-                            lastName,
-                            // Merge member's note data if available
-                            note: memberData?.note || "",
-                            noteStartDate: memberData?.noteStartDate || "",
-                            noteEndDate: memberData?.noteEndDate || "",
-                            noteImportance: memberData?.noteImportance || "unimportant",
-                            notes: memberData?.notes || [],
-                          };
-                          
-                          return (
-                            <div key={appointment.id}
-                              className={`${appointment.color} ${appointment.isCancelled ? "bg-gray-700 cancelled-appointment-bg" : ""} ${appointment.isPast && !appointment.isCancelled ? "opacity-45" : ""} ${isBlocked ? "blocked-appointment-bg" : ""} rounded-xl cursor-pointer p-3 relative w-full upcoming-apt-tile`}
-                              onClick={() => handleAppointmentOptionsModalMain(appointment)}>
-                              {/* Icons row at top */}
-                              <div className="flex items-center justify-between mb-2">
-                                <div className="flex items-center gap-1.5">
-                                  {!isBlocked && (
-                                    <MemberSpecialNoteIcon
-                                      member={memberWithNotes}
-                                      onEditMember={(memberData, tab) => {
-                                        if (appointment.isTrial && appointment.leadId) {
-                                          handleOpenEditLeadModal(appointment.leadId, tab || "note");
-                                        } else {
-                                          handleOpenEditMemberModal(memberData, tab || "note");
-                                        }
-                                      }}
-                                      size="sm"
-                                      position="relative"
-                                    />
-                                  )}
-                                  {!isBlocked && !appointment.isTrial && (
-                                    <div 
-                                      className="cursor-pointer rounded p-0.5 transition-all duration-200 hover:scale-110 active:scale-95" 
-                                      onClick={(e) => handleDumbbellClickMain(appointment, e)}
-                                      title="Training Plans"
-                                    >
-                                      <Dumbbell className="text-white/80" size={14} />
-                                    </div>
-                                  )}
-                                </div>
-                                {!isBlocked && (
-                                  <button 
-                                    onClick={(e) => { e.stopPropagation(); if (!appointment.isPast) handleCheckInMain(appointment.id) }}
-                                    disabled={appointment.isPast}
-                                    className={`min-w-[85px] px-3 py-1.5 text-xs font-semibold rounded-lg transition-all border ${
-                                      appointment.isPast 
-                                        ? "bg-white/10 text-white/50 border-white/20 cursor-not-allowed" 
-                                        : appointment.isCheckedIn 
-                                          ? "bg-white/20 hover:bg-white/30 text-white/80 border-white/30" 
-                                          : "bg-black hover:bg-black/80 text-white border-transparent"
-                                    }`}>
-                                    {appointment.isCheckedIn ? "Checked In" : "Check In"}
-                                  </button>
-                                )}
-                              </div>
-                              {/* Content */}
-                              <div className="text-white">
-                                <p className="font-semibold text-[15px] truncate">{appointment.name} {appointment.lastName}</p>
-                                <div className="flex items-center justify-between mt-1.5">
-                                  <p className="text-xs flex gap-1.5 items-center opacity-80">
-                                    <Clock size={12} />
-                                    {/* Show original time if pending move, otherwise current time */}
-                                    {appointment._pendingMove?.originalStartTime || appointment.startTime} - {appointment.endTime}
-                                  </p>
-                                  <p className="text-[11px] opacity-70">
-                                    {/* Show original date if pending move */}
-                                    {(appointment._pendingMove?.originalDate || appointment.date)?.split("|")[0]?.trim()}
-                                  </p>
-                                </div>
-                                <p className="text-xs mt-1 opacity-70">
-                                  {appointment.isTrial 
-                                    ? (appointment.trialType 
-                                        ? `Trial Training • ${appointment.trialType}` 
-                                        : "Trial Training") 
-                                    : appointment.isCancelled 
-                                      ? <span className="text-red-400">Cancelled</span> 
-                                      : appointment.type}
-                                </p>
-                                {/* Show note for blocked appointments */}
-                                {isBlocked && appointment.specialNote?.text && (
-                                  <p className="text-[11px] mt-2 text-yellow-200/90 italic truncate">
-                                    {appointment.specialNote.text}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })
-                      ) : (
-                        <p className="text-white text-center text-xs">No appointments scheduled.</p>
-                      )}
-                    </div>
-                  )}
+                  <UpcomingAppointmentsWidget
+                    isSidebarEditing={false}
+                    appointments={filteredAppointments}
+                    onAppointmentClick={handleAppointmentOptionsModalMain}
+                    onCheckIn={handleCheckInMain}
+                    onOpenEditMemberModal={handleOpenEditMemberModal}
+                    onOpenEditLeadModal={handleOpenEditLeadModal}
+                    onOpenTrainingPlansModal={handleDumbbellClickMain}
+                    getMemberById={getMemberById}
+                  />
                 </div>
               </div>
               </div>

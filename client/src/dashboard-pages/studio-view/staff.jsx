@@ -118,6 +118,7 @@ export default function StaffManagement() {
   const [isRemoveModalOpen, setIsRemoveModalOpen] = useState(false)
   const [staffToRemove, setStaffToRemove] = useState(null)
   const [isPlanningModalOpen, setIsPlanningModalOpen] = useState(false)
+  const [planningModalInitialTab, setPlanningModalInitialTab] = useState(null)
   const [isAttendanceModalOpen, setIsAttendanceModalOpen] = useState(false)
   const [isVacationRequestModalOpen, setIsVacationRequestModalOpen] = useState(false)
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false)
@@ -237,6 +238,16 @@ export default function StaffManagement() {
         staffName: location.state.filterStaffName || 'Staff'
       }]);
       // Clear the navigation state to prevent re-filtering on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
+
+  // Handle navigation state from ShiftScheduleWidget - open Shifts Overview Modal
+  useEffect(() => {
+    if (location.state?.openModal === 'shifts-overview') {
+      setPlanningModalInitialTab(location.state?.initialTab || 'shifts');
+      setIsPlanningModalOpen(true);
+      // Clear the navigation state to prevent re-opening on refresh
       window.history.replaceState({}, document.title);
     }
   }, [location.state]);
@@ -1682,8 +1693,12 @@ export default function StaffManagement() {
 
         {isPlanningModalOpen && (
           <StaffPlanningModal
-            onClose={() => setIsPlanningModalOpen(false)}
+            onClose={() => {
+              setIsPlanningModalOpen(false);
+              setPlanningModalInitialTab(null);
+            }}
             staffMembers={staffMembers}
+            initialTab={planningModalInitialTab}
           />
         )}
 

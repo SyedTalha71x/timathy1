@@ -16,6 +16,7 @@ import {
   Edit,
   Trash2,
   Filter,
+  Pin,
 } from "lucide-react"
 import { toast } from "react-hot-toast"
 // Import from correct files - using todosTaskData for consistency with main todo page
@@ -136,19 +137,24 @@ const TaskCard = ({
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
-            {/* Title - not selectable */}
-            <p
-              className={`text-sm font-medium select-none ${
-                isCompleted
-                  ? "text-gray-500"
-                  : isCanceled
-                  ? "text-gray-600 line-through italic"
-                  : "text-white"
-              }`}
-              style={{ wordBreak: 'break-word' }}
-            >
-              {task.title}
-            </p>
+            {/* Title with Pin Indicator - not selectable */}
+            <div className="flex items-start gap-2 flex-1 min-w-0">
+              <p
+                className={`text-sm font-medium select-none flex-1 ${
+                  isCompleted
+                    ? "text-gray-500"
+                    : isCanceled
+                    ? "text-gray-600 line-through italic"
+                    : "text-white"
+                }`}
+                style={{ wordBreak: 'break-word' }}
+              >
+                {task.title}
+              </p>
+              {task.isPinned && (
+                <Pin size={12} className="text-orange-400 fill-orange-400 flex-shrink-0 mt-0.5" />
+              )}
+            </div>
 
             {/* Dropdown Menu - always visible */}
             <div className="relative flex-shrink-0" ref={dropdownRef}>
@@ -438,7 +444,38 @@ export default function ToDoWidget({ isSidebarEditing = false }) {
   const handleDeleteTask = (taskId) => {
     setTodos((prev) => prev.filter((task) => task.id !== taskId))
     setTaskToDelete(null)
+    setIsTaskModalOpen(false)
+    setEditingTask(null)
     toast.success("Task deleted!")
+  }
+
+  // Handle pin toggle
+  const handlePinToggle = (taskId) => {
+    setTodos((prev) =>
+      prev.map((task) =>
+        task.id === taskId ? { ...task, isPinned: !task.isPinned } : task
+      )
+    )
+  }
+
+  // Handle duplicate task
+  const handleDuplicateTask = (task) => {
+    const duplicatedTask = {
+      ...task,
+      id: Date.now(),
+      title: `${task.title} (Copy)`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+    setTodos((prev) => [duplicatedTask, ...prev])
+    toast.success("Task duplicated!")
+  }
+
+  // Handle repeat task
+  const handleRepeatTask = (task) => {
+    // This would open a repeat modal or set repeat settings
+    // For now, just close the actions menu
+    toast.info("Repeat feature - implement as needed")
   }
 
   const handleSortChange = (newSortBy) => {
@@ -695,6 +732,10 @@ export default function ToDoWidget({ isSidebarEditing = false }) {
           onSave={handleTaskModalSave}
           configuredTags={configuredTags}
           availableAssignees={availableAssignees}
+          onDelete={handleDeleteTask}
+          onDuplicate={handleDuplicateTask}
+          onPinToggle={handlePinToggle}
+          onStatusChange={handleStatusChange}
         />
       )}
     </div>

@@ -38,8 +38,11 @@ const Dashboardlayout = () => {
   const [isExternalSidebarOpen, setIsExternalSidebarOpen] = useState(false)
   const toggleExternalSidebar = useCallback(() => setIsExternalSidebarOpen(prev => !prev), [])
 
-  // Detect if we're on a page with custom sidebar (Selling)
+  // Detect if we're on a page with custom sidebar or no sidebar (Selling, Leads, My Area)
   const isSellingPage = location.pathname.includes("/selling")
+  const isLeadsPage = location.pathname.includes("/leads")
+  const isMyAreaPage = location.pathname.includes("/my-area")
+  const hasNoRightSidebar = isSellingPage || isLeadsPage || isMyAreaPage
 
   const toggleSidebar = useCallback(() => setIsSidebarOpen(prev => !prev), [])
   const closeSidebar = useCallback(() => setIsSidebarOpen(false), [])
@@ -102,7 +105,7 @@ const Dashboardlayout = () => {
               lg:pt-2 md:pt-16 sm:pt-16 pt-16
               pb-10 p-2
               transition-all duration-500 ease-in-out
-              ${(isSellingPage ? isExternalSidebarOpen : isRightSidebarOpen) ? "lg:mr-[22rem] mr-0" : "mr-0"}
+              ${(isSellingPage ? isExternalSidebarOpen : isRightSidebarOpen) && !isLeadsPage && !isMyAreaPage ? "lg:mr-[22rem] mr-0" : "mr-0"}
             `}
           >
             {/* Header - handles both mobile + desktop views */}
@@ -113,15 +116,15 @@ const Dashboardlayout = () => {
               toggleRightSidebar={isSellingPage ? toggleExternalSidebar : toggleRightSidebar}
               isLeftSidebarCollapsed={isLeftSidebarCollapsed}
               toggleLeftSidebarCollapse={toggleLeftSidebarCollapse}
-              hideRightSidebarToggle={isSellingPage}
+              hideRightSidebarToggle={hasNoRightSidebar}
             />
 
             {/* Page Content */}
             <Outlet />
           </main>
 
-          {/* Central Sidebar (Right) - Hidden on Selling page */}
-          {!isSellingPage && (
+          {/* Central Sidebar (Right) - Hidden on Selling and Leads pages */}
+          {!hasNoRightSidebar && (
             <CentralSidebar 
               isRightSidebarOpen={isRightSidebarOpen} 
               toggleRightSidebar={toggleRightSidebar} 

@@ -163,7 +163,7 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded }) => {
         id: Date.now(),
         title: formData.title,
         content: formData.content,
-        visibility: formData.visibility,
+        visibility: activeTab === "members" ? "Members" : "Staff",
         status: finalStatus,
         image: formData.image,
         tags: formData.tags || [],

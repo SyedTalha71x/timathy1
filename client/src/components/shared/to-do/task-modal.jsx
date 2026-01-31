@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import { useState, useRef, useEffect } from "react"
-import { X, Calendar, Tag, Users, Bell, ChevronDown } from "lucide-react"
+import { X, Calendar, Tag, Users, Bell, ChevronDown, Check, Pin, PinOff, Copy, Trash2, Edit } from "lucide-react"
 import CalendarModal from "./calendar-modal"
 import AssignModal from "./assign-modal"
 import TagsModal from "./edit-tags"
@@ -14,7 +14,12 @@ const TaskModal = ({
   onClose, 
   onSave, // Generic save handler for both add and edit
   configuredTags = [],
-  availableAssignees = [] // Pass from parent component
+  availableAssignees = [], // Pass from parent component
+  // Mobile action handlers (only used in edit mode)
+  onDelete,
+  onDuplicate,
+  onPinToggle,
+  onStatusChange
 }) => {
   const isEditMode = mode === "edit" && task
   
@@ -31,8 +36,10 @@ const TaskModal = ({
   const [showCalendarModal, setShowCalendarModal] = useState(false)
   const [showAssignModal, setShowAssignModal] = useState(false)
   const [showTagsModal, setShowTagsModal] = useState(false)
+  const [showMobileActionsMenu, setShowMobileActionsMenu] = useState(false)
   
   const titleInputRef = useRef(null)
+  const mobileActionsMenuRef = useRef(null)
 
   // Sync taskData when task prop changes (important for edit mode)
   useEffect(() => {
@@ -54,6 +61,17 @@ const TaskModal = ({
     if (titleInputRef.current) {
       setTimeout(() => titleInputRef.current?.focus(), 100)
     }
+  }, [])
+
+  // Close mobile actions menu on outside click
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (mobileActionsMenuRef.current && !mobileActionsMenuRef.current.contains(event.target)) {
+        setShowMobileActionsMenu(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
   // Auto-resize textarea for edit mode
@@ -182,6 +200,159 @@ const TaskModal = ({
                   {task.status.charAt(0).toUpperCase() + task.status.slice(1)}
                 </span>
               )}
+              
+              {/* 3-Dot Actions Menu - Edit mode only */}
+              {isEditMode && (
+                <div className="relative" ref={mobileActionsMenuRef}>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setShowMobileActionsMenu(!showMobileActionsMenu)
+                    }}
+                    className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg transition-colors"
+                    aria-label="More actions"
+                  >
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
+                    </svg>
+                  </button>
+
+                  {showMobileActionsMenu && (
+                    <>
+                      {/* Overlay to close menu */}
+                      <div 
+                        className="fixed inset-0 z-[9998]" 
+                        onClick={() => setShowMobileActionsMenu(false)}
+                      />
+                      <div 
+                        className="fixed bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-xl min-w-[200px] z-[9999] overflow-hidden"
+                        style={{
+                          top: mobileActionsMenuRef.current?.getBoundingClientRect().bottom + 8 + 'px',
+                          right: (window.innerWidth - mobileActionsMenuRef.current?.getBoundingClientRect().right) + 'px'
+                        }}
+                      >
+                        <div className="py-1">
+                          {/* Mark Complete / Set Ongoing */}
+                          {!isCompleted && !isCanceled && onStatusChange && (
+                            <button
+                              onClick={() => {
+                                onStatusChange(task.id, "completed")
+                                setShowMobileActionsMenu(false)
+                                onClose()
+                              }}
+                              className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-white"
+                            >
+                              <Check size={16} />
+                              <span>Mark Complete</span>
+                            </button>
+                          )}
+                          
+                          {isCompleted && onStatusChange && (
+                            <button
+                              onClick={() => {
+                                onStatusChange(task.id, "ongoing")
+                                setShowMobileActionsMenu(false)
+                              }}
+                              className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-white"
+                            >
+                              <Edit size={16} />
+                              <span>Set Ongoing</span>
+                            </button>
+                          )}
+
+                          {/* Cancel Task / Set Ongoing for canceled */}
+                          {!isCompleted && !isCanceled && onStatusChange && (
+                            <button
+                              onClick={() => {
+                                onStatusChange(task.id, "canceled")
+                                setShowMobileActionsMenu(false)
+                                onClose()
+                              }}
+                              className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-white"
+                            >
+                              <X size={16} />
+                              <span>Cancel Task</span>
+                            </button>
+                          )}
+                          
+                          {isCanceled && onStatusChange && (
+                            <>
+                              <button
+                                onClick={() => {
+                                  onStatusChange(task.id, "ongoing")
+                                  setShowMobileActionsMenu(false)
+                                }}
+                                className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-white"
+                              >
+                                <Edit size={16} />
+                                <span>Set Ongoing</span>
+                              </button>
+                              <button
+                                onClick={() => {
+                                  onStatusChange(task.id, "completed")
+                                  setShowMobileActionsMenu(false)
+                                  onClose()
+                                }}
+                                className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-white"
+                              >
+                                <Check size={16} />
+                                <span>Mark Complete</span>
+                              </button>
+                            </>
+                          )}
+
+                          <div className="border-t border-gray-700 my-1"></div>
+
+                          {/* Pin/Unpin */}
+                          {onPinToggle && (
+                            <button
+                              onClick={() => {
+                                onPinToggle(task.id)
+                                setShowMobileActionsMenu(false)
+                              }}
+                              className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-white"
+                            >
+                              {task?.isPinned ? <PinOff size={16} /> : <Pin size={16} />}
+                              <span>{task?.isPinned ? 'Unpin Task' : 'Pin Task'}</span>
+                            </button>
+                          )}
+                          
+                          {/* Duplicate */}
+                          {onDuplicate && (
+                            <button
+                              onClick={() => {
+                                onDuplicate(task)
+                                setShowMobileActionsMenu(false)
+                              }}
+                              className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-white"
+                            >
+                              <Copy size={16} />
+                              <span>Duplicate</span>
+                            </button>
+                          )}
+
+                          <div className="border-t border-gray-700 my-1"></div>
+                          
+                          {/* Delete */}
+                          {onDelete && (
+                            <button
+                              onClick={() => {
+                                onDelete(task.id)
+                                setShowMobileActionsMenu(false)
+                              }}
+                              className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-red-500"
+                            >
+                              <Trash2 size={16} />
+                              <span>Delete</span>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+              
               <button
                 onClick={onClose}
                 className="text-gray-400 hover:text-white transition-colors"

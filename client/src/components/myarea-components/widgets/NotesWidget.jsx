@@ -1,253 +1,576 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
-import { useState, useRef, useEffect } from "react";
-import { Plus, MoreVertical, Edit, Trash2 } from "lucide-react";
-import CreateNoteModal from "../../shared/notes/CreateNoteModal";
-import EditNoteModal from "../../shared/notes/EditNoteModal";
-import DeleteConfirmModal from "../../shared/notes/DeleteConfirmModal";
-import { Link } from "react-router-dom";
+import { useState, useRef, useEffect } from "react"
+import { Plus, MoreVertical, Edit, Trash2, Eye, Tag, Pin, PinOff, Filter, X, ArrowUp, ArrowDown } from "lucide-react"
+import { Link } from "react-router-dom"
+import NoteModal from "../../shared/notes/NoteModal"
+import DeleteConfirmModal from "../../shared/notes/DeleteConfirmModal"
 
-const NotesWidget = ({isSidebarEditing}) => {
-  const [notes, setNotes] = useState([
+// Available tags - from notes.jsx
+const AVAILABLE_TAGS = [
+  { id: 'urgent', name: 'Urgent', color: '#ef4444' },
+  { id: 'meeting', name: 'Meeting', color: '#3b82f6' },
+  { id: 'ideas', name: 'Ideas', color: '#8b5cf6' },
+  { id: 'todo', name: 'Todo', color: '#f59e0b' },
+  { id: 'training', name: 'Training', color: '#10b981' },
+  { id: 'member', name: 'Member', color: '#ec4899' },
+]
+
+// Demo notes - from notes.jsx
+const DEMO_NOTES = {
+  personal: [
     {
       id: 1,
-      title: "Meeting Notes",
-      content: "Discussed new training programs with the team",
-      category: "studio",
-      createdAt: "2024-01-15",
-      updatedAt: "2024-01-15",
+      title: "Quarterly Review Meeting Notes",
+      content: "<p>Discussed Q4 goals and performance metrics. Team showed 15% improvement in customer satisfaction.</p><p><strong>Action items:</strong></p><ul><li>Reduce response time in support tickets</li><li>Schedule follow-up meeting</li></ul>",
+      tags: ['meeting', 'urgent'],
+      attachments: [],
+      isPinned: true,
+      createdAt: "2025-12-15T10:30:00",
+      updatedAt: "2025-12-20T14:45:00"
     },
     {
       id: 2,
-      title: "Personal Goals",
-      content: "Focus on improving client retention this quarter",
-      category: "personal",
-      createdAt: "2024-01-14",
-      updatedAt: "2024-01-14",
+      title: "New Member Orientation Checklist",
+      content: "<ol><li>Welcome package preparation</li><li>Training schedule setup</li><li>Facility tour arrangement</li><li>Equipment assignment</li><li>Introduction to team members</li></ol>",
+      tags: ['member', 'todo'],
+      attachments: [],
+      isPinned: false,
+      createdAt: "2025-12-10T09:15:00",
+      updatedAt: "2025-12-10T09:15:00"
     },
-  ]);
+  ],
+  studio: [
+    {
+      id: 3,
+      title: "Equipment Maintenance Schedule",
+      content: "<h3>Weekly Maintenance</h3><ul><li>Check treadmill belts</li><li>Clean all surfaces</li><li>Test emergency stop buttons</li></ul><h3>Monthly Maintenance</h3><ul><li>Deep clean all equipment</li><li>Inspect cables and pulleys</li><li>Update maintenance log</li></ul>",
+      tags: ['training'],
+      attachments: [],
+      isPinned: true,
+      createdAt: "2025-12-01T08:00:00",
+      updatedAt: "2025-12-18T16:30:00"
+    },
+  ],
+}
 
-  const [filter, setFilter] = useState("all");
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [selectedNote, setSelectedNote] = useState(null);
-  const [noteToDelete, setNoteToDelete] = useState(null);
-  const [openDropdownId, setOpenDropdownId] = useState(null);
+// Helper function to strip HTML tags for preview
+const stripHtmlTags = (html) => {
+  if (!html) return ''
+  const tmp = document.createElement('div')
+  tmp.innerHTML = html
+  const text = tmp.textContent || tmp.innerText || ''
+  return text.replace(/\s+/g, ' ').trim()
+}
 
-  const categories = [
-    { value: "all", label: "All Notes" },
-    { value: "personal", label: "Personal" },
-    { value: "studio", label: "Studio" },
-  ];
+// Tab Configuration
+const TAB_CONFIG = {
+  personal: {
+    label: "Personal",
+  },
+  studio: {
+    label: "Studio",
+  },
+}
 
-  const filteredNotes = notes.filter(
-    (note) => filter === "all" || note.category === filter
-  );
+const NotesWidget = ({ isSidebarEditing }) => {
+  const [notes, setNotes] = useState(DEMO_NOTES)
+  const [availableTags, setAvailableTags] = useState(AVAILABLE_TAGS)
+  
+  // Tab state
+  const [activeTab, setActiveTab] = useState("personal")
+  
+  // Sort state
+  const [sortBy, setSortBy] = useState("recentlyUpdated")
+  const [sortOrder, setSortOrder] = useState("desc")
+  const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false)
+  
+  // Modal states
+  const [showNoteModal, setShowNoteModal] = useState(false)
+  const [noteModalMode, setNoteModalMode] = useState("add")
+  const [selectedNote, setSelectedNote] = useState(null)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [noteToDelete, setNoteToDelete] = useState(null)
+  
+  // Dropdown state
+  const [openDropdownId, setOpenDropdownId] = useState(null)
+  const [dropdownPosition, setDropdownPosition] = useState({})
+  
+  const dropdownRef = useRef(null)
+  const sortDropdownRef = useRef(null)
 
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      const isDropdownClick =
-        event.target.closest("[data-dropdown-button]") ||
-        event.target.closest("[data-dropdown-menu]");
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setOpenDropdownId(null)
+      }
+      if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target)) {
+        setIsSortDropdownOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
 
-      if (!isDropdownClick) setOpenDropdownId(null);
-    };
+  // Calculate counts for each tab
+  const tabCounts = {
+    personal: notes.personal?.length || 0,
+    studio: notes.studio?.length || 0,
+  }
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
+  // Get notes for active tab with sorting
+  const getCurrentNotes = () => {
+    let currentNotes = notes[activeTab] || []
+    
+    // Sort notes
+    if (sortBy !== "custom") {
+      currentNotes = [...currentNotes].sort((a, b) => {
+        let comparison = 0
+        
+        switch (sortBy) {
+          case "title":
+            comparison = (a.title || "").localeCompare(b.title || "")
+            break
+          case "recentlyUpdated":
+            comparison = new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime()
+            break
+          case "recentlyCreated":
+            comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+            break
+          default:
+            comparison = 0
+            break
+        }
+        
+        return sortOrder === "asc" ? comparison : -comparison
+      })
+    }
+    
+    return currentNotes
+  }
 
-  const handleCreateNote = (newNoteData) => {
-    const note = {
-      id: Date.now(),
-      ...newNoteData,
-      createdAt: new Date().toISOString().split("T")[0],
-      updatedAt: new Date().toISOString().split("T")[0],
-    };
-    setNotes([note, ...notes]);
-  };
+  // Handle create note
+  const handleCreateNote = (newNote, category) => {
+    setNotes(prev => ({
+      ...prev,
+      [category]: [newNote, ...(prev[category] || [])],
+    }))
+    setShowNoteModal(false)
+  }
 
-  const handleUpdateNote = (updatedNoteData) => {
-    setNotes(
-      notes.map((note) =>
-        note.id === selectedNote.id
-          ? {
-              ...note,
-              ...updatedNoteData,
-              updatedAt: new Date().toISOString().split("T")[0],
-            }
-          : note
-      )
-    );
-    setSelectedNote(null);
-  };
+  // Handle update note
+  const handleUpdateNote = (updatedNote) => {
+    setNotes(prev => ({
+      ...prev,
+      [activeTab]: prev[activeTab].map(note =>
+        note.id === updatedNote.id ? updatedNote : note
+      ),
+    }))
+    setShowNoteModal(false)
+    setSelectedNote(null)
+  }
 
+  // Handle delete note
   const handleDeleteNote = () => {
     if (noteToDelete) {
-      setNotes(notes.filter((note) => note.id !== noteToDelete.id));
-      setNoteToDelete(null);
-      setIsDeleteModalOpen(false);
+      setNotes(prev => ({
+        ...prev,
+        [activeTab]: prev[activeTab].filter(note => note.id !== noteToDelete.id),
+      }))
+      setNoteToDelete(null)
+      setShowDeleteModal(false)
     }
-  };
+  }
 
-  const handleEditClick = (note, e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setSelectedNote(note);
-    setIsEditModalOpen(true);
-    setOpenDropdownId(null);
-  };
+  // Handle edit click
+  const handleEditClick = (note) => {
+    setSelectedNote(note)
+    setNoteModalMode("edit")
+    setShowNoteModal(true)
+    setOpenDropdownId(null)
+  }
 
-  const handleDeleteClick = (note, e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setNoteToDelete(note);
-    setIsDeleteModalOpen(true);
-    setOpenDropdownId(null);
-  };
+  // Handle delete click
+  const handleDeleteClick = (note) => {
+    setNoteToDelete(note)
+    setShowDeleteModal(true)
+    setOpenDropdownId(null)
+  }
 
-  const toggleDropdown = (noteId, e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setOpenDropdownId(openDropdownId === noteId ? null : noteId);
-  };
+  // Handle create click
+  const handleCreateClick = () => {
+    setSelectedNote(null)
+    setNoteModalMode("add")
+    setShowNoteModal(true)
+  }
+
+  // Toggle dropdown
+  const handleDropdownToggle = (noteId, event) => {
+    if (openDropdownId === noteId) {
+      setOpenDropdownId(null)
+      return
+    }
+
+    const button = event.currentTarget
+    const rect = button.getBoundingClientRect()
+    const viewportHeight = window.innerHeight
+    const dropdownHeight = 80
+    const spaceBelow = viewportHeight - rect.bottom
+    const spaceAbove = rect.top
+
+    const openUpwards = spaceBelow < dropdownHeight && spaceAbove > spaceBelow
+
+    setDropdownPosition({
+      [noteId]: openUpwards ? 'top' : 'bottom'
+    })
+    setOpenDropdownId(noteId)
+  }
+
+  // Get tag by ID
+  const getTagById = (tagId) => {
+    return availableTags.find((tag) => tag.id === tagId)
+  }
+
+  // Handle tag management
+  const handleAddTag = (newTag) => {
+    setAvailableTags([...availableTags, newTag])
+  }
+
+  const handleDeleteTag = (tagId) => {
+    // Remove tag from all notes
+    setNotes((prev) => {
+      const updatedNotes = {}
+      Object.keys(prev).forEach(tab => {
+        updatedNotes[tab] = prev[tab].map(note => ({
+          ...note,
+          tags: note.tags?.filter(t => t !== tagId) || []
+        }))
+      })
+      return updatedNotes
+    })
+    
+    // Remove from available tags
+    setAvailableTags(availableTags.filter(tag => tag.id !== tagId))
+  }
+
+  // Handle pin toggle
+  const handlePinToggle = (noteId) => {
+    setNotes(prev => ({
+      ...prev,
+      [activeTab]: prev[activeTab].map(note =>
+        note.id === noteId ? { ...note, isPinned: !note.isPinned } : note
+      ),
+    }))
+  }
+
+  // Handle duplicate note
+  const handleDuplicateNote = (note) => {
+    const duplicatedNote = {
+      ...note,
+      id: Date.now(),
+      title: `${note.title} (Copy)`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+    setNotes(prev => ({
+      ...prev,
+      [activeTab]: [duplicatedNote, ...(prev[activeTab] || [])],
+    }))
+  }
+
+  // Handle move note to other tab
+  const handleMoveNote = (note) => {
+    const targetTab = activeTab === 'personal' ? 'studio' : 'personal'
+    setNotes(prev => ({
+      ...prev,
+      [activeTab]: prev[activeTab].filter(n => n.id !== note.id),
+      [targetTab]: [note, ...(prev[targetTab] || [])],
+    }))
+  }
+
+  // Handle delete from modal
+  const handleDeleteFromModal = (noteId) => {
+    setNotes(prev => ({
+      ...prev,
+      [activeTab]: prev[activeTab].filter(note => note.id !== noteId),
+    }))
+    setShowNoteModal(false)
+    setSelectedNote(null)
+  }
+
+  const handleSortChange = (newSortBy) => {
+    if (sortBy === newSortBy) {
+      setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"))
+    } else {
+      setSortBy(newSortBy)
+      setSortOrder("asc")
+    }
+  }
+
+  const truncateText = (text, maxLength = 80) => {
+    const plainText = stripHtmlTags(text)
+    if (plainText.length <= maxLength) return plainText
+    return plainText.substring(0, maxLength - 3) + "..."
+  }
+
+  const currentNotes = getCurrentNotes()
 
   return (
-    <>
-      {/* Main Card Container */}
-      <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] flex flex-col md:h-[340px] h-auto">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <h2 className="text-lg font-semibold">Notes</h2>
-          {!isSidebarEditing && <button
-            onClick={() => setIsCreateModalOpen(true)}
-            className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
-          >
-            <Plus size={18} />
-          </button>}
-        </div>
+    <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
+      {/* Header */}
+      <div className="flex justify-between items-center flex-shrink-0">
+        <h2 className="text-lg font-semibold">Notes</h2>
+        <div className="flex items-center gap-2">
+          {/* Sort Dropdown */}
+          <div className="relative" ref={sortDropdownRef}>
+            <button
+              onClick={() => !isSidebarEditing && setIsSortDropdownOpen(!isSortDropdownOpen)}
+              disabled={isSidebarEditing}
+              className={`p-1.5 bg-black rounded-lg text-gray-400 hover:text-white transition-colors ${
+                isSidebarEditing ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+              title="Sort notes"
+            >
+              {sortOrder === "asc" ? (
+                <ArrowUp size={14} />
+              ) : (
+                <ArrowDown size={14} />
+              )}
+            </button>
 
-        {/* Filter */}
-        <div className="w-full">
-          <select
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            className="w-full p-2 bg-black rounded-xl text-white text-sm"
-          >
-            {categories.map((category) => (
-              <option key={category.value} value={category.value}>
-                {category.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Scrollable Notes */}
-        <div className="flex-1 overflow-y-auto max-h-60 custom-scrollbar pr-1 mt-2">
-          <div className="space-y-3">
-            {filteredNotes.length > 0 ? (
-              filteredNotes.slice(0, 3).map((note) => (
-                <div key={note.id} className="p-3 bg-black rounded-xl relative">
-                  <div className="absolute top-3 right-3">
+            {isSortDropdownOpen && (
+              <div className="absolute right-0 top-8 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[160px] py-1">
+                <div className="px-3 py-2 border-b border-gray-700">
+                  <p className="text-xs text-gray-500 font-medium">Sort by</p>
+                </div>
+                {[
+                  { value: "custom", label: "Custom" },
+                  { value: "title", label: "Title" },
+                  { value: "recentlyUpdated", label: "Updated" },
+                  { value: "recentlyCreated", label: "Created" },
+                ].map((option) => (
+                  <div
+                    key={option.value}
+                    className={`flex items-center justify-between px-3 py-2 text-xs transition-colors ${
+                      sortBy === option.value ? "bg-gray-800 text-white" : "text-gray-300 hover:bg-gray-800"
+                    }`}
+                  >
                     <button
-                      data-dropdown-button
-                      onClick={(e) => toggleDropdown(note.id, e)}
-                      className="p-1 hover:bg-gray-700 rounded transition-colors"
+                      onClick={() => {
+                        handleSortChange(option.value)
+                        if (option.value === "custom") setIsSortDropdownOpen(false)
+                      }}
+                      className="flex-1 text-left"
                     >
-                      <MoreVertical size={14} />
+                      {option.label}
                     </button>
-
-                    {openDropdownId === note.id && (
-                      <div
-                        data-dropdown-menu
-                        className="absolute right-0 top-8 bg-[#2F2F2F] rounded-lg shadow-lg z-10 min-w-[120px] border border-gray-600"
+                    {sortBy === option.value && option.value !== "custom" && (
+                      <button
+                        onClick={() => setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"))}
+                        className="ml-2"
                       >
-                        <button
-                          onClick={(e) => handleEditClick(note, e)}
-                          className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-t-lg flex items-center gap-2 transition-colors"
-                        >
-                          <Edit size={14} />
-                          Edit
-                        </button>
-                        <button
-                          onClick={(e) => handleDeleteClick(note, e)}
-                          className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-b-lg text-red-400 flex items-center gap-2 transition-colors"
-                        >
-                          <Trash2 size={14} />
-                          Delete
-                        </button>
-                      </div>
+                        {sortOrder === "asc" ? (
+                          <ArrowUp size={12} className="text-gray-400" />
+                        ) : (
+                          <ArrowDown size={12} className="text-gray-400" />
+                        )}
+                      </button>
                     )}
                   </div>
-
-                  <div className="pr-8">
-                    <h3 className="font-semibold text-sm">{note.title}</h3>
-                    <p className="text-xs text-zinc-400 mt-1 line-clamp-2">
-                      {note.content}
-                    </p>
-                    <div className="flex justify-between items-center mt-2">
-                      <span className="text-xs text-zinc-500 capitalize">
-                        {note.category}
-                      </span>
-                      <span className="text-xs text-zinc-500">
-                        {note.updatedAt}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="text-center py-4 text-gray-400">
-                <p className="text-sm">No notes found</p>
+                ))}
               </div>
             )}
           </div>
-        </div>
 
-        {/* ✅ See All (Now Inside Container) */}
-        {filteredNotes.length > 0 && (
-          <Link to="/dashboard/notes">
-            <div className="flex justify-center pt-2">
-              <button className="text-sm text-white hover:underline">
-                See all
-              </button>
+          {!isSidebarEditing && (
+            <button
+              onClick={handleCreateClick}
+              className="p-2 bg-orange-500 hover:bg-orange-600 rounded-lg cursor-pointer transition-colors"
+              title="Add New Note"
+            >
+              <Plus size={18} />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-1 p-1 bg-black rounded-xl flex-shrink-0">
+        {Object.entries(TAB_CONFIG).map(([tab, config]) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-medium transition-all ${
+              activeTab === tab
+                ? "bg-gray-800 text-white"
+                : "text-gray-400 hover:text-gray-200"
+            }`}
+          >
+            <span>{config.label}</span>
+            <span
+              className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
+                activeTab === tab ? "bg-white/10 text-white" : "bg-gray-900 text-gray-500"
+              }`}
+            >
+              {tabCounts[tab]}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {/* Notes List */}
+      <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 space-y-1.5">
+        {currentNotes.map((note) => (
+          <div
+            key={note.id}
+            className="p-3 rounded-xl bg-[#1a1a1a] hover:bg-gray-800 transition-all"
+          >
+            <div className="flex items-start gap-3">
+              {/* Note Content */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start gap-2 mb-1">
+                  <h3 className="text-sm font-semibold text-white truncate flex-1">
+                    {note.title || "Untitled"}
+                  </h3>
+                  {note.isPinned && (
+                    <Pin size={12} className="text-orange-400 fill-orange-400 flex-shrink-0" />
+                  )}
+                </div>
+                
+                {/* Tags */}
+                {note.tags && note.tags.length > 0 && (
+                  <div className="flex gap-1 flex-wrap mb-1">
+                    {note.tags.slice(0, 2).map((tagId) => {
+                      const tag = getTagById(tagId)
+                      return tag ? (
+                        <span
+                          key={tag.id}
+                          className="text-[10px] px-1.5 py-0.5 rounded text-white"
+                          style={{ backgroundColor: tag.color }}
+                        >
+                          {tag.name}
+                        </span>
+                      ) : null
+                    })}
+                    {note.tags.length > 2 && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-600 text-gray-300">
+                        +{note.tags.length - 2}
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                <p className="text-xs text-gray-400 line-clamp-2">
+                  {truncateText(note.content)}
+                </p>
+
+                {/* Date and Time */}
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="text-[10px] text-gray-500">
+                    {new Date(note.updatedAt).toLocaleDateString("en-US", {
+                      month: "short",
+                      day: "numeric",
+                    })}{" "}
+                    {new Date(note.updatedAt).toLocaleTimeString("en-US", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </span>
+                </div>
+              </div>
+
+              {/* Actions Dropdown */}
+              <div className="flex-shrink-0 relative" ref={openDropdownId === note.id ? dropdownRef : null}>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleDropdownToggle(note.id, e)
+                  }}
+                  className="p-1 hover:bg-zinc-700 rounded text-gray-400 hover:text-white transition-colors"
+                >
+                  <MoreVertical size={14} />
+                </button>
+
+                {openDropdownId === note.id && (
+                  <div 
+                    className={`absolute right-0 bg-[#2F2F2F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[120px] py-1 ${
+                      dropdownPosition[note.id] === 'top' ? 'bottom-full mb-1' : 'top-6'
+                    }`}
+                  >
+                    <button
+                      onClick={() => handleEditClick(note)}
+                      className="w-full px-3 py-2 text-left text-xs hover:bg-zinc-600 flex items-center gap-2 text-white transition-colors"
+                    >
+                      <Edit size={12} />
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDeleteClick(note)}
+                      className="w-full px-3 py-2 text-left text-xs hover:bg-zinc-600 text-red-400 flex items-center gap-2 transition-colors"
+                    >
+                      <Trash2 size={12} />
+                      Delete
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
-          </Link>
+          </div>
+        ))}
+
+        {/* Empty State */}
+        {currentNotes.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-8 text-gray-500">
+            <div className="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center mb-3">
+              <Edit size={20} className="text-gray-600" />
+            </div>
+            <p className="text-sm">No {activeTab} notes</p>
+            <p className="text-xs mt-1">Click + to create a note</p>
+          </div>
         )}
       </div>
 
-      {/* Modals */}
-      <CreateNoteModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onSave={handleCreateNote}
-      />
+      {/* Footer Link */}
+      <div className="flex justify-center pt-2 border-t border-gray-700 flex-shrink-0">
+        <Link to="/dashboard/notes" className="text-xs text-gray-400 hover:text-white transition-colors">
+          View all notes →
+        </Link>
+      </div>
 
-      <EditNoteModal
-        isOpen={isEditModalOpen}
-        onClose={() => {
-          setIsEditModalOpen(false);
-          setSelectedNote(null);
-        }}
-        note={selectedNote}
-        onSave={handleUpdateNote}
-      />
+      {/* Note Modal (Add/Edit) */}
+      {showNoteModal && (
+        <NoteModal
+          mode={noteModalMode}
+          note={noteModalMode === "edit" ? selectedNote : null}
+          onClose={() => {
+            setShowNoteModal(false)
+            setSelectedNote(null)
+          }}
+          onSave={noteModalMode === "add" ? handleCreateNote : handleUpdateNote}
+          availableTags={availableTags}
+          onAddTag={handleAddTag}
+          onDeleteTag={handleDeleteTag}
+          category={activeTab}
+          onDelete={handleDeleteFromModal}
+          onDuplicate={handleDuplicateNote}
+          onPinToggle={handlePinToggle}
+          onMoveToOtherTab={handleMoveNote}
+        />
+      )}
 
+      {/* Delete Confirmation Modal */}
       <DeleteConfirmModal
-        isOpen={isDeleteModalOpen}
+        isOpen={showDeleteModal}
         onClose={() => {
-          setIsDeleteModalOpen(false);
-          setNoteToDelete(null);
+          setShowDeleteModal(false)
+          setNoteToDelete(null)
         }}
         onConfirm={handleDeleteNote}
         noteTitle={noteToDelete?.title || ""}
       />
-    </>
-  );
-};
+    </div>
+  )
+}
 
-export default NotesWidget;
+export default NotesWidget

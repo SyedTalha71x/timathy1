@@ -43,7 +43,14 @@ import { createPortal } from "react-dom"
 import AnalyticsChartWidget from "../../components/myarea-components/widgets/AnalyticsChartWidget"
 import WebsiteLinksWidget from "../../components/myarea-components/widgets/WebsiteLinksWidget"
 
-import { appointmentsData } from "../../utils/studio-states"
+import { appointmentsData, membersData, leadsData, leadRelationsData, freeAppointmentsData, appointmentTypesData } from "../../utils/studio-states"
+import UpcomingAppointmentsWidget from "../../components/myarea-components/widgets/UpcomingAppointmentsWidget"
+import AppointmentActionModal from "../../components/studio-components/appointments-components/AppointmentActionModal"
+import EditMemberModalMain from "../../components/studio-components/members-components/EditMemberModal"
+import EditLeadModal from "../../components/studio-components/lead-studio-components/edit-lead-modal"
+import TrainingPlansModalMain from "../../components/shared/training/TrainingPlanModal"
+import EditAppointmentModal from "../../components/shared/appointments/EditAppointmentModal"
+
 
 export default function MyArea() {
   const [openDropdownIndex, setOpenDropdownIndex] = useState(null)
@@ -78,6 +85,67 @@ export default function MyArea() {
   const [historyTab, setHistoryTab] = useState("general")
   const [activeMemberDetailsTab, setActiveMemberDetailsTab] = useState("details")
   const [isMemberDetailsModalOpen, setIsMemberDetailsModalOpen] = useState(false)
+  
+  // Appointment Action Modal states
+  const [isAppointmentActionModalOpen, setIsAppointmentActionModalOpen] = useState(false)
+  const [selectedAppointmentForAction, setSelectedAppointmentForAction] = useState(null)
+  const [isEditAppointmentModalOpen, setIsEditAppointmentModalOpen] = useState(false)
+  
+  // Edit Member Modal states (for special notes from appointments)
+  const [isEditMemberModalOpen, setIsEditMemberModalOpen] = useState(false)
+  const [selectedMemberForEdit, setSelectedMemberForEdit] = useState(null)
+  const [editMemberActiveTab, setEditMemberActiveTab] = useState("note")
+  const [editingRelationsMain, setEditingRelationsMain] = useState(false)
+  const [newRelationMain, setNewRelationMain] = useState({
+    name: "",
+    relation: "",
+    category: "family",
+    type: "manual",
+    selectedMemberId: null,
+  })
+  const [editFormMain, setEditFormMain] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    street: "",
+    zipCode: "",
+    city: "",
+    dateOfBirth: "",
+    about: "",
+    note: "",
+    noteStartDate: "",
+    noteEndDate: "",
+    noteImportance: "unimportant",
+    notes: [],
+  })
+  
+  // Edit Lead Modal states (for special notes from appointments)
+  const [isEditLeadModalOpen, setIsEditLeadModalOpen] = useState(false)
+  const [selectedLeadForEdit, setSelectedLeadForEdit] = useState(null)
+  const [editLeadActiveTab, setEditLeadActiveTab] = useState("note")
+  
+  // Training Plan Modal states
+  const [isTrainingPlanModalOpen, setIsTrainingPlanModalOpen] = useState(false)
+  const [selectedUserForTrainingPlan, setSelectedUserForTrainingPlan] = useState(null)
+  
+  // Training Plans data
+  const [memberTrainingPlans, setMemberTrainingPlans] = useState({
+    1: [{ id: 1, name: "Beginner Full Body", description: "Complete full body workout for beginners", duration: "4 weeks", difficulty: "Beginner", assignedDate: "2025-01-15" }],
+    3: [{ id: 2, name: "Advanced Strength Training", description: "High intensity strength building program", duration: "8 weeks", difficulty: "Advanced", assignedDate: "2025-01-10" }],
+    4: [
+      { id: 4, name: "Muscle Building Split", description: "Targeted muscle building program", duration: "12 weeks", difficulty: "Intermediate", assignedDate: "2025-01-05" },
+      { id: 3, name: "Weight Loss Circuit", description: "Fat burning circuit training program", duration: "6 weeks", difficulty: "Intermediate", assignedDate: "2025-01-20" }
+    ],
+    6: [{ id: 1, name: "Beginner Full Body", description: "Complete full body workout for beginners", duration: "4 weeks", difficulty: "Beginner", assignedDate: "2025-01-18" }],
+  })
+  
+  const [availableTrainingPlans, setAvailableTrainingPlans] = useState([
+    { id: 1, name: "Beginner Full Body", description: "Complete full body workout for beginners", duration: "4 weeks", difficulty: "Beginner" },
+    { id: 2, name: "Advanced Strength Training", description: "High intensity strength building program", duration: "8 weeks", difficulty: "Advanced" },
+    { id: 3, name: "Weight Loss Circuit", description: "Fat burning circuit training program", duration: "6 weeks", difficulty: "Intermediate" },
+    { id: 4, name: "Muscle Building Split", description: "Targeted muscle building program", duration: "12 weeks", difficulty: "Intermediate" },
+  ])
 
   const [selectedMember, setSelectedMember] = useState(null)
   const [memberHistory, setMemberHistory] = useState({})
@@ -151,8 +219,6 @@ export default function MyArea() {
   const toggleEditing = () => setIsEditing(!isEditing)
   const [activeNoteId, setActiveNoteId] = useState(null)
 
-  const [selectedUserForTrainingPlan, setSelectedUserForTrainingPlan] = useState(null)
-
   const [tempContingent, setTempContingent] = useState({ used: 0, total: 0 })
   const [selectedBillingPeriod, setSelectedBillingPeriod] = useState("current")
   const [showAddBillingPeriodModal, setShowAddBillingPeriodModal] = useState(false)
@@ -160,38 +226,6 @@ export default function MyArea() {
   const [showContingentModal, setShowContingentModal] = useState(false)
 
   const notePopoverRef = useRef(null)
-
-  const [memberTrainingPlans, setMemberTrainingPlans] = useState({})
-  const [availableTrainingPlans, setAvailableTrainingPlans] = useState([
-    {
-      id: 1,
-      name: "Beginner Full Body",
-      description: "Complete full body workout for beginners",
-      duration: "4 weeks",
-      difficulty: "Beginner",
-    },
-    {
-      id: 2,
-      name: "Advanced Strength Training",
-      description: "High intensity strength building program",
-      duration: "8 weeks",
-      difficulty: "Advanced",
-    },
-    {
-      id: 3,
-      name: "Weight Loss Circuit",
-      description: "Fat burning circuit training program",
-      duration: "6 weeks",
-      difficulty: "Intermediate",
-    },
-    {
-      id: 4,
-      name: "Muscle Building Split",
-      description: "Targeted muscle building program",
-      duration: "12 weeks",
-      difficulty: "Intermediate",
-    },
-  ])
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -593,7 +627,7 @@ export default function MyArea() {
       style: { fontSize: "16px", fontWeight: "bold", color: "#ffffff" },
     },
     subtitle: {
-      text: `→ ${memberTypes[selectedMemberType].growth} more in 2024`,
+      text: `â†’ ${memberTypes[selectedMemberType].growth} more in 2024`,
       align: "left",
       style: { fontSize: "12px", color: "#ffffff", fontWeight: "bolder" },
     },
@@ -792,7 +826,7 @@ export default function MyArea() {
     [activeNoteId, notePosition, hoverTimeout],
   )
 
-  const handleViewMemberDetails = (appointmentIdOrMemberId) => {
+  const handleNavigateToMemberDetails = (appointmentIdOrMemberId) => {
     const appointment = appointments.find(app => app.id === appointmentIdOrMemberId)
 
     if (appointment) {
@@ -834,14 +868,241 @@ export default function MyArea() {
   }
 
   const handleAppointmentOptionsModal = (appointment) => {
-    if (appointment?.memberId) {
-      navigate(`/dashboard/member-details/${appointment.memberId}`)
+    // If it's a blocked slot, do nothing or navigate
+    if (appointment.isBlocked || appointment.type === "Blocked Time") {
+      return
     }
+    setSelectedAppointmentForAction(appointment)
+    setIsAppointmentActionModalOpen(true)
+  }
+
+  // Handler to open EditMemberModal from appointment modals (for special notes and relations)
+  const handleOpenEditMemberModal = (member, tab = "note") => {
+    console.log("handleOpenEditMemberModal called with:", member, "tab:", tab)
+    
+    // The member object is passed directly from the widget
+    // It already contains all the fields we need
+    if (!member) {
+      console.warn("No member data provided")
+      return
+    }
+    
+    console.log("Setting selectedMemberForEdit with member:", member)
+    
+    setSelectedMemberForEdit({
+      ...member,
+      note: member.note || "",
+      noteStartDate: member.noteStartDate || "",
+      noteEndDate: member.noteEndDate || "",
+      noteImportance: member.noteImportance || "unimportant",
+    })
+    
+    // Also set the edit form with member data
+    setEditFormMain({
+      firstName: member.firstName || member.name?.split(" ")[0] || "",
+      lastName: member.lastName || member.name?.split(" ").slice(1).join(" ") || "",
+      email: member.email || "",
+      phone: member.phone || "",
+      street: member.street || "",
+      zipCode: member.zipCode || "",
+      city: member.city || "",
+      dateOfBirth: member.dateOfBirth || "",
+      about: member.about || "",
+      note: member.note || "",
+      noteStartDate: member.noteStartDate || "",
+      noteEndDate: member.noteEndDate || "",
+      noteImportance: member.noteImportance || "unimportant",
+      notes: member.notes || [],
+    })
+    
+    setEditMemberActiveTab(tab)
+    setIsEditMemberModalOpen(true)
+  }
+
+  // Handler for input changes in EditMemberModal
+  const handleInputChangeMain = (e) => {
+    const { name, value } = e.target
+    setEditFormMain((prev) => ({
+      ...prev,
+      [name]: value,
+    }))
+  }
+
+  // Handler to save changes from EditMemberModal
+  const handleEditSubmitMain = (e, localRelations = null, localNotes = null) => {
+    e?.preventDefault()
+    
+    // Update relations if provided
+    if (localRelations && selectedMemberForEdit?.id) {
+      setMemberRelations((prev) => ({
+        ...prev,
+        [selectedMemberForEdit.id]: localRelations,
+      }))
+    }
+    
+    console.log("Member updated:", selectedMemberForEdit)
+    setIsEditMemberModalOpen(false)
+    setSelectedMemberForEdit(null)
+    setEditingRelationsMain(false)
+    toast.success("Member details have been updated successfully")
+  }
+
+  // Handler to add a new relation
+  const handleAddRelationMain = () => {
+    if (!selectedMemberForEdit || !newRelationMain.name || !newRelationMain.relation) return
+    
+    const memberId = selectedMemberForEdit.id
+    const category = newRelationMain.category
+    
+    const newRelation = {
+      id: Date.now(),
+      name: newRelationMain.name,
+      relation: newRelationMain.relation,
+      type: newRelationMain.type,
+      memberId: newRelationMain.selectedMemberId,
+    }
+    
+    setMemberRelations((prev) => ({
+      ...prev,
+      [memberId]: {
+        ...prev[memberId],
+        [category]: [...(prev[memberId]?.[category] || []), newRelation],
+      },
+    }))
+    
+    // Reset new relation form
+    setNewRelationMain({
+      name: "",
+      relation: "",
+      category: "family",
+      type: "manual",
+      selectedMemberId: null,
+    })
+    toast.success("Relation added successfully")
+  }
+
+  // Handler to delete a relation
+  const handleDeleteRelationMain = (memberId, category, relationId) => {
+    setMemberRelations((prev) => ({
+      ...prev,
+      [memberId]: {
+        ...prev[memberId],
+        [category]: prev[memberId]?.[category]?.filter((r) => r.id !== relationId) || [],
+      },
+    }))
+    toast.success("Relation deleted successfully")
+  }
+
+  // Relation options for EditMemberModal
+  const relationOptionsMain = {
+    family: ["Father", "Mother", "Brother", "Sister", "Uncle", "Aunt", "Cousin", "Grandfather", "Grandmother"],
+    friendship: ["Best Friend", "Close Friend", "Friend", "Acquaintance"],
+    relationship: ["Partner", "Spouse", "Ex-Partner", "Boyfriend", "Girlfriend"],
+    work: ["Colleague", "Boss", "Employee", "Business Partner", "Client"],
+    other: ["Neighbor", "Doctor", "Lawyer", "Trainer", "Other"],
+  }
+
+  // Handler to open EditLeadModal from appointment modals
+  const handleOpenEditLeadModal = (leadId, tab = "note") => {
+    console.log("handleOpenEditLeadModal called with leadId:", leadId, "tab:", tab)
+    
+    // Find the lead data by ID
+    const lead = leadsData.find(l => l.id === leadId)
+    
+    if (!lead) {
+      console.warn("Lead not found with id:", leadId, "in leadsData:", leadsData)
+      return
+    }
+    
+    console.log("Found lead data:", lead, "opening modal on tab:", tab)
+    
+    setSelectedLeadForEdit({
+      ...lead,
+      note: lead.note || "",
+      noteStartDate: lead.noteStartDate || "",
+      noteEndDate: lead.noteEndDate || "",
+      noteImportance: lead.noteImportance || "unimportant",
+    })
+    setEditLeadActiveTab(tab)
+    setIsEditLeadModalOpen(true)
+  }
+
+  // Handler to save changes from EditLeadModal  
+  const handleSaveEditLead = (updatedLead) => {
+    console.log("Lead updated:", updatedLead)
+    setIsEditLeadModalOpen(false)
+    setSelectedLeadForEdit(null)
+    toast.success("Lead details have been updated successfully")
+  }
+
+  // Handler to view member details (navigate to members page with filter)
+  const handleViewMemberDetails = () => {
+    setIsAppointmentActionModalOpen(false)
+    if (!selectedAppointmentForAction) return
+    
+    const memberId = selectedAppointmentForAction.memberId
+    const leadId = selectedAppointmentForAction.leadId
+    
+    // If it's a member appointment, navigate to members page
+    if (memberId) {
+      const memberName = selectedAppointmentForAction.lastName 
+        ? `${selectedAppointmentForAction.name} ${selectedAppointmentForAction.lastName}`
+        : selectedAppointmentForAction.name
+      
+      navigate('/dashboard/members', {
+        state: {
+          filterMemberId: memberId,
+          filterMemberName: memberName
+        }
+      })
+    }
+    // If it's a lead appointment, navigate to leads page
+    else if (leadId) {
+      navigate('/dashboard/leads', {
+        state: {
+          filterLeadId: leadId
+        }
+      })
+    }
+  }
+
+  // Handler to open Edit Appointment Modal
+  const handleEditAppointment = () => {
+    console.log("handleEditAppointment - Opening edit modal")
+    setIsAppointmentActionModalOpen(false)
+    setIsEditAppointmentModalOpen(true)
+  }
+
+  // Handler for dumbbell click - open Training Plan Modal
+  const handleDumbbellClick = (appointment, e) => {
+    console.log("ðŸ‹ï¸ Training Plan clicked!", appointment)
+    
+    if (e) e.stopPropagation()
+    
+    // Convert appointment to unified member format for TrainingPlanModal
+    const memberData = {
+      id: appointment.memberId, // Use memberId to link to training plans
+      firstName: appointment.name, // appointment.name is the first name
+      lastName: appointment.lastName || '',
+      email: appointment.email || '',
+    }
+    
+    console.log("Opening TrainingPlanModal with member:", memberData)
+    
+    setSelectedUserForTrainingPlan(memberData)
+    setIsTrainingPlanModalOpen(true)
+  }
+
+  // Get member by ID - returns member data from membersData (includes special notes)
+  const getMemberById = (memberId) => {
+    if (!memberId) return null
+    const member = membersData.find(m => m.id === memberId)
+    return member || null
   }
 
   const handleSendBirthdayMessage = (person) => {
     setSelectedBirthdayPerson(person)
-    setBirthdayMessage(`Happy Birthday ${person.name}! 🎉 Wishing you a wonderful day filled with joy and celebration!`)
+    setBirthdayMessage(`Happy Birthday ${person.name}! ðŸŽ‰ Wishing you a wonderful day filled with joy and celebration!`)
     setIsBirthdayMessageModalOpen(true)
   }
 
@@ -1003,79 +1264,21 @@ export default function MyArea() {
                         </div>
                       )}
                       {widget.type === "appointments" && (
-                        <div className="space-y-3 p-4 rounded-xl md:h-[340px] h-auto bg-[#2F2F2F]">
-                          <div className="flex justify-between items-center">
-                            <h2 className="text-lg font-semibold">Upcoming Appointments</h2>
-                          </div>
-                          <div className="space-y-2 max-h-[25vh] overflow-y-auto custom-scrollbar pr-1">
-                            {appointments.length > 0 ? (
-                              appointments.map((appointment, index) => (
-                                <div
-                                  key={appointment.id}
-                                  className={`${appointment.color} rounded-xl cursor-pointer p-3 relative`}
-                                >
-                                  <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
-                                    {renderSpecialNoteIcon(appointment.specialNote, appointment.id)}
-                                    <div
-                                      className="cursor-pointer mt-2 ml-1 rounded transition-colors"
-                                      onClick={(e) => handleDumbbellClick(appointment, e)}
-                                    >
-                                      <Dumbbell size={16} />
-                                    </div>
-                                  </div>
-
-                                  <div
-                                    className="flex flex-col items-center justify-between gap-2 cursor-pointer pl-8"
-                                    onClick={() => {
-                                      handleAppointmentOptionsModal(appointment)
-                                    }}
-                                  >
-                                    <div className="flex items-center gap-2 relative w-full justify-center">
-                                      <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center relative">
-                                        <img
-                                          src={Avatar || "/placeholder.svg"}
-                                          alt=""
-                                          className="w-full h-full rounded-xl"
-                                        />
-                                      </div>
-                                      <div className="text-white text-left flex-1">
-                                        <p className="font-semibold text-sm">{appointment.name} {appointment.lastName || ""}</p>
-                                        <p className="text-xs flex gap-1 items-center opacity-80">
-                                          <Clock size={14} />
-                                          {appointment.time} | {appointment.date.split("|")[0]}
-                                        </p>
-                                        <p className="text-xs opacity-80 mt-1">
-                                          {appointment.isTrial ? "Trial Session" : appointment.type}
-                                        </p>
-                                      </div>
-                                    </div>
-                                    <div className="flex items-center gap-2 w-full justify-center">
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation()
-                                          handleCheckIn(appointment.id)
-                                        }}
-                                        className={`px-3 py-1 text-xs font-medium rounded-lg ${appointment.isCheckedIn
-                                          ? "border border-white/50 text-white bg-transparent"
-                                          : "bg-black text-white"
-                                          }`}
-                                      >
-                                        {appointment.isCheckedIn ? "Checked In" : "Check In"}
-                                      </button>
-                                    </div>
-                                  </div>
-                                </div>
-                              ))
-                            ) : (
-                              <p className="text-white text-center">No appointments scheduled for this date.</p>
-                            )}
-                          </div>
-                          <div className="flex justify-center">
-                            <Link to="/dashboard/appointments" className="text-sm text-white hover:underline">
-                              See all
-                            </Link>
-                          </div>
-                        </div>
+                        <UpcomingAppointmentsWidget
+                          isSidebarEditing={isEditing}
+                          appointments={appointments}
+                          onAppointmentClick={handleAppointmentOptionsModal}
+                          onCheckIn={handleCheckIn}
+                          onOpenEditMemberModal={handleOpenEditMemberModal}
+                          onOpenEditLeadModal={handleOpenEditLeadModal}
+                          onOpenTrainingPlansModal={handleDumbbellClick}
+                          getMemberById={getMemberById}
+                          showCollapseButton={false}
+                          useFixedHeight={true}
+                          backgroundColor="bg-[#2F2F2F]"
+                          showDatePicker={true}
+                          initialDate={new Date()}
+                        />
                       )}
                       {widget.type === "staffCheckIn" && <StaffCheckInWidget />}
                       {widget.type === "websiteLink" && (
@@ -1136,7 +1339,7 @@ export default function MyArea() {
                                           </span>
                                         )}
                                         {isBirthdayToday(birthday.date) && (
-                                          <span className="text-yellow-500">🎂</span>
+                                          <span className="text-yellow-500">ðŸŽ‚</span>
                                         )}
                                       </h3>
                                       <p className="text-xs text-zinc-400">
@@ -1211,6 +1414,136 @@ export default function MyArea() {
           onSelectWidget={handleAddWidget}
           getWidgetStatus={(widgetType) => getWidgetPlacementStatus(widgetType, "dashboard")}
           widgetArea="dashboard"
+        />
+
+        {/* Appointment Action Modal */}
+        <AppointmentActionModal
+          isOpen={isAppointmentActionModalOpen}
+          onClose={() => {
+            setIsAppointmentActionModalOpen(false)
+            setSelectedAppointmentForAction(null)
+          }}
+          appointmentMain={selectedAppointmentForAction}
+          onEdit={handleEditAppointment}
+          onCancel={() => {
+            // Cancel appointment (mark as cancelled)
+            if (selectedAppointmentForAction) {
+              setAppointments(prev => prev.map(app =>
+                app.id === selectedAppointmentForAction.id
+                  ? { ...app, isCancelled: true }
+                  : app
+              ))
+            }
+            setIsAppointmentActionModalOpen(false)
+            setSelectedAppointmentForAction(null)
+          }}
+          onDelete={() => {
+            // Delete appointment
+            setAppointments(prev => prev.filter(a => a.id !== selectedAppointmentForAction?.id))
+            setIsAppointmentActionModalOpen(false)
+            setSelectedAppointmentForAction(null)
+          }}
+          onViewMember={handleViewMemberDetails}
+          onEditMemberNote={handleOpenEditMemberModal}
+          onOpenEditLeadModal={handleOpenEditLeadModal}
+          memberRelations={memberRelationsData}
+          leadRelations={leadRelationsData}
+          appointmentsMain={appointments}
+          setAppointmentsMain={setAppointments}
+        />
+
+        {/* Edit Appointment Modal */}
+        {isEditAppointmentModalOpen && selectedAppointmentForAction && (
+          <EditAppointmentModal
+            selectedAppointmentMain={selectedAppointmentForAction}
+            setSelectedAppointmentMain={setSelectedAppointmentForAction}
+            appointmentTypesMain={appointmentTypesData}
+            freeAppointmentsMain={freeAppointmentsData}
+            handleAppointmentChange={(changes) => setSelectedAppointmentForAction((prev) => ({ ...prev, ...changes }))}
+            appointmentsMain={appointments}
+            setAppointmentsMain={setAppointments}
+            setIsNotifyMemberOpenMain={() => {}}
+            setNotifyActionMain={() => {}}
+            onDelete={() => {
+              setAppointments(prev => prev.filter(a => a.id !== selectedAppointmentForAction?.id))
+              setIsEditAppointmentModalOpen(false)
+              setSelectedAppointmentForAction(null)
+            }}
+            onClose={() => {
+              setIsEditAppointmentModalOpen(false)
+              setSelectedAppointmentForAction(null)
+            }}
+            onOpenEditMemberModal={handleOpenEditMemberModal}
+            onOpenEditLeadModal={handleOpenEditLeadModal}
+            memberRelations={memberRelationsData}
+            leadRelations={leadRelationsData}
+          />
+        )}
+
+        {/* Edit Member Modal (for special notes from appointments) */}
+        {isEditMemberModalOpen && selectedMemberForEdit && (
+          <EditMemberModalMain
+            isOpen={isEditMemberModalOpen}
+            onClose={() => {
+              setIsEditMemberModalOpen(false)
+              setSelectedMemberForEdit(null)
+              setEditingRelationsMain(false)
+            }}
+            selectedMemberMain={selectedMemberForEdit}
+            editModalTabMain={editMemberActiveTab}
+            setEditModalTabMain={setEditMemberActiveTab}
+            editFormMain={editFormMain}
+            handleInputChangeMain={handleInputChangeMain}
+            handleEditSubmitMain={handleEditSubmitMain}
+            editingRelationsMain={editingRelationsMain}
+            setEditingRelationsMain={setEditingRelationsMain}
+            newRelationMain={newRelationMain}
+            setNewRelationMain={setNewRelationMain}
+            availableMembersLeadsMain={availableMembersLeads}
+            relationOptionsMain={relationOptionsMain}
+            handleAddRelationMain={handleAddRelationMain}
+            memberRelationsMain={memberRelations}
+            handleDeleteRelationMain={handleDeleteRelationMain}
+          />
+        )}
+
+        {/* Edit Lead Modal (for special notes from appointments) */}
+        {isEditLeadModalOpen && selectedLeadForEdit && (
+          <EditLeadModal
+            isVisible={isEditLeadModalOpen}
+            onClose={() => {
+              setIsEditLeadModalOpen(false)
+              setSelectedLeadForEdit(null)
+            }}
+            onSave={handleSaveEditLead}
+            leadData={selectedLeadForEdit}
+            memberRelationsLead={leadRelationsData[selectedLeadForEdit?.id] || {}}
+            setMemberRelationsLead={() => {}}
+            availableMembersLeads={availableMembersLeads}
+            columns={[
+              { id: "new", title: "New" },
+              { id: "contacted", title: "Contacted" },
+              { id: "qualified", title: "Qualified" },
+              { id: "negotiation", title: "Negotiation" },
+              { id: "won", title: "Won" },
+              { id: "lost", title: "Lost" },
+            ]}
+            initialTab={editLeadActiveTab}
+          />
+        )}
+        
+        {/* Training Plans Modal */}
+        <TrainingPlansModalMain
+          isOpen={isTrainingPlanModalOpen}
+          onClose={() => {
+            setIsTrainingPlanModalOpen(false)
+            setSelectedUserForTrainingPlan(null)
+          }}
+          selectedMember={selectedUserForTrainingPlan}
+          memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
+          availableTrainingPlans={availableTrainingPlans}
+          onAssignPlan={handleAssignTrainingPlan}
+          onRemovePlan={handleRemoveTrainingPlan}
         />
       </div>
     </>

@@ -2,7 +2,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { ChevronLeft, ChevronRight, X, Download, Users, Calendar, Plus, PanelLeftClose, PanelLeft, Sun, FileText, Clock } from "lucide-react"
-import { useMemo, useState } from "react"
+import { useMemo, useState, useEffect } from "react"
 import toast from "react-hot-toast"
 import * as XLSX from 'xlsx'
 import VacationCalendarModal from "./vacation-calendar-modal"
@@ -85,7 +85,7 @@ const ExportConfirmationModal = ({ isOpen, onClose, onConfirm, staffCount, total
   )
 }
 
-function StaffPlanningModal({ staffMembers, onClose }) {
+function StaffPlanningModal({ staffMembers, onClose, initialTab = null }) {
   // Core state
   const [activeMenuItem, setActiveMenuItem] = useState("attendance")
   const [showVacationCalendar, setShowVacationCalendar] = useState(false)
@@ -103,6 +103,23 @@ function StaffPlanningModal({ staffMembers, onClose }) {
   const [customStartDate, setCustomStartDate] = useState("")
   const [customEndDate, setCustomEndDate] = useState("")
   const [exportModalOpen, setExportModalOpen] = useState(false)
+
+  // Handle initialTab prop - open the correct view on mount
+  useEffect(() => {
+    if (initialTab === "shifts") {
+      setActiveMenuItem("shifts")
+      setShowShiftSchedule(true)
+      setShowVacationCalendar(false)
+    } else if (initialTab === "vacation") {
+      setActiveMenuItem("vacation")
+      setShowVacationCalendar(true)
+      setShowShiftSchedule(false)
+    } else if (initialTab === "attendance") {
+      setActiveMenuItem("attendance")
+      setShowVacationCalendar(false)
+      setShowShiftSchedule(false)
+    }
+  }, [initialTab])
 
   // Staff members with unique colors
   const staffMembersWithColors = useMemo(() => {
