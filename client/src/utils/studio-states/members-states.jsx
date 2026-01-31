@@ -17,7 +17,7 @@ export const membersData = [
     reason: "", isActive: true, isArchived: false, memberType: "full",
     note: "Allergic to peanuts", noteStartDate: "2023-01-01", noteEndDate: "2023-12-31", noteImportance: "important",
     dateOfBirth: "1990-05-15", about: "Experienced developer with a passion for clean code.",
-    joinDate: "2022-03-01", contractStart: "2022-03-01", contractEnd: "2025-03-01",
+    joinDate: "2022-03-01", contractStart: "2022-03-01", contractEnd: "2026-03-01",
     autoArchiveDate: null, documents: [],
   },
   {
@@ -28,7 +28,7 @@ export const membersData = [
     isActive: false, reason: "Vacation Leave", isArchived: false, memberType: "full",
     note: "", noteStartDate: "", noteEndDate: "", noteImportance: "unimportant",
     dateOfBirth: "1985-08-22", about: "Certified PMP with 10 years of experience.",
-    joinDate: "2021-11-15", contractStart: "2021-11-15", contractEnd: "2024-11-15",
+    joinDate: "2021-11-15", contractStart: "2021-11-15", contractEnd: "2026-02-05",
     autoArchiveDate: null, documents: [],
   },
   {
@@ -39,7 +39,7 @@ export const membersData = [
     isActive: true, isArchived: false, memberType: "full",
     note: "Prefers morning sessions", noteStartDate: "2023-03-01", noteEndDate: "2023-12-31", noteImportance: "unimportant",
     dateOfBirth: "1988-11-30", about: "Fitness enthusiast and marathon runner.",
-    joinDate: "2022-06-15", contractStart: "2022-06-15", contractEnd: "2025-06-15",
+    joinDate: "2022-06-15", contractStart: "2022-06-15", contractEnd: "2027-06-15",
     autoArchiveDate: null, documents: [],
   },
   {
@@ -50,7 +50,7 @@ export const membersData = [
     isActive: true, isArchived: false, memberType: "premium",
     note: "VIP member - priority scheduling", noteStartDate: "2024-01-01", noteEndDate: "2024-12-31", noteImportance: "important",
     dateOfBirth: "1992-03-18", about: "Yoga instructor and wellness coach.",
-    joinDate: "2023-01-10", contractStart: "2023-01-10", contractEnd: "2025-01-10",
+    joinDate: "2023-01-10", contractStart: "2023-01-10", contractEnd: "2026-02-10",
     autoArchiveDate: null, documents: [],
   },
   {
@@ -61,7 +61,7 @@ export const membersData = [
     isActive: true, isArchived: false, memberType: "full",
     note: "", noteStartDate: "", noteEndDate: "", noteImportance: "unimportant",
     dateOfBirth: "1995-01-25", about: "Software engineer interested in strength training.",
-    joinDate: "2023-09-01", contractStart: "2023-09-01", contractEnd: "2024-09-01",
+    joinDate: "2023-09-01", contractStart: "2023-09-01", contractEnd: "2026-02-20",
     autoArchiveDate: null, documents: [],
   },
   {
@@ -72,7 +72,7 @@ export const membersData = [
     isActive: true, isArchived: false, memberType: "full",
     note: "Focus on knee rehabilitation exercises", noteStartDate: "2025-01-01", noteEndDate: "2025-04-01", noteImportance: "important",
     dateOfBirth: "1991-12-05", about: "Recovering from knee surgery.",
-    joinDate: "2024-06-01", contractStart: "2024-06-01", contractEnd: "2025-06-01",
+    joinDate: "2024-06-01", contractStart: "2024-06-01", contractEnd: "2026-04-01",
     autoArchiveDate: null, documents: [],
   },
   {
@@ -94,7 +94,7 @@ export const membersData = [
     isActive: true, isArchived: false, memberType: "full",
     note: "", noteStartDate: "", noteEndDate: "", noteImportance: "unimportant",
     dateOfBirth: "1989-09-14", about: "Group fitness enthusiast.",
-    joinDate: "2024-02-01", contractStart: "2024-02-01", contractEnd: "2025-02-01",
+    joinDate: "2024-02-01", contractStart: "2024-02-01", contractEnd: "2026-02-03",
     autoArchiveDate: null, documents: [],
   },
   {
@@ -105,7 +105,7 @@ export const membersData = [
     isActive: true, isArchived: false, memberType: "full",
     note: "", noteStartDate: "", noteEndDate: "", noteImportance: "unimportant",
     dateOfBirth: "1987-02-28", about: "Business professional focused on stress relief.",
-    joinDate: "2024-03-15", contractStart: "2024-03-15", contractEnd: "2025-03-15",
+    joinDate: "2024-03-15", contractStart: "2024-03-15", contractEnd: "2026-02-25",
     autoArchiveDate: null, documents: [],
   },
   {
@@ -116,7 +116,7 @@ export const membersData = [
     isActive: true, isArchived: false, memberType: "full",
     note: "", noteStartDate: "", noteEndDate: "", noteImportance: "unimportant",
     dateOfBirth: "1994-06-17", about: "Cardio and weight training enthusiast.",
-    joinDate: "2024-01-01", contractStart: "2024-01-01", contractEnd: "2025-01-01",
+    joinDate: "2024-01-01", contractStart: "2024-01-01", contractEnd: "2026-03-17",
     autoArchiveDate: null, documents: [],
   },
 ];

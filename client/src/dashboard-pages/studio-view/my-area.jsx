@@ -33,8 +33,7 @@ import ContingentModal from "../../components/myarea-components/ContigentModal"
 
 import { WidgetSelectionModal } from "../../components/widget-selection-modal"
 
-import { notificationData, memberContingentDataNew, mockTrainingPlansNew, mockVideosNew, memberRelationsData, mockMemberHistoryNew, mockMemberRelationsNew, availableMembersLeadsNew, customLinksData, communicationsData, birthdaysData, memberTypesData, expiringContractsData, bulletinBoardData } from "../../utils/studio-states/myarea-states"
-import BirthdayMessageModal from "../../components/myarea-components/BirthdayMessageModal"
+import { notificationData, memberContingentDataNew, mockTrainingPlansNew, mockVideosNew, memberRelationsData, mockMemberHistoryNew, mockMemberRelationsNew, availableMembersLeadsNew, customLinksData, communicationsData, memberTypesData, bulletinBoardData } from "../../utils/studio-states/myarea-states"
 import NotesWidget from "../../components/myarea-components/widgets/NotesWidget"
 import BulletinBoardWidget from "../../components/myarea-components/widgets/BulletinBoardWidget"
 import ToDoWidget from "../../components/myarea-components/widgets/ToDoWidget"
@@ -42,6 +41,8 @@ import ShiftScheduleWidget from "../../components/myarea-components/widgets/Shif
 import { createPortal } from "react-dom"
 import AnalyticsChartWidget from "../../components/myarea-components/widgets/AnalyticsChartWidget"
 import WebsiteLinksWidget from "../../components/myarea-components/widgets/WebsiteLinksWidget"
+import ExpiringContractsWidget from "../../components/myarea-components/widgets/ExpiringContractsWidget"
+import UpcomingBirthdaysWidget from "../../components/myarea-components/widgets/UpcomingBirthdaysWidget"
 
 import { appointmentsData, membersData, leadsData, leadRelationsData, freeAppointmentsData, appointmentTypesData } from "../../utils/studio-states"
 import UpcomingAppointmentsWidget from "../../components/myarea-components/widgets/UpcomingAppointmentsWidget"
@@ -64,14 +65,9 @@ export default function MyArea() {
 
   const [notePosition, setNotePosition] = useState({ top: 0, left: 0 })
 
-  const [isBirthdayMessageModalOpen, setIsBirthdayMessageModalOpen] = useState(false)
-  const [selectedBirthdayPerson, setSelectedBirthdayPerson] = useState(null)
-  const [birthdayMessage, setBirthdayMessage] = useState("")
-
   const [savedViews, setSavedViews] = useState([])
   const [currentView, setCurrentView] = useState(null)
   const [isViewModalOpen, setIsViewModalOpen] = useState(false)
-  const today = new Date().toISOString().split("T")[0]
 
   const [isSpecialNoteModalOpen, setIsSpecialNoteModalOpen] = useState(false)
   const [selectedAppointmentForNote, setSelectedAppointmentForNote] = useState(null)
@@ -199,8 +195,6 @@ export default function MyArea() {
   const [customLinks, setCustomLinks] = useState(customLinksData)
   const [communications, setCommunications] = useState(communicationsData)
   const [appointments, setAppointments] = useState(appointmentsData)
-  const [birthdays, setBirthdays] = useState(birthdaysData)
-  const [expiringContracts, setExpiringContracts] = useState(expiringContractsData)
 
   const [widgets, setWidgets] = useState([
     { id: "chart", type: "chart", position: 0 },
@@ -569,10 +563,6 @@ export default function MyArea() {
     toast.success("Special note updated successfully")
   }
 
-  const isBirthdayToday = (date) => {
-    return date === today
-  }
-
   const chartOptions = {
     chart: {
       type: "line",
@@ -655,18 +645,6 @@ export default function MyArea() {
     { name: "Comp1", data: memberTypes[selectedMemberType].data[0] },
     { name: "Comp2", data: memberTypes[selectedMemberType].data[1] },
   ]
-
-  const calculateAge = (dateOfBirth) => {
-    if (!dateOfBirth) return ""
-    const today = new Date()
-    const birthDate = new Date(dateOfBirth)
-    let age = today.getFullYear() - birthDate.getFullYear()
-    const m = today.getMonth() - birthDate.getMonth()
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-      age--
-    }
-    return age
-  }
 
   const handleAddWidget = (widgetType) => {
     const { canAdd, location } = getWidgetPlacementStatus(widgetType, "dashboard")
@@ -1100,24 +1078,6 @@ export default function MyArea() {
     return member || null
   }
 
-  const handleSendBirthdayMessage = (person) => {
-    setSelectedBirthdayPerson(person)
-    setBirthdayMessage(`Happy Birthday ${person.name}! ðŸŽ‰ Wishing you a wonderful day filled with joy and celebration!`)
-    setIsBirthdayMessageModalOpen(true)
-  }
-
-  const handleSendCustomBirthdayMessage = () => {
-    if (birthdayMessage.trim()) {
-      toast.success(`Birthday message sent to ${selectedBirthdayPerson.name}!`)
-      setIsBirthdayMessageModalOpen(false)
-      setBirthdayMessage("")
-      setSelectedBirthdayPerson(null)
-    }
-
-    setBirthdayMessage("")
-    setSelectedBirthdayPerson(null)
-  }
-
   return (
     <>
       <style>
@@ -1234,34 +1194,7 @@ export default function MyArea() {
                       widgets={widgets}
                     >
                       {widget.type === "expiringContracts" && (
-                        <div className="space-y-3 p-4 rounded-xl max-h-[340px] overflow-y-auto custom-scrollbar bg-[#2F2F2F] h-full flex flex-col">
-                          <div className="flex justify-between items-center flex-shrink-0">
-                            <h2 className="text-lg font-semibold">Expiring Contracts</h2>
-                          </div>
-                          <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
-                            <div className="grid grid-cols-1 gap-3">
-                              {expiringContracts.map((contract) => (
-                                <Link to={"/dashboard/contract"} key={contract.id}>
-                                  <div className="p-4 bg-black rounded-xl hover:bg-zinc-900 transition-colors">
-                                    <div className="flex justify-between items-start gap-3">
-                                      <div className="flex-1 min-w-0">
-                                        <h3 className="text-sm font-medium break-words line-clamp-2">
-                                          {contract.title}
-                                        </h3>
-                                        <p className="text-xs mt-1 text-zinc-400 whitespace-nowrap overflow-hidden text-ellipsis">
-                                          Expires: {contract.expiryDate}
-                                        </p>
-                                      </div>
-                                      <span className="px-2 py-1 text-xs rounded-full bg-yellow-500/20 text-yellow-400 whitespace-nowrap flex-shrink-0">
-                                        {contract.status}
-                                      </span>
-                                    </div>
-                                  </div>
-                                </Link>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
+                        <ExpiringContractsWidget isSidebarEditing={isEditing} />
                       )}
                       {widget.type === "appointments" && (
                         <UpcomingAppointmentsWidget
@@ -1306,65 +1239,7 @@ export default function MyArea() {
                       )}
 
                       {widget.type === "birthday" && (
-                        <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
-                          <div className="flex justify-between items-center">
-                            <h2 className="text-lg font-semibold">Upcoming Birthday</h2>
-                          </div>
-
-                          <div className="flex-1 overflow-y-auto max-h-[300px] custom-scrollbar pr-1">
-                            <div className="space-y-2">
-                              {birthdays.map((birthday) => (
-                                <div
-                                  key={birthday.id}
-                                  className={`p-3 cursor-pointer rounded-xl flex items-center gap-3 justify-between ${isBirthdayToday(birthday.date)
-                                    ? "bg-yellow-900/30 border border-yellow-600"
-                                    : "bg-black"
-                                    }`}
-                                >
-                                  <div className="flex items-center gap-3">
-                                    <div className="h-10 w-10 rounded-xl overflow-hidden">
-                                      <img
-                                        src={birthday.avatar || "/placeholder.svg"}
-                                        className="h-full w-full object-cover"
-                                        alt=""
-                                      />
-                                    </div>
-
-                                    <div>
-                                      <h3 className="font-semibold text-sm flex items-center gap-1">
-                                        {birthday.name}
-                                        {birthday.dateOfBirth && (
-                                          <span className="text-zinc-400 font-normal">
-                                            ({calculateAge(birthday.dateOfBirth)})
-                                          </span>
-                                        )}
-                                        {isBirthdayToday(birthday.date) && (
-                                          <span className="text-yellow-500">ðŸŽ‚</span>
-                                        )}
-                                      </h3>
-                                      <p className="text-xs text-zinc-400">
-                                        {birthday.date}
-                                      </p>
-                                    </div>
-                                  </div>
-
-                                  {isBirthdayToday(birthday.date) && (
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleSendBirthdayMessage(birthday);
-                                      }}
-                                      className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg"
-                                      title="Send Birthday Message"
-                                    >
-                                      <MessageCircle size={16} />
-                                    </button>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
+                        <UpcomingBirthdaysWidget isSidebarEditing={isEditing} />
                       )}
 
                       {widget.type === "bulletinBoard" && <BulletinBoardWidget isSidebarEditing={isEditing} />}
@@ -1383,19 +1258,6 @@ export default function MyArea() {
             </div>
           </div>
         </main>
-
-        <BirthdayMessageModal
-          isOpen={isBirthdayMessageModalOpen}
-          onClose={() => {
-            setIsBirthdayMessageModalOpen(false)
-            setBirthdayMessage("")
-            setSelectedBirthdayPerson(null)
-          }}
-          selectedBirthdayPerson={selectedBirthdayPerson}
-          birthdayMessage={birthdayMessage}
-          setBirthdayMessage={setBirthdayMessage}
-          handleSendCustomBirthdayMessage={handleSendCustomBirthdayMessage}
-        />
 
         <ViewManagementModal
           isOpen={isViewModalOpen}

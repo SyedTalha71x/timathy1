@@ -51,6 +51,7 @@ const Calendar = forwardRef(({
   const [freeAppointments, setFreeAppointments] = useState(freeAppointmentsData)
   const [currentDateDisplay, setCurrentDateDisplay] = useState("")
   const [viewMode, setViewMode] = useState("all")
+  const [currentViewType, setCurrentViewType] = useState("timeGridWeek") // Track current view for hiddenDays logic
 
   const [selectedMemberForAppointments, setSelectedMemberForAppointments] = useState(null)
   const [showCreateAppointmentModal, setShowCreateAppointmentModal] = useState(false)
@@ -73,8 +74,13 @@ const Calendar = forwardRef(({
   const [blockedEditData, setBlockedEditData] = useState(null)
 
   // Calculate hidden days based on studioData.openingHours (closed days won't show as columns)
-  // Only hide days if calendarSettings.hideClosedDays is true
+  // Only hide days if calendarSettings.hideClosedDays is true AND not in day view
   const hiddenDays = useMemo(() => {
+    // In day view, don't hide any days - show closed days with styling
+    if (currentViewType === "timeGridDay") {
+      return [];
+    }
+    
     // If hideClosedDays is disabled, don't hide any days
     if (!calendarSettings.hideClosedDays) {
       return [];
@@ -105,7 +111,7 @@ const Calendar = forwardRef(({
     }
     
     return days;
-  }, [calendarSettings.hideClosedDays]);
+  }, [calendarSettings.hideClosedDays, currentViewType]);
 
   const formatDate = (date) => {
     const day = String(date.getDate()).padStart(2, "0")
@@ -348,6 +354,9 @@ const Calendar = forwardRef(({
     changeView: (viewType) => {
       const calendarApi = calendarRef.current?.getApi();
       if (calendarApi) {
+        // Update currentViewType state BEFORE changing view
+        setCurrentViewType(viewType);
+        
         calendarApi.changeView(viewType);
         
         // Nach View-Wechsel zum ausgewaehlten Datum navigieren
@@ -405,6 +414,7 @@ const Calendar = forwardRef(({
         if (calendarRef.current) {
           const calendarApi = calendarRef.current.getApi()
           if (calendarApi.view.type !== "timeGridDay") {
+            setCurrentViewType("timeGridDay")
             calendarApi.changeView("timeGridDay")
           }
         }
@@ -1587,15 +1597,16 @@ const Calendar = forwardRef(({
                     const weekday = weekdays[date.getDay()];
                     const day = date.getDate();
                     
-                    // Check for holidays (weekends are hidden via hiddenDays)
+                    // Check for closed days (including weekends now that hiddenDays is disabled for day view)
                     const closedInfo = isStudioClosedOnDate(dateStr);
-                    const isHoliday = closedInfo.closed && !closedInfo.isWeekend;
+                    const isClosed = closedInfo.closed;
+                    const closedLabel = closedInfo.isWeekend ? 'Closed' : closedInfo.reason;
                     
                     return (
                       <div style={{ textAlign: 'center', lineHeight: '1.1', userSelect: 'none' }}>
                         <div style={{ fontSize: '11px' }}>{weekday} {day}</div>
-                        {isHoliday && (
-                          <div className="closed-label">{closedInfo.reason}</div>
+                        {isClosed && (
+                          <div className="closed-label">{closedLabel}</div>
                         )}
                       </div>
                     );
@@ -1629,6 +1640,12 @@ const Calendar = forwardRef(({
                 }
               }}
               datesSet={(info) => {
+                // Update currentViewType when view changes
+                const newViewType = info.view.type;
+                if (newViewType !== currentViewType) {
+                  setCurrentViewType(newViewType);
+                }
+                
                 setTimeout(() => {
                   const display = formatDateRange(info.view.currentStart);
                   setCurrentDateDisplay(display);

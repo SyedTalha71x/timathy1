@@ -22,7 +22,7 @@ import { useState, useEffect, useCallback, useRef } from "react"
 import toast, { Toaster } from "react-hot-toast"
 import { GoArrowLeft, GoArrowRight } from "react-icons/go"
 
-import { appointmentsData as initialAppointmentsData, memberRelationsData, availableMembersLeadsMain, freeAppointmentsData, relationOptionsData as relationOptionsMain, appointmentTypesData, membersData, DEFAULT_CALENDAR_SETTINGS, leadsData, leadRelationsData } from "../../utils/studio-states"
+import { appointmentsData as initialAppointmentsData, memberRelationsData, availableMembersLeadsMain, freeAppointmentsData, relationOptionsData as relationOptionsMain, appointmentTypesData, membersData, DEFAULT_CALENDAR_SETTINGS, leadsData, leadRelationsData, studioData, isStudioClosedOnDate } from "../../utils/studio-states"
 
 import TrialTrainingModal from "../../components/shared/appointments/CreateTrialTrainingModal"
 import CreateAppointmentModal from "../../components/shared/appointments/CreateAppointmentModal"
@@ -100,6 +100,43 @@ export default function Appointments() {
   
   // Calendar settings (from configuration)
   const [calendarSettings, setCalendarSettings] = useState(DEFAULT_CALENDAR_SETTINGS)
+
+  // Mobile-specific states
+  const [isMobileFiltersExpanded, setIsMobileFiltersExpanded] = useState(false) // Collapsed by default on mobile
+  const [isMobileFabOpen, setIsMobileFabOpen] = useState(false) // FAB menu state
+  
+  // Check if we're on mobile (for initial calendar view)
+  const [isMobile, setIsMobile] = useState(false)
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 1024
+      setIsMobile(mobile)
+      // Set day view on mobile by default
+      if (mobile && calendarRef.current) {
+        calendarRef.current.changeView("timeGridDay")
+        setCurrentView("timeGridDay")
+      }
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  // Close FAB menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      if (isMobileFabOpen) {
+        setIsMobileFabOpen(false)
+      }
+    }
+    
+    if (isMobileFabOpen) {
+      document.addEventListener("click", handleClickOutside)
+      return () => document.removeEventListener("click", handleClickOutside)
+    }
+  }, [isMobileFabOpen])
 
   // Handler wenn im Hauptkalender navigiert wird (nur durch Pfeile, nicht durch datesSet beim Laden)
   const handleCalendarNavigate = useCallback((date, isUserNavigation = false) => {
@@ -201,202 +238,175 @@ export default function Appointments() {
     "Past Appointments": true,
   })
 
-  const [freeAppointmentsMain, setFreeAppointmentsMain] = useState(freeAppointmentsData)
+  const appointmentTypesMain = appointmentTypesData
+  const freeAppointmentsMain = freeAppointmentsData
 
-  const [appointmentTypesMain, setAppointmentTypesMain] = useState(appointmentTypesData)
-
-  const [filteredAppointments, setFilteredAppointments] = useState(appointmentsMain)
   const [isBlockModalOpen, setIsBlockModalOpen] = useState(false)
-  const [isAppointmentActionModalOpen, setIsAppointmentActionModalOpen] = useState(false)
   const [isEditBlockedModalOpen, setIsEditBlockedModalOpen] = useState(false)
   const [blockedEditData, setBlockedEditData] = useState(null)
+  const [isAppointmentActionModalOpen, setIsAppointmentActionModalOpen] = useState(false)
 
-  const [availableTrainingPlansMain, setAvailableTrainingPlansMain] = useState([
+  // Available training plans that can be assigned
+  const [availableTrainingPlansMain] = useState([
     { id: 1, name: "Beginner Full Body", description: "Complete full body workout for beginners", duration: "4 weeks", difficulty: "Beginner" },
     { id: 2, name: "Advanced Strength Training", description: "High intensity strength building program", duration: "8 weeks", difficulty: "Advanced" },
     { id: 3, name: "Weight Loss Circuit", description: "Fat burning circuit training program", duration: "6 weeks", difficulty: "Intermediate" },
     { id: 4, name: "Muscle Building Split", description: "Targeted muscle building program", duration: "12 weeks", difficulty: "Intermediate" },
+    { id: 5, name: "Flexibility & Mobility", description: "Improve range of motion and reduce injury risk", duration: "4 weeks", difficulty: "Beginner" },
   ])
 
-  useEffect(() => { applyFilters() }, [appointmentsMain, selectedDate, memberFilters, appointmentFilters])
-
-  // Sync editFormMain with selectedMemberForEdit data
-  useEffect(() => {
-    if (selectedMemberForEdit) {
-      setEditFormMain({
-        firstName: selectedMemberForEdit.firstName || selectedMemberForEdit.name?.split(' ')[0] || '',
-        lastName: selectedMemberForEdit.lastName || selectedMemberForEdit.name?.split(' ').slice(1).join(' ') || '',
-        email: selectedMemberForEdit.email || '',
-        phone: selectedMemberForEdit.phone || '',
-        street: selectedMemberForEdit.street || '',
-        zipCode: selectedMemberForEdit.zipCode || '',
-        city: selectedMemberForEdit.city || '',
-        dateOfBirth: selectedMemberForEdit.dateOfBirth || '',
-        about: selectedMemberForEdit.about || '',
-        note: selectedMemberForEdit.note || '',
-        noteStartDate: selectedMemberForEdit.noteStartDate || '',
-        noteEndDate: selectedMemberForEdit.noteEndDate || '',
-        noteImportance: selectedMemberForEdit.noteImportance || 'unimportant',
-        notes: selectedMemberForEdit.notes || [],
-      });
-    }
-  }, [selectedMemberForEdit])
-
-  const notePopoverRefMain = useRef(null)
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (notePopoverRefMain.current && !notePopoverRefMain.current.contains(event.target)) {
-        setActiveNoteIdMain(null)
-      }
-    }
-    if (activeNoteIdMain !== null) {
-      document.addEventListener("mousedown", handleClickOutside)
-      return () => document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [activeNoteIdMain])
-
-  useEffect(() => {
-    const handleClickOutside = () => {
-      setActiveDropdownId(null)
-      setActiveNoteIdMain(null)
-      setIsBookDropdownOpen(false)
-    }
-    document.addEventListener("click", handleClickOutside)
-    return () => document.removeEventListener("click", handleClickOutside)
-  }, [])
-
-  const applyFilters = () => {
-    let filtered = [...appointmentsMain]
-    if (selectedDate) {
-      const formattedSelectedDate = formatDate(selectedDate)
-      filtered = filtered.filter((appointment) => {
-        // For pending moves, check both current date AND original date
-        const appointmentDate = appointment.date?.split("|")[1]?.trim()
-        const originalDate = appointment._pendingMove?.originalDate?.split("|")[1]?.trim()
-        
-        // If pending move, use original date for filtering
-        const dateToCheck = appointment._pendingMove ? originalDate : appointmentDate
-        return dateToCheck === formattedSelectedDate
-      })
+  // Filter appointments based on selected filters AND member filters
+  const filteredAppointments = appointmentsMain.filter((appointment) => {
+    // First check appointment type filters
+    let passesTypeFilter = false;
+    
+    if (appointment.isBlocked || appointment.type === "Blocked Time") {
+      passesTypeFilter = appointmentFilters["Blocked Time Slots"];
+    } else if (appointment.isCancelled) {
+      passesTypeFilter = appointmentFilters["Cancelled Appointments"];
+    } else if (appointment.isPast) {
+      passesTypeFilter = appointmentFilters["Past Appointments"];
+    } else if (appointment.isTrial) {
+      passesTypeFilter = appointmentFilters["Trial Training"];
+    } else {
+      // For regular appointments, check against the appointment type name
+      passesTypeFilter = appointmentFilters[appointment.type] !== false;
     }
     
-    // Member filter tags - filter by member name (not appointment ID!)
-    if (memberFilters.length > 0) {
-      const filterNames = memberFilters.map(f => f.memberName.toLowerCase());
-      filtered = filtered.filter((appointment) => {
-        const appointmentFullName = `${appointment.name || ''} ${appointment.lastName || ''}`.trim().toLowerCase();
-        return filterNames.includes(appointmentFullName);
-      });
+    // If no member filters, just return the type filter result
+    if (memberFilters.length === 0) {
+      return passesTypeFilter;
     }
     
-    filtered = filtered.filter((appointment) => {
-      if (appointment.isTrial) return appointmentFilters["Trial Training"]
-      else if (appointment.isBlocked || appointment.type === "Blocked Time") return appointmentFilters["Blocked Time Slots"]
-      else if (appointment.isCancelled) return appointmentFilters["Cancelled Appointments"]
-      else if (appointment.isPast && !appointment.isCancelled) return appointmentFilters["Past Appointments"]
-      else return appointmentFilters[appointment.type] || false
-    })
-    
-    // Sort by start time (earliest first)
-    // For pending moves, use the ORIGINAL time to keep the appointment in its original position
-    filtered.sort((a, b) => {
-      const timeA = a._pendingMove?.originalStartTime || a.startTime || "00:00";
-      const timeB = b._pendingMove?.originalStartTime || b.startTime || "00:00";
-      return timeA.localeCompare(timeB);
+    // Check if appointment matches any of the member/lead filters
+    const appointmentName = `${appointment.name || ""} ${appointment.lastName || ""}`.trim().toLowerCase();
+    const passesMemberFilter = memberFilters.some(filter => {
+      const filterName = filter.memberName.toLowerCase();
+      return appointmentName.includes(filterName) || filterName.includes(appointmentName);
     });
     
-    setFilteredAppointments(filtered)
-  }
+    return passesTypeFilter && passesMemberFilter;
+  });
 
   const handleFilterChange = (filterName) => {
-    setAppointmentFilters((prev) => ({ ...prev, [filterName]: !prev[filterName] }))
+    setAppointmentFilters((prev) => ({
+      ...prev,
+      [filterName]: !prev[filterName],
+    }))
   }
 
   const toggleAllFilters = () => {
-    const allSelected = Object.values(appointmentFilters).every((value) => value)
-    const newState = !allSelected
-    setAppointmentFilters({
-      "EMS Strength": newState, "EMS Cardio": newState, "EMP Chair": newState, "Body Check": newState,
-      "Trial Training": newState, "Blocked Time Slots": newState, "Cancelled Appointments": newState, "Past Appointments": newState,
+    const allEnabled = Object.values(appointmentFilters).every((value) => value)
+    const newState = {}
+    Object.keys(appointmentFilters).forEach((key) => {
+      newState[key] = !allEnabled
     })
+    setAppointmentFilters(newState)
   }
 
-  // =========================================================================
-  // MEMBER SEARCH WITH TAGS (like members.jsx)
-  // =========================================================================
-  
-  // Click outside to close search dropdown
+  // Handler for dumbbell click in Upcoming Appointments (from calendar page)
+  const handleDumbbellClickMain = (member) => {
+    setSelectedUserForTrainingPlanMain(member)
+    setIsTrainingPlanModalOpenMain(true)
+  }
+
+  // Handler to assign a training plan to a member
+  const handleAssignTrainingPlanMain = (planId) => {
+    if (!selectedUserForTrainingPlanMain) return
+    const memberId = selectedUserForTrainingPlanMain.id
+    const plan = availableTrainingPlansMain.find((p) => p.id === planId)
+    if (!plan) return
+    const assignedPlan = {
+      ...plan,
+      assignedDate: new Date().toISOString().split("T")[0],
+    }
+    setMemberTrainingPlansMain((prev) => ({
+      ...prev,
+      [memberId]: [...(prev[memberId] || []), assignedPlan],
+    }))
+  }
+
+  // Handler to remove a training plan from a member
+  const handleRemoveTrainingPlanMain = (planId) => {
+    if (!selectedUserForTrainingPlanMain) return
+    const memberId = selectedUserForTrainingPlanMain.id
+    setMemberTrainingPlansMain((prev) => ({
+      ...prev,
+      [memberId]: (prev[memberId] || []).filter((p) => p.id !== planId),
+    }))
+  }
+
+  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (searchDropdownRef.current && !searchDropdownRef.current.contains(event.target)) {
         setShowSearchDropdown(false);
       }
     };
+    
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
-  // Get unique members from appointments AND leads for search suggestions
+  // Close book dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setIsBookDropdownOpen(false);
+    };
+    
+    if (isBookDropdownOpen) {
+      document.addEventListener("click", handleClickOutside);
+      return () => {
+        document.removeEventListener("click", handleClickOutside);
+      };
+    }
+  }, [isBookDropdownOpen]);
+
+  // Get search suggestions from members and leads
   const getSearchSuggestions = () => {
     if (!searchQuery.trim()) return [];
     
-    const results = [];
-    const seenNames = new Set();
+    const query = searchQuery.toLowerCase();
     
-    // Search through appointments (members only - skip trial trainings which are leads)
-    appointmentsMain.forEach((appointment) => {
-      // Skip blocked time slots
-      if (appointment.isBlocked || appointment.type === "Blocked Time") return;
-      
-      // Skip trial trainings - they are leads, not members
-      if (appointment.isTrial || appointment.leadId) return;
-      
-      const fullName = `${appointment.name || ''} ${appointment.lastName || ''}`.trim();
-      const fullNameLower = fullName.toLowerCase();
-      
-      // Skip if already seen or already filtered
-      if (seenNames.has(fullNameLower)) return;
-      if (memberFilters.some(f => f.memberName.toLowerCase() === fullNameLower)) return;
-      
-      // Check if matches search query
-      if (fullNameLower.includes(searchQuery.toLowerCase())) {
-        seenNames.add(fullNameLower);
-        results.push({
-          id: fullName,
-          firstName: appointment.name || '',
-          lastName: appointment.lastName || '',
-          email: appointment.email || '',
-          image: appointment.image || null,
-          type: 'member',
-        });
-      }
-    });
-    
-    // Search through leads (from leadsData)
-    leadsData.forEach((lead) => {
-      const fullName = `${lead.firstName || ''} ${lead.lastName || ''}`.trim();
-      const fullNameLower = fullName.toLowerCase();
-      
-      // Skip if already seen or already filtered
-      if (seenNames.has(fullNameLower)) return;
-      if (memberFilters.some(f => f.memberName.toLowerCase() === fullNameLower)) return;
-      
-      // Check if matches search query (name only)
-      if (fullNameLower.includes(searchQuery.toLowerCase())) {
-        seenNames.add(fullNameLower);
-        results.push({
-          id: fullName,
-          firstName: lead.firstName || '',
-          lastName: lead.lastName || '',
-          email: null, // No email for leads in search
-          image: null, // No profile picture for leads
-          type: 'lead',
-        });
-      }
-    });
-    
-    return results.slice(0, 8);
+    // Get members
+    const memberSuggestions = membersData
+      .filter(member => {
+        const fullName = `${member.firstName} ${member.lastName}`.toLowerCase();
+        const alreadyFiltered = memberFilters.some(f => 
+          f.memberName.toLowerCase() === fullName
+        );
+        return !alreadyFiltered && (
+          member.firstName?.toLowerCase().includes(query) ||
+          member.lastName?.toLowerCase().includes(query) ||
+          fullName.includes(query)
+        );
+      })
+      .map(member => ({
+        ...member,
+        type: 'member'
+      }));
+
+    // Get leads
+    const leadSuggestions = leadsData
+      .filter(lead => {
+        const fullName = `${lead.firstName} ${lead.lastName}`.toLowerCase();
+        const alreadyFiltered = memberFilters.some(f => 
+          f.memberName.toLowerCase() === fullName
+        );
+        return !alreadyFiltered && (
+          lead.firstName?.toLowerCase().includes(query) ||
+          lead.lastName?.toLowerCase().includes(query) ||
+          fullName.includes(query)
+        );
+      })
+      .map(lead => ({
+        ...lead,
+        type: 'lead'
+      }));
+
+    return [...memberSuggestions, ...leadSuggestions].slice(0, 8);
   };
 
   // Handle selecting a member/lead from search suggestions
@@ -589,7 +599,7 @@ export default function Appointments() {
   };
 
   // Relation options
-  const relationOptionsMain = {
+  const relationOptionsMainLocal = {
     family: ["Father", "Mother", "Brother", "Sister", "Uncle", "Aunt", "Cousin"],
     friendship: ["Best Friend", "Close Friend", "Friend", "Acquaintance"],
     relationship: ["Partner", "Spouse", "Ex-Partner"],
@@ -698,104 +708,160 @@ export default function Appointments() {
   }
 
   const renderSpecialNoteIconMain = useCallback((specialNote, memberId) => {
-    if (!specialNote?.text) return null
-    const isActive = specialNote.startDate === null || (new Date() >= new Date(specialNote.startDate) && new Date() <= new Date(specialNote.endDate))
-    if (!isActive) return null
-
-    const handleNoteClick = (e) => { e.stopPropagation(); setActiveNoteIdMain(activeNoteIdMain === memberId ? null : memberId) }
-    const handleMouseEnter = (e) => {
+    if (!specialNote || !specialNote.text) return null
+    const isActive = activeNoteIdMain === memberId
+    const isHovered = hoveredNoteId === memberId
+    const handleClick = (e) => {
       e.stopPropagation()
-      if (hoverTimeout) { clearTimeout(hoverTimeout); setHoverTimeout(null) }
-      const timeout = setTimeout(() => setHoveredNoteId(memberId), 300)
+      setActiveNoteIdMain(isActive ? null : memberId)
+    }
+    const handleMouseEnter = () => {
+      const timeout = setTimeout(() => setHoveredNoteId(memberId), 500)
       setHoverTimeout(timeout)
     }
-    const handleMouseLeave = (e) => {
-      e.stopPropagation()
-      if (hoverTimeout) { clearTimeout(hoverTimeout); setHoverTimeout(null) }
+    const handleMouseLeave = () => {
+      if (hoverTimeout) clearTimeout(hoverTimeout)
       setHoveredNoteId(null)
     }
-
-    const shouldShowPopover = activeNoteIdMain === memberId || hoveredNoteId === memberId
-
     return (
-      <div className="relative">
-        <div id={`note-trigger-${memberId}`} className={`${specialNote.isImportant ? "bg-red-500" : "bg-blue-500"} rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer transition-all duration-200 hover:scale-110`}
-          onClick={handleNoteClick} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-          {specialNote.isImportant ? <AlertTriangle size={18} className="text-white" /> : <Info size={18} className="text-white" />}
-        </div>
-        {shouldShowPopover && createPortal(
-          <div ref={notePopoverRefMain} className="fixed w-80 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-[9999]"
-            style={{
-              top: (() => { const trigger = document.getElementById(`note-trigger-${memberId}`); if (!trigger) return '50%'; const rect = trigger.getBoundingClientRect(); const spaceBelow = window.innerHeight - rect.bottom; const popoverHeight = 200; if (spaceBelow < popoverHeight && rect.top > popoverHeight) return `${rect.top - popoverHeight - 8}px`; return `${rect.bottom + 8}px` })(),
-              left: (() => { const trigger = document.getElementById(`note-trigger-${memberId}`); if (!trigger) return '50%'; const rect = trigger.getBoundingClientRect(); const popoverWidth = 288; let left = rect.left; if (left + popoverWidth > window.innerWidth) left = window.innerWidth - popoverWidth - 16; if (left < 16) left = 16; return `${left}px` })(),
-            }}
-            onMouseEnter={() => { if (hoveredNoteId === memberId) setHoveredNoteId(memberId) }}
-            onMouseLeave={() => { if (hoveredNoteId === memberId) setHoveredNoteId(null) }}>
-            <div className="bg-gray-800 p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
-              {specialNote.isImportant ? <AlertTriangle className="text-red-500 shrink-0" size={18} /> : <Info className="text-blue-500 shrink-0" size={18} />}
-              <h4 className="text-white flex gap-1 items-center font-medium"><div>Special Note</div><div className="text-sm text-gray-400">{specialNote.isImportant ? "(Important)" : ""}</div></h4>
-              <button onClick={(e) => { e.stopPropagation(); handleEditNoteMain(memberId, specialNote) }} className="ml-auto text-gray-400 hover:text-blue-400 transition-colors p-1" title="Edit note"><Edit size={14} /></button>
-              <button onClick={(e) => { e.stopPropagation(); setActiveNoteIdMain(null); setHoveredNoteId(null) }} className="text-gray-400 hover:text-white transition-colors p-1"><X size={16} /></button>
-            </div>
-            <div className="p-3">
-              <p className="text-white text-sm leading-relaxed">{specialNote.text}</p>
-              {specialNote.startDate && specialNote.endDate ? (
-                <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
-                  <p className="text-xs text-gray-300 flex items-center gap-1.5"><CalendarIcon size={12} /> Valid from {new Date(specialNote.startDate).toLocaleDateString()} to {new Date(specialNote.endDate).toLocaleDateString()}</p>
-                </div>
-              ) : (
-                <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
-                  <p className="text-xs text-gray-300 flex items-center gap-1.5"><CalendarIcon size={12} /> Always valid</p>
-                </div>
-              )}
-            </div>
-          </div>,
-          document.body
+      <div className="relative inline-block">
+        <button onClick={handleClick} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}
+          className={`p-1 rounded transition-colors ${specialNote.isImportant ? "text-orange-500 hover:text-orange-400" : "text-gray-400 hover:text-gray-300"} ${isActive ? "ring-1 ring-orange-500" : ""}`}>
+          {specialNote.isImportant ? <AlertTriangle size={14} /> : <Info size={14} />}
+        </button>
+        {(isActive || isHovered) && (
+          <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-[#1a1a1a] rounded-lg shadow-lg border border-gray-700 z-50 p-2">
+            <p className={`text-xs ${specialNote.isImportant ? "text-orange-400" : "text-gray-300"}`}>{specialNote.text}</p>
+            {specialNote.startDate && specialNote.endDate && (
+              <p className="text-[10px] text-gray-500 mt-1">{specialNote.startDate} - {specialNote.endDate}</p>
+            )}
+          </div>
         )}
       </div>
     )
-  }, [activeNoteIdMain, setActiveNoteIdMain, hoveredNoteId, hoverTimeout])
+  }, [activeNoteIdMain, hoveredNoteId, hoverTimeout])
 
-  const handleDumbbellClickMain = (appointment, e) => { 
-    e.stopPropagation(); 
-    // Konvertiere Appointment zu einheitlichem Member-Format fuer TrainingPlanModal
-    const memberData = {
-      id: appointment.memberId, // Use memberId to link to training plans
-      firstName: appointment.name, // appointment.name ist der Vorname
-      lastName: appointment.lastName || '',
-      email: appointment.email || '',
-    };
-    setSelectedUserForTrainingPlanMain(memberData); 
-    setIsTrainingPlanModalOpenMain(true) 
-  }
+  // Special Note Edit Modal Component
+  const SpecialNoteEditModal = ({ isOpen, onClose, appointment, onSave }) => {
+    const [noteText, setNoteText] = useState(appointment?.specialNote?.text || "")
+    const [isImportant, setIsImportant] = useState(appointment?.specialNote?.isImportant || false)
+    const [startDate, setStartDate] = useState(appointment?.specialNote?.startDate || "")
+    const [endDate, setEndDate] = useState(appointment?.specialNote?.endDate || "")
 
-  const handleAssignTrainingPlanMain = (memberId, planId) => {
-    const plan = availableTrainingPlansMain.find((p) => p.id === Number.parseInt(planId))
-    if (plan) {
-      const assignedPlan = { ...plan, assignedDate: new Date().toLocaleDateString() }
-      setMemberTrainingPlansMain((prev) => ({ ...prev, [memberId]: [...(prev[memberId] || []), assignedPlan] }))
-      
+    useEffect(() => {
+      if (appointment) {
+        setNoteText(appointment.specialNote?.text || "")
+        setIsImportant(appointment.specialNote?.isImportant || false)
+        setStartDate(appointment.specialNote?.startDate || "")
+        setEndDate(appointment.specialNote?.endDate || "")
+      }
+    }, [appointment])
+
+    if (!isOpen) return null
+
+    const handleSave = () => {
+      onSave(appointment.id, {
+        text: noteText,
+        isImportant,
+        startDate,
+        endDate,
+      })
     }
+
+    return createPortal(
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4" onClick={onClose}>
+        <div className="bg-[#181818] w-[90%] sm:w-[480px] rounded-xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
+          <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
+            <h2 className="text-lg font-semibold text-white">Edit Special Note</h2>
+            <button onClick={onClose} className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg"><X size={20} /></button>
+          </div>
+          <div className="p-6 space-y-4">
+            <div>
+              <label className="text-sm text-gray-400 mb-1 block">Note</label>
+              <textarea value={noteText} onChange={(e) => setNoteText(e.target.value)} rows={4}
+                className="w-full bg-[#141414] text-white text-sm rounded-xl px-4 py-3 border border-gray-700 focus:border-[#3F74FF] focus:outline-none resize-none" placeholder="Enter special note..." />
+            </div>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" checked={isImportant} onChange={(e) => setIsImportant(e.target.checked)}
+                className="w-4 h-4 text-orange-500 bg-gray-700 border-gray-600 rounded focus:ring-orange-500" />
+              <span className="text-sm text-white">Mark as important</span>
+            </label>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm text-gray-400 mb-1 block">Start Date</label>
+                <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)}
+                  className="w-full bg-[#141414] text-white text-sm rounded-xl px-4 py-3 border border-gray-700 focus:border-[#3F74FF] focus:outline-none" />
+              </div>
+              <div>
+                <label className="text-sm text-gray-400 mb-1 block">End Date</label>
+                <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)}
+                  className="w-full bg-[#141414] text-white text-sm rounded-xl px-4 py-3 border border-gray-700 focus:border-[#3F74FF] focus:outline-none" />
+              </div>
+            </div>
+          </div>
+          <div className="px-6 py-4 border-t border-gray-800 flex gap-2">
+            <button onClick={handleSave} className="flex-1 px-4 py-2.5 bg-[#3F74FF] text-sm font-medium text-white rounded-xl hover:bg-[#3F74FF]/90 transition-colors">Save Note</button>
+            <button onClick={onClose} className="px-4 py-2.5 bg-gray-800 text-sm font-medium text-white rounded-xl hover:bg-gray-700 transition-colors">Cancel</button>
+          </div>
+        </div>
+      </div>,
+      document.body
+    )
   }
 
-  const handleRemoveTrainingPlanMain = (memberId, planId) => {
-    setMemberTrainingPlansMain((prev) => ({ ...prev, [memberId]: (prev[memberId] || []).filter((plan) => plan.id !== planId) }))
-    
+  // Mobile date navigation helpers
+  const navigateMobileDay = (direction) => {
+    const newDate = new Date(selectedDate)
+    newDate.setDate(newDate.getDate() + direction)
+    setSelectedDate(newDate)
+    setMiniCalendarDate(newDate)
+    // Use setTimeout to ensure state is updated before calendar navigation
+    setTimeout(() => {
+      if (calendarRef.current) {
+        calendarRef.current.gotoDate(newDate)
+      }
+    }, 0)
+  }
+
+  const formatMobileDateDisplay = (date) => {
+    const options = { weekday: 'short', day: 'numeric', month: 'short' }
+    return date.toLocaleDateString('de-DE', options)
+  }
+  
+  // Check if current selected date is a closed day
+  const isClosedDay = (date) => {
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const dateStr = `${year}-${month}-${day}`
+    const closedInfo = isStudioClosedOnDate(dateStr)
+    return closedInfo.closed
+  }
+  
+  // Get closed day label
+  const getClosedDayLabel = (date) => {
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const dateStr = `${year}-${month}-${day}`
+    const closedInfo = isStudioClosedOnDate(dateStr)
+    return closedInfo.isWeekend ? 'Closed' : closedInfo.reason
   }
 
   return (
     <>
       <style>{`
-        @keyframes wobble { 0%, 100% { transform: rotate(0deg); } 15% { transform: rotate(-1deg); } 30% { transform: rotate(1deg); } 45% { transform: rotate(-1deg); } 60% { transform: rotate(1deg); } 75% { transform: rotate(-1deg); } 90% { transform: rotate(1deg); } }
-        .animate-wobble { animation: wobble 0.5s ease-in-out infinite; }
-        .dragging { opacity: 0.5; border: 2px dashed #fff; }
-        .drag-over { border: 2px dashed #888; }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #555; }
+        .fc-event { cursor: pointer !important; }
+        .fc-timegrid-slot { height: 2.5em !important; }
+        .fc-timegrid-slot-lane { height: 2.5em !important; }
+        .fc-timegrid-axis { width: 45px !important; }
+        .fc-timegrid-axis-frame { justify-content: center !important; }
+        .fc-timegrid-event { font-size: 11px !important; }
+        .fc .fc-daygrid-day-number { font-size: 12px; }
+        .fc .fc-col-header-cell-cushion { font-size: 11px; }
         .upcoming-apt-tile {
-          transition: filter 0.15s ease, box-shadow 0.15s ease;
+          transition: all 0.2s ease;
+          cursor: pointer;
         }
         .upcoming-apt-tile:hover {
           filter: brightness(1.15);
@@ -811,13 +877,65 @@ export default function Appointments() {
           background-size: 10px 10px; 
           opacity: 0.65;
         }
+        
+        /* Closed Day Styling */
+        .fc-day-closed {
+          background-color: rgba(255, 255, 255, 0.03) !important;
+          position: relative;
+        }
+        .fc-day-closed::after {
+          content: 'Closed';
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          color: rgba(255, 255, 255, 0.2);
+          font-size: 14px;
+          font-weight: 500;
+          pointer-events: none;
+        }
+        .fc-day-closed .fc-timegrid-col-bg {
+          background: repeating-linear-gradient(
+            -45deg,
+            transparent,
+            transparent 10px,
+            rgba(255, 255, 255, 0.02) 10px,
+            rgba(255, 255, 255, 0.02) 20px
+          );
+        }
+        
+        /* Mobile Calendar Styles */
+        @media (max-width: 1023px) {
+          .fc .fc-toolbar {
+            display: none !important;
+          }
+          .fc .fc-timegrid-slot {
+            height: 2.5em !important;
+          }
+          .fc-timegrid-event {
+            font-size: 10px !important;
+          }
+          .fc .fc-col-header-cell-cushion {
+            padding: 8px 4px !important;
+          }
+          .fc-timegrid-axis {
+            width: 40px !important;
+          }
+          .fc .fc-timegrid-slot-label {
+            font-size: 10px !important;
+          }
+          /* Better touch targets on mobile */
+          .fc-event {
+            min-height: 30px !important;
+          }
+        }
       `}</style>
       <Toaster position="top-right" toastOptions={{ duration: 2000, style: { background: "#333", color: "#fff" } }} />
 
       <div className="relative h-[92vh] max-h-[92vh] flex flex-col rounded-3xl bg-[#1C1C1C] transition-all duration-500 ease-in-out overflow-hidden">
         <main className="flex-1 min-w-0 flex flex-col min-h-0 pt-4 pb-4 pl-4 pr-0">
           {/* Header with navigation controls */}
-          <div className="flex items-center justify-between mb-4 flex-shrink-0 relative">
+          <div className="flex items-center justify-between mb-4 flex-shrink-0 relative pr-4">
             <div className="flex items-center gap-3">
               <h1 className="text-xl sm:text-2xl oxanium_font font-bold text-white">Appointments</h1>
             </div>
@@ -868,7 +986,7 @@ export default function Appointments() {
             </div>
 
             {/* Right side - Book Button */}
-            <div className="flex items-center gap-2 pr-4">
+            <div className="flex items-center gap-2">
               {/* Book Dropdown - Desktop */}
               <div className="hidden lg:block relative" onClick={(e) => e.stopPropagation()}>
                 <button 
@@ -909,35 +1027,100 @@ export default function Appointments() {
             </div>
           </div>
 
-          {/* Mobile Action Buttons */}
-          <div className="lg:hidden flex gap-2 mb-4">
-            <button onClick={() => setIsModalOpen(true)} className="flex-1 bg-orange-500 py-2.5 px-3 text-sm rounded-xl flex items-center justify-center gap-2 text-white">
-              <Plus size={14} />
-              Appointment
+          {/* Mobile Action Buttons - REMOVED, using FAB instead */}
+
+          {/* Mobile Day Navigation - Dezent */}
+          <div className="lg:hidden flex items-center justify-between mb-3 pr-4">
+            <button 
+              onClick={() => navigateMobileDay(-1)} 
+              className="p-2 text-gray-400 active:text-white transition-colors"
+            >
+              <GoArrowLeft className="w-5 h-5" />
             </button>
-            <button onClick={() => setIsTrialModalOpen(true)} className="flex-1 bg-black py-2.5 px-3 text-sm rounded-xl flex items-center justify-center gap-2 text-white">
-              Trial
-            </button>
-            <button onClick={() => setIsBlockModalOpen(true)} className="flex-1 bg-black py-2.5 px-3 text-sm rounded-xl flex items-center justify-center gap-2 text-white">
-              Block
+            
+            <div className="flex flex-col items-center">
+              <span className="text-white text-sm font-medium">{formatMobileDateDisplay(selectedDate)}</span>
+              {isClosedDay(selectedDate) && (
+                <span className="text-orange-400 text-[10px] font-medium">{getClosedDayLabel(selectedDate)}</span>
+              )}
+            </div>
+            
+            <button 
+              onClick={() => navigateMobileDay(1)} 
+              className="p-2 text-gray-400 active:text-white transition-colors"
+            >
+              <GoArrowRight className="w-5 h-5" />
             </button>
           </div>
 
-          {/* Mobile Navigation */}
-          <div className="lg:hidden flex items-center justify-between gap-2 mb-4 flex-shrink-0">
-            <div className="flex items-center gap-1">
-              <button onClick={() => calendarRef.current?.prev()} className="p-2 bg-black rounded-lg text-white"><GoArrowLeft className="w-3 h-3" /></button>
-              <button onClick={() => calendarRef.current?.next()} className="p-2 bg-black rounded-lg text-white"><GoArrowRight className="w-3 h-3" /></button>
-            </div>
-            <span className="text-white text-xs font-medium flex-1 text-center truncate select-none">{calendarDateDisplay}</span>
-            <button onClick={() => calendarRef.current?.toggleFreeSlots()} className={`px-3 py-1.5 rounded-lg text-xs flex items-center gap-1 ${calendarViewMode === "free" ? "bg-orange-500 text-white" : "bg-[#2F2F2F] text-gray-300"}`}>
+          {/* Mobile Free Slots Toggle - Compact */}
+          <div className="lg:hidden flex items-center gap-2 mb-3 pr-4">
+            <button 
+              onClick={() => calendarRef.current?.toggleFreeSlots()} 
+              className={`px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 ${calendarViewMode === "free" ? "bg-orange-500 text-white" : "bg-[#2F2F2F] text-gray-400"}`}
+            >
               <CalendarCheck size={12} />
               {calendarViewMode === "all" ? "Free" : "All"}
             </button>
+            
+            {/* Mobile Filters Toggle */}
+            <button 
+              onClick={() => setIsMobileFiltersExpanded(!isMobileFiltersExpanded)}
+              className={`px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 ${isMobileFiltersExpanded ? "bg-[#3F3F3F] text-white" : "bg-[#2F2F2F] text-gray-400"}`}
+            >
+              <ChevronDown size={12} className={`transition-transform ${isMobileFiltersExpanded ? 'rotate-180' : ''}`} />
+              Filters
+            </button>
+          </div>
+          
+          {/* Mobile Filters Dropdown */}
+          <div className={`lg:hidden overflow-hidden transition-all duration-200 pr-4 ${isMobileFiltersExpanded ? 'max-h-[300px] opacity-100 mb-3' : 'max-h-0 opacity-0'}`}>
+            <div className="bg-black rounded-xl p-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-white text-xs font-medium">Filter by type</span>
+                <button 
+                  onClick={toggleAllFilters} 
+                  className="text-[10px] text-blue-400"
+                >
+                  {Object.values(appointmentFilters).every((value) => value) ? "Deselect All" : "Select All"}
+                </button>
+              </div>
+              <div className="grid grid-cols-2 gap-1.5">
+                {appointmentTypesMain.filter(type => !type.isTrialType).map((type) => (
+                  <label key={type.name} className="flex items-center gap-1.5 cursor-pointer">
+                    <input type="checkbox" checked={appointmentFilters[type.name]} onChange={() => handleFilterChange(type.name)}
+                      className="w-3 h-3 text-blue-600 bg-gray-700 border-gray-600 rounded" />
+                    <div className={`w-1.5 h-1.5 rounded-full ${type.color}`}></div>
+                    <span className="text-white text-[11px] truncate">{type.name}</span>
+                  </label>
+                ))}
+                <label className="flex items-center gap-1.5 cursor-pointer">
+                  <input type="checkbox" checked={appointmentFilters["Trial Training"]} onChange={() => handleFilterChange("Trial Training")}
+                    className="w-3 h-3 text-blue-600 bg-gray-700 border-gray-600 rounded" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#3F74FF]"></div>
+                  <span className="text-white text-[11px]">Trial</span>
+                </label>
+                <label className="flex items-center gap-1.5 cursor-pointer">
+                  <input type="checkbox" checked={appointmentFilters["Blocked Time Slots"]} onChange={() => handleFilterChange("Blocked Time Slots")}
+                    className="w-3 h-3 text-blue-600 bg-gray-700 border-gray-600 rounded" />
+                  <span className="text-white text-[11px]">Blocked</span>
+                </label>
+                <label className="flex items-center gap-1.5 cursor-pointer">
+                  <input type="checkbox" checked={appointmentFilters["Cancelled Appointments"]} onChange={() => handleFilterChange("Cancelled Appointments")}
+                    className="w-3 h-3 text-blue-600 bg-gray-700 border-gray-600 rounded" />
+                  <span className="text-white text-[11px]">Cancelled</span>
+                </label>
+                <label className="flex items-center gap-1.5 cursor-pointer">
+                  <input type="checkbox" checked={appointmentFilters["Past Appointments"]} onChange={() => handleFilterChange("Past Appointments")}
+                    className="w-3 h-3 text-blue-600 bg-gray-700 border-gray-600 rounded" />
+                  <span className="text-white text-[11px]">Past</span>
+                </label>
+              </div>
+            </div>
           </div>
 
           {/* Main Content */}
-          <div className="flex lg:flex-row flex-col gap-4 flex-1 min-h-0 pr-4 lg:pr-0 relative">
+          <div className="flex lg:flex-row flex-col gap-4 flex-1 min-h-0 pr-4 lg:pr-0 relative overflow-y-auto lg:overflow-hidden">
             {/* Sidebar Toggle Button - Overlay */}
             <button 
               onClick={toggleSidebar} 
@@ -947,184 +1130,204 @@ export default function Appointments() {
               {isSidebarCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
             </button>
 
-            {/* Left Sidebar - flex container, nur Upcoming scrollt */}
-            <div className={`transition-all duration-500 ease-in-out ${isSidebarCollapsed ? "lg:w-0 lg:opacity-0 lg:overflow-hidden lg:m-0 lg:p-0" : "lg:w-[300px] lg:min-w-[300px] lg:opacity-100"} w-full md:w-full flex-shrink-0 lg:h-full lg:overflow-hidden`}>
+            {/* Left Sidebar - Desktop only */}
+            <div className={`hidden lg:block transition-all duration-500 ease-in-out ${isSidebarCollapsed ? "lg:w-0 lg:opacity-0 lg:overflow-hidden lg:m-0 lg:p-0" : "lg:w-[300px] lg:min-w-[300px] lg:opacity-100"} flex-shrink-0 lg:h-full lg:overflow-hidden`}>
               <div className="flex flex-col gap-3 lg:pb-2 h-full">
+                
+                {/* Mini Calendar - Desktop only */}
                 <div className="w-full lg:max-w-[300px] flex-shrink-0">
                   <MiniCalendar onDateSelect={handleDateSelect} selectedDate={selectedDate} externalDate={miniCalendarDate} />
                 </div>
 
-
-                <div className="w-full lg:max-w-[300px] flex flex-col gap-2 flex-1 min-h-0 overflow-hidden">
                 {/* Search with Member Tags */}
-                <div className="flex items-center gap-2 w-full flex-shrink-0">
-                  <div className="relative w-full" ref={searchDropdownRef}>
-                    <div 
-                      className="bg-[#000000] rounded-xl px-3 py-2 min-h-[42px] flex flex-wrap items-center gap-1.5 border border-transparent focus-within:border-[#3F74FF] transition-colors cursor-text"
-                      onClick={() => searchInputRef.current?.focus()}
-                    >
-                      <Search className="text-gray-400 flex-shrink-0" size={16} />
-                      
-                      {/* Filter Chips */}
-                      {memberFilters.map((filter) => (
-                        <div 
-                          key={filter.memberId}
-                          className={`flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm ${filter.type === 'lead' ? 'bg-blue-500/20 border border-blue-500/40' : 'bg-orange-500/20 border border-orange-500/40'}`}
-                        >
-                          {/* Members: Show initials avatar */}
-                          {filter.type !== 'lead' && (
-                            <div className="w-5 h-5 rounded bg-orange-500 flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0">
-                              {filter.memberName.split(' ')[0]?.charAt(0)}{filter.memberName.split(' ')[1]?.charAt(0) || ''}
-                            </div>
-                          )}
-                          {/* Leads: Show "Lead" tag instead of avatar */}
-                          {filter.type === 'lead' && (
-                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/30 text-blue-300 font-medium flex-shrink-0">
-                              Lead
-                            </span>
-                          )}
-                          <span className="text-white text-xs whitespace-nowrap">{filter.memberName}</span>
+                <div className="w-full lg:max-w-[300px] flex flex-col gap-2 flex-shrink-0">
+                  <div className="flex items-center gap-2 w-full">
+                    <div className="relative w-full" ref={searchDropdownRef}>
+                      <div 
+                        className="bg-[#000000] rounded-xl px-3 py-2 min-h-[42px] flex flex-wrap items-center gap-1.5 border border-transparent focus-within:border-[#3F74FF] transition-colors cursor-text"
+                        onClick={() => searchInputRef.current?.focus()}
+                      >
+                        <Search className="text-gray-400 flex-shrink-0" size={16} />
+                        
+                        {/* Filter Chips */}
+                        {memberFilters.map((filter) => (
+                          <div 
+                            key={filter.memberId}
+                            className={`flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm ${filter.type === 'lead' ? 'bg-blue-500/20 border border-blue-500/40' : 'bg-orange-500/20 border border-orange-500/40'}`}
+                          >
+                            {/* Members: Show initials avatar */}
+                            {filter.type !== 'lead' && (
+                              <div className="w-5 h-5 rounded bg-orange-500 flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0">
+                                {filter.memberName.split(' ')[0]?.charAt(0)}{filter.memberName.split(' ')[1]?.charAt(0) || ''}
+                              </div>
+                            )}
+                            {/* Leads: Show "Lead" tag instead of avatar */}
+                            {filter.type === 'lead' && (
+                              <span className="text-[9px] px-1.5 py-0.5 rounded bg-blue-500/30 text-blue-300 font-medium flex-shrink-0">
+                                Lead
+                              </span>
+                            )}
+                            <span className="text-white text-xs whitespace-nowrap">{filter.memberName}</span>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRemoveFilter(filter.memberId);
+                              }}
+                              className={`p-0.5 rounded transition-colors ${filter.type === 'lead' ? 'hover:bg-blue-500/30' : 'hover:bg-orange-500/30'}`}
+                            >
+                              <X size={12} className="text-gray-400 hover:text-white" />
+                            </button>
+                          </div>
+                        ))}
+                        
+                        {/* Search Input */}
+                        <input
+                          ref={searchInputRef}
+                          type="text"
+                          placeholder={memberFilters.length > 0 ? "Add more..." : "Search members or leads..."}
+                          value={searchQuery}
+                          onChange={(e) => {
+                            setSearchQuery(e.target.value);
+                            setShowSearchDropdown(true);
+                          }}
+                          onFocus={() => searchQuery && setShowSearchDropdown(true)}
+                          onKeyDown={handleSearchKeyDown}
+                          className="flex-1 min-w-[80px] bg-transparent outline-none text-sm text-white placeholder-gray-500"
+                        />
+                        
+                        {/* Clear All Button */}
+                        {memberFilters.length > 0 && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleRemoveFilter(filter.memberId);
+                              setMemberFilters([]);
                             }}
-                            className={`p-0.5 rounded transition-colors ${filter.type === 'lead' ? 'hover:bg-blue-500/30' : 'hover:bg-orange-500/30'}`}
+                            className="p-1 hover:bg-gray-700 rounded-lg transition-colors flex-shrink-0"
+                            title="Clear all filters"
                           >
-                            <X size={12} className="text-gray-400 hover:text-white" />
+                            <X size={14} className="text-gray-400 hover:text-white" />
                           </button>
-                        </div>
-                      ))}
+                        )}
+                      </div>
                       
-                      {/* Search Input */}
-                      <input
-                        ref={searchInputRef}
-                        type="text"
-                        placeholder={memberFilters.length > 0 ? "Add more..." : "Search members or leads..."}
-                        value={searchQuery}
-                        onChange={(e) => {
-                          setSearchQuery(e.target.value);
-                          setShowSearchDropdown(true);
-                        }}
-                        onFocus={() => searchQuery && setShowSearchDropdown(true)}
-                        onKeyDown={handleSearchKeyDown}
-                        className="flex-1 min-w-[80px] bg-transparent outline-none text-sm text-white placeholder-gray-500"
-                      />
-                      
-                      {/* Clear All Button */}
-                      {memberFilters.length > 0 && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setMemberFilters([]);
-                          }}
-                          className="p-1 hover:bg-gray-700 rounded-lg transition-colors flex-shrink-0"
-                          title="Clear all filters"
-                        >
-                          <X size={14} className="text-gray-400 hover:text-white" />
-                        </button>
-                      )}
-                    </div>
-                    
-                    {/* Autocomplete Dropdown */}
-                    {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length > 0 && (
-                      <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a1a] border border-[#333333] rounded-xl shadow-lg z-50 overflow-hidden">
-                        {getSearchSuggestions().map((person) => (
-                          <button
-                            key={person.id}
-                            onClick={() => handleSelectMember(person)}
-                            className="w-full px-3 py-2.5 flex items-center gap-3 hover:bg-[#252525] transition-colors text-left"
-                          >
-                            {/* Members: Show profile image or initials avatar */}
-                            {person.type === 'member' && (
-                              person.image ? (
-                                <img 
-                                  src={person.image} 
-                                  alt={`${person.firstName} ${person.lastName}`} 
-                                  className="w-8 h-8 rounded-lg object-cover"
-                                />
-                              ) : (
-                                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-semibold bg-orange-500">
-                                  {person.firstName?.charAt(0)}{person.lastName?.charAt(0)}
+                      {/* Autocomplete Dropdown */}
+                      {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length > 0 && (
+                        <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a1a] border border-[#333333] rounded-xl shadow-lg z-50 overflow-hidden">
+                          {getSearchSuggestions().map((person) => (
+                            <button
+                              key={person.id}
+                              onClick={() => handleSelectMember(person)}
+                              className="w-full px-3 py-2.5 flex items-center gap-3 hover:bg-[#252525] transition-colors text-left"
+                            >
+                              {/* Members: Show profile image or initials avatar */}
+                              {person.type === 'member' && (
+                                person.image ? (
+                                  <img 
+                                    src={person.image} 
+                                    alt={`${person.firstName} ${person.lastName}`} 
+                                    className="w-8 h-8 rounded-lg object-cover"
+                                  />
+                                ) : (
+                                  <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-semibold bg-orange-500">
+                                    {person.firstName?.charAt(0)}{person.lastName?.charAt(0)}
+                                  </div>
+                                )
+                              )}
+                              {/* Leads: Show "Lead" badge */}
+                              {person.type === 'lead' && (
+                                <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-500/20 border border-blue-500/40">
+                                  <span className="text-[9px] text-blue-300 font-bold">LEAD</span>
                                 </div>
-                              )
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2">
-                                <p className="text-sm text-white truncate">{person.firstName} {person.lastName}</p>
-                                <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${person.type === 'lead' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : 'bg-orange-500/20 text-orange-400 border border-orange-500/30'}`}>
-                                  {person.type === 'lead' ? 'Lead' : 'Member'}
-                                </span>
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <p className="text-sm text-white truncate">{person.firstName} {person.lastName}</p>
+                                  <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${person.type === 'lead' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : 'bg-orange-500/20 text-orange-400 border border-orange-500/30'}`}>
+                                    {person.type === 'lead' ? 'Lead' : 'Member'}
+                                  </span>
+                                </div>
+                                {person.type === 'member' && person.email && <p className="text-xs text-gray-500 truncate">{person.email}</p>}
                               </div>
-                              {person.type === 'member' && person.email && <p className="text-xs text-gray-500 truncate">{person.email}</p>}
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                    
-                    {/* No results message */}
-                    {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length === 0 && (
-                      <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a1a] border border-[#333333] rounded-xl shadow-lg z-50 p-3">
-                        <p className="text-sm text-gray-500 text-center">No members or leads found</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Filters - feste Groesse */}
-                <div className="bg-[#000000] rounded-xl p-3 w-full flex-shrink-0">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-white font-semibold text-sm">Filters</h3>
-                    <div className="flex items-center gap-2">
-                      {!isFiltersCollapsed && (
-                        <button onClick={toggleAllFilters} className="text-xs text-blue-400 hover:text-blue-300 transition-colors">
-                          {Object.values(appointmentFilters).every((value) => value) ? "Deselect All" : "Select All"}
-                        </button>
+                            </button>
+                          ))}
+                        </div>
                       )}
-                      <button onClick={() => setIsFiltersCollapsed(!isFiltersCollapsed)} className="text-gray-400 hover:text-white transition-colors">
-                        {isFiltersCollapsed ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
-                      </button>
+                      
+                      {/* No results message */}
+                      {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length === 0 && (
+                        <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a1a] border border-[#333333] rounded-xl shadow-lg z-50 p-3">
+                          <p className="text-sm text-gray-500 text-center">No members or leads found</p>
+                        </div>
+                      )}
                     </div>
                   </div>
-                  {!isFiltersCollapsed && (
-                    <div className="space-y-1 mt-2 w-full">
-                      {appointmentTypesMain.filter(type => !type.isTrialType).map((type) => (
-                        <label key={type.name} className="flex items-center gap-2 cursor-pointer w-full">
-                          <input type="checkbox" checked={appointmentFilters[type.name]} onChange={() => handleFilterChange(type.name)}
-                            className="w-3 h-3 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2" />
-                          <div className={`w-2 h-2 rounded-full ${type.color}`}></div>
-                          <span className="text-white text-xs">{type.name}</span>
-                        </label>
-                      ))}
-                      <label className="flex items-center gap-2 cursor-pointer w-full">
-                        <input type="checkbox" checked={appointmentFilters["Trial Training"]} onChange={() => handleFilterChange("Trial Training")}
-                          className="w-3 h-3 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2" />
-                        <div className="w-2 h-2 rounded-full bg-[#3F74FF]"></div>
-                        <span className="text-white text-xs">Trial Training</span>
-                      </label>
-                      <div className="border-t border-gray-600 my-1"></div>
-                      <label className="flex items-center gap-2 cursor-pointer w-full">
-                        <input type="checkbox" checked={appointmentFilters["Blocked Time Slots"]} onChange={() => handleFilterChange("Blocked Time Slots")}
-                          className="w-3 h-3 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2" />
-                        <span className="text-white text-xs">Blocked</span>
-                      </label>
-                      <label className="flex items-center gap-2 cursor-pointer w-full">
-                        <input type="checkbox" checked={appointmentFilters["Cancelled Appointments"]} onChange={() => handleFilterChange("Cancelled Appointments")}
-                          className="w-3 h-3 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2" />
-                        <span className="text-white text-xs">Cancelled</span>
-                      </label>
-                      <label className="flex items-center gap-2 cursor-pointer w-full">
-                        <input type="checkbox" checked={appointmentFilters["Past Appointments"]} onChange={() => handleFilterChange("Past Appointments")}
-                          className="w-3 h-3 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2" />
-                        <span className="text-white text-xs">Past</span>
-                      </label>
-                    </div>
-                  )}
                 </div>
 
-                {/* Upcoming Appointments Widget */}
-                <div className="w-full flex-1 flex flex-col min-h-0">
+                {/* Filters - Desktop */}
+                <div className="w-full lg:max-w-[300px] flex-shrink-0">
+                  <div className="bg-[#000000] rounded-xl p-3 w-full">
+                    <div 
+                      className="flex items-center justify-between cursor-pointer"
+                      onClick={() => setIsFiltersCollapsed(!isFiltersCollapsed)}
+                    >
+                      <h3 className="text-white font-semibold text-sm">Filters</h3>
+                      <div className="flex items-center gap-2">
+                        {!isFiltersCollapsed && (
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              toggleAllFilters()
+                            }} 
+                            className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                          >
+                            {Object.values(appointmentFilters).every((value) => value) ? "Deselect All" : "Select All"}
+                          </button>
+                        )}
+                        <button className="text-gray-400 hover:text-white transition-colors">
+                          {isFiltersCollapsed ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+                        </button>
+                      </div>
+                    </div>
+                    
+                    {!isFiltersCollapsed && (
+                      <div className="space-y-1 mt-2 w-full">
+                        {appointmentTypesMain.filter(type => !type.isTrialType).map((type) => (
+                          <label key={type.name} className="flex items-center gap-2 cursor-pointer w-full">
+                            <input type="checkbox" checked={appointmentFilters[type.name]} onChange={() => handleFilterChange(type.name)}
+                              className="w-3 h-3 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2" />
+                            <div className={`w-2 h-2 rounded-full ${type.color}`}></div>
+                            <span className="text-white text-xs">{type.name}</span>
+                          </label>
+                        ))}
+                        <label className="flex items-center gap-2 cursor-pointer w-full">
+                          <input type="checkbox" checked={appointmentFilters["Trial Training"]} onChange={() => handleFilterChange("Trial Training")}
+                            className="w-3 h-3 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2" />
+                          <div className="w-2 h-2 rounded-full bg-[#3F74FF]"></div>
+                          <span className="text-white text-xs">Trial Training</span>
+                        </label>
+                        <div className="border-t border-gray-600 my-1"></div>
+                        <label className="flex items-center gap-2 cursor-pointer w-full">
+                          <input type="checkbox" checked={appointmentFilters["Blocked Time Slots"]} onChange={() => handleFilterChange("Blocked Time Slots")}
+                            className="w-3 h-3 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2" />
+                          <span className="text-white text-xs">Blocked</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer w-full">
+                          <input type="checkbox" checked={appointmentFilters["Cancelled Appointments"]} onChange={() => handleFilterChange("Cancelled Appointments")}
+                            className="w-3 h-3 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2" />
+                          <span className="text-white text-xs">Cancelled</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer w-full">
+                          <input type="checkbox" checked={appointmentFilters["Past Appointments"]} onChange={() => handleFilterChange("Past Appointments")}
+                            className="w-3 h-3 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2" />
+                          <span className="text-white text-xs">Past</span>
+                        </label>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Upcoming Appointments Widget - Desktop only */}
+                <div className="w-full lg:max-w-[300px] flex-1 flex flex-col min-h-0 overflow-hidden">
                   <UpcomingAppointmentsWidget
                     isSidebarEditing={false}
                     appointments={filteredAppointments}
@@ -1137,11 +1340,10 @@ export default function Appointments() {
                   />
                 </div>
               </div>
-              </div>
             </div>
 
-            {/* Calendar Container */}
-            <div className={`flex-1 bg-[#000000] rounded-l-xl overflow-hidden transition-all duration-500 lg:h-full min-h-[400px] lg:min-h-0 ${isSidebarCollapsed ? "lg:w-full" : ""}`}>
+            {/* Calendar Container - Full width on mobile */}
+            <div className={`flex-1 bg-[#000000] lg:rounded-l-xl rounded-xl lg:rounded-none overflow-hidden transition-all duration-500 lg:h-full min-h-[500px] lg:min-h-0 ${isSidebarCollapsed ? "lg:w-full" : ""}`}>
               <Calendar
                 ref={calendarRef}
                 appointmentsMain={appointmentsMain}
@@ -1157,6 +1359,7 @@ export default function Appointments() {
                 onViewModeChange={setCalendarViewMode}
                 onCurrentDateChange={handleCalendarNavigate}
                 calendarSettings={calendarSettings}
+                initialView={isMobile ? "timeGridDay" : "timeGridWeek"}
               />
             </div>
           </div>
@@ -1290,7 +1493,7 @@ export default function Appointments() {
             newRelationMain={newRelationMain}
             setNewRelationMain={setNewRelationMain}
             availableMembersLeadsMain={availableMembersLeadsMain}
-            relationOptionsMain={relationOptionsMain}
+            relationOptionsMain={relationOptionsMainLocal}
             handleAddRelationMain={handleAddRelationMain}
             memberRelationsMain={memberRelationsMain}
             handleDeleteRelationMain={handleDeleteRelationMain}
@@ -1313,6 +1516,58 @@ export default function Appointments() {
             initialTab={editLeadActiveTab}
           />
         )}
+      </div>
+      
+      {/* Floating Action Button - Mobile Only */}
+      <div className="lg:hidden fixed bottom-4 right-4 z-40">
+        {/* FAB Menu Items - Appear when FAB is open */}
+        <div className={`absolute bottom-16 right-0 flex flex-col gap-2 transition-all duration-200 ${isMobileFabOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              setIsBlockModalOpen(true)
+              setIsMobileFabOpen(false)
+            }}
+            className="flex items-center gap-2 bg-[#1C1C1C] text-white pl-3 pr-4 py-2.5 rounded-xl shadow-lg whitespace-nowrap"
+          >
+            <div className="w-2 h-2 rounded-full bg-gray-500"></div>
+            <span className="text-sm">Block Time</span>
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              setIsTrialModalOpen(true)
+              setIsMobileFabOpen(false)
+            }}
+            className="flex items-center gap-2 bg-[#1C1C1C] text-white pl-3 pr-4 py-2.5 rounded-xl shadow-lg whitespace-nowrap"
+          >
+            <div className="w-2 h-2 rounded-full bg-[#3F74FF]"></div>
+            <span className="text-sm">Trial Training</span>
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              setIsModalOpen(true)
+              setIsMobileFabOpen(false)
+            }}
+            className="flex items-center gap-2 bg-[#1C1C1C] text-white pl-3 pr-4 py-2.5 rounded-xl shadow-lg whitespace-nowrap"
+          >
+            <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+            <span className="text-sm">Appointment</span>
+          </button>
+        </div>
+        
+        {/* Main FAB Button */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation()
+            setIsMobileFabOpen(!isMobileFabOpen)
+          }}
+          className={`bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 ${isMobileFabOpen ? 'rotate-45' : ''}`}
+          aria-label="Book appointment"
+        >
+          <Plus size={22} />
+        </button>
       </div>
     </>
   )
