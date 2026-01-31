@@ -43,7 +43,7 @@ import StaffCheckInWidget from "../../myarea-components/widgets/StaffWidgetCheck
 import ViewManagementModal from "../../myarea-components/sidebar-components/ViewManagementModal"
 import { bulletinBoardData, demoNotifications } from "../../../utils/studio-states/myarea-states"
 import PersonImage from '../../../../public/avatar3.png'
-import NotesWidget from "../../myarea-components/widgets/NotesWidjets"
+import NotesWidget from "../../myarea-components/widgets/NotesWidget"
 import BulletinBoardWidget from "../../myarea-components/widgets/BulletinBoardWidget"
 import ShiftScheduleWidget from "../../myarea-components/widgets/ShiftScheduleWidget"
 import ReplyModal from "../../myarea-components/sidebar-components/ReplyModal"

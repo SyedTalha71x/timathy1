@@ -26,8 +26,6 @@ import {
 import { Toaster, toast } from "react-hot-toast"
 import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
 
-
-import EditTaskModal from "../../components/studio-components/todo-components/edit-task-modal"
 import ViewManagementModal from "../../components/myarea-components/ViewManagementModal"
 import StaffCheckInWidget from "../../components/myarea-components/widgets/StaffWidgetCheckIn"
 import DraggableWidget from "../../components/myarea-components/DraggableWidget"
@@ -35,16 +33,15 @@ import ContingentModal from "../../components/myarea-components/ContigentModal"
 
 import { WidgetSelectionModal } from "../../components/widget-selection-modal"
 
-import { notificationData, memberContingentDataNew, mockTrainingPlansNew, mockVideosNew, memberRelationsData, mockMemberHistoryNew, mockMemberRelationsNew, availableMembersLeadsNew, customLinksData, communicationsData, todosData, birthdaysData, memberTypesData, expiringContractsData, bulletinBoardData } from "../../utils/studio-states/myarea-states"
+import { notificationData, memberContingentDataNew, mockTrainingPlansNew, mockVideosNew, memberRelationsData, mockMemberHistoryNew, mockMemberRelationsNew, availableMembersLeadsNew, customLinksData, communicationsData, birthdaysData, memberTypesData, expiringContractsData, bulletinBoardData } from "../../utils/studio-states/myarea-states"
 import BirthdayMessageModal from "../../components/myarea-components/BirthdayMessageModal"
-import NotesWidget from "../../components/myarea-components/widgets/NotesWidjets"
+import NotesWidget from "../../components/myarea-components/widgets/NotesWidget"
 import BulletinBoardWidget from "../../components/myarea-components/widgets/BulletinBoardWidget"
-import AddTaskModal from "../../components/studio-components/todo-components/add-task-modal"
-import { configuredTagsData } from "../../utils/studio-states/todo-states"
+import ToDoWidget from "../../components/myarea-components/widgets/ToDoWidget"
 import ShiftScheduleWidget from "../../components/myarea-components/widgets/ShiftScheduleWidget"
 import { createPortal } from "react-dom"
 import AnalyticsChartWidget from "../../components/myarea-components/widgets/AnalyticsChartWidget"
-
+import WebsiteLinksWidget from "../../components/myarea-components/widgets/WebsiteLinksWidget"
 
 import { appointmentsData } from "../../utils/studio-states"
 
@@ -60,12 +57,6 @@ export default function MyArea() {
 
   const [notePosition, setNotePosition] = useState({ top: 0, left: 0 })
 
-  const [todoFilter, setTodoFilter] = useState("all")
-  const [isTodoFilterDropdownOpen, setIsTodoFilterDropdownOpen] = useState(false)
-  const [editingTask, setEditingTask] = useState(null)
-  const [isEditTaskModalOpen, setIsEditTaskModalOpen] = useState(false)
-  const [taskToDelete, setTaskToDelete] = useState(null)
-  const [taskToCancel, setTaskToCancel] = useState(null)
   const [isBirthdayMessageModalOpen, setIsBirthdayMessageModalOpen] = useState(false)
   const [selectedBirthdayPerson, setSelectedBirthdayPerson] = useState(null)
   const [birthdayMessage, setBirthdayMessage] = useState("")
@@ -78,7 +69,6 @@ export default function MyArea() {
   const [isSpecialNoteModalOpen, setIsSpecialNoteModalOpen] = useState(false)
   const [selectedAppointmentForNote, setSelectedAppointmentForNote] = useState(null)
 
-
   const [hoveredNoteId, setHoveredNoteId] = useState(null)
   const [hoverTimeout, setHoverTimeout] = useState(null)
 
@@ -86,7 +76,7 @@ export default function MyArea() {
   const [showAppointmentModal, setShowAppointmentModal] = useState(false)
   const [showHistoryModal, setShowHistoryModal] = useState(false)
   const [historyTab, setHistoryTab] = useState("general")
-  const [activeMemberDetailsTab, setActiveMemberDetailsTab] = useState("details") // 'details', 'relations'
+  const [activeMemberDetailsTab, setActiveMemberDetailsTab] = useState("details")
   const [isMemberDetailsModalOpen, setIsMemberDetailsModalOpen] = useState(false)
 
   const [selectedMember, setSelectedMember] = useState(null)
@@ -102,7 +92,6 @@ export default function MyArea() {
   const [showDocumentModal, setShowDocumentModal] = useState(false)
   const [selectedMemberForDocuments, setSelectedMemberForDocuments] = useState(null)
 
-
   const [editingRelations, setEditingRelations] = useState(false)
   const [newRelation, setNewRelation] = useState({
     name: "",
@@ -113,9 +102,6 @@ export default function MyArea() {
   })
   const [memberRelations, setMemberRelations] = useState(memberRelationsData)
 
-  const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false)
-
-
   const DefaultAvatar = Avatar
   const availableMembersLeads = availableMembersLeadsNew
   const mockMemberRelations = mockMemberRelationsNew
@@ -123,8 +109,6 @@ export default function MyArea() {
   const mockTrainingPlans = mockTrainingPlansNew
   const mockVideos = mockVideosNew
   const memberTypes = memberTypesData
-
-
 
   const [editForm, setEditForm] = useState({
     firstName: "",
@@ -145,27 +129,20 @@ export default function MyArea() {
   })
 
   const [customLinks, setCustomLinks] = useState(customLinksData)
-
   const [communications, setCommunications] = useState(communicationsData)
-
-  const [todos, setTodos] = useState(todosData)
-
   const [appointments, setAppointments] = useState(appointmentsData)
-
   const [birthdays, setBirthdays] = useState(birthdaysData)
-
   const [expiringContracts, setExpiringContracts] = useState(expiringContractsData)
-
 
   const [widgets, setWidgets] = useState([
     { id: "chart", type: "chart", position: 0 },
-    { id: "expiringContracts", type: "expiringContracts", position: 1 }, // Moved to start of grid
+    { id: "expiringContracts", type: "expiringContracts", position: 1 },
     { id: "appointments", type: "appointments", position: 2 },
     { id: "staffCheckIn", type: "staffCheckIn", position: 3 },
     { id: "websiteLink", type: "websiteLink", position: 4 },
     { id: "todo", type: "todo", position: 5 },
     { id: "birthday", type: "birthday", position: 6 },
-    { id: "bulletinBoard", type: "bulletinBoard", position: 7 }, // Add this line
+    { id: "bulletinBoard", type: "bulletinBoard", position: 7 },
     { id: "notes", type: "notes", position: 8 },
     { id: "shiftSchedule", type: "shiftSchedule", position: 9 }
   ])
@@ -173,22 +150,14 @@ export default function MyArea() {
   const toggleDropdown = (index) => setOpenDropdownIndex(openDropdownIndex === index ? null : index)
   const toggleEditing = () => setIsEditing(!isEditing)
   const [activeNoteId, setActiveNoteId] = useState(null)
-  const todoFilterDropdownRef = useRef(null)
 
   const [selectedUserForTrainingPlan, setSelectedUserForTrainingPlan] = useState(null)
 
-  const [editingLink, setEditingLink] = useState(null)
-
-
-  const [tempContingent, setTempContingent] = useState({ used: 0, total: 0 }) // For contingent modal
-  const [selectedBillingPeriod, setSelectedBillingPeriod] = useState("current") // For contingent modal
-  const [showAddBillingPeriodModal, setShowAddBillingPeriodModal] = useState(false) // For contingent modal
-  const [newBillingPeriod, setNewBillingPeriod] = useState("") // For contingent modal
+  const [tempContingent, setTempContingent] = useState({ used: 0, total: 0 })
+  const [selectedBillingPeriod, setSelectedBillingPeriod] = useState("current")
+  const [showAddBillingPeriodModal, setShowAddBillingPeriodModal] = useState(false)
+  const [newBillingPeriod, setNewBillingPeriod] = useState("")
   const [showContingentModal, setShowContingentModal] = useState(false)
-
-  const [tasks, setTasks] = useState([])
-  const [configuredTags, setConfiguredTags] = useState(configuredTagsData)
-
 
   const notePopoverRef = useRef(null)
 
@@ -238,7 +207,6 @@ export default function MyArea() {
     }
   }, [activeNoteId])
 
-
   useEffect(() => {
     setMemberHistory(mockMemberHistory)
     setMemberRelations(mockMemberRelations)
@@ -273,7 +241,6 @@ export default function MyArea() {
       const views = JSON.parse(savedViewsData)
       setSavedViews(views)
 
-      // Load standard view if exists
       const standardView = views.find((view) => view.isStandard)
       if (standardView) {
         setWidgets([...standardView.widgets])
@@ -295,9 +262,6 @@ export default function MyArea() {
       }
       if (chartDropdownRef.current && !chartDropdownRef.current.contains(event.target)) {
         setIsChartDropdownOpen(false)
-      }
-      if (todoFilterDropdownRef.current && !todoFilterDropdownRef.current.contains(event.target)) {
-        setIsTodoFilterDropdownOpen(false)
       }
     }
     document.addEventListener("mousedown", handleClickOutside)
@@ -332,9 +296,6 @@ export default function MyArea() {
     toast.success("Training plan removed successfully!")
   }
 
-
-
-
   const handleInputChange = (e) => {
     const { name, value } = e.target
     setEditForm((prev) => ({
@@ -343,26 +304,16 @@ export default function MyArea() {
     }))
   }
 
-
-
-  const handleAddTask = (newTask) => {
-    setTodos(prevTodos => [...prevTodos, newTask]) // Also add to todos if needed
-    toast.success("Task added successfully!")
-  }
-
-
-
   const handleEditSubmit = (e) => {
     e.preventDefault()
 
-    // Update appointments array (since your members are stored in appointments)
     const updatedAppointments = appointments.map((member) => {
       if (member.id === selectedMember.id) {
         return {
           ...member,
           firstName: editForm.firstName,
           lastName: editForm.lastName,
-          name: `${editForm.firstName} ${editForm.lastName}`, // Update the name field too
+          name: `${editForm.firstName} ${editForm.lastName}`,
           email: editForm.email,
           phone: editForm.phone,
           street: editForm.street,
@@ -392,7 +343,6 @@ export default function MyArea() {
     setIsEditModalOpen(false)
     toast.success("Member details have been updated successfully")
   }
-
 
   const handleDeleteRelation = (category, relationId) => {
     const updatedRelations = { ...memberRelations }
@@ -485,6 +435,7 @@ export default function MyArea() {
     }
     setShowContingentModal(false)
   }
+
   const getBillingPeriods = (memberId) => {
     const memberData = memberContingentData[memberId]
     if (!memberData) return []
@@ -500,6 +451,7 @@ export default function MyArea() {
     }
     return periods
   }
+
   const handleAddBillingPeriod = () => {
     if (newBillingPeriod.trim() && selectedMember) {
       const updatedContingent = { ...memberContingentData }
@@ -517,7 +469,6 @@ export default function MyArea() {
   const getWidgetPlacementStatus = useCallback(
     (widgetType, widgetArea = "dashboard") => {
       if (widgetArea === "dashboard") {
-        // Only check main dashboard widgets for dashboard area
         const existsInMain = widgets.some((widget) => widget.type === widgetType)
         if (existsInMain) {
           return { canAdd: false, location: "dashboard" }
@@ -534,7 +485,6 @@ export default function MyArea() {
     const newWidgets = [...widgets]
     const [movedWidget] = newWidgets.splice(fromIndex, 1)
     newWidgets.splice(toIndex, 0, movedWidget)
-    // Update positions
     const updatedWidgets = newWidgets.map((widget, index) => ({
       ...widget,
       position: index,
@@ -545,24 +495,11 @@ export default function MyArea() {
   const removeWidget = (id) => {
     setWidgets((currentWidgets) => {
       const filtered = currentWidgets.filter((w) => w.id !== id)
-      // Update positions after removal
       return filtered.map((widget, index) => ({
         ...widget,
         position: index,
       }))
     })
-  }
-
-  const addCustomLink = () => {
-    setEditingLink({})
-  }
-
-  const updateCustomLink = (id, field, value) => {
-    setCustomLinks((currentLinks) => currentLinks.map((link) => (link.id === id ? { ...link, [field]: value } : link)))
-  }
-
-  const removeCustomLink = (id) => {
-    setCustomLinks((currentLinks) => currentLinks.filter((link) => link.id !== id))
   }
 
   const handleCheckIn = (appointmentId) => {
@@ -581,11 +518,9 @@ export default function MyArea() {
   const handleEditNote = (appointmentId, currentNote) => {
     const appointment = appointments.find((app) => app.id === appointmentId)
     if (appointment) {
-      // Close any existing modal first to ensure clean state
       setIsSpecialNoteModalOpen(false)
       setSelectedAppointmentForNote(null)
 
-      // Use setTimeout to ensure state is cleared before opening
       setTimeout(() => {
         setSelectedAppointmentForNote(appointment)
         setIsSpecialNoteModalOpen(true)
@@ -602,53 +537,6 @@ export default function MyArea() {
 
   const isBirthdayToday = (date) => {
     return date === today
-  }
-
-  const truncateUrl = (url, maxLength = 40) => {
-    if (url.length <= maxLength) return url
-    return url.substring(0, maxLength - 3) + "..."
-  }
-
-  const getFilteredTodos = () => {
-    switch (todoFilter) {
-      case "ongoing":
-        return todos.filter((todo) => todo.status === "ongoing")
-      case "canceled":
-        return todos.filter((todo) => todo.status === "canceled")
-      case "completed":
-        return todos.filter((todo) => todo.status === "completed")
-      default:
-        return todos
-    }
-  }
-
-  const handleTaskComplete = (taskId) => {
-    setTodos((prev) =>
-      prev.map((todo) =>
-        todo.id === taskId
-          ? { ...todo, completed: !todo.completed, status: todo.completed ? "ongoing" : "completed" }
-          : todo,
-      ),
-    )
-  }
-
-  const handleEditTask = (task) => {
-    setEditingTask(task)
-    setIsEditTaskModalOpen(true)
-  }
-
-  const handleUpdateTask = (updatedTask) => {
-    setTodos((prev) => prev.map((todo) => (todo.id === updatedTask.id ? updatedTask : todo)))
-  }
-
-  const handleDeleteTask = (taskId) => {
-    setTodos((prev) => prev.filter((todo) => todo.id !== taskId))
-    setTaskToDelete(null)
-  }
-
-  const handleCancelTask = (taskId) => {
-    setTodos((prev) => prev.map((todo) => (todo.id === taskId ? { ...todo, status: "cancelled" } : todo)))
-    setTaskToCancel(null)
   }
 
   const chartOptions = {
@@ -705,7 +593,7 @@ export default function MyArea() {
       style: { fontSize: "16px", fontWeight: "bold", color: "#ffffff" },
     },
     subtitle: {
-      text: `↑ ${memberTypes[selectedMemberType].growth} more in 2024`,
+      text: `→ ${memberTypes[selectedMemberType].growth} more in 2024`,
       align: "left",
       style: { fontSize: "12px", color: "#ffffff", fontWeight: "bolder" },
     },
@@ -734,77 +622,6 @@ export default function MyArea() {
     { name: "Comp2", data: memberTypes[selectedMemberType].data[1] },
   ]
 
-  const WebsiteLinkModal = ({ link, onClose }) => {
-    const [title, setTitle] = useState(link?.title?.trim() || "")
-    const [url, setUrl] = useState(link?.url?.trim() || "")
-
-    const handleSave = () => {
-      if (!title.trim() || !url.trim()) return
-      if (link?.id) {
-        updateCustomLink(link.id, "title", title)
-        updateCustomLink(link.id, "url", url)
-      } else {
-        const newLink = {
-          id: `link${Date.now()}`,
-          url: url.trim(),
-          title: title.trim(),
-        }
-        setCustomLinks((prev) => [...prev, newLink])
-      }
-      onClose()
-    }
-
-    return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
-          <div className="p-6 space-y-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-lg font-semibold">Website link</h2>
-              <button onClick={onClose} className="p-2 hover:bg-zinc-700 rounded-lg">
-                <X size={16} />
-              </button>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm text-zinc-400 mb-1">Title</label>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="w-full p-3 bg-black rounded-xl text-sm outline-none"
-                  placeholder="Enter title"
-                />
-              </div>
-              <div>
-                <label className="block text-sm text-zinc-400 mb-1">URL</label>
-                <input
-                  type="url"
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  className="w-full p-3 bg-black rounded-xl text-sm outline-none"
-                  placeholder="https://example.com"
-                />
-              </div>
-            </div>
-            <div className="flex gap-2 justify-end mt-6">
-              <button onClick={onClose} className="px-4 py-2 text-sm rounded-xl hover:bg-zinc-700">
-                Cancel
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={!title.trim() || !url.trim()}
-                className={`px-4 py-2 text-sm rounded-xl ${!title.trim() || !url.trim() ? "bg-blue-600/50 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
-                  }`}
-              >
-                Save
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   const calculateAge = (dateOfBirth) => {
     if (!dateOfBirth) return ""
     const today = new Date()
@@ -816,7 +633,6 @@ export default function MyArea() {
     }
     return age
   }
-
 
   const handleAddWidget = (widgetType) => {
     const { canAdd, location } = getWidgetPlacementStatus(widgetType, "dashboard")
@@ -836,7 +652,6 @@ export default function MyArea() {
 
   const renderSpecialNoteIcon = useCallback(
     (specialNote, memberId, event) => {
-      // Check if specialNote exists and has text content
       if (!specialNote || !specialNote.text?.trim()) return null
 
       const isActive =
@@ -845,7 +660,6 @@ export default function MyArea() {
 
       if (!isActive) return null
 
-      // ... rest of the function remains the same
       const handleNoteClick = (e) => {
         e.stopPropagation()
         const rect = e.currentTarget.getBoundingClientRect()
@@ -856,7 +670,6 @@ export default function MyArea() {
         setActiveNoteId(activeNoteId === memberId ? null : memberId)
       }
 
-      // ... rest of the mouse handlers remain the same
       const handleMouseEnter = (e) => {
         e.stopPropagation()
         if (hoverTimeout) {
@@ -980,7 +793,6 @@ export default function MyArea() {
   )
 
   const handleViewMemberDetails = (appointmentIdOrMemberId) => {
-    // First, try to find the appointment
     const appointment = appointments.find(app => app.id === appointmentIdOrMemberId)
 
     if (appointment) {
@@ -993,7 +805,7 @@ export default function MyArea() {
     } else {
       toast.error("Appointment not found")
     }
-  };
+  }
 
   const redirectToContract = () => {
     navigate("/dashboard/contract")
@@ -1015,16 +827,13 @@ export default function MyArea() {
 
   const handleCreateNewAppointment = () => {
     setShowAppointmentModal(false)
-    // navigate("/dashboard/appointments?action=create")
   }
 
   const getMemberAppointments = (memberId) => {
-    // Return appointments for the specific member
     return appointments.filter(app => app.id === memberId)
   }
 
   const handleAppointmentOptionsModal = (appointment) => {
-    // Navigate to member details when clicking on appointment
     if (appointment?.memberId) {
       navigate(`/dashboard/member-details/${appointment.memberId}`)
     }
@@ -1047,17 +856,6 @@ export default function MyArea() {
     setBirthdayMessage("")
     setSelectedBirthdayPerson(null)
   }
-
-  const todoFilterOptions = [
-    { value: "all", label: "All Tasks" },
-    { value: "ongoing", label: "Ongoing", color: "#f59e0b" },
-    { value: "completed", label: "Completed", color: "#10b981" },
-    { value: "canceled", label: "Canceled", color: "#ef4444" },
-  ]
-
-
-
-
 
   return (
     <>
@@ -1102,16 +900,15 @@ export default function MyArea() {
               <div className="flex items-center gap-2 justify-between">
                 <div className="flex items-center gap-3">
                   <h1 className="text-xl font-bold">My Area</h1>
-
                 </div>
               </div>
 
               {/* Buttons Section */}
-              <div className="flex   justify-center md:justify-end gap-2">
+              <div className="flex justify-center md:justify-end gap-2">
                 {!isEditing && (
                   <button
                     onClick={() => setIsViewModalOpen(true)}
-                    className="px-4 py-2  flex justify-center items-center md:w-auto w-full text-sm gap-2 bg-gray-600 text-white hover:bg-gray-700 rounded-lg cursor-pointer"
+                    className="px-4 py-2 flex justify-center items-center md:w-auto w-full text-sm gap-2 bg-gray-600 text-white hover:bg-gray-700 rounded-lg cursor-pointer"
                   >
                     <Eye size={16} />
                     <span className="md:inline hidden">{currentView ? currentView.name : "Standard View"}</span>
@@ -1141,7 +938,7 @@ export default function MyArea() {
 
             {/* Widgets */}
             <div className="space-y-4">
-              {/* Chart Widget - Full Width (rendered separately if it's always full width) */}
+              {/* Chart Widget - Full Width */}
               {widgets
                 .filter((widget) => widget.type === "chart")
                 .sort((a, b) => a.position - b.position)
@@ -1155,36 +952,6 @@ export default function MyArea() {
                     isEditing={isEditing}
                     widgets={widgets}
                   >
-                    {/* <div className="p-4 bg-[#2F2F2F] rounded-xl">
-                      <div className="relative mb-3" ref={chartDropdownRef}>
-                        <button
-                          onClick={() => setIsChartDropdownOpen(!isChartDropdownOpen)}
-                          className="flex items-center gap-2 px-3 py-1.5 bg-black rounded-xl text-white text-sm"
-                        >
-                          {selectedMemberType}
-                          <ChevronDown className="w-4 h-4" />
-                        </button>
-                        {isChartDropdownOpen && (
-                          <div className="absolute z-10 mt-2 w-48 bg-[#2F2F2F] rounded-xl shadow-lg">
-                            {Object.keys(memberTypes).map((type) => (
-                              <button
-                                key={type}
-                                className="block w-full text-left px-4 py-2 text-sm text-white hover:bg-black"
-                                onClick={() => {
-                                  setSelectedMemberType(type)
-                                  setIsChartDropdownOpen(false)
-                                }}
-                              >
-                                {type}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                      <div className="w-full">
-                        <Chart options={chartOptions} series={chartSeries} type="line" height={300} />
-                      </div>
-                    </div> */}
                     <AnalyticsChartWidget
                       isEditing={isEditing}
                       onRemove={() => removeWidget(widget.id)}
@@ -1193,7 +960,7 @@ export default function MyArea() {
                 ))}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {widgets
-                  .filter((widget) => widget.type !== "chart") // Filter out chart, as it's handled separately
+                  .filter((widget) => widget.type !== "chart")
                   .sort((a, b) => a.position - b.position)
                   .map((widget) => (
                     <DraggableWidget
@@ -1247,7 +1014,6 @@ export default function MyArea() {
                                   key={appointment.id}
                                   className={`${appointment.color} rounded-xl cursor-pointer p-3 relative`}
                                 >
-                                  {/* Icons container with fixed positioning and proper spacing */}
                                   <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
                                     {renderSpecialNoteIcon(appointment.specialNote, appointment.id)}
                                     <div
@@ -1265,11 +1031,11 @@ export default function MyArea() {
                                     }}
                                   >
                                     <div className="flex items-center gap-2 relative w-full justify-center">
-                                      <div className="w-12 h-12 rounded-xl  bg-white/20 flex items-center justify-center relative">
+                                      <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center relative">
                                         <img
                                           src={Avatar || "/placeholder.svg"}
                                           alt=""
-                                          className="w-full h-full rounded-xl "
+                                          className="w-full h-full rounded-xl"
                                         />
                                       </div>
                                       <div className="text-white text-left flex-1">
@@ -1313,208 +1079,35 @@ export default function MyArea() {
                       )}
                       {widget.type === "staffCheckIn" && <StaffCheckInWidget />}
                       {widget.type === "websiteLink" && (
-                        <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
-                          <div className="flex justify-between items-center">
-                            <h2 className="text-lg font-semibold">Website Links</h2>
-                            {!isEditing && <button
-                              onClick={addCustomLink}
-                              className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg cursor-pointer transition-colors"
-                            >
-                              <Plus size={18} />
-                            </button>}
-                          </div>
-                          <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
-                            <div className="grid grid-cols-1 gap-3">
-                              {customLinks.map((link) => (
-                                <div
-                                  key={link.id}
-                                  className="p-5 bg-black rounded-xl flex items-center justify-between"
-                                >
-                                  <div className="flex-1 min-w-0">
-                                    <h3 className="text-sm font-medium truncate">{link.title}</h3>
-                                    <p className="text-xs mt-1 text-zinc-400 truncate max-w-[200px]">
-                                      {truncateUrl(link.url)}
-                                    </p>
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <button
-                                      onClick={() => window.open(link.url, "_blank")}
-                                      className="p-2 hover:bg-zinc-700 rounded-lg"
-                                    >
-                                      <ExternalLink size={16} />
-                                    </button>
-                                    <div className="relative">
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation()
-                                          toggleDropdown(`link-${link.id}`)
-                                        }}
-                                        className="p-2 hover:bg-zinc-700 rounded-lg"
-                                      >
-                                        <MoreVertical size={16} />
-                                      </button>
-                                      {openDropdownIndex === `link-${link.id}` && (
-                                        <div className="absolute right-0 top-full mt-1 w-32 bg-zinc-800 rounded-lg shadow-lg z-50 py-1">
-                                          <button
-                                            onClick={(e) => {
-                                              e.stopPropagation()
-                                              setEditingLink(link)
-                                              setOpenDropdownIndex(null)
-                                            }}
-                                            className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700"
-                                          >
-                                            Edit
-                                          </button>
-                                          <button
-                                            onClick={(e) => {
-                                              e.stopPropagation()
-                                              removeCustomLink(link.id)
-                                              setOpenDropdownIndex(null)
-                                            }}
-                                            className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700 text-red-400"
-                                          >
-                                            Remove
-                                          </button>
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
+                        <WebsiteLinksWidget
+                          isEditing={isEditing}
+                          onRemove={() => removeWidget(widget.id)}
+                          customLinks={customLinks}
+                          onAddLink={(newLink) => setCustomLinks((prev) => [...prev, newLink])}
+                          onEditLink={(updatedLink) => {
+                            setCustomLinks((currentLinks) =>
+                              currentLinks.map((link) =>
+                                link.id === updatedLink.id ? { ...link, ...updatedLink } : link
+                              )
+                            )
+                          }}
+                          onRemoveLink={(linkId) => {
+                            setCustomLinks((currentLinks) => currentLinks.filter((link) => link.id !== linkId))
+                          }}
+                        />
+                      )}
 
-                        </div>
-                      )}
+                      {/* New ToDoWidget Component */}
                       {widget.type === "todo" && (
-                        <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
-                          <div className="flex justify-between items-center">
-                            <h2 className="text-lg font-semibold">To-Do</h2>
-                            {!isEditing && <button
-                              onClick={() => setIsAddTaskModalOpen(true)}
-                              className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
-                            >
-                              <Plus size={18} />
-                            </button>}
-                          </div>
-                          <div className="relative mb-3 w-full" ref={todoFilterDropdownRef}>
-                            <button
-                              onClick={() => setIsTodoFilterDropdownOpen(!isTodoFilterDropdownOpen)}
-                              className="flex  justify-between items-center w-full gap-2 px-3 py-1.5 bg-black rounded-xl text-white text-sm"
-                            >
-                              {todoFilterOptions.find((option) => option.value === todoFilter)?.label}
-                              <ChevronDown className="w-4 h-4" />
-                            </button>
-                            {isTodoFilterDropdownOpen && (
-                              <div className="absolute z-10 mt-2 w-full bg-[#2F2F2F] rounded-xl shadow-lg">
-                                {todoFilterOptions.map((option) => (
-                                  <button
-                                    key={option.value}
-                                    className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-white hover:bg-black first:rounded-t-xl last:rounded-b-xl"
-                                    onClick={() => {
-                                      setTodoFilter(option.value)
-                                      setIsTodoFilterDropdownOpen(false)
-                                    }}
-                                  >
-                                    {option.color && (
-                                      <div
-                                        className="w-2 h-2 rounded-full"
-                                        style={{ backgroundColor: option.color }}
-                                      />
-                                    )}
-                                    {option.label}
-                                  </button>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
-                            <div className="space-y-2">
-                              {getFilteredTodos()
-                                .slice(0, 3)
-                                .map((todo) => (
-                                  <div
-                                    key={todo.id}
-                                    className="p-3 bg-black rounded-xl flex items-center justify-between"
-                                  >
-                                    <div className="flex items-center gap-2 flex-1">
-                                      <input
-                                        type="checkbox"
-                                        checked={todo.completed}
-                                        onChange={() => handleTaskComplete(todo.id)}
-                                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                                      />
-                                      <div className="flex-1">
-                                        <h3
-                                          className={`font-semibold text-sm ${todo.completed ? "line-through text-gray-500" : ""}`}
-                                        >
-                                          {todo.title}
-                                        </h3>
-                                        <p className="text-xs text-zinc-400">
-                                          Due: {todo.dueDate} {todo.dueTime && `at ${todo.dueTime}`}
-                                        </p>
-                                      </div>
-                                    </div>
-                                    <div className="relative">
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation()
-                                          toggleDropdown(`main-todo-${todo.id}`)
-                                        }}
-                                        className="p-1 hover:bg-zinc-700 rounded"
-                                      >
-                                        <MoreVertical size={16} />
-                                      </button>
-                                      {openDropdownIndex === `main-todo-${todo.id}` && (
-                                        <div className="absolute right-0 top-8 bg-[#2F2F2F] rounded-lg shadow-lg z-10 min-w-[120px]">
-                                          <button
-                                            onClick={() => {
-                                              handleEditTask(todo)
-                                              setOpenDropdownIndex(null)
-                                            }}
-                                            className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-t-lg"
-                                          >
-                                            Edit Task
-                                          </button>
-                                          <button
-                                            onClick={() => {
-                                              setTaskToCancel(todo.id)
-                                              setOpenDropdownIndex(null)
-                                            }}
-                                            className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600"
-                                          >
-                                            Cancel Task
-                                          </button>
-                                          <button
-                                            onClick={() => {
-                                              setTaskToDelete(todo.id)
-                                              setOpenDropdownIndex(null)
-                                            }}
-                                            className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-b-lg text-red-400"
-                                          >
-                                            Delete Task
-                                          </button>
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                ))}
-                            </div>
-                          </div>
-                          <div className="flex justify-center">
-                            <Link to={"/dashboard/to-do"} className="text-sm text-white hover:underline">
-                              See all
-                            </Link>
-                          </div>
-                        </div>
+                        <ToDoWidget isSidebarEditing={isEditing} />
                       )}
+
                       {widget.type === "birthday" && (
                         <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
                           <div className="flex justify-between items-center">
                             <h2 className="text-lg font-semibold">Upcoming Birthday</h2>
                           </div>
 
-                          {/* Scrollable area */}
                           <div className="flex-1 overflow-y-auto max-h-[300px] custom-scrollbar pr-1">
                             <div className="space-y-2">
                               {birthdays.map((birthday) => (
@@ -1537,7 +1130,6 @@ export default function MyArea() {
                                     <div>
                                       <h3 className="font-semibold text-sm flex items-center gap-1">
                                         {birthday.name}
-                                        {/* Check if dateOfBirth exists and calculate age */}
                                         {birthday.dateOfBirth && (
                                           <span className="text-zinc-400 font-normal">
                                             ({calculateAge(birthday.dateOfBirth)})
@@ -1548,8 +1140,7 @@ export default function MyArea() {
                                         )}
                                       </h3>
                                       <p className="text-xs text-zinc-400">
-                                        {birthday.date} {/* This displays the birthdate */}
-                                        {/* If you want to show next birthday date instead, you might need different logic */}
+                                        {birthday.date}
                                       </p>
                                     </div>
                                   </div>
@@ -1589,74 +1180,6 @@ export default function MyArea() {
             </div>
           </div>
         </main>
-        {taskToDelete && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
-              <h3 className="text-lg font-semibold mb-4">Delete Task</h3>
-              <p className="text-gray-300 mb-6">
-                Are you sure you want to delete this task? This action cannot be undone.
-              </p>
-              <div className="flex gap-3 justify-end">
-                <button
-                  onClick={() => setTaskToDelete(null)}
-                  className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#2F2F2F]/90"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => handleDeleteTask(taskToDelete)}
-                  className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {taskToCancel && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
-              <h3 className="text-lg font-semibold mb-4">Cancel Task</h3>
-              <p className="text-gray-300 mb-6">Are you sure you want to cancel this task?</p>
-              <div className="flex gap-3 justify-end">
-                <button
-                  onClick={() => setTaskToCancel(null)}
-                  className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#2F2F2F]/90"
-                >
-                  No
-                </button>
-                <button
-                  onClick={() => handleCancelTask(taskToCancel)}
-                  className="px-4 py-2 bg-orange-600 text-white rounded-xl hover:bg-orange-700"
-                >
-                  Cancel Task
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {isAddTaskModalOpen && <AddTaskModal
-          onClose={() => setIsAddTaskModalOpen(false)}
-          onAddTask={handleAddTask}
-          configuredTags={configuredTags}
-        />}
-
-        {isEditTaskModalOpen && editingTask && (
-          <EditTaskModal
-            task={editingTask}
-            onClose={() => {
-              setIsEditTaskModalOpen(false)
-              setEditingTask(null)
-            }}
-            onUpdateTask={handleUpdateTask}
-          />
-        )}
-
-
-
-
 
         <BirthdayMessageModal
           isOpen={isBirthdayMessageModalOpen}
@@ -1682,7 +1205,6 @@ export default function MyArea() {
           setWidgets={setWidgets}
         />
 
-        {editingLink && <WebsiteLinkModal link={editingLink} onClose={() => setEditingLink(null)} />}
         <WidgetSelectionModal
           isOpen={isWidgetModalOpen}
           onClose={() => setIsWidgetModalOpen(false)}
@@ -1690,10 +1212,6 @@ export default function MyArea() {
           getWidgetStatus={(widgetType) => getWidgetPlacementStatus(widgetType, "dashboard")}
           widgetArea="dashboard"
         />
-
-
-
-
       </div>
     </>
   )

@@ -6,7 +6,6 @@ import CentralSidebar from "../components/central-sidebar"
 import { useSidebarSystem } from "../hooks/useSidebarSystem"
 
 // Sidebar Modals
-import EditTaskModal from "../components/studio-components/todo-components/edit-task-modal"
 import { WidgetSelectionModal } from "../components/widget-selection-modal"
 
 

@@ -9,11 +9,11 @@ import { CSS } from '@dnd-kit/utilities'
 import { trainingVideosData } from "../../utils/studio-states/training-states"
 import { defaultTags, defaultPosts } from "../../utils/studio-states/bulletin-board-states"
 
-import DeleteBulletinModal from "../../components/studio-components/bulletin-board-components/DeleteBulletinBoard"
-import ViewBulletinModal from "../../components/studio-components/bulletin-board-components/ViewBulletinBoard"
+import DeleteBulletinModal from "../../components/shared/bulletin-board/DeleteBulletinBoard"
+import ViewBulletinModal from "../../components/shared/bulletin-board/ViewBulletinBoard"
 import TagManagerModal from "../../components/shared/TagManagerModal";
-import OptimizedEditBulletinModal from "../../components/studio-components/bulletin-board-components/EditBulletinBoard"
-import OptimizedCreateBulletinModal from "../../components/studio-components/bulletin-board-components/CreateBulletinBoard"
+import OptimizedEditBulletinModal from "../../components/shared/bulletin-board/EditBulletinBoard"
+import OptimizedCreateBulletinModal from "../../components/shared/bulletin-board/CreateBulletinBoard"
 
 // Helper function to strip HTML tags for preview/search, preserving line breaks
 const stripHtmlTags = (html) => {

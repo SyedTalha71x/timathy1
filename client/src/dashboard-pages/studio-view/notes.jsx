@@ -6,7 +6,7 @@ import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSo
 import { CSS } from '@dnd-kit/utilities'
 import ReactQuill from "react-quill"
 import "react-quill/dist/quill.snow.css"
-import DeleteConfirmModal from "../../components/studio-components/notes-components/DeleteConfirmModal"
+import DeleteConfirmModal from "../../components/shared/notes/DeleteConfirmModal"
 import TagManagerModal from "../../components/shared/TagManagerModal"
 import ImageSourceModal from "../../components/shared/image-handler/ImageSourceModal"
 import MediaLibraryPickerModal from "../../components/shared/image-handler/MediaLibraryPickerModal"

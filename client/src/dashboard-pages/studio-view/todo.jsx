@@ -5,12 +5,12 @@
 
 import React, { useState, useRef, useEffect, useCallback, useMemo } from "react"
 import { Plus, X, Calendar, Tag, Repeat, Check, ChevronDown, Clock, Bell, Users, ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, Pin, PinOff, Copy, Trash2, Edit, GripVertical } from "lucide-react"
-import EditTaskModal from "../../components/studio-components/todo-components/edit-task-modal"
+
 // toast removed
 import RepeatTaskModal from "../../components/studio-components/todo-components/repeat-task-modal"
-import AssignModal from "../../components/studio-components/todo-components/assign-modal"
-import TagsModal from "../../components/studio-components/todo-components/edit-tags"
-import CalendarModal from "../../components/studio-components/todo-components/calendar-modal"
+import AssignModal from "../../components/shared/to-do/assign-modal"
+import TagsModal from "../../components/shared/to-do/edit-tags"
+import CalendarModal from "../../components/shared/to-do/calendar-modal"
 import { UserCheck } from "lucide-react"
 import { todosTaskData, configuredTagsData, availableAssigneesData } from "../../utils/studio-states/todo-states"
 import DeleteModal from "../../components/studio-components/todo-components/delete-task"
@@ -2438,18 +2438,8 @@ export default function TodoApp() {
           onDeleteTag={deleteTag}
         />
 
-        {/* Edit Task Modal */}
-        {isEditModalOpenTask && selectedTask && (
-          <EditTaskModal
-            taskToEdit={selectedTask}
-            onClose={() => {
-              setIsEditModalOpenTask(false)
-              setSelectedTask(null)
-            }}
-            onUpdateTask={handleTaskUpdate}
-            configuredTags={configuredTags}
-          />
-        )}
+      
+
 
         {/* Delete Modal */}
         <DeleteModal
