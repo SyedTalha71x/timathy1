@@ -266,7 +266,7 @@ const TaskCard = ({
 // ============================================
 // Main To-Do Widget Component
 // ============================================
-export default function ToDoWidget({ isSidebarEditing = false }) {
+export default function ToDoWidget({ isSidebarEditing = false, compactMode = false }) {
   // Use todosTaskData for consistency with main todo page
   const [todos, setTodos] = useState(todosTaskData)
   const [configuredTags] = useState(configuredTagsData)
@@ -629,7 +629,7 @@ export default function ToDoWidget({ isSidebarEditing = false }) {
             }}
           >
             <div className={`w-2 h-2 rounded-full ${config.dotColor}`}></div>
-            <span className="hidden sm:inline">{config.label}</span>
+            <span className={compactMode ? "hidden" : "hidden sm:inline"}>{config.label}</span>
             <span
               className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
                 activeTab === status ? "bg-white/20 text-white" : "bg-gray-800 text-gray-400"

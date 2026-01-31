@@ -2,121 +2,119 @@
 /* eslint-disable react/prop-types */
 import { useState, useRef, useEffect } from "react"
 import Chart from "react-apexcharts"
-import { FaCalendarAlt, FaDollarSign, FaUserPlus, FaUsers } from "react-icons/fa"
+import { 
+  ChevronLeft, 
+  ChevronRight,
+  CalendarDays,
+  UserCheck,
+  UserX,
+  Clock,
+  AlertCircle,
+  Users,
+  UserPlus,
+  DollarSign,
+  CreditCard,
+  TrendingUp
+} from "lucide-react"
 
-const tabs = [
-  { name: "Appointments", icon: FaCalendarAlt },
-  { name: "Members", icon: FaUsers },
-  { name: "Leads", icon: FaUserPlus },
-  { name: "Finances", icon: FaDollarSign },
-] 
+// âœ… Import shared data from analytics-states
+import {
+  tabs,
+  appointmentsData,
+  membersData,
+  leadsData,
+  financesData,
+  getMonthlyBreakdownChartConfig,
+  getPopularTimesChartConfig,
+  getMemberActivityChartConfig,
+  getMembersByTypeChartConfig,
+  getLeadsChartConfig,
+  getConversionRateChartConfig,
+  getTopServicesByRevenueChartConfig,
+  getMostFrequentlySoldChartConfig,
+} from "../../../utils/studio-states/analytics-states"
 
-const appointmentsData = {
-  totals: {
-    bookings: 156,
-    checkIns: 142,
-    cancellations: 14,
-    lateCancellations: 6,
-    noShows: 8,
-  },
-  monthlyBreakdown: [
-    { month: "Apr", bookings: 8, checkIns: 7, cancellations: 1, lateCancellations: 0, noShows: 0 },
-    { month: "May", bookings: 12, checkIns: 11, cancellations: 1, lateCancellations: 0, noShows: 0 },
-    { month: "Jun", bookings: 10, checkIns: 9, cancellations: 1, lateCancellations: 0, noShows: 0 },
-    { month: "Jul", bookings: 15, checkIns: 14, cancellations: 1, lateCancellations: 0, noShows: 0 },
-    { month: "Aug", bookings: 11, checkIns: 10, cancellations: 1, lateCancellations: 0, noShows: 0 },
-    { month: "Sep", bookings: 9, checkIns: 8, cancellations: 1, lateCancellations: 0, noShows: 0 },
-    { month: "Oct", bookings: 13, checkIns: 12, cancellations: 1, lateCancellations: 1, noShows: 0 },
-    { month: "Nov", bookings: 14, checkIns: 13, cancellations: 1, lateCancellations: 0, noShows: 0 },
-    { month: "Dec", bookings: 16, checkIns: 15, cancellations: 1, lateCancellations: 0, noShows: 1 },
-  ],
-  popularTimes: [
-    { time: "6 AM", count: 2 },
-    { time: "7 AM", count: 4 },
-    { time: "8 AM", count: 5 },
-    { time: "9 AM", count: 4 },
-    { time: "10 AM", count: 3 },
-    { time: "4 PM", count: 5 },
-    { time: "5 PM", count: 4 },
-    { time: "6 PM", count: 3 },
-    { time: "7 PM", count: 2 },
-  ],
-}
-
-// Sample data for members tab
-const membersData = {
-  totalMembers: 342,
-  newFullMembers: [12, 15, 18, 22, 19, 25, 28, 30, 27],
-  newTempMembers: [5, 8, 6, 9, 7, 10, 8, 11, 9],
-  inactiveMembers: [3, 2, 4, 3, 5, 2, 4, 3, 2],
-  pausedMembers: [1, 2, 1, 3, 2, 1, 2, 1, 3],
-  membersByType: [
-    { type: "Premium", count: 145 },
-    { type: "Standard", count: 98 },
-    { type: "Basic", count: 67 },
-    { type: "Trial", count: 32 },
-  ],
-}
-
-// Sample data for leads tab
-const leadsData = {
-  totalLeads: 89,
-  monthlyData: [
-    { month: "Apr", newLeads: 8, converted: 3, convertedPercent: 37.5 },
-    { month: "May", newLeads: 12, converted: 5, convertedPercent: 41.7 },
-    { month: "Jun", newLeads: 10, converted: 4, convertedPercent: 40.0 },
-    { month: "Jul", newLeads: 15, converted: 7, convertedPercent: 46.7 },
-    { month: "Aug", newLeads: 11, converted: 5, convertedPercent: 45.5 },
-    { month: "Sep", newLeads: 9, converted: 3, convertedPercent: 33.3 },
-    { month: "Oct", newLeads: 13, converted: 6, convertedPercent: 46.2 },
-    { month: "Nov", newLeads: 14, converted: 7, convertedPercent: 50.0 },
-    { month: "Dec", newLeads: 16, converted: 8, convertedPercent: 50.0 },
-  ],
-}
-
-// Sample data for finances tab
-const financesData = {
-  totalRevenue: 45680,
-  averageRevenuePerMember: 133.57,
-  outstandingPayments: 2340,
-  topServicesByRevenue: [
-    { name: "Personal", revenue: 18500 },
-    { name: "Group", revenue: 12300 },
-    { name: "Nutrition", revenue: 8900 },
-    { name: "Massage", revenue: 5980 },
-  ],
-  mostFrequentlySold: [
-    { name: "Monthly", count: 245 },
-    { name: "PT Session", count: 189 },
-    { name: "Class Pass", count: 156 },
-    { name: "Nutrition", count: 98 },
-    { name: "Massage", count: 67 },
-  ],
-}
-
-// Dropdown options for each tab
+// âœ… Extended dropdown options - Full scope like Analytics menu
 const dropdownOptions = {
   Appointments: [
-    { value: "monthlyBreakdown", label: "Monthly Breakdown" },
-    { value: "popularTimes", label: "Popular Times" },
+    { value: "overview", label: "Overview", type: "stats" },
+    { value: "monthlyBreakdown", label: "Monthly Breakdown", type: "chart" },
+    { value: "popularTimes", label: "Popular Times", type: "chart" },
   ],
   Members: [
-    { value: "memberActivity", label: "Activity" },
-    { value: "membersByType", label: "By Type" },
+    { value: "overview", label: "Overview", type: "stats" },
+    { value: "memberActivity", label: "Member Activity", type: "chart" },
+    { value: "membersByType", label: "Members by Type", type: "chart" },
   ],
   Leads: [
-    { value: "newVsConverted", label: "Leads vs Converted" },
-    { value: "conversionRate", label: "Conversion Rate" },
+    { value: "overview", label: "Overview", type: "stats" },
+    { value: "newVsConverted", label: "New Leads & Converted", type: "chart" },
+    { value: "conversionRate", label: "Conversion Rate", type: "chart" },
   ],
   Finances: [
-    { value: "topServices", label: "Top Services" },
-    { value: "mostSold", label: "Most Sold" },
+    { value: "overview", label: "Overview", type: "stats" },
+    { value: "topServices", label: "Top Services by Revenue", type: "chart" },
+    { value: "mostSold", label: "Most Frequently Sold", type: "chart" },
   ],
+}
+
+// âœ… Mini Stat Card Component for Overview
+const MiniStatCard = ({ title, value, icon: Icon, iconBg, iconColor, change, isMobile }) => {
+  const isPositive = change > 0
+  const isNeutral = change === 0 || change === undefined
+
+  return (
+    <div className="bg-black rounded-lg p-2 sm:p-3">
+      <div className="flex items-center gap-2">
+        <div className={`p-1.5 sm:p-2 ${iconBg} rounded-lg flex-shrink-0`}>
+          <Icon size={isMobile ? 14 : 16} className={iconColor} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1">
+            <span className="text-sm sm:text-base font-bold text-white truncate">
+              {value}
+            </span>
+            {!isNeutral && (
+              <span className={`text-[10px] ${isPositive ? "text-green-400" : "text-red-400"}`}>
+                {isPositive ? "â†‘" : "â†“"}{Math.abs(change)}%
+              </span>
+            )}
+          </div>
+          <p className="text-[10px] sm:text-xs text-gray-400 truncate">{title}</p>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// âœ… Hero Stat Card for Members/Leads Overview
+const HeroStatCard = ({ title, value, icon: Icon, change, isMobile }) => {
+  return (
+    <div className="bg-gradient-to-br from-blue-600/20 to-blue-800/20 border border-blue-500/30 rounded-xl p-3 sm:p-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-2 sm:p-3 bg-blue-500/20 rounded-xl">
+            <Icon size={isMobile ? 20 : 24} className="text-blue-400" />
+          </div>
+          <div>
+            <p className="text-blue-300 text-[10px] sm:text-xs">{title}</p>
+            <div className="text-2xl sm:text-3xl font-bold text-white">{value}</div>
+          </div>
+        </div>
+        {change && (
+          <div className="flex items-center gap-1 bg-green-500/20 px-2 py-1 rounded-lg">
+            <TrendingUp className="text-green-400" size={14} />
+            <span className="text-green-400 text-xs font-semibold">+{change}%</span>
+          </div>
+        )}
+      </div>
+    </div>
+  )
 }
 
 export default function AnalyticsChartWidget({ isEditing, onRemove }) {
-  const [activeTab, setActiveTab] = useState("Appointments")
-  const [selectedOption, setSelectedOption] = useState("monthlyBreakdown")
+  const [activeTab, setActiveTab] = useState("Members")
+  const [selectedOption, setSelectedOption] = useState("memberActivity")
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const dropdownRef = useRef(null)
@@ -126,10 +124,8 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768)
     }
-    
     checkMobile()
     window.addEventListener('resize', checkMobile)
-    
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
@@ -144,401 +140,363 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
-  // Chart configurations for each option
+  // âœ… Navigate to previous/next option
+  const navigateOption = (direction) => {
+    const options = dropdownOptions[activeTab]
+    const currentIndex = options.findIndex(opt => opt.value === selectedOption)
+    let newIndex = currentIndex + direction
+    
+    if (newIndex < 0) newIndex = options.length - 1
+    if (newIndex >= options.length) newIndex = 0
+    
+    setSelectedOption(options[newIndex].value)
+  }
+
+  // âœ… Get chart configuration
   const getChartConfig = () => {
-    const baseOptions = {
+    const widgetHeight = isMobile ? 200 : 260
+
+    const widgetOverrides = {
       chart: {
+        height: widgetHeight,
         toolbar: { show: false },
-        background: "transparent",
-        fontFamily: "'Inter', sans-serif",
-      },
-      xaxis: {
-        labels: { 
-          style: { 
-            colors: "#9CA3AF", 
-            fontSize: isMobile ? "10px" : "12px" 
-          } 
-        },
-        axisBorder: { show: false },
-        axisTicks: { show: false },
-      },
-      yaxis: {
-        labels: { 
-          style: { 
-            colors: "#9CA3AF", 
-            fontSize: isMobile ? "10px" : "12px" 
-          } 
-        },
-      },
-      grid: { 
-        borderColor: "#374151", 
-        strokeDashArray: 3 
       },
       legend: {
-        labels: { colors: "#9CA3AF" },
         position: isMobile ? "bottom" : "top",
-        horizontalAlign: "center",
-        itemMargin: { horizontal: isMobile ? 8 : 16 },
-        fontSize: isMobile ? "11px" : "12px",
+        fontSize: isMobile ? "9px" : "10px",
+        itemMargin: { horizontal: isMobile ? 4 : 8 },
       },
-      tooltip: { 
-        theme: "dark",
-        style: {
-          fontSize: isMobile ? "11px" : "12px",
-        }
+      stroke: {
+        width: isMobile ? 2 : 2.5,
       },
     }
 
     switch (activeTab) {
       case "Appointments":
         switch (selectedOption) {
-          case "monthlyBreakdown":
+          case "monthlyBreakdown": {
+            const config = getMonthlyBreakdownChartConfig()
             return {
               options: {
-                ...baseOptions,
-                chart: { ...baseOptions.chart, type: "line", height: isMobile ? 220 : 300 },
-                colors: ["#10B981", "#3B82F6", "#EF4444", "#F59E0B", "#8B5CF6"],
-                stroke: { curve: "smooth", width: isMobile ? 2 : 3 },
-                xaxis: {
-                  ...baseOptions.xaxis,
-                  categories: appointmentsData.monthlyBreakdown.map((item) => item.month),
-                },
-                yaxis: {
-                  ...baseOptions.yaxis,
-                  min: 0,
-                  max: 20,
-                  tickAmount: isMobile ? 4 : 5,
-                },
+                ...config.options,
+                chart: { ...config.options.chart, ...widgetOverrides.chart },
+                legend: { ...config.options.legend, ...widgetOverrides.legend },
+                stroke: { ...config.options.stroke, ...widgetOverrides.stroke },
               },
-              series: [
-                { name: "Bookings", data: appointmentsData.monthlyBreakdown.map((item) => item.bookings) },
-                { name: "Check-ins", data: appointmentsData.monthlyBreakdown.map((item) => item.checkIns) },
-                { name: "Cancels", data: appointmentsData.monthlyBreakdown.map((item) => item.cancellations) },
-                { name: "Late", data: appointmentsData.monthlyBreakdown.map((item) => item.lateCancellations) },
-                { name: "No Shows", data: appointmentsData.monthlyBreakdown.map((item) => item.noShows) },
-              ],
+              series: config.series,
               type: "line",
             }
-          case "popularTimes":
+          }
+          case "popularTimes": {
+            const config = getPopularTimesChartConfig()
             return {
               options: {
-                ...baseOptions,
-                chart: { ...baseOptions.chart, type: "bar", height: isMobile ? 220 : 300 },
-                colors: ["#10B981"],
+                ...config.options,
+                chart: { ...config.options.chart, ...widgetOverrides.chart },
                 plotOptions: {
-                  bar: { 
-                    borderRadius: 6, 
-                    columnWidth: isMobile ? "70%" : "60%",
-                    horizontal: isMobile,
-                  },
-                },
-                dataLabels: { enabled: false },
-                xaxis: {
-                  ...baseOptions.xaxis,
-                  categories: isMobile 
-                    ? appointmentsData.popularTimes.map((item) => item.time)
-                    : appointmentsData.popularTimes.map((item) => item.time),
-                  labels: { 
-                    ...baseOptions.xaxis.labels,
-                    rotate: isMobile ? 0 : -45,
-                  },
-                },
-                yaxis: {
-                  ...baseOptions.yaxis,
-                  min: 0,
-                  max: 6,
-                  tickAmount: isMobile ? 4 : 6,
+                  bar: { borderRadius: 4, columnWidth: isMobile ? "70%" : "60%" },
                 },
               },
-              series: [
-                { name: "Bookings", data: appointmentsData.popularTimes.map((item) => item.count) },
-              ],
+              series: config.series,
               type: "bar",
             }
+          }
         }
         break
 
       case "Members":
         switch (selectedOption) {
-          case "memberActivity":
+          case "memberActivity": {
+            const config = getMemberActivityChartConfig()
             return {
               options: {
-                ...baseOptions,
-                chart: { ...baseOptions.chart, type: "line", height: isMobile ? 220 : 300 },
-                colors: ["#10B981", "#3B82F6", "#EF4444", "#F59E0B"],
-                stroke: { curve: "smooth", width: isMobile ? 2 : 3 },
-                xaxis: {
-                  ...baseOptions.xaxis,
-                  categories: isMobile 
-                    ? ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-                    : ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-                },
-                yaxis: {
-                  ...baseOptions.yaxis,
-                  min: 0,
-                },
+                ...config.options,
+                chart: { ...config.options.chart, ...widgetOverrides.chart },
+                legend: { ...config.options.legend, ...widgetOverrides.legend },
+                stroke: { ...config.options.stroke, ...widgetOverrides.stroke },
               },
-              series: [
-                { name: "New Full", data: membersData.newFullMembers },
-                { name: "New Temp", data: membersData.newTempMembers },
-                { name: "Inactive", data: membersData.inactiveMembers },
-                { name: "Paused", data: membersData.pausedMembers },
-              ],
+              series: config.series,
               type: "line",
             }
-          case "membersByType":
+          }
+          case "membersByType": {
+            const config = getMembersByTypeChartConfig()
             return {
               options: {
-                ...baseOptions,
-                chart: { ...baseOptions.chart, type: "donut", height: isMobile ? 220 : 300 },
-                colors: ["#10B981", "#3B82F6", "#F59E0B", "#8B5CF6"],
-                labels: membersData.membersByType.map((item) => item.type),
+                ...config.options,
+                chart: { ...config.options.chart, ...widgetOverrides.chart },
                 legend: { 
-                  ...baseOptions.legend,
-                  position: isMobile ? "bottom" : "right",
+                  ...config.options.legend,
+                  position: "bottom",
+                  fontSize: isMobile ? "9px" : "10px",
                 },
                 plotOptions: {
                   pie: {
                     donut: {
-                      size: isMobile ? "55%" : "65%",
+                      size: "55%",
                       labels: {
                         show: true,
                         total: {
                           show: true,
                           label: "Total",
                           color: "#9CA3AF",
-                          fontSize: isMobile ? "14px" : "16px",
+                          fontSize: isMobile ? "11px" : "12px",
                           formatter: () => membersData.totalMembers.toString(),
                         },
                       },
                     },
                   },
                 },
-                dataLabels: { 
-                  enabled: !isMobile,
-                  style: { colors: ["#fff"], fontSize: isMobile ? "10px" : "12px" } 
-                },
+                dataLabels: { enabled: false },
               },
-              series: membersData.membersByType.map((item) => item.count),
+              series: config.series,
               type: "donut",
             }
+          }
         }
         break
 
       case "Leads":
         switch (selectedOption) {
-          case "newVsConverted":
+          case "newVsConverted": {
+            const config = getLeadsChartConfig()
             return {
               options: {
-                ...baseOptions,
-                chart: { ...baseOptions.chart, type: "bar", height: isMobile ? 220 : 300 },
-                colors: ["#3B82F6", "#10B981"],
+                ...config.options,
+                chart: { ...config.options.chart, ...widgetOverrides.chart },
+                legend: { ...config.options.legend, ...widgetOverrides.legend },
                 plotOptions: {
-                  bar: { 
-                    borderRadius: 6, 
-                    columnWidth: isMobile ? "70%" : "60%",
-                  },
-                },
-                dataLabels: { enabled: false },
-                xaxis: {
-                  ...baseOptions.xaxis,
-                  categories: leadsData.monthlyData.map((item) => item.month),
-                },
-                yaxis: {
-                  ...baseOptions.yaxis,
-                  min: 0,
+                  bar: { borderRadius: 4, columnWidth: isMobile ? "70%" : "60%" },
                 },
               },
-              series: [
-                { name: "New Leads", data: leadsData.monthlyData.map((item) => item.newLeads) },
-                { name: "Converted", data: leadsData.monthlyData.map((item) => item.converted) },
-              ],
+              series: config.series,
               type: "bar",
             }
-          case "conversionRate":
+          }
+          case "conversionRate": {
+            const config = getConversionRateChartConfig()
             return {
               options: {
-                ...baseOptions,
-                chart: { ...baseOptions.chart, type: "line", height: isMobile ? 220 : 300 },
-                colors: ["#10B981"],
-                stroke: { curve: "smooth", width: isMobile ? 2 : 3 },
-                xaxis: {
-                  ...baseOptions.xaxis,
-                  categories: leadsData.monthlyData.map((item) => item.month),
-                },
-                yaxis: {
-                  ...baseOptions.yaxis,
-                  min: 0,
-                  max: 100,
-                  labels: {
-                    ...baseOptions.yaxis.labels,
-                    formatter: (value) => `${value}%`,
-                  },
-                },
+                ...config.options,
+                chart: { ...config.options.chart, ...widgetOverrides.chart },
+                stroke: { ...config.options.stroke, ...widgetOverrides.stroke },
               },
-              series: [
-                { name: "Rate", data: leadsData.monthlyData.map((item) => item.convertedPercent) },
-              ],
+              series: config.series,
               type: "line",
             }
+          }
         }
         break
 
       case "Finances":
         switch (selectedOption) {
-          case "topServices":
+          case "topServices": {
+            const config = getTopServicesByRevenueChartConfig()
             return {
               options: {
-                ...baseOptions,
-                chart: { ...baseOptions.chart, type: "bar", height: isMobile ? 220 : 300 },
-                colors: ["#10B981"],
+                ...config.options,
+                chart: { ...config.options.chart, ...widgetOverrides.chart },
                 plotOptions: {
-                  bar: { 
-                    borderRadius: 6, 
-                    horizontal: isMobile,
-                  },
-                },
-                dataLabels: { enabled: false },
-                xaxis: {
-                  ...baseOptions.xaxis,
-                  categories: financesData.topServicesByRevenue.map((item) => item.name),
-                  labels: {
-                    ...baseOptions.xaxis.labels,
-                    formatter: (value) => isMobile ? `$${(value/1000).toFixed(0)}k` : `$${value}`,
-                  },
-                },
-                yaxis: {
-                  ...baseOptions.yaxis,
+                  bar: { borderRadius: 4, horizontal: true },
                 },
               },
-              series: [
-                { name: "Revenue", data: financesData.topServicesByRevenue.map((item) => item.revenue) },
-              ],
+              series: config.series,
               type: "bar",
             }
-          case "mostSold":
+          }
+          case "mostSold": {
+            const config = getMostFrequentlySoldChartConfig()
             return {
               options: {
-                ...baseOptions,
-                chart: { ...baseOptions.chart, type: "bar", height: isMobile ? 220 : 300 },
-                colors: ["#3B82F6"],
+                ...config.options,
+                chart: { ...config.options.chart, ...widgetOverrides.chart },
                 plotOptions: {
-                  bar: { 
-                    borderRadius: 6, 
-                    columnWidth: isMobile ? "70%" : "60%",
-                    horizontal: isMobile,
-                  },
-                },
-                dataLabels: { enabled: false },
-                xaxis: {
-                  ...baseOptions.xaxis,
-                  categories: financesData.mostFrequentlySold.map((item) => item.name),
-                  labels: {
-                    ...baseOptions.xaxis.labels,
-                    rotate: isMobile ? 0 : -45,
-                  },
-                },
-                yaxis: {
-                  ...baseOptions.yaxis,
-                  min: 0,
+                  bar: { borderRadius: 4, columnWidth: isMobile ? "70%" : "60%" },
                 },
               },
-              series: [
-                { name: "Sold", data: financesData.mostFrequentlySold.map((item) => item.count) },
-              ],
+              series: config.series,
               type: "bar",
             }
+          }
         }
         break
+    }
+    return null
+  }
+
+  // âœ… Render Overview Stats based on active tab
+  const renderOverviewStats = () => {
+    switch (activeTab) {
+      case "Appointments":
+        return (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <MiniStatCard
+              title="Bookings"
+              value={appointmentsData.totals.bookings}
+              icon={CalendarDays}
+              iconBg="bg-blue-500/20"
+              iconColor="text-blue-400"
+              change={12}
+              isMobile={isMobile}
+            />
+            <MiniStatCard
+              title="Check-ins"
+              value={appointmentsData.totals.checkIns}
+              icon={UserCheck}
+              iconBg="bg-green-500/20"
+              iconColor="text-green-400"
+              change={8}
+              isMobile={isMobile}
+            />
+            <MiniStatCard
+              title="Cancellations"
+              value={appointmentsData.totals.cancellations}
+              icon={UserX}
+              iconBg="bg-red-500/20"
+              iconColor="text-red-400"
+              change={-15}
+              isMobile={isMobile}
+            />
+            <MiniStatCard
+              title="Late Cancels"
+              value={appointmentsData.totals.lateCancellations}
+              icon={Clock}
+              iconBg="bg-yellow-500/20"
+              iconColor="text-yellow-400"
+              isMobile={isMobile}
+            />
+            <MiniStatCard
+              title="No Shows"
+              value={appointmentsData.totals.noShows}
+              icon={AlertCircle}
+              iconBg="bg-orange-500/20"
+              iconColor="text-orange-400"
+              isMobile={isMobile}
+            />
+          </div>
+        )
+
+      case "Members":
+        return (
+          <div className="space-y-3">
+            <HeroStatCard
+              title="Total Members"
+              value={membersData.totalMembers}
+              icon={Users}
+              change={18}
+              isMobile={isMobile}
+            />
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {membersData.membersByType.map((type, index) => (
+                <div key={type.type} className="bg-black rounded-lg p-2 text-center">
+                  <div className="text-sm sm:text-base font-bold text-white">{type.count}</div>
+                  <div className="text-[10px] sm:text-xs text-gray-400">{type.type}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+
+      case "Leads":
+        const avgConversion = (
+          leadsData.monthlyData.reduce((sum, m) => sum + m.convertedPercent, 0) / 
+          leadsData.monthlyData.length
+        ).toFixed(1)
+        const lastMonth = leadsData.monthlyData[leadsData.monthlyData.length - 1]
+        const totalConverted = leadsData.monthlyData.reduce((sum, m) => sum + m.converted, 0)
+
+        return (
+          <div className="space-y-3">
+            <HeroStatCard
+              title="Total Leads"
+              value={leadsData.totalLeads}
+              icon={UserPlus}
+              change={24}
+              isMobile={isMobile}
+            />
+            <div className="grid grid-cols-3 gap-2">
+              <div className="bg-black rounded-lg p-2 text-center">
+                <div className="text-sm sm:text-base font-bold text-green-400">{totalConverted}</div>
+                <div className="text-[10px] sm:text-xs text-gray-400">Converted</div>
+              </div>
+              <div className="bg-black rounded-lg p-2 text-center">
+                <div className="text-sm sm:text-base font-bold text-blue-400">{avgConversion}%</div>
+                <div className="text-[10px] sm:text-xs text-gray-400">Avg Rate</div>
+              </div>
+              <div className="bg-black rounded-lg p-2 text-center">
+                <div className="text-sm sm:text-base font-bold text-white">{lastMonth.newLeads}</div>
+                <div className="text-[10px] sm:text-xs text-gray-400">This Month</div>
+              </div>
+            </div>
+          </div>
+        )
+
+      case "Finances":
+        return (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <MiniStatCard
+              title="Total Revenue"
+              value={`$${financesData.totalRevenue.toLocaleString()}`}
+              icon={DollarSign}
+              iconBg="bg-green-500/20"
+              iconColor="text-green-400"
+              change={22}
+              isMobile={isMobile}
+            />
+            <MiniStatCard
+              title="Avg/Member"
+              value={`$${financesData.averageRevenuePerMember.toFixed(0)}`}
+              icon={CreditCard}
+              iconBg="bg-blue-500/20"
+              iconColor="text-blue-400"
+              change={5}
+              isMobile={isMobile}
+            />
+            <MiniStatCard
+              title="Outstanding"
+              value={`$${financesData.outstandingPayments.toLocaleString()}`}
+              icon={AlertCircle}
+              iconBg="bg-red-500/20"
+              iconColor="text-red-400"
+              change={-8}
+              isMobile={isMobile}
+            />
+          </div>
+        )
 
       default:
-        return {
-          options: baseOptions,
-          series: [],
-          type: "line",
-        }
+        return null
     }
   }
 
   const chartConfig = getChartConfig()
-
-  // Get stats for the current tab
-  const getTabStats = () => {
-    switch (activeTab) {
-      case "Appointments":
-        return [
-          { label: isMobile ? "Bookings" : "Bookings", value: appointmentsData.totals.bookings },
-          { label: isMobile ? "Check-ins" : "Check-ins", value: appointmentsData.totals.checkIns },
-          { label: isMobile ? "Cancels" : "Cancellations", value: appointmentsData.totals.cancellations },
-        ]
-      case "Members":
-        return [
-          { label: isMobile ? "Total" : "Total Members", value: membersData.totalMembers },
-          { label: isMobile ? "Premium" : "Premium", value: membersData.membersByType[0].count },
-          { label: isMobile ? "Standard" : "Standard", value: membersData.membersByType[1].count },
-        ]
-      case "Leads":
-        return [
-          { label: isMobile ? "Leads" : "Total Leads", value: leadsData.totalLeads },
-          { label: isMobile ? "Rate" : "Conversion", value: "45.5%" },
-          { label: isMobile ? "This Month" : "This Month", value: leadsData.monthlyData[8].newLeads },
-        ]
-      case "Finances":
-        return [
-          { 
-            label: isMobile ? "Revenue" : "Revenue", 
-            value: isMobile 
-              ? `$${(financesData.totalRevenue/1000).toFixed(0)}k` 
-              : `$${financesData.totalRevenue.toLocaleString()}` 
-          },
-          { 
-            label: isMobile ? "Avg/Member" : "Avg/Member", 
-            value: `$${financesData.averageRevenuePerMember.toFixed(isMobile ? 0 : 2)}` 
-          },
-          { 
-            label: isMobile ? "Outstanding" : "Outstanding", 
-            value: isMobile 
-              ? `$${(financesData.outstandingPayments/1000).toFixed(0)}k` 
-              : `$${financesData.outstandingPayments.toLocaleString()}` 
-          },
-        ]
-      default:
-        return []
-    }
-  }
+  const currentOptionIndex = dropdownOptions[activeTab].findIndex(opt => opt.value === selectedOption)
+  const currentOption = dropdownOptions[activeTab][currentOptionIndex]
 
   return (
     <div className="p-3 sm:p-4 bg-[#2F2F2F] rounded-xl">
-      {/* Header with Remove button in edit mode */}
-      <div className="flex justify-between items-center mb-3 sm:mb-4">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-3">
         <h2 className="text-base sm:text-lg font-semibold">Analytics</h2>
-        {/* {isEditing && (
-          <button
-            onClick={onRemove}
-            className="px-2 py-1 text-xs sm:text-sm bg-red-500/20 text-red-400 hover:bg-red-500/30 rounded-lg"
-          >
-            {isMobile ? "Remove" : "Remove Widget"}
-          </button>
-        )} */}
       </div>
 
-      {/* Tabs - Scrollable on mobile */}
-      <div className="flex gap-1 sm:gap-2 mb-3 sm:mb-4 overflow-x-auto pb-2 custom-scrollbar">
+      {/* Tabs */}
+      <div className="flex gap-1 sm:gap-2 mb-3 overflow-x-auto pb-2 custom-scrollbar">
         {tabs.map((tab) => (
           <button
             key={tab.name}
             onClick={() => {
               setActiveTab(tab.name)
-              setSelectedOption(dropdownOptions[tab.name][0].value)
+              setSelectedOption("overview")
             }}
-            className={`flex items-center gap-1 ml-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 ${
+            className={`flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 ${
               activeTab === tab.name
-                ? "bg-blue-600 text-white scale-105"
+                ? "bg-blue-600 text-white"
                 : "bg-[#3f3e3e] text-gray-400 hover:bg-[#3F3F3F] hover:text-white"
             }`}
           >
             <tab.icon className="text-xs sm:text-sm" />
-            <span className={isMobile && tab.name.length > 8 ? "truncate max-w-[60px]" : ""}>
+            <span>
               {isMobile && tab.name === "Appointments" ? "Appts" : 
                isMobile && tab.name === "Finances" ? "Finance" : tab.name}
             </span>
@@ -546,70 +504,86 @@ export default function AnalyticsChartWidget({ isEditing, onRemove }) {
         ))}
       </div>
 
-      {/* Stats Summary - Responsive grid */}
-      <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mb-3 sm:mb-4">
-        {getTabStats().map((stat, index) => (
-          <div key={index} className="bg-black rounded-lg p-2 sm:p-3 text-center">
-            <div className="text-sm sm:text-lg font-bold text-white truncate" title={stat.value}>
-              {stat.value}
+      {/* View Selector with Navigation Arrows */}
+      <div className="flex items-center gap-2 mb-3">
+        <button
+          onClick={() => navigateOption(-1)}
+          className="p-1.5 bg-black hover:bg-gray-800 rounded-lg transition-colors"
+        >
+          <ChevronLeft size={16} className="text-gray-400" />
+        </button>
+        
+        <div className="relative flex-1" ref={dropdownRef}>
+          <button
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className="flex items-center justify-between w-full px-3 py-2 bg-black rounded-lg text-white text-xs sm:text-sm"
+          >
+            <span className="truncate">
+              {currentOption?.label}
+            </span>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <span className="text-[10px] text-gray-500">
+                {currentOptionIndex + 1}/{dropdownOptions[activeTab].length}
+              </span>
+              <svg
+                className={`w-3 h-3 transition-transform ${isDropdownOpen ? "rotate-180" : ""}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
             </div>
-            <div className="text-[10px] sm:text-xs text-gray-400 truncate" title={stat.label}>
-              {stat.label}
+          </button>
+          
+          {isDropdownOpen && (
+            <div className="absolute z-10 mt-1 w-full bg-[#2F2F2F] rounded-lg shadow-lg border border-gray-700">
+              {dropdownOptions[activeTab].map((option, index) => (
+                <button
+                  key={option.value}
+                  onClick={() => {
+                    setSelectedOption(option.value)
+                    setIsDropdownOpen(false)
+                  }}
+                  className={`flex items-center justify-between w-full text-left px-3 py-2 text-xs sm:text-sm hover:bg-black first:rounded-t-lg last:rounded-b-lg ${
+                    selectedOption === option.value ? "text-blue-400 bg-black/50" : "text-white"
+                  }`}
+                >
+                  <span>{option.label}</span>
+                  <span className="text-[10px] text-gray-500 capitalize">{option.type}</span>
+                </button>
+              ))}
             </div>
-          </div>
-        ))}
+          )}
+        </div>
+        
+        <button
+          onClick={() => navigateOption(1)}
+          className="p-1.5 bg-black hover:bg-gray-800 rounded-lg transition-colors"
+        >
+          <ChevronRight size={16} className="text-gray-400" />
+        </button>
       </div>
 
-      {/* Dropdown for chart options */}
-      <div className="relative mb-3 sm:mb-4" ref={dropdownRef}>
-        <button
-          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          className="flex items-center justify-between w-full px-3 py-2 bg-black rounded-lg text-white text-xs sm:text-sm"
-        >
-          <span className="truncate mr-2">
-            {dropdownOptions[activeTab].find(opt => opt.value === selectedOption)?.label}
-          </span>
-          <svg
-            className={`w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0 transition-transform ${isDropdownOpen ? "rotate-180" : ""}`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
-        {isDropdownOpen && (
-          <div className="absolute z-10 mt-1 w-full bg-[#2F2F2F] rounded-lg shadow-lg border border-gray-700">
-            {dropdownOptions[activeTab].map((option) => (
-              <button
-                key={option.value}
-                onClick={() => {
-                  setSelectedOption(option.value)
-                  setIsDropdownOpen(false)
-                }}
-                className={`block w-full text-left px-3 py-2 text-xs sm:text-sm hover:bg-black first:rounded-t-lg last:rounded-b-lg ${
-                  selectedOption === option.value ? "text-blue-400 bg-black/50" : "text-white"
-                }`}
-              >
-                {option.label}
-              </button>
-            ))}
+      {/* Content Area */}
+      <div className="w-full">
+        {selectedOption === "overview" ? (
+          renderOverviewStats()
+        ) : (
+          <div className="overflow-x-auto">
+            <div className="min-w-[280px]">
+              {chartConfig && chartConfig.options && chartConfig.series && (
+                <Chart
+                  options={chartConfig.options}
+                  series={chartConfig.series}
+                  type={chartConfig.type}
+                  height={chartConfig.options?.chart?.height || (isMobile ? 200 : 260)}
+                />
+              )}
+            </div>
           </div>
         )}
       </div>
-
-      {/* Chart Container with responsive height */}
-      <div className="w-full overflow-x-auto">
-        <div className="min-w-[280px]">
-          <Chart
-            options={chartConfig.options}
-            series={chartConfig.series}
-            type={chartConfig.type}
-            height={chartConfig.options.chart.height}
-          />
-        </div>
-      </div>
-
     </div>
   )
 }

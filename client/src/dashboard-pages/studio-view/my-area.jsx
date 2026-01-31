@@ -3,91 +3,142 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { useState, useRef, useCallback, useEffect } from "react"
-import { Link, useNavigate } from "react-router-dom"
-import Chart from "react-apexcharts"
-import {
-  MoreVertical,
-  X,
-  Clock,
-  ChevronDown,
-  Edit,
-  Check,
-  Plus,
-  AlertTriangle,
-  Info,
-  CalendarIcon,
-  Menu,
-  ExternalLink,
-  MessageCircle,
-  Dumbbell,
-  Eye,
-} from "lucide-react"
+import { useState, useCallback, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
+import { Edit, Check, Plus, Eye } from "lucide-react"
 import { Toaster, toast } from "react-hot-toast"
-import Avatar from "../../../public/gray-avatar-fotor-20250912192528.png"
 
+// ============================================
+// Component Imports
+// ============================================
 import ViewManagementModal from "../../components/myarea-components/ViewManagementModal"
-import StaffCheckInWidget from "../../components/myarea-components/widgets/StaffWidgetCheckIn"
 import DraggableWidget from "../../components/myarea-components/DraggableWidget"
-import ContingentModal from "../../components/myarea-components/ContigentModal"
-
 import { WidgetSelectionModal } from "../../components/widget-selection-modal"
 
-import { notificationData, memberContingentDataNew, mockTrainingPlansNew, mockVideosNew, memberRelationsData, mockMemberHistoryNew, mockMemberRelationsNew, availableMembersLeadsNew, customLinksData, communicationsData, memberTypesData, bulletinBoardData } from "../../utils/studio-states/myarea-states"
-import NotesWidget from "../../components/myarea-components/widgets/NotesWidget"
-import BulletinBoardWidget from "../../components/myarea-components/widgets/BulletinBoardWidget"
-import ToDoWidget from "../../components/myarea-components/widgets/ToDoWidget"
-import ShiftScheduleWidget from "../../components/myarea-components/widgets/ShiftScheduleWidget"
-import { createPortal } from "react-dom"
+// Widget Imports
 import AnalyticsChartWidget from "../../components/myarea-components/widgets/AnalyticsChartWidget"
-import WebsiteLinksWidget from "../../components/myarea-components/widgets/WebsiteLinksWidget"
-import ExpiringContractsWidget from "../../components/myarea-components/widgets/ExpiringContractsWidget"
-import UpcomingBirthdaysWidget from "../../components/myarea-components/widgets/UpcomingBirthdaysWidget"
-
-import { appointmentsData, membersData, leadsData, leadRelationsData, freeAppointmentsData, appointmentTypesData } from "../../utils/studio-states"
 import UpcomingAppointmentsWidget from "../../components/myarea-components/widgets/UpcomingAppointmentsWidget"
+import StaffCheckInWidget from "../../components/myarea-components/widgets/StaffWidgetCheckIn"
+import WebsiteLinksWidget from "../../components/myarea-components/widgets/WebsiteLinksWidget"
+import ToDoWidget from "../../components/myarea-components/widgets/ToDoWidget"
+import UpcomingBirthdaysWidget from "../../components/myarea-components/widgets/UpcomingBirthdaysWidget"
+import BulletinBoardWidget from "../../components/myarea-components/widgets/BulletinBoardWidget"
+import NotesWidget from "../../components/myarea-components/widgets/NotesWidget"
+import ShiftScheduleWidget from "../../components/myarea-components/widgets/ShiftScheduleWidget"
+import ExpiringContractsWidget from "../../components/myarea-components/widgets/ExpiringContractsWidget"
+
+// Modal Imports
 import AppointmentActionModal from "../../components/studio-components/appointments-components/AppointmentActionModal"
 import EditMemberModalMain from "../../components/studio-components/members-components/EditMemberModal"
 import EditLeadModal from "../../components/studio-components/lead-studio-components/edit-lead-modal"
 import TrainingPlansModalMain from "../../components/shared/training/TrainingPlanModal"
 import EditAppointmentModal from "../../components/shared/appointments/EditAppointmentModal"
 
+// ============================================
+// Data Imports
+// ============================================
+import { 
+  memberRelationsData, 
+  availableMembersLeadsNew, 
+  customLinksData 
+} from "../../utils/studio-states/myarea-states"
 
+import { 
+  appointmentsData, 
+  membersData, 
+  leadsData, 
+  leadRelationsData, 
+  freeAppointmentsData, 
+  appointmentTypesData 
+} from "../../utils/studio-states"
+
+// ============================================
+// Constants
+// ============================================
+const DEFAULT_WIDGETS = [
+  { id: "chart", type: "chart", position: 0 },
+  { id: "expiringContracts", type: "expiringContracts", position: 1 },
+  { id: "appointments", type: "appointments", position: 2 },
+  { id: "staffCheckIn", type: "staffCheckIn", position: 3 },
+  { id: "websiteLink", type: "websiteLink", position: 4 },
+  { id: "todo", type: "todo", position: 5 },
+  { id: "birthday", type: "birthday", position: 6 },
+  { id: "bulletinBoard", type: "bulletinBoard", position: 7 },
+  { id: "notes", type: "notes", position: 8 },
+  { id: "shiftSchedule", type: "shiftSchedule", position: 9 }
+]
+
+const RELATION_OPTIONS = {
+  family: ["Father", "Mother", "Brother", "Sister", "Uncle", "Aunt", "Cousin", "Grandfather", "Grandmother"],
+  friendship: ["Best Friend", "Close Friend", "Friend", "Acquaintance"],
+  relationship: ["Partner", "Spouse", "Ex-Partner", "Boyfriend", "Girlfriend"],
+  work: ["Colleague", "Boss", "Employee", "Business Partner", "Client"],
+  other: ["Neighbor", "Doctor", "Lawyer", "Trainer", "Other"],
+}
+
+const LEAD_COLUMNS = [
+  { id: "new", title: "New" },
+  { id: "contacted", title: "Contacted" },
+  { id: "qualified", title: "Qualified" },
+  { id: "negotiation", title: "Negotiation" },
+  { id: "won", title: "Won" },
+  { id: "lost", title: "Lost" },
+]
+
+const TRAINING_PLANS_DATA = {
+  1: [{ id: 1, name: "Beginner Full Body", description: "Complete full body workout for beginners", duration: "4 weeks", difficulty: "Beginner", assignedDate: "2025-01-15" }],
+  3: [{ id: 2, name: "Advanced Strength Training", description: "High intensity strength building program", duration: "8 weeks", difficulty: "Advanced", assignedDate: "2025-01-10" }],
+  4: [
+    { id: 4, name: "Muscle Building Split", description: "Targeted muscle building program", duration: "12 weeks", difficulty: "Intermediate", assignedDate: "2025-01-05" },
+    { id: 3, name: "Weight Loss Circuit", description: "Fat burning circuit training program", duration: "6 weeks", difficulty: "Intermediate", assignedDate: "2025-01-20" }
+  ],
+  6: [{ id: 1, name: "Beginner Full Body", description: "Complete full body workout for beginners", duration: "4 weeks", difficulty: "Beginner", assignedDate: "2025-01-18" }],
+}
+
+const AVAILABLE_TRAINING_PLANS = [
+  { id: 1, name: "Beginner Full Body", description: "Complete full body workout for beginners", duration: "4 weeks", difficulty: "Beginner" },
+  { id: 2, name: "Advanced Strength Training", description: "High intensity strength building program", duration: "8 weeks", difficulty: "Advanced" },
+  { id: 3, name: "Weight Loss Circuit", description: "Fat burning circuit training program", duration: "6 weeks", difficulty: "Intermediate" },
+  { id: 4, name: "Muscle Building Split", description: "Targeted muscle building program", duration: "12 weeks", difficulty: "Intermediate" },
+]
+
+// ============================================
+// Main Component
+// ============================================
 export default function MyArea() {
-  const [openDropdownIndex, setOpenDropdownIndex] = useState(null)
-  const [selectedMemberType, setSelectedMemberType] = useState("All members")
-  const [isChartDropdownOpen, setIsChartDropdownOpen] = useState(false)
-  const dropdownRef = useRef(null)
-  const chartDropdownRef = useRef(null)
   const navigate = useNavigate()
-  const [isWidgetModalOpen, setIsWidgetModalOpen] = useState(false)
+
+  // ============================================
+  // Dashboard State
+  // ============================================
   const [isEditing, setIsEditing] = useState(false)
+  const [widgets, setWidgets] = useState(DEFAULT_WIDGETS)
+  const [isWidgetModalOpen, setIsWidgetModalOpen] = useState(false)
 
-  const [notePosition, setNotePosition] = useState({ top: 0, left: 0 })
-
+  // ============================================
+  // View Management State
+  // ============================================
   const [savedViews, setSavedViews] = useState([])
   const [currentView, setCurrentView] = useState(null)
   const [isViewModalOpen, setIsViewModalOpen] = useState(false)
 
-  const [isSpecialNoteModalOpen, setIsSpecialNoteModalOpen] = useState(false)
-  const [selectedAppointmentForNote, setSelectedAppointmentForNote] = useState(null)
+  // ============================================
+  // Widget Data State
+  // ============================================
+  const [customLinks, setCustomLinks] = useState(customLinksData)
+  const [appointments, setAppointments] = useState(appointmentsData)
+  const [memberRelations, setMemberRelations] = useState(memberRelationsData)
 
-  const [hoveredNoteId, setHoveredNoteId] = useState(null)
-  const [hoverTimeout, setHoverTimeout] = useState(null)
-
-  const [isMemberOverviewModalOpen, setisMemberOverviewModalOpen] = useState(false)
-  const [showAppointmentModal, setShowAppointmentModal] = useState(false)
-  const [showHistoryModal, setShowHistoryModal] = useState(false)
-  const [historyTab, setHistoryTab] = useState("general")
-  const [activeMemberDetailsTab, setActiveMemberDetailsTab] = useState("details")
-  const [isMemberDetailsModalOpen, setIsMemberDetailsModalOpen] = useState(false)
-  
-  // Appointment Action Modal states
+  // ============================================
+  // Appointment Modal State
+  // ============================================
   const [isAppointmentActionModalOpen, setIsAppointmentActionModalOpen] = useState(false)
   const [selectedAppointmentForAction, setSelectedAppointmentForAction] = useState(null)
   const [isEditAppointmentModalOpen, setIsEditAppointmentModalOpen] = useState(false)
-  
-  // Edit Member Modal states (for special notes from appointments)
+
+  // ============================================
+  // Edit Member Modal State
+  // ============================================
   const [isEditMemberModalOpen, setIsEditMemberModalOpen] = useState(false)
   const [selectedMemberForEdit, setSelectedMemberForEdit] = useState(null)
   const [editMemberActiveTab, setEditMemberActiveTab] = useState("note")
@@ -115,154 +166,25 @@ export default function MyArea() {
     noteImportance: "unimportant",
     notes: [],
   })
-  
-  // Edit Lead Modal states (for special notes from appointments)
+
+  // ============================================
+  // Edit Lead Modal State
+  // ============================================
   const [isEditLeadModalOpen, setIsEditLeadModalOpen] = useState(false)
   const [selectedLeadForEdit, setSelectedLeadForEdit] = useState(null)
   const [editLeadActiveTab, setEditLeadActiveTab] = useState("note")
-  
-  // Training Plan Modal states
+
+  // ============================================
+  // Training Plan Modal State
+  // ============================================
   const [isTrainingPlanModalOpen, setIsTrainingPlanModalOpen] = useState(false)
   const [selectedUserForTrainingPlan, setSelectedUserForTrainingPlan] = useState(null)
-  
-  // Training Plans data
-  const [memberTrainingPlans, setMemberTrainingPlans] = useState({
-    1: [{ id: 1, name: "Beginner Full Body", description: "Complete full body workout for beginners", duration: "4 weeks", difficulty: "Beginner", assignedDate: "2025-01-15" }],
-    3: [{ id: 2, name: "Advanced Strength Training", description: "High intensity strength building program", duration: "8 weeks", difficulty: "Advanced", assignedDate: "2025-01-10" }],
-    4: [
-      { id: 4, name: "Muscle Building Split", description: "Targeted muscle building program", duration: "12 weeks", difficulty: "Intermediate", assignedDate: "2025-01-05" },
-      { id: 3, name: "Weight Loss Circuit", description: "Fat burning circuit training program", duration: "6 weeks", difficulty: "Intermediate", assignedDate: "2025-01-20" }
-    ],
-    6: [{ id: 1, name: "Beginner Full Body", description: "Complete full body workout for beginners", duration: "4 weeks", difficulty: "Beginner", assignedDate: "2025-01-18" }],
-  })
-  
-  const [availableTrainingPlans, setAvailableTrainingPlans] = useState([
-    { id: 1, name: "Beginner Full Body", description: "Complete full body workout for beginners", duration: "4 weeks", difficulty: "Beginner" },
-    { id: 2, name: "Advanced Strength Training", description: "High intensity strength building program", duration: "8 weeks", difficulty: "Advanced" },
-    { id: 3, name: "Weight Loss Circuit", description: "Fat burning circuit training program", duration: "6 weeks", difficulty: "Intermediate" },
-    { id: 4, name: "Muscle Building Split", description: "Targeted muscle building program", duration: "12 weeks", difficulty: "Intermediate" },
-  ])
+  const [memberTrainingPlans, setMemberTrainingPlans] = useState(TRAINING_PLANS_DATA)
+  const [availableTrainingPlans] = useState(AVAILABLE_TRAINING_PLANS)
 
-  const [selectedMember, setSelectedMember] = useState(null)
-  const [memberHistory, setMemberHistory] = useState({})
-  const [currentBillingPeriod, setCurrentBillingPeriod] = useState("January 2025")
-
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-  const [editModalTab, setEditModalTab] = useState("details")
-
-  const [notifications, setnotifications] = useState(notificationData)
-  const [memberContingentData, setMemberContingentData] = useState(memberContingentDataNew)
-
-  const [showDocumentModal, setShowDocumentModal] = useState(false)
-  const [selectedMemberForDocuments, setSelectedMemberForDocuments] = useState(null)
-
-  const [editingRelations, setEditingRelations] = useState(false)
-  const [newRelation, setNewRelation] = useState({
-    name: "",
-    relation: "",
-    category: "family",
-    type: "manual",
-    selectedMemberId: null,
-  })
-  const [memberRelations, setMemberRelations] = useState(memberRelationsData)
-
-  const DefaultAvatar = Avatar
-  const availableMembersLeads = availableMembersLeadsNew
-  const mockMemberRelations = mockMemberRelationsNew
-  const mockMemberHistory = mockMemberHistoryNew
-  const mockTrainingPlans = mockTrainingPlansNew
-  const mockVideos = mockVideosNew
-  const memberTypes = memberTypesData
-
-  const [editForm, setEditForm] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    street: "",
-    zipCode: "",
-    city: "",
-    dateOfBirth: "",
-    about: "",
-    note: "",
-    noteStartDate: "",
-    noteEndDate: "",
-    noteImportance: "unimportant",
-    contractStart: "",
-    contractEnd: "",
-  })
-
-  const [customLinks, setCustomLinks] = useState(customLinksData)
-  const [communications, setCommunications] = useState(communicationsData)
-  const [appointments, setAppointments] = useState(appointmentsData)
-
-  const [widgets, setWidgets] = useState([
-    { id: "chart", type: "chart", position: 0 },
-    { id: "expiringContracts", type: "expiringContracts", position: 1 },
-    { id: "appointments", type: "appointments", position: 2 },
-    { id: "staffCheckIn", type: "staffCheckIn", position: 3 },
-    { id: "websiteLink", type: "websiteLink", position: 4 },
-    { id: "todo", type: "todo", position: 5 },
-    { id: "birthday", type: "birthday", position: 6 },
-    { id: "bulletinBoard", type: "bulletinBoard", position: 7 },
-    { id: "notes", type: "notes", position: 8 },
-    { id: "shiftSchedule", type: "shiftSchedule", position: 9 }
-  ])
-
-  const toggleDropdown = (index) => setOpenDropdownIndex(openDropdownIndex === index ? null : index)
-  const toggleEditing = () => setIsEditing(!isEditing)
-  const [activeNoteId, setActiveNoteId] = useState(null)
-
-  const [tempContingent, setTempContingent] = useState({ used: 0, total: 0 })
-  const [selectedBillingPeriod, setSelectedBillingPeriod] = useState("current")
-  const [showAddBillingPeriodModal, setShowAddBillingPeriodModal] = useState(false)
-  const [newBillingPeriod, setNewBillingPeriod] = useState("")
-  const [showContingentModal, setShowContingentModal] = useState(false)
-
-  const notePopoverRef = useRef(null)
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (notePopoverRef.current && !notePopoverRef.current.contains(event.target)) {
-        setActiveNoteId(null)
-      }
-    }
-    if (activeNoteId !== null) {
-      document.addEventListener("mousedown", handleClickOutside)
-      return () => {
-        document.removeEventListener("mousedown", handleClickOutside)
-      }
-    }
-  }, [activeNoteId])
-
-  useEffect(() => {
-    setMemberHistory(mockMemberHistory)
-    setMemberRelations(mockMemberRelations)
-    setMemberContingentData(memberContingentData)
-  }, [])
-
-  useEffect(() => {
-    if (selectedMember && isEditModalOpen) {
-      setEditForm({
-        firstName: selectedMember.firstName || "",
-        lastName: selectedMember.lastName || "",
-        email: selectedMember.email || "",
-        phone: selectedMember.phone || "",
-        street: selectedMember.street || "",
-        zipCode: selectedMember.zipCode || "",
-        city: selectedMember.city || "",
-        dateOfBirth: selectedMember.dateOfBirth || "",
-        about: selectedMember.about || "",
-        note: selectedMember.note || "",
-        noteStartDate: selectedMember.noteStartDate || "",
-        noteEndDate: selectedMember.noteEndDate || "",
-        noteImportance: selectedMember.noteImportance || "unimportant",
-        contractStart: selectedMember.contractStart || "",
-        contractEnd: selectedMember.contractEnd || "",
-      })
-    }
-  }, [selectedMember, isEditModalOpen])
-
+  // ============================================
+  // Effects - View Management Persistence
+  // ============================================
   useEffect(() => {
     const savedViewsData = localStorage.getItem("dashboardViews")
     if (savedViewsData) {
@@ -283,216 +205,10 @@ export default function MyArea() {
     }
   }, [savedViews])
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setOpenDropdownIndex(null)
-      }
-      if (chartDropdownRef.current && !chartDropdownRef.current.contains(event.target)) {
-        setIsChartDropdownOpen(false)
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [])
-
-  const handleAssignTrainingPlan = (memberId, planId) => {
-    const plan = availableTrainingPlans.find((p) => p.id === Number.parseInt(planId))
-    if (plan) {
-      const assignedPlan = {
-        ...plan,
-        assignedDate: new Date().toLocaleDateString(),
-      }
-
-      setMemberTrainingPlans((prev) => ({
-        ...prev,
-        [memberId]: [...(prev[memberId] || []), assignedPlan],
-      }))
-
-      toast.success(`Training plan "${plan.name}" assigned successfully!`)
-    }
-  }
-
-  const handleRemoveTrainingPlan = (memberId, planId) => {
-    setMemberTrainingPlans((prev) => ({
-      ...prev,
-      [memberId]: (prev[memberId] || []).filter((plan) => plan.id !== planId),
-    }))
-
-    toast.success("Training plan removed successfully!")
-  }
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target
-    setEditForm((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
-  }
-
-  const handleEditSubmit = (e) => {
-    e.preventDefault()
-
-    const updatedAppointments = appointments.map((member) => {
-      if (member.id === selectedMember.id) {
-        return {
-          ...member,
-          firstName: editForm.firstName,
-          lastName: editForm.lastName,
-          name: `${editForm.firstName} ${editForm.lastName}`,
-          email: editForm.email,
-          phone: editForm.phone,
-          street: editForm.street,
-          zipCode: editForm.zipCode,
-          city: editForm.city,
-          dateOfBirth: editForm.dateOfBirth,
-          about: editForm.about,
-          note: editForm.note,
-          noteStartDate: editForm.noteStartDate,
-          noteEndDate: editForm.noteEndDate,
-          noteImportance: editForm.noteImportance,
-          contractStart: editForm.contractStart,
-          contractEnd: editForm.contractEnd,
-        }
-      }
-      return member
-    })
-
-    setAppointments(updatedAppointments)
-
-    setSelectedMember({
-      ...selectedMember,
-      ...editForm,
-      name: `${editForm.firstName} ${editForm.lastName}`,
-    })
-
-    setIsEditModalOpen(false)
-    toast.success("Member details have been updated successfully")
-  }
-
-  const handleDeleteRelation = (category, relationId) => {
-    const updatedRelations = { ...memberRelations }
-    updatedRelations[selectedMember.id][category] = updatedRelations[selectedMember.id][category].filter(
-      (rel) => rel.id !== relationId,
-    )
-    setMemberRelations(updatedRelations)
-    toast.success("Relation deleted successfully")
-  }
-
-  const handleArchiveMember = (memberId) => {
-    const member = appointments.find((m) => m.id === memberId)
-    if (member && member.memberType === "temporary") {
-      if (window.confirm("Are you sure you want to archive this temporary member?")) {
-        setAppointments((prev) =>
-          prev.map((member) =>
-            member.id === memberId
-              ? { ...member, isArchived: true, archivedDate: new Date().toISOString().split("T")[0] }
-              : member,
-          ),
-        )
-        toast.success("Temporary member archived successfully")
-      }
-    } else {
-      toast.error("Only temporary members can be archived")
-    }
-  }
-
-  const handleUnarchiveMember = (memberId) => {
-    const member = appointments.find((m) => m.id === memberId)
-    if (member && member.memberType === "temporary") {
-      setAppointments((prev) =>
-        prev.map((member) => (member.id === memberId ? { ...member, isArchived: false, archivedDate: null } : member)),
-      )
-      toast.success("Temporary member unarchived successfully")
-    } else {
-      toast.error("Only temporary members can be unarchived")
-    }
-  }
-
-  const relationOptions = {
-    family: ["Father", "Mother", "Brother", "Sister", "Uncle", "Aunt", "Cousin", "Grandfather", "Grandmother"],
-    friendship: ["Best Friend", "Close Friend", "Friend", "Acquaintance"],
-    relationship: ["Partner", "Spouse", "Ex-Partner", "Boyfriend", "Girlfriend"],
-    work: ["Colleague", "Boss", "Employee", "Business Partner", "Client"],
-    other: ["Neighbor", "Doctor", "Lawyer", "Trainer", "Other"],
-  }
-
-  const handleAddRelation = () => {
-    if (!newRelation.name || !newRelation.relation) {
-      toast.error("Please fill in all fields")
-      return
-    }
-    const relationId = Date.now()
-    const updatedRelations = { ...memberRelations }
-    if (!updatedRelations[selectedMember.id]) {
-      updatedRelations[selectedMember.id] = {
-        family: [],
-        friendship: [],
-        relationship: [],
-        work: [],
-        other: [],
-      }
-    }
-    updatedRelations[selectedMember.id][newRelation.category].push({
-      id: relationId,
-      name: newRelation.name,
-      relation: newRelation.relation,
-      type: newRelation.type,
-    })
-    setMemberRelations(updatedRelations)
-    setNewRelation({ name: "", relation: "", category: "family", type: "manual", selectedMemberId: null })
-    toast.success("Relation added successfully")
-  }
-
-  const handleSaveContingent = () => {
-    const memberId = selectedMember?.id
-    if (memberId && memberContingentData[memberId]) {
-      const updatedContingent = { ...memberContingentData }
-      if (selectedBillingPeriod === "current") {
-        updatedContingent[memberId].current = { ...tempContingent }
-      } else {
-        if (!updatedContingent[memberId].future) {
-          updatedContingent[memberId].future = {}
-        }
-        updatedContingent[memberId].future[selectedBillingPeriod] = { ...tempContingent }
-      }
-      setMemberContingentData(updatedContingent)
-      alert("Contingent updated successfully!")
-    }
-    setShowContingentModal(false)
-  }
-
-  const getBillingPeriods = (memberId) => {
-    const memberData = memberContingentData[memberId]
-    if (!memberData) return []
-    const periods = [{ id: "current", label: `Current (${currentBillingPeriod})`, data: memberData.current }]
-    if (memberData.future) {
-      Object.entries(memberData.future).forEach(([period, data]) => {
-        periods.push({
-          id: period,
-          label: `Future (${period})`,
-          data: data,
-        })
-      })
-    }
-    return periods
-  }
-
-  const handleAddBillingPeriod = () => {
-    if (newBillingPeriod.trim() && selectedMember) {
-      const updatedContingent = { ...memberContingentData }
-      if (!updatedContingent[selectedMember.id].future) {
-        updatedContingent[selectedMember.id].future = {}
-      }
-      updatedContingent[selectedMember.id].future[newBillingPeriod] = { used: 0, total: 0 }
-      setMemberContingentData(updatedContingent)
-      setNewBillingPeriod("")
-      setShowAddBillingPeriodModal(false)
-      alert("New billing period added successfully")
-    }
-  }
+  // ============================================
+  // Widget Management Handlers
+  // ============================================
+  const toggleEditing = () => setIsEditing(!isEditing)
 
   const getWidgetPlacementStatus = useCallback(
     (widgetType, widgetArea = "dashboard") => {
@@ -505,7 +221,7 @@ export default function MyArea() {
       }
       return { canAdd: true, location: null }
     },
-    [widgets],
+    [widgets]
   )
 
   const moveWidget = (fromIndex, toIndex) => {
@@ -530,122 +246,6 @@ export default function MyArea() {
     })
   }
 
-  const handleCheckIn = (appointmentId) => {
-    setAppointments((prevAppointments) =>
-      prevAppointments.map((appointment) =>
-        appointment.id === appointmentId ? { ...appointment, isCheckedIn: !appointment.isCheckedIn } : appointment,
-      ),
-    )
-    toast.success(
-      appointments.find((app) => app.id === appointmentId)?.isCheckedIn
-        ? "Member checked In successfully"
-        : "Member check in successfully",
-    )
-  }
-
-  const handleEditNote = (appointmentId, currentNote) => {
-    const appointment = appointments.find((app) => app.id === appointmentId)
-    if (appointment) {
-      setIsSpecialNoteModalOpen(false)
-      setSelectedAppointmentForNote(null)
-
-      setTimeout(() => {
-        setSelectedAppointmentForNote(appointment)
-        setIsSpecialNoteModalOpen(true)
-      }, 10)
-    }
-  }
-
-  const handleSaveSpecialNote = (appointmentId, updatedNote) => {
-    setAppointments((prev) =>
-      prev.map((app) => (app.id === appointmentId ? { ...app, specialNote: updatedNote } : app)),
-    )
-    toast.success("Special note updated successfully")
-  }
-
-  const chartOptions = {
-    chart: {
-      type: "line",
-      height: 180,
-      toolbar: { show: false },
-      background: "transparent",
-      fontFamily: "Inter, sans-serif",
-    },
-    colors: ["#FF6B1A", "#2E5BFF"],
-    stroke: { curve: "smooth", width: 4, opacity: 1 },
-    markers: {
-      size: 1,
-      strokeWidth: 0,
-      hover: { size: 6 },
-    },
-    xaxis: {
-      categories: ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-      labels: { style: { colors: "#999999", fontSize: "12px" } },
-      axisBorder: { show: false },
-      axisTicks: { show: false },
-    },
-    yaxis: {
-      min: 0,
-      max: 600,
-      tickAmount: 6,
-      labels: {
-        style: { colors: "#999999", fontSize: "12px" },
-        formatter: (value) => Math.round(value),
-      },
-    },
-    grid: {
-      show: true,
-      borderColor: "#333333",
-      position: "back",
-      xaxis: { lines: { show: true } },
-      yaxis: { lines: { show: true } },
-      row: { opacity: 0.1 },
-      column: { opacity: 0.1 },
-    },
-    legend: {
-      show: true,
-      position: "top",
-      horizontalAlign: "right",
-      offsetY: -30,
-      offsetX: -10,
-      labels: { colors: "#ffffff" },
-      itemMargin: { horizontal: 5 },
-    },
-    title: {
-      text: memberTypes[selectedMemberType].title,
-      align: "left",
-      style: { fontSize: "16px", fontWeight: "bold", color: "#ffffff" },
-    },
-    subtitle: {
-      text: `â†’ ${memberTypes[selectedMemberType].growth} more in 2024`,
-      align: "left",
-      style: { fontSize: "12px", color: "#ffffff", fontWeight: "bolder" },
-    },
-    tooltip: {
-      theme: "dark",
-      style: {
-        fontSize: "12px",
-        fontFamily: "Inter, sans-serif",
-      },
-      custom: ({ series, seriesIndex, dataPointIndex, w }) =>
-        '<div class="apexcharts-tooltip-box" style="background: white; color: black; padding: 8px;">' +
-        '<span style="color: black;">' +
-        series[seriesIndex][dataPointIndex] +
-        "</span></div>",
-    },
-  }
-
-  const appointmentTypes = [
-    { name: "Regular Training", duration: 60, color: "bg-blue-500" },
-    { name: "Consultation", duration: 30, color: "bg-green-500" },
-    { name: "Assessment", duration: 45, color: "bg-purple-500" },
-  ]
-
-  const chartSeries = [
-    { name: "Comp1", data: memberTypes[selectedMemberType].data[0] },
-    { name: "Comp2", data: memberTypes[selectedMemberType].data[1] },
-  ]
-
   const handleAddWidget = (widgetType) => {
     const { canAdd, location } = getWidgetPlacementStatus(widgetType, "dashboard")
     if (!canAdd) {
@@ -662,191 +262,22 @@ export default function MyArea() {
     toast.success(`${widgetType} widget has been added successfully`)
   }
 
-  const renderSpecialNoteIcon = useCallback(
-    (specialNote, memberId, event) => {
-      if (!specialNote || !specialNote.text?.trim()) return null
-
-      const isActive =
-        !specialNote.startDate ||
-        (new Date() >= new Date(specialNote.startDate) && new Date() <= new Date(specialNote.endDate))
-
-      if (!isActive) return null
-
-      const handleNoteClick = (e) => {
-        e.stopPropagation()
-        const rect = e.currentTarget.getBoundingClientRect()
-        setNotePosition({
-          top: rect.bottom + window.scrollY + 8,
-          left: rect.left + window.scrollX,
-        })
-        setActiveNoteId(activeNoteId === memberId ? null : memberId)
-      }
-
-      const handleMouseEnter = (e) => {
-        e.stopPropagation()
-        if (hoverTimeout) {
-          clearTimeout(hoverTimeout)
-          setHoverTimeout(null)
-        }
-
-        const rect = e.currentTarget.getBoundingClientRect()
-        setNotePosition({
-          top: rect.bottom + window.scrollY + 8,
-          left: rect.left + window.scrollX,
-        })
-
-        const timeout = setTimeout(() => {
-          setActiveNoteId(memberId)
-        }, 300)
-        setHoverTimeout(timeout)
-      }
-
-      const handleMouseLeave = (e) => {
-        e.stopPropagation()
-        if (hoverTimeout) {
-          clearTimeout(hoverTimeout)
-          setHoverTimeout(null)
-        }
-        if (activeNoteId !== memberId) {
-          setActiveNoteId(null)
-        }
-      }
-
-      const handleEditClick = (e) => {
-        e.stopPropagation()
-        setActiveNoteId(null)
-        handleEditNote(memberId, specialNote)
-      }
-
-      return (
-        <div className="relative">
-          <div
-            className={`${specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
-              } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer transition-all duration-200 hover:scale-110`}
-            onClick={handleNoteClick}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
-          >
-            {specialNote.isImportant ? (
-              <AlertTriangle size={18} className="text-white" />
-            ) : (
-              <Info size={18} className="text-white" />
-            )}
-          </div>
-
-          {activeNoteId === memberId &&
-            createPortal(
-              <div
-                ref={notePopoverRef}
-                className="fixed w-64 sm:w-80 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-[99999]"
-                style={{
-                  top: notePosition.top,
-                  left: notePosition.left,
-                }}
-                onMouseEnter={() => setActiveNoteId(memberId)}
-                onMouseLeave={() => setActiveNoteId(null)}
-              >
-                <div className="bg-gray-800 p-2 sm:p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
-                  {specialNote.isImportant ? (
-                    <AlertTriangle className="text-red-500 shrink-0" size={18} />
-                  ) : (
-                    <Info className="text-blue-500 shrink-0" size={18} />
-                  )}
-                  <h4 className="text-white flex gap-1 items-center font-medium">
-                    <div>Special Note</div>
-                    <div className="text-sm text-gray-400">
-                      {specialNote.isImportant ? "(Important)" : ""}
-                    </div>
-                  </h4>
-                  <button
-                    onClick={handleEditClick}
-                    className="ml-auto text-gray-400 hover:text-white mr-2 transition-colors"
-                    title="Edit Note"
-                  >
-                    <Edit size={16} />
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      setActiveNoteId(null)
-                    }}
-                    className="text-gray-400 hover:text-white transition-colors"
-                    title="Close"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-                <div className="p-3">
-                  <p className="text-white text-sm leading-relaxed">{specialNote.text}</p>
-                  {specialNote.startDate && specialNote.endDate ? (
-                    <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
-                      <p className="text-xs text-gray-300 flex items-center gap-1.5">
-                        <CalendarIcon size={12} />
-                        Valid from {new Date(specialNote.startDate).toLocaleDateString()} to{" "}
-                        {new Date(specialNote.endDate).toLocaleDateString()}
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
-                      <p className="text-xs text-gray-300 flex items-center gap-1.5">
-                        <CalendarIcon size={12} />
-                        Always valid
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>,
-              document.body
-            )}
-        </div>
+  // ============================================
+  // Appointment Handlers
+  // ============================================
+  const handleCheckIn = (appointmentId) => {
+    setAppointments((prevAppointments) =>
+      prevAppointments.map((appointment) =>
+        appointment.id === appointmentId 
+          ? { ...appointment, isCheckedIn: !appointment.isCheckedIn } 
+          : appointment
       )
-    },
-    [activeNoteId, notePosition, hoverTimeout],
-  )
-
-  const handleNavigateToMemberDetails = (appointmentIdOrMemberId) => {
-    const appointment = appointments.find(app => app.id === appointmentIdOrMemberId)
-
-    if (appointment) {
-      const memberIdToNavigate = appointment.memberId || appointment.id
-      if (memberIdToNavigate) {
-        navigate(`/dashboard/member-details/${memberIdToNavigate}`)
-      } else {
-        toast.error("Member not found for this appointment")
-      }
-    } else {
-      toast.error("Appointment not found")
-    }
-  }
-
-  const redirectToContract = () => {
-    navigate("/dashboard/contract")
-    setIsMemberDetailsModalOpen(false)
-    setSelectedMember(null)
-  }
-
-  const handleManageContingent = () => {
-    const memberId = selectedMember?.id
-    if (memberId && memberContingentData[memberId]) {
-      setTempContingent(memberContingentData[memberId].current)
-      setSelectedBillingPeriod("current")
-    } else {
-      setTempContingent({ used: 0, total: 0 })
-      setSelectedBillingPeriod("current")
-    }
-    setShowContingentModal(true)
-  }
-
-  const handleCreateNewAppointment = () => {
-    setShowAppointmentModal(false)
-  }
-
-  const getMemberAppointments = (memberId) => {
-    return appointments.filter(app => app.id === memberId)
+    )
+    const appointment = appointments.find((app) => app.id === appointmentId)
+    toast.success(appointment?.isCheckedIn ? "Member checked out successfully" : "Member checked in successfully")
   }
 
   const handleAppointmentOptionsModal = (appointment) => {
-    // If it's a blocked slot, do nothing or navigate
     if (appointment.isBlocked || appointment.type === "Blocked Time") {
       return
     }
@@ -854,19 +285,57 @@ export default function MyArea() {
     setIsAppointmentActionModalOpen(true)
   }
 
-  // Handler to open EditMemberModal from appointment modals (for special notes and relations)
-  const handleOpenEditMemberModal = (member, tab = "note") => {
-    console.log("handleOpenEditMemberModal called with:", member, "tab:", tab)
-    
-    // The member object is passed directly from the widget
-    // It already contains all the fields we need
-    if (!member) {
-      console.warn("No member data provided")
-      return
+  const handleEditAppointment = () => {
+    setIsAppointmentActionModalOpen(false)
+    setIsEditAppointmentModalOpen(true)
+  }
+
+  const handleCancelAppointment = () => {
+    if (selectedAppointmentForAction) {
+      setAppointments(prev => prev.map(app =>
+        app.id === selectedAppointmentForAction.id
+          ? { ...app, isCancelled: true }
+          : app
+      ))
     }
-    
-    console.log("Setting selectedMemberForEdit with member:", member)
-    
+    setIsAppointmentActionModalOpen(false)
+    setSelectedAppointmentForAction(null)
+  }
+
+  const handleDeleteAppointment = () => {
+    setAppointments(prev => prev.filter(a => a.id !== selectedAppointmentForAction?.id))
+    setIsAppointmentActionModalOpen(false)
+    setSelectedAppointmentForAction(null)
+  }
+
+  const handleViewMemberDetails = () => {
+    setIsAppointmentActionModalOpen(false)
+    if (!selectedAppointmentForAction) return
+
+    const memberId = selectedAppointmentForAction.memberId
+    const leadId = selectedAppointmentForAction.leadId
+
+    if (memberId) {
+      const memberName = selectedAppointmentForAction.lastName
+        ? `${selectedAppointmentForAction.name} ${selectedAppointmentForAction.lastName}`
+        : selectedAppointmentForAction.name
+
+      navigate('/dashboard/members', {
+        state: { filterMemberId: memberId, filterMemberName: memberName }
+      })
+    } else if (leadId) {
+      navigate('/dashboard/leads', {
+        state: { filterLeadId: leadId }
+      })
+    }
+  }
+
+  // ============================================
+  // Edit Member Modal Handlers
+  // ============================================
+  const handleOpenEditMemberModal = (member, tab = "note") => {
+    if (!member) return
+
     setSelectedMemberForEdit({
       ...member,
       note: member.note || "",
@@ -874,8 +343,7 @@ export default function MyArea() {
       noteEndDate: member.noteEndDate || "",
       noteImportance: member.noteImportance || "unimportant",
     })
-    
-    // Also set the edit form with member data
+
     setEditFormMain({
       firstName: member.firstName || member.name?.split(" ")[0] || "",
       lastName: member.lastName || member.name?.split(" ").slice(1).join(" ") || "",
@@ -892,46 +360,38 @@ export default function MyArea() {
       noteImportance: member.noteImportance || "unimportant",
       notes: member.notes || [],
     })
-    
+
     setEditMemberActiveTab(tab)
     setIsEditMemberModalOpen(true)
   }
 
-  // Handler for input changes in EditMemberModal
   const handleInputChangeMain = (e) => {
     const { name, value } = e.target
-    setEditFormMain((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
+    setEditFormMain((prev) => ({ ...prev, [name]: value }))
   }
 
-  // Handler to save changes from EditMemberModal
-  const handleEditSubmitMain = (e, localRelations = null, localNotes = null) => {
+  const handleEditSubmitMain = (e, localRelations = null) => {
     e?.preventDefault()
-    
-    // Update relations if provided
+
     if (localRelations && selectedMemberForEdit?.id) {
       setMemberRelations((prev) => ({
         ...prev,
         [selectedMemberForEdit.id]: localRelations,
       }))
     }
-    
-    console.log("Member updated:", selectedMemberForEdit)
+
     setIsEditMemberModalOpen(false)
     setSelectedMemberForEdit(null)
     setEditingRelationsMain(false)
     toast.success("Member details have been updated successfully")
   }
 
-  // Handler to add a new relation
   const handleAddRelationMain = () => {
     if (!selectedMemberForEdit || !newRelationMain.name || !newRelationMain.relation) return
-    
+
     const memberId = selectedMemberForEdit.id
     const category = newRelationMain.category
-    
+
     const newRelation = {
       id: Date.now(),
       name: newRelationMain.name,
@@ -939,7 +399,7 @@ export default function MyArea() {
       type: newRelationMain.type,
       memberId: newRelationMain.selectedMemberId,
     }
-    
+
     setMemberRelations((prev) => ({
       ...prev,
       [memberId]: {
@@ -947,8 +407,7 @@ export default function MyArea() {
         [category]: [...(prev[memberId]?.[category] || []), newRelation],
       },
     }))
-    
-    // Reset new relation form
+
     setNewRelationMain({
       name: "",
       relation: "",
@@ -959,7 +418,6 @@ export default function MyArea() {
     toast.success("Relation added successfully")
   }
 
-  // Handler to delete a relation
   const handleDeleteRelationMain = (memberId, category, relationId) => {
     setMemberRelations((prev) => ({
       ...prev,
@@ -971,29 +429,19 @@ export default function MyArea() {
     toast.success("Relation deleted successfully")
   }
 
-  // Relation options for EditMemberModal
-  const relationOptionsMain = {
-    family: ["Father", "Mother", "Brother", "Sister", "Uncle", "Aunt", "Cousin", "Grandfather", "Grandmother"],
-    friendship: ["Best Friend", "Close Friend", "Friend", "Acquaintance"],
-    relationship: ["Partner", "Spouse", "Ex-Partner", "Boyfriend", "Girlfriend"],
-    work: ["Colleague", "Boss", "Employee", "Business Partner", "Client"],
-    other: ["Neighbor", "Doctor", "Lawyer", "Trainer", "Other"],
+  const handleCloseEditMemberModal = () => {
+    setIsEditMemberModalOpen(false)
+    setSelectedMemberForEdit(null)
+    setEditingRelationsMain(false)
   }
 
-  // Handler to open EditLeadModal from appointment modals
+  // ============================================
+  // Edit Lead Modal Handlers
+  // ============================================
   const handleOpenEditLeadModal = (leadId, tab = "note") => {
-    console.log("handleOpenEditLeadModal called with leadId:", leadId, "tab:", tab)
-    
-    // Find the lead data by ID
     const lead = leadsData.find(l => l.id === leadId)
-    
-    if (!lead) {
-      console.warn("Lead not found with id:", leadId, "in leadsData:", leadsData)
-      return
-    }
-    
-    console.log("Found lead data:", lead, "opening modal on tab:", tab)
-    
+    if (!lead) return
+
     setSelectedLeadForEdit({
       ...lead,
       note: lead.note || "",
@@ -1005,126 +453,136 @@ export default function MyArea() {
     setIsEditLeadModalOpen(true)
   }
 
-  // Handler to save changes from EditLeadModal  
-  const handleSaveEditLead = (updatedLead) => {
-    console.log("Lead updated:", updatedLead)
+  const handleSaveEditLead = () => {
     setIsEditLeadModalOpen(false)
     setSelectedLeadForEdit(null)
     toast.success("Lead details have been updated successfully")
   }
 
-  // Handler to view member details (navigate to members page with filter)
-  const handleViewMemberDetails = () => {
-    setIsAppointmentActionModalOpen(false)
-    if (!selectedAppointmentForAction) return
-    
-    const memberId = selectedAppointmentForAction.memberId
-    const leadId = selectedAppointmentForAction.leadId
-    
-    // If it's a member appointment, navigate to members page
-    if (memberId) {
-      const memberName = selectedAppointmentForAction.lastName 
-        ? `${selectedAppointmentForAction.name} ${selectedAppointmentForAction.lastName}`
-        : selectedAppointmentForAction.name
-      
-      navigate('/dashboard/members', {
-        state: {
-          filterMemberId: memberId,
-          filterMemberName: memberName
-        }
-      })
-    }
-    // If it's a lead appointment, navigate to leads page
-    else if (leadId) {
-      navigate('/dashboard/leads', {
-        state: {
-          filterLeadId: leadId
-        }
-      })
-    }
+  const handleCloseEditLeadModal = () => {
+    setIsEditLeadModalOpen(false)
+    setSelectedLeadForEdit(null)
   }
 
-  // Handler to open Edit Appointment Modal
-  const handleEditAppointment = () => {
-    console.log("handleEditAppointment - Opening edit modal")
-    setIsAppointmentActionModalOpen(false)
-    setIsEditAppointmentModalOpen(true)
-  }
-
-  // Handler for dumbbell click - open Training Plan Modal
+  // ============================================
+  // Training Plan Handlers
+  // ============================================
   const handleDumbbellClick = (appointment, e) => {
-    console.log("ðŸ‹ï¸ Training Plan clicked!", appointment)
-    
     if (e) e.stopPropagation()
-    
-    // Convert appointment to unified member format for TrainingPlanModal
+
     const memberData = {
-      id: appointment.memberId, // Use memberId to link to training plans
-      firstName: appointment.name, // appointment.name is the first name
+      id: appointment.memberId,
+      firstName: appointment.name,
       lastName: appointment.lastName || '',
       email: appointment.email || '',
     }
-    
-    console.log("Opening TrainingPlanModal with member:", memberData)
-    
+
     setSelectedUserForTrainingPlan(memberData)
     setIsTrainingPlanModalOpen(true)
   }
 
-  // Get member by ID - returns member data from membersData (includes special notes)
-  const getMemberById = (memberId) => {
-    if (!memberId) return null
-    const member = membersData.find(m => m.id === memberId)
-    return member || null
+  const handleAssignTrainingPlan = (memberId, planId) => {
+    const plan = availableTrainingPlans.find((p) => p.id === Number.parseInt(planId))
+    if (plan) {
+      const assignedPlan = {
+        ...plan,
+        assignedDate: new Date().toLocaleDateString(),
+      }
+
+      setMemberTrainingPlans((prev) => ({
+        ...prev,
+        [memberId]: [...(prev[memberId] || []), assignedPlan],
+      }))
+
+      toast.success(`Training plan "${plan.name}" assigned successfully!`)
+    }
   }
 
+  const handleRemoveTrainingPlan = (memberId, planId) => {
+    setMemberTrainingPlans((prev) => ({
+      ...prev,
+      [memberId]: (prev[memberId] || []).filter((plan) => plan.id !== planId),
+    }))
+    toast.success("Training plan removed successfully!")
+  }
+
+  const handleCloseTrainingPlanModal = () => {
+    setIsTrainingPlanModalOpen(false)
+    setSelectedUserForTrainingPlan(null)
+  }
+
+  // ============================================
+  // Helper Functions
+  // ============================================
+  const getMemberById = (memberId) => {
+    if (!memberId) return null
+    return membersData.find(m => m.id === memberId) || null
+  }
+
+  // ============================================
+  // Website Links Handlers
+  // ============================================
+  const handleAddLink = (newLink) => setCustomLinks((prev) => [...prev, newLink])
+
+  const handleEditLink = (updatedLink) => {
+    setCustomLinks((currentLinks) =>
+      currentLinks.map((link) =>
+        link.id === updatedLink.id ? { ...link, ...updatedLink } : link
+      )
+    )
+  }
+
+  const handleRemoveLink = (linkId) => {
+    setCustomLinks((currentLinks) => currentLinks.filter((link) => link.id !== linkId))
+  }
+
+  // ============================================
+  // Render
+  // ============================================
   return (
     <>
       <style>
         {`
-      @keyframes wobble {
-        0%, 100% { transform: rotate(0deg); }
-        15% { transform: rotate(-1deg); }
-        30% { transform: rotate(1deg); }
-        45% { transform: rotate(-1deg); }
-        60% { transform: rotate(1deg); }
-        75% { transform: rotate(-1deg); }
-        90% { transform: rotate(1deg); }
-      }
-      .animate-wobble {
-        animation: wobble 0.5s ease-in-out infinite;
-      }
-      .dragging {
-        opacity: 0.5;
-        border: 2px dashed #fff;
-      }
-      .drag-over {
-        border: 2px dashed #888;
-      }
-      `}
+          @keyframes wobble {
+            0%, 100% { transform: rotate(0deg); }
+            15% { transform: rotate(-1deg); }
+            30% { transform: rotate(1deg); }
+            45% { transform: rotate(-1deg); }
+            60% { transform: rotate(1deg); }
+            75% { transform: rotate(-1deg); }
+            90% { transform: rotate(1deg); }
+          }
+          .animate-wobble {
+            animation: wobble 0.5s ease-in-out infinite;
+          }
+          .dragging {
+            opacity: 0.5;
+            border: 2px dashed #fff;
+          }
+          .drag-over {
+            border: 2px dashed #888;
+          }
+        `}
       </style>
+
       <Toaster
         position="top-right"
         toastOptions={{
           duration: 2000,
-          style: {
-            background: "#333",
-            color: "#fff",
-          },
+          style: { background: "#333", color: "#fff" },
         }}
       />
+
       <div className="flex flex-col md:flex-row rounded-3xl bg-[#1C1C1C] text-white min-h-screen">
         <main className="flex-1 min-w-0 p-2 overflow-hidden">
           <div className="p-1 md:p-5 space-y-4">
+            {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              {/* Top Row (Title) */}
               <div className="flex items-center gap-2 justify-between">
-                <div className="flex items-center gap-3">
-                  <h1 className="text-xl font-bold">My Area</h1>
-                </div>
+                <h1 className="text-xl font-bold">My Area</h1>
               </div>
 
-              {/* Buttons Section */}
+              {/* Action Buttons */}
               <div className="flex justify-center md:justify-end gap-2">
                 {!isEditing && (
                   <button
@@ -1132,7 +590,9 @@ export default function MyArea() {
                     className="px-4 py-2 flex justify-center items-center md:w-auto w-full text-sm gap-2 bg-gray-600 text-white hover:bg-gray-700 rounded-lg cursor-pointer"
                   >
                     <Eye size={16} />
-                    <span className="md:inline hidden">{currentView ? currentView.name : "Standard View"}</span>
+                    <span className="md:inline hidden">
+                      {currentView ? currentView.name : "Standard View"}
+                    </span>
                   </button>
                 )}
 
@@ -1148,16 +608,19 @@ export default function MyArea() {
 
                 <button
                   onClick={toggleEditing}
-                  className={`px-6 py-2 text-sm flex md:w-auto w-full justify-center items-center gap-2 rounded-xl transition-colors ${isEditing ? "bg-blue-600 text-white" : "bg-zinc-700 text-zinc-200"
-                    }`}
+                  className={`px-6 py-2 text-sm flex md:w-auto w-full justify-center items-center gap-2 rounded-xl transition-colors ${
+                    isEditing ? "bg-blue-600 text-white" : "bg-zinc-700 text-zinc-200"
+                  }`}
                 >
                   {isEditing ? <Check size={18} /> : <Edit size={18} />}
-                  <span className="hidden sm:inline">{isEditing ? "Done" : "Edit Dashboard"}</span>
+                  <span className="hidden sm:inline">
+                    {isEditing ? "Done" : "Edit Dashboard"}
+                  </span>
                 </button>
               </div>
             </div>
 
-            {/* Widgets */}
+            {/* Widgets Grid */}
             <div className="space-y-4">
               {/* Chart Widget - Full Width */}
               {widgets
@@ -1179,6 +642,8 @@ export default function MyArea() {
                     />
                   </DraggableWidget>
                 ))}
+
+              {/* Other Widgets - Grid Layout */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {widgets
                   .filter((widget) => widget.type !== "chart")
@@ -1196,6 +661,7 @@ export default function MyArea() {
                       {widget.type === "expiringContracts" && (
                         <ExpiringContractsWidget isSidebarEditing={isEditing} />
                       )}
+
                       {widget.type === "appointments" && (
                         <UpcomingAppointmentsWidget
                           isSidebarEditing={isEditing}
@@ -1213,27 +679,20 @@ export default function MyArea() {
                           initialDate={new Date()}
                         />
                       )}
+
                       {widget.type === "staffCheckIn" && <StaffCheckInWidget />}
+
                       {widget.type === "websiteLink" && (
                         <WebsiteLinksWidget
                           isEditing={isEditing}
                           onRemove={() => removeWidget(widget.id)}
                           customLinks={customLinks}
-                          onAddLink={(newLink) => setCustomLinks((prev) => [...prev, newLink])}
-                          onEditLink={(updatedLink) => {
-                            setCustomLinks((currentLinks) =>
-                              currentLinks.map((link) =>
-                                link.id === updatedLink.id ? { ...link, ...updatedLink } : link
-                              )
-                            )
-                          }}
-                          onRemoveLink={(linkId) => {
-                            setCustomLinks((currentLinks) => currentLinks.filter((link) => link.id !== linkId))
-                          }}
+                          onAddLink={handleAddLink}
+                          onEditLink={handleEditLink}
+                          onRemoveLink={handleRemoveLink}
                         />
                       )}
 
-                      {/* New ToDoWidget Component */}
                       {widget.type === "todo" && (
                         <ToDoWidget isSidebarEditing={isEditing} />
                       )}
@@ -1242,9 +701,13 @@ export default function MyArea() {
                         <UpcomingBirthdaysWidget isSidebarEditing={isEditing} />
                       )}
 
-                      {widget.type === "bulletinBoard" && <BulletinBoardWidget isSidebarEditing={isEditing} />}
+                      {widget.type === "bulletinBoard" && (
+                        <BulletinBoardWidget isSidebarEditing={isEditing} />
+                      )}
 
-                      {widget.type === "notes" && <NotesWidget isSidebarEditing={isEditing} />}
+                      {widget.type === "notes" && (
+                        <NotesWidget isSidebarEditing={isEditing} />
+                      )}
 
                       {widget.type === "shiftSchedule" && (
                         <ShiftScheduleWidget
@@ -1259,6 +722,11 @@ export default function MyArea() {
           </div>
         </main>
 
+        {/* ============================================ */}
+        {/* Modals */}
+        {/* ============================================ */}
+
+        {/* View Management Modal */}
         <ViewManagementModal
           isOpen={isViewModalOpen}
           onClose={() => setIsViewModalOpen(false)}
@@ -1270,6 +738,7 @@ export default function MyArea() {
           setWidgets={setWidgets}
         />
 
+        {/* Widget Selection Modal */}
         <WidgetSelectionModal
           isOpen={isWidgetModalOpen}
           onClose={() => setIsWidgetModalOpen(false)}
@@ -1287,24 +756,8 @@ export default function MyArea() {
           }}
           appointmentMain={selectedAppointmentForAction}
           onEdit={handleEditAppointment}
-          onCancel={() => {
-            // Cancel appointment (mark as cancelled)
-            if (selectedAppointmentForAction) {
-              setAppointments(prev => prev.map(app =>
-                app.id === selectedAppointmentForAction.id
-                  ? { ...app, isCancelled: true }
-                  : app
-              ))
-            }
-            setIsAppointmentActionModalOpen(false)
-            setSelectedAppointmentForAction(null)
-          }}
-          onDelete={() => {
-            // Delete appointment
-            setAppointments(prev => prev.filter(a => a.id !== selectedAppointmentForAction?.id))
-            setIsAppointmentActionModalOpen(false)
-            setSelectedAppointmentForAction(null)
-          }}
+          onCancel={handleCancelAppointment}
+          onDelete={handleDeleteAppointment}
           onViewMember={handleViewMemberDetails}
           onEditMemberNote={handleOpenEditMemberModal}
           onOpenEditLeadModal={handleOpenEditLeadModal}
@@ -1321,7 +774,9 @@ export default function MyArea() {
             setSelectedAppointmentMain={setSelectedAppointmentForAction}
             appointmentTypesMain={appointmentTypesData}
             freeAppointmentsMain={freeAppointmentsData}
-            handleAppointmentChange={(changes) => setSelectedAppointmentForAction((prev) => ({ ...prev, ...changes }))}
+            handleAppointmentChange={(changes) => 
+              setSelectedAppointmentForAction((prev) => ({ ...prev, ...changes }))
+            }
             appointmentsMain={appointments}
             setAppointmentsMain={setAppointments}
             setIsNotifyMemberOpenMain={() => {}}
@@ -1342,15 +797,11 @@ export default function MyArea() {
           />
         )}
 
-        {/* Edit Member Modal (for special notes from appointments) */}
+        {/* Edit Member Modal */}
         {isEditMemberModalOpen && selectedMemberForEdit && (
           <EditMemberModalMain
             isOpen={isEditMemberModalOpen}
-            onClose={() => {
-              setIsEditMemberModalOpen(false)
-              setSelectedMemberForEdit(null)
-              setEditingRelationsMain(false)
-            }}
+            onClose={handleCloseEditMemberModal}
             selectedMemberMain={selectedMemberForEdit}
             editModalTabMain={editMemberActiveTab}
             setEditModalTabMain={setEditMemberActiveTab}
@@ -1361,46 +812,33 @@ export default function MyArea() {
             setEditingRelationsMain={setEditingRelationsMain}
             newRelationMain={newRelationMain}
             setNewRelationMain={setNewRelationMain}
-            availableMembersLeadsMain={availableMembersLeads}
-            relationOptionsMain={relationOptionsMain}
+            availableMembersLeadsMain={availableMembersLeadsNew}
+            relationOptionsMain={RELATION_OPTIONS}
             handleAddRelationMain={handleAddRelationMain}
             memberRelationsMain={memberRelations}
             handleDeleteRelationMain={handleDeleteRelationMain}
           />
         )}
 
-        {/* Edit Lead Modal (for special notes from appointments) */}
+        {/* Edit Lead Modal */}
         {isEditLeadModalOpen && selectedLeadForEdit && (
           <EditLeadModal
             isVisible={isEditLeadModalOpen}
-            onClose={() => {
-              setIsEditLeadModalOpen(false)
-              setSelectedLeadForEdit(null)
-            }}
+            onClose={handleCloseEditLeadModal}
             onSave={handleSaveEditLead}
             leadData={selectedLeadForEdit}
             memberRelationsLead={leadRelationsData[selectedLeadForEdit?.id] || {}}
             setMemberRelationsLead={() => {}}
-            availableMembersLeads={availableMembersLeads}
-            columns={[
-              { id: "new", title: "New" },
-              { id: "contacted", title: "Contacted" },
-              { id: "qualified", title: "Qualified" },
-              { id: "negotiation", title: "Negotiation" },
-              { id: "won", title: "Won" },
-              { id: "lost", title: "Lost" },
-            ]}
+            availableMembersLeads={availableMembersLeadsNew}
+            columns={LEAD_COLUMNS}
             initialTab={editLeadActiveTab}
           />
         )}
-        
+
         {/* Training Plans Modal */}
         <TrainingPlansModalMain
           isOpen={isTrainingPlanModalOpen}
-          onClose={() => {
-            setIsTrainingPlanModalOpen(false)
-            setSelectedUserForTrainingPlan(null)
-          }}
+          onClose={handleCloseTrainingPlanModal}
           selectedMember={selectedUserForTrainingPlan}
           memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
           availableTrainingPlans={availableTrainingPlans}

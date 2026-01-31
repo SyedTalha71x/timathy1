@@ -17,12 +17,20 @@ const UpcomingAppointmentsWidget = ({
   useFixedHeight = false,     // Use fixed height (340px) vs full height
   backgroundColor = "bg-[#000000]", // Background color - can be customized per context
   showDatePicker = false,     // Show date picker in header (for my-area)
-  initialDate = null          // Initial date to show (defaults to today)
+  initialDate = null,         // Initial date to show (defaults to today)
+  filterDate = null           // External date to filter by (from parent component)
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [selectedDate, setSelectedDate] = useState(initialDate || new Date())
   const [showDatePickerInput, setShowDatePickerInput] = useState(false)
   const datePickerRef = useRef(null)
+
+  // Sync with filterDate from parent (e.g., mini calendar selection)
+  useEffect(() => {
+    if (filterDate) {
+      setSelectedDate(filterDate)
+    }
+  }, [filterDate])
 
   // Close date picker on outside click
   useEffect(() => {
@@ -35,10 +43,11 @@ const UpcomingAppointmentsWidget = ({
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
-  // Filter appointments by selected date (only if showDatePicker is true)
+  // Filter appointments by selected date (when showDatePicker is true OR filterDate is provided)
   const getFilteredAppointments = () => {
-    if (!showDatePicker) {
-      return appointments // No filtering if date picker is disabled
+    // Only filter if date picker is shown OR an external filterDate is provided
+    if (!showDatePicker && !filterDate) {
+      return appointments // No filtering if neither is active
     }
 
     const formatDate = (date) => {
@@ -114,6 +123,13 @@ const UpcomingAppointmentsWidget = ({
       <div className="flex justify-between items-center flex-shrink-0 px-3 pt-2.5 pb-2">
         <div className="flex items-center gap-2">
           <h2 className="text-base font-semibold text-white">Upcoming Appointments</h2>
+          
+          {/* Show selected date indicator when filterDate is provided */}
+          {filterDate && !showDatePicker && (
+            <span className="text-xs text-gray-400 bg-[#2F2F2F] px-2 py-0.5 rounded-lg">
+              {formatDisplayDate(selectedDate)}
+            </span>
+          )}
           
           {/* Date Picker Button (only in my-area) */}
           {showDatePicker && (
@@ -264,7 +280,7 @@ const UpcomingAppointmentsWidget = ({
                     <p className="text-[11px] mt-1 opacity-70">
                       {appointment.isTrial 
                         ? (appointment.trialType 
-                            ? `Trial Training • ${appointment.trialType}` 
+                            ? `Trial Training â€¢ ${appointment.trialType}` 
                             : "Trial Training") 
                         : appointment.isCancelled 
                           ? <span className="text-red-400">Cancelled</span> 

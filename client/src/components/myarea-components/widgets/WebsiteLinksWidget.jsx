@@ -203,15 +203,6 @@ const WebsiteLinksWidget = ({
       <div className="flex justify-between items-center flex-shrink-0">
         <h2 className="text-lg font-semibold">Website Links</h2>
         <div className="flex items-center gap-2">
-          {isEditing && (
-            <button
-              onClick={onRemove}
-              className="p-2 bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
-              title="Remove Widget"
-            >
-              <MoreVertical size={16} />
-            </button>
-          )}
           <button
             onClick={handleAddClick}
             className="p-2 bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors"

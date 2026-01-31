@@ -1125,7 +1125,7 @@ export default function Appointments() {
             <button 
               onClick={toggleSidebar} 
               className={`hidden lg:flex absolute z-20 bg-orange-500 text-white p-1.5 rounded-full shadow-lg hover:bg-orange-600 transition-all duration-500 items-center justify-center ${isSidebarCollapsed ? 'left-0' : 'left-[296px]'}`}
-              style={{ top: '-4px' }}
+              style={{ top: '8px' }}
               aria-label={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}>
               {isSidebarCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
             </button>
@@ -1337,6 +1337,7 @@ export default function Appointments() {
                     onOpenEditLeadModal={handleOpenEditLeadModal}
                     onOpenTrainingPlansModal={handleDumbbellClickMain}
                     getMemberById={getMemberById}
+                    filterDate={selectedDate}
                   />
                 </div>
               </div>

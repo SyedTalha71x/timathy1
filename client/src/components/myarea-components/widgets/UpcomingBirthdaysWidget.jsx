@@ -3,14 +3,18 @@
 import { useState } from "react"
 import { Link } from "react-router-dom"
 import { Cake, MessageCircle, Calendar } from "lucide-react"
-import { birthdaysData } from "../../../utils/studio-states/myarea-states"
+import { membersData } from "../../../utils/studio-states/members-states"
 import { communicationSettingsData } from "../../../utils/studio-states"
+import { DEFAULT_COMMUNICATION_SETTINGS } from "../../../utils/studio-states/configuration-states"
 import toast from "react-hot-toast"
 
 // Communication Modals
 import MessageTypeSelectionModal from "../../shared/communication/MessageTypeSelectionModal"
 import ChatPopup from "../../shared/communication/ChatPopup"
 import SendEmailModal from "../../shared/communication/SendEmailModal"
+
+// Birthday Badge Component
+import BirthdayBadge from "../../shared/BirthdayBadge"
 
 // Initials Avatar Component
 const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) => {
@@ -36,8 +40,6 @@ const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) =>
 }
 
 export const UpcomingBirthdaysWidget = ({ isSidebarEditing }) => {
-  const [birthdays] = useState(birthdaysData)
-  
   // Contact Modal States
   const [messageTypeModal, setMessageTypeModal] = useState({
     isOpen: false,
@@ -56,11 +58,21 @@ export const UpcomingBirthdaysWidget = ({ isSidebarEditing }) => {
     recipientName: ""
   })
 
-  const today = new Date().toISOString().split("T")[0]
+  // Check if automated birthday notifications are enabled
+  // If either push or email notifications are enabled, hide manual contact button
+  const areBirthdayNotificationsEnabled = () => {
+    const settings = DEFAULT_COMMUNICATION_SETTINGS
+    return settings.birthdayNotificationEnabled && (settings.birthdaySendEmail || settings.birthdaySendApp)
+  }
+
+  const showContactButton = !areBirthdayNotificationsEnabled()
 
   // Check if birthday is today
-  const isBirthdayToday = (date) => {
-    return date === today
+  const isBirthdayToday = (dateOfBirth) => {
+    if (!dateOfBirth) return false
+    const today = new Date()
+    const birthday = new Date(dateOfBirth)
+    return today.getMonth() === birthday.getMonth() && today.getDate() === birthday.getDate()
   }
 
   // Calculate age from dateOfBirth
@@ -76,15 +88,14 @@ export const UpcomingBirthdaysWidget = ({ isSidebarEditing }) => {
     return age
   }
 
-  // Calculate days until birthday
-  const getDaysUntilBirthday = (dateStr) => {
-    if (!dateStr) return Infinity
+  // Calculate days until birthday (this year or next)
+  const getDaysUntilBirthday = (dateOfBirth) => {
+    if (!dateOfBirth) return Infinity
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     
-    // Parse the date (assuming format like "2025-01-31" or similar)
-    const birthdayThisYear = new Date(dateStr)
-    birthdayThisYear.setFullYear(today.getFullYear())
+    const birthday = new Date(dateOfBirth)
+    const birthdayThisYear = new Date(today.getFullYear(), birthday.getMonth(), birthday.getDate())
     birthdayThisYear.setHours(0, 0, 0, 0)
     
     // If birthday already passed this year, use next year
@@ -97,28 +108,32 @@ export const UpcomingBirthdaysWidget = ({ isSidebarEditing }) => {
     return diffDays
   }
 
-  // Get sorted birthdays (upcoming first)
-  const getSortedBirthdays = () => {
-    return [...birthdays]
-      .sort((a, b) => getDaysUntilBirthday(a.date) - getDaysUntilBirthday(b.date))
-      .slice(0, 10)
+  // Get members with upcoming birthdays (within 90 days), sorted by days until birthday
+  const getUpcomingBirthdays = () => {
+    return membersData
+      .filter(member => {
+        if (!member.dateOfBirth || member.isArchived) return false
+        const daysUntil = getDaysUntilBirthday(member.dateOfBirth)
+        // Show birthdays within 90 days (including today = 0 days)
+        return daysUntil >= 0 && daysUntil <= 90
+      })
+      .sort((a, b) => getDaysUntilBirthday(a.dateOfBirth) - getDaysUntilBirthday(b.dateOfBirth))
+      .slice(0, 10) // Limit to 10
   }
 
-  const sortedBirthdays = getSortedBirthdays()
+  const upcomingBirthdays = getUpcomingBirthdays()
 
   // Contact Handlers
-  const handleContactClick = (person, e) => {
+  const handleContactClick = (member, e) => {
     e.preventDefault()
     e.stopPropagation()
     
-    // Convert birthday person to member format
-    const nameParts = person.name?.split(' ') || ['']
     const memberData = {
-      id: person.id,
-      firstName: nameParts[0] || '',
-      lastName: nameParts.slice(1).join(' ') || '',
-      email: person.email || "",
-      phone: person.phone || "",
+      id: member.id,
+      firstName: member.firstName,
+      lastName: member.lastName,
+      email: member.email || "",
+      phone: member.phone || "",
     }
     
     setMessageTypeModal({
@@ -175,10 +190,10 @@ export const UpcomingBirthdaysWidget = ({ isSidebarEditing }) => {
     setChatPopup({ isOpen: false, member: null })
   }
 
-  // Format date for display
-  const formatDate = (dateStr) => {
-    if (!dateStr) return ""
-    const date = new Date(dateStr)
+  // Format date for display (show month and day from dateOfBirth)
+  const formatBirthdayDate = (dateOfBirth) => {
+    if (!dateOfBirth) return ""
+    const date = new Date(dateOfBirth)
     return date.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" })
   }
 
@@ -192,52 +207,59 @@ export const UpcomingBirthdaysWidget = ({ isSidebarEditing }) => {
 
         {/* Birthdays List */}
         <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
-          {sortedBirthdays.length > 0 ? (
+          {upcomingBirthdays.length > 0 ? (
             <div className="flex flex-col gap-2">
-              {sortedBirthdays.map((birthday) => {
-                const isToday = isBirthdayToday(birthday.date)
-                const daysUntil = getDaysUntilBirthday(birthday.date)
-                const nameParts = birthday.name?.split(' ') || ['']
+              {upcomingBirthdays.map((member) => {
+                const isToday = isBirthdayToday(member.dateOfBirth)
+                const daysUntil = getDaysUntilBirthday(member.dateOfBirth)
                 
                 return (
                   <div
-                    key={birthday.id}
+                    key={member.id}
                     className="p-3 bg-black rounded-xl hover:bg-zinc-900 transition-colors"
                   >
                     <div className="flex items-center gap-3">
-                      {/* Avatar */}
-                      {birthday.avatar ? (
-                        <div className="w-8 h-8 rounded-lg overflow-hidden flex-shrink-0">
-                          <img
-                            src={birthday.avatar}
-                            className="h-full w-full object-cover"
-                            alt=""
+                      {/* Avatar with Birthday Badge */}
+                      <div className="relative flex-shrink-0">
+                        {member.image ? (
+                          <div className="w-8 h-8 rounded-lg overflow-hidden">
+                            <img
+                              src={member.image}
+                              className="h-full w-full object-cover"
+                              alt=""
+                            />
+                          </div>
+                        ) : (
+                          <InitialsAvatar 
+                            firstName={member.firstName} 
+                            lastName={member.lastName}
+                            size="sm"
                           />
-                        </div>
-                      ) : (
-                        <InitialsAvatar 
-                          firstName={nameParts[0]} 
-                          lastName={nameParts[1]}
-                          size="sm"
+                        )}
+                        {/* Birthday Badge - shown when birthday is today */}
+                        <BirthdayBadge 
+                          show={isToday}
+                          dateOfBirth={member.dateOfBirth}
+                          size="ms"
+                          withTooltip={true}
                         />
-                      )}
+                      </div>
                       
                       {/* Content */}
                       <div className="flex-1 min-w-0">
                         <h3 className="text-sm font-medium text-white truncate flex items-center gap-1">
-                          {birthday.name}
-                          {birthday.dateOfBirth && (
+                          {member.firstName} {member.lastName}
+                          {member.dateOfBirth && (
                             <span className="text-gray-400 font-normal">
-                              ({calculateAge(birthday.dateOfBirth)})
+                              ({calculateAge(member.dateOfBirth)})
                             </span>
                           )}
-                          {isToday && <span className="ml-1">🎂</span>}
                         </h3>
                         
                         <div className="flex items-center gap-1.5 mt-0.5">
                           <Calendar size={10} className="text-gray-400" />
                           <span className="text-xs text-gray-400">
-                            {formatDate(birthday.date)}
+                            {formatBirthdayDate(member.dateOfBirth)}
                           </span>
                           {!isToday && daysUntil > 0 && (
                             <span className="text-[10px] text-gray-500">
@@ -254,14 +276,16 @@ export const UpcomingBirthdaysWidget = ({ isSidebarEditing }) => {
                         </span>
                       )}
 
-                      {/* Contact Button - Orange */}
-                      <button
-                        onClick={(e) => handleContactClick(birthday, e)}
-                        className="p-1.5 bg-orange-500 hover:bg-orange-600 rounded-lg text-white transition-colors flex-shrink-0"
-                        title="Send Birthday Message"
-                      >
-                        <MessageCircle size={14} />
-                      </button>
+                      {/* Contact Button - Orange, only show if notifications are NOT enabled */}
+                      {showContactButton && (
+                        <button
+                          onClick={(e) => handleContactClick(member, e)}
+                          className="p-1.5 bg-orange-500 hover:bg-orange-600 rounded-lg text-white transition-colors flex-shrink-0"
+                          title="Send Birthday Message"
+                        >
+                          <MessageCircle size={14} />
+                        </button>
+                      )}
                     </div>
                   </div>
                 )
