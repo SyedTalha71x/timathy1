@@ -33,7 +33,7 @@ import { AddContractModal } from "../../components/shared/contracts/add-contract
 import { PauseContractModal } from "../../components/studio-components/contract-components/pause-contract-modal"
 import { CancelContractModal } from "../../components/studio-components/contract-components/cancel-contract-modal"
 import { EditContractModal } from "../../components/studio-components/contract-components/edit-contract-modal"
-import { DocumentManagementModal } from "../../components/studio-components/contract-components/document-management-modal"
+import { ContractManagement } from "../../components/studio-components/contract-components/contract-management"
 import { BonusTimeModal } from "../../components/studio-components/contract-components/bonus-time-modal"
 import { RenewContractModal } from "../../components/studio-components/contract-components/renew-contract-modal"
 import { ChangeContractModal } from "../../components/studio-components/contract-components/change-contract-modal"
@@ -207,8 +207,49 @@ export default function ContractList() {
   const filteredAndSortedContracts = () => {
     let filtered = [...contracts]
 
-    // Apply status filter
-    if (filterStatus !== "all") {
+    // Helper to get the "display" contract for a member (Active > Paused > Ongoing > most recent Cancelled)
+    const getDisplayContractForMember = (memberContracts) => {
+      if (memberContracts.length === 0) return null
+      
+      const active = memberContracts.find(c => c.status === 'Active')
+      if (active) return active
+      
+      const paused = memberContracts.find(c => c.status === 'Paused')
+      if (paused) return paused
+      
+      const ongoing = memberContracts.find(c => c.status === 'Ongoing')
+      if (ongoing) return ongoing
+      
+      // Return most recent cancelled
+      const cancelled = memberContracts
+        .filter(c => c.status === 'Cancelled')
+        .sort((a, b) => new Date(b.endDate) - new Date(a.endDate))
+      
+      return cancelled[0] || null
+    }
+
+    // For "all" filter, show only the most relevant contract per member
+    if (filterStatus === "all") {
+      // Group by memberId
+      const memberMap = new Map()
+      filtered.forEach(contract => {
+        const memberId = contract.memberId
+        if (!memberMap.has(memberId)) {
+          memberMap.set(memberId, [])
+        }
+        memberMap.get(memberId).push(contract)
+      })
+      
+      // Get display contract for each member
+      filtered = []
+      memberMap.forEach((memberContracts) => {
+        const displayContract = getDisplayContractForMember(memberContracts)
+        if (displayContract) {
+          filtered.push(displayContract)
+        }
+      })
+    } else {
+      // Apply specific status filter - show all matching contracts
       filtered = filtered.filter(contract => {
         if (filterStatus === "active") return contract.status === "Active"
         if (filterStatus === "ongoing") return contract.status === "Ongoing"
@@ -786,7 +827,7 @@ export default function ContractList() {
                   onClick={() => setFilterStatus('all')}
                   className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatus === 'all' ? "bg-blue-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}
                 >
-                  All ({contracts.length})
+                  All ({new Set(contracts.map(c => c.memberId)).size})
                 </button>
                 <button
                   onClick={() => setFilterStatus('active')}
@@ -1000,7 +1041,7 @@ export default function ContractList() {
                   <div className="bg-[#161616] rounded-xl overflow-visible">
                     {/* Table Header */}
                     <div className="grid grid-cols-[auto_2fr_1fr_1fr_0.8fr_1.5fr_auto] gap-4 px-4 py-3 bg-[#0f0f0f] text-gray-400 text-sm font-medium border-b border-gray-800 rounded-t-xl">
-                      <div className="w-12 text-center">Contract</div>
+                      <div className="w-20 text-center pr-4">Contract</div>
                       <div>Member</div>
                       <div>Contract Type</div>
                       <div>Status</div>
@@ -1016,7 +1057,7 @@ export default function ContractList() {
                           key={contract.id}
                           className="grid grid-cols-[auto_2fr_1fr_1fr_0.8fr_1.5fr_auto] gap-4 px-4 py-3 items-center border-b border-gray-800/50 hover:bg-[#1a1a1a] transition-colors"
                         >
-                          <div className="w-12 flex items-center justify-center">
+                          <div className="w-20 flex items-center justify-center pr-4">
                             <button
                               onClick={() => handleManageDocuments(contract)}
                               className="w-10 h-10 bg-[#2a2a2a] rounded-xl flex items-center justify-center hover:bg-[#3a3a3a] transition-colors cursor-pointer"
@@ -1450,8 +1491,9 @@ export default function ContractList() {
         )}
 
         {isDocumentModalOpen && selectedContract && (
-          <DocumentManagementModal
+          <ContractManagement
             contract={selectedContract}
+            allContracts={contracts}
             onClose={() => setIsDocumentModalOpen(false)}
           />
         )}

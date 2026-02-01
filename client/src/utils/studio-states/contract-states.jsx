@@ -19,6 +19,7 @@ export const initialContracts = [
   // ===== ACTIVE CONTRACTS =====
   {
     id: "contract-1",
+    contractNumber: "2024-001",
     memberId: 1, // John Doe
     memberName: "John Doe",
     contractType: "Premium",
@@ -26,6 +27,8 @@ export const initialContracts = [
     endDate: "2025-12-31",
     status: "Active",
     autoRenewal: true,
+    changeReason: "upgrade", // Upgraded from Basic
+    previousContractId: "contract-10",
     pauseReason: null,
     cancelReason: null,
     isDigital: true,
@@ -36,6 +39,7 @@ export const initialContracts = [
   },
   {
     id: "contract-2",
+    contractNumber: "2024-003",
     memberId: 3, // Michael Johnson
     memberName: "Michael Johnson",
     contractType: "Premium",
@@ -43,6 +47,8 @@ export const initialContracts = [
     endDate: "2026-02-28",
     status: "Active",
     autoRenewal: true,
+    changeReason: "upgrade",
+    previousContractId: "contract-11",
     pauseReason: null,
     cancelReason: null,
     isDigital: true,
@@ -53,6 +59,7 @@ export const initialContracts = [
   },
   {
     id: "contract-3",
+    contractNumber: "2024-004",
     memberId: 4, // Sarah Williams
     memberName: "Sarah Williams",
     contractType: "Premium Plus",
@@ -60,6 +67,8 @@ export const initialContracts = [
     endDate: "2025-05-31",
     status: "Active",
     autoRenewal: false,
+    changeReason: "upgrade",
+    previousContractId: "contract-13",
     pauseReason: null,
     cancelReason: null,
     isDigital: true,
@@ -70,6 +79,7 @@ export const initialContracts = [
   },
   {
     id: "contract-4",
+    contractNumber: "2024-005",
     memberId: 5, // David Brown
     memberName: "David Brown",
     contractType: "Basic",
@@ -77,6 +87,8 @@ export const initialContracts = [
     endDate: "2025-08-31",
     status: "Active",
     autoRenewal: true,
+    changeReason: "renewal",
+    previousContractId: "contract-14",
     pauseReason: null,
     cancelReason: null,
     isDigital: false,
@@ -87,6 +99,7 @@ export const initialContracts = [
   },
   {
     id: "contract-5",
+    contractNumber: "2024-006",
     memberId: 6, // Emily Davis
     memberName: "Emily Davis",
     contractType: "Basic",
@@ -94,6 +107,8 @@ export const initialContracts = [
     endDate: "2025-05-31",
     status: "Active",
     autoRenewal: false,
+    changeReason: "new",
+    previousContractId: null,
     pauseReason: null,
     cancelReason: null,
     isDigital: true,
@@ -106,6 +121,7 @@ export const initialContracts = [
   // ===== EXPIRING SOON CONTRACTS (within 30 days) =====
   {
     id: "contract-6",
+    contractNumber: "2024-008",
     memberId: 8, // Lisa Garcia
     memberName: "Lisa Garcia",
     contractType: "Premium",
@@ -113,6 +129,8 @@ export const initialContracts = [
     endDate: getRelativeDate(2), // Expires in 2 days!
     status: "Active",
     autoRenewal: false,
+    changeReason: "new",
+    previousContractId: null,
     pauseReason: null,
     cancelReason: null,
     isDigital: true,
@@ -123,6 +141,7 @@ export const initialContracts = [
   },
   {
     id: "contract-7",
+    contractNumber: "2024-009",
     memberId: 9, // Thomas Anderson
     memberName: "Thomas Anderson",
     contractType: "Basic",
@@ -130,6 +149,8 @@ export const initialContracts = [
     endDate: getRelativeDate(5), // Expires in 5 days!
     status: "Active",
     autoRenewal: true,
+    changeReason: "new",
+    previousContractId: null,
     pauseReason: null,
     cancelReason: null,
     isDigital: true,
@@ -140,6 +161,7 @@ export const initialContracts = [
   },
   {
     id: "contract-8",
+    contractNumber: "2024-010",
     memberId: 10, // Jennifer Martinez
     memberName: "Jennifer Martinez",
     contractType: "Premium",
@@ -147,6 +169,8 @@ export const initialContracts = [
     endDate: getRelativeDate(14), // Expires in 2 weeks!
     status: "Active",
     autoRenewal: false,
+    changeReason: "new",
+    previousContractId: null,
     pauseReason: null,
     cancelReason: null,
     isDigital: true,
@@ -159,6 +183,7 @@ export const initialContracts = [
   // ===== PAUSED CONTRACTS =====
   {
     id: "contract-9",
+    contractNumber: "2023-002",
     memberId: 2, // Jane Smith
     memberName: "Jane Smith",
     contractType: "Basic",
@@ -166,6 +191,8 @@ export const initialContracts = [
     endDate: "2025-11-14",
     status: "Paused",
     autoRenewal: true,
+    changeReason: "new",
+    previousContractId: null,
     pauseReason: "Vacation Leave",
     pauseStartDate: "2025-01-01",
     pauseEndDate: "2025-02-28",
@@ -174,12 +201,13 @@ export const initialContracts = [
     email: "jane@example.com",
     phone: "+1234567891",
     iban: "DE89370400440532013001",
-    sepaMandate: "SEPA-2024-002",
+    sepaMandate: "SEPA-2023-002",
   },
   
-  // ===== CANCELLED CONTRACTS =====
+  // ===== CANCELLED CONTRACTS (Previous contracts of members with Active ones) =====
   {
     id: "contract-10",
+    contractNumber: "2022-001",
     memberId: 1, // John Doe (previous contract)
     memberName: "John Doe",
     contractType: "Basic",
@@ -187,6 +215,8 @@ export const initialContracts = [
     endDate: "2023-12-31",
     status: "Cancelled",
     autoRenewal: false,
+    changeReason: "new",
+    previousContractId: null,
     pauseReason: null,
     cancelReason: "Upgraded to Premium",
     isDigital: true,
@@ -197,6 +227,7 @@ export const initialContracts = [
   },
   {
     id: "contract-11",
+    contractNumber: "2022-003",
     memberId: 3, // Michael Johnson (previous contract)
     memberName: "Michael Johnson",
     contractType: "Bronze",
@@ -204,6 +235,8 @@ export const initialContracts = [
     endDate: "2024-02-28",
     status: "Cancelled",
     autoRenewal: false,
+    changeReason: "new",
+    previousContractId: null,
     pauseReason: null,
     cancelReason: "Upgraded to Premium",
     isDigital: false,
@@ -216,6 +249,7 @@ export const initialContracts = [
   // ===== ONGOING CONTRACTS (not yet signed) =====
   {
     id: "contract-12",
+    contractNumber: "2025-007",
     memberId: 7, // Robert Miller
     memberName: "Robert Miller",
     contractType: "Basic",
@@ -223,6 +257,8 @@ export const initialContracts = [
     endDate: getRelativeDate(372), // 1 year from start
     status: "Ongoing",
     autoRenewal: false,
+    changeReason: "new",
+    previousContractId: null,
     pauseReason: null,
     cancelReason: null,
     isDigital: true,
@@ -233,18 +269,21 @@ export const initialContracts = [
     signatureRequired: true,
   },
   
-  // ===== EXPIRED CONTRACTS =====
+  // ===== CANCELLED/EXPIRED OLD CONTRACTS =====
   {
     id: "contract-13",
+    contractNumber: "2022-004",
     memberId: 4, // Sarah Williams (old contract)
     memberName: "Sarah Williams",
     contractType: "Basic",
     startDate: "2022-01-10",
     endDate: "2024-01-09",
-    status: "Active", // Status still active but date expired
+    status: "Cancelled",
     autoRenewal: false,
+    changeReason: "new",
+    previousContractId: null,
     pauseReason: null,
-    cancelReason: null,
+    cancelReason: "Upgraded to Premium Plus",
     isDigital: false,
     email: "sarah.w@example.com",
     phone: "+1234567893",
@@ -253,15 +292,18 @@ export const initialContracts = [
   },
   {
     id: "contract-14",
+    contractNumber: "2023-005",
     memberId: 5, // David Brown (old contract)
     memberName: "David Brown",
     contractType: "Bronze",
     startDate: "2023-01-01",
     endDate: "2024-06-30",
-    status: "Active", // Expired
+    status: "Cancelled",
     autoRenewal: false,
+    changeReason: "new",
+    previousContractId: null,
     pauseReason: null,
-    cancelReason: null,
+    cancelReason: "Renewed with Basic",
     isDigital: true,
     email: "david.brown@example.com",
     phone: "+1234567894",
@@ -276,7 +318,7 @@ export const contractHistory = {
       id: "hist-1",
       date: "2024-01-01",
       action: "Contract Created",
-      details: "New Premium contract signed",
+      details: "New Premium contract signed (upgrade from Basic)",
       performedBy: "Admin User",
       oldValue: null,
       newValue: "Premium - 24 months",
@@ -296,7 +338,7 @@ export const contractHistory = {
       id: "hist-3",
       date: "2024-03-01",
       action: "Contract Created",
-      details: "New Premium contract signed",
+      details: "New Premium contract signed (upgrade from Bronze)",
       performedBy: "Admin User",
       oldValue: null,
       newValue: "Premium - 24 months",
@@ -531,6 +573,29 @@ export const getExpiredContracts = () => {
 export const getContractHistory = (contractId) => 
   contractHistory[contractId] || []
 
+// Get the "display" contract for a member (Active > Paused > Ongoing > most recent Cancelled)
+export const getDisplayContractForMember = (memberId) => {
+  const memberContracts = getContractsByMemberId(memberId)
+  if (memberContracts.length === 0) return null
+  
+  // Priority: Active > Paused > Ongoing > Cancelled (by end date)
+  const active = memberContracts.find(c => c.status === 'Active')
+  if (active) return active
+  
+  const paused = memberContracts.find(c => c.status === 'Paused')
+  if (paused) return paused
+  
+  const ongoing = memberContracts.find(c => c.status === 'Ongoing')
+  if (ongoing) return ongoing
+  
+  // Return most recent cancelled
+  const cancelled = memberContracts
+    .filter(c => c.status === 'Cancelled')
+    .sort((a, b) => new Date(b.endDate) - new Date(a.endDate))
+  
+  return cancelled[0] || null
+}
+
 export default {
   initialContracts,
   contractHistory,
@@ -546,4 +611,5 @@ export default {
   getExpiringContracts,
   getExpiredContracts,
   getContractHistory,
+  getDisplayContractForMember,
 }
