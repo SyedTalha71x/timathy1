@@ -2,9 +2,10 @@
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
-import { X, FileText, Eye, ArrowLeft, BookOpen } from "lucide-react"
+import { X, FileText, Pencil, ArrowLeft, BookOpen, ChevronDown, ChevronUp } from "lucide-react"
 import { useState, useEffect } from "react"
 import { contractTypes, mediaTemplates } from "../../../utils/studio-states/contract-states"
+import { leadsData } from "../../../utils/studio-states/leads-states"
 
 // Add print-specific styles
 const printStyles = `
@@ -26,9 +27,24 @@ const printStyles = `
     }
   }`
 
-export default function AddContractModal({ onClose, onSave, leadData = null }) {
+// Named export for leads menu usage
+export function AddContractModal({ onClose, onSave, leadData = null }) {
+  return <AddContractModalContent onClose={onClose} onSave={onSave} leadData={leadData} />
+}
+
+// Default export for contracts menu usage
+export default function AddContractModalDefault({ onClose, onSave, leadData = null }) {
+  return <AddContractModalContent onClose={onClose} onSave={onSave} leadData={leadData} />
+}
+
+// Main component
+function AddContractModalContent({ onClose, onSave, leadData = null }) {
+  // Determine if lead is pre-selected (from leads menu)
+  const isLeadPreSelected = leadData !== null
+
   const [currentPage, setCurrentPage] = useState(0)
-  const [showLeadSelection, setShowLeadSelection] = useState(true)
+  // If lead is pre-selected, skip lead selection
+  const [showLeadSelection, setShowLeadSelection] = useState(!isLeadPreSelected)
   const [contractData, setContractData] = useState({
     fullName: "",
     studioName: "",
@@ -38,7 +54,7 @@ export default function AddContractModal({ onClose, onSave, leadData = null }) {
     email: "",
     phone: "",
     sepaMandate: "",
-    leadId: "", // Initialize leadId as empty
+    leadId: "",
     rateType: "",
     signedFile: null,
     // Additional fields for the contract form
@@ -78,47 +94,51 @@ export default function AddContractModal({ onClose, onSave, leadData = null }) {
     duration: "1",
     isPermanent: false,
   })
+  // Discount section collapsed by default
+  const [isDiscountExpanded, setIsDiscountExpanded] = useState(false)
 
   const [contractStartDate, setContractStartDate] = useState(new Date().toISOString().split('T')[0])
   const [trainingStartDate, setTrainingStartDate] = useState(new Date().toISOString().split('T')[0])
   const [contractEndDate, setContractEndDate] = useState("")
-
 
   const [filteredLeads, setFilteredLeads] = useState([])
   const [showIntroductoryMaterials, setShowIntroductoryMaterials] = useState(false)
   const [selectedTemplate, setSelectedTemplate] = useState(null)
   const [currentMediaPage, setCurrentMediaPage] = useState(0)
 
-  // Sample leads for demonstration (used if no leadData is provided)
-  const sampleLeads = [
-    {
-      id: "lead-1",
-      firstName: "Michael",
-      lastName: "Brown",
-      email: "michael@example.com",
-      phone: "5551234567",
-      interestedIn: "Premium",
-      company: "Elite Fitness Studio",
-    },
-    {
-      id: "lead-2",
-      firstName: "Sarah",
-      lastName: "Wilson",
-      email: "sarah@example.com",
-      phone: "5559876543",
-      interestedIn: "Basic",
-      company: "Wellness Center Pro",
-    },
-    {
-      id: "lead-3",
-      firstName: "John",
-      lastName: "Davis",
-      email: "john@example.com",
-      phone: "5555551234",
-      interestedIn: "Bronze",
-      company: "FitZone Gym",
-    },
-  ]
+  // Initialize with lead data if provided (from leads menu)
+  useEffect(() => {
+    if (leadData) {
+      // Parse the name if it's a combined "firstName lastName" format
+      let firstName = ""
+      let lastName = ""
+      
+      if (leadData.name) {
+        const nameParts = leadData.name.split(" ")
+        firstName = nameParts[0] || ""
+        lastName = nameParts.slice(1).join(" ") || ""
+      } else {
+        firstName = leadData.firstName || ""
+        lastName = leadData.lastName || leadData.surname || ""
+      }
+
+      setContractData((prev) => ({
+        ...prev,
+        leadId: leadData.id,
+        studioName: leadData.company || "",
+        studioOwnerName: leadData.name || `${firstName} ${lastName}`.trim(),
+        fullName: leadData.name || `${firstName} ${lastName}`.trim(),
+        email: leadData.email || "",
+        phone: leadData.phone || leadData.phoneNumber || "",
+        vorname: firstName,
+        nachname: lastName,
+        emailAdresse: leadData.email || "",
+        telefonnummer: leadData.phone || leadData.phoneNumber || "",
+        rateType: leadData.interestedIn || "",
+      }))
+      setSearchTerm(leadData.name || `${firstName} ${lastName}`.trim())
+    }
+  }, [leadData])
 
   // Calculate final price after discount
   const calculateFinalPrice = () => {
@@ -126,7 +146,6 @@ export default function AddContractModal({ onClose, onSave, leadData = null }) {
       return null
     }
 
-    // Extract numeric value from cost string (e.g., "$29.99" -> 29.99)
     const originalPrice = Number.parseFloat(selectedContractType.cost.replace("$", ""))
     const discountAmount = (originalPrice * discount.percentage) / 100
     const finalPrice = originalPrice - discountAmount
@@ -135,7 +154,7 @@ export default function AddContractModal({ onClose, onSave, leadData = null }) {
       originalPrice,
       discountAmount,
       finalPrice,
-      currency: selectedContractType.cost.charAt(0), // Get currency symbol
+      currency: selectedContractType.cost.charAt(0),
     }
   }
 
@@ -146,20 +165,23 @@ export default function AddContractModal({ onClose, onSave, leadData = null }) {
     }
   }, [contractStartDate, selectedContractType])
 
-  // Filter leads based on search term
+  // Filter leads based on search term (only when not pre-selected)
   useEffect(() => {
-    if (searchTerm.trim() === "") {
-      setFilteredLeads([])
-    } else {
-      const filtered = sampleLeads.filter(
-        (lead) =>
-          `${lead.firstName} ${lead.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          lead.company.toLowerCase().includes(searchTerm.toLowerCase()),
-      )
-      setFilteredLeads(filtered)
+    if (!isLeadPreSelected) {
+      if (searchTerm.trim() === "") {
+        setFilteredLeads([])
+      } else {
+        const filtered = leadsData.filter(
+          (lead) =>
+            `${lead.firstName} ${lead.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            lead.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            lead.company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            lead.phoneNumber?.includes(searchTerm),
+        )
+        setFilteredLeads(filtered)
+      }
     }
-  }, [searchTerm])
+  }, [searchTerm, isLeadPreSelected])
 
   // Update selected contract type when rate type changes
   useEffect(() => {
@@ -187,16 +209,20 @@ export default function AddContractModal({ onClose, onSave, leadData = null }) {
     setContractData({
       ...contractData,
       leadId: lead.id,
-      studioName: lead.company,
+      studioName: lead.company || "",
       studioOwnerName: `${lead.firstName} ${lead.lastName}`,
       fullName: `${lead.firstName} ${lead.lastName}`,
-      email: lead.email,
-      phone: lead.phone,
+      email: lead.email || "",
+      phone: lead.phoneNumber || "",
       vorname: lead.firstName,
       nachname: lead.lastName,
-      emailAdresse: lead.email,
-      telefonnummer: lead.phone,
-      rateType: lead.interestedIn,
+      emailAdresse: lead.email || "",
+      telefonnummer: lead.phoneNumber || "",
+      rateType: lead.interestedIn || "",
+      // Additional fields from leadsData
+      strasse: lead.street || "",
+      plz: lead.zipCode || "",
+      ort: lead.city || "",
     })
     setSearchTerm(`${lead.firstName} ${lead.lastName}`)
     setFilteredLeads([])
@@ -204,14 +230,17 @@ export default function AddContractModal({ onClose, onSave, leadData = null }) {
   }
 
   const handleProceedWithoutLead = () => {
-    setContractData((prev) => ({ ...prev, leadId: "" })) // Clear leadId when proceeding without a lead
+    setContractData((prev) => ({ ...prev, leadId: "" }))
     setShowLeadSelection(false)
   }
 
   const handleBackToLeadSelection = () => {
-    setShowLeadSelection(true)
-    setSearchTerm("")
-    setFilteredLeads([])
+    // Only allow going back if lead was not pre-selected
+    if (!isLeadPreSelected) {
+      setShowLeadSelection(true)
+      setSearchTerm("")
+      setFilteredLeads([])
+    }
   }
 
   const handleGenerateContract = () => {
@@ -510,7 +539,6 @@ export default function AddContractModal({ onClose, onSave, leadData = null }) {
         <div className="px-4 py-3 border-b border-gray-800 custom-scrollbar max-h-[10vh] sm:max-h-[80vh] overflow-y-auto">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
-
               <h2 className="text-base font-bold text-white">Add Contract</h2>
               {/* Introductory Materials Icon */}
               <button
@@ -532,7 +560,8 @@ export default function AddContractModal({ onClose, onSave, leadData = null }) {
                   <span className="text-xs">Form View</span>
                 </button>
               )}
-              {!showLeadSelection && (
+              {/* Show "Back to Lead Selection" in form view, but NOT in contract document view (after Fill out Contract) */}
+              {!showLeadSelection && !isLeadPreSelected && showFormView && (
                 <button
                   onClick={handleBackToLeadSelection}
                   className="text-gray-400 hover:text-white transition-colors p-1.5 hover:bg-gray-800 rounded-xl flex items-center gap-1"
@@ -580,9 +609,6 @@ export default function AddContractModal({ onClose, onSave, leadData = null }) {
                               {lead.firstName} {lead.lastName}
                             </div>
                             <div className="text-sm text-gray-400">{lead.email}</div>
-                            <div className="text-xs text-gray-500">
-                              {lead.company} • Interested in: {lead.interestedIn}
-                            </div>
                           </div>
                         ))}
                       </div>
@@ -602,13 +628,21 @@ export default function AddContractModal({ onClose, onSave, leadData = null }) {
           ) : showFormView ? (
             <div>
               <div className="space-y-4 mb-4">
-                {contractData.leadId && ( // Only render if a lead is selected
+                {/* Show selected lead info - different styling based on whether pre-selected or searched */}
+                {contractData.leadId && (
                   <div className="bg-[#101010]/60 p-4 rounded-xl border border-gray-800">
-                    <h4 className="text-white text-sm font-medium mb-2">Selected Lead</h4>
+                    <h4 className="text-white text-sm font-medium mb-2">
+                      {isLeadPreSelected ? "Lead" : "Selected Lead"}
+                    </h4>
                     <div className="text-sm text-gray-300">
                       <p>
                         <span className="text-gray-400">Name:</span> {contractData.fullName}
                       </p>
+                      {contractData.email && (
+                        <p>
+                          <span className="text-gray-400">Email:</span> {contractData.email}
+                        </p>
+                      )}
                     </div>
                   </div>
                 )}
@@ -641,24 +675,24 @@ export default function AddContractModal({ onClose, onSave, leadData = null }) {
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-xs text-gray-200 block pl-1">
-                        Contract End Date ({selectedContractType?.duration || '12 months'})
-                      </label>
+                      <label className="text-xs text-gray-200 block pl-1">Training Start Date</label>
                       <input
-                        type="text"
-                        value={contractEndDate}
-                        readOnly
-                        className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-gray-400 outline-none cursor-not-allowed"
+                        type="date"
+                        value={trainingStartDate}
+                        onChange={(e) => setTrainingStartDate(e.target.value)}
+                        className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
                       />
                     </div>
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-xs text-gray-200 block pl-1">Training Start Date</label>
+                    <label className="text-xs text-gray-200 block pl-1">
+                      Contract End Date ({selectedContractType?.duration || '12 months'})
+                    </label>
                     <input
-                      type="date"
-                      value={trainingStartDate}
-                      onChange={(e) => setTrainingStartDate(e.target.value)}
-                      className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
+                      type="text"
+                      value={contractEndDate}
+                      readOnly
+                      className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-gray-400 outline-none cursor-not-allowed"
                     />
                   </div>
                 </div>
@@ -683,83 +717,98 @@ export default function AddContractModal({ onClose, onSave, leadData = null }) {
                   </div>
                 )}
 
-                {/* Discount Section - Only show when rate type is selected */}
+                {/* Discount Section - Collapsible, collapsed by default */}
                 {contractData.rateType && (
-                  <div className="bg-[#101010]/60 p-4 rounded-xl border border-gray-800">
-                    <h4 className="text-white text-sm font-medium mb-2">Discount</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div>
-                        <label className="block text-gray-400 text-xs mb-1">Percentage (%)</label>
-                        <input
-                          type="number"
-                          name="percentage"
-                          min="0"
-                          max="100"
-                          value={discount.percentage}
-                          onChange={handleDiscountChange}
-                          className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
-                        />
-                      </div>
-                      <div className={discount.isPermanent ? "opacity-50" : ""}>
-                        <label className="block text-gray-400 text-xs mb-1">Billing Periods</label>
-                        <input
-                          type="number"
-                          name="duration"
-                          min="1"
-                          value={discount.duration}
-                          onChange={handleDiscountChange}
-                          disabled={discount.isPermanent}
-                          className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
-                        />
-                      </div>
-                      <div>
-                        {/* Empty label to align vertically with other input labels */}
-                        <label className="block text-gray-400 mt-7 text-xs mb-1"></label>
-                        <label className="flex items-center space-x-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            name="isPermanent"
-                            checked={discount.isPermanent}
-                            onChange={handleDiscountChange}
-                            className="form-checkbox h-5 w-5 text-[#3F74FF] rounded border-gray-800 focus:ring-[#3F74FF]"
-                          />
-                          <span className="text-gray-400 text-xs">Till End of Contract</span>
-                        </label>
-                      </div>
-                    </div>
-                    {/* Final Price Display */}
-                    {priceCalculation && (
-                      <div className="mt-4 pt-4 border-t border-gray-700">
-                        <h5 className="text-white text-sm font-medium mb-2">Price Calculation</h5>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex justify-between">
-                            <span className="text-gray-400">Original Price:</span>
-                            <span className="text-white">
-                              {priceCalculation.currency}
-                              {priceCalculation.originalPrice.toFixed(2)}
-                            </span>
+                  <div className="bg-[#101010]/60 rounded-xl border border-gray-800 overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => setIsDiscountExpanded(!isDiscountExpanded)}
+                      className="w-full p-4 flex items-center justify-between text-white hover:bg-[#1a1a1a] transition-colors"
+                    >
+                      <h4 className="text-sm font-medium">Discount</h4>
+                      {isDiscountExpanded ? (
+                        <ChevronUp size={16} className="text-gray-400" />
+                      ) : (
+                        <ChevronDown size={16} className="text-gray-400" />
+                      )}
+                    </button>
+                    
+                    {isDiscountExpanded && (
+                      <div className="px-4 pb-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <label className="block text-gray-400 text-xs mb-1">Percentage (%)</label>
+                            <input
+                              type="number"
+                              name="percentage"
+                              min="0"
+                              max="100"
+                              value={discount.percentage}
+                              onChange={handleDiscountChange}
+                              className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
+                            />
                           </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-400">Discount ({discount.percentage}%):</span>
-                            <span className="text-red-400">
-                              -{priceCalculation.currency}
-                              {priceCalculation.discountAmount.toFixed(2)}
-                            </span>
+                          <div className={discount.isPermanent ? "opacity-50" : ""}>
+                            <label className="block text-gray-400 text-xs mb-1">Billing Periods</label>
+                            <input
+                              type="number"
+                              name="duration"
+                              min="1"
+                              value={discount.duration}
+                              onChange={handleDiscountChange}
+                              disabled={discount.isPermanent}
+                              className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
+                            />
                           </div>
-                          <div className="flex justify-between border-t border-gray-700 pt-2">
-                            <span className="text-white font-medium">Final Price:</span>
-                            <span className="text-green-400 font-medium">
-                              {priceCalculation.currency}
-                              {priceCalculation.finalPrice.toFixed(2)}
-                            </span>
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {discount.isPermanent
-                              ? "Discount applies for the entire contract duration"
-                              : `Discount applies for ${discount.duration} billing period${discount.duration > 1 ? "s" : ""
-                              }`}
+                          <div>
+                            <label className="block text-gray-400 mt-7 text-xs mb-1"></label>
+                            <label className="flex items-center space-x-2 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                name="isPermanent"
+                                checked={discount.isPermanent}
+                                onChange={handleDiscountChange}
+                                className="form-checkbox h-5 w-5 text-[#3F74FF] rounded border-gray-800 focus:ring-[#3F74FF]"
+                              />
+                              <span className="text-gray-400 text-xs">Till End of Contract</span>
+                            </label>
                           </div>
                         </div>
+                        {/* Final Price Display */}
+                        {priceCalculation && (
+                          <div className="mt-4 pt-4 border-t border-gray-700">
+                            <h5 className="text-white text-sm font-medium mb-2">Price Calculation</h5>
+                            <div className="space-y-2 text-sm">
+                              <div className="flex justify-between">
+                                <span className="text-gray-400">Original Price:</span>
+                                <span className="text-white">
+                                  {priceCalculation.currency}
+                                  {priceCalculation.originalPrice.toFixed(2)}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-gray-400">Discount ({discount.percentage}%):</span>
+                                <span className="text-red-400">
+                                  -{priceCalculation.currency}
+                                  {priceCalculation.discountAmount.toFixed(2)}
+                                </span>
+                              </div>
+                              <div className="flex justify-between border-t border-gray-700 pt-2">
+                                <span className="text-white font-medium">Final Price:</span>
+                                <span className="text-green-400 font-medium">
+                                  {priceCalculation.currency}
+                                  {priceCalculation.finalPrice.toFixed(2)}
+                                </span>
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                {discount.isPermanent
+                                  ? "Discount applies for the entire contract duration"
+                                  : `Discount applies for ${discount.duration} billing period${discount.duration > 1 ? "s" : ""
+                                  }`}
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -772,14 +821,12 @@ export default function AddContractModal({ onClose, onSave, leadData = null }) {
                   onClick={toggleView}
                   disabled={!contractData.rateType}
                   className={`w-full px-4 py-2 text-sm font-medium rounded-xl transition-colors duration-200 flex items-center justify-center gap-2 ${contractData.rateType
-                      ? "bg-[#3F74FF] text-white hover:bg-[#3F74FF]/90"
+                      ? "bg-orange-500 text-white hover:bg-orange-600"
                       : "bg-gray-600 text-gray-400 cursor-not-allowed"
                     }`}
                 >
-                  <Eye size={16} /> Fill out Contract
+                  <Pencil size={16} /> Fill out Contract
                 </button>
-
-
               </div>
             </div>
           ) : (
@@ -1260,7 +1307,6 @@ export default function AddContractModal({ onClose, onSave, leadData = null }) {
               )}
             </div>
           )}
-          {/* Removed the Generate Contract button from the footer */}
         </div>
       </div>
     </div>

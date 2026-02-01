@@ -29,14 +29,14 @@ import {
 import { toast, Toaster } from "react-hot-toast"
 import { useNavigate, useLocation } from "react-router-dom"
 
-import AddContractModal from "../../components/studio-components/contract-components/add-contract-modal"
+import { AddContractModal } from "../../components/shared/contracts/add-contract-modal"
 import { ContractDetailsModal } from "../../components/studio-components/contract-components/contract-details-modal"
 import { PauseContractModal } from "../../components/studio-components/contract-components/pause-contract-modal"
 import { CancelContractModal } from "../../components/studio-components/contract-components/cancel-contract-modal"
 import { EditContractModal } from "../../components/studio-components/contract-components/edit-contract-modal"
 import { DocumentManagementModal } from "../../components/studio-components/contract-components/document-management-modal"
 import { BonusTimeModal } from "../../components/studio-components/contract-components/bonus-time-modal"
-import { RenewContractModal } from "../../components/studio-components/contract-components/reniew-contract-modal"
+import { RenewContractModal } from "../../components/studio-components/contract-components/renew-contract-modal"
 import { ChangeContractModal } from "../../components/studio-components/contract-components/change-contract-modal"
 import { ContractHistoryModal } from "../../components/studio-components/contract-components/contract-history-modal"
 import { DeleteContractModal } from "../../components/studio-components/contract-components/delete-contract-modal"
@@ -47,9 +47,9 @@ const StatusTag = ({ status, compact = false }) => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'Active': return 'bg-green-600';
+      case 'Ongoing': return 'bg-gray-600';
       case 'Paused': return 'bg-yellow-600';
       case 'Cancelled': return 'bg-red-600';
-      case 'Expired': return 'bg-gray-600';
       default: return 'bg-gray-600';
     }
   };
@@ -213,9 +213,9 @@ export default function ContractList() {
     if (filterStatus !== "all") {
       filtered = filtered.filter(contract => {
         if (filterStatus === "active") return contract.status === "Active"
+        if (filterStatus === "ongoing") return contract.status === "Ongoing"
         if (filterStatus === "paused") return contract.status === "Paused"
         if (filterStatus === "cancelled") return contract.status === "Cancelled"
-        if (filterStatus === "expired") return isContractExpired(contract.endDate)
         return true
       })
     }
@@ -338,8 +338,7 @@ export default function ContractList() {
   }
 
   const handleAddContract = () => {
-    const randomLead = sampleLeads[Math.floor(Math.random() * sampleLeads.length)]
-    setSelectedLead(randomLead)
+    setSelectedLead(null)
     setIsModalOpen(true)
   }
 
@@ -359,6 +358,7 @@ export default function ContractList() {
       iban: contractData.iban,
       sepaMandate: contractData.sepaMandate,
       files: contractData.signedFile ? [contractData.signedFile] : [],
+      autoRenewal: contractData.autoRenewal || false,
     }
     setContracts([...contracts, newContract])
     setIsModalOpen(false)
@@ -703,6 +703,12 @@ export default function ContractList() {
                   Active ({contracts.filter((c) => c.status === "Active").length})
                 </button>
                 <button
+                  onClick={() => setFilterStatus('ongoing')}
+                  className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatus === 'ongoing' ? "bg-blue-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}
+                >
+                  Ongoing ({contracts.filter((c) => c.status === "Ongoing").length})
+                </button>
+                <button
                   onClick={() => setFilterStatus('paused')}
                   className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatus === 'paused' ? "bg-blue-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}
                 >
@@ -713,12 +719,6 @@ export default function ContractList() {
                   className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatus === 'cancelled' ? "bg-blue-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}
                 >
                   Cancelled ({contracts.filter((c) => c.status === "Cancelled").length})
-                </button>
-                <button
-                  onClick={() => setFilterStatus('expired')}
-                  className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatus === 'expired' ? "bg-blue-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}
-                >
-                  Expired ({contracts.filter((c) => isContractExpired(c.endDate)).length})
                 </button>
               </div>
             </div>
@@ -784,13 +784,17 @@ export default function ContractList() {
                                 <Eye size={18} />
                                 <span className="text-[10px]">Details</span>
                               </button>
-                              <button
-                                onClick={(e) => { e.stopPropagation(); handleEditContract(contract); }}
-                                className="flex flex-col items-center gap-1 p-2 text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors"
-                              >
-                                <Pencil size={18} />
-                                <span className="text-[10px]">Edit</span>
-                              </button>
+                              {contract.status === "Ongoing" ? (
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleEditContract(contract); }}
+                                  className="flex flex-col items-center gap-1 p-2 text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors"
+                                >
+                                  <Pencil size={18} />
+                                  <span className="text-[10px]">Edit</span>
+                                </button>
+                              ) : (
+                                <div className="p-2 w-[50px]" />
+                              )}
                               <button
                                 onClick={(e) => { e.stopPropagation(); handleViewHistory(contract.id); }}
                                 className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
@@ -852,14 +856,15 @@ export default function ContractList() {
               <>
                 {/* Desktop Table */}
                 <div className="hidden lg:block">
-                  <div className="bg-[#161616] rounded-xl overflow-hidden">
+                  <div className="bg-[#161616] rounded-xl overflow-visible">
                     {/* Table Header */}
-                    <div className="grid grid-cols-[2fr_1fr_1fr_1.5fr_auto] gap-4 px-4 py-3 bg-[#0f0f0f] text-gray-400 text-sm font-medium border-b border-gray-800">
+                    <div className="grid grid-cols-[2fr_1fr_1fr_0.8fr_1.5fr_auto] gap-4 px-4 py-3 bg-[#0f0f0f] text-gray-400 text-sm font-medium border-b border-gray-800 rounded-t-xl">
                       <div>Member</div>
                       <div>Contract Type</div>
                       <div>Status</div>
+                      <div>Auto Renewal</div>
                       <div>Duration</div>
-                      <div className="w-24 text-center">Actions</div>
+                      <div className="w-32 text-right">Actions</div>
                     </div>
 
                     {/* Table Body */}
@@ -867,7 +872,7 @@ export default function ContractList() {
                       filteredAndSortedContracts().map((contract) => (
                         <div
                           key={contract.id}
-                          className="grid grid-cols-[2fr_1fr_1fr_1.5fr_auto] gap-4 px-4 py-3 items-center border-b border-gray-800/50 hover:bg-[#1a1a1a] transition-colors cursor-pointer"
+                          className="grid grid-cols-[2fr_1fr_1fr_0.8fr_1.5fr_auto] gap-4 px-4 py-3 items-center border-b border-gray-800/50 hover:bg-[#1a1a1a] transition-colors cursor-pointer"
                           onClick={() => handleViewDetails(contract)}
                         >
                           <div className="flex items-center gap-3">
@@ -880,6 +885,15 @@ export default function ContractList() {
                           </div>
                           <div className="text-gray-300">{contract.contractType}</div>
                           <div><StatusTag status={contract.status} compact={true} /></div>
+                          <div className="text-gray-300 text-sm">
+                            {contract.autoRenewal ? (
+                              <span className="text-green-400 flex items-center gap-1">
+                                <RefreshCw size={12} /> Yes
+                              </span>
+                            ) : (
+                              <span className="text-gray-500">No</span>
+                            )}
+                          </div>
                           <div className="text-gray-400 text-sm">
                             {formatDate(contract.startDate)} - {formatDate(contract.endDate)}
                             {isContractExpiringSoon(contract.endDate) && (
@@ -889,36 +903,49 @@ export default function ContractList() {
                               </span>
                             )}
                           </div>
-                          <div className="w-24 flex items-center justify-center gap-1">
-                            <button
-                              onClick={(e) => { e.stopPropagation(); handleEditContract(contract); }}
-                              className="p-1.5 text-gray-400 hover:text-white rounded-lg transition-colors"
-                              title="Edit"
-                            >
-                              <Pencil size={14} />
-                            </button>
+                          <div className="w-32 flex items-center justify-end gap-0.5">
                             <button
                               onClick={(e) => { e.stopPropagation(); handleViewHistory(contract.id); }}
-                              className="p-1.5 text-gray-400 hover:text-white rounded-lg transition-colors"
+                              className="p-1.5 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
                               title="History"
                             >
                               <History size={14} />
                             </button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleManageDocuments(contract); }}
+                              className="p-1.5 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                              title="Documents"
+                            >
+                              <FileText size={14} />
+                            </button>
+                            <div className="w-px h-4 bg-gray-700/50 mx-0.5" />
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleViewDetails(contract); }}
+                              className="p-1.5 text-blue-400 hover:text-blue-300 hover:bg-white/5 rounded-lg transition-colors"
+                              title="View Details"
+                            >
+                              <Eye size={14} />
+                            </button>
+                            {contract.status === "Ongoing" ? (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleEditContract(contract); }}
+                                className="p-1.5 text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors"
+                                title="Edit"
+                              >
+                                <Pencil size={14} />
+                              </button>
+                            ) : (
+                              <div className="p-1.5 w-[26px]" />
+                            )}
                             <div className="relative dropdown-trigger">
                               <button
                                 onClick={(e) => toggleDropdownContract(contract.id, e)}
-                                className="p-1.5 text-gray-400 hover:text-white rounded-lg transition-colors"
+                                className="p-1.5 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
                               >
                                 <MoreVertical size={14} />
                               </button>
                               {activeDropdownId === contract.id && (
-                                <div className="dropdown-menu absolute top-full right-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[150px] py-1">
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); handleManageDocuments(contract); setActiveDropdownId(null); }}
-                                    className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 flex items-center gap-2"
-                                  >
-                                    <FileText size={14} /> Documents
-                                  </button>
+                                <div className="dropdown-menu absolute bottom-full right-0 mb-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-xl z-[9999] min-w-[150px] py-1">
                                   <button
                                     onClick={(e) => { e.stopPropagation(); handlePauseContract(contract.id); setActiveDropdownId(null); }}
                                     className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 flex items-center gap-2"
@@ -1011,9 +1038,13 @@ export default function ContractList() {
                                 <button onClick={(e) => { e.stopPropagation(); handleViewDetails(contract); }} className="flex flex-col items-center gap-1 p-2 text-blue-400 hover:text-blue-300 hover:bg-white/5 rounded-lg transition-colors">
                                   <Eye size={18} /><span className="text-[10px]">Details</span>
                                 </button>
-                                <button onClick={(e) => { e.stopPropagation(); handleEditContract(contract); }} className="flex flex-col items-center gap-1 p-2 text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors">
-                                  <Pencil size={18} /><span className="text-[10px]">Edit</span>
-                                </button>
+                                {contract.status === "Ongoing" ? (
+                                  <button onClick={(e) => { e.stopPropagation(); handleEditContract(contract); }} className="flex flex-col items-center gap-1 p-2 text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors">
+                                    <Pencil size={18} /><span className="text-[10px]">Edit</span>
+                                  </button>
+                                ) : (
+                                  <div className="p-2" />
+                                )}
                                 <button onClick={(e) => { e.stopPropagation(); handleViewHistory(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
                                   <History size={18} /><span className="text-[10px]">History</span>
                                 </button>
@@ -1073,6 +1104,15 @@ export default function ContractList() {
                       <p className="text-gray-500 text-xs mt-1">
                         {formatDate(contract.startDate)} - {formatDate(contract.endDate)}
                       </p>
+                      <div className="flex items-center gap-1 mt-1 text-xs">
+                        {contract.autoRenewal ? (
+                          <span className="text-green-400 flex items-center gap-1">
+                            <RefreshCw size={10} /> Auto Renewal
+                          </span>
+                        ) : (
+                          <span className="text-gray-500">No Auto Renewal</span>
+                        )}
+                      </div>
                       {isContractExpiringSoon(contract.endDate) && (
                         <span className="mt-2 text-xs px-2 py-1 rounded-full bg-red-500/20 text-red-400 flex items-center gap-1">
                           <AlertTriangle size={12} /> Expiring Soon
@@ -1082,14 +1122,25 @@ export default function ContractList() {
 
                     {/* Action Buttons */}
                     <div className="mt-4 pt-3 border-t border-gray-800">
-                      <div className="grid grid-cols-4 gap-1">
+                      <div className="grid grid-cols-5 gap-1">
                         <button
-                          onClick={(e) => { e.stopPropagation(); handleEditContract(contract); }}
-                          className="p-2 text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors flex items-center justify-center"
-                          title="Edit"
+                          onClick={(e) => { e.stopPropagation(); handleViewDetails(contract); }}
+                          className="p-2 text-blue-400 hover:text-blue-300 hover:bg-white/5 rounded-lg transition-colors flex items-center justify-center"
+                          title="View Details"
                         >
-                          <Pencil size={16} />
+                          <Eye size={16} />
                         </button>
+                        {contract.status === "Ongoing" ? (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleEditContract(contract); }}
+                            className="p-2 text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors flex items-center justify-center"
+                            title="Edit"
+                          >
+                            <Pencil size={16} />
+                          </button>
+                        ) : (
+                          <div className="p-2" />
+                        )}
                         <button
                           onClick={(e) => { e.stopPropagation(); handleViewHistory(contract.id); }}
                           className="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors flex items-center justify-center"

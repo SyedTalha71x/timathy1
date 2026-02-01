@@ -20,7 +20,7 @@ import {
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable"
 
 // Components
-import { AddContractModal } from "../../components/studio-components/lead-studio-components/add-contract-modal"
+import { AddContractModal } from "../../components/shared/contracts/add-contract-modal"
 import AddLeadModal from "../../components/studio-components/lead-studio-components/add-lead-modal"
 import EditLeadModal from "../../components/studio-components/lead-studio-components/edit-lead-modal"
 import ViewLeadDetailsModal from "../../components/studio-components/lead-studio-components/view-lead-details-modal"

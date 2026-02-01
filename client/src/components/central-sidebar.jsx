@@ -125,7 +125,7 @@ const WIDGET_DISPLAY_NAMES = {
   expiringContracts: "Expiring Contracts",
   bulletinBoard: "Bulletin Board",
   notes: "Notes",
-  staffCheckIn: "Staff Login",
+  staffCheckIn: "Staff Check-In",
   shiftSchedule: "Shift Schedule",
 }
 
