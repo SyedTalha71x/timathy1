@@ -492,155 +492,310 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
 
   return (
     <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
-      {/* Header */}
-      <div className="flex justify-between items-center flex-shrink-0">
-        {showHeader && <h2 className="text-lg font-semibold">To-Do</h2>}
-        <div className={`flex items-center gap-2 ${!showHeader ? 'ml-auto' : ''}`}>
-          {/* Staff Filter */}
-          <div className="relative" ref={filterDropdownRef}>
-            <button
-              onClick={() => !isSidebarEditing && setIsFilterDropdownOpen(!isFilterDropdownOpen)}
-              disabled={isSidebarEditing}
-              className={`p-1.5 rounded-lg transition-colors ${
-                selectedStaffFilter.length > 0
-                  ? "bg-blue-600 text-white"
-                  : "bg-black text-gray-400 hover:text-white"
-              } ${isSidebarEditing ? "opacity-50 cursor-not-allowed" : ""}`}
-              title="Filter by staff"
-            >
-              <Filter size={14} />
-            </button>
+      {/* Header - Full version with title (My Area) */}
+      {showHeader && (
+        <div className="flex justify-between items-center flex-shrink-0">
+          <h2 className="text-lg font-semibold">To-Do</h2>
+          <div className="flex items-center gap-2">
+            {/* Staff Filter */}
+            <div className="relative" ref={filterDropdownRef}>
+              <button
+                onClick={() => !isSidebarEditing && setIsFilterDropdownOpen(!isFilterDropdownOpen)}
+                disabled={isSidebarEditing}
+                className={`p-1.5 rounded-lg transition-colors ${
+                  selectedStaffFilter.length > 0
+                    ? "bg-blue-600 text-white"
+                    : "bg-black text-gray-400 hover:text-white"
+                } ${isSidebarEditing ? "opacity-50 cursor-not-allowed" : ""}`}
+                title="Filter by staff"
+              >
+                <Filter size={14} />
+              </button>
 
-            {isFilterDropdownOpen && (
-              <div className="absolute right-0 top-8 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[180px] py-1">
-                <div className="px-3 py-2 border-b border-gray-700">
-                  <p className="text-xs text-gray-500 font-medium">Filter by Staff</p>
-                </div>
-                <button
-                  onClick={() => setSelectedStaffFilter([])}
-                  className={`w-full text-left px-3 py-2 text-xs transition-colors ${
-                    selectedStaffFilter.length === 0
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-300 hover:bg-gray-800"
-                  }`}
-                >
-                  All Tasks
-                </button>
-                {availableAssignees.map((staff) => (
+              {isFilterDropdownOpen && (
+                <div className="absolute right-0 top-8 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[180px] py-1">
+                  <div className="px-3 py-2 border-b border-gray-700">
+                    <p className="text-xs text-gray-500 font-medium">Filter by Staff</p>
+                  </div>
                   <button
-                    key={staff.id}
-                    onClick={() => toggleStaffFilter(staff.id)}
-                    className={`w-full text-left px-3 py-2 text-xs transition-colors flex items-center gap-2 ${
-                      selectedStaffFilter.includes(staff.id)
+                    onClick={() => setSelectedStaffFilter([])}
+                    className={`w-full text-left px-3 py-2 text-xs transition-colors ${
+                      selectedStaffFilter.length === 0
                         ? "bg-blue-600 text-white"
                         : "text-gray-300 hover:bg-gray-800"
                     }`}
                   >
-                    <UserCheck size={12} />
-                    {staff.firstName} {staff.lastName}
+                    All Tasks
                   </button>
-                ))}
-              </div>
+                  {availableAssignees.map((staff) => (
+                    <button
+                      key={staff.id}
+                      onClick={() => toggleStaffFilter(staff.id)}
+                      className={`w-full text-left px-3 py-2 text-xs transition-colors flex items-center gap-2 ${
+                        selectedStaffFilter.includes(staff.id)
+                          ? "bg-blue-600 text-white"
+                          : "text-gray-300 hover:bg-gray-800"
+                      }`}
+                    >
+                      <UserCheck size={12} />
+                      {staff.firstName} {staff.lastName}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Sort Dropdown */}
+            <div className="relative" ref={sortDropdownRef}>
+              <button
+                onClick={() => !isSidebarEditing && setIsSortDropdownOpen(!isSortDropdownOpen)}
+                disabled={isSidebarEditing}
+                className={`p-1.5 bg-black rounded-lg text-gray-400 hover:text-white transition-colors ${
+                  isSidebarEditing ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+                title="Sort tasks"
+              >
+                <ArrowUpDown size={14} />
+              </button>
+
+              {isSortDropdownOpen && (
+                <div className="absolute right-0 top-8 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[160px] py-1">
+                  <div className="px-3 py-2 border-b border-gray-700">
+                    <p className="text-xs text-gray-500 font-medium">Sort by</p>
+                  </div>
+                  {[
+                    { value: "custom", label: "Custom" },
+                    { value: "title", label: "Title" },
+                    { value: "dueDate", label: "Due Date" },
+                    { value: "recentlyAdded", label: "Recent" },
+                  ].map((option) => (
+                    <div
+                      key={option.value}
+                      className={`flex items-center justify-between px-3 py-2 text-xs transition-colors ${
+                        sortBy === option.value ? "bg-gray-800 text-white" : "text-gray-300 hover:bg-gray-800"
+                      }`}
+                    >
+                      <button
+                        onClick={() => {
+                          handleSortChange(option.value)
+                          if (option.value === "custom") setIsSortDropdownOpen(false)
+                        }}
+                        className="flex-1 text-left"
+                      >
+                        {option.label}
+                      </button>
+                      {sortBy === option.value && option.value !== "custom" && (
+                        <button
+                          onClick={() => setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"))}
+                          className="p-1 hover:bg-gray-700 rounded"
+                        >
+                          {sortOrder === "asc" ? <ArrowUp size={12} /> : <ArrowDown size={12} />}
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Add Task Button */}
+            {!isSidebarEditing && (
+              <button
+                onClick={() => {
+                  setTaskModalMode("add")
+                  setEditingTask(null)
+                  setIsTaskModalOpen(true)
+                }}
+                className="p-2 bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors"
+                title="Add task"
+              >
+                <Plus size={18} />
+              </button>
             )}
           </div>
+        </div>
+      )}
 
-          {/* Sort Dropdown */}
-          <div className="relative" ref={sortDropdownRef}>
-            <button
-              onClick={() => !isSidebarEditing && setIsSortDropdownOpen(!isSortDropdownOpen)}
-              disabled={isSidebarEditing}
-              className={`p-1.5 bg-black rounded-lg text-gray-400 hover:text-white transition-colors ${
-                isSidebarEditing ? "opacity-50 cursor-not-allowed" : ""
-              }`}
-              title="Sort tasks"
-            >
-              <ArrowUpDown size={14} />
-            </button>
+      {/* Compact Header for Sidebar - Tabs and Icons in one row */}
+      {!showHeader && (
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {/* Compact Tabs */}
+          <div className="flex gap-0.5 p-0.5 bg-black rounded-lg flex-1 min-w-0">
+            {Object.entries(STATUS_CONFIG).map(([status, config]) => (
+              <button
+                key={status}
+                onClick={() => setActiveTab(status)}
+                className={`flex items-center justify-center gap-1 py-1 px-1.5 rounded-md text-[10px] font-medium transition-all flex-1 ${
+                  activeTab === status
+                    ? "text-white"
+                    : "text-gray-400 hover:text-gray-200"
+                }`}
+                style={{
+                  backgroundColor: activeTab === status ? config.bgColor : "transparent",
+                }}
+              >
+                <div className={`w-1.5 h-1.5 rounded-full ${config.dotColor}`}></div>
+                <span
+                  className={`text-[9px] px-1 py-0.5 rounded-full font-medium ${
+                    activeTab === status ? "bg-white/20 text-white" : "bg-gray-800 text-gray-400"
+                  }`}
+                >
+                  {taskCounts[status]}
+                </span>
+              </button>
+            ))}
+          </div>
 
-            {isSortDropdownOpen && (
-              <div className="absolute right-0 top-8 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[160px] py-1">
-                <div className="px-3 py-2 border-b border-gray-700">
-                  <p className="text-xs text-gray-500 font-medium">Sort by</p>
-                </div>
-                {[
-                  { value: "custom", label: "Custom" },
-                  { value: "title", label: "Title" },
-                  { value: "dueDate", label: "Due Date" },
-                  { value: "recentlyAdded", label: "Recent" },
-                ].map((option) => (
-                  <div
-                    key={option.value}
-                    className={`flex items-center justify-between px-3 py-2 text-xs transition-colors ${
-                      sortBy === option.value ? "bg-gray-800 text-white" : "text-gray-300 hover:bg-gray-800"
+          {/* Icons */}
+          <div className="flex items-center gap-1 flex-shrink-0">
+            {/* Staff Filter */}
+            <div className="relative" ref={filterDropdownRef}>
+              <button
+                onClick={() => !isSidebarEditing && setIsFilterDropdownOpen(!isFilterDropdownOpen)}
+                disabled={isSidebarEditing}
+                className={`p-1.5 rounded-md transition-colors ${
+                  selectedStaffFilter.length > 0
+                    ? "bg-blue-600 text-white"
+                    : "bg-black text-gray-400 hover:text-white"
+                } ${isSidebarEditing ? "opacity-50 cursor-not-allowed" : ""}`}
+                title="Filter by staff"
+              >
+                <Filter size={12} />
+              </button>
+
+              {isFilterDropdownOpen && (
+                <div className="absolute right-0 top-7 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[180px] py-1">
+                  <div className="px-3 py-2 border-b border-gray-700">
+                    <p className="text-xs text-gray-500 font-medium">Filter by Staff</p>
+                  </div>
+                  <button
+                    onClick={() => setSelectedStaffFilter([])}
+                    className={`w-full text-left px-3 py-2 text-xs transition-colors ${
+                      selectedStaffFilter.length === 0
+                        ? "bg-blue-600 text-white"
+                        : "text-gray-300 hover:bg-gray-800"
                     }`}
                   >
+                    All Tasks
+                  </button>
+                  {availableAssignees.map((staff) => (
                     <button
-                      onClick={() => {
-                        handleSortChange(option.value)
-                        if (option.value === "custom") setIsSortDropdownOpen(false)
-                      }}
-                      className="flex-1 text-left"
+                      key={staff.id}
+                      onClick={() => toggleStaffFilter(staff.id)}
+                      className={`w-full text-left px-3 py-2 text-xs transition-colors flex items-center gap-2 ${
+                        selectedStaffFilter.includes(staff.id)
+                          ? "bg-blue-600 text-white"
+                          : "text-gray-300 hover:bg-gray-800"
+                      }`}
                     >
-                      {option.label}
+                      <UserCheck size={12} />
+                      {staff.firstName} {staff.lastName}
                     </button>
-                    {sortBy === option.value && option.value !== "custom" && (
-                      <button
-                        onClick={() => setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"))}
-                        className="p-1 hover:bg-gray-700 rounded"
-                      >
-                        {sortOrder === "asc" ? <ArrowUp size={12} /> : <ArrowDown size={12} />}
-                      </button>
-                    )}
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Sort Dropdown */}
+            <div className="relative" ref={sortDropdownRef}>
+              <button
+                onClick={() => !isSidebarEditing && setIsSortDropdownOpen(!isSortDropdownOpen)}
+                disabled={isSidebarEditing}
+                className={`p-1.5 bg-black rounded-md text-gray-400 hover:text-white transition-colors ${
+                  isSidebarEditing ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+                title="Sort tasks"
+              >
+                <ArrowUpDown size={12} />
+              </button>
+
+              {isSortDropdownOpen && (
+                <div className="absolute right-0 top-7 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[160px] py-1">
+                  <div className="px-3 py-2 border-b border-gray-700">
+                    <p className="text-xs text-gray-500 font-medium">Sort by</p>
                   </div>
-                ))}
-              </div>
+                  {[
+                    { value: "custom", label: "Custom" },
+                    { value: "title", label: "Title" },
+                    { value: "dueDate", label: "Due Date" },
+                    { value: "recentlyAdded", label: "Recent" },
+                  ].map((option) => (
+                    <div
+                      key={option.value}
+                      className={`flex items-center justify-between px-3 py-2 text-xs transition-colors ${
+                        sortBy === option.value ? "bg-gray-800 text-white" : "text-gray-300 hover:bg-gray-800"
+                      }`}
+                    >
+                      <button
+                        onClick={() => {
+                          handleSortChange(option.value)
+                          if (option.value === "custom") setIsSortDropdownOpen(false)
+                        }}
+                        className="flex-1 text-left"
+                      >
+                        {option.label}
+                      </button>
+                      {sortBy === option.value && option.value !== "custom" && (
+                        <button
+                          onClick={() => setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"))}
+                          className="p-1 hover:bg-gray-700 rounded"
+                        >
+                          {sortOrder === "asc" ? <ArrowUp size={12} /> : <ArrowDown size={12} />}
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Add Task Button */}
+            {!isSidebarEditing && (
+              <button
+                onClick={() => {
+                  setTaskModalMode("add")
+                  setEditingTask(null)
+                  setIsTaskModalOpen(true)
+                }}
+                className="p-1.5 bg-orange-500 hover:bg-orange-600 rounded-md transition-colors"
+                title="Add task"
+              >
+                <Plus size={14} />
+              </button>
             )}
           </div>
-
-          {/* Add Task Button - Orange and bigger */}
-          {!isSidebarEditing && (
-            <button
-              onClick={() => {
-                setTaskModalMode("add")
-                setEditingTask(null)
-                setIsTaskModalOpen(true)
-              }}
-              className="p-2 bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors"
-              title="Add task"
-            >
-              <Plus size={18} />
-            </button>
-          )}
         </div>
-      </div>
+      )}
 
-      {/* Status Tabs */}
-      <div className="flex gap-1 p-1 bg-black rounded-xl flex-shrink-0">
-        {Object.entries(STATUS_CONFIG).map(([status, config]) => (
-          <button
-            key={status}
-            onClick={() => setActiveTab(status)}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-medium transition-all ${
-              activeTab === status
-                ? "text-white"
-                : "text-gray-400 hover:text-gray-200"
-            }`}
-            style={{
-              backgroundColor: activeTab === status ? config.bgColor : "transparent",
-            }}
-          >
-            <div className={`w-2 h-2 rounded-full ${config.dotColor}`}></div>
-            <span className={compactMode ? "hidden" : "hidden sm:inline"}>{config.label}</span>
-            <span
-              className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
-                activeTab === status ? "bg-white/20 text-white" : "bg-gray-800 text-gray-400"
+      {/* Status Tabs - Only shown when showHeader is true (My Area) */}
+      {showHeader && (
+        <div className="flex gap-1 p-1 bg-black rounded-xl flex-shrink-0">
+          {Object.entries(STATUS_CONFIG).map(([status, config]) => (
+            <button
+              key={status}
+              onClick={() => setActiveTab(status)}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-medium transition-all ${
+                activeTab === status
+                  ? "text-white"
+                  : "text-gray-400 hover:text-gray-200"
               }`}
+              style={{
+                backgroundColor: activeTab === status ? config.bgColor : "transparent",
+              }}
             >
-              {taskCounts[status]}
-            </span>
-          </button>
-        ))}
-      </div>
+              <div className={`w-2 h-2 rounded-full ${config.dotColor}`}></div>
+              <span className={compactMode ? "hidden" : "hidden sm:inline"}>{config.label}</span>
+              <span
+                className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
+                  activeTab === status ? "bg-white/20 text-white" : "bg-gray-800 text-gray-400"
+                }`}
+              >
+                {taskCounts[status]}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Active Staff Filter Indicator */}
       {selectedStaffFilter.length > 0 && (

@@ -304,182 +304,365 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
 
   return (
     <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
-      {/* Header */}
-      <div className="flex justify-between items-center flex-shrink-0">
-        {showHeader && <h2 className="text-lg font-semibold">Bulletin Board</h2>}
-        <div className={`flex items-center gap-2 ${!showHeader ? 'ml-auto' : ''}`}>
-          {/* Status Filter */}
-          <div className="relative" ref={statusFilterRef}>
-            <button
-              onClick={() => !isSidebarEditing && setIsStatusFilterOpen(!isStatusFilterOpen)}
-              disabled={isSidebarEditing}
-              className={`p-1.5 rounded-lg transition-colors ${
-                statusFilter !== "all"
-                  ? "bg-blue-600 text-white"
-                  : "bg-black text-gray-400 hover:text-white"
-              } ${isSidebarEditing ? "opacity-50 cursor-not-allowed" : ""}`}
-              title="Filter by status"
-            >
-              <Filter size={14} />
-            </button>
+      {/* Header - Full version with title (My Area) */}
+      {showHeader && (
+        <div className="flex justify-between items-center flex-shrink-0">
+          <h2 className="text-lg font-semibold">Bulletin Board</h2>
+          <div className="flex items-center gap-2">
+            {/* Status Filter */}
+            <div className="relative" ref={statusFilterRef}>
+              <button
+                onClick={() => !isSidebarEditing && setIsStatusFilterOpen(!isStatusFilterOpen)}
+                disabled={isSidebarEditing}
+                className={`p-1.5 rounded-lg transition-colors ${
+                  statusFilter !== "all"
+                    ? "bg-blue-600 text-white"
+                    : "bg-black text-gray-400 hover:text-white"
+                } ${isSidebarEditing ? "opacity-50 cursor-not-allowed" : ""}`}
+                title="Filter by status"
+              >
+                <Filter size={14} />
+              </button>
 
-            {isStatusFilterOpen && (
-              <div className="absolute right-0 top-8 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[140px] py-1">
-                <div className="px-3 py-2 border-b border-gray-700">
-                  <p className="text-xs text-gray-500 font-medium">Filter by Status</p>
-                </div>
-                <button
-                  onClick={() => {
-                    setStatusFilter("all")
-                    setIsStatusFilterOpen(false)
-                  }}
-                  className={`w-full text-left px-3 py-2 text-xs transition-colors ${
-                    statusFilter === "all"
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-300 hover:bg-gray-800"
-                  }`}
-                >
-                  All Posts
-                </button>
-                <button
-                  onClick={() => {
-                    setStatusFilter("active")
-                    setIsStatusFilterOpen(false)
-                  }}
-                  className={`w-full text-left px-3 py-2 text-xs transition-colors ${
-                    statusFilter === "active"
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-300 hover:bg-gray-800"
-                  }`}
-                >
-                  Active
-                </button>
-                <button
-                  onClick={() => {
-                    setStatusFilter("scheduled")
-                    setIsStatusFilterOpen(false)
-                  }}
-                  className={`w-full text-left px-3 py-2 text-xs transition-colors ${
-                    statusFilter === "scheduled"
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-300 hover:bg-gray-800"
-                  }`}
-                >
-                  Scheduled
-                </button>
-                <button
-                  onClick={() => {
-                    setStatusFilter("inactive")
-                    setIsStatusFilterOpen(false)
-                  }}
-                  className={`w-full text-left px-3 py-2 text-xs transition-colors ${
-                    statusFilter === "inactive"
-                      ? "bg-blue-600 text-white"
-                      : "text-gray-300 hover:bg-gray-800"
-                  }`}
-                >
-                  Inactive
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Sort Dropdown */}
-          <div className="relative" ref={sortDropdownRef}>
-            <button
-              onClick={() => !isSidebarEditing && setIsSortDropdownOpen(!isSortDropdownOpen)}
-              disabled={isSidebarEditing}
-              className={`p-1.5 bg-black rounded-lg text-gray-400 hover:text-white transition-colors ${
-                isSidebarEditing ? "opacity-50 cursor-not-allowed" : ""
-              }`}
-              title="Sort posts"
-            >
-              {sortOrder === "asc" ? (
-                <ArrowUp size={14} />
-              ) : (
-                <ArrowDown size={14} />
-              )}
-            </button>
-
-            {isSortDropdownOpen && (
-              <div className="absolute right-0 top-8 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[160px] py-1">
-                <div className="px-3 py-2 border-b border-gray-700">
-                  <p className="text-xs text-gray-500 font-medium">Sort by</p>
-                </div>
-                {[
-                  { value: "custom", label: "Custom" },
-                  { value: "title", label: "Title" },
-                  { value: "author", label: "Author" },
-                  { value: "recentlyAdded", label: "Recent" },
-                ].map((option) => (
-                  <div
-                    key={option.value}
-                    className={`flex items-center justify-between px-3 py-2 text-xs transition-colors ${
-                      sortBy === option.value ? "bg-gray-800 text-white" : "text-gray-300 hover:bg-gray-800"
+              {isStatusFilterOpen && (
+                <div className="absolute right-0 top-8 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[140px] py-1">
+                  <div className="px-3 py-2 border-b border-gray-700">
+                    <p className="text-xs text-gray-500 font-medium">Filter by Status</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setStatusFilter("all")
+                      setIsStatusFilterOpen(false)
+                    }}
+                    className={`w-full text-left px-3 py-2 text-xs transition-colors ${
+                      statusFilter === "all"
+                        ? "bg-blue-600 text-white"
+                        : "text-gray-300 hover:bg-gray-800"
                     }`}
                   >
-                    <button
-                      onClick={() => {
-                        handleSortChange(option.value)
-                        if (option.value === "custom") setIsSortDropdownOpen(false)
-                      }}
-                      className="flex-1 text-left"
-                    >
-                      {option.label}
-                    </button>
-                    {sortBy === option.value && option.value !== "custom" && (
-                      <button
-                        onClick={() => setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"))}
-                        className="ml-2"
-                      >
-                        {sortOrder === "asc" ? (
-                          <ArrowUp size={12} className="text-gray-400" />
-                        ) : (
-                          <ArrowDown size={12} className="text-gray-400" />
-                        )}
-                      </button>
-                    )}
+                    All Posts
+                  </button>
+                  <button
+                    onClick={() => {
+                      setStatusFilter("active")
+                      setIsStatusFilterOpen(false)
+                    }}
+                    className={`w-full text-left px-3 py-2 text-xs transition-colors ${
+                      statusFilter === "active"
+                        ? "bg-blue-600 text-white"
+                        : "text-gray-300 hover:bg-gray-800"
+                    }`}
+                  >
+                    Active
+                  </button>
+                  <button
+                    onClick={() => {
+                      setStatusFilter("scheduled")
+                      setIsStatusFilterOpen(false)
+                    }}
+                    className={`w-full text-left px-3 py-2 text-xs transition-colors ${
+                      statusFilter === "scheduled"
+                        ? "bg-blue-600 text-white"
+                        : "text-gray-300 hover:bg-gray-800"
+                    }`}
+                  >
+                    Scheduled
+                  </button>
+                  <button
+                    onClick={() => {
+                      setStatusFilter("inactive")
+                      setIsStatusFilterOpen(false)
+                    }}
+                    className={`w-full text-left px-3 py-2 text-xs transition-colors ${
+                      statusFilter === "inactive"
+                        ? "bg-blue-600 text-white"
+                        : "text-gray-300 hover:bg-gray-800"
+                    }`}
+                  >
+                    Inactive
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Sort Dropdown */}
+            <div className="relative" ref={sortDropdownRef}>
+              <button
+                onClick={() => !isSidebarEditing && setIsSortDropdownOpen(!isSortDropdownOpen)}
+                disabled={isSidebarEditing}
+                className={`p-1.5 bg-black rounded-lg text-gray-400 hover:text-white transition-colors ${
+                  isSidebarEditing ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+                title="Sort posts"
+              >
+                {sortOrder === "asc" ? (
+                  <ArrowUp size={14} />
+                ) : (
+                  <ArrowDown size={14} />
+                )}
+              </button>
+
+              {isSortDropdownOpen && (
+                <div className="absolute right-0 top-8 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[160px] py-1">
+                  <div className="px-3 py-2 border-b border-gray-700">
+                    <p className="text-xs text-gray-500 font-medium">Sort by</p>
                   </div>
-                ))}
-              </div>
+                  {[
+                    { value: "custom", label: "Custom" },
+                    { value: "title", label: "Title" },
+                    { value: "author", label: "Author" },
+                    { value: "recentlyAdded", label: "Recent" },
+                  ].map((option) => (
+                    <div
+                      key={option.value}
+                      className={`flex items-center justify-between px-3 py-2 text-xs transition-colors ${
+                        sortBy === option.value ? "bg-gray-800 text-white" : "text-gray-300 hover:bg-gray-800"
+                      }`}
+                    >
+                      <button
+                        onClick={() => {
+                          handleSortChange(option.value)
+                          if (option.value === "custom") setIsSortDropdownOpen(false)
+                        }}
+                        className="flex-1 text-left"
+                      >
+                        {option.label}
+                      </button>
+                      {sortBy === option.value && option.value !== "custom" && (
+                        <button
+                          onClick={() => setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"))}
+                          className="ml-2"
+                        >
+                          {sortOrder === "asc" ? (
+                            <ArrowUp size={12} className="text-gray-400" />
+                          ) : (
+                            <ArrowDown size={12} className="text-gray-400" />
+                          )}
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {!isSidebarEditing && (
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="p-2 bg-orange-500 hover:bg-orange-600 rounded-lg cursor-pointer transition-colors"
+                title="Add New Post"
+              >
+                <Plus size={18} />
+              </button>
             )}
           </div>
-
-          {!isSidebarEditing && (
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="p-2 bg-orange-500 hover:bg-orange-600 rounded-lg cursor-pointer transition-colors"
-              title="Add New Post"
-            >
-              <Plus size={18} />
-            </button>
-          )}
         </div>
-      </div>
+      )}
 
-      {/* Visibility Tabs */}
-      <div className="flex gap-1 p-1 bg-black rounded-xl flex-shrink-0">
-        {Object.entries(VISIBILITY_CONFIG).map(([visibility, config]) => (
-          <button
-            key={visibility}
-            onClick={() => setActiveTab(visibility)}
-            className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-medium transition-all ${
-              activeTab === visibility
-                ? "bg-gray-800 text-white"
-                : "text-gray-400 hover:text-gray-200"
-            }`}
-          >
-            <span>{config.label}</span>
-            <span
-              className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
-                activeTab === visibility ? "bg-white/10 text-white" : "bg-gray-900 text-gray-500"
+      {/* Compact Header for Sidebar - Tabs and Icons in one row */}
+      {!showHeader && (
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {/* Compact Tabs */}
+          <div className="flex gap-0.5 p-0.5 bg-black rounded-lg flex-1 min-w-0">
+            {Object.entries(VISIBILITY_CONFIG).map(([visibility, config]) => (
+              <button
+                key={visibility}
+                onClick={() => setActiveTab(visibility)}
+                className={`flex-1 flex items-center justify-center gap-1 py-1 px-1.5 rounded-md text-[10px] font-medium transition-all ${
+                  activeTab === visibility
+                    ? "bg-gray-800 text-white"
+                    : "text-gray-400 hover:text-gray-200"
+                }`}
+              >
+                <span>{config.label}</span>
+                <span
+                  className={`text-[9px] px-1 py-0.5 rounded-full font-medium ${
+                    activeTab === visibility ? "bg-white/10 text-white" : "bg-gray-900 text-gray-500"
+                  }`}
+                >
+                  {tabCounts[visibility]}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {/* Icons */}
+          <div className="flex items-center gap-1 flex-shrink-0">
+            {/* Status Filter */}
+            <div className="relative" ref={statusFilterRef}>
+              <button
+                onClick={() => !isSidebarEditing && setIsStatusFilterOpen(!isStatusFilterOpen)}
+                disabled={isSidebarEditing}
+                className={`p-1.5 rounded-md transition-colors ${
+                  statusFilter !== "all"
+                    ? "bg-blue-600 text-white"
+                    : "bg-black text-gray-400 hover:text-white"
+                } ${isSidebarEditing ? "opacity-50 cursor-not-allowed" : ""}`}
+                title="Filter by status"
+              >
+                <Filter size={12} />
+              </button>
+
+              {isStatusFilterOpen && (
+                <div className="absolute right-0 top-7 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[140px] py-1">
+                  <div className="px-3 py-2 border-b border-gray-700">
+                    <p className="text-xs text-gray-500 font-medium">Filter by Status</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setStatusFilter("all")
+                      setIsStatusFilterOpen(false)
+                    }}
+                    className={`w-full text-left px-3 py-2 text-xs transition-colors ${
+                      statusFilter === "all"
+                        ? "bg-blue-600 text-white"
+                        : "text-gray-300 hover:bg-gray-800"
+                    }`}
+                  >
+                    All Posts
+                  </button>
+                  <button
+                    onClick={() => {
+                      setStatusFilter("active")
+                      setIsStatusFilterOpen(false)
+                    }}
+                    className={`w-full text-left px-3 py-2 text-xs transition-colors ${
+                      statusFilter === "active"
+                        ? "bg-blue-600 text-white"
+                        : "text-gray-300 hover:bg-gray-800"
+                    }`}
+                  >
+                    Active
+                  </button>
+                  <button
+                    onClick={() => {
+                      setStatusFilter("scheduled")
+                      setIsStatusFilterOpen(false)
+                    }}
+                    className={`w-full text-left px-3 py-2 text-xs transition-colors ${
+                      statusFilter === "scheduled"
+                        ? "bg-blue-600 text-white"
+                        : "text-gray-300 hover:bg-gray-800"
+                    }`}
+                  >
+                    Scheduled
+                  </button>
+                  <button
+                    onClick={() => {
+                      setStatusFilter("inactive")
+                      setIsStatusFilterOpen(false)
+                    }}
+                    className={`w-full text-left px-3 py-2 text-xs transition-colors ${
+                      statusFilter === "inactive"
+                        ? "bg-blue-600 text-white"
+                        : "text-gray-300 hover:bg-gray-800"
+                    }`}
+                  >
+                    Inactive
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Sort Dropdown */}
+            <div className="relative" ref={sortDropdownRef}>
+              <button
+                onClick={() => !isSidebarEditing && setIsSortDropdownOpen(!isSortDropdownOpen)}
+                disabled={isSidebarEditing}
+                className={`p-1.5 bg-black rounded-md text-gray-400 hover:text-white transition-colors ${
+                  isSidebarEditing ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+                title="Sort posts"
+              >
+                {sortOrder === "asc" ? (
+                  <ArrowUp size={12} />
+                ) : (
+                  <ArrowDown size={12} />
+                )}
+              </button>
+
+              {isSortDropdownOpen && (
+                <div className="absolute right-0 top-7 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[160px] py-1">
+                  <div className="px-3 py-2 border-b border-gray-700">
+                    <p className="text-xs text-gray-500 font-medium">Sort by</p>
+                  </div>
+                  {[
+                    { value: "custom", label: "Custom" },
+                    { value: "title", label: "Title" },
+                    { value: "author", label: "Author" },
+                    { value: "recentlyAdded", label: "Recent" },
+                  ].map((option) => (
+                    <div
+                      key={option.value}
+                      className={`flex items-center justify-between px-3 py-2 text-xs transition-colors ${
+                        sortBy === option.value ? "bg-gray-800 text-white" : "text-gray-300 hover:bg-gray-800"
+                      }`}
+                    >
+                      <button
+                        onClick={() => {
+                          handleSortChange(option.value)
+                          if (option.value === "custom") setIsSortDropdownOpen(false)
+                        }}
+                        className="flex-1 text-left"
+                      >
+                        {option.label}
+                      </button>
+                      {sortBy === option.value && option.value !== "custom" && (
+                        <button
+                          onClick={() => setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"))}
+                          className="ml-2"
+                        >
+                          {sortOrder === "asc" ? (
+                            <ArrowUp size={12} className="text-gray-400" />
+                          ) : (
+                            <ArrowDown size={12} className="text-gray-400" />
+                          )}
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {!isSidebarEditing && (
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="p-1.5 bg-orange-500 hover:bg-orange-600 rounded-md cursor-pointer transition-colors"
+                title="Add New Post"
+              >
+                <Plus size={14} />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Visibility Tabs - Only shown when showHeader is true (My Area) */}
+      {showHeader && (
+        <div className="flex gap-1 p-1 bg-black rounded-xl flex-shrink-0">
+          {Object.entries(VISIBILITY_CONFIG).map(([visibility, config]) => (
+            <button
+              key={visibility}
+              onClick={() => setActiveTab(visibility)}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-medium transition-all ${
+                activeTab === visibility
+                  ? "bg-gray-800 text-white"
+                  : "text-gray-400 hover:text-gray-200"
               }`}
             >
-              {tabCounts[visibility]}
-            </span>
-          </button>
-        ))}
-      </div>
+              <span>{config.label}</span>
+              <span
+                className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
+                  activeTab === visibility ? "bg-white/10 text-white" : "bg-gray-900 text-gray-500"
+                }`}
+              >
+                {tabCounts[visibility]}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Active Status Filter Indicator */}
       {statusFilter !== "all" && (

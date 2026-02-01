@@ -24,6 +24,7 @@ const TaskModal = ({
   const isEditMode = mode === "edit" && task
   
   const [taskTitle, setTaskTitle] = useState(task?.title || "")
+  const [isPinned, setIsPinned] = useState(task?.isPinned || false)
   const [taskData, setTaskData] = useState({
     assignees: task?.assignees || [],
     tags: task?.tags || [],
@@ -45,6 +46,7 @@ const TaskModal = ({
   useEffect(() => {
     if (task) {
       setTaskTitle(task.title || "")
+      setIsPinned(task.isPinned || false)
       setTaskData({
         assignees: task.assignees || [],
         tags: task.tags || [],
@@ -96,6 +98,7 @@ const TaskModal = ({
         dueTime: taskData.dueTime,
         reminder: taskData.reminder,
         repeat: taskData.repeat,
+        isPinned: isPinned,
         updatedAt: new Date().toISOString(),
       }
       onSave(updatedTask)
@@ -111,7 +114,7 @@ const TaskModal = ({
         dueTime: taskData.dueTime,
         status: "ongoing",
         category: "general",
-        isPinned: false,
+        isPinned: isPinned,
         reminder: taskData.reminder,
         repeat: taskData.repeat,
         createdAt: new Date().toISOString(),
@@ -303,17 +306,17 @@ const TaskModal = ({
 
                           <div className="border-t border-gray-700 my-1"></div>
 
-                          {/* Pin/Unpin */}
-                          {onPinToggle && (
+                          {/* Pin/Unpin - uses local state, saved with Save Changes */}
+                          {isEditMode && (
                             <button
                               onClick={() => {
-                                onPinToggle(task.id)
+                                setIsPinned(!isPinned)
                                 setShowMobileActionsMenu(false)
                               }}
                               className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-white"
                             >
-                              {task?.isPinned ? <PinOff size={16} /> : <Pin size={16} />}
-                              <span>{task?.isPinned ? 'Unpin Task' : 'Pin Task'}</span>
+                              {isPinned ? <PinOff size={16} /> : <Pin size={16} />}
+                              <span>{isPinned ? 'Unpin Task' : 'Pin Task'}</span>
                             </button>
                           )}
                           
@@ -323,6 +326,7 @@ const TaskModal = ({
                               onClick={() => {
                                 onDuplicate(task)
                                 setShowMobileActionsMenu(false)
+                                onClose()
                               }}
                               className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-white"
                             >

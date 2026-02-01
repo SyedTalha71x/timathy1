@@ -19,7 +19,8 @@ const UpcomingAppointmentsWidget = ({
   showDatePicker = false,     // Show date picker in header (for my-area)
   initialDate = null,         // Initial date to show (defaults to today)
   filterDate = null,          // External date to filter by (from parent component)
-  showHeader = true           // Show widget header
+  showHeader = true,          // Show widget header
+  showDateIndicator = false   // Show date indicator next to title (for sidebar)
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [selectedDate, setSelectedDate] = useState(initialDate || new Date())
@@ -113,21 +114,28 @@ const UpcomingAppointmentsWidget = ({
   }
 
   const handleDumbbellClick = (appointment, e) => {
+    e.stopPropagation() // Prevent appointment click from firing
     if (!isSidebarEditing && onOpenTrainingPlansModal) {
       onOpenTrainingPlansModal(appointment, e)
     }
   }
 
   return (
-    <div className={`rounded-xl ${backgroundColor} flex flex-col ${useFixedHeight ? 'md:h-[340px] h-auto' : 'h-full'}`}>
-      {/* Header */}
+    <div className={`rounded-xl ${backgroundColor} flex flex-col ${
+      isCollapsed 
+        ? 'h-auto' 
+        : useFixedHeight 
+          ? 'md:h-[340px] h-auto' 
+          : 'h-full'
+    }`}>
+      {/* Full Header with title */}
       {showHeader && (
         <div className="flex justify-between items-center flex-shrink-0 px-3 pt-2.5 pb-2">
           <div className="flex items-center gap-2">
-            <h2 className="text-base font-semibold text-white">Upcoming Appointments</h2>
+            <h2 className="text-sm font-semibold text-white">Upcoming Appointments</h2>
             
-            {/* Show selected date indicator when filterDate is provided */}
-            {filterDate && !showDatePicker && (
+            {/* Show selected date indicator when explicitly enabled */}
+            {showDateIndicator && filterDate && !showDatePicker && (
               <span className="text-xs text-gray-400 bg-[#2F2F2F] px-2 py-0.5 rounded-lg">
                 {formatDisplayDate(selectedDate)}
               </span>
@@ -147,7 +155,7 @@ const UpcomingAppointmentsWidget = ({
                 
                 {/* Date Picker Dropdown */}
                 {showDatePickerInput && (
-                  <div className="absolute top-full left-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 p-3 min-w-[200px]">
+                  <div className="absolute top-full right-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 p-3 min-w-[200px]">
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-xs text-gray-400 font-medium">Select Date</span>
                       <button
@@ -178,13 +186,56 @@ const UpcomingAppointmentsWidget = ({
           {!isSidebarEditing && showCollapseButton && (
             <button
               onClick={() => setIsCollapsed(!isCollapsed)}
-              className="p-1.5 bg-[#2F2F2F] hover:bg-gray-700 rounded-lg cursor-pointer transition-colors text-white"
+              className="p-1 bg-[#2F2F2F] hover:bg-gray-700 rounded-lg cursor-pointer transition-colors text-white"
             title={isCollapsed ? "Expand" : "Collapse"}
           >
-            {isCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
+            {isCollapsed ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
           </button>
         )}
       </div>
+      )}
+
+      {/* Compact Header for Sidebar - only DatePicker, no title */}
+      {!showHeader && showDatePicker && (
+        <div className="flex justify-end items-center flex-shrink-0 px-3 pt-2 pb-1.5">
+          <div className="relative" ref={datePickerRef}>
+            <button
+              onClick={() => setShowDatePickerInput(!showDatePickerInput)}
+              className="flex items-center gap-1.5 px-2 py-1 bg-black hover:bg-gray-900 rounded-lg text-xs text-gray-300 hover:text-white transition-colors"
+              title="Select Date"
+            >
+              <Calendar size={12} />
+              <span>{formatDisplayDate(selectedDate)}</span>
+            </button>
+            
+            {/* Date Picker Dropdown */}
+            {showDatePickerInput && (
+              <div className="absolute top-full right-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 p-3 min-w-[200px]">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs text-gray-400 font-medium">Select Date</span>
+                  <button
+                    onClick={() => setShowDatePickerInput(false)}
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+                <input
+                  type="date"
+                  value={selectedDate.toISOString().split('T')[0]}
+                  onChange={handleDateChange}
+                  className="w-full bg-[#2F2F2F] text-white text-xs rounded-lg px-2 py-1.5 border border-gray-600 focus:border-blue-500 focus:outline-none"
+                />
+                <button
+                  onClick={handleResetToToday}
+                  className="w-full mt-2 px-2 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded-lg transition-colors"
+                >
+                  Today
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       )}
 
       {/* Appointments List */}

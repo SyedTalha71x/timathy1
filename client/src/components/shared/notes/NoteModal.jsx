@@ -53,6 +53,7 @@ const NoteModal = ({
   const [noteContent, setNoteContent] = useState(note?.content || "")
   const [selectedTags, setSelectedTags] = useState(note?.tags || [])
   const [attachments, setAttachments] = useState(note?.attachments || [])
+  const [isPinned, setIsPinned] = useState(note?.isPinned || false)
   
   const [showTagsModal, setShowTagsModal] = useState(false)
   const [showImageSourceModal, setShowImageSourceModal] = useState(false)
@@ -70,6 +71,7 @@ const NoteModal = ({
       setNoteContent(note.content || "")
       setSelectedTags(note.tags || [])
       setAttachments(note.attachments || [])
+      setIsPinned(note.isPinned || false)
     }
   }, [note])
 
@@ -151,6 +153,7 @@ const NoteModal = ({
         content: noteContent,
         tags: selectedTags,
         attachments: attachments,
+        isPinned: isPinned,
         updatedAt: new Date().toISOString(),
       }
       onSave(updatedNote)
@@ -162,7 +165,7 @@ const NoteModal = ({
         content: noteContent,
         tags: selectedTags,
         attachments: attachments,
-        isPinned: false,
+        isPinned: isPinned,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }
@@ -270,16 +273,16 @@ const NoteModal = ({
                         }}
                       >
                         <div className="py-1">
-                          {/* Pin/Unpin */}
-                          {onPinToggle && (
+                          {/* Pin/Unpin - uses local state, saved with Save Changes */}
+                          {isEditMode && (
                             <button
                               onClick={() => {
-                                onPinToggle(note.id)
+                                setIsPinned(!isPinned)
                                 setShowMobileActionsMenu(false)
                               }}
                               className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-gray-300"
                             >
-                              {note?.isPinned ? (
+                              {isPinned ? (
                                 <>
                                   <PinOff size={16} />
                                   <span>Unpin Note</span>
@@ -299,6 +302,7 @@ const NoteModal = ({
                               onClick={() => {
                                 onDuplicate(note)
                                 setShowMobileActionsMenu(false)
+                                onClose()
                               }}
                               className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-gray-300"
                             >

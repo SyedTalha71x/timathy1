@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import { useState } from "react"
+import { createPortal } from "react-dom"
 import { Link } from "react-router-dom"
 import { FileText, MessageCircle, Calendar } from "lucide-react"
 import { membersData } from "../../../utils/studio-states/members-states"
@@ -237,37 +238,43 @@ export const ExpiringContractsWidget = ({ isSidebarEditing, showHeader = true })
         </div>
       </div>
 
-      {/* Message Type Selection Modal */}
-      <MessageTypeSelectionModal
-        isOpen={messageTypeModal.isOpen}
-        onClose={() => setMessageTypeModal({ isOpen: false, member: null })}
-        member={messageTypeModal.member}
-        onSelectAppChat={handleOpenAppChat}
-        onSelectEmail={handleOpenEmailModal}
-      />
+      {/* Modals - rendered via Portal to ensure centered positioning */}
+      {createPortal(
+        <>
+          {/* Message Type Selection Modal */}
+          <MessageTypeSelectionModal
+            isOpen={messageTypeModal.isOpen}
+            onClose={() => setMessageTypeModal({ isOpen: false, member: null })}
+            member={messageTypeModal.member}
+            onSelectAppChat={handleOpenAppChat}
+            onSelectEmail={handleOpenEmailModal}
+          />
 
-      {/* Chat Popup */}
-      {chatPopup.isOpen && chatPopup.member && (
-        <ChatPopup
-          member={chatPopup.member}
-          isOpen={chatPopup.isOpen}
-          onClose={() => setChatPopup({ isOpen: false, member: null })}
-          onOpenFullMessenger={() => handleOpenFullMessenger(chatPopup.member)}
-        />
+          {/* Chat Popup */}
+          {chatPopup.isOpen && chatPopup.member && (
+            <ChatPopup
+              member={chatPopup.member}
+              isOpen={chatPopup.isOpen}
+              onClose={() => setChatPopup({ isOpen: false, member: null })}
+              onOpenFullMessenger={() => handleOpenFullMessenger(chatPopup.member)}
+            />
+          )}
+
+          {/* Send Email Modal */}
+          <SendEmailModal
+            showEmailModal={showEmailModal}
+            handleCloseEmailModal={handleCloseEmailModal}
+            handleSendEmail={handleSendEmail}
+            emailData={emailData}
+            setEmailData={setEmailData}
+            handleSearchMemberForEmail={handleSearchMemberForEmail}
+            preselectedMember={selectedMemberForEmail}
+            onSaveAsDraft={handleSaveEmailAsDraft}
+            signature={communicationSettingsData?.emailSignature || ""}
+          />
+        </>,
+        document.body
       )}
-
-      {/* Send Email Modal */}
-      <SendEmailModal
-        showEmailModal={showEmailModal}
-        handleCloseEmailModal={handleCloseEmailModal}
-        handleSendEmail={handleSendEmail}
-        emailData={emailData}
-        setEmailData={setEmailData}
-        handleSearchMemberForEmail={handleSearchMemberForEmail}
-        preselectedMember={selectedMemberForEmail}
-        onSaveAsDraft={handleSaveEmailAsDraft}
-        signature={communicationSettingsData?.emailSignature || ""}
-      />
     </>
   )
 }

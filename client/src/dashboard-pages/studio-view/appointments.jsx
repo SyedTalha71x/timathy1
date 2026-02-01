@@ -944,7 +944,7 @@ export default function Appointments() {
             <div className={`hidden lg:flex items-center gap-3 absolute top-1/2 -translate-y-1/2 ${isSidebarCollapsed ? 'left-[calc(50%+18px)] -translate-x-1/2' : 'left-[calc(50%+168px)] -translate-x-1/2'}`}>
               {/* Free Slots Toggle */}
               <button onClick={() => calendarRef.current?.toggleFreeSlots()}
-                className={`text-sm px-3 py-2 rounded-xl flex items-center gap-1.5 transition-colors font-medium ${calendarViewMode === "free" ? "bg-orange-500 hover:bg-orange-600 text-white" : "bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300"}`}>
+                className={`text-sm px-3 py-2 rounded-xl flex items-center gap-1.5 transition-colors font-medium whitespace-nowrap ${calendarViewMode === "free" ? "bg-orange-500 hover:bg-orange-600 text-white" : "bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300"}`}>
                 <CalendarCheck size={16} />
                 {calendarViewMode === "all" ? "Free Slots" : "All Slots"}
               </button>
@@ -1057,7 +1057,7 @@ export default function Appointments() {
           <div className="lg:hidden flex items-center gap-2 mb-3 pr-4">
             <button 
               onClick={() => calendarRef.current?.toggleFreeSlots()} 
-              className={`px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 ${calendarViewMode === "free" ? "bg-orange-500 text-white" : "bg-[#2F2F2F] text-gray-400"}`}
+              className={`px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 whitespace-nowrap ${calendarViewMode === "free" ? "bg-orange-500 text-white" : "bg-[#2F2F2F] text-gray-400"}`}
             >
               <CalendarCheck size={12} />
               {calendarViewMode === "all" ? "Free" : "All"}
@@ -1080,7 +1080,7 @@ export default function Appointments() {
                 <span className="text-white text-xs font-medium">Filter by type</span>
                 <button 
                   onClick={toggleAllFilters} 
-                  className="text-[10px] text-blue-400"
+                  className="text-[10px] text-orange-400 hover:text-orange-300 transition-colors"
                 >
                   {Object.values(appointmentFilters).every((value) => value) ? "Deselect All" : "Select All"}
                 </button>
@@ -1089,30 +1089,30 @@ export default function Appointments() {
                 {appointmentTypesMain.filter(type => !type.isTrialType).map((type) => (
                   <label key={type.name} className="flex items-center gap-1.5 cursor-pointer">
                     <input type="checkbox" checked={appointmentFilters[type.name]} onChange={() => handleFilterChange(type.name)}
-                      className="w-3 h-3 text-blue-600 bg-gray-700 border-gray-600 rounded" />
+                      className="w-3 h-3 accent-orange-500 bg-gray-700 border-gray-600 rounded cursor-pointer" />
                     <div className={`w-1.5 h-1.5 rounded-full ${type.color}`}></div>
                     <span className="text-white text-[11px] truncate">{type.name}</span>
                   </label>
                 ))}
                 <label className="flex items-center gap-1.5 cursor-pointer">
                   <input type="checkbox" checked={appointmentFilters["Trial Training"]} onChange={() => handleFilterChange("Trial Training")}
-                    className="w-3 h-3 text-blue-600 bg-gray-700 border-gray-600 rounded" />
+                    className="w-3 h-3 accent-orange-500 bg-gray-700 border-gray-600 rounded cursor-pointer" />
                   <div className="w-1.5 h-1.5 rounded-full bg-[#3F74FF]"></div>
                   <span className="text-white text-[11px]">Trial</span>
                 </label>
                 <label className="flex items-center gap-1.5 cursor-pointer">
                   <input type="checkbox" checked={appointmentFilters["Blocked Time Slots"]} onChange={() => handleFilterChange("Blocked Time Slots")}
-                    className="w-3 h-3 text-blue-600 bg-gray-700 border-gray-600 rounded" />
+                    className="w-3 h-3 accent-orange-500 bg-gray-700 border-gray-600 rounded cursor-pointer" />
                   <span className="text-white text-[11px]">Blocked</span>
                 </label>
                 <label className="flex items-center gap-1.5 cursor-pointer">
                   <input type="checkbox" checked={appointmentFilters["Cancelled Appointments"]} onChange={() => handleFilterChange("Cancelled Appointments")}
-                    className="w-3 h-3 text-blue-600 bg-gray-700 border-gray-600 rounded" />
+                    className="w-3 h-3 accent-orange-500 bg-gray-700 border-gray-600 rounded cursor-pointer" />
                   <span className="text-white text-[11px]">Cancelled</span>
                 </label>
                 <label className="flex items-center gap-1.5 cursor-pointer">
                   <input type="checkbox" checked={appointmentFilters["Past Appointments"]} onChange={() => handleFilterChange("Past Appointments")}
-                    className="w-3 h-3 text-blue-600 bg-gray-700 border-gray-600 rounded" />
+                    className="w-3 h-3 accent-orange-500 bg-gray-700 border-gray-600 rounded cursor-pointer" />
                   <span className="text-white text-[11px]">Past</span>
                 </label>
               </div>
@@ -1278,47 +1278,47 @@ export default function Appointments() {
                               e.stopPropagation()
                               toggleAllFilters()
                             }} 
-                            className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                            className="text-xs text-orange-400 hover:text-orange-300 transition-colors"
                           >
                             {Object.values(appointmentFilters).every((value) => value) ? "Deselect All" : "Select All"}
                           </button>
                         )}
-                        <button className="text-gray-400 hover:text-white transition-colors">
+                        <button className="p-1 bg-[#2F2F2F] hover:bg-gray-700 rounded-lg cursor-pointer transition-colors text-white">
                           {isFiltersCollapsed ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
                         </button>
                       </div>
                     </div>
                     
                     {!isFiltersCollapsed && (
-                      <div className="space-y-1 mt-2 w-full">
+                      <div className="space-y-1.5 mt-3 w-full">
                         {appointmentTypesMain.filter(type => !type.isTrialType).map((type) => (
-                          <label key={type.name} className="flex items-center gap-2 cursor-pointer w-full">
+                          <label key={type.name} className="flex items-center gap-2 cursor-pointer w-full py-0.5">
                             <input type="checkbox" checked={appointmentFilters[type.name]} onChange={() => handleFilterChange(type.name)}
-                              className="w-3 h-3 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2" />
+                              className="w-3.5 h-3.5 accent-orange-500 bg-gray-700 border-gray-600 rounded cursor-pointer" />
                             <div className={`w-2 h-2 rounded-full ${type.color}`}></div>
                             <span className="text-white text-xs">{type.name}</span>
                           </label>
                         ))}
-                        <label className="flex items-center gap-2 cursor-pointer w-full">
+                        <label className="flex items-center gap-2 cursor-pointer w-full py-0.5">
                           <input type="checkbox" checked={appointmentFilters["Trial Training"]} onChange={() => handleFilterChange("Trial Training")}
-                            className="w-3 h-3 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2" />
+                            className="w-3.5 h-3.5 accent-orange-500 bg-gray-700 border-gray-600 rounded cursor-pointer" />
                           <div className="w-2 h-2 rounded-full bg-[#3F74FF]"></div>
                           <span className="text-white text-xs">Trial Training</span>
                         </label>
-                        <div className="border-t border-gray-600 my-1"></div>
-                        <label className="flex items-center gap-2 cursor-pointer w-full">
+                        <div className="border-t border-gray-700 my-2"></div>
+                        <label className="flex items-center gap-2 cursor-pointer w-full py-0.5">
                           <input type="checkbox" checked={appointmentFilters["Blocked Time Slots"]} onChange={() => handleFilterChange("Blocked Time Slots")}
-                            className="w-3 h-3 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2" />
+                            className="w-3.5 h-3.5 accent-orange-500 bg-gray-700 border-gray-600 rounded cursor-pointer" />
                           <span className="text-white text-xs">Blocked</span>
                         </label>
-                        <label className="flex items-center gap-2 cursor-pointer w-full">
+                        <label className="flex items-center gap-2 cursor-pointer w-full py-0.5">
                           <input type="checkbox" checked={appointmentFilters["Cancelled Appointments"]} onChange={() => handleFilterChange("Cancelled Appointments")}
-                            className="w-3 h-3 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2" />
+                            className="w-3.5 h-3.5 accent-orange-500 bg-gray-700 border-gray-600 rounded cursor-pointer" />
                           <span className="text-white text-xs">Cancelled</span>
                         </label>
-                        <label className="flex items-center gap-2 cursor-pointer w-full">
+                        <label className="flex items-center gap-2 cursor-pointer w-full py-0.5">
                           <input type="checkbox" checked={appointmentFilters["Past Appointments"]} onChange={() => handleFilterChange("Past Appointments")}
-                            className="w-3 h-3 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 focus:ring-2" />
+                            className="w-3.5 h-3.5 accent-orange-500 bg-gray-700 border-gray-600 rounded cursor-pointer" />
                           <span className="text-white text-xs">Past</span>
                         </label>
                       </div>
