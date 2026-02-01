@@ -19,10 +19,10 @@ const AdminModel = UserModel.discriminator('admin', new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Lead'
     }],
-    studio: {
+    studio: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Studio'
-    },
+    }],
 }));
 
 const MemberModel = UserModel.discriminator('member', new mongoose.Schema({
@@ -49,6 +49,10 @@ const MemberModel = UserModel.discriminator('member', new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'IdlePeriod',
     },
+    studio:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Studio'
+    }
 }))
 
 

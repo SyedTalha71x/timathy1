@@ -1,6 +1,6 @@
 const { AdminModel } = require('../models/Discriminators');
 const bcrypt = require('bcryptjs');
-const generateToken = require('../utils/GenerateToken');
+const GenerateToken = require('../utils/GenerateToken');
 const hashedPassword = require('../utils/HashedPassword');
 const {
     BadRequestError,
@@ -59,7 +59,7 @@ const createAdmin = async (req, res, next) => {
             password: securePassword
         });
 
-        const { AccessToken, RefreshToken } = generateToken({
+        const { AccessToken, RefreshToken } = GenerateToken({
             firstName: admin.firstName,
             lastName: admin.lastName,
             username: admin.username,
@@ -100,11 +100,11 @@ const loginAdmin = async (req, res, next) => {
         const isMatch = await bcrypt.compare(password, admin.password);
         if (!isMatch) throw new UnauthorizedError("Invalid Password");
 
-        const { AccessToken, RefreshToken } = generateToken({
+        const { AccessToken, RefreshToken } = GenerateToken({
             firstName: admin.firstName,
             lastName: admin.lastName,
             username: admin.username,
-            id: admin.id,
+            _id: admin._id,
             email: admin.email,
             role: admin.role,
             img: admin.img?.url
@@ -123,10 +123,11 @@ const loginAdmin = async (req, res, next) => {
                 firstName: admin.firstName,
                 lastName: admin.lastName,
                 username: admin.username,
-                id: admin.id,
+                _id: admin._id,
                 email: admin.email,
                 role: admin.role,
-                img: admin.img?.url
+                img: admin.img?.url,
+                studio:admin.studio,
             }
         });
     } catch (error) {
@@ -214,25 +215,9 @@ const deleteUser = async (req, res, next) => {
 };
 
 
-const logout = async (req, res, next) => {
-    try {
-        const userId = req.user?.id; // assuming auth middleware adds user
-        if (userId) {
-            await UserModel.findByIdAndUpdate(userId, { $unset: { refreshToken: 1 } });
-        }
-        res.clearCookie("token", { httpOnly: true, secure: true, sameSite: "strict" });
-        res.clearCookie("refreshToken", { httpOnly: true, secure: true, sameSite: "strict" });
-
-        return res.status(200).json({ message: "Logged out successfully" });
-    } catch (error) {
-        next(error);
-    }
-};
-
 module.exports = {
     createAdmin,
     loginAdmin,
-    logout,
     getUsers,
     deleteUser,
     updateAdminById

@@ -3,9 +3,14 @@ import { IoIosInformation } from "react-icons/io"
 import BookingModal from "../../components/member-panel-components/appointments-components/BookingModal"
 import RequestModal from "../../components/member-panel-components/appointments-components/RequestModal"
 import CancelModal from "../../components/member-panel-components/appointments-components/CancelModal"
-import { currentAppointments, pastAppointments, pendingAppointments, services, timeSlots } from "../../utils/member-panel-states/appointments-states"
+import { timeSlots } from "../../utils/member-panel-states/appointments-states"
+import { useDispatch, useSelector } from "react-redux"
+import { createMyAppointment, fetchMyAppointments } from "../../features/appointments/AppointmentSlice"
+import { useNavigate } from 'react-router-dom'
 
 const Appointments = () => {
+  const { services } = useSelector((state) => state.services)
+  const { appointments } = useSelector((state) => state.appointments || [])
   const [selectedDate, setSelectedDate] = useState(new Date().getDate())
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth())
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
@@ -23,7 +28,8 @@ const Appointments = () => {
   const [showBookingModal, setShowBookingModal] = useState(false)
   const [availabilityFilter, setAvailabilityFilter] = useState("available")
   const [showRequestModal, setShowRequestModal] = useState(false)
-
+  const dispatch = useDispatch();
+  const navigate = useNavigate()
   const filterRef = useRef(null)
 
   // Close dropdown when clicking outside
@@ -39,6 +45,11 @@ const Appointments = () => {
       document.removeEventListener("mousedown", handleClickOutside)
     }
   }, [])
+
+  useEffect(() => {
+    dispatch(fetchMyAppointments())
+  }, [dispatch])
+
 
   const currentMonth = new Date().getMonth()
   const currentYear = new Date().getFullYear()
@@ -191,7 +202,7 @@ const Appointments = () => {
 
   const handleTimeSlotClick = (slotId) => {
     const slot = timeSlots.find((slot) => slot.id === slotId)
-    setSelectedTimeSlot(slotId)
+    setSelectedTimeSlot(slot)
 
     if (slot?.available) {
       setShowBookingModal(true)
@@ -199,17 +210,58 @@ const Appointments = () => {
       setShowRequestModal(true)
     }
   }
-
+  // confirm Appointment
   const confirmBooking = () => {
-    setShowBookingModal(false)
-    setSelectedTimeSlot(null)
-    alert("Appointment booked successfully!")
+    if (!selectedService || !selectedTimeSlot) return
+
+    const appointmentData = {
+      service: selectedService._id,
+      date: `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-${String(selectedDate).padStart(2, '0')}`,
+      timeSlotId: {
+        start: selectedTimeSlot.start,
+        end: selectedTimeSlot.end,
+      }
+    }
+
+
+    dispatch(createMyAppointment(appointmentData))
+      .unwrap()
+      .then(() => {
+        setShowBooking(false)
+        setShowBookingModal(false)
+        setSelectedTimeSlot(null)
+        alert("Appointment Booked Successfully")
+        dispatch(fetchMyAppointments())
+        navigate( '/member-view/studio-menu')
+      })
+      .catch((err) => {
+        alert(err)
+      })
+
+
   }
 
   const confirmRequest = () => {
-    setShowRequestModal(false)
-    setSelectedTimeSlot(null)
-    alert("Appointment request sent successfully!")
+    if (!selectedService || !selectedTimeSlot) return
+
+    const requestData = {
+      service: selectedService._id,
+      date: new Date(selectedYear, selectedMonth, selectedDate).toISOString(),
+      timeSlotId: {
+        start: selectedTimeSlot.start,
+        end: selectedTimeSlot.end,
+      }
+    }
+    dispatch(createMyAppointment(requestData))
+      .unwrap()
+      .then(() => {
+        setShowRequestModal(false)
+        setSelectedTimeSlot(null)
+        alert("Appointment request sent successfully!")
+      })
+      .catch((err) => {
+        alert(err)
+      })
   }
 
   const isPastDate = (day) => {
@@ -217,6 +269,16 @@ const Appointments = () => {
     const selectedDate = new Date(selectedYear, selectedMonth, day)
     return selectedDate < new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate())
   }
+
+  const appointmentsArray = Array.isArray(appointments) ? appointments : [];
+  const filteredAppointments = appointmentsArray.filter((appointment) => {
+    if (appointmentView === "upcoming") return appointment.status === "confirmed";
+    if (appointmentView === "pending") return appointment.status === "pending";
+    if (appointmentView === "past") return appointment.status === "completed";
+    return true;
+  });
+
+
 
   const calendarDays = generateCalendarDays()
 
@@ -276,8 +338,11 @@ const Appointments = () => {
                   <h3 className="text-base sm:text-xl font-bold text-white">Show my appointments</h3>
                 </div>
                 <div className="bg-blue-500 text-white text-xs sm:text-sm font-bold px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-full min-w-[1.75rem] sm:min-w-[2rem] h-7 sm:h-8 flex items-center justify-center flex-shrink-0">
-                  {currentAppointments.length + pendingAppointments.length}
+                  {
+                    appointments.filter(appt => appt.status === "confirmed" || appt.status === "pending").length
+                  }
                 </div>
+
               </button>
             </div>
 
@@ -334,7 +399,7 @@ const Appointments = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
                 {filteredServices.map((service) => (
                   <div
-                    key={service.id}
+                    key={service._id}
                     className="relative rounded-xl overflow-hidden cursor-pointer group transform transition-all duration-300 hover:scale-105 hover:shadow-2xl bg-gray-800"
                     onClick={() => {
                       setSelectedService(service)
@@ -343,7 +408,7 @@ const Appointments = () => {
                   >
                     <div className="relative h-40 sm:h-48 overflow-hidden">
                       <img
-                        src={service.image || "/placeholder.svg"}
+                        src={service.image?.url || "/placeholder.svg"}
                         alt={service.name}
                         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                         onError={(e) => {
@@ -436,17 +501,13 @@ const Appointments = () => {
               </div>
 
               <div className="space-y-3 sm:space-y-4">
-                {(appointmentView === "upcoming"
-                  ? currentAppointments
-                  : appointmentView === "pending"
-                    ? pendingAppointments
-                    : pastAppointments
-                ).map((appointment) => (
-                  <div key={appointment.id} className="bg-gray-800 rounded-xl p-4 sm:p-6 border border-gray-700">
+
+                {filteredAppointments.map((appointment) => (
+                  <div key={appointment._id} className="bg-gray-800 rounded-xl p-4 sm:p-6 border border-gray-700">
                     <div className="flex flex-col gap-3 sm:gap-4">
                       <div className="flex-1">
                         <div className="flex items-start justify-between gap-2 mb-2">
-                          <h3 className="text-base sm:text-lg font-bold text-white">{appointment.service}</h3>
+                          <h3 className="text-base sm:text-lg font-bold text-white">{appointment.service?.name}</h3>
                           <span
                             className={`px-2 sm:px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap flex-shrink-0 ${appointment.status === "confirmed"
                               ? "bg-green-500/20 text-green-400 border border-green-500/30"
@@ -463,30 +524,39 @@ const Appointments = () => {
                             <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
                               <path d="M9 11H7v6h2v-6zm4 0h-2v6h2v-6zm4 0h-2v6h2v-6zm2-7h-3V2h-2v2H8V2H6v2H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2z" />
                             </svg>
-                            <span>{appointment.date}</span>
+                            <span>
+                              {new Date(appointment.date).toLocaleDateString("en-US", {
+                                month: "short",
+                                day: "2-digit",
+                                year: "numeric"
+                              }).replace(",", "")}
+                            </span>
+
                           </div>
                           <div className="flex items-center gap-2">
                             <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
                               <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M16.2,16.2L11,13V7H12.5V12.2L17,14.9L16.2,16.2Z" />
                             </svg>
-                            <span>{appointment.time}</span>
+                            <span>{appointment.timeSlot.start}-{appointment.timeSlot.end}</span>
                           </div>
                         </div>
                       </div>
-                      {(appointmentView === "upcoming" || appointmentView === "pending") && (
+                      {(appointment.status === "confirmed" || appointment.status === "pending") && (
                         <div className="flex gap-2">
                           <button
                             onClick={() =>
-                              appointmentView === "pending"
+                              appointment.status === "pending"
                                 ? handleCancelRequest(appointment)
                                 : handleCancelBooking(appointment)
                             }
                             className="w-full sm:w-auto px-3 sm:px-4 py-2 bg-red-600 hover:bg-red-500 rounded-lg transition-colors text-xs sm:text-sm font-medium"
                           >
-                            Cancel {appointmentView === "pending" ? "request" : "booking"}
+                            Cancel {appointment.status === "pending" ? "request" : "booking"}
                           </button>
                         </div>
                       )}
+
+
                     </div>
                   </div>
                 ))}
@@ -515,7 +585,7 @@ const Appointments = () => {
                 <div className="bg-gray-800 rounded-xl overflow-hidden border border-gray-700">
                   <div className="relative">
                     <img
-                      src={selectedService?.image || "/placeholder.svg"}
+                      src={selectedService?.image?.url || "/placeholder.svg"}
                       alt={selectedService?.name}
                       className="w-full h-32 sm:h-40 md:h-48 object-cover"
                       onError={(e) => {
@@ -600,7 +670,7 @@ const Appointments = () => {
                   <div className="grid grid-cols-7 gap-1">
                     {calendarDays.map((day, index) => (
                       <button
-                        key={index}
+                        key={`${selectedMonth}-${day}-${index}`}
                         onClick={() => day && !isPastDate(day) && setSelectedDate(day)}
                         disabled={!day || isPastDate(day)}
                         className={`aspect-square flex items-center justify-center text-sm font-medium rounded-lg transition-all duration-200 ${!day || isPastDate(day)
@@ -676,7 +746,7 @@ const Appointments = () => {
                             }`}
                         >
                           <div className="flex justify-between items-center gap-2">
-                            <span className="text-xs sm:text-sm">{slot.time}</span>
+                            <span className="text-xs sm:text-sm">{slot.start} - {slot.end}</span>
                             {!slot.available ? (
                               <span className="text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded whitespace-nowrap">
                                 Request Available
@@ -707,7 +777,6 @@ const Appointments = () => {
         selectedDate={selectedDate}
         selectedYear={selectedYear}
         selectedTimeSlot={selectedTimeSlot}
-        timeSlots={timeSlots}
         months={months}
       />
 

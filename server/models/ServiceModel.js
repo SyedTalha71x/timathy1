@@ -1,39 +1,33 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
 
-
-const serviceSchema = new mongoose.Schema({
+const serviceSchema = new mongoose.Schema(
+  {
+    studio: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Studio',
+      required: true,
+    },
     name: {
-        type: String,
-        required: true
+      type: String,
+      required: true,
+    },
+    image: { url: String, public_id: String },
+    description: String,
+    category: {
+      type: String,
+      enum: ['Health Check', 'Wellness', 'Personal Training', 'Recovery', 'Mindfulness', 'Group Class'],
+      required: true,
     },
     price: {
-        type: String,
-        required: true,
+      type: Number,
+      required: true
     },
-    paymentOption: {
-        type: String,
-        enum: ['card', 'cash', 'directDebit'],
-        default: 'card'
-    },
-    link: {
-        type: String,
-    },
-    img: {
-        url: String,
-        public_id: String,
-    },
-    createdBy: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'staff'
-    },
-    soldBy: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'member'
-    }
-})
-
-serviceSchema.index({ name: 1, price: 1 });
+    duration: { type: String, required: true }, // in minutes
+    contingentUsage: { type: Number, default: 1, max: 8 },
+    maxSimultaneous: { type: Number, default: 1 }, // how many can be booked at same time
+  },
+  { timestamps: true }
+);
 
 const ServiceModel = mongoose.model('Service', serviceSchema);
-
-module.exports = ServiceModel;
+module.exports = ServiceModel

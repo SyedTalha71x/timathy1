@@ -48,6 +48,7 @@ const UserSchema = new mongoose.Schema({
         type: String,
         // required: true,
         minlength: 8,
+        select: false,
         validate: {
             validator: function (v) {
                 return /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@.-_$!%*?&])[A-Za-z\d@$!.-_%*?&]{8,}$/.test(v);
@@ -57,7 +58,8 @@ const UserSchema = new mongoose.Schema({
 
     },
     refreshToken: {
-        type: String
+        type: String,
+        select: false
     },
     isActive: {
         type: Boolean,
@@ -87,6 +89,14 @@ const UserSchema = new mongoose.Schema({
         type: String,
         // required: true,
     },
+    country: {
+        type: String,
+        // required: true,  
+    },
+    houseNumber: {
+        type: String,
+        // required: true,
+    },
     phone: {
         type: String,
         validate: {
@@ -103,10 +113,10 @@ const UserSchema = new mongoose.Schema({
         },
         // required: true,
     },
-    about: {
-        type: String,
-        // required: true,
-    },
+    // about: {
+    //     type: String,
+    //     // required: true,
+    // },
 }, options);
 
 

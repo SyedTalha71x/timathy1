@@ -3,25 +3,25 @@
 import React from "react";
 import PopupWrapper from "./PopupWrapper";
 
-const ImprintPopup = ({ onClose }) => {
+const ImprintPopup = ({ onClose, studio }) => {
   return (
     <PopupWrapper title="Imprint" onClose={onClose}>
       <p>
-        <strong>FitZone Studio GmbH</strong>
+        <strong>{studio?.studioName}</strong>
       </p>
       <p>
-        Pariser Platz 1<br />
-        10117 Berlin, Germany
+        {studio?.street}<br />
+        {studio?.zipCode} {studio?.city} {studio?.country}
       </p>
       <p>
-        Phone: +49 30 1234 5678
+        Phone: {studio?.phone}
         <br />
-        Email: info@fitzonestudio.de
+        Email: {studio?.email}
       </p>
       <p>
-        Managing Director: Max Mustermann
+        Managing Director: {studio?.studioOwner}
         <br />
-        Commercial Register: HRB 12345 B
+        Commercial Register: Not Provided
       </p>
     </PopupWrapper>
   );

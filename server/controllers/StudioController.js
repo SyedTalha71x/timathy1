@@ -1,123 +1,191 @@
 const StudioModel = require('../models/StudioModel');
-const { NotFoundError, UnAuthorizedError } = require('../middleware/error/httpErrors')
+const { MemberModel, AdminModel } = require('../models/Discriminators');
+const { NotFoundError, UnAuthorizedError, ConflictError } = require('../middleware/error/httpErrors')
 const cloudinary = require('../utils/Cloudinary')
 const { Readable } = require('stream')
 
+
+
+
 const updateStudio = async (req, res, next) => {
-    try {
-        const { id } = req.params;
-        const staffRole = req.user?.staffRole;
-        const userId = req.user?.id;
+  try {
+    const { id } = req.params;
+    const role = req.user?.role;
 
-        // Only managers can update
-        if (staffRole !== "manager") {
-            throw new UnAuthorizedError("Only Managers can update the studio");
-        }
-
-        // Find studio
-        const studio = await StudioModel.findById(id);
-        if (!studio) throw new NotFoundError("Studio not found");
-
-        // Check if this manager is assigned to the studio
-        if (!studio.createdBy.map(s => s.toString()).includes(userId.toString())) {
-            throw new UnAuthorizedError("You can only update your own studio");
-        }
-
-        let {
-            studioOwner,
-            phone,
-            email,
-            street,
-            zipCode,
-            city,
-            country,
-            website,
-            openingHours,
-            closingDays
-        } = req.body;
-
-        // Handle comma-separated string for closingDays
-        if (typeof closingDays === "string") {
-            closingDays = closingDays.split(",").map(day => day.trim());
-        }
-
-        // Handle logo upload
-        let logo = studio.logo;
-        if (req.file) {
-            const bufferStream = new Readable();
-            bufferStream.push(req.file.buffer);
-            bufferStream.push(null);
-
-            const streamUpload = () =>
-                new Promise((resolve, reject) => {
-                    const stream = cloudinary.uploader.upload_stream(
-                        { folder: 'Timathy/profiles', resource_type: 'image' },
-                        (error, result) => {
-                            if (error) return reject(error);
-                            resolve(result);
-                        }
-                    );
-                    bufferStream.pipe(stream);
-                });
-
-            const cloudinaryResult = await streamUpload();
-            logo = {
-                url: cloudinaryResult.secure_url,
-                public_id: cloudinaryResult.public_id
-            };
-        }
-
-        // Build update object, ignoring undefined fields
-        const updateFields = {};
-        [
-            "studioOwner",
-            "phone",
-            "email",
-            "street",
-            "zipCode",
-            "city",
-            "country",
-            "website",
-            "openingHours",
-            "closingDays",
-            "logo"
-        ].forEach(key => {
-            if (typeof eval(key) !== "undefined") updateFields[key] = eval(key);
-        });
-
-        const updatedStudio = await StudioModel.findByIdAndUpdate(
-            id,
-            { $set: updateFields },
-            { new: true }
-        );
-
-        return res.status(200).json({
-            status: true,
-            message: "Studio Successfully Updated",
-            studio: updatedStudio
-        });
-
-    } catch (error) {
-        next(error);
+    if (role !== "admin") {
+      throw new UnAuthorizedError("You are not authorized to update this studio");
     }
+
+    const findStudio = await StudioModel.findById(id);
+    if (!findStudio) throw new NotFoundError("Studio not found");
+
+    const {
+      studioName,
+      studioOwner,
+      email,
+      phone,
+      street,
+      zipCode,
+      city,
+      country,
+      website,
+      openingHours,
+      closingDays,
+      overallCapacity,
+      memberId
+    } = req.body;
+
+    const updateData = {
+      studioName,
+      studioOwner,
+      email,
+      phone,
+      street,
+      zipCode,
+      city,
+      country,
+      website,
+      openingHours,
+      closingDays,
+      overallCapacity
+    };
+
+    Object.keys(updateData).forEach(
+      key => updateData[key] === undefined && delete updateData[key]
+    );
+
+    const updateObj = { $set: updateData };
+
+    if (memberId) {
+      const member = await MemberModel.findById(memberId);
+      if (!member) throw new NotFoundError("Member not found");
+
+      updateObj.$addToSet = { members: member._id };
+
+      await MemberModel.findByIdAndUpdate(
+        memberId,
+        { $set: { studio: findStudio._id } },
+        { new: true }
+      );
+    }
+
+    const updatedStudio = await StudioModel.findByIdAndUpdate(
+      id,
+      updateObj,
+      { new: true }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Studio updated successfully",
+      studio: updatedStudio
+    });
+
+  } catch (error) {
+    next(error);
+  }
 };
 
 
-const getStudio = async (req, res, next) => {
-    try {
-        const userId = req.user?.id;
-        const studio = await StudioModel.find().populate('createdBy', 'firstName lastName email role staffRole');
-        return res.status(200).json({
-            success: true,
-            studio
-        })
+
+
+const getStudioByMemberId = async (req, res, next) => {
+  try {
+    const userId = req.user?._id;
+
+    const studio = await StudioModel
+      .findOne({ members: userId })
+      .populate("members", "firstName lastName email phone role");
+
+    if (!studio) throw new NotFoundError("Studio not found");
+
+    return res.status(200).json({
+      success: true,
+      studio
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+const createStudio = async (req, res, next) => {
+  try {
+    const role = req.user?.role;
+    if (role !== "admin") {
+      throw new UnAuthorizedError("You are not authorized to create a studio");
     }
-    catch (error) {
-        next(error)
+
+    const {
+      studioName,
+      studioOwner,
+      email,
+      phone,
+      street,
+      zipCode,
+      city,
+      country,
+      website,
+      openingHours,   // array
+      closingDays,    // array of { date, reason }
+      overallCapacity,
+      memberId
+    } = req.body;
+
+    const userId = req.user?._id;
+
+    const existingStudio = await StudioModel.findOne({ studioName });
+    if (existingStudio) {
+      throw new ConflictError("Studio with this name already exists");
     }
-}
+
+    const member = await MemberModel.findById(memberId);
+    if (!member) throw new NotFoundError("Member not found");
+
+    const studio = await StudioModel.create({
+      studioName,
+      studioOwner,
+      email,
+      phone,
+      street,
+      zipCode,
+      city,
+      country,
+      website,
+      openingHours,
+      closingDays,
+      overallCapacity,
+      createdBy: userId,
+      members: [memberId]
+    });
+
+    await AdminModel.findByIdAndUpdate(
+      userId,
+      { $addToSet: { studio: studio._id } },
+      { new: true }
+    );
+
+    await MemberModel.findByIdAndUpdate(
+      memberId,
+      { $set: { studio: studio._id } },
+      { new: true }
+    );
+
+    return res.status(201).json({
+      success: true,
+      message: "Studio created successfully",
+      studio
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};
+
 
 module.exports = {
     updateStudio,
-    getStudio
+    getStudioByMemberId,
+    createStudio
 }

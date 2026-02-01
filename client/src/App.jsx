@@ -1,9 +1,14 @@
-import { Route, Routes, useLocation } from "react-router-dom";
+import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import Home from "./landing-page/home";
 import Footer from "./components/footer";
 import Header from "./components/navbar";
 import Login from './landing-page/login';
 import Register from './landing-page/register'
+import { useDispatch, useSelector } from 'react-redux';
+// protected Routes
+import ProtectedRoutes from "./ProtectedRoutes";
+
+import { me } from "./features/auth/authSlice";
 
 // User Panel Dashboard
 import Dashboardlayout from "./layouts/dashboard-layout";
@@ -67,13 +72,43 @@ import MemberNotificationsRemainders from './dashboard-pages/member-view/nutriti
 import MemberOfflineMode from './dashboard-pages/member-view/nutrition-tracking/offline-mode'
 import MemberBarcodeEntry from './dashboard-pages/member-view/nutrition-tracking/barcode-entry'
 import MemberNutritionAnalysis from './dashboard-pages/member-view/nutrition-analysis'
+import { useEffect } from "react";
+import { fetchMyStudio } from "./features/studio/studioSlice";
+import { fetchMyServices } from "./features/services/servicesSlice";
+import { fetchMyAppointments } from "./features/appointments/AppointmentSlice";
+
 // import { useEffect } from "react";
 // import { startModalWatcher } from "./utils/fixModals";
 
 function App() {
   const location = useLocation();
+  const { user, loading } = useSelector((state) => state.auth)
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
   const isAuthOrDashboardPage = ["/login", "/register"].includes(location.pathname) || location.pathname.startsWith("/dashboard") || location.pathname.startsWith("/admin-dashboard") || location.pathname.startsWith("/member-view");
 
+
+  useEffect(() => {
+    dispatch(me());
+    dispatch(fetchMyServices())
+    dispatch(fetchMyAppointments())
+    dispatch(fetchMyStudio())
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (!loading && user) {
+      // redirect only if on /login or /
+      if (location.pathname === "/" || location.pathname === "/login") {
+        if (user.role === 'member') navigate("/member-view/studio-menu")
+        if (user.role === 'admin') navigate("/admin-dashboard/my-area")
+        if (user.role === 'staff') navigate("/dashboard/my-area")
+      }
+    }
+  }, [user, loading, navigate, location.pathname])
+
+  // 
+  if (loading) return <div>Loading...</div>
   // useEffect(() => {
   //   const observer = startModalWatcher();
   //   return () => observer.disconnect();
@@ -87,7 +122,11 @@ function App() {
         <Route path="register" element={<Register />} />
 
 
-        <Route path="/dashboard" element={<Dashboardlayout />}>
+        <Route path="/dashboard" element={
+          <ProtectedRoutes allowedRoles={['staff']}>
+            <Dashboardlayout />
+          </ProtectedRoutes>
+        }>
           <Route path="my-area" element={<MyArea />} />
           <Route path="appointments" element={<Appointments />} />
           <Route path="to-do" element={<ToDo />} />
@@ -110,11 +149,15 @@ function App() {
           <Route path="members-checkin" element={<MembersCheckIn />} />
           <Route path="assessment" element={<Assessment />} />
           <Route path="help-center" element={<HelpCenter />} />
-          
+
 
         </Route>
 
-        <Route path="/admin-dashboard" element={<AdminDashboardLayout />}>
+        <Route path="/admin-dashboard" element={
+          <ProtectedRoutes allowedRoles={["admin"]}>
+            <AdminDashboardLayout />
+          </ProtectedRoutes>
+        }>
           <Route path="my-area" element={<AdminMyArea />} />
           <Route path="to-do" element={<AdminTodo />} />
           <Route path="contract" element={<AdminContracts />} />
@@ -137,7 +180,11 @@ function App() {
 
         </Route>
 
-        <Route path="/member-view" element={<MemberDashboardLayout />}>
+        <Route path="/member-view" element={
+          <ProtectedRoutes allowedRoles={['member']}>
+            <MemberDashboardLayout />
+          </ProtectedRoutes>
+        }>
           <Route path="appointment" element={<MemberAppointments />} />
           <Route path="communication" element={<MemberCommuncation />} />
           <Route path="studio-menu" element={<MemberStudioMenu />} />

@@ -5,16 +5,25 @@ import { useState, useRef, useEffect } from "react"
 import { useNavigate, Link } from "react-router-dom"
 import Art from "../../public/Art.png"
 import { gsap } from "gsap"
-
+import { useSelector, useDispatch } from "react-redux"
+import { memberLogin } from "../features/member/memberSlice"
+import { fetchMyStudio } from '../features/studio/studioSlice'
+import { fetchMyServices } from "../features/services/servicesSlice"
+import { fetchMyAppointments } from "../features/appointments/AppointmentSlice"
 export default function SignInPage() {
   const navigate = useNavigate()
   const [loginType, setLoginType] = useState("user")
+  const { member, loading, error } = useSelector((state) => state.members)
   const tabAnimationRef = useRef(null)
   const userTabRef = useRef(null)
   const adminTabRef = useRef(null)
   const memberTabRef = useRef(null)
   const formContainerRef = useRef(null)
+  const didInitRef = useRef(false);
 
+
+
+  const dispatch = useDispatch();
   const [userFormData, setUserFormData] = useState({
     studioName: "",
     email: "",
@@ -32,7 +41,7 @@ export default function SignInPage() {
   })
 
   // Schnelle Navigation mit React Router (kein Page Reload!)
-  const redirectMember = () => navigate("/member-view/studio-menu")
+  // const redirectMember = () => navigate("/member-view/studio-menu")
   const redirectUser = () => navigate("/dashboard/my-area")
   const redirectAdmin = () => navigate("/admin-dashboard/my-area")
 
@@ -46,10 +55,23 @@ export default function SignInPage() {
     redirectAdmin()
   }
 
-  const handleMemberSubmit = (e) => {
-    e.preventDefault()
-    redirectMember()
-  }
+  const handleMemberSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await dispatch(memberLogin(memberFormData)).unwrap();
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  useEffect(() => {
+    if (member) {
+      dispatch(fetchMyStudio());
+      dispatch(fetchMyServices());
+      dispatch(fetchMyAppointments());
+      navigate('/member-view/studio-menu')
+    }
+  }, [member, navigate]);
 
   const switchTab = (type) => {
     if (type === loginType) return
@@ -101,8 +123,8 @@ export default function SignInPage() {
       loginType === "user"
         ? "#3F74FF"
         : loginType === "admin"
-        ? "#FF3F3F"
-        : "#22C55E"
+          ? "#FF3F3F"
+          : "#22C55E"
 
     gsap.set(tabAnimationRef.current, {
       left: initialLeft,
@@ -263,10 +285,12 @@ export default function SignInPage() {
                   </div>
                   <button
                     type="submit"
+                    disabled={loading}
                     className="w-full rounded-xl bg-green-600 px-4 py-2 sm:py-3 text-white hover:bg-green-700 transition-all duration-500 ease-in-out text-sm sm:text-base"
                   >
-                    Member Sign In
+                    {loading ? "Member Signing..." : "Member Sign In"}
                   </button>
+                  <p className="text-red-500 text-sm p-2">{error}</p>
                 </form>
               )}
 

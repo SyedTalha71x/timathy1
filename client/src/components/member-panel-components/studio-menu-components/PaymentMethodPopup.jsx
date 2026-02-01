@@ -2,6 +2,7 @@
 /* eslint-disable react/prop-types */
 import React from "react";
 
+
 const PaymentMethodPopup = ({ show, onClose }) => {
   if (!show) return null;
 
