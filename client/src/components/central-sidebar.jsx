@@ -24,8 +24,16 @@ import {
   ExternalLink,
   ChevronRight,
   SlidersHorizontal,
+  Calendar,
+  CalendarCheck,
+  FileText,
+  MailWarning,
+  PauseCircle,
+  CreditCard,
+  UserCog,
 } from "lucide-react"
 import { toast } from "react-hot-toast"
+import { CiMonitor } from "react-icons/ci"
 
 // ============================================
 // Initials Avatar Component for Notifications
@@ -83,11 +91,16 @@ import EditAppointmentModal from "./shared/appointments/EditAppointmentModal"
 // Data Imports
 // ============================================
 import {
-  demoNotifications,
   memberRelationsData,
   availableMembersLeadsNew,
   customLinksData,
 } from "../utils/studio-states/myarea-states"
+
+import {
+  generateSidebarActivityItems,
+  getTotalPendingCount,
+  activityMonitorTabs,
+} from "../utils/studio-states/activity-monitor-states"
 
 import {
   appointmentsData,
@@ -150,12 +163,7 @@ const AVAILABLE_TRAINING_PLANS = [
   { id: 4, name: "Muscle Building Split", description: "Targeted muscle building program", duration: "12 weeks", difficulty: "Intermediate" },
 ]
 
-const ACTIVITY_TYPES = {
-  vacation: { icon: User, color: "bg-blue-600" },
-  contract: { icon: Building2, color: "bg-orange-600" },
-  appointment: { icon: Clock, color: "bg-green-600" },
-  email: { icon: Reply, color: "bg-purple-600" },
-}
+// Activity types and tabs are imported from activity-monitor-states.jsx
 
 // ============================================
 // Main Sidebar Component
@@ -437,9 +445,11 @@ const Sidebar = ({
     return {
       memberChat: memberNotifications,
       studioChat: staffNotifications,
-      activityMonitor: demoNotifications?.activityMonitor || []
     }
   })
+  
+  // Activity Monitor State - separate from chat notifications
+  const [activityCategories, setActivityCategories] = useState(() => generateSidebarActivityItems())
   
   // ChatPopup state for notifications
   const [isChatPopupOpen, setIsChatPopupOpen] = useState(false)
@@ -518,11 +528,17 @@ const Sidebar = ({
   }
 
   const getUnreadCount = (section) => {
+    if (section === "activityMonitor") {
+      // Activity Monitor count comes from categories
+      return Object.values(activityCategories).reduce((sum, cat) => sum + cat.count, 0)
+    }
     return notificationData[section]?.filter((msg) => !msg.isRead).length || 0
   }
 
   const getTotalUnreadCount = () => {
-    return getUnreadCount("memberChat") + getUnreadCount("studioChat") + getUnreadCount("activityMonitor")
+    const chatCount = getUnreadCount("memberChat") + getUnreadCount("studioChat")
+    const activityCount = Object.values(activityCategories).reduce((sum, cat) => sum + cat.count, 0)
+    return chatCount + activityCount
   }
 
   // ============================================
@@ -917,42 +933,69 @@ const Sidebar = ({
   // ============================================
   // Activity Monitor Handlers
   // ============================================
-  const handleActivityAction = (activity, action) => {
-    setNotificationData((prev) => ({
-      ...prev,
-      activityMonitor: prev.activityMonitor.map((item) =>
-        item.id === activity.id
-          ? {
-              ...item,
-              status: action === "approve" || action === "resolve" ? "completed" : action === "reject" ? "rejected" : item.status,
-              isRead: true,
-              actionRequired: false,
-            }
-          : item
-      ),
-    }))
+  const handleActivityAction = (categoryId, itemId, action) => {
+    // Update the activity categories state
+    setActivityCategories((prev) => {
+      const updated = { ...prev }
+      if (updated[categoryId]) {
+        updated[categoryId] = {
+          ...updated[categoryId],
+          items: updated[categoryId].items.filter(item => item.id !== itemId),
+          count: updated[categoryId].count - 1,
+        }
+        // Remove category if empty
+        if (updated[categoryId].count <= 0) {
+          delete updated[categoryId]
+        }
+      }
+      return updated
+    })
 
-    const actionMessages = {
-      approve: "Vacation request approved",
-      reject: "Vacation request rejected",
-      resolve: "Activity marked as resolved",
-      archive: "Activity archived",
+    // Activity-type specific messages
+    const getActionMessage = (categoryId, action) => {
+      const messages = {
+        vacation: {
+          approve: "Vacation request approved",
+          reject: "Vacation request rejected",
+        },
+        appointments: {
+          approve: "Appointment confirmed",
+          reject: "Appointment rejected",
+        },
+        contracts: {
+          view: "Opening contract details",
+        },
+        contractPause: {
+          approve: "Contract pause approved",
+          reject: "Contract pause rejected",
+        },
+        memberData: {
+          approve: "Data change approved",
+          reject: "Data change rejected",
+        },
+        bankData: {
+          approve: "Bank data change approved",
+          reject: "Bank data change rejected",
+        },
+        emails: {
+          retry: "Email retry initiated",
+        },
+      }
+      return messages[categoryId]?.[action] || "Action completed"
     }
 
-    toast.success(actionMessages[action] || "Action completed")
+    toast.success(getActionMessage(categoryId, action))
   }
 
-  const handleActivityClick = (activity) => {
-    markMessageAsRead(activity.id, activity.type)
-  }
-
-  const handleJumpToActivityMonitor = () => {
-    navigate("/dashboard/activity-monitor")
+  const handleJumpToActivityMonitor = (tabId) => {
+    // Navigate to activity monitor with the specific tab
+    navigate(`/dashboard/activity-monitor?tab=${tabId || "appointments"}`)
   }
 
   const handleConfirmAction = () => {
     if (pendingActivityAction) {
-      handleActivityAction(pendingActivityAction.activity, pendingActivityAction.action)
+      const { categoryId, itemId, action } = pendingActivityAction
+      handleActivityAction(categoryId, itemId, action)
       setShowActionConfirm(false)
       setPendingActivityAction(null)
     }
@@ -1082,14 +1125,10 @@ const Sidebar = ({
       <ActivityMonitorSection
         isCollapsed={collapsedSections.activityMonitor}
         onToggle={() => toggleNotificationSection("activityMonitor")}
-        unreadCount={getUnreadCount("activityMonitor")}
-        activities={notificationData.activityMonitor}
-        onActivityClick={(activity) => {
-          handleActivityClick(activity)
-          markMessageAsRead(activity.id, activity.type)
-        }}
-        onAction={(activity, action) => {
-          setPendingActivityAction({ activity, action })
+        totalCount={getUnreadCount("activityMonitor")}
+        categories={activityCategories}
+        onAction={(categoryId, itemId, action) => {
+          setPendingActivityAction({ categoryId, itemId, action })
           setShowActionConfirm(true)
         }}
         onJumpTo={handleJumpToActivityMonitor}
@@ -1642,135 +1681,178 @@ const NotificationSection = ({
 const ActivityMonitorSection = ({
   isCollapsed,
   onToggle,
-  unreadCount,
-  activities,
-  onActivityClick,
+  totalCount,
+  categories,
   onAction,
   onJumpTo,
-}) => (
-  <div className="bg-black rounded-xl overflow-hidden">
-    <button
-      onClick={onToggle}
-      className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-900 transition-colors"
-    >
-      <div className="flex items-center gap-2">
-        <Bell size={18} />
-        <h3 className="text-white font-medium text-sm">Activity Monitor</h3>
-        {unreadCount > 0 && (
-          <span className="bg-orange-500 text-white text-xs px-2 py-0.5 rounded-full">
-            {unreadCount}
-          </span>
-        )}
-      </div>
-      {isCollapsed ? <ChevronDown size={18} className="text-gray-400" /> : <ChevronUp size={18} className="text-gray-400" />}
-    </button>
+}) => {
+  const categoryOrder = ["appointments", "contracts", "contractPause", "memberData", "bankData", "vacation", "emails"]
+  const sortedCategories = categoryOrder
+    .filter(id => categories[id])
+    .map(id => ({ id, ...categories[id] }))
 
-    {!isCollapsed && (
-      <div className="border-t border-gray-800">
-        {activities.length > 0 ? (
-          <div className="divide-y divide-gray-800">
-            {activities.map((activity) => {
-              const config = ACTIVITY_TYPES[activity.activityType]
-              const Icon = config ? config.icon : Bell
+  return (
+    <div className="bg-black rounded-xl overflow-hidden">
+      <button
+        onClick={onToggle}
+        className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-900 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <CiMonitor size={20} />
+          <h3 className="text-white font-medium text-sm">Activity Monitor</h3>
+          {totalCount > 0 && (
+            <span className="bg-orange-500 text-white text-xs px-2 py-0.5 rounded-full">
+              {totalCount}
+            </span>
+          )}
+        </div>
+        {isCollapsed ? <ChevronDown size={18} className="text-gray-400" /> : <ChevronUp size={18} className="text-gray-400" />}
+      </button>
 
-              return (
-                <div
-                  key={activity.id}
-                  className={`p-4 hover:bg-gray-900 transition-colors cursor-pointer ${
-                    !activity.isRead ? "bg-purple-900/20" : ""
-                  }`}
-                  onClick={() => onActivityClick(activity)}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className={`${config ? config.color : "bg-gray-700"} p-2 rounded-xl flex-shrink-0`}>
-                      <Icon size={16} className="text-white" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <h4 className="text-white font-medium text-sm truncate">{activity.title}</h4>
-                        {!activity.isRead && <div className="w-2 h-2 bg-orange-500 rounded-full flex-shrink-0" />}
-                      </div>
-                      <p className="text-gray-400 text-xs line-clamp-2 mb-2">{activity.description}</p>
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div className="flex items-center gap-2">
-                          {activity.actionRequired && (
-                            <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-yellow-600 text-white">
-                              ACTION
-                            </span>
-                          )}
+      {!isCollapsed && (
+        <div className="border-t border-gray-800 max-h-[500px] overflow-y-auto custom-scrollbar">
+          {sortedCategories.length > 0 ? (
+            <div className="divide-y divide-gray-800">
+              {sortedCategories.map((category) => {
+                const Icon = category.icon
+                
+                return (
+                  <div key={category.id} className="p-3">
+                    {/* Category Header */}
+                    <div 
+                      className="flex items-center justify-between mb-2 cursor-pointer hover:opacity-80"
+                      onClick={() => onJumpTo(category.tabId)}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className={`${category.color} p-1.5 rounded-lg`}>
+                          <Icon size={14} className="text-white" />
                         </div>
-                        <div className="flex items-center gap-1">
-                          {activity.actionRequired && activity.status === "pending" && (
-                            <>
-                              {activity.activityType === "vacation" && (
+                        <span className="text-white text-sm font-medium">{category.label}</span>
+                        <span className={`${category.color} text-white text-xs px-1.5 py-0.5 rounded-full`}>
+                          {category.count}
+                        </span>
+                      </div>
+                      <ExternalLink size={14} className="text-gray-500" />
+                    </div>
+                    
+                    {/* Category Items (show max 2) */}
+                    <div className="space-y-2 ml-8">
+                      {category.items.slice(0, 2).map((item) => (
+                        <div 
+                          key={item.id}
+                          className="bg-gray-900/50 rounded-lg p-2 hover:bg-gray-900 transition-colors"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-white text-xs font-medium truncate">{item.title}</p>
+                              <p className="text-gray-500 text-[10px] truncate">{item.subtitle}</p>
+                              <p className="text-gray-400 text-[10px] truncate">{item.description}</p>
+                            </div>
+                            <div className="flex items-center gap-1 flex-shrink-0">
+                              {/* Action buttons based on category */}
+                              {item.status === "pending" && (
                                 <>
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      onAction(activity, "approve")
-                                    }}
-                                    className="p-1.5 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
-                                    title="Approve"
-                                  >
-                                    <Check size={10} className="text-white" />
-                                  </button>
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      onAction(activity, "reject")
-                                    }}
-                                    className="p-1.5 bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
-                                    title="Reject"
-                                  >
-                                    <X size={10} className="text-white" />
-                                  </button>
+                                  {/* Approve/Reject for most categories */}
+                                  {(category.id === "appointments" || category.id === "contractPause" || 
+                                    category.id === "memberData" || category.id === "bankData") && (
+                                    <>
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          onAction(category.id, item.id, "approve")
+                                        }}
+                                        className={`p-1 ${category.color} hover:opacity-80 rounded transition-colors`}
+                                        title="Approve"
+                                      >
+                                        <Check size={10} className="text-white" />
+                                      </button>
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          onAction(category.id, item.id, "reject")
+                                        }}
+                                        className="p-1 bg-red-600 hover:bg-red-700 rounded transition-colors"
+                                        title="Reject"
+                                      >
+                                        <X size={10} className="text-white" />
+                                      </button>
+                                    </>
+                                  )}
+                                  {/* Vacation - Blue buttons */}
+                                  {category.id === "vacation" && (
+                                    <>
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          onAction(category.id, item.id, "approve")
+                                        }}
+                                        className="p-1 bg-blue-600 hover:bg-blue-700 rounded transition-colors"
+                                        title="Approve"
+                                      >
+                                        <Check size={10} className="text-white" />
+                                      </button>
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          onAction(category.id, item.id, "reject")
+                                        }}
+                                        className="p-1 bg-red-600 hover:bg-red-700 rounded transition-colors"
+                                        title="Reject"
+                                      >
+                                        <X size={10} className="text-white" />
+                                      </button>
+                                    </>
+                                  )}
                                 </>
                               )}
-                              {(activity.activityType === "email" ||
-                                activity.activityType === "contract" ||
-                                activity.activityType === "appointment") && (
+                              {/* Contracts - just show days left */}
+                              {category.id === "contracts" && (
+                                <span className={`text-[10px] ${category.textColor}`}>
+                                  {item.time}
+                                </span>
+                              )}
+                              {/* Emails - retry button */}
+                              {category.id === "emails" && (
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation()
-                                    onAction(activity, "resolve")
+                                    onAction(category.id, item.id, "retry")
                                   }}
-                                  className="p-1.5 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
-                                  title="Mark as Resolved"
+                                  className="p-1 bg-gray-600 hover:bg-gray-700 rounded transition-colors"
+                                  title="Retry"
                                 >
-                                  <Check size={10} className="text-white" />
+                                  <Reply size={10} className="text-white" />
                                 </button>
                               )}
-                            </>
-                          )}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              onJumpTo(activity)
-                            }}
-                            className="p-1.5 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-lg transition-colors"
-                            title="Open in Activity Monitor"
-                          >
-                            <ExternalLink size={10} className="text-gray-400" />
-                          </button>
-                          <span className="text-[10px] text-gray-500 ml-1">{activity.time}</span>
+                            </div>
+                          </div>
                         </div>
-                      </div>
+                      ))}
+                      {/* Show more link if more items */}
+                      {category.items.length > 2 && (
+                        <button
+                          onClick={() => onJumpTo(category.tabId)}
+                          className={`text-[10px] ${category.textColor} hover:underline`}
+                        >
+                          +{category.items.length - 2} more...
+                        </button>
+                      )}
                     </div>
                   </div>
-                </div>
-              )
-            })}
-          </div>
-        ) : (
-          <div className="p-6 text-center text-gray-500">
-            <Bell size={24} className="mx-auto mb-2 opacity-50" />
-            <p className="text-sm">No activity notifications</p>
-          </div>
-        )}
-      </div>
-    )}
-  </div>
-)
+                )
+              })}
+            </div>
+          ) : (
+            <div className="p-6 text-center text-gray-500">
+              <CiMonitor size={24} className="mx-auto mb-2 opacity-50" />
+              <p className="text-sm">No pending activities</p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
 
 const ActionConfirmModal = ({ action, onCancel, onConfirm }) => (
   <div className="bg-[#181818] rounded-xl w-full p-6">
