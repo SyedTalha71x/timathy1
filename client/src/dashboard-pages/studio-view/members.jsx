@@ -477,13 +477,26 @@ export default function Members() {
     }
   }, [selectedMemberMain])
 
-  // Handle navigation state from Communications "View Member"
+  // Handle navigation state from Communications "View Member" or Contracts "Go to Member"
   useEffect(() => {
     if (location.state?.filterMemberId) {
       setMemberFilters([{
         memberId: location.state.filterMemberId,
         memberName: location.state.filterMemberName || 'Member'
       }]);
+      // Clear the navigation state to prevent re-filtering on refresh
+      window.history.replaceState({}, document.title);
+    }
+    // Handle navigation from Contracts - filter by member name/id
+    if (location.state?.fromContract && location.state?.searchQuery) {
+      setSearchQuery(location.state.searchQuery);
+      // If memberId is provided, add to member filters for exact match
+      if (location.state.memberId) {
+        setMemberFilters([{
+          memberId: location.state.memberId,
+          memberName: location.state.searchQuery
+        }]);
+      }
       // Clear the navigation state to prevent re-filtering on refresh
       window.history.replaceState({}, document.title);
     }
@@ -818,7 +831,6 @@ export default function Members() {
     { value: 'status', label: 'Status' },
     { value: 'relations', label: 'Relations' },
     { value: 'age', label: 'Age' },
-    { value: 'expiring', label: 'Contract Expiring' },
   ];
 
   // Handle sort option click - doesn't close dropdown so user can change direction
@@ -930,23 +942,6 @@ export default function Members() {
               return age
             }
             comparison = getAge(a.dateOfBirth) - getAge(b.dateOfBirth);
-            break;
-          case 'expiring':
-            const aExpiring = isContractExpiringSoonMain(a.contractEnd)
-            const bExpiring = isContractExpiringSoonMain(b.contractEnd)
-            if (aExpiring === bExpiring) {
-              if (!a.contractEnd && !b.contractEnd) {
-                comparison = 0;
-              } else if (!a.contractEnd) {
-                comparison = 1;
-              } else if (!b.contractEnd) {
-                comparison = -1;
-              } else {
-                comparison = new Date(a.contractEnd) - new Date(b.contractEnd);
-              }
-            } else {
-              comparison = aExpiring ? -1 : 1;
-            }
             break;
           default:
             comparison = 0;
@@ -1905,12 +1900,7 @@ export default function Members() {
                                 {member.title}
                               </span>
                             </div>
-                            {member.memberType === "full" && member.contractStart && member.contractEnd ? (
-                              <span className={`${isCompactView ? 'text-xs' : 'text-sm'} ${isContractExpiringSoonMain(member.contractEnd) ? 'text-red-400' : 'text-gray-500'}`}>
-                                {member.contractStart} - {member.contractEnd}
-                                {isContractExpiringSoonMain(member.contractEnd) && <Info size={isCompactView ? 10 : 12} className="inline ml-1" />}
-                              </span>
-                            ) : member.memberType !== "full" && member.autoArchiveDate ? (
+                            {member.memberType !== "full" && member.autoArchiveDate ? (
                               <span className={`${isCompactView ? 'text-xs' : 'text-sm'} text-gray-500`}>
                                 Auto-archive: {member.autoArchiveDate}
                               </span>
@@ -2433,7 +2423,7 @@ export default function Members() {
                                 {member.gender && (
                                   <>
                                     <span className="text-gray-400">{member.gender}</span>
-                                    <span className="text-gray-600">â€¢</span>
+                                    <span className="text-gray-600">•</span>
                                   </>
                                 )}
                                 <span className="text-gray-400">
@@ -2441,26 +2431,14 @@ export default function Members() {
                                 </span>
                               </div>
 
-                              <p className="text-gray-400 text-sm truncate mt-1 text-center sm:text-left flex items-center">
-                                {member.memberType === "full" ? (
-                                  <>
-                                    Contract: {member.contractStart} -{" "}
-                                    <span className={isContractExpiringSoonMain(member.contractEnd) ? "text-red-500" : ""}>
-                                      {member.contractEnd}
-                                    </span>
-                                    {isContractExpiringSoonMain(member.contractEnd) && (
-                                      <Info size={16} className="text-red-500 ml-1" />
-                                    )}
-                                  </>
-                                ) : (
-                                  <>
-                                    No Contract - Auto-archive: {member.autoArchiveDate}
-                                    {member.autoArchiveDate && new Date(member.autoArchiveDate) <= new Date() && (
-                                      <Clock size={16} className="text-orange-500 ml-1" />
-                                    )}
-                                  </>
-                                )}
-                              </p>
+                              {member.memberType !== "full" && member.autoArchiveDate && (
+                                <p className="text-gray-400 text-sm truncate mt-1 text-center sm:text-left flex items-center">
+                                  Auto-archive: {member.autoArchiveDate}
+                                  {new Date(member.autoArchiveDate) <= new Date() && (
+                                    <Clock size={16} className="text-orange-500 ml-1" />
+                                  )}
+                                </p>
+                              )}
                               <div className="mt-2">
                                 <button
                                   onClick={() => handleRelationClick(member)}

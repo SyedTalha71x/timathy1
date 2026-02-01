@@ -1,147 +1,446 @@
+// ============================================================================
+// CONTRACT-STATES.JS - Vertrags-Daten
+// ============================================================================
+// Alle Contract-bezogenen Daten
+// Member IDs entsprechen members-states.jsx
+// ============================================================================
+
+// Helper function to get date relative to today
+const getRelativeDate = (daysFromNow) => {
+  const date = new Date()
+  date.setDate(date.getDate() + daysFromNow)
+  return date.toISOString().split("T")[0]
+}
+
+// Today's date for reference
+const today = new Date().toISOString().split("T")[0]
+
 export const initialContracts = [
-    {
-        id: "12321-1",
-        memberName: "John Doe",
-        contractType: "Premium",
-        startDate: "2023-01-01",
-        endDate: "2024-01-01",
-        status: "Active",
-        pauseReason: null,
-        cancelReason: null,
-        isDigital: true,
-        email: "john@example.com",
-        phone: "1234567890",
-        iban: "DE89370400440532013000",
-    },
-    {
-        id: "12321-2",
-        memberName: "Jane Smith",
-        contractType: "Basic",
-        startDate: "2023-02-15",
-        endDate: "2024-02-15",
-        status: "Paused",
-        pauseReason: "Pregnancy",
-        cancelReason: null,
-        isDigital: false,
-    },
-    {
-        id: "12321-3",
-        memberName: "Bob Johnson",
-        contractType: "Premium",
-        startDate: "2023-03-01",
-        endDate: "2024-03-01",
-        status: "Cancelled",
-        pauseReason: null,
-        cancelReason: null,
-        isDigital: true,
-        email: "bob@example.com",
-        phone: "9876543210",
-        iban: "FR1420041010050500013M02606",
-    },
-    {
-        id: "12321-4",
-        memberName: "Scarlet Johnson",
-        contractType: "Bronze",
-        startDate: "2023-03-01",
-        endDate: "2024-03-01",
-        status: "Cancelled",
-        pauseReason: null,
-        cancelReason: "Financial Reasons",
-        isDigital: false,
-    },
-    {
-        id: "12321-5",
-        memberName: "Alice Cooper",
-        contractType: "Premium",
-        startDate: "2023-06-01",
-        endDate: "2024-06-01",
-        status: "Ongoing",
-        pauseReason: null,
-        cancelReason: null,
-        isDigital: true,
-        email: "alice@example.com",
-        phone: "5551234567",
-        iban: "GB82WEST12345698765432",
-        signatureRequired: true,
-    },
+  // ===== ACTIVE CONTRACTS =====
+  {
+    id: "contract-1",
+    memberId: 1, // John Doe
+    memberName: "John Doe",
+    contractType: "Premium",
+    startDate: "2024-01-01",
+    endDate: "2025-12-31",
+    status: "Active",
+    autoRenewal: true,
+    pauseReason: null,
+    cancelReason: null,
+    isDigital: true,
+    email: "john@example.com",
+    phone: "+1234567890",
+    iban: "DE89370400440532013000",
+    sepaMandate: "SEPA-2024-001",
+  },
+  {
+    id: "contract-2",
+    memberId: 3, // Michael Johnson
+    memberName: "Michael Johnson",
+    contractType: "Premium",
+    startDate: "2024-03-01",
+    endDate: "2026-02-28",
+    status: "Active",
+    autoRenewal: true,
+    pauseReason: null,
+    cancelReason: null,
+    isDigital: true,
+    email: "michael@example.com",
+    phone: "+1234567892",
+    iban: "DE89370400440532013002",
+    sepaMandate: "SEPA-2024-003",
+  },
+  {
+    id: "contract-3",
+    memberId: 4, // Sarah Williams
+    memberName: "Sarah Williams",
+    contractType: "Premium Plus",
+    startDate: "2024-06-01",
+    endDate: "2025-05-31",
+    status: "Active",
+    autoRenewal: false,
+    pauseReason: null,
+    cancelReason: null,
+    isDigital: true,
+    email: "sarah.w@example.com",
+    phone: "+1234567893",
+    iban: "DE89370400440532013003",
+    sepaMandate: "SEPA-2024-004",
+  },
+  {
+    id: "contract-4",
+    memberId: 5, // David Brown
+    memberName: "David Brown",
+    contractType: "Basic",
+    startDate: "2024-09-01",
+    endDate: "2025-08-31",
+    status: "Active",
+    autoRenewal: true,
+    pauseReason: null,
+    cancelReason: null,
+    isDigital: false,
+    email: "david.brown@example.com",
+    phone: "+1234567894",
+    iban: "DE89370400440532013004",
+    sepaMandate: "SEPA-2024-005",
+  },
+  {
+    id: "contract-5",
+    memberId: 6, // Emily Davis
+    memberName: "Emily Davis",
+    contractType: "Basic",
+    startDate: "2024-06-01",
+    endDate: "2025-05-31",
+    status: "Active",
+    autoRenewal: false,
+    pauseReason: null,
+    cancelReason: null,
+    isDigital: true,
+    email: "emily.d@example.com",
+    phone: "+1234567895",
+    iban: "DE89370400440532013005",
+    sepaMandate: "SEPA-2024-006",
+  },
+  
+  // ===== EXPIRING SOON CONTRACTS (within 30 days) =====
+  {
+    id: "contract-6",
+    memberId: 8, // Lisa Garcia
+    memberName: "Lisa Garcia",
+    contractType: "Premium",
+    startDate: "2024-02-01",
+    endDate: getRelativeDate(2), // Expires in 2 days!
+    status: "Active",
+    autoRenewal: false,
+    pauseReason: null,
+    cancelReason: null,
+    isDigital: true,
+    email: "lisa.g@example.com",
+    phone: "+1234567897",
+    iban: "DE89370400440532013007",
+    sepaMandate: "SEPA-2024-008",
+  },
+  {
+    id: "contract-7",
+    memberId: 9, // Thomas Anderson
+    memberName: "Thomas Anderson",
+    contractType: "Basic",
+    startDate: "2024-03-15",
+    endDate: getRelativeDate(5), // Expires in 5 days!
+    status: "Active",
+    autoRenewal: true,
+    pauseReason: null,
+    cancelReason: null,
+    isDigital: true,
+    email: "thomas.a@example.com",
+    phone: "+1234567898",
+    iban: "DE89370400440532013008",
+    sepaMandate: "SEPA-2024-009",
+  },
+  {
+    id: "contract-8",
+    memberId: 10, // Jennifer Martinez
+    memberName: "Jennifer Martinez",
+    contractType: "Premium",
+    startDate: "2024-01-01",
+    endDate: getRelativeDate(14), // Expires in 2 weeks!
+    status: "Active",
+    autoRenewal: false,
+    pauseReason: null,
+    cancelReason: null,
+    isDigital: true,
+    email: "jennifer.m@example.com",
+    phone: "+1234567899",
+    iban: "DE89370400440532013009",
+    sepaMandate: "SEPA-2024-010",
+  },
+  
+  // ===== PAUSED CONTRACTS =====
+  {
+    id: "contract-9",
+    memberId: 2, // Jane Smith
+    memberName: "Jane Smith",
+    contractType: "Basic",
+    startDate: "2023-11-15",
+    endDate: "2025-11-14",
+    status: "Paused",
+    autoRenewal: true,
+    pauseReason: "Vacation Leave",
+    pauseStartDate: "2025-01-01",
+    pauseEndDate: "2025-02-28",
+    cancelReason: null,
+    isDigital: false,
+    email: "jane@example.com",
+    phone: "+1234567891",
+    iban: "DE89370400440532013001",
+    sepaMandate: "SEPA-2024-002",
+  },
+  
+  // ===== CANCELLED CONTRACTS =====
+  {
+    id: "contract-10",
+    memberId: 1, // John Doe (previous contract)
+    memberName: "John Doe",
+    contractType: "Basic",
+    startDate: "2022-03-01",
+    endDate: "2023-12-31",
+    status: "Cancelled",
+    autoRenewal: false,
+    pauseReason: null,
+    cancelReason: "Upgraded to Premium",
+    isDigital: true,
+    email: "john@example.com",
+    phone: "+1234567890",
+    iban: "DE89370400440532013000",
+    sepaMandate: "SEPA-2022-001",
+  },
+  {
+    id: "contract-11",
+    memberId: 3, // Michael Johnson (previous contract)
+    memberName: "Michael Johnson",
+    contractType: "Bronze",
+    startDate: "2022-06-15",
+    endDate: "2024-02-28",
+    status: "Cancelled",
+    autoRenewal: false,
+    pauseReason: null,
+    cancelReason: "Upgraded to Premium",
+    isDigital: false,
+    email: "michael@example.com",
+    phone: "+1234567892",
+    iban: "DE89370400440532013002",
+    sepaMandate: "SEPA-2022-003",
+  },
+  
+  // ===== ONGOING CONTRACTS (not yet signed) =====
+  {
+    id: "contract-12",
+    memberId: 7, // Robert Miller
+    memberName: "Robert Miller",
+    contractType: "Basic",
+    startDate: getRelativeDate(7), // Starts in 1 week
+    endDate: getRelativeDate(372), // 1 year from start
+    status: "Ongoing",
+    autoRenewal: false,
+    pauseReason: null,
+    cancelReason: null,
+    isDigital: true,
+    email: "robert.m@example.com",
+    phone: "+1234567896",
+    iban: null,
+    sepaMandate: null,
+    signatureRequired: true,
+  },
+  
+  // ===== EXPIRED CONTRACTS =====
+  {
+    id: "contract-13",
+    memberId: 4, // Sarah Williams (old contract)
+    memberName: "Sarah Williams",
+    contractType: "Basic",
+    startDate: "2022-01-10",
+    endDate: "2024-01-09",
+    status: "Active", // Status still active but date expired
+    autoRenewal: false,
+    pauseReason: null,
+    cancelReason: null,
+    isDigital: false,
+    email: "sarah.w@example.com",
+    phone: "+1234567893",
+    iban: "DE89370400440532013003",
+    sepaMandate: "SEPA-2022-004",
+  },
+  {
+    id: "contract-14",
+    memberId: 5, // David Brown (old contract)
+    memberName: "David Brown",
+    contractType: "Bronze",
+    startDate: "2023-01-01",
+    endDate: "2024-06-30",
+    status: "Active", // Expired
+    autoRenewal: false,
+    pauseReason: null,
+    cancelReason: null,
+    isDigital: true,
+    email: "david.brown@example.com",
+    phone: "+1234567894",
+    iban: "DE89370400440532013004",
+    sepaMandate: "SEPA-2023-005",
+  },
 ]
 
 export const contractHistory = {
-    "12321-1": [
-        {
-            id: "hist-1",
-            date: "2023-12-15",
-            action: "Contract Changed",
-            details: "Changed from Basic to Premium",
-            performedBy: "Admin User",
-            oldValue: "Basic",
-            newValue: "Premium",
-        },
-        {
-            id: "hist-2",
-            date: "2023-11-20",
-            action: "Contract Renewed",
-            details: "Renewed for 12 months",
-            performedBy: "System",
-            oldValue: "2023-01-01 to 2024-01-01",
-            newValue: "2024-01-01 to 2025-01-01",
-        },
-    ],
-    "12321-2": [
-        {
-            id: "hist-3",
-            date: "2023-10-10",
-            action: "Contract Paused",
-            details: "Paused due to Pregnancy",
-            performedBy: "Admin User",
-            oldValue: "Active",
-            newValue: "Paused",
-        },
-    ],
+  "contract-1": [
+    {
+      id: "hist-1",
+      date: "2024-01-01",
+      action: "Contract Created",
+      details: "New Premium contract signed",
+      performedBy: "Admin User",
+      oldValue: null,
+      newValue: "Premium - 24 months",
+    },
+    {
+      id: "hist-2",
+      date: "2024-06-15",
+      action: "Auto-Renewal Enabled",
+      details: "Member enabled automatic renewal",
+      performedBy: "John Doe",
+      oldValue: "Disabled",
+      newValue: "Enabled",
+    },
+  ],
+  "contract-2": [
+    {
+      id: "hist-3",
+      date: "2024-03-01",
+      action: "Contract Created",
+      details: "New Premium contract signed",
+      performedBy: "Admin User",
+      oldValue: null,
+      newValue: "Premium - 24 months",
+    },
+  ],
+  "contract-6": [
+    {
+      id: "hist-4",
+      date: "2024-02-01",
+      action: "Contract Created",
+      details: "New Premium contract signed",
+      performedBy: "Admin User",
+      oldValue: null,
+      newValue: "Premium - 12 months",
+    },
+    {
+      id: "hist-5",
+      date: getRelativeDate(-30),
+      action: "Renewal Reminder Sent",
+      details: "30-day renewal reminder email sent",
+      performedBy: "System",
+      oldValue: null,
+      newValue: "Email sent",
+    },
+  ],
+  "contract-9": [
+    {
+      id: "hist-6",
+      date: "2023-11-15",
+      action: "Contract Created",
+      details: "New Basic contract signed",
+      performedBy: "Admin User",
+      oldValue: null,
+      newValue: "Basic - 24 months",
+    },
+    {
+      id: "hist-7",
+      date: "2025-01-01",
+      action: "Contract Paused",
+      details: "Paused due to Vacation Leave",
+      performedBy: "Admin User",
+      oldValue: "Active",
+      newValue: "Paused until 2025-02-28",
+    },
+  ],
+  "contract-10": [
+    {
+      id: "hist-8",
+      date: "2022-03-01",
+      action: "Contract Created",
+      details: "New Basic contract signed",
+      performedBy: "Admin User",
+      oldValue: null,
+      newValue: "Basic - 21 months",
+    },
+    {
+      id: "hist-9",
+      date: "2023-12-15",
+      action: "Contract Cancelled",
+      details: "Cancelled - Upgraded to Premium",
+      performedBy: "Admin User",
+      oldValue: "Active",
+      newValue: "Cancelled",
+    },
+  ],
+  "contract-12": [
+    {
+      id: "hist-10",
+      date: today,
+      action: "Contract Created",
+      details: "New contract pending signature",
+      performedBy: "Admin User",
+      oldValue: null,
+      newValue: "Basic - Pending Signature",
+    },
+  ],
 }
 
 export const sampleLeads = [
-    {
-        id: "lead-1",
-        name: "Michael Brown",
-        email: "michael@example.com",
-        phone: "5551234567",
-        interestedIn: "Premium",
-    },
-    {
-        id: "lead-2",
-        name: "Sarah Wilson",
-        email: "sarah@example.com",
-        phone: "5559876543",
-        interestedIn: "Basic",
-    },
+  {
+    id: "lead-1",
+    name: "Michael Brown",
+    email: "michael.b@example.com",
+    phone: "+4915112345678",
+    interestedIn: "Premium",
+  },
+  {
+    id: "lead-2",
+    name: "Sarah Wilson",
+    email: "sarah.w@example.com",
+    phone: "+4915198765432",
+    interestedIn: "Basic",
+  },
+  {
+    id: "lead-3",
+    name: "Tom Schmidt",
+    email: "tom.schmidt@example.com",
+    phone: "+4915111223344",
+    interestedIn: "Premium Plus",
+  },
+  {
+    id: "lead-4",
+    name: "Anna Müller",
+    email: "anna.mueller@example.com",
+    phone: "+4915155667788",
+    interestedIn: "Basic",
+  },
 ]
-
-
 
 export const contractTypes = [
   {
     id: "basic",
     name: "Basic",
     duration: "12 months",
-    cost: "$29.99",
+    cost: "€29.99",
     billingPeriod: "Monthly",
+    features: ["Gym access", "Locker room", "Basic equipment"],
   },
   {
     id: "premium",
     name: "Premium",
     duration: "12 months",
-    cost: "$49.99",
+    cost: "€49.99",
     billingPeriod: "Monthly",
+    features: ["All Basic features", "Group classes", "Sauna access", "Personal trainer consultation"],
+  },
+  {
+    id: "premium-plus",
+    name: "Premium Plus",
+    duration: "12 months",
+    cost: "€79.99",
+    billingPeriod: "Monthly",
+    features: ["All Premium features", "Unlimited personal training", "Nutrition planning", "Priority booking"],
   },
   {
     id: "bronze",
     name: "Bronze",
     duration: "6 months",
-    cost: "$19.99",
+    cost: "€19.99",
     billingPeriod: "Monthly",
+    features: ["Gym access", "Limited hours (6am-4pm)"],
   },
 ]
+
 export const mediaTemplates = [
   {
     id: "template-1",
@@ -188,3 +487,63 @@ export const mediaTemplates = [
     ]
   }
 ]
+
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
+export const getContractById = (id) => initialContracts.find(c => c.id === id) || null
+
+export const getContractsByMemberId = (memberId) => 
+  initialContracts.filter(c => c.memberId === memberId)
+
+export const getActiveContracts = () => 
+  initialContracts.filter(c => c.status === "Active")
+
+export const getPausedContracts = () => 
+  initialContracts.filter(c => c.status === "Paused")
+
+export const getCancelledContracts = () => 
+  initialContracts.filter(c => c.status === "Cancelled")
+
+export const getOngoingContracts = () => 
+  initialContracts.filter(c => c.status === "Ongoing")
+
+export const getExpiringContracts = (daysAhead = 30) => {
+  const futureDate = new Date()
+  futureDate.setDate(futureDate.getDate() + daysAhead)
+  const today = new Date()
+  
+  return initialContracts.filter(c => {
+    const endDate = new Date(c.endDate)
+    return endDate <= futureDate && endDate > today && c.status === "Active"
+  })
+}
+
+export const getExpiredContracts = () => {
+  const today = new Date()
+  return initialContracts.filter(c => {
+    const endDate = new Date(c.endDate)
+    return endDate < today
+  })
+}
+
+export const getContractHistory = (contractId) => 
+  contractHistory[contractId] || []
+
+export default {
+  initialContracts,
+  contractHistory,
+  sampleLeads,
+  contractTypes,
+  mediaTemplates,
+  getContractById,
+  getContractsByMemberId,
+  getActiveContracts,
+  getPausedContracts,
+  getCancelledContracts,
+  getOngoingContracts,
+  getExpiringContracts,
+  getExpiredContracts,
+  getContractHistory,
+}

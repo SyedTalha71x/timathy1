@@ -6,9 +6,35 @@ export function PauseContractModal({ onClose, onSubmit }) {
   const [reason, setReason] = useState("")
   const [startDate, setStartDate] = useState("")
   const [endDate, setEndDate] = useState("")
+  const [errors, setErrors] = useState({})
+
+  const validateForm = () => {
+    const newErrors = {}
+    
+    if (!reason) {
+      newErrors.reason = "Please select a reason"
+    }
+    if (!startDate) {
+      newErrors.startDate = "Please select a start date"
+    }
+    if (!endDate) {
+      newErrors.endDate = "Please select an end date"
+    }
+    if (startDate && endDate && new Date(startDate) >= new Date(endDate)) {
+      newErrors.endDate = "End date must be after start date"
+    }
+    
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
 
   const handleSubmit = (e) => {
     e.preventDefault()
+    
+    if (!validateForm()) {
+      return
+    }
+    
     onSubmit({ reason, startDate, endDate })
   }
 
@@ -22,13 +48,16 @@ export function PauseContractModal({ onClose, onSubmit }) {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <label htmlFor="reason" className="text-sm text-gray-400">
-              Reason
+              Reason <span className="text-red-400">*</span>
             </label>
             <select
               id="reason"
               value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              className="w-full bg-[#141414] text-white text-sm rounded-xl px-3 py-2.5 outline-none border border-gray-800 appearance-none"
+              onChange={(e) => {
+                setReason(e.target.value)
+                if (errors.reason) setErrors({ ...errors, reason: null })
+              }}
+              className={`w-full bg-[#141414] text-white text-sm rounded-xl px-3 py-2.5 outline-none border ${errors.reason ? 'border-red-500' : 'border-gray-800'} appearance-none`}
             >
               <option value="">Select a reason</option>
               <option value="vacation">Vacation</option>
@@ -37,30 +66,39 @@ export function PauseContractModal({ onClose, onSubmit }) {
               <option value="financial">Financial Reasons</option>
               <option value="other">Other</option>
             </select>
+            {errors.reason && <p className="text-red-400 text-xs">{errors.reason}</p>}
           </div>
           <div className="space-y-2">
             <label htmlFor="startDate" className="text-sm text-gray-400">
-              Start Date
+              Start Date <span className="text-red-400">*</span>
             </label>
             <input
               type="date"
               id="startDate"
               value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="w-full bg-[#141414] white-calendar-icon text-white text-sm rounded-xl px-3 py-2.5 outline-none border border-gray-800"
+              onChange={(e) => {
+                setStartDate(e.target.value)
+                if (errors.startDate) setErrors({ ...errors, startDate: null })
+              }}
+              className={`w-full bg-[#141414] white-calendar-icon text-white text-sm rounded-xl px-3 py-2.5 outline-none border ${errors.startDate ? 'border-red-500' : 'border-gray-800'}`}
             />
+            {errors.startDate && <p className="text-red-400 text-xs">{errors.startDate}</p>}
           </div>
           <div className="space-y-2">
             <label htmlFor="endDate" className="text-sm text-gray-400">
-              End Date
+              End Date <span className="text-red-400">*</span>
             </label>
             <input
               type="date"
               id="endDate"
               value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="w-full bg-[#141414] white-calendar-icon text-white text-sm rounded-xl px-3 py-2.5 outline-none border border-gray-800"
+              onChange={(e) => {
+                setEndDate(e.target.value)
+                if (errors.endDate) setErrors({ ...errors, endDate: null })
+              }}
+              className={`w-full bg-[#141414] white-calendar-icon text-white text-sm rounded-xl px-3 py-2.5 outline-none border ${errors.endDate ? 'border-red-500' : 'border-gray-800'}`}
             />
+            {errors.endDate && <p className="text-red-400 text-xs">{errors.endDate}</p>}
           </div>
           <button
             type="submit"
@@ -73,4 +111,3 @@ export function PauseContractModal({ onClose, onSubmit }) {
     </div>
   )
 }
-
