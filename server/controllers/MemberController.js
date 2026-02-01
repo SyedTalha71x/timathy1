@@ -87,15 +87,21 @@ const createMember = async (req, res, next) => {
     member.refreshToken = RefreshToken;
     await member.save();
 
-    res.cookie('token', AccessToken, {
+    res.cookie("token", AccessToken, {
       httpOnly: true,
-      sameSite: 'strict',
-      secure: true,
+      secure: process.env.NODE_ENV === "production", // true if on https
+      //sameSite: "lax", 
+      sameSite: "None",
+
+      maxAge: 24 * 60 * 1000, // 15 minutes (or whatever your access token expiry is)
     });
-    res.cookie('refreshToken', RefreshToken, {
+
+    res.cookie("refreshToken", RefreshToken, {
       httpOnly: true,
-      sameSite: 'strict',
-      secure: true,
+      secure: process.env.NODE_ENV === "production",
+      //sameSite: "lax",
+      sameSite: "None",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
     res.status(201).json({
@@ -140,7 +146,7 @@ const loginMember = async (req, res, next) => {
       role: member.role,
       // img: member.img?.url,
       gender: member.gender,
-      studioId:member.studio
+      studioId: member.studio
     });
 
     member.refreshToken = RefreshToken;
@@ -149,15 +155,21 @@ const loginMember = async (req, res, next) => {
     delete memberData.password;
     delete memberData.refreshToken;
 
-    res.cookie('token', AccessToken, {
+    res.cookie("token", AccessToken, {
       httpOnly: true,
-      sameSite: 'lax',
-      secure: true,
+      secure: process.env.NODE_ENV === "production", // true if on https
+      //sameSite: "lax", 
+      sameSite: "None",
+
+      maxAge: 24 * 60 * 1000, // 15 minutes (or whatever your access token expiry is)
     });
-    res.cookie('refreshToken', RefreshToken, {
+
+    res.cookie("refreshToken", RefreshToken, {
       httpOnly: true,
-      sameSite: 'lax',
-      secure: true,
+      secure: process.env.NODE_ENV === "production",
+      //sameSite: "lax",
+      sameSite: "None",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
     res.status(200).json({

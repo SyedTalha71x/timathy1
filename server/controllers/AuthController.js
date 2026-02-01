@@ -102,9 +102,21 @@ const logout = async (req, res, next) => {
     if (userId) {
       await UserModel.findByIdAndUpdate(userId, { $unset: { refreshToken: 1 } });
     }
-    res.clearCookie("token", { httpOnly: true, secure: true, sameSite: "strict" });
-    res.clearCookie("refreshToken", { httpOnly: true, secure: true, sameSite: "strict" });
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "None",
+      //sameSite: "lax",
+      path: "/", // must match login
+    });
 
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "None",
+      //sameSite: "lax",
+      path: "/", // must match login
+    });
     return res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
     next(error);
@@ -153,8 +165,8 @@ const newAccessToken = async (req, res, next) => {
     res.cookie('token', AccessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production", // true if on https
-      //sameSite: "None", // important for frontend <-> backend on different domains
-      sameSite: "lax", // important for frontend <-> backend on different domains
+      sameSite: "None",
+      //sameSite: "lax",
       maxAge: 15 * 60 * 1000, // 24 minutes (or whatever your access token expiry is)
     })
     return res.status(200).json({ success: true })
