@@ -35,7 +35,7 @@ const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) =>
   )
 }
 
-export const ExpiringContractsWidget = ({ isSidebarEditing }) => {
+export const ExpiringContractsWidget = ({ isSidebarEditing, showHeader = true }) => {
   // Contact Modal States
   const [messageTypeModal, setMessageTypeModal] = useState({
     isOpen: false,
@@ -151,9 +151,11 @@ export const ExpiringContractsWidget = ({ isSidebarEditing }) => {
     <>
       <div className="p-3 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
         {/* Header */}
-        <div className="flex justify-between items-center mb-3 flex-shrink-0">
-          <h2 className="text-base font-semibold text-white">Expiring Contracts</h2>
-        </div>
+        {showHeader && (
+          <div className="flex justify-between items-center mb-3 flex-shrink-0">
+            <h2 className="text-base font-semibold text-white">Expiring Contracts</h2>
+          </div>
+        )}
 
         {/* Members List */}
         <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
@@ -184,10 +186,11 @@ export const ExpiringContractsWidget = ({ isSidebarEditing }) => {
                             <span className="text-xs text-gray-400">
                               {formatDate(member.contractEnd)}
                             </span>
-                            <span className="text-[10px] text-gray-500">
-                              • {daysRemaining} days left
-                            </span>
                           </div>
+
+                          <p className="text-[10px] text-orange-400 mt-0.5">
+                            {daysRemaining} days left
+                          </p>
 
                           {/* Member Type */}
                           {member.memberType && (

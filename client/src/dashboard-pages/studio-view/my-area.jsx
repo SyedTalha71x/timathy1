@@ -541,30 +541,6 @@ export default function MyArea() {
   // ============================================
   return (
     <>
-      <style>
-        {`
-          @keyframes wobble {
-            0%, 100% { transform: rotate(0deg); }
-            15% { transform: rotate(-1deg); }
-            30% { transform: rotate(1deg); }
-            45% { transform: rotate(-1deg); }
-            60% { transform: rotate(1deg); }
-            75% { transform: rotate(-1deg); }
-            90% { transform: rotate(1deg); }
-          }
-          .animate-wobble {
-            animation: wobble 0.5s ease-in-out infinite;
-          }
-          .dragging {
-            opacity: 0.5;
-            border: 2px dashed #fff;
-          }
-          .drag-over {
-            border: 2px dashed #888;
-          }
-        `}
-      </style>
-
       <Toaster
         position="top-right"
         toastOptions={{
@@ -609,7 +585,7 @@ export default function MyArea() {
                 <button
                   onClick={toggleEditing}
                   className={`px-6 py-2 text-sm flex md:w-auto w-full justify-center items-center gap-2 rounded-xl transition-colors ${
-                    isEditing ? "bg-blue-600 text-white" : "bg-zinc-700 text-zinc-200"
+                    isEditing ? "bg-orange-500 text-white" : "bg-zinc-700 text-zinc-200"
                   }`}
                 >
                   {isEditing ? <Check size={18} /> : <Edit size={18} />}

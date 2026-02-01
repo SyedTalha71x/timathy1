@@ -97,7 +97,7 @@ const loggedInStaff = {
     )
   }
   
-  function StaffCheckInWidget({ compact = false }) {
+  function StaffCheckInWidget({ compact = false, showHeader = true }) {
     const [isCheckedIn, setIsCheckedIn] = useState(false)
     const [checkInTime, setCheckInTime] = useState(null)
     const [showPasswordModal, setShowPasswordModal] = useState(false)
@@ -250,7 +250,7 @@ const loggedInStaff = {
     return (
       <>
         <div className={`p-3 bg-[#2F2F2F] text-white rounded-xl ${compact ? "h-auto" : "md:h-[340px] h-auto"}`}>
-          <h2 className="text-lg font-semibold mb-3">Staff Check-In</h2>
+          {showHeader && <h2 className="text-lg font-semibold mb-3">Staff Check-In</h2>}
           <div className="flex flex-col gap-3">
             <div>
               <p className="text-sm mb-1">Status: {isCheckedIn ? "Checked In" : "Checked Out"}</p>

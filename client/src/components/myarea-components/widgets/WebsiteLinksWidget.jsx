@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import { useState, useRef, useEffect } from "react"
+import { createPortal } from "react-dom"
 import { Plus, ExternalLink, MoreVertical, X, Edit, Trash2 } from "lucide-react"
 
 // ============================================
@@ -42,63 +43,61 @@ const WebsiteLinkModal = ({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
-        <div className="p-6 space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-lg font-semibold">
-              {link ? "Edit Website Link" : "Add Website Link"}
-            </h2>
-            <button 
-              onClick={onClose} 
-              className="p-1 hover:bg-zinc-700 rounded text-gray-400 hover:text-white"
-            >
-              <X size={16} />
-            </button>
+    <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
+      <div className="p-6 space-y-4">
+        <div className="flex justify-between items-center">
+          <h2 className="text-lg font-semibold text-white">
+            {link ? "Edit Website Link" : "Add Website Link"}
+          </h2>
+          <button 
+            onClick={onClose} 
+            className="p-1 hover:bg-zinc-700 rounded text-gray-400 hover:text-white"
+          >
+            <X size={16} />
+          </button>
+        </div>
+        
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm text-gray-400 mb-2">Title</label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full p-3 bg-black rounded-xl text-sm outline-none text-white placeholder-gray-500"
+              placeholder="Enter title"
+            />
           </div>
-          
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm text-gray-400 mb-2">Title</label>
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="w-full p-3 bg-black rounded-xl text-sm outline-none text-white placeholder-gray-500"
-                placeholder="Enter title"
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-gray-400 mb-2">URL</label>
-              <input
-                type="url"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                className="w-full p-3 bg-black rounded-xl text-sm outline-none text-white placeholder-gray-500"
-                placeholder="https://example.com"
-              />
-            </div>
+          <div>
+            <label className="block text-sm text-gray-400 mb-2">URL</label>
+            <input
+              type="url"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              className="w-full p-3 bg-black rounded-xl text-sm outline-none text-white placeholder-gray-500"
+              placeholder="https://example.com"
+            />
           </div>
-          
-          <div className="flex gap-3 justify-end mt-6">
-            <button 
-              onClick={onClose} 
-              className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#3F3F3F] text-sm"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSave}
-              disabled={!title.trim() || !url.trim()}
-              className={`px-4 py-2 text-sm rounded-xl ${
-                !title.trim() || !url.trim() 
-                  ? "bg-orange-600/50 cursor-not-allowed text-gray-400" 
-                  : "bg-orange-500 hover:bg-orange-600 text-white"
-              }`}
-            >
-              Save
-            </button>
-          </div>
+        </div>
+        
+        <div className="flex gap-3 justify-end mt-6">
+          <button 
+            onClick={onClose} 
+            className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#3F3F3F] text-sm"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={!title.trim() || !url.trim()}
+            className={`px-4 py-2 text-sm rounded-xl ${
+              !title.trim() || !url.trim() 
+                ? "bg-orange-600/50 cursor-not-allowed text-gray-400" 
+                : "bg-orange-500 hover:bg-orange-600 text-white"
+            }`}
+          >
+            Save
+          </button>
         </div>
       </div>
     </div>
@@ -114,7 +113,8 @@ const WebsiteLinksWidget = ({
   customLinks = [],
   onAddLink,
   onEditLink,
-  onRemoveLink
+  onRemoveLink,
+  showHeader = true
 }) => {
   const [openDropdownId, setOpenDropdownId] = useState(null)
   const [dropdownPosition, setDropdownPosition] = useState({})
@@ -200,9 +200,22 @@ const WebsiteLinksWidget = ({
   return (
     <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
       {/* Header */}
-      <div className="flex justify-between items-center flex-shrink-0">
-        <h2 className="text-lg font-semibold">Website Links</h2>
-        <div className="flex items-center gap-2">
+      {showHeader && (
+        <div className="flex justify-between items-center flex-shrink-0">
+          <h2 className="text-lg font-semibold">Website Links</h2>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleAddClick}
+              className="p-2 bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors"
+              title="Add link"
+            >
+              <Plus size={18} />
+            </button>
+          </div>
+        </div>
+      )}
+      {!showHeader && (
+        <div className="flex justify-end flex-shrink-0">
           <button
             onClick={handleAddClick}
             className="p-2 bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors"
@@ -211,7 +224,7 @@ const WebsiteLinksWidget = ({
             <Plus size={18} />
           </button>
         </div>
-      </div>
+      )}
 
       {/* Links List */}
       <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 space-y-1.5">
@@ -287,23 +300,26 @@ const WebsiteLinksWidget = ({
         )}
       </div>
 
-      {/* Modal */}
-      {isModalOpen && (
-        <WebsiteLinkModal
-          link={editingLink}
-          onClose={() => {
-            setIsModalOpen(false)
-            setEditingLink(null)
-          }}
-          onSave={handleSaveLink}
-        />
+      {/* Modal - rendered via portal */}
+      {isModalOpen && createPortal(
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[99999] p-4">
+          <WebsiteLinkModal
+            link={editingLink}
+            onClose={() => {
+              setIsModalOpen(false)
+              setEditingLink(null)
+            }}
+            onSave={handleSaveLink}
+          />
+        </div>,
+        document.body
       )}
 
-      {/* Delete Confirmation Modal */}
-      {linkToDelete && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      {/* Delete Confirmation Modal - rendered via portal */}
+      {linkToDelete && createPortal(
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[99999]">
           <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
-            <h3 className="text-lg font-semibold mb-4">Delete Link</h3>
+            <h3 className="text-lg font-semibold mb-4 text-white">Delete Link</h3>
             <p className="text-gray-300 mb-6">
               Are you sure you want to delete this link? This action cannot be undone.
             </p>
@@ -322,7 +338,8 @@ const WebsiteLinksWidget = ({
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )

@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import { useState, useRef, useEffect, useCallback, useMemo } from "react"
+import { createPortal } from "react-dom"
 import { Link } from "react-router-dom"
 import {
   Plus,
@@ -266,7 +267,7 @@ const TaskCard = ({
 // ============================================
 // Main To-Do Widget Component
 // ============================================
-export default function ToDoWidget({ isSidebarEditing = false, compactMode = false }) {
+export default function ToDoWidget({ isSidebarEditing = false, compactMode = false, showHeader = true }) {
   // Use todosTaskData for consistency with main todo page
   const [todos, setTodos] = useState(todosTaskData)
   const [configuredTags] = useState(configuredTagsData)
@@ -493,8 +494,8 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
     <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
       {/* Header */}
       <div className="flex justify-between items-center flex-shrink-0">
-        <h2 className="text-lg font-semibold">To-Do</h2>
-        <div className="flex items-center gap-2">
+        {showHeader && <h2 className="text-lg font-semibold">To-Do</h2>}
+        <div className={`flex items-center gap-2 ${!showHeader ? 'ml-auto' : ''}`}>
           {/* Staff Filter */}
           <div className="relative" ref={filterDropdownRef}>
             <button
@@ -694,11 +695,11 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
         </Link>
       </div>
 
-      {/* Delete Confirmation Modal */}
-      {taskToDelete && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      {/* Delete Confirmation Modal - rendered via portal */}
+      {taskToDelete && createPortal(
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[99999]">
           <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
-            <h3 className="text-lg font-semibold mb-4">Delete Task</h3>
+            <h3 className="text-lg font-semibold mb-4 text-white">Delete Task</h3>
             <p className="text-gray-300 mb-6">
               Are you sure you want to delete this task? This action cannot be undone.
             </p>
@@ -717,26 +718,32 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {/* Task Modal (Add/Edit) */}
-      {isTaskModalOpen && (
-        <TaskModal
-          mode={taskModalMode}
-          task={taskModalMode === "edit" ? editingTask : null}
-          onClose={() => {
-            setIsTaskModalOpen(false)
-            setEditingTask(null)
-          }}
-          onSave={handleTaskModalSave}
-          configuredTags={configuredTags}
-          availableAssignees={availableAssignees}
-          onDelete={handleDeleteTask}
-          onDuplicate={handleDuplicateTask}
-          onPinToggle={handlePinToggle}
-          onStatusChange={handleStatusChange}
-        />
+      {/* Task Modal (Add/Edit) - rendered via portal */}
+      {isTaskModalOpen && createPortal(
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[99999] p-4">
+          <div className="relative w-full max-w-2xl max-h-[90vh] overflow-auto">
+            <TaskModal
+              mode={taskModalMode}
+              task={taskModalMode === "edit" ? editingTask : null}
+              onClose={() => {
+                setIsTaskModalOpen(false)
+                setEditingTask(null)
+              }}
+              onSave={handleTaskModalSave}
+              configuredTags={configuredTags}
+              availableAssignees={availableAssignees}
+              onDelete={handleDeleteTask}
+              onDuplicate={handleDuplicateTask}
+              onPinToggle={handlePinToggle}
+              onStatusChange={handleStatusChange}
+            />
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   )

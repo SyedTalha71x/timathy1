@@ -88,6 +88,31 @@ const Dashboardlayout = () => {
 
   return (
     <ExternalSidebarContext.Provider value={{ isExternalSidebarOpen, setIsExternalSidebarOpen, toggleExternalSidebar }}>
+      {/* Global styles for widget drag & drop animations */}
+      <style>
+        {`
+          @keyframes wobble {
+            0%, 100% { transform: rotate(0deg); }
+            15% { transform: rotate(-1deg); }
+            30% { transform: rotate(1deg); }
+            45% { transform: rotate(-1deg); }
+            60% { transform: rotate(1deg); }
+            75% { transform: rotate(-1deg); }
+            90% { transform: rotate(1deg); }
+          }
+          .animate-wobble {
+            animation: wobble 0.5s ease-in-out infinite;
+          }
+          .dragging {
+            opacity: 0.5;
+            border: 2px dashed #fff;
+          }
+          .drag-over {
+            border: 2px dashed #888;
+          }
+        `}
+      </style>
+      
       <div className="bg-[#111111] min-h-screen">
         <div className="flex flex-col md:flex-row h-full">
           {/* Sidebar - Navigation only */}
@@ -105,7 +130,7 @@ const Dashboardlayout = () => {
               lg:pt-2 md:pt-16 sm:pt-16 pt-16
               pb-10 p-2
               transition-all duration-500 ease-in-out
-              ${(isSellingPage ? isExternalSidebarOpen : isRightSidebarOpen) && !isLeadsPage && !isMyAreaPage ? "lg:mr-[22rem] mr-0" : "mr-0"}
+              ${(isSellingPage ? isExternalSidebarOpen : isRightSidebarOpen) && !isLeadsPage && !isMyAreaPage ? "lg:mr-[400px] mr-0" : "mr-0"}
             `}
           >
             {/* Header - handles both mobile + desktop views */}

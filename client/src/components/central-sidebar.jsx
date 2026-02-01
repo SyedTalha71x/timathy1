@@ -27,6 +27,29 @@ import {
 import { toast } from "react-hot-toast"
 
 // ============================================
+// Initials Avatar Component for Notifications
+// ============================================
+const InitialsAvatar = ({ firstName, lastName, size = 32, className = "", context = "member" }) => {
+  const getInitials = () => {
+    const firstInitial = firstName?.charAt(0)?.toUpperCase() || ""
+    const lastInitial = lastName?.charAt(0)?.toUpperCase() || ""
+    return `${firstInitial}${lastInitial}` || "?"
+  }
+
+  // Staff uses blue, members use orange
+  const bgColor = context === "staff" ? "bg-blue-600" : "bg-orange-500"
+
+  return (
+    <div
+      className={`${bgColor} rounded-xl flex items-center justify-center text-white font-semibold flex-shrink-0 ${className}`}
+      style={{ width: size, height: size, fontSize: size * 0.4 }}
+    >
+      {getInitials()}
+    </div>
+  )
+}
+
+// ============================================
 // Widget Component Imports
 // ============================================
 import ExpiringContractsWidget from "./myarea-components/widgets/ExpiringContractsWidget"
@@ -42,9 +65,9 @@ import ShiftScheduleWidget from "./myarea-components/widgets/ShiftScheduleWidget
 // ============================================
 // Sidebar Component Imports
 // ============================================
-import RightSidebarWidget from "./myarea-components/sidebar-components/RightSidebarWidget"
-import ViewManagementModal from "./myarea-components/sidebar-components/ViewManagementModal"
-import ReplyModal from "./myarea-components/sidebar-components/ReplyModal"
+import DraggableWidget from "./myarea-components/DraggableWidget"
+import ViewManagementModal from "./myarea-components/ViewManagementModal"
+import ChatPopup from "./shared/communication/ChatPopup"
 
 // ============================================
 // Modal Component Imports
@@ -72,6 +95,9 @@ import {
   leadRelationsData,
   freeAppointmentsData,
   appointmentTypesData,
+  staffData,
+  memberChatListNew,
+  staffChatListNew,
 } from "../utils/studio-states"
 
 // ============================================
@@ -219,11 +245,61 @@ const Sidebar = ({
   const [availableTrainingPlans] = useState(AVAILABLE_TRAINING_PLANS)
 
   // ============================================
-  // Notification State
+  // Notification State - generated from chat lists
   // ============================================
-  const [notificationData, setNotificationData] = useState(demoNotifications)
-  const [isReplyModalOpen, setIsReplyModalOpen] = useState(false)
-  const [selectedMessage, setSelectedMessage] = useState(null)
+  const [notificationData, setNotificationData] = useState(() => {
+    // Generate initial notifications from chat lists
+    const memberNotifications = (memberChatListNew || []).map(chat => {
+      const lastMessage = chat.messages?.[chat.messages.length - 1]
+      const member = membersData.find(m => m.id === chat.memberId)
+      const isUnread = lastMessage && lastMessage.sender !== "You" && lastMessage.status !== "read"
+      
+      return {
+        id: `mc_${chat.id}`,
+        chatId: chat.id,
+        memberId: chat.memberId,
+        senderId: chat.memberId,
+        senderName: member ? `${member.firstName} ${member.lastName}` : chat.name,
+        senderAvatar: member?.image || chat.logo || null,
+        message: lastMessage?.content || "No messages",
+        time: lastMessage?.time || "",
+        isRead: !isUnread,
+        type: "member_chat",
+        dateOfBirth: member?.dateOfBirth
+      }
+    }).filter(n => n.memberId)
+    
+    const staffNotifications = (staffChatListNew || []).map(chat => {
+      const lastMessage = chat.messages?.[chat.messages.length - 1]
+      const staff = staffData.find(s => s.id === chat.staffId)
+      const isUnread = lastMessage && lastMessage.sender !== "You" && lastMessage.status !== "read"
+      
+      return {
+        id: `sc_${chat.id}`,
+        chatId: chat.id,
+        staffId: chat.staffId,
+        senderId: chat.staffId,
+        senderName: staff ? `${staff.firstName} ${staff.lastName}` : chat.name,
+        senderAvatar: staff?.img || staff?.image || chat.logo || null,
+        message: lastMessage?.content || "No messages",
+        time: lastMessage?.time || "",
+        isRead: !isUnread,
+        type: "studio_chat"
+      }
+    }).filter(n => n.staffId)
+    
+    return {
+      memberChat: memberNotifications,
+      studioChat: staffNotifications,
+      activityMonitor: demoNotifications?.activityMonitor || []
+    }
+  })
+  
+  // ChatPopup state for notifications
+  const [isChatPopupOpen, setIsChatPopupOpen] = useState(false)
+  const [selectedChatMember, setSelectedChatMember] = useState(null)
+  const [chatContext, setChatContext] = useState("member") // "member" or "staff"
+  
   const [collapsedSections, setCollapsedSections] = useState({
     memberChat: false,
     studioChat: false,
@@ -237,9 +313,62 @@ const Sidebar = ({
   // ============================================
   const getWidgetDisplayName = (widgetType) => WIDGET_DISPLAY_NAMES[widgetType] || widgetType
 
+  // Generate notifications from chat lists
+  const generateNotificationsFromChats = () => {
+    const memberNotifications = (memberChatListNew || []).map(chat => {
+      const lastMessage = chat.messages?.[chat.messages.length - 1]
+      const member = membersData.find(m => m.id === chat.memberId)
+      const isUnread = lastMessage && lastMessage.sender !== "You" && lastMessage.status !== "read"
+      
+      return {
+        id: `mc_${chat.id}`,
+        chatId: chat.id,
+        memberId: chat.memberId,
+        senderId: chat.memberId,
+        senderName: member ? `${member.firstName} ${member.lastName}` : chat.name,
+        senderAvatar: member?.image || chat.logo || null,
+        message: lastMessage?.content || "No messages",
+        time: lastMessage?.time || "",
+        isRead: !isUnread,
+        type: "member_chat",
+        dateOfBirth: member?.dateOfBirth
+      }
+    }).filter(n => n.memberId) // Only include chats with valid memberId
+    
+    const staffNotifications = (staffChatListNew || []).map(chat => {
+      const lastMessage = chat.messages?.[chat.messages.length - 1]
+      const staff = staffData.find(s => s.id === chat.staffId)
+      const isUnread = lastMessage && lastMessage.sender !== "You" && lastMessage.status !== "read"
+      
+      return {
+        id: `sc_${chat.id}`,
+        chatId: chat.id,
+        staffId: chat.staffId,
+        senderId: chat.staffId,
+        senderName: staff ? `${staff.firstName} ${staff.lastName}` : chat.name,
+        senderAvatar: staff?.img || staff?.image || chat.logo || null,
+        message: lastMessage?.content || "No messages",
+        time: lastMessage?.time || "",
+        isRead: !isUnread,
+        type: "studio_chat"
+      }
+    }).filter(n => n.staffId) // Only include chats with valid staffId
+    
+    return {
+      memberChat: memberNotifications,
+      studioChat: staffNotifications,
+      activityMonitor: demoNotifications?.activityMonitor || []
+    }
+  }
+
   const getMemberById = (memberId) => {
     if (!memberId) return null
     return membersData.find((m) => m.id === memberId) || null
+  }
+
+  const getStaffById = (staffId) => {
+    if (!staffId) return null
+    return staffData.find((s) => s.id === staffId) || null
   }
 
   const getUnreadCount = (section) => {
@@ -539,8 +668,80 @@ const Sidebar = ({
   }
 
   const handleMessageClick = (message) => {
-    setSelectedMessage(message)
-    setIsReplyModalOpen(true)
+    // Determine context based on message type
+    const isStudioChat = message.type === "studio_chat"
+    
+    let personId = null
+    let personData = null
+    
+    if (isStudioChat) {
+      // Get staffId from notification or find in chat list
+      personId = message.staffId || message.senderId
+      
+      // If no direct staffId, try to find in chat list
+      if (!personId && message.chatId) {
+        const chatData = staffChatListNew?.find(c => c.id === message.chatId)
+        personId = chatData?.staffId
+      }
+      
+      // Get the REAL staff object from staffData
+      if (personId) {
+        const staff = staffData.find(s => s.id === personId)
+        if (staff) {
+          personData = {
+            id: staff.id,
+            firstName: staff.firstName,
+            lastName: staff.lastName,
+            name: `${staff.firstName} ${staff.lastName}`,
+            image: staff.img || staff.image,
+            email: staff.email,
+            dateOfBirth: staff.dateOfBirth
+          }
+        }
+      }
+    } else {
+      // Get memberId from notification or find in chat list
+      personId = message.memberId || message.senderId
+      
+      // If no direct memberId, try to find in chat list
+      if (!personId && message.chatId) {
+        const chatData = memberChatListNew?.find(c => c.id === message.chatId)
+        personId = chatData?.memberId
+      }
+      
+      // Get the REAL member object from membersData
+      if (personId) {
+        const member = membersData.find(m => m.id === personId)
+        if (member) {
+          personData = {
+            id: member.id,
+            firstName: member.firstName,
+            lastName: member.lastName,
+            name: `${member.firstName} ${member.lastName}`,
+            image: member.image,
+            email: member.email,
+            dateOfBirth: member.dateOfBirth
+          }
+        }
+      }
+    }
+    
+    // If we found the person, open chat
+    if (personData) {
+      setSelectedChatMember(personData)
+      setChatContext(isStudioChat ? "staff" : "member")
+      setIsChatPopupOpen(true)
+      markMessageAsRead(message.id, message.type)
+    } else {
+      // Fallback: Use notification data directly (not ideal but prevents crash)
+      console.warn("Could not find person data for notification:", message)
+      toast.error("Chat konnte nicht geöffnet werden")
+    }
+  }
+  
+  const handleCloseChatPopup = () => {
+    setIsChatPopupOpen(false)
+    setSelectedChatMember(null)
   }
 
   const handleSendReply = (chatId, replyText) => {
@@ -552,8 +753,19 @@ const Sidebar = ({
     }))
   }
 
-  const handleOpenFullMessenger = () => {
-    navigate("/dashboard/communication")
+  const handleOpenFullMessenger = (member, context) => {
+    // Navigate to communication page with the chat pre-selected
+    if (member && member.id) {
+      const chatType = context === "staff" ? "company" : "member"
+      navigate("/dashboard/communication", {
+        state: {
+          openChatId: member.id,
+          openChatType: chatType
+        }
+      })
+    } else {
+      navigate("/dashboard/communication")
+    }
   }
 
   // ============================================
@@ -601,12 +813,16 @@ const Sidebar = ({
   }
 
   // ============================================
-  // Render Widget Content - Widgets have their own headers
+  // Render Widget Content - Widgets have their own headers, but we hide them in sidebar
   // ============================================
   const renderWidgetContent = (widget) => {
+    // Pass showHeader={false} to widgets so they don't show their internal headers
+    // The sidebar shows its own header with the collapse chevron
+    const commonProps = { showHeader: false }
+    
     switch (widget.type) {
       case "expiringContracts":
-        return <ExpiringContractsWidget isSidebarEditing={isSidebarEditing} />
+        return <ExpiringContractsWidget isSidebarEditing={isSidebarEditing} {...commonProps} />
 
       case "appointments":
         return (
@@ -624,11 +840,12 @@ const Sidebar = ({
             backgroundColor="bg-[#2F2F2F]"
             showDatePicker={true}
             initialDate={new Date()}
+            {...commonProps}
           />
         )
 
       case "staffCheckIn":
-        return <StaffCheckInWidget compact={true} />
+        return <StaffCheckInWidget compact={true} {...commonProps} />
 
       case "websiteLinks":
         return (
@@ -639,26 +856,28 @@ const Sidebar = ({
             onAddLink={handleAddLink}
             onEditLink={handleEditLink}
             onRemoveLink={handleRemoveLink}
+            {...commonProps}
           />
         )
 
       case "todo":
-        return <ToDoWidget isSidebarEditing={isSidebarEditing} compactMode={true} />
+        return <ToDoWidget isSidebarEditing={isSidebarEditing} compactMode={true} {...commonProps} />
 
       case "birthday":
-        return <UpcomingBirthdaysWidget isSidebarEditing={isSidebarEditing} />
+        return <UpcomingBirthdaysWidget isSidebarEditing={isSidebarEditing} {...commonProps} />
 
       case "bulletinBoard":
-        return <BulletinBoardWidget isSidebarEditing={isSidebarEditing} />
+        return <BulletinBoardWidget isSidebarEditing={isSidebarEditing} {...commonProps} />
 
       case "notes":
-        return <NotesWidget isSidebarEditing={isSidebarEditing} />
+        return <NotesWidget isSidebarEditing={isSidebarEditing} {...commonProps} />
 
       case "shiftSchedule":
         return (
           <ShiftScheduleWidget
             isEditing={isSidebarEditing}
             onRemove={() => removeRightSidebarWidget(widget.id)}
+            {...commonProps}
           />
         )
 
@@ -688,6 +907,7 @@ const Sidebar = ({
         }}
         emptyMessage="No member messages"
         highlightClass="bg-blue-900/20"
+        context="member"
       />
 
       {/* Studio Chat Section */}
@@ -704,6 +924,7 @@ const Sidebar = ({
         }}
         emptyMessage="No studio messages"
         highlightClass="bg-green-900/20"
+        context="staff"
       />
 
       {/* Activity Monitor Section */}
@@ -733,17 +954,20 @@ const Sidebar = ({
 
     return createPortal(
       <>
-        {/* Reply Modal */}
-        {isReplyModalOpen && (
-          <ReplyModal
-            isOpen={isReplyModalOpen}
-            onClose={() => {
-              setIsReplyModalOpen(false)
-              setSelectedMessage(null)
+        {/* Chat Popup for Notifications */}
+        {isChatPopupOpen && selectedChatMember && (
+          <ChatPopup
+            member={selectedChatMember}
+            isOpen={isChatPopupOpen}
+            onClose={handleCloseChatPopup}
+            onNavigateToChat={() => {
+              const member = selectedChatMember
+              const context = chatContext
+              handleCloseChatPopup()
+              handleOpenFullMessenger(member, context)
             }}
-            message={selectedMessage}
-            onSendReply={handleSendReply}
-            onOpenFullMessenger={handleOpenFullMessenger}
+            context={chatContext}
+            communicationsPath="/dashboard/communication"
           />
         )}
 
@@ -758,6 +982,7 @@ const Sidebar = ({
             setCurrentView={setCurrentView}
             sidebarWidgets={rightSidebarWidgets}
             setSidebarWidgets={() => {}}
+            variant="sidebar"
           />
         )}
 
@@ -917,7 +1142,7 @@ const Sidebar = ({
     <>
       <aside
         className={`
-          fixed top-0 right-0 h-full text-white w-full sm:w-96 lg:w-88 bg-[#181818] border-l border-gray-700 z-[50]
+          fixed top-0 right-0 h-full text-white w-full sm:w-[400px] lg:w-[400px] bg-[#181818] border-l border-gray-700 z-[50]
           transform transition-transform duration-500 ease-in-out
           ${isRightSidebarOpen ? "translate-x-0" : "translate-x-full"}
         `}
@@ -949,35 +1174,45 @@ const Sidebar = ({
               {rightSidebarWidgets
                 .sort((a, b) => a.position - b.position)
                 .map((widget, index) => (
-                  <RightSidebarWidget
+                  <DraggableWidget
                     key={widget.id}
                     id={widget.id}
                     index={index}
                     isEditing={isSidebarEditing}
-                    moveRightSidebarWidget={moveRightSidebarWidget}
-                    removeRightSidebarWidget={removeRightSidebarWidget}
+                    moveWidget={moveRightSidebarWidget}
+                    removeWidget={removeRightSidebarWidget}
+                    variant="sidebar"
                   >
                     {collapsedWidgets[widget.id] ? (
-                      <CollapsedWidgetHeader
-                        title={getWidgetDisplayName(widget.type)}
+                      /* Collapsed State - nur Chevron + Titel */
+                      <button
                         onClick={() => toggleWidgetCollapse(widget.id)}
-                      />
+                        className="flex items-center gap-2 p-3 rounded-xl bg-[#2F2F2F] hover:bg-[#3A3A3A] transition-colors w-full text-left"
+                      >
+                        <ChevronRight size={14} className="text-zinc-400 flex-shrink-0" />
+                        <span className="font-semibold text-base text-white">{getWidgetDisplayName(widget.type)}</span>
+                      </button>
                     ) : (
-                      <div className="relative group">
-                        {/* Collapse button - appears on hover in top-right corner */}
-                        {!isSidebarEditing && (
-                          <button
-                            onClick={() => toggleWidgetCollapse(widget.id)}
-                            className="absolute top-2.5 right-12 z-20 p-1 bg-black/60 hover:bg-black rounded transition-all opacity-0 group-hover:opacity-100"
-                            title="Collapse"
-                          >
-                            <ChevronUp size={12} className="text-gray-400" />
-                          </button>
-                        )}
+                      /* Expanded State - Chevron-Header + Widget */
+                      <div>
+                        {/* Clickable Header mit Chevron vor dem Titel */}
+                        <button
+                          onClick={() => !isSidebarEditing && toggleWidgetCollapse(widget.id)}
+                          className={`flex items-center gap-2 mb-1 px-1 py-1 rounded-lg transition-colors w-full text-left ${
+                            isSidebarEditing ? 'cursor-default' : 'hover:bg-zinc-700/30 cursor-pointer'
+                          }`}
+                          disabled={isSidebarEditing}
+                        >
+                          {!isSidebarEditing && (
+                            <ChevronDown size={14} className="text-zinc-400 flex-shrink-0" />
+                          )}
+                          <span className="font-semibold text-base text-white">{getWidgetDisplayName(widget.type)}</span>
+                        </button>
+                        {/* Widget Content - mit showHeader=false um doppelte Titel zu vermeiden */}
                         {renderWidgetContent(widget)}
                       </div>
                     )}
-                  </RightSidebarWidget>
+                  </DraggableWidget>
                 ))}
             </div>
           )}
@@ -1029,7 +1264,7 @@ const SidebarHeader = ({
         <button
           onClick={onToggleEditing}
           className={`p-1.5 sm:p-2 ${
-            isSidebarEditing ? "bg-blue-600 text-white" : "text-zinc-400 hover:bg-zinc-800"
+            isSidebarEditing ? "bg-orange-500 text-white" : "text-zinc-400 hover:bg-zinc-800"
           } rounded-lg flex items-center gap-1`}
           title="Toggle Edit Mode"
         >
@@ -1075,16 +1310,6 @@ const TabNavigation = ({ activeTab, onTabChange, unreadCount }) => (
   </div>
 )
 
-const CollapsedWidgetHeader = ({ title, onClick }) => (
-  <div
-    className="p-3 rounded-xl bg-[#2F2F2F] flex items-center gap-2 cursor-pointer hover:bg-[#3A3A3A] transition-colors"
-    onClick={onClick}
-  >
-    <ChevronRight size={14} className="text-zinc-400 flex-shrink-0" />
-    <span className="font-medium text-sm truncate">{title}</span>
-  </div>
-)
-
 const NotificationSection = ({
   title,
   icon,
@@ -1095,66 +1320,91 @@ const NotificationSection = ({
   onMessageClick,
   emptyMessage,
   highlightClass,
-}) => (
-  <div className="bg-black rounded-xl overflow-hidden">
-    <button
-      onClick={onToggle}
-      className="w-full p-3 flex items-center justify-between hover:bg-gray-800 transition-colors"
-    >
-      <div className="flex items-center gap-2">
-        {icon}
-        <h3 className="text-white font-medium text-sm">{title}</h3>
-        {unreadCount > 0 && (
-          <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full">{unreadCount}</span>
-        )}
-      </div>
-      {isCollapsed ? <ChevronDown size={16} className="text-gray-400" /> : <ChevronUp size={16} className="text-gray-400" />}
-    </button>
+  context = "member", // "member" or "staff"
+}) => {
+  // Helper to get first/last name from senderName
+  const getNameParts = (senderName) => {
+    const parts = (senderName || "").split(" ")
+    return {
+      firstName: parts[0] || "",
+      lastName: parts.slice(1).join(" ") || ""
+    }
+  }
 
-    {!isCollapsed && (
-      <div className="border-t border-gray-700">
-        {messages.length > 0 ? (
-          messages.map((message) => (
-            <div
-              key={message.id}
-              className={`p-3 border-b border-gray-800 last:border-b-0 cursor-pointer hover:bg-gray-800 transition-colors ${
-                !message.isRead ? highlightClass : ""
-              }`}
-              onClick={() => onMessageClick(message)}
-            >
-              <div className="flex items-start gap-3">
-                <img
-                  src={message.senderAvatar || "/placeholder.svg"}
-                  alt={message.senderName}
-                  className="w-8 h-8 rounded-full flex-shrink-0"
-                />
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="text-white font-medium text-sm truncate">{message.senderName}</h4>
-                    {!message.isRead && <div className="w-2 h-2 bg-orange-500 rounded-full flex-shrink-0" />}
-                  </div>
-                  <p className="text-gray-300 text-sm line-clamp-2 mb-1">{message.message}</p>
-                  <div className="flex items-center justify-between">
-                    <p className="text-gray-500 text-xs flex items-center gap-1">
-                      <Clock size={12} />
-                      {message.time}
-                    </p>
-                    <Reply size={14} className="text-gray-400" />
+  return (
+    <div className="bg-black rounded-xl overflow-hidden">
+      <button
+        onClick={onToggle}
+        className="w-full p-3 flex items-center justify-between hover:bg-gray-800 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          {icon}
+          <h3 className="text-white font-medium text-sm">{title}</h3>
+          {unreadCount > 0 && (
+            <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full">{unreadCount}</span>
+          )}
+        </div>
+        {isCollapsed ? <ChevronDown size={16} className="text-gray-400" /> : <ChevronUp size={16} className="text-gray-400" />}
+      </button>
+
+      {!isCollapsed && (
+        <div className="border-t border-gray-700">
+          {messages.length > 0 ? (
+            messages.map((message) => {
+              const { firstName, lastName } = getNameParts(message.senderName)
+              
+              return (
+                <div
+                  key={message.id}
+                  className={`p-3 border-b border-gray-800 last:border-b-0 cursor-pointer hover:bg-gray-800 transition-colors ${
+                    !message.isRead ? highlightClass : ""
+                  }`}
+                  onClick={() => onMessageClick(message)}
+                >
+                  <div className="flex items-start gap-3">
+                    {message.senderAvatar ? (
+                      <img
+                        src={message.senderAvatar}
+                        alt={message.senderName}
+                        className="w-8 h-8 rounded-xl flex-shrink-0 object-cover"
+                      />
+                    ) : (
+                      <InitialsAvatar
+                        firstName={firstName}
+                        lastName={lastName}
+                        size={32}
+                        context={context}
+                      />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="text-white font-medium text-sm truncate">{message.senderName}</h4>
+                        {!message.isRead && <div className="w-2 h-2 bg-orange-500 rounded-full flex-shrink-0" />}
+                      </div>
+                      <p className="text-gray-300 text-sm line-clamp-2 mb-1">{message.message}</p>
+                      <div className="flex items-center justify-between">
+                        <p className="text-gray-500 text-xs flex items-center gap-1">
+                          <Clock size={12} />
+                          {message.time}
+                        </p>
+                        <Reply size={14} className="text-gray-400" />
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )
+            })
+          ) : (
+            <div className="p-4 text-center text-gray-400">
+              <Reply size={24} className="mx-auto mb-2 opacity-50" />
+              <p className="text-sm">{emptyMessage}</p>
             </div>
-          ))
-        ) : (
-          <div className="p-4 text-center text-gray-400">
-            <Reply size={24} className="mx-auto mb-2 opacity-50" />
-            <p className="text-sm">{emptyMessage}</p>
-          </div>
-        )}
-      </div>
-    )}
-  </div>
-)
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
 
 const ActivityMonitorSection = ({
   isCollapsed,

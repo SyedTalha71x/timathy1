@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
 import { useState, useRef, useEffect } from "react"
+import { createPortal } from "react-dom"
 import { Plus, MoreVertical, Edit, Trash2, Eye, Tag, Pin, PinOff, Filter, X, ArrowUp, ArrowDown } from "lucide-react"
 import { Link } from "react-router-dom"
 import NoteModal from "../../shared/notes/NoteModal"
@@ -73,7 +74,7 @@ const TAB_CONFIG = {
   },
 }
 
-const NotesWidget = ({ isSidebarEditing }) => {
+const NotesWidget = ({ isSidebarEditing, showHeader = true }) => {
   const [notes, setNotes] = useState(DEMO_NOTES)
   const [availableTags, setAvailableTags] = useState(AVAILABLE_TAGS)
   
@@ -320,8 +321,8 @@ const NotesWidget = ({ isSidebarEditing }) => {
     <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
       {/* Header */}
       <div className="flex justify-between items-center flex-shrink-0">
-        <h2 className="text-lg font-semibold">Notes</h2>
-        <div className="flex items-center gap-2">
+        {showHeader && <h2 className="text-lg font-semibold">Notes</h2>}
+        <div className={`flex items-center gap-2 ${!showHeader ? 'ml-auto' : ''}`}>
           {/* Sort Dropdown */}
           <div className="relative" ref={sortDropdownRef}>
             <button
@@ -538,37 +539,47 @@ const NotesWidget = ({ isSidebarEditing }) => {
         </Link>
       </div>
 
-      {/* Note Modal (Add/Edit) */}
-      {showNoteModal && (
-        <NoteModal
-          mode={noteModalMode}
-          note={noteModalMode === "edit" ? selectedNote : null}
-          onClose={() => {
-            setShowNoteModal(false)
-            setSelectedNote(null)
-          }}
-          onSave={noteModalMode === "add" ? handleCreateNote : handleUpdateNote}
-          availableTags={availableTags}
-          onAddTag={handleAddTag}
-          onDeleteTag={handleDeleteTag}
-          category={activeTab}
-          onDelete={handleDeleteFromModal}
-          onDuplicate={handleDuplicateNote}
-          onPinToggle={handlePinToggle}
-          onMoveToOtherTab={handleMoveNote}
-        />
+      {/* Note Modal (Add/Edit) - rendered via portal */}
+      {showNoteModal && createPortal(
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[99999] p-4">
+          <div className="relative w-full max-w-2xl max-h-[90vh] overflow-auto">
+            <NoteModal
+              mode={noteModalMode}
+              note={noteModalMode === "edit" ? selectedNote : null}
+              onClose={() => {
+                setShowNoteModal(false)
+                setSelectedNote(null)
+              }}
+              onSave={noteModalMode === "add" ? handleCreateNote : handleUpdateNote}
+              availableTags={availableTags}
+              onAddTag={handleAddTag}
+              onDeleteTag={handleDeleteTag}
+              category={activeTab}
+              onDelete={handleDeleteFromModal}
+              onDuplicate={handleDuplicateNote}
+              onPinToggle={handlePinToggle}
+              onMoveToOtherTab={handleMoveNote}
+            />
+          </div>
+        </div>,
+        document.body
       )}
 
-      {/* Delete Confirmation Modal */}
-      <DeleteConfirmModal
-        isOpen={showDeleteModal}
-        onClose={() => {
-          setShowDeleteModal(false)
-          setNoteToDelete(null)
-        }}
-        onConfirm={handleDeleteNote}
-        noteTitle={noteToDelete?.title || ""}
-      />
+      {/* Delete Confirmation Modal - rendered via portal */}
+      {showDeleteModal && createPortal(
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[99999] p-4">
+          <DeleteConfirmModal
+            isOpen={showDeleteModal}
+            onClose={() => {
+              setShowDeleteModal(false)
+              setNoteToDelete(null)
+            }}
+            onConfirm={handleDeleteNote}
+            noteTitle={noteToDelete?.title || ""}
+          />
+        </div>,
+        document.body
+      )}
     </div>
   )
 }

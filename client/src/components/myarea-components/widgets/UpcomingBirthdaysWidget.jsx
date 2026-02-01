@@ -39,7 +39,7 @@ const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) =>
   )
 }
 
-export const UpcomingBirthdaysWidget = ({ isSidebarEditing }) => {
+export const UpcomingBirthdaysWidget = ({ isSidebarEditing, showHeader = true }) => {
   // Contact Modal States
   const [messageTypeModal, setMessageTypeModal] = useState({
     isOpen: false,
@@ -201,9 +201,11 @@ export const UpcomingBirthdaysWidget = ({ isSidebarEditing }) => {
     <>
       <div className="p-3 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
         {/* Header */}
-        <div className="flex justify-between items-center mb-3 flex-shrink-0">
-          <h2 className="text-base font-semibold text-white">Upcoming Birthdays</h2>
-        </div>
+        {showHeader && (
+          <div className="flex justify-between items-center mb-3 flex-shrink-0">
+            <h2 className="text-base font-semibold text-white">Upcoming Birthdays</h2>
+          </div>
+        )}
 
         {/* Birthdays List */}
         <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">

@@ -2,6 +2,7 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable react/no-unescaped-entities */
 import { useState, useEffect, useRef } from "react"
+import { createPortal } from "react-dom"
 import { Plus, MoreVertical, Edit, Trash2, Eye, Calendar, Clock, Filter, X, ArrowUp, ArrowDown } from "lucide-react"
 import { Link } from "react-router-dom"
 import OptimizedCreateBulletinModal from "../../shared/bulletin-board/CreateBulletinBoard"
@@ -53,7 +54,7 @@ const VISIBILITY_CONFIG = {
   },
 }
 
-export const BulletinBoardWidget = ({ isSidebarEditing, expanded }) => {
+export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = true }) => {
   const [bulletinPosts, setBulletinPosts] = useState(defaultPosts)
   const [tags, setTags] = useState(defaultTags)
 
@@ -305,8 +306,8 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded }) => {
     <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
       {/* Header */}
       <div className="flex justify-between items-center flex-shrink-0">
-        <h2 className="text-lg font-semibold">Bulletin Board</h2>
-        <div className="flex items-center gap-2">
+        {showHeader && <h2 className="text-lg font-semibold">Bulletin Board</h2>}
+        <div className={`flex items-center gap-2 ${!showHeader ? 'ml-auto' : ''}`}>
           {/* Status Filter */}
           <div className="relative" ref={statusFilterRef}>
             <button
@@ -657,51 +658,82 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded }) => {
         </Link>
       </div>
 
-      {/* Modals */}
-      <OptimizedCreateBulletinModal 
-        isOpen={showCreateModal} 
-        onClose={() => setShowCreateModal(false)} 
-        onCreate={handleCreatePost} 
-        availableTags={tags} 
-        onOpenTagManager={() => setShowTagManager(true)} 
-      />
+      {/* Modals - rendered via portal */}
+      {showCreateModal && createPortal(
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[99999] p-4">
+          <div className="relative w-full max-w-2xl max-h-[90vh] overflow-auto">
+            <OptimizedCreateBulletinModal 
+              isOpen={showCreateModal} 
+              onClose={() => setShowCreateModal(false)} 
+              onCreate={handleCreatePost} 
+              availableTags={tags} 
+              onOpenTagManager={() => setShowTagManager(true)} 
+            />
+          </div>
+        </div>,
+        document.body
+      )}
 
-      <OptimizedEditBulletinModal 
-        isOpen={showEditModal} 
-        onClose={() => { 
-          setShowEditModal(false)
-          setSelectedPost(null) 
-        }} 
-        post={selectedPost} 
-        onSave={handleEditPost} 
-        availableTags={tags} 
-        onOpenTagManager={() => setShowTagManager(true)} 
-      />
+      {showEditModal && createPortal(
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[99999] p-4">
+          <div className="relative w-full max-w-2xl max-h-[90vh] overflow-auto">
+            <OptimizedEditBulletinModal 
+              isOpen={showEditModal} 
+              onClose={() => { 
+                setShowEditModal(false)
+                setSelectedPost(null) 
+              }} 
+              post={selectedPost} 
+              onSave={handleEditPost} 
+              availableTags={tags} 
+              onOpenTagManager={() => setShowTagManager(true)} 
+            />
+          </div>
+        </div>,
+        document.body
+      )}
 
-      <DeleteBulletinModal 
-        isOpen={showDeleteModal} 
-        onClose={() => setShowDeleteModal(false)} 
-        post={selectedPost} 
-        onDelete={handleDeletePost} 
-      />
+      {showDeleteModal && createPortal(
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[99999] p-4">
+          <DeleteBulletinModal 
+            isOpen={showDeleteModal} 
+            onClose={() => setShowDeleteModal(false)} 
+            post={selectedPost} 
+            onDelete={handleDeletePost} 
+          />
+        </div>,
+        document.body
+      )}
 
-      <ViewBulletinModal 
-        isOpen={showViewModal} 
-        onClose={() => {
-          setShowViewModal(false)
-          setSelectedPost(null)
-        }} 
-        post={selectedPost} 
-        allTags={tags} 
-      />
+      {showViewModal && createPortal(
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[99999] p-4">
+          <div className="relative w-full max-w-2xl max-h-[90vh] overflow-auto">
+            <ViewBulletinModal 
+              isOpen={showViewModal} 
+              onClose={() => {
+                setShowViewModal(false)
+                setSelectedPost(null)
+              }} 
+              post={selectedPost} 
+              allTags={tags} 
+            />
+          </div>
+        </div>,
+        document.body
+      )}
 
-      <TagManagerModal
-        isOpen={showTagManager}
-        onClose={() => setShowTagManager(false)}
-        tags={tags}
-        onAddTag={handleAddTag}
-        onDeleteTag={handleDeleteTag}
-      />
+      {showTagManager && createPortal(
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[99999] p-4">
+          <TagManagerModal
+            isOpen={showTagManager}
+            onClose={() => setShowTagManager(false)}
+            tags={tags}
+            onAddTag={handleAddTag}
+            onDeleteTag={handleDeleteTag}
+          />
+        </div>,
+        document.body
+      )}
     </div>
   )
 }
