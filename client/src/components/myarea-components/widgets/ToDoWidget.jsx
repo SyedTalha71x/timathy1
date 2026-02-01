@@ -267,7 +267,7 @@ const TaskCard = ({
 // ============================================
 // Main To-Do Widget Component
 // ============================================
-export default function ToDoWidget({ isSidebarEditing = false, compactMode = false, showHeader = true }) {
+export default function ToDoWidget({ isSidebarEditing = false, compactMode = false, showHeader = true, maxItems = null }) {
   // Use todosTaskData for consistency with main todo page
   const [todos, setTodos] = useState(todosTaskData)
   const [configuredTags] = useState(configuredTagsData)
@@ -491,7 +491,7 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
   const currentTasks = getFilteredTasks(activeTab)
 
   return (
-    <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
+    <div className={`p-4 rounded-xl bg-[#2F2F2F] flex flex-col space-y-3 ${showHeader ? 'h-[320px] md:h-[340px]' : ''}`}>
       {/* Header - Full version with title (My Area) */}
       {showHeader && (
         <div className="flex justify-between items-center flex-shrink-0">
@@ -815,8 +815,8 @@ export default function ToDoWidget({ isSidebarEditing = false, compactMode = fal
       )}
 
       {/* Task List */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 space-y-1.5">
-        {currentTasks.map((task) => (
+      <div className={`overflow-y-auto custom-scrollbar pr-1 space-y-1.5 ${showHeader ? 'flex-1' : ''}`}>
+        {(maxItems ? currentTasks.slice(0, maxItems) : currentTasks).map((task) => (
           <TaskCard
             key={task.id}
             task={task}

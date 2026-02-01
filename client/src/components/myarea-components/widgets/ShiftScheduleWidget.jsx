@@ -187,7 +187,8 @@ const ShiftScheduleWidget = ({
   isEditing = false,
   onRemove,
   className = "",
-  showHeader = true
+  showHeader = true,
+  maxItems = null
 }) => {
   const navigate = useNavigate();
   
@@ -229,7 +230,7 @@ const ShiftScheduleWidget = ({
   };
 
   return (
-    <div className={`flex flex-col p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto ${className}`}>
+    <div className={`flex flex-col p-4 rounded-xl bg-[#2F2F2F] ${className} ${showHeader ? 'h-[320px] md:h-[340px]' : ''}`}>
       {showHeader && (
         <div className="flex justify-between items-center mb-3 flex-shrink-0">
           <div className="flex items-center gap-2">
@@ -320,9 +321,9 @@ const ShiftScheduleWidget = ({
       </div>
 
       {/* Shifts List */}
-      <div className="flex-1 space-y-2 overflow-y-auto custom-scrollbar pr-1 min-h-0">
+      <div className={`space-y-2 overflow-y-auto custom-scrollbar pr-1 ${showHeader ? 'flex-1' : ''}`}>
         {currentShifts.length > 0 ? (
-          currentShifts.map((shift) => (
+          (maxItems ? currentShifts.slice(0, maxItems) : currentShifts).map((shift) => (
             <ShiftCard key={shift.id} shift={shift} />
           ))
         ) : (

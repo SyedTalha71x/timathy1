@@ -39,7 +39,7 @@ const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) =>
   )
 }
 
-export const UpcomingBirthdaysWidget = ({ isSidebarEditing, showHeader = true }) => {
+export const UpcomingBirthdaysWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) => {
   // Contact Modal States
   const [messageTypeModal, setMessageTypeModal] = useState({
     isOpen: false,
@@ -118,7 +118,6 @@ export const UpcomingBirthdaysWidget = ({ isSidebarEditing, showHeader = true })
         return daysUntil >= 0 && daysUntil <= 90
       })
       .sort((a, b) => getDaysUntilBirthday(a.dateOfBirth) - getDaysUntilBirthday(b.dateOfBirth))
-      .slice(0, 10) // Limit to 10
   }
 
   const upcomingBirthdays = getUpcomingBirthdays()
@@ -199,7 +198,7 @@ export const UpcomingBirthdaysWidget = ({ isSidebarEditing, showHeader = true })
 
   return (
     <>
-      <div className="p-3 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
+      <div className={`p-3 rounded-xl bg-[#2F2F2F] flex flex-col ${showHeader ? 'h-[320px] md:h-[340px]' : ''}`}>
         {/* Header */}
         {showHeader && (
           <div className="flex justify-between items-center mb-3 flex-shrink-0">
@@ -207,11 +206,11 @@ export const UpcomingBirthdaysWidget = ({ isSidebarEditing, showHeader = true })
           </div>
         )}
 
-        {/* Birthdays List */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
+        {/* Birthdays List - scrollable */}
+        <div className={`overflow-y-auto custom-scrollbar pr-1 ${showHeader ? 'flex-1' : ''}`}>
           {upcomingBirthdays.length > 0 ? (
             <div className="flex flex-col gap-2">
-              {upcomingBirthdays.map((member) => {
+              {(maxItems ? upcomingBirthdays.slice(0, maxItems) : upcomingBirthdays).map((member) => {
                 const isToday = isBirthdayToday(member.dateOfBirth)
                 const daysUntil = getDaysUntilBirthday(member.dateOfBirth)
                 

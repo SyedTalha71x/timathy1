@@ -3,7 +3,7 @@
 
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react/prop-types */
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { createPortal } from "react-dom"
 import { useNavigate } from "react-router-dom"
 import {
@@ -23,6 +23,7 @@ import {
   Reply,
   ExternalLink,
   ChevronRight,
+  SlidersHorizontal,
 } from "lucide-react"
 import { toast } from "react-hot-toast"
 
@@ -163,13 +164,70 @@ const Sidebar = ({
   isRightSidebarOpen,
   isSidebarEditing,
   toggleSidebarEditing,
-  rightSidebarWidgets,
-  moveRightSidebarWidget,
-  removeRightSidebarWidget,
+  rightSidebarWidgets: propWidgets,
+  setRightSidebarWidgets: propSetWidgets,
+  moveRightSidebarWidget: propMoveWidget,
+  removeRightSidebarWidget: propRemoveWidget,
   setIsRightWidgetModalOpen,
   onClose,
 }) => {
   const navigate = useNavigate()
+  
+  // Local widgets state - initialized from localStorage or props
+  const [localWidgets, setLocalWidgets] = useState(() => {
+    const saved = localStorage.getItem("sidebarWidgetsState")
+    if (saved) {
+      return JSON.parse(saved)
+    }
+    return propWidgets || []
+  })
+  
+  // Use local state if no setter is provided, otherwise use props
+  const rightSidebarWidgets = propSetWidgets ? propWidgets : localWidgets
+  const setRightSidebarWidgets = propSetWidgets || setLocalWidgets
+  
+  // Local move widget function
+  const moveWidget = (fromIndex, toIndex) => {
+    if (propMoveWidget && propSetWidgets) {
+      // Use prop function if available
+      propMoveWidget(fromIndex, toIndex)
+    } else {
+      // Use local state
+      if (toIndex < 0 || toIndex >= localWidgets.length) return
+      const newWidgets = [...localWidgets]
+      const [movedWidget] = newWidgets.splice(fromIndex, 1)
+      newWidgets.splice(toIndex, 0, movedWidget)
+      const updatedWidgets = newWidgets.map((widget, index) => ({
+        ...widget,
+        position: index,
+      }))
+      setLocalWidgets(updatedWidgets)
+    }
+  }
+  
+  // Local remove widget function
+  const removeWidget = (id) => {
+    if (propRemoveWidget && propSetWidgets) {
+      // Use prop function if available
+      propRemoveWidget(id)
+    } else {
+      // Use local state
+      setLocalWidgets((currentWidgets) => {
+        const filtered = currentWidgets.filter((w) => w.id !== id)
+        return filtered.map((widget, index) => ({
+          ...widget,
+          position: index,
+        }))
+      })
+    }
+  }
+  
+  // Persist local widgets to localStorage
+  useEffect(() => {
+    if (!propSetWidgets) {
+      localStorage.setItem("sidebarWidgetsState", JSON.stringify(localWidgets))
+    }
+  }, [localWidgets, propSetWidgets])
 
   // ============================================
   // UI State
@@ -180,9 +238,97 @@ const Sidebar = ({
   // ============================================
   // View Management State
   // ============================================
-  const [savedViews, setSavedViews] = useState([])
-  const [currentView, setCurrentView] = useState(null)
+  const [savedViews, setSavedViews] = useState(() => {
+    // Load saved views from localStorage
+    const saved = localStorage.getItem("sidebarViews")
+    return saved ? JSON.parse(saved) : []
+  })
+  const [currentView, setCurrentView] = useState(() => {
+    // Load current view from localStorage
+    const saved = localStorage.getItem("sidebarCurrentView")
+    return saved ? JSON.parse(saved) : null
+  })
   const [isViewModalOpen, setIsViewModalOpen] = useState(false)
+
+  // ============================================
+  // Widget Settings State (visibleItems per widget - controls visible height)
+  // ============================================
+  const [widgetSettings, setWidgetSettings] = useState(() => {
+    // Load widget settings from localStorage
+    const saved = localStorage.getItem("sidebarWidgetSettings")
+    return saved ? JSON.parse(saved) : {}
+  })
+  const [openSettingsDropdown, setOpenSettingsDropdown] = useState(null)
+  const [tempInputValue, setTempInputValue] = useState("")
+  
+  // Persist views to localStorage
+  useEffect(() => {
+    localStorage.setItem("sidebarViews", JSON.stringify(savedViews))
+  }, [savedViews])
+  
+  useEffect(() => {
+    if (currentView) {
+      localStorage.setItem("sidebarCurrentView", JSON.stringify(currentView))
+    }
+  }, [currentView])
+  
+  useEffect(() => {
+    localStorage.setItem("sidebarWidgetSettings", JSON.stringify(widgetSettings))
+  }, [widgetSettings])
+  
+  // Load pinned view on mount
+  useEffect(() => {
+    const pinnedView = savedViews.find(view => view.isStandard)
+    if (pinnedView && setRightSidebarWidgets) {
+      // Load the pinned view's widgets
+      setRightSidebarWidgets([...pinnedView.widgets])
+      // Load widget settings if available
+      if (pinnedView.widgetSettings) {
+        setWidgetSettings({ ...pinnedView.widgetSettings })
+      }
+      setCurrentView(pinnedView)
+    }
+  }, []) // Only run on mount
+  
+  // Maximum visible items
+  const MAX_VISIBLE_ITEMS = 5
+  
+  // Default visible items per widget type
+  const getDefaultVisibleItems = (widgetType) => {
+    const defaults = {
+      todo: 2,
+      notes: 2,
+      bulletinBoard: 2,
+      appointments: 3,
+      expiringContracts: 3,
+      websiteLinks: 3,
+      birthday: 3,
+      shiftSchedule: 3,
+    }
+    return defaults[widgetType] || 3
+  }
+  
+  // Get visibleItems for a widget - this limits how many items are shown
+  const getWidgetVisibleItems = (widgetId, widgetType) => {
+    return widgetSettings[widgetId]?.visibleItems || getDefaultVisibleItems(widgetType)
+  }
+  
+  // Update visibleItems for a widget
+  const updateWidgetVisibleItems = (widgetId, visibleItems) => {
+    const clampedValue = Math.max(1, Math.min(MAX_VISIBLE_ITEMS, visibleItems))
+    setWidgetSettings(prev => ({
+      ...prev,
+      [widgetId]: { ...prev[widgetId], visibleItems: clampedValue }
+    }))
+    setOpenSettingsDropdown(null)
+    setTempInputValue("")
+  }
+  
+  // Widgets that support visibleItems setting (exclude staffCheckIn and chart)
+  const WIDGETS_WITH_SETTINGS = [
+    "appointments", "expiringContracts", "todo", "birthday", 
+    "websiteLinks", "bulletinBoard", "notes", "shiftSchedule"
+  ]
 
   // ============================================
   // Widget Data State
@@ -818,7 +964,12 @@ const Sidebar = ({
   const renderWidgetContent = (widget) => {
     // Pass showHeader={false} to widgets so they don't show their internal headers
     // The sidebar shows its own header with the collapse chevron
-    const commonProps = { showHeader: false }
+    // maxItems limits how many items are displayed
+    const visibleItems = getWidgetVisibleItems(widget.id, widget.type)
+    const commonProps = { 
+      showHeader: false,
+      maxItems: visibleItems
+    }
     
     switch (widget.type) {
       case "expiringContracts":
@@ -836,7 +987,7 @@ const Sidebar = ({
             onOpenTrainingPlansModal={handleDumbbellClick}
             getMemberById={getMemberById}
             showCollapseButton={false}
-            useFixedHeight={true}
+            useFixedHeight={false}
             backgroundColor="bg-[#2F2F2F]"
             showDatePicker={true}
             initialDate={new Date()}
@@ -845,13 +996,13 @@ const Sidebar = ({
         )
 
       case "staffCheckIn":
-        return <StaffCheckInWidget compact={true} {...commonProps} />
+        return <StaffCheckInWidget compact={true} showHeader={false} />
 
       case "websiteLinks":
         return (
           <WebsiteLinksWidget
             isEditing={isSidebarEditing}
-            onRemove={() => removeRightSidebarWidget(widget.id)}
+            onRemove={() => removeWidget(widget.id)}
             customLinks={customLinks}
             onAddLink={handleAddLink}
             onEditLink={handleEditLink}
@@ -876,7 +1027,7 @@ const Sidebar = ({
         return (
           <ShiftScheduleWidget
             isEditing={isSidebarEditing}
-            onRemove={() => removeRightSidebarWidget(widget.id)}
+            onRemove={() => removeWidget(widget.id)}
             {...commonProps}
           />
         )
@@ -981,7 +1132,9 @@ const Sidebar = ({
             currentView={currentView}
             setCurrentView={setCurrentView}
             sidebarWidgets={rightSidebarWidgets}
-            setSidebarWidgets={() => {}}
+            setSidebarWidgets={setRightSidebarWidgets}
+            widgetSettings={widgetSettings}
+            setWidgetSettings={setWidgetSettings}
             variant="sidebar"
           />
         )}
@@ -1179,8 +1332,8 @@ const Sidebar = ({
                     id={widget.id}
                     index={index}
                     isEditing={isSidebarEditing}
-                    moveWidget={moveRightSidebarWidget}
-                    removeWidget={removeRightSidebarWidget}
+                    moveWidget={moveWidget}
+                    removeWidget={removeWidget}
                     variant="sidebar"
                   >
                     {collapsedWidgets[widget.id] ? (
@@ -1196,18 +1349,98 @@ const Sidebar = ({
                       /* Expanded State - Chevron-Header + Widget */
                       <div>
                         {/* Clickable Header mit Chevron vor dem Titel */}
-                        <button
-                          onClick={() => !isSidebarEditing && toggleWidgetCollapse(widget.id)}
-                          className={`flex items-center gap-2 mb-1 px-1 py-1 rounded-lg transition-colors w-full text-left ${
-                            isSidebarEditing ? 'cursor-default' : 'hover:bg-zinc-700/30 cursor-pointer'
-                          }`}
-                          disabled={isSidebarEditing}
-                        >
-                          {!isSidebarEditing && (
-                            <ChevronDown size={14} className="text-zinc-400 flex-shrink-0" />
+                        <div className="flex items-center justify-between mb-1 px-1">
+                          <button
+                            onClick={() => !isSidebarEditing && toggleWidgetCollapse(widget.id)}
+                            className={`flex items-center gap-2 py-1 rounded-lg transition-colors text-left ${
+                              isSidebarEditing ? 'cursor-default' : 'hover:bg-zinc-700/30 cursor-pointer'
+                            }`}
+                            disabled={isSidebarEditing}
+                          >
+                            {!isSidebarEditing && (
+                              <ChevronDown size={14} className="text-zinc-400 flex-shrink-0" />
+                            )}
+                            <span className="font-semibold text-base text-white">{getWidgetDisplayName(widget.type)}</span>
+                          </button>
+                          
+                          {/* Settings Icon - only for widgets that support maxItems, not during editing */}
+                          {!isSidebarEditing && WIDGETS_WITH_SETTINGS.includes(widget.type) && (
+                            <div className="relative">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  if (openSettingsDropdown === widget.id) {
+                                    setOpenSettingsDropdown(null)
+                                    setTempInputValue("")
+                                  } else {
+                                    setOpenSettingsDropdown(widget.id)
+                                    setTempInputValue(String(getWidgetVisibleItems(widget.id, widget.type)))
+                                  }
+                                }}
+                                className="p-1.5 hover:bg-zinc-700 rounded-lg transition-colors text-zinc-400 hover:text-white"
+                                title="Widget Settings"
+                              >
+                                <SlidersHorizontal size={14} />
+                              </button>
+                              
+                              {/* Settings Dropdown with Custom Input */}
+                              {openSettingsDropdown === widget.id && (
+                                <>
+                                  <div 
+                                    className="fixed inset-0 z-40" 
+                                    onClick={() => {
+                                      setOpenSettingsDropdown(null)
+                                      setTempInputValue("")
+                                    }}
+                                  />
+                                  <div className="absolute right-0 top-full mt-1 bg-[#1a1a1a] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[140px] p-3">
+                                    <div className="text-[10px] text-gray-500 uppercase tracking-wide mb-2">
+                                      Visible items
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <input
+                                        type="text"
+                                        inputMode="numeric"
+                                        pattern="[1-5]"
+                                        value={tempInputValue}
+                                        onChange={(e) => {
+                                          // Only allow digits 1-5
+                                          const val = e.target.value
+                                          if (val === '' || /^[1-5]$/.test(val)) {
+                                            setTempInputValue(val)
+                                          }
+                                        }}
+                                        onKeyDown={(e) => {
+                                          if (e.key === 'Enter') {
+                                            const value = parseInt(tempInputValue)
+                                            if (!isNaN(value) && value >= 1 && value <= 5) {
+                                              updateWidgetVisibleItems(widget.id, value)
+                                            }
+                                          }
+                                        }}
+                                        onClick={(e) => e.stopPropagation()}
+                                        className="w-14 px-2 py-1.5 bg-black border border-gray-600 rounded-lg text-white text-sm text-center focus:border-orange-500 focus:outline-none"
+                                        placeholder={String(getWidgetVisibleItems(widget.id, widget.type))}
+                                      />
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          const value = parseInt(tempInputValue)
+                                          if (!isNaN(value) && value >= 1 && value <= 5) {
+                                            updateWidgetVisibleItems(widget.id, value)
+                                          }
+                                        }}
+                                        className="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-sm rounded-lg transition-colors"
+                                      >
+                                        OK
+                                      </button>
+                                    </div>
+                                  </div>
+                                </>
+                              )}
+                            </div>
                           )}
-                          <span className="font-semibold text-base text-white">{getWidgetDisplayName(widget.type)}</span>
-                        </button>
+                        </div>
                         {/* Widget Content - mit showHeader=false um doppelte Titel zu vermeiden */}
                         {renderWidgetContent(widget)}
                       </div>

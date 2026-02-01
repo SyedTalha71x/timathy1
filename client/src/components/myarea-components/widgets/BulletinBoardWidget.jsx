@@ -54,7 +54,7 @@ const VISIBILITY_CONFIG = {
   },
 }
 
-export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = true }) => {
+export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = true, maxItems = null }) => {
   const [bulletinPosts, setBulletinPosts] = useState(defaultPosts)
   const [tags, setTags] = useState(defaultTags)
 
@@ -303,7 +303,7 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
   const filteredPosts = getFilteredPosts()
 
   return (
-    <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
+    <div className={`p-4 rounded-xl bg-[#2F2F2F] flex flex-col space-y-3 ${showHeader ? 'h-[320px] md:h-[340px]' : ''}`}>
       {/* Header - Full version with title (My Area) */}
       {showHeader && (
         <div className="flex justify-between items-center flex-shrink-0">
@@ -679,8 +679,8 @@ export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = t
       )}
 
       {/* Posts List */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 space-y-1.5">
-        {filteredPosts.map((post) => (
+      <div className={`overflow-y-auto custom-scrollbar pr-1 space-y-1.5 ${showHeader ? 'flex-1' : ''}`}>
+        {(maxItems ? filteredPosts.slice(0, maxItems) : filteredPosts).map((post) => (
           <div
             key={post.id}
             className="p-3 rounded-xl bg-[#1a1a1a] hover:bg-gray-800 transition-all"

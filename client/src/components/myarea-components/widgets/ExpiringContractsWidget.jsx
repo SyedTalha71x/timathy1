@@ -36,7 +36,7 @@ const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) =>
   )
 }
 
-export const ExpiringContractsWidget = ({ isSidebarEditing, showHeader = true }) => {
+export const ExpiringContractsWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) => {
   // Contact Modal States
   const [messageTypeModal, setMessageTypeModal] = useState({
     isOpen: false,
@@ -84,7 +84,6 @@ export const ExpiringContractsWidget = ({ isSidebarEditing, showHeader = true })
         return daysRemaining > 0 && daysRemaining <= 90
       })
       .sort((a, b) => calculateDaysRemaining(a.contractEnd) - calculateDaysRemaining(b.contractEnd))
-      .slice(0, 10) // Limit to 10
   }
 
   const expiringMembers = getExpiringMembers()
@@ -150,7 +149,7 @@ export const ExpiringContractsWidget = ({ isSidebarEditing, showHeader = true })
 
   return (
     <>
-      <div className="p-3 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
+      <div className={`p-3 rounded-xl bg-[#2F2F2F] flex flex-col ${showHeader ? 'h-[320px] md:h-[340px]' : ''}`}>
         {/* Header */}
         {showHeader && (
           <div className="flex justify-between items-center mb-3 flex-shrink-0">
@@ -158,11 +157,11 @@ export const ExpiringContractsWidget = ({ isSidebarEditing, showHeader = true })
           </div>
         )}
 
-        {/* Members List */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
+        {/* Members List - scrollable */}
+        <div className={`overflow-y-auto custom-scrollbar pr-1 ${showHeader ? 'flex-1' : ''}`}>
           {expiringMembers.length > 0 ? (
             <div className="flex flex-col gap-2">
-              {expiringMembers.map((member) => {
+              {(maxItems ? expiringMembers.slice(0, maxItems) : expiringMembers).map((member) => {
                 const daysRemaining = calculateDaysRemaining(member.contractEnd)
                 
                 return (

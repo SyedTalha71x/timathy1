@@ -15,6 +15,8 @@ import toast from "react-hot-toast"
  * @param {function} setCurrentView - Setter for current view
  * @param {Array} widgets - Current widgets array
  * @param {function} setWidgets - Setter for widgets
+ * @param {Object} widgetSettings - Widget settings (visible items per widget)
+ * @param {function} setWidgetSettings - Setter for widget settings
  * @param {string} variant - "dashboard" (default) or "sidebar" for different titles
  */
 const ViewManagementModal = ({
@@ -29,6 +31,9 @@ const ViewManagementModal = ({
   setWidgets,
   sidebarWidgets,
   setSidebarWidgets,
+  // Widget settings (visible items per widget)
+  widgetSettings = {},
+  setWidgetSettings,
   variant = "dashboard" // "dashboard" or "sidebar"
 }) => {
   const [viewName, setViewName] = useState("")
@@ -66,6 +71,7 @@ const ViewManagementModal = ({
       id: `view_${Date.now()}`,
       name: viewName.trim(),
       widgets: [...currentWidgets],
+      widgetSettings: { ...widgetSettings }, // Save widget settings (visible items per widget)
       isStandard: false,
       isGlobal: isGlobalVisible,
       createdBy: currentUser,
@@ -81,6 +87,10 @@ const ViewManagementModal = ({
 
   const handleLoadView = (view) => {
     updateWidgets([...view.widgets])
+    // Load widget settings if available and setter is provided
+    if (view.widgetSettings && setWidgetSettings) {
+      setWidgetSettings({ ...view.widgetSettings })
+    }
     setCurrentView(view)
     toast.success(`Loaded view: ${view.name}`)
     onClose()
@@ -116,7 +126,15 @@ const ViewManagementModal = ({
 
     setSavedViews((prev) =>
       prev.map((view) =>
-        view.id === editingView.id ? { ...view, name: viewName.trim(), isGlobal: isGlobalVisible } : view,
+        view.id === editingView.id 
+          ? { 
+              ...view, 
+              name: viewName.trim(), 
+              isGlobal: isGlobalVisible,
+              widgets: [...currentWidgets], // Update widgets
+              widgetSettings: { ...widgetSettings } // Update widget settings
+            } 
+          : view,
       ),
     )
 

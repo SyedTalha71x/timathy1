@@ -74,7 +74,7 @@ const TAB_CONFIG = {
   },
 }
 
-const NotesWidget = ({ isSidebarEditing, showHeader = true }) => {
+const NotesWidget = ({ isSidebarEditing, showHeader = true, maxItems = null }) => {
   const [notes, setNotes] = useState(DEMO_NOTES)
   const [availableTags, setAvailableTags] = useState(AVAILABLE_TAGS)
   
@@ -318,7 +318,7 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true }) => {
   const currentNotes = getCurrentNotes()
 
   return (
-    <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
+    <div className={`p-4 rounded-xl bg-[#2F2F2F] flex flex-col space-y-3 ${showHeader ? 'h-[320px] md:h-[340px]' : ''}`}>
       {/* Header - Full version with title (My Area) */}
       {showHeader && (
         <div className="flex justify-between items-center flex-shrink-0">
@@ -528,8 +528,8 @@ const NotesWidget = ({ isSidebarEditing, showHeader = true }) => {
       )}
 
       {/* Notes List */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 space-y-1.5">
-        {currentNotes.map((note) => (
+      <div className={`overflow-y-auto custom-scrollbar pr-1 space-y-1.5 ${showHeader ? 'flex-1' : ''}`}>
+        {(maxItems ? currentNotes.slice(0, maxItems) : currentNotes).map((note) => (
           <div
             key={note.id}
             className="p-3 rounded-xl bg-[#1a1a1a] hover:bg-gray-800 transition-all"

@@ -20,7 +20,8 @@ const UpcomingAppointmentsWidget = ({
   initialDate = null,         // Initial date to show (defaults to today)
   filterDate = null,          // External date to filter by (from parent component)
   showHeader = true,          // Show widget header
-  showDateIndicator = false   // Show date indicator next to title (for sidebar)
+  showDateIndicator = false,  // Show date indicator next to title (for sidebar)
+  maxItems = null             // Maximum items to display (for sidebar)
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [selectedDate, setSelectedDate] = useState(initialDate || new Date())
@@ -70,7 +71,6 @@ const UpcomingAppointmentsWidget = ({
   // Filter for upcoming appointments (not cancelled, not blocked)
   const upcomingAppointments = getFilteredAppointments()
     .filter(app => !app.isCancelled && !app.isBlocked && app.type !== "Blocked Time")
-    .slice(0, 10) // Show max 10 appointments in widget
 
   // Format date for display
   const formatDisplayDate = (date) => {
@@ -121,13 +121,15 @@ const UpcomingAppointmentsWidget = ({
   }
 
   return (
-    <div className={`rounded-xl ${backgroundColor} flex flex-col ${
-      isCollapsed 
-        ? 'h-auto' 
-        : useFixedHeight 
-          ? 'md:h-[340px] h-auto' 
-          : 'h-full'
-    }`}>
+    <div 
+      className={`rounded-xl ${backgroundColor} flex flex-col ${
+        isCollapsed 
+          ? 'h-auto' 
+          : useFixedHeight 
+            ? 'h-[320px] md:h-[340px]' 
+            : 'h-auto'
+      }`}
+    >
       {/* Full Header with title */}
       {showHeader && (
         <div className="flex justify-between items-center flex-shrink-0 px-3 pt-2.5 pb-2">
@@ -240,9 +242,9 @@ const UpcomingAppointmentsWidget = ({
 
       {/* Appointments List */}
       {!isCollapsed && (
-        <div className="flex-1 overflow-y-auto custom-scrollbar px-3 pb-2 space-y-2">
+        <div className={`overflow-y-auto custom-scrollbar px-3 pb-2 space-y-2 ${useFixedHeight ? 'flex-1' : ''}`}>
           {upcomingAppointments.length > 0 ? (
-            upcomingAppointments.map((appointment) => {
+            (maxItems ? upcomingAppointments.slice(0, maxItems) : upcomingAppointments).map((appointment) => {
               const firstName = appointment.name || ""
               const lastName = appointment.lastName || ""
               const isBlocked = appointment.isBlocked || appointment.type === "Blocked Time"

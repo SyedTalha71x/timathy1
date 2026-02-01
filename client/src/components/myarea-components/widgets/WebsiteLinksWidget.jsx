@@ -114,7 +114,8 @@ const WebsiteLinksWidget = ({
   onAddLink,
   onEditLink,
   onRemoveLink,
-  showHeader = true
+  showHeader = true,
+  maxItems = null
 }) => {
   const [openDropdownId, setOpenDropdownId] = useState(null)
   const [dropdownPosition, setDropdownPosition] = useState({})
@@ -198,7 +199,7 @@ const WebsiteLinksWidget = ({
   }
 
   return (
-    <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
+    <div className={`p-4 rounded-xl bg-[#2F2F2F] flex flex-col space-y-3 ${showHeader ? 'h-[320px] md:h-[340px]' : ''}`}>
       {/* Header */}
       {showHeader && (
         <div className="flex justify-between items-center flex-shrink-0">
@@ -227,8 +228,8 @@ const WebsiteLinksWidget = ({
       )}
 
       {/* Links List */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar pr-1 space-y-1.5">
-        {customLinks.map((link) => (
+      <div className={`overflow-y-auto custom-scrollbar pr-1 space-y-1.5 ${showHeader ? 'flex-1' : ''}`}>
+        {(maxItems ? customLinks.slice(0, maxItems) : customLinks).map((link) => (
           <div
             key={link.id}
             className="p-3 rounded-xl bg-[#1a1a1a] hover:bg-gray-800 transition-all"
