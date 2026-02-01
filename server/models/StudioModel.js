@@ -82,6 +82,12 @@ const studioSchema = new mongoose.Schema(
         ref: "User",
       },
     ],
+    services: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Service'
+      }
+    ]
   },
   { timestamps: true }
 );

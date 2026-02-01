@@ -22,7 +22,7 @@ const AdminModel = UserModel.discriminator('admin', new mongoose.Schema({
     studio: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Studio'
-    }],
+    }]
 }));
 
 const MemberModel = UserModel.discriminator('member', new mongoose.Schema({
