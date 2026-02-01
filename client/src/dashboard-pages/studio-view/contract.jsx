@@ -20,6 +20,7 @@ import {
   Clock,
   Calendar,
   PauseCircle,
+  PlayCircle,
   XCircle,
   RefreshCw,
   Gift,
@@ -120,7 +121,7 @@ export default function ContractList() {
   const [filtersExpanded, setFiltersExpanded] = useState(false)
 
   // Sort states - matches members.jsx pattern
-  const [sortBy, setSortBy] = useState("name")
+  const [sortBy, setSortBy] = useState("expiring")
   const [sortDirection, setSortDirection] = useState("asc")
   const [showSortDropdown, setShowSortDropdown] = useState(false)
   const [showMobileSortDropdown, setShowMobileSortDropdown] = useState(false)
@@ -241,7 +242,21 @@ export default function ContractList() {
           comparison = a.status.localeCompare(b.status)
           break
         case "expiring":
-          comparison = new Date(a.endDate) - new Date(b.endDate)
+          // Put expired contracts at the end, sort non-expired by end date (soonest first)
+          const today = new Date()
+          const aEndDate = new Date(a.endDate)
+          const bEndDate = new Date(b.endDate)
+          const aExpired = aEndDate < today
+          const bExpired = bEndDate < today
+          
+          if (aExpired && !bExpired) {
+            comparison = 1 // a (expired) goes after b (not expired)
+          } else if (!aExpired && bExpired) {
+            comparison = -1 // a (not expired) goes before b (expired)
+          } else {
+            // Both expired or both not expired - sort by end date
+            comparison = aEndDate - bEndDate
+          }
           break
         case "recentlyAdded":
           comparison = new Date(b.startDate) - new Date(a.startDate)
@@ -276,6 +291,72 @@ export default function ContractList() {
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      // Check if any modal is open
+      const anyModalOpen =
+        isModalOpen ||
+        isShowDetails ||
+        isPauseModalOpen ||
+        isCancelModalOpen ||
+        isDeleteModalOpen ||
+        isEditModalOpenContract ||
+        isDocumentModalOpen ||
+        isBonusTimeModalOpen ||
+        isRenewModalOpen ||
+        isChangeModalOpen ||
+        isHistoryModalOpen;
+
+      // ESC key - Close modals
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        if (isModalOpen) setIsModalOpen(false);
+        else if (isShowDetails) setIsShowDetails(false);
+        else if (isPauseModalOpen) setIsPauseModalOpen(false);
+        else if (isCancelModalOpen) setIsCancelModalOpen(false);
+        else if (isDeleteModalOpen) setIsDeleteModalOpen(false);
+        else if (isEditModalOpenContract) setIsEditModalOpenContract(false);
+        else if (isDocumentModalOpen) setIsDocumentModalOpen(false);
+        else if (isBonusTimeModalOpen) setIsBonusTimeModalOpen(false);
+        else if (isRenewModalOpen) setIsRenewModalOpen(false);
+        else if (isChangeModalOpen) setIsChangeModalOpen(false);
+        else if (isHistoryModalOpen) setIsHistoryModalOpen(false);
+        return;
+      }
+
+      if (anyModalOpen) return;
+
+      // C key - Create Contract
+      if (e.key === 'c' || e.key === 'C') {
+        e.preventDefault();
+        setSelectedLead(null);
+        setIsModalOpen(true);
+      }
+
+      // V key - Toggle view mode
+      if (e.key === 'v' || e.key === 'V') {
+        e.preventDefault();
+        setViewMode(prev => prev === 'grid' ? 'list' : 'grid');
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyPress);
+    return () => document.removeEventListener('keydown', handleKeyPress);
+  }, [
+    isModalOpen,
+    isShowDetails,
+    isPauseModalOpen,
+    isCancelModalOpen,
+    isDeleteModalOpen,
+    isEditModalOpenContract,
+    isDocumentModalOpen,
+    isBonusTimeModalOpen,
+    isRenewModalOpen,
+    isChangeModalOpen,
+    isHistoryModalOpen
+  ]);
+
   // Contract handlers
   const handleViewDetails = (contract) => {
     setSelectedContract(contract)
@@ -290,6 +371,13 @@ export default function ContractList() {
   const handlePauseContract = (contractId) => {
     setSelectedContract(contracts.find((c) => c.id === contractId))
     setIsPauseModalOpen(true)
+  }
+
+  const handleResumeContract = (contractId) => {
+    setContracts(contracts.map((c) =>
+      c.id === contractId ? { ...c, status: "Active", pauseReason: null } : c
+    ))
+    toast.success("Contract resumed successfully")
   }
 
   const handleCancelContract = (contractId) => {
@@ -545,13 +633,25 @@ export default function ContractList() {
             </div>
 
             <div className="flex items-center gap-2">
-              <button
-                onClick={handleAddContract}
-                className="hidden lg:flex bg-orange-500 hover:bg-orange-600 text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors"
-              >
-                <Plus size={14} className="sm:w-4 sm:h-4" />
-                <span className='hidden sm:inline'>Create Contract</span>
-              </button>
+              <div className="hidden lg:block relative group">
+                <button
+                  onClick={handleAddContract}
+                  className="flex bg-orange-500 hover:bg-orange-600 text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors"
+                >
+                  <Plus size={14} className="sm:w-4 sm:h-4" />
+                  <span className='hidden sm:inline'>Create Contract</span>
+                </button>
+                
+                {/* Tooltip - YouTube Style */}
+                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                  <span className="font-medium">Create Contract</span>
+                  <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
+                    C
+                  </span>
+                  {/* Arrow pointing up */}
+                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                </div>
+              </div>
             </div>
           </div>
 
@@ -810,35 +910,107 @@ export default function ContractList() {
                                 <span className="text-[10px]">Docs</span>
                               </button>
                             </div>
+                            {/* Status-based action buttons */}
                             <div className="grid grid-cols-4 gap-1 mt-1">
-                              <button
-                                onClick={(e) => { e.stopPropagation(); handlePauseContract(contract.id); }}
-                                className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-                              >
-                                <PauseCircle size={18} />
-                                <span className="text-[10px]">Pause</span>
-                              </button>
-                              <button
-                                onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); }}
-                                className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-                              >
-                                <RefreshCw size={18} />
-                                <span className="text-[10px]">Renew</span>
-                              </button>
-                              <button
-                                onClick={(e) => { e.stopPropagation(); handleCancelContract(contract.id); }}
-                                className="flex flex-col items-center gap-1 p-2 text-red-400 hover:text-red-300 hover:bg-white/5 rounded-lg transition-colors"
-                              >
-                                <XCircle size={18} />
-                                <span className="text-[10px]">Cancel</span>
-                              </button>
-                              <button
-                                onClick={(e) => { e.stopPropagation(); handleDeleteContract(contract.id); }}
-                                className="flex flex-col items-center gap-1 p-2 text-red-400 hover:text-red-300 hover:bg-white/5 rounded-lg transition-colors"
-                              >
-                                <Trash2 size={18} />
-                                <span className="text-[10px]">Delete</span>
-                              </button>
+                              {/* Ongoing: only Delete */}
+                              {contract.status === "Ongoing" && (
+                                <>
+                                  <div className="p-2" />
+                                  <div className="p-2" />
+                                  <div className="p-2" />
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); handleDeleteContract(contract.id); }}
+                                    className="flex flex-col items-center gap-1 p-2 text-red-400 hover:text-red-300 hover:bg-white/5 rounded-lg transition-colors"
+                                  >
+                                    <Trash2 size={18} />
+                                    <span className="text-[10px]">Delete</span>
+                                  </button>
+                                </>
+                              )}
+
+                              {/* Cancelled: only Renew */}
+                              {contract.status === "Cancelled" && (
+                                <>
+                                  <div className="p-2" />
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); }}
+                                    className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                                  >
+                                    <RefreshCw size={18} />
+                                    <span className="text-[10px]">Renew</span>
+                                  </button>
+                                  <div className="p-2" />
+                                  <div className="p-2" />
+                                </>
+                              )}
+
+                              {/* Paused: Resume, Renew, Bonus Time, Change */}
+                              {contract.status === "Paused" && (
+                                <>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); handleResumeContract(contract.id); }}
+                                    className="flex flex-col items-center gap-1 p-2 text-green-400 hover:text-green-300 hover:bg-white/5 rounded-lg transition-colors"
+                                  >
+                                    <PlayCircle size={18} />
+                                    <span className="text-[10px]">Resume</span>
+                                  </button>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); }}
+                                    className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                                  >
+                                    <RefreshCw size={18} />
+                                    <span className="text-[10px]">Renew</span>
+                                  </button>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); handleAddBonusTime(contract.id); }}
+                                    className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                                  >
+                                    <Gift size={18} />
+                                    <span className="text-[10px]">Bonus</span>
+                                  </button>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); handleChangeContract(contract.id); }}
+                                    className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                                  >
+                                    <ArrowRightLeft size={18} />
+                                    <span className="text-[10px]">Change</span>
+                                  </button>
+                                </>
+                              )}
+
+                              {/* Active: Pause, Renew, Bonus Time, Change */}
+                              {contract.status === "Active" && (
+                                <>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); handlePauseContract(contract.id); }}
+                                    className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                                  >
+                                    <PauseCircle size={18} />
+                                    <span className="text-[10px]">Pause</span>
+                                  </button>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); }}
+                                    className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                                  >
+                                    <RefreshCw size={18} />
+                                    <span className="text-[10px]">Renew</span>
+                                  </button>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); handleAddBonusTime(contract.id); }}
+                                    className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                                  >
+                                    <Gift size={18} />
+                                    <span className="text-[10px]">Bonus</span>
+                                  </button>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); handleChangeContract(contract.id); }}
+                                    className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                                  >
+                                    <ArrowRightLeft size={18} />
+                                    <span className="text-[10px]">Change</span>
+                                  </button>
+                                </>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -872,8 +1044,7 @@ export default function ContractList() {
                       filteredAndSortedContracts().map((contract) => (
                         <div
                           key={contract.id}
-                          className="grid grid-cols-[2fr_1fr_1fr_0.8fr_1.5fr_auto] gap-4 px-4 py-3 items-center border-b border-gray-800/50 hover:bg-[#1a1a1a] transition-colors cursor-pointer"
-                          onClick={() => handleViewDetails(contract)}
+                          className="grid grid-cols-[2fr_1fr_1fr_0.8fr_1.5fr_auto] gap-4 px-4 py-3 items-center border-b border-gray-800/50 hover:bg-[#1a1a1a] transition-colors"
                         >
                           <div className="flex items-center gap-3">
                             <InitialsAvatar
@@ -904,85 +1075,127 @@ export default function ContractList() {
                             )}
                           </div>
                           <div className="w-32 flex items-center justify-end gap-0.5">
+                            {contract.status === "Ongoing" ? (
+                              <button
+                                onClick={() => handleEditContract(contract)}
+                                className="p-2 text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors"
+                                title="Edit"
+                              >
+                                <Pencil size={18} />
+                              </button>
+                            ) : (
+                              <div className="p-2 w-[34px]" />
+                            )}
                             <button
-                              onClick={(e) => { e.stopPropagation(); handleViewHistory(contract.id); }}
-                              className="p-1.5 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                              onClick={() => handleViewHistory(contract.id)}
+                              className="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
                               title="History"
                             >
-                              <History size={14} />
+                              <History size={18} />
                             </button>
                             <button
-                              onClick={(e) => { e.stopPropagation(); handleManageDocuments(contract); }}
-                              className="p-1.5 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                              onClick={() => handleManageDocuments(contract)}
+                              className="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
                               title="Documents"
                             >
-                              <FileText size={14} />
+                              <FileText size={18} />
                             </button>
                             <div className="w-px h-4 bg-gray-700/50 mx-0.5" />
                             <button
-                              onClick={(e) => { e.stopPropagation(); handleViewDetails(contract); }}
-                              className="p-1.5 text-blue-400 hover:text-blue-300 hover:bg-white/5 rounded-lg transition-colors"
+                              onClick={() => handleViewDetails(contract)}
+                              className="p-2 text-blue-400 hover:text-blue-300 hover:bg-white/5 rounded-lg transition-colors"
                               title="View Details"
                             >
-                              <Eye size={14} />
+                              <Eye size={18} />
                             </button>
-                            {contract.status === "Ongoing" ? (
-                              <button
-                                onClick={(e) => { e.stopPropagation(); handleEditContract(contract); }}
-                                className="p-1.5 text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors"
-                                title="Edit"
-                              >
-                                <Pencil size={14} />
-                              </button>
-                            ) : (
-                              <div className="p-1.5 w-[26px]" />
-                            )}
                             <div className="relative dropdown-trigger">
                               <button
                                 onClick={(e) => toggleDropdownContract(contract.id, e)}
-                                className="p-1.5 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                                className="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
                               >
-                                <MoreVertical size={14} />
+                                <MoreVertical size={18} />
                               </button>
                               {activeDropdownId === contract.id && (
                                 <div className="dropdown-menu absolute bottom-full right-0 mb-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-xl z-[9999] min-w-[150px] py-1">
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); handlePauseContract(contract.id); setActiveDropdownId(null); }}
-                                    className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 flex items-center gap-2"
-                                  >
-                                    <PauseCircle size={14} /> Pause
-                                  </button>
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); setActiveDropdownId(null); }}
-                                    className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 flex items-center gap-2"
-                                  >
-                                    <RefreshCw size={14} /> Renew
-                                  </button>
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); handleAddBonusTime(contract.id); setActiveDropdownId(null); }}
-                                    className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 flex items-center gap-2"
-                                  >
-                                    <Gift size={14} /> Bonus Time
-                                  </button>
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); handleChangeContract(contract.id); setActiveDropdownId(null); }}
-                                    className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 flex items-center gap-2"
-                                  >
-                                    <ArrowRightLeft size={14} /> Change
-                                  </button>
-                                  <hr className="border-gray-700 my-1" />
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); handleCancelContract(contract.id); setActiveDropdownId(null); }}
-                                    className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-gray-800 flex items-center gap-2"
-                                  >
-                                    <XCircle size={14} /> Cancel
-                                  </button>
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); handleDeleteContract(contract.id); setActiveDropdownId(null); }}
-                                    className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-gray-800 flex items-center gap-2"
-                                  >
-                                    <Trash2 size={14} /> Delete
-                                  </button>
+                                  {/* Ongoing: only Delete */}
+                                  {contract.status === "Ongoing" && (
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); handleDeleteContract(contract.id); setActiveDropdownId(null); }}
+                                      className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-gray-800 flex items-center gap-2"
+                                    >
+                                      <Trash2 size={14} /> Delete
+                                    </button>
+                                  )}
+
+                                  {/* Cancelled: only Renew */}
+                                  {contract.status === "Cancelled" && (
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); setActiveDropdownId(null); }}
+                                      className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 flex items-center gap-2"
+                                    >
+                                      <RefreshCw size={14} /> Renew
+                                    </button>
+                                  )}
+
+                                  {/* Paused: Resume, Renew, Bonus Time, Change */}
+                                  {contract.status === "Paused" && (
+                                    <>
+                                      <button
+                                        onClick={(e) => { e.stopPropagation(); handleResumeContract(contract.id); setActiveDropdownId(null); }}
+                                        className="w-full text-left px-3 py-2 text-sm text-green-400 hover:bg-gray-800 flex items-center gap-2"
+                                      >
+                                        <PlayCircle size={14} /> Resume
+                                      </button>
+                                      <button
+                                        onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); setActiveDropdownId(null); }}
+                                        className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 flex items-center gap-2"
+                                      >
+                                        <RefreshCw size={14} /> Renew
+                                      </button>
+                                      <button
+                                        onClick={(e) => { e.stopPropagation(); handleAddBonusTime(contract.id); setActiveDropdownId(null); }}
+                                        className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 flex items-center gap-2"
+                                      >
+                                        <Gift size={14} /> Bonus Time
+                                      </button>
+                                      <button
+                                        onClick={(e) => { e.stopPropagation(); handleChangeContract(contract.id); setActiveDropdownId(null); }}
+                                        className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 flex items-center gap-2"
+                                      >
+                                        <ArrowRightLeft size={14} /> Change
+                                      </button>
+                                    </>
+                                  )}
+
+                                  {/* Active: Pause, Renew, Bonus Time, Change */}
+                                  {contract.status === "Active" && (
+                                    <>
+                                      <button
+                                        onClick={(e) => { e.stopPropagation(); handlePauseContract(contract.id); setActiveDropdownId(null); }}
+                                        className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 flex items-center gap-2"
+                                      >
+                                        <PauseCircle size={14} /> Pause
+                                      </button>
+                                      <button
+                                        onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); setActiveDropdownId(null); }}
+                                        className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 flex items-center gap-2"
+                                      >
+                                        <RefreshCw size={14} /> Renew
+                                      </button>
+                                      <button
+                                        onClick={(e) => { e.stopPropagation(); handleAddBonusTime(contract.id); setActiveDropdownId(null); }}
+                                        className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 flex items-center gap-2"
+                                      >
+                                        <Gift size={14} /> Bonus Time
+                                      </button>
+                                      <button
+                                        onClick={(e) => { e.stopPropagation(); handleChangeContract(contract.id); setActiveDropdownId(null); }}
+                                        className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 flex items-center gap-2"
+                                      >
+                                        <ArrowRightLeft size={14} /> Change
+                                      </button>
+                                    </>
+                                  )}
                                 </div>
                               )}
                             </div>
@@ -1052,19 +1265,67 @@ export default function ContractList() {
                                   <FileText size={18} /><span className="text-[10px]">Docs</span>
                                 </button>
                               </div>
+                              {/* Status-based action buttons */}
                               <div className="grid grid-cols-4 gap-1 mt-1">
-                                <button onClick={(e) => { e.stopPropagation(); handlePauseContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
-                                  <PauseCircle size={18} /><span className="text-[10px]">Pause</span>
-                                </button>
-                                <button onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
-                                  <RefreshCw size={18} /><span className="text-[10px]">Renew</span>
-                                </button>
-                                <button onClick={(e) => { e.stopPropagation(); handleCancelContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-red-400 hover:text-red-300 hover:bg-white/5 rounded-lg transition-colors">
-                                  <XCircle size={18} /><span className="text-[10px]">Cancel</span>
-                                </button>
-                                <button onClick={(e) => { e.stopPropagation(); handleDeleteContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-red-400 hover:text-red-300 hover:bg-white/5 rounded-lg transition-colors">
-                                  <Trash2 size={18} /><span className="text-[10px]">Delete</span>
-                                </button>
+                                {/* Ongoing: only Delete */}
+                                {contract.status === "Ongoing" && (
+                                  <>
+                                    <div className="p-2" />
+                                    <div className="p-2" />
+                                    <div className="p-2" />
+                                    <button onClick={(e) => { e.stopPropagation(); handleDeleteContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-red-400 hover:text-red-300 hover:bg-white/5 rounded-lg transition-colors">
+                                      <Trash2 size={18} /><span className="text-[10px]">Delete</span>
+                                    </button>
+                                  </>
+                                )}
+
+                                {/* Cancelled: only Renew */}
+                                {contract.status === "Cancelled" && (
+                                  <>
+                                    <div className="p-2" />
+                                    <button onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                                      <RefreshCw size={18} /><span className="text-[10px]">Renew</span>
+                                    </button>
+                                    <div className="p-2" />
+                                    <div className="p-2" />
+                                  </>
+                                )}
+
+                                {/* Paused: Resume, Renew, Bonus Time, Change */}
+                                {contract.status === "Paused" && (
+                                  <>
+                                    <button onClick={(e) => { e.stopPropagation(); handleResumeContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-green-400 hover:text-green-300 hover:bg-white/5 rounded-lg transition-colors">
+                                      <PlayCircle size={18} /><span className="text-[10px]">Resume</span>
+                                    </button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                                      <RefreshCw size={18} /><span className="text-[10px]">Renew</span>
+                                    </button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleAddBonusTime(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                                      <Gift size={18} /><span className="text-[10px]">Bonus</span>
+                                    </button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleChangeContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                                      <ArrowRightLeft size={18} /><span className="text-[10px]">Change</span>
+                                    </button>
+                                  </>
+                                )}
+
+                                {/* Active: Pause, Renew, Bonus Time, Change */}
+                                {contract.status === "Active" && (
+                                  <>
+                                    <button onClick={(e) => { e.stopPropagation(); handlePauseContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                                      <PauseCircle size={18} /><span className="text-[10px]">Pause</span>
+                                    </button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                                      <RefreshCw size={18} /><span className="text-[10px]">Renew</span>
+                                    </button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleAddBonusTime(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                                      <Gift size={18} /><span className="text-[10px]">Bonus</span>
+                                    </button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleChangeContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                                      <ArrowRightLeft size={18} /><span className="text-[10px]">Change</span>
+                                    </button>
+                                  </>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -1086,8 +1347,7 @@ export default function ContractList() {
                 filteredAndSortedContracts().map((contract) => (
                   <div
                     key={contract.id}
-                    className="bg-[#161616] rounded-xl p-4 cursor-pointer hover:bg-[#1a1a1a] transition-colors"
-                    onClick={() => handleViewDetails(contract)}
+                    className="bg-[#161616] rounded-xl p-4 hover:bg-[#1a1a1a] transition-colors"
                   >
                     <div className="flex flex-col items-center">
                       <InitialsAvatar
@@ -1124,7 +1384,7 @@ export default function ContractList() {
                     <div className="mt-4 pt-3 border-t border-gray-800">
                       <div className="grid grid-cols-5 gap-1">
                         <button
-                          onClick={(e) => { e.stopPropagation(); handleViewDetails(contract); }}
+                          onClick={() => handleViewDetails(contract)}
                           className="p-2 text-blue-400 hover:text-blue-300 hover:bg-white/5 rounded-lg transition-colors flex items-center justify-center"
                           title="View Details"
                         >
@@ -1132,7 +1392,7 @@ export default function ContractList() {
                         </button>
                         {contract.status === "Ongoing" ? (
                           <button
-                            onClick={(e) => { e.stopPropagation(); handleEditContract(contract); }}
+                            onClick={() => handleEditContract(contract)}
                             className="p-2 text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors flex items-center justify-center"
                             title="Edit"
                           >
@@ -1142,26 +1402,45 @@ export default function ContractList() {
                           <div className="p-2" />
                         )}
                         <button
-                          onClick={(e) => { e.stopPropagation(); handleViewHistory(contract.id); }}
+                          onClick={() => handleViewHistory(contract.id)}
                           className="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors flex items-center justify-center"
                           title="History"
                         >
                           <History size={16} />
                         </button>
                         <button
-                          onClick={(e) => { e.stopPropagation(); handleManageDocuments(contract); }}
+                          onClick={() => handleManageDocuments(contract)}
                           className="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors flex items-center justify-center"
                           title="Documents"
                         >
                           <FileText size={16} />
                         </button>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); }}
-                          className="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors flex items-center justify-center"
-                          title="Renew"
-                        >
-                          <RefreshCw size={16} />
-                        </button>
+                        {/* Status-based last button */}
+                        {contract.status === "Ongoing" ? (
+                          <button
+                            onClick={() => handleDeleteContract(contract.id)}
+                            className="p-2 text-red-400 hover:text-red-300 hover:bg-white/5 rounded-lg transition-colors flex items-center justify-center"
+                            title="Delete"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        ) : contract.status === "Paused" ? (
+                          <button
+                            onClick={() => handleResumeContract(contract.id)}
+                            className="p-2 text-green-400 hover:text-green-300 hover:bg-white/5 rounded-lg transition-colors flex items-center justify-center"
+                            title="Resume"
+                          >
+                            <PlayCircle size={16} />
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleRenewContract(contract.id)}
+                            className="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors flex items-center justify-center"
+                            title="Renew"
+                          >
+                            <RefreshCw size={16} />
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1200,14 +1479,6 @@ export default function ContractList() {
               setIsShowDetails(false)
               setSelectedContract(null)
             }}
-            onPause={() => setIsPauseModalOpen(true)}
-            onCancel={() => setIsCancelModalOpen(true)}
-            onEdit={() => setIsEditModalOpenContract(true)}
-            onDocuments={() => setIsDocumentModalOpen(true)}
-            onBonusTime={() => setIsBonusTimeModalOpen(true)}
-            onRenew={() => setIsRenewModalOpen(true)}
-            onChange={() => setIsChangeModalOpen(true)}
-            onHistory={() => setIsHistoryModalOpen(true)}
           />
         )}
 
