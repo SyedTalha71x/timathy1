@@ -11,7 +11,6 @@ const BookingModal = ({
   selectedDate,
   selectedYear,
   selectedTimeSlot,
-  timeSlots,
   months,
 }) => {
   if (!show) return null;
@@ -26,7 +25,7 @@ const BookingModal = ({
             <p className="text-white font-medium text-sm sm:text-base">{selectedService?.name}</p>
             <p className="text-gray-400 text-xs sm:text-sm">
               {months[selectedMonth]} {selectedDate}, {selectedYear} at{" "}
-              {timeSlots.find((slot) => slot.id === selectedTimeSlot)?.time}
+              {selectedTimeSlot?.start} - {selectedTimeSlot?.end}
             </p>
           </div>
 
@@ -35,11 +34,11 @@ const BookingModal = ({
             <div className="space-y-2 text-xs sm:text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-300">Current Contingent:</span>
-                <span className="text-white">8 sessions</span>
+                <span className="text-white">{selectedService?.contingentUsage} sessions</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-300">After Booking:</span>
-                <span className="text-white">7 sessions</span>
+                <span className="text-white">{selectedService?.contingentUsage - 1} sessions</span>
               </div>
             </div>
           </div>

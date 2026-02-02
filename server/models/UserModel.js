@@ -20,23 +20,7 @@ const UserSchema = new mongoose.Schema({
         minlength: 2,
         maxlength: 20
     },
-    username: {
-        type: String,
-        validate: {
-            validator: function (v) {
-                return /^[a-zA-Z0-9_]+$/.test(v);  // only letters, numbers, underscore
-            },
-            message: props => `${props.value} is not a valid username!`
-        },
-        unique: true,
-        minlength: 5,
-        maxlength: 20,
-        lowercase: true
-    },
-    img: {
-        url: String,
-        public_id: String,
-    },
+    
     email: {
         type: String,
         // required: true,
@@ -48,6 +32,7 @@ const UserSchema = new mongoose.Schema({
         type: String,
         // required: true,
         minlength: 8,
+        select: false,
         validate: {
             validator: function (v) {
                 return /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@.-_$!%*?&])[A-Za-z\d@$!.-_%*?&]{8,}$/.test(v);
@@ -57,7 +42,8 @@ const UserSchema = new mongoose.Schema({
 
     },
     refreshToken: {
-        type: String
+        type: String,
+        select: false
     },
     isActive: {
         type: Boolean,
@@ -87,6 +73,14 @@ const UserSchema = new mongoose.Schema({
         type: String,
         // required: true,
     },
+    country: {
+        type: String,
+        // required: true,  
+    },
+    houseNumber: {
+        type: String,
+        // required: true,
+    },
     phone: {
         type: String,
         validate: {
@@ -103,14 +97,14 @@ const UserSchema = new mongoose.Schema({
         },
         // required: true,
     },
-    about: {
-        type: String,
-        // required: true,
-    },
+    // about: {
+    //     type: String,
+    //     // required: true,
+    // },
 }, options);
 
 
-UserSchema.index({ username: 1, email: 1, firstName: 1, lastName: 1, img: 1 })
+UserSchema.index({ email: 1, firstName: 1, lastName: 1, })
 
 const UserModel = mongoose.model('User', UserSchema);
 

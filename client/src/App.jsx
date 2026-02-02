@@ -1,35 +1,39 @@
-import { Route, Routes, useLocation } from "react-router-dom";
-
-// Landing Page
+import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import Home from "./landing-page/home";
 import Footer from "./landing-page/footer";
 import Header from "./landing-page/navbar";
 import Login from './landing-page/login';
+import Register from './landing-page/register'
+import { useDispatch, useSelector } from 'react-redux';
+// protected Routes
+import ProtectedRoutes from "./ProtectedRoutes";
 
-// Studio-View Dashboard
-import Dashboardlayout from "./layouts/studio-view-layout";
-import MyArea from './dashboard-pages/studio-view/my-area'
-import Appointments from "./dashboard-pages/studio-view/appointments";
-import ToDo from './dashboard-pages/studio-view/todo'
-import Members from './dashboard-pages/studio-view/members'
-import Staff from './dashboard-pages/studio-view/staff'
-import MediaLibrary from './dashboard-pages/studio-view/media-library'
-import Communication from "./dashboard-pages/studio-view/communications";
-import Contract from './dashboard-pages/studio-view/contract'
-import Configuration from './dashboard-pages/studio-view/configuration'
-import Leads from './dashboard-pages/studio-view/leads'
-import Selling from "./dashboard-pages/studio-view/selling";
-import Finances from "./dashboard-pages/studio-view/finances";
-import Training from "./dashboard-pages/studio-view/training";
-import ActivityMonitor from "./dashboard-pages/studio-view/activity-monitor";
-import Analytics from './dashboard-pages/studio-view/analytics'
-import MarketPlace from './dashboard-pages/studio-view/market-place'
-import NotesApp from "./dashboard-pages/studio-view/notes";
-import BulletinBoard from './dashboard-pages/studio-view/bulletin-board'
-import MembersCheckIn from './dashboard-pages/studio-view/members-checkin'
-import Assessment from "./dashboard-pages/studio-view/medical-history";
-import HelpCenter from "./dashboard-pages/studio-view/help-center";
-import Tickets from "./dashboard-pages/studio-view/tickets";
+import { me } from "./features/auth/authSlice";
+
+// User Panel Dashboard
+import Dashboardlayout from "./layouts/dashboard-layout";
+import MyArea from './dashboard-pages/user-panel-view/my-area'
+import Appointments from "./dashboard-pages/user-panel-view/appointments";
+import ToDo from './dashboard-pages/user-panel-view/todo'
+import Members from './dashboard-pages/user-panel-view/members'
+import Staff from './dashboard-pages/user-panel-view/staff'
+import MediaLibrary from './dashboard-pages/user-panel-view/media-library'
+import Communication from "./dashboard-pages/user-panel-view/communications";
+import Contract from './dashboard-pages/user-panel-view/contract'
+import Configuration from './dashboard-pages/user-panel-view/configuration'
+import Leads from './dashboard-pages/user-panel-view/leads'
+import Selling from "./dashboard-pages/user-panel-view/selling";
+import Finances from "./dashboard-pages/user-panel-view/finances";
+import Training from "./dashboard-pages/user-panel-view/training";
+import ActivityMonitor from "./dashboard-pages/user-panel-view/activity-monitor";
+import Analytics from './dashboard-pages/user-panel-view/analytics'
+import MarketPlace from './dashboard-pages/user-panel-view/market-place'
+import NotesApp from "./dashboard-pages/user-panel-view/notes";
+import BulletinBoard from './dashboard-pages/user-panel-view/bulletin-board'
+import MembersCheckIn from './dashboard-pages/user-panel-view/members-checkin'
+import Assessment from "./dashboard-pages/user-panel-view/medical-history";
+import HelpCenter from "./dashboard-pages/user-panel-view/help-center";
+import Tickets from "./dashboard-pages/user-panel-view/tickets";
 
 
 // Admin Dashboard
@@ -68,13 +72,43 @@ import MemberNotificationsRemainders from './dashboard-pages/member-view/nutriti
 import MemberOfflineMode from './dashboard-pages/member-view/nutrition-tracking/offline-mode'
 import MemberBarcodeEntry from './dashboard-pages/member-view/nutrition-tracking/barcode-entry'
 import MemberNutritionAnalysis from './dashboard-pages/member-view/nutrition-analysis'
+import { useEffect } from "react";
+import { fetchMyStudio } from "./features/studio/studioSlice";
+import { fetchMyServices } from "./features/services/servicesSlice";
+import { fetchMyAppointments } from "./features/appointments/AppointmentSlice";
+
 // import { useEffect } from "react";
 // import { startModalWatcher } from "./utils/fixModals";
 
 function App() {
   const location = useLocation();
-  const isAuthOrDashboardPage = ["/login"].includes(location.pathname) || location.pathname.startsWith("/dashboard") || location.pathname.startsWith("/admin-dashboard") || location.pathname.startsWith("/member-view");
+  const { user, loading } = useSelector((state) => state.auth)
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
+  const isAuthOrDashboardPage = ["/login", "/register"].includes(location.pathname) || location.pathname.startsWith("/dashboard") || location.pathname.startsWith("/admin-dashboard") || location.pathname.startsWith("/member-view");
+
+
+  useEffect(() => {
+    dispatch(me());
+    dispatch(fetchMyServices())
+    dispatch(fetchMyAppointments())
+    dispatch(fetchMyStudio())
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (!loading && user) {
+      // redirect only if on /login or /
+      if (location.pathname === "/" || location.pathname === "/login") {
+        if (user.role === 'member') navigate("/member-view/studio-menu")
+        if (user.role === 'admin') navigate("/admin-dashboard/my-area")
+        if (user.role === 'staff') navigate("/dashboard/my-area")
+      }
+    }
+  }, [user, loading, navigate, location.pathname])
+
+  // 
+  if (loading) return <div>Loading...</div>
   // useEffect(() => {
   //   const observer = startModalWatcher();
   //   return () => observer.disconnect();
@@ -88,7 +122,11 @@ function App() {
     
 
 
-        <Route path="/dashboard" element={<Dashboardlayout />}>
+        <Route path="/dashboard" element={
+          <ProtectedRoutes allowedRoles={['staff']}>
+            <Dashboardlayout />
+          </ProtectedRoutes>
+        }>
           <Route path="my-area" element={<MyArea />} />
           <Route path="appointments" element={<Appointments />} />
           <Route path="to-do" element={<ToDo />} />
@@ -111,11 +149,15 @@ function App() {
           <Route path="members-checkin" element={<MembersCheckIn />} />
           <Route path="assessment" element={<Assessment />} />
           <Route path="help-center" element={<HelpCenter />} />
-          
+
 
         </Route>
 
-        <Route path="/admin-dashboard" element={<AdminDashboardLayout />}>
+        <Route path="/admin-dashboard" element={
+          <ProtectedRoutes allowedRoles={["admin"]}>
+            <AdminDashboardLayout />
+          </ProtectedRoutes>
+        }>
           <Route path="my-area" element={<AdminMyArea />} />
           <Route path="to-do" element={<AdminTodo />} />
           <Route path="contract" element={<AdminContracts />} />
@@ -138,7 +180,11 @@ function App() {
 
         </Route>
 
-        <Route path="/member-view" element={<MemberDashboardLayout />}>
+        <Route path="/member-view" element={
+          <ProtectedRoutes allowedRoles={['member']}>
+            <MemberDashboardLayout />
+          </ProtectedRoutes>
+        }>
           <Route path="appointment" element={<MemberAppointments />} />
           <Route path="communication" element={<MemberCommuncation />} />
           <Route path="studio-menu" element={<MemberStudioMenu />} />

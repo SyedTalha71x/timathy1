@@ -3,10 +3,10 @@
 import React from "react";
 import PopupWrapper from "./PopupWrapper";
 
-const TermsPopup = ({ onClose }) => {
+const TermsPopup = ({ onClose, studio }) => {
   return (
     <PopupWrapper title="Terms & Conditions" onClose={onClose}>
-      <p>These terms and conditions govern your membership at FitZone Studio...</p>
+      <p>These terms and conditions govern your membership at {studio?.studioName}</p>
       <p>1. Membership fees are due monthly in advance.</p>
       <p>2. Cancellation requires 1 month notice.</p>
       <p>3. Studio rules must be followed at all times.</p>

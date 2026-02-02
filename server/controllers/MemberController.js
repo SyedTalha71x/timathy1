@@ -1,12 +1,15 @@
 const { MemberModel } = require('../models/Discriminators');
-const generateToken = require('../utils/GenerateToken');
+const GenerateToken = require('../utils/GenerateToken');
 const hashedPassword = require('../utils/HashedPassword');
 const bcrypt = require('bcryptjs');
 const { uploadToCloudinary } = require('../utils/CloudinaryUpload');
 
+// generate Random Member number like #ORGA-2025-001
+const generateMemberNo = require('../utils/GenerateMemberNo')
+
 const {
   BadRequestError,
-  UnauthorizedError,
+  UnAuthorizedError,
   NotFoundError,
   ConflictError,
 } = require('../middleware/error/httpErrors');
@@ -23,23 +26,22 @@ const createMember = async (req, res, next) => {
       password,
       phone,
       gender,
-      username,
       city,
       street,
+      country,
       zipCode,
       dateOfBirth,
-      about,
-      memberNumber
+      houseNumber
     } = req.body;
 
     // check for duplicate email
     const checkEmail = await MemberModel.findOne({ email });
     if (checkEmail) throw new ConflictError('Email already exists');
 
-    if (!req.file) throw new NotFoundError('Profile image not uploaded');
+    // if (!req.file) throw new NotFoundError('Profile image not uploaded');
 
     // Upload to cloudinary
-    const cloudinaryResult = await uploadToCloudinary(req.file.buffer);
+    // const cloudinaryResult = await uploadToCloudinary(req.file.buffer);
 
     if (!password || password.length < 8)
       throw new BadRequestError(
@@ -48,49 +50,56 @@ const createMember = async (req, res, next) => {
 
     const securePassword = await hashedPassword(password);
 
+    // generate Random MemberNo
+    const memberNumber = await generateMemberNo()
+
     const member = await MemberModel.create({
       firstName,
       lastName,
-      username,
       gender,
       phone,
       city,
       street,
       zipCode,
       dateOfBirth,
-      about,
+      houseNumber,
+      country,
       email,
       memberNumber,
       password: securePassword,
-      img: {
-        url: cloudinaryResult.secure_url,
-        public_id: cloudinaryResult.public_id,
-      },
+      // img: {
+      //   url: cloudinaryResult.secure_url,
+      //   public_id: cloudinaryResult.public_id,
+      // },
     });
 
-    const { AccessToken, RefreshToken } = generateToken({
+    const { AccessToken, RefreshToken } = GenerateToken({
+      _id: member._id,
       firstName: member.firstName,
       lastName: member.lastName,
-      username: member.username,
-      id: member._id,
       email: member.email,
       role: member.role,
-      img: member.img?.url,
       gender: member.gender,
     });
 
     member.refreshToken = RefreshToken;
     await member.save();
 
-    res.cookie('token', AccessToken, {
+    res.cookie("token", AccessToken, {
       httpOnly: true,
-      sameSite: 'strict',
-      secure: true,
+      secure: process.env.NODE_ENV === "production", // true if on https
+      //sameSite: "lax", 
+      sameSite: "None",
+
+      maxAge: 24 * 60 * 1000, // 15 minutes (or whatever your access token expiry is)
     });
-    res.cookie('refreshToken', RefreshToken, {
+
+    res.cookie("refreshToken", RefreshToken, {
       httpOnly: true,
-      sameSite: 'strict',
-      secure: true,
+      secure: process.env.NODE_ENV === "production",
+      //sameSite: "lax",
+      sameSite: "None",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
     res.status(201).json({
@@ -99,11 +108,9 @@ const createMember = async (req, res, next) => {
         id: member._id,
         firstName: member.firstName,
         lastName: member.lastName,
-        username: member.username,
-        email: member.email,
+        // email: member.email,
         role: member.role,
-        img: member.img?.url,
-        gender: member.gender,
+        // gender: member.gender,
       },
     });
   } catch (err) {
@@ -118,50 +125,51 @@ const loginMember = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    const member = await MemberModel.findOne({ email }).select('+password');
+    const member = await MemberModel.findOne({ email }).select('+password')
     if (!member) throw new NotFoundError('Invalid email');
 
-    const isMatch = await bcrypt.compare(password, member.password);
-    if (!isMatch) throw new UnauthorizedError('Invalid password');
 
-    const { AccessToken, RefreshToken } = generateToken({
+
+    const isMatch = await bcrypt.compare(password, member.password);
+    if (!isMatch) throw new UnAuthorizedError('Invalid password');
+
+    const { AccessToken, RefreshToken } = GenerateToken({
+      _id: member._id,
       firstName: member.firstName,
       lastName: member.lastName,
-      username: member.username,
-      id: member._id,
       email: member.email,
       role: member.role,
-      img: member.img?.url,
       gender: member.gender,
+      studioId: member.studio
     });
 
     member.refreshToken = RefreshToken;
     await member.save();
+    const memberData = member.toObject();
+    delete memberData.password;
+    delete memberData.refreshToken;
 
-    res.cookie('token', AccessToken, {
+    res.cookie("token", AccessToken, {
       httpOnly: true,
-      sameSite: 'lax',
-      secure: true,
+      secure: process.env.NODE_ENV === "production", // true if on https
+      //sameSite: "lax", 
+      sameSite: "None",
+
+      maxAge: 24 * 60 * 1000, // 15 minutes (or whatever your access token expiry is)
     });
-    res.cookie('refreshToken', RefreshToken, {
+
+    res.cookie("refreshToken", RefreshToken, {
       httpOnly: true,
-      sameSite: 'lax',
-      secure: true,
+      secure: process.env.NODE_ENV === "production",
+      //sameSite: "lax",
+      sameSite: "None",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
     res.status(200).json({
       message: 'Logged in successfully',
-      token: AccessToken,
-      member: {
-        id: member._id,
-        firstName: member.firstName,
-        lastName: member.lastName,
-        username: member.username,
-        email: member.email,
-        role: member.role,
-        img: member.img?.url,
-        gender: member.gender,
-      },
+      member: memberData,
+
     });
   } catch (err) {
     next(err);
@@ -173,35 +181,61 @@ const loginMember = async (req, res, next) => {
  */
 const updateMemberById = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    let updateMember = { ...req.body };
+    const memberId = req.user?._id;
+    let { firstName,
+      lastName,
+      username,
+      gender,
+      phone,
+      city,
+      country,
+      houseNumber,
+      street,
+      zipCode,
+      dateOfBirth,
+      about,
+      email, } = req.body;
 
-    if (!req.file) throw new NotFoundError("Image Not Uploaded");
+    // if (!req.file) throw new NotFoundError("Image Not Uploaded");
 
-    // Upload to Cloudinary using stream
-    const cloudinaryResult = await uploadToCloudinary(req.file.buffer);
+    // // Upload to Cloudinary using stream
+    // const cloudinaryResult = await uploadToCloudinary(req.file.buffer);
 
-    // ✅ Save new image URL + public_id into update object
-    updateMember.img = {
-      url: cloudinaryResult.secure_url,
-      public_id: cloudinaryResult.public_id,
-    };
+    // // ✅ Save new image URL + public_id into update object
+    // updateMember.img = {
+    //   url: cloudinaryResult.secure_url,
+    //   public_id: cloudinaryResult.public_id,
+    // };
 
     // Update member in MongoDB
-    const member = await MemberModel.findByIdAndUpdate(id, updateMember, { new: true });
+    const member = await MemberModel.findByIdAndUpdate(memberId, {
+      firstName,
+      lastName,
+      username,
+      gender,
+      phone,
+      city,
+      street,
+      zipCode,
+      dateOfBirth,
+      country,
+      houseNumber,
+      about,
+      email,
+    }, { new: true });
     if (!member) throw new NotFoundError("member not found");
 
     res.status(200).json({
       message: "Successfully Updated",
       member: {
-        id: member._id,
+        _id: member._id,
         firstName: member.firstName,
         lastName: member.lastName,
-        username: member.username,
+        // username: member.username,
         email: member.email,
         studioName: member.studioName,
         role: member.role,
-        img: member.img?.url, // ✅ now points to Cloudinary URL
+        // img: member.img?.url, // ✅ now points to Cloudinary URL
         memberRole: member.memberRole,
       },
     });
@@ -215,9 +249,9 @@ const updateMemberById = async (req, res, next) => {
  */
 const deleteMemberById = async (req, res, next) => {
   try {
-    const { id } = req.params;
+    const memberId = req.user?._id;
 
-    const member = await MemberModel.findByIdAndDelete(id);
+    const member = await MemberModel.findByIdAndDelete(memberId);
     if (!member) throw new NotFoundError('Member not found');
 
     res.status(200).json({ message: 'Member deleted successfully' });
@@ -231,7 +265,7 @@ const deleteMemberById = async (req, res, next) => {
  */
 const getMemberById = async (req, res, next) => {
   try {
-    const memberId = req.user?.id;
+    const memberId = req.user?._id;
 
     const member = await MemberModel.findById(memberId)
       .populate({
@@ -242,6 +276,8 @@ const getMemberById = async (req, res, next) => {
           select: 'relationType category',
         },
       }).populate('bookTrials', 'trialType trialDate trialTime ')
+      .populate('payments', 'amount paymentDate paymentMethod status ')
+      .populate('studio', 'studioName location contactInfo ')
       .select('-password');
     if (!member) throw new NotFoundError('Member not found');
 
@@ -266,11 +302,15 @@ const getMembers = async (req, res, next) => {
   }
 }
 
+
+// get me
+
+
 module.exports = {
   createMember,
   loginMember,
   updateMemberById,
   deleteMemberById,
   getMemberById,
-  getMembers
+  getMembers,
 };

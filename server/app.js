@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cookieParser = require('cookie-parser')
 const cors = require('cors')
@@ -6,16 +7,27 @@ const cors = require('cors')
 const apiRoutes = require('./routes/AllRoutes')
 
 // error handler
-const errorHandler = require('./middleware/error/ErrorHandler');
+const errorHandler = require('./middleware/error/errorHandler');
 
 
 const app = express()
 
+const allowedOrigins =process.env.FRONTEND_URL
+
+
 app.use(cors({
-    origin: process.env.FRONTEND_URL,
-    methods: ["GET", "POST"],
+    origin: function (origin, callback) {
+        // allow requests with no origin (like Postman)
+        if (!origin) return callback(null, true);
+
+        if (allowedOrigins.indexOf(origin) === -1) {
+            const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+            return callback(new Error(msg), false);
+        }
+        return callback(null, true);
+    },
     credentials: true
-}))
+}));
 
 app.use(express.json());
 

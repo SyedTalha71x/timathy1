@@ -6,8 +6,13 @@ import PrivacyPopup from "../../components/member-panel-components/studio-menu-c
 import PaymentMethodPopup from "../../components/member-panel-components/studio-menu-components/PaymentMethodPopup"
 import CancelMembershipPopup from "../../components/member-panel-components/studio-menu-components/CancelMembershipPopup"
 import IdlePeriodFormPopup from "../../components/member-panel-components/studio-menu-components/IdlePeriodFormPopup"
-
+import { useDispatch, useSelector } from "react-redux"
+// import { fetchMyStudio } from "../../features/studio/studioSlice"
 const StudioMenu = () => {
+  const { member, loading, error } = useSelector((state) => state.members);
+  const { user } = useSelector((state) => state.auth)
+  const { studio } = useSelector((state) => state.studios);
+  // const dispatch = useDispatch();
   const [activeSection, setActiveSection] = useState("info")
   const [showImprintPopup, setShowImprintPopup] = useState(false)
   const [showTermsPopup, setShowTermsPopup] = useState(false)
@@ -83,7 +88,7 @@ const StudioMenu = () => {
       date: "2025-01-15",
       type: "maintenance",
       priority: "medium",
-        image: "https://www.shutterstock.com/image-vector/under-maintenance-stripes-caution-sign-260nw-2517500739.jpg"
+      image: "https://www.shutterstock.com/image-vector/under-maintenance-stripes-caution-sign-260nw-2517500739.jpg"
     },
     {
       id: 4,
@@ -95,6 +100,13 @@ const StudioMenu = () => {
       image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSLkR_cD_bdePwOvW_Ondondo2eM3Wytmf5aw&s" // Added image
     }
   ])
+
+  // studio data fetching
+  // useEffect(() => {
+  //   dispatch(fetchMyStudio())
+  // }, [dispatch]);
+
+
 
   // Function to get border color based on message type
   const getBorderColor = (type) => {
@@ -134,7 +146,7 @@ const StudioMenu = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
-          
+
           <div className="bg-gray-800 rounded-lg overflow-hidden">
             <img
               src={viewingPost.image}
@@ -266,6 +278,10 @@ const StudioMenu = () => {
     setIsEditingContact(false)
   }
 
+  const studioAddress = `${studio?.street}, ${studio?.zipCode} ${studio?.city}, ${studio?.country}`;
+
+
+
   return (
     <div className="min-h-screen rounded-3xl bg-[#1C1C1C] p-2 md:p-6">
       {/* Image Viewer Modal */}
@@ -279,7 +295,7 @@ const StudioMenu = () => {
             </svg>
           </div>
           <div>
-            <h1 className="text-white oxanium_font text-lg sm:text-xl mb-3 md:text-2xl">FitZone Studio</h1>
+            <h1 className="text-white oxanium_font text-lg sm:text-xl mb-3 md:text-2xl">{studio?.studioName || "Default Studio"}</h1>
           </div>
         </div>
       </div>
@@ -289,8 +305,8 @@ const StudioMenu = () => {
           <button
             onClick={() => setActiveSection("checkin")}
             className={`flex-1 min-w-[90px] py-2.5 sm:py-3 px-3 sm:px-4 text-center font-medium text-xs sm:text-sm md:text-base transition-all duration-300 whitespace-nowrap ${activeSection === "checkin"
-                ? "text-orange-400 bg-gray-700 border-b-2 border-orange-400"
-                : "text-gray-400 hover:text-white hover:bg-gray-700/50"
+              ? "text-orange-400 bg-gray-700 border-b-2 border-orange-400"
+              : "text-gray-400 hover:text-white hover:bg-gray-700/50"
               }`}
           >
             Check-in
@@ -298,8 +314,8 @@ const StudioMenu = () => {
           <button
             onClick={() => setActiveSection("bulletin")}
             className={`flex-1 min-w-[90px] py-2.5 sm:py-3 px-3 sm:px-4 text-center font-medium text-xs sm:text-sm md:text-base transition-all duration-300 whitespace-nowrap ${activeSection === "bulletin"
-                ? "text-orange-400 bg-gray-700 border-b-2 border-orange-400"
-                : "text-gray-400 hover:text-white hover:bg-gray-700/50"
+              ? "text-orange-400 bg-gray-700 border-b-2 border-orange-400"
+              : "text-gray-400 hover:text-white hover:bg-gray-700/50"
               }`}
           >
             Bulletin Board
@@ -307,8 +323,8 @@ const StudioMenu = () => {
           <button
             onClick={() => setActiveSection("info")}
             className={`flex-1 min-w-[90px] py-2.5 sm:py-3 px-3 sm:px-4 text-center font-medium text-xs sm:text-sm md:text-base transition-all duration-300 whitespace-nowrap ${activeSection === "info"
-                ? "text-orange-400 bg-gray-700 border-b-2 border-orange-400"
-                : "text-gray-400 hover:text-white hover:bg-gray-700/50"
+              ? "text-orange-400 bg-gray-700 border-b-2 border-orange-400"
+              : "text-gray-400 hover:text-white hover:bg-gray-700/50"
               }`}
           >
             Studio Info
@@ -316,8 +332,8 @@ const StudioMenu = () => {
           <button
             onClick={() => setActiveSection("data")}
             className={`flex-1 min-w-[90px] py-2.5 sm:py-3 px-3 sm:px-4 text-center font-medium text-xs sm:text-sm md:text-base transition-all duration-300 whitespace-nowrap ${activeSection === "data"
-                ? "text-orange-400 bg-gray-700 border-b-2 border-orange-400"
-                : "text-gray-400 hover:text-white hover:bg-gray-700/50"
+              ? "text-orange-400 bg-gray-700 border-b-2 border-orange-400"
+              : "text-gray-400 hover:text-white hover:bg-gray-700/50"
               }`}
           >
             Studio Data
@@ -432,7 +448,7 @@ const StudioMenu = () => {
                   Our Location
                 </h2>
               </div>
-              <div className="relative h-40 sm:h-48 md:h-64">
+              {/* <div className="relative h-40 sm:h-48 md:h-64">
                 <iframe
                   src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2428.4089999856944!2d13.404953977047!3d52.520008172099!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47a851c655f20989%3A0x26bbfb4e84674c63!2sBrandenburg%20Gate!5e0!3m2!1sen!2sde!4v1642584825542!5m2!1sen!2sde"
                   width="100%"
@@ -444,15 +460,42 @@ const StudioMenu = () => {
                   className="rounded-b-xl"
                 ></iframe>
                 <div className="absolute bottom-2 left-2 sm:bottom-4 sm:left-4 bg-black/70 backdrop-blur-sm text-white px-2 py-1.5 sm:px-3 sm:py-2 rounded-lg">
-                  <div className="text-xs sm:text-sm font-semibold">Pariser Platz 1</div>
-                  <div className="text-[10px] sm:text-xs text-gray-300">10117 Berlin, Germany</div>
+                  <div className="text-xs sm:text-sm font-semibold">{studio?.street}</div>
+                  <div className="text-[10px] sm:text-xs text-gray-300">{studio?.street} {studio?.zipCode} {studio?.city}</div>
+                </div>
+              </div> */}
+
+              {/* embedded location  */}
+              <div className="relative h-40 sm:h-48 md:h-64">
+                {studio && (
+                  <iframe
+                    src={`https://www.google.com/maps?q=${encodeURIComponent(
+                      studioAddress
+                    )}&output=embed`}
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0 }}
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    className="rounded-b-xl"
+                  />
+                )}
+
+                <div className="absolute bottom-2 left-2 sm:bottom-4 sm:left-4 bg-black/70 backdrop-blur-sm text-white px-2 py-1.5 sm:px-3 sm:py-2 rounded-lg">
+                  <div className="text-xs sm:text-sm font-semibold">
+                    {studio?.street}
+                  </div>
+                  <div className="text-[10px] sm:text-xs text-gray-300">
+                    {studio?.street} {studio?.zipCode} {studio?.city}
+                  </div>
                 </div>
               </div>
+
             </div>
 
             <div className="grid gap-4 sm:gap-4 md:grid-cols-2">
               {/* Opening Hours */}
-              <div className="bg-gray-800 rounded-xl p-4 sm:p-5 md:p-6 shadow-lg">
+              {/* <div className="bg-gray-800 rounded-xl p-4 sm:p-5 md:p-6 shadow-lg">
                 <h2 className="text-lg sm:text-xl font-bold text-white mb-3 sm:mb-4 flex items-center">
                   <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <circle cx="12" cy="12" r="10" />
@@ -485,7 +528,56 @@ const StudioMenu = () => {
                     </div>
                   ))}
                 </div>
+              </div> */}
+
+              {/* integrated code with backend */}
+              <div className="bg-gray-800 rounded-xl p-4 sm:p-5 md:p-6 shadow-lg">
+                <h2 className="text-lg sm:text-xl font-bold text-white mb-3 sm:mb-4 flex items-center">
+                  <svg
+                    className="w-4 h-4 sm:w-5 sm:h-5 mr-2 text-orange-500"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12,6 12,12 16,14" />
+                  </svg>
+                  Opening Hours
+                </h2>
+                <div className="grid gap-2 sm:gap-3">
+                  {studio?.openingHours?.map((dayObj, index) => {
+                    // if (dayObj.isClosed) return null; // skip closed days
+
+                    // Determine if this is today
+                    const todayIndex = new Date().getDay(); // Sunday = 0
+                    const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+                    const isToday = dayObj.day === days[todayIndex];
+
+                    return (
+                      <div
+                        key={index}
+                        className={`flex justify-between items-center py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm ${isToday ? "bg-orange-500/20 border border-orange-500/30" : "bg-gray-700/50"}`}
+                      >
+                        <span className={`font-medium ${isToday ? "text-orange-400" : "text-gray-300"}`}>
+                          {dayObj.day}
+                          {isToday && (
+                            <span className="ml-1 sm:ml-2 text-[10px] sm:text-xs bg-orange-500 px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full text-white">
+                              Today
+                            </span>
+                          )}
+                        </span>
+                        <span className={`${isToday ? "text-orange-300" : "text-gray-400"}`}>
+                          {dayObj.open} - {dayObj.close}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+
               </div>
+
+
+
 
               {/* Contact Info */}
               <div className="bg-gray-800 rounded-xl p-4 sm:p-5 md:p-6 shadow-lg">
@@ -495,13 +587,13 @@ const StudioMenu = () => {
                     <svg className="w-4 h-4 mr-3 text-blue-500 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" />
                     </svg>
-                    <span className="break-all">+49 30 1234 5678</span>
+                    <span className="break-all">{studio?.phone || "+49 30 1234 5678"}</span>
                   </div>
                   <div className="flex items-center text-gray-300 text-sm sm:text-base">
                     <svg className="w-4 h-4 mr-3 text-red-500 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
                     </svg>
-                    <span className="break-all">info@fitzonestudio.de</span>
+                    <span className="break-all">{studio?.email || "info@fitzonestudio.de"}</span>
                   </div>
                 </div>
               </div>
@@ -700,11 +792,15 @@ const StudioMenu = () => {
               <div className="space-y-2 sm:space-y-3 mb-4">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-gray-700/50 rounded-lg p-2.5 sm:p-3 gap-1">
                   <span className="text-gray-400 text-xs sm:text-sm">Member Number:</span>
-                  <span className="text-white font-mono text-xs sm:text-sm">#FZ-2025-001</span>
+                  <span className="text-white font-mono text-xs sm:text-sm">{member?.memberNumber}</span>
                 </div>
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-gray-700/50 rounded-lg p-2.5 sm:p-3 gap-1">
                   <span className="text-gray-400 text-xs sm:text-sm">Member Since:</span>
-                  <span className="text-white text-xs sm:text-sm">January 15, 2025</span>
+                  <span className="text-white text-xs sm:text-sm">{new Date(member?.dateOfBirth).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}</span>
                 </div>
               </div>
 
@@ -730,19 +826,23 @@ const StudioMenu = () => {
                       <>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">First Name:</span>
-                          <span className="text-white text-sm sm:text-base">{personalData.firstName}</span>
+                          <span className="text-white text-sm sm:text-base">{member?.firstName}</span>
                         </div>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">Last Name:</span>
-                          <span className="text-white text-sm sm:text-base">{personalData.lastName}</span>
+                          <span className="text-white text-sm sm:text-base">{member?.lastName}</span>
                         </div>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">Date of Birth:</span>
-                          <span className="text-white text-sm sm:text-base">{personalData.dateOfBirth}</span>
+                          <span className="text-white text-sm sm:text-base">{new Date(member?.dateOfBirth).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          })}</span>
                         </div>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">Gender:</span>
-                          <span className="text-white text-sm sm:text-base">{personalData.gender}</span>
+                          <span className="text-white text-sm sm:text-base">{member?.gender}</span>
                         </div>
                         <button
                           onClick={() => setIsEditingPersonal(true)}
@@ -834,23 +934,23 @@ const StudioMenu = () => {
                       <>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">Street:</span>
-                          <span className="text-white text-sm sm:text-base">{addressData.street}</span>
+                          <span className="text-white text-sm sm:text-base">{member?.street}</span>
                         </div>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">House Number:</span>
-                          <span className="text-white text-sm sm:text-base">{addressData.houseNumber}</span>
+                          <span className="text-white text-sm sm:text-base">{member?.houseNumber}</span>
                         </div>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">Zip Code:</span>
-                          <span className="text-white text-sm sm:text-base">{addressData.zipCode}</span>
+                          <span className="text-white text-sm sm:text-base">{member?.zipCode}</span>
                         </div>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">City:</span>
-                          <span className="text-white text-sm sm:text-base">{addressData.city}</span>
+                          <span className="text-white text-sm sm:text-base">{member?.city}</span>
                         </div>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">Country:</span>
-                          <span className="text-white text-sm sm:text-base">{addressData.country}</span>
+                          <span className="text-white text-sm sm:text-base">{member?.country}</span>
                         </div>
                         <button
                           onClick={() => setIsEditingAddress(true)}
@@ -948,11 +1048,11 @@ const StudioMenu = () => {
                       <>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">Email:</span>
-                          <span className="text-white text-sm sm:text-base break-all">{contactData.email}</span>
+                          <span className="text-white text-sm sm:text-base break-all">{member?.email}</span>
                         </div>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">Phone:</span>
-                          <span className="text-white text-sm sm:text-base">{contactData.phone}</span>
+                          <span className="text-white text-sm sm:text-base">{member?.phone}</span>
                         </div>
                         <button
                           onClick={() => setIsEditingContact(true)}
@@ -1041,7 +1141,7 @@ const StudioMenu = () => {
                         </button>
                       </div>
                     )}
-                    
+
                     <div className="flex justify-between items-start mb-2 gap-2">
                       <h3 className="text-white font-semibold text-base sm:text-lg flex-1">{message.title}</h3>
                       <span className={`px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${getTagColor(message.type)}`}>
@@ -1049,7 +1149,7 @@ const StudioMenu = () => {
                       </span>
                     </div>
                     <p className="text-gray-300 text-xs sm:text-sm mb-3">{message.content}</p>
-                    
+
                   </div>
                 ))}
               </div>
@@ -1068,9 +1168,9 @@ const StudioMenu = () => {
         )}
       </div>
 
-      {showImprintPopup && <ImprintPopup onClose={() => setShowImprintPopup(false)} />}
-      {showTermsPopup && <TermsPopup onClose={() => setShowTermsPopup(false)} />}
-      {showPrivacyPopup && <PrivacyPopup onClose={() => setShowPrivacyPopup(false)} />}
+      {showImprintPopup && <ImprintPopup onClose={() => setShowImprintPopup(false)} studio={studio} />}
+      {showTermsPopup && <TermsPopup onClose={() => setShowTermsPopup(false)} studio={studio} />}
+      {showPrivacyPopup && <PrivacyPopup onClose={() => setShowPrivacyPopup(false)} studio={studio} />}
 
       <PaymentMethodPopup show={showPaymentMethodPopup} onClose={() => setShowPaymentMethodPopup(false)} />
       <CancelMembershipPopup show={showCancelMembershipPopup} onClose={() => setShowCancelMembershipPopup(false)} />

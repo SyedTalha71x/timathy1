@@ -4,16 +4,30 @@
 import { useState, useRef, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { gsap } from "gsap"
+import { useSelector, useDispatch } from "react-redux"
+import { memberLogin } from "../features/member/memberSlice"
+import { fetchMyStudio } from '../features/studio/studioSlice'
+import { fetchMyServices } from "../features/services/servicesSlice"
+import { fetchMyAppointments } from "../features/appointments/AppointmentSlice"
+export default function SignInPage() {
+  const navigate = useNavigate()
+  const [loginType, setLoginType] = useState("user")
+  const { member, loading, error } = useSelector((state) => state.members)
+  const tabAnimationRef = useRef(null)
+  const userTabRef = useRef(null);
+  const adminTabRef = useRef(null);
+  const memberTabRef = useRef(null)
+  const formContainerRef = useRef(null)
+  const didInitRef = useRef(false);
 
-// Import logo
-import OrgaGymLogo from "../../public/Orgagym white without text.svg"
 
-// ============================================================================
-// LOGIN PAGE COMPONENT
-// ============================================================================
-// Drei Login-Typen: Studio (Gym-Betreiber), Admin, Member
-// Jeder Typ hat eigene Formularfelder und Ziel-Route
-// ============================================================================
+
+  const dispatch = useDispatch();
+  const [userFormData, setUserFormData] = useState({
+    studioName: "",
+    email: "",
+    password: "",
+  })
 
 // Login-Typ Konfiguration
 const LOGIN_TYPES = {
@@ -53,19 +67,10 @@ const TAB_POSITIONS = {
   member: "66.66%",
 }
 
-export default function SignInPage() {
-  const navigate = useNavigate()
-  
-  // -------------------------------------------------------------------------
-  // STATE
-  // -------------------------------------------------------------------------
-  const [activeLoginType, setActiveLoginType] = useState("studio")
-  
-  const [formData, setFormData] = useState({
-    studio: { studioName: "", email: "", password: "" },
-    admin: { email: "", password: "" },
-    member: { email: "", password: "" },
-  })
+  // Schnelle Navigation mit React Router (kein Page Reload!)
+  // const redirectMember = () => navigate("/member-view/studio-menu")
+  const redirectUser = () => navigate("/dashboard/my-area")
+  const redirectAdmin = () => navigate("/admin-dashboard/my-area")
 
   // -------------------------------------------------------------------------
   // REFS für GSAP Animationen
@@ -93,20 +98,23 @@ export default function SignInPage() {
     }
   }, [])
 
-  // -------------------------------------------------------------------------
-  // HANDLERS
-  // -------------------------------------------------------------------------
-  
-  // Formular-Input Handler
-  const handleInputChange = (loginType, field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [loginType]: {
-        ...prev[loginType],
-        [field]: value,
-      },
-    }))
-  }
+  const handleMemberSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await dispatch(memberLogin(memberFormData)).unwrap();
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  useEffect(() => {
+    if (member) {
+      dispatch(fetchMyStudio());
+      dispatch(fetchMyServices());
+      dispatch(fetchMyAppointments());
+      navigate('/member-view/studio-menu')
+    }
+  }, [member, navigate]);
 
   // Tab wechseln mit Animation
   const handleTabSwitch = (newType) => {
@@ -150,19 +158,15 @@ export default function SignInPage() {
     })
   }
 
-  // Login Submit Handler
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    
-    const config = LOGIN_TYPES[activeLoginType]
-    const currentFormData = formData[activeLoginType]
-    
-    // TODO: Backend-Authentifizierung implementieren
-    // const response = await authApi.login(activeLoginType, currentFormData)
-    
-    // Redirect zur entsprechenden Dashboard-Route
-    navigate(config.redirectPath)
-  }
+  useEffect(() => {
+    const initialLeft =
+      loginType === "user" ? "0%" : loginType === "admin" ? "33.33%" : "66.66%"
+    const initialColor =
+      loginType === "user"
+        ? "#3F74FF"
+        : loginType === "admin"
+          ? "#FF3F3F"
+          : "#22C55E"
 
   // -------------------------------------------------------------------------
   // RENDER HELPERS
@@ -272,12 +276,41 @@ export default function SignInPage() {
             ))}
           </div>
 
-          {/* ============================================================= */}
-          {/* Login Form */}
-          {/* ============================================================= */}
-          <div ref={formContainerRef}>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {renderFormFields()}
+              {loginType === "member" && (
+                <form onSubmit={handleMemberSubmit} className="space-y-3 sm:space-y-4">
+                  <input
+                    type="email"
+                    placeholder="Member Email"
+                    className="w-full rounded-xl bg-[#181818] px-3 py-2 sm:py-3 text-white placeholder-gray-500 outline-none text-sm"
+                    value={memberFormData.email}
+                    onChange={(e) =>
+                      setMemberFormData({ ...memberFormData, email: e.target.value })
+                    }
+                  />
+                  <input
+                    type="password"
+                    placeholder="Password"
+                    className="w-full rounded-xl bg-[#181818] px-3 py-2 sm:py-3 text-white placeholder-gray-500 outline-none text-sm"
+                    value={memberFormData.password}
+                    onChange={(e) =>
+                      setMemberFormData({ ...memberFormData, password: e.target.value })
+                    }
+                  />
+                  <div className="text-right">
+                    <a href="#" className="text-xs sm:text-sm text-gray-400 hover:text-white">
+                      Forgot Password?
+                    </a>
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full rounded-xl bg-green-600 px-4 py-2 sm:py-3 text-white hover:bg-green-700 transition-all duration-500 ease-in-out text-sm sm:text-base"
+                  >
+                    {loading ? "Member Signing..." : "Member Sign In"}
+                  </button>
+                  <p className="text-red-500 text-sm p-2">{error}</p>
+                </form>
+              )}
 
               {/* Forgot Password Link */}
               <div className="flex justify-end">

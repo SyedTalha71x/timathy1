@@ -1,64 +1,95 @@
-const mongoose = require('mongoose')
+const mongoose = require("mongoose");
 
+const openingHourSchema = new mongoose.Schema(
+  {
+    day: {
+      type: String,
+      enum: [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
+      ],
+      required: true,
+    },
+    open: {
+      type: String, // "08:00"
+    },
+    close: {
+      type: String, // "20:00"
+    },
+    isClosed: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  { _id: false }
+);
 
-const studioSchema = new mongoose.Schema({
+const studioSchema = new mongoose.Schema(
+  {
     studioName: {
-        type: String,
-        required: true,
-        unique: true,
-        required: true
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
     },
+
     studioOwner: {
-        type: String,
-        trim: true,
+      type: String,
+      trim: true,
+    },
 
-    },
-    phone: {
-        type: String,
+    phone: String,
+    email: { type: String, lowercase: true, trim: true },
 
-    },
-    email: {
-        type: String,
+    street: String,
+    zipCode: String,
+    city: String,
+    country: String,
+    website: String,
 
-        lowercase: true,
-        trim: true
+    // NEW: overall studio capacity
+    overallCapacity: {
+      type: Number,
+      required: true,
     },
-    street: {
-        type: String,
 
-    },
-    zipCode: {
-        type: String,
+    // REPLACED structure (easier booking logic)
+    openingHours: [openingHourSchema],
 
+    // FIXED: use Date instead of String
+    closingDays: [
+      {
+        date: {
+          type: Date, // YYYY-MM-DD
+          required: true,
+        },
+        reason: String,
+      },
+    ],
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
     },
-    city: {
-        type: String,
 
-    },
-    country: {
-        type: String
-    },
-    website: {
-        type: String,
-
-    },
-    logo: {
-        url: String,
-        public_id: String
-    },
-    openingHours: {
-        type: String,  //after testing we can change it into map
-    },
-    closingDays: [{
-        type: String
-    }],
-    createdBy: [{
+    members: [
+      {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'staff'
-    }]
-}, { timestamps: true })
+        ref: "User",
+      },
+    ],
+    services: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Service'
+      }
+    ]
+  },
+  { timestamps: true }
+);
 
-
-const StudioModel = mongoose.model('Studio', studioSchema)
-
-module.exports = StudioModel
+module.exports = mongoose.model("Studio", studioSchema);

@@ -24,7 +24,7 @@ const uploadToCloudinary = (fileBuffer, folder = "Timathy/profiles") => {
 
 // --- upload products and services ---
 
-const uploadProduct = (fileBuffer, folder = "Timathy/sellings") => {
+const uploadService = (fileBuffer, folder = "Timathy/servicesImg") => {
   return new Promise((resolve, reject) => {
     const bufferStream = new Readable();
     bufferStream.push(fileBuffer);
@@ -98,4 +98,4 @@ const uploadContract = (fileBuffer, fileName, folder = "Timathy/contracts") => {
 };
 
 
-module.exports = { uploadToCloudinary, uploadProduct, uploadContract, uploadIdlePeriod };
+module.exports = { uploadToCloudinary, uploadService, uploadContract, uploadIdlePeriod };

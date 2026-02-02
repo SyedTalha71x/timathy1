@@ -28,7 +28,8 @@ import { MdOutlineLeaderboard } from "react-icons/md";
 import { SiYoutubestudio } from "react-icons/si";
 import { CgGym } from "react-icons/cg";
 import { IoMdNutrition } from "react-icons/io";
-
+import { useSelector, useDispatch } from "react-redux";
+import { logout } from "../../features/auth/authSlice";
 const MemberViewSidebar = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -55,6 +56,7 @@ const MemberViewSidebar = () => {
 
   const location = useLocation();
   const navigate = useNavigate();
+  const dispatch = useDispatch()
 
   const removeNotification = (id) => {
     setNotifications(
@@ -111,10 +113,16 @@ const MemberViewSidebar = () => {
     window.location.href = "/member-view/edit-profile";
   };
 
-  const handleLogout = () => {
-    setIsDropdownOpen(false);
-    window.location.href = "/login";
+  const handleLogout = async () => {
+    try {
+      await dispatch(logout()).unwrap(); // wait for logout to complete
+      console.log('Logout successfully');
+      window.location.href = '/login' // redirect immediately
+    } catch (err) {
+      console.error('Logout failed:', err);
+    }
   };
+
 
   const menuItems = [
     {
@@ -152,7 +160,7 @@ const MemberViewSidebar = () => {
         { label: "Offline Mode", to: "/member-view/offline-mode", icon: CloudOff },
       ],
     },
-     {
+    {
       icon: IoMdNutrition,
       label: "Nutrition Analysis",
       to: "/member-view/nutrition-analysis",
@@ -272,7 +280,7 @@ const MemberViewSidebar = () => {
 
                           {item.submenu.map((subItem) => {
                             const isActive = location.pathname === subItem.to;
-                            const isDefaultActive = subItem.label === "Food Log" && 
+                            const isDefaultActive = subItem.label === "Food Log" &&
                               !location.pathname.startsWith("/member-view/food-log") &&
                               !location.pathname.startsWith("/member-view/nutrition-breakdown") &&
                               !location.pathname.startsWith("/member-view/daily-summary") &&
@@ -385,7 +393,7 @@ const MemberViewSidebar = () => {
               {/* Logout Button */}
               <li className="mt-6">
                 <button
-                  onClick={redirectToHome}
+                  onClick={handleLogout}
                   className={`
                     flex items-center cursor-pointer gap-3 open_sans_font px-4 py-2 text-zinc-400 hover:text-white
                     ${isCollapsed ? "justify-center" : "text-left"}

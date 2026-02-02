@@ -9,9 +9,9 @@ const verifyAccessToken = (req, res, next) => {
         const decoded = jwt.verify(token, process.env.JWT_ACCESS_TOKEN)
 
         req.user = {
-            id: decoded.id,
+            _id: decoded._id,
             email: decoded.email,
-            studioName: decoded.studioName,
+            studioId: decoded.studioId,
             role: decoded.role,
             username: decoded.username,
             img: decoded.img,
@@ -38,13 +38,10 @@ const verifyRefreshToken = (req, res, next) => {
         }
         const decoded = jwt.verify(token, process.env.JWT_REFRESH_TOKEN)
         req.user = {
-            id: decoded.id,
+            _id: decoded._id,
             email: decoded.email,
-            studioName: decoded.studioName,
             role: decoded.role,
-            username: decoded.username,
-            img: decoded.img,
-            staffRole: decoded.staffRole,
+            
         }
         next();
     }

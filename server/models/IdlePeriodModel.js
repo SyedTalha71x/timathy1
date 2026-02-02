@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const idlePeriodSchema = new mongoose.Schema({
     member: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'member'
+        ref: 'User'
     },
     reason: {
         type: String,
@@ -26,7 +26,7 @@ const idlePeriodSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['pending', 'approved', 'rejected'],
+        enum: ['active', 'completed', 'rejected'],
         default: 'pending'
     },
     appliedAt: {
