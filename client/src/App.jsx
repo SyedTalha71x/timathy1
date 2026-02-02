@@ -3,7 +3,6 @@ import Home from "./landing-page/home";
 import Footer from "./landing-page/footer";
 import Header from "./landing-page/navbar";
 import Login from './landing-page/login';
-import Register from './landing-page/register'
 import { useDispatch, useSelector } from 'react-redux';
 // protected Routes
 import ProtectedRoutes from "./ProtectedRoutes";
@@ -11,29 +10,29 @@ import ProtectedRoutes from "./ProtectedRoutes";
 import { me } from "./features/auth/authSlice";
 
 // User Panel Dashboard
-import Dashboardlayout from "./layouts/dashboard-layout";
-import MyArea from './dashboard-pages/user-panel-view/my-area'
-import Appointments from "./dashboard-pages/user-panel-view/appointments";
-import ToDo from './dashboard-pages/user-panel-view/todo'
-import Members from './dashboard-pages/user-panel-view/members'
-import Staff from './dashboard-pages/user-panel-view/staff'
-import MediaLibrary from './dashboard-pages/user-panel-view/media-library'
-import Communication from "./dashboard-pages/user-panel-view/communications";
-import Contract from './dashboard-pages/user-panel-view/contract'
-import Configuration from './dashboard-pages/user-panel-view/configuration'
-import Leads from './dashboard-pages/user-panel-view/leads'
-import Selling from "./dashboard-pages/user-panel-view/selling";
-import Finances from "./dashboard-pages/user-panel-view/finances";
-import Training from "./dashboard-pages/user-panel-view/training";
-import ActivityMonitor from "./dashboard-pages/user-panel-view/activity-monitor";
-import Analytics from './dashboard-pages/user-panel-view/analytics'
-import MarketPlace from './dashboard-pages/user-panel-view/market-place'
-import NotesApp from "./dashboard-pages/user-panel-view/notes";
-import BulletinBoard from './dashboard-pages/user-panel-view/bulletin-board'
-import MembersCheckIn from './dashboard-pages/user-panel-view/members-checkin'
-import Assessment from "./dashboard-pages/user-panel-view/medical-history";
-import HelpCenter from "./dashboard-pages/user-panel-view/help-center";
-import Tickets from "./dashboard-pages/user-panel-view/tickets";
+import Dashboardlayout from "./layouts/studio-view-layout";
+import MyArea from './dashboard-pages/studio-view/my-area'
+import Appointments from "./dashboard-pages/studio-view/appointments";
+import ToDo from './dashboard-pages/studio-view/todo'
+import Members from './dashboard-pages/studio-view/members'
+import Staff from './dashboard-pages/studio-view/staff'
+import MediaLibrary from './dashboard-pages/studio-view/media-library'
+import Communication from "./dashboard-pages/studio-view/communications";
+import Contract from './dashboard-pages/studio-view/contract'
+import Configuration from './dashboard-pages/studio-view/configuration'
+import Leads from './dashboard-pages/studio-view/leads'
+import Selling from "./dashboard-pages/studio-view/selling";
+import Finances from "./dashboard-pages/studio-view/finances";
+import Training from "./dashboard-pages/studio-view/training";
+import ActivityMonitor from "./dashboard-pages/studio-view/activity-monitor";
+import Analytics from './dashboard-pages/studio-view/analytics'
+import MarketPlace from './dashboard-pages/studio-view/market-place'
+import NotesApp from "./dashboard-pages/studio-view/notes";
+import BulletinBoard from './dashboard-pages/studio-view/bulletin-board'
+import MembersCheckIn from './dashboard-pages/studio-view/members-checkin'
+import Assessment from "./dashboard-pages/studio-view/medical-history";
+import HelpCenter from "./dashboard-pages/studio-view/help-center";
+import Tickets from "./dashboard-pages/studio-view/tickets";
 
 
 // Admin Dashboard
