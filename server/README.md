@@ -45,7 +45,6 @@ MONGO_URI=
 # Backend Port and Node mode
 
 - PORT=5000
-- NODE_ENV=development
 
 # Nodemailer Email and host
 
