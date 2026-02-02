@@ -7,7 +7,7 @@ const cors = require('cors')
 const apiRoutes = require('./routes/AllRoutes')
 
 // error handler
-const errorHandler = require('./middleware/error/ErrorHandler');
+const errorHandler = require('./middleware/error/errorHandler');
 
 
 const app = express()
