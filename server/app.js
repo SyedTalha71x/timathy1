@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cookieParser = require('cookie-parser')
 const cors = require('cors')
@@ -11,10 +12,8 @@ const errorHandler = require('./middleware/error/ErrorHandler');
 
 const app = express()
 
-const allowedOrigins = [
-    'http://localhost:5173',                // dev frontend
-    'https://fitness-web-kappa.vercel.app'  // production frontend
-];
+const allowedOrigins =process.env.FRONTEND_URL
+
 
 app.use(cors({
     origin: function (origin, callback) {
