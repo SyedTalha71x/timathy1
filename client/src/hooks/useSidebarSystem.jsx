@@ -17,8 +17,8 @@ import {
   mockVideosNew,
   notificationData,
   todosData,
-} from "../utils/user-panel-states/myarea-states"
-import { appointmentsData } from "../utils/user-panel-states/app-states"
+} from "../utils/studio-states/myarea-states"
+import { appointmentsData } from "../utils/studio-states"
 import { createPortal } from "react-dom"
 
 export const useSidebarSystem = () => {

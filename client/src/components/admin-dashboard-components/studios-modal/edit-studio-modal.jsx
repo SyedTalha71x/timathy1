@@ -50,7 +50,7 @@ import {
 import dayjs from "dayjs"
 import { toast } from "react-hot-toast"
 import { QRCode, Typography } from "antd"
-import { PERMISSION_GROUPS } from "../../../utils/user-panel-states/configuration-states"
+import { PERMISSION_GROUPS } from "../../../utils/studio-states/configuration-states"
 import CustomModal from "./custom-modal"
 
 

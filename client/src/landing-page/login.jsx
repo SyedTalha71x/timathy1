@@ -2,8 +2,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/no-unescaped-entities */
 import { useState, useRef, useEffect } from "react"
-import { useNavigate, Link } from "react-router-dom"
-import Art from "../../public/Art.png"
+import { useNavigate } from "react-router-dom"
 import { gsap } from "gsap"
 import { useSelector, useDispatch } from "react-redux"
 import { memberLogin } from "../features/member/memberSlice"
@@ -30,30 +29,74 @@ export default function SignInPage() {
     password: "",
   })
 
-  const [adminFormData, setAdminFormData] = useState({
-    email: "",
-    password: "",
-  })
+// Login-Typ Konfiguration
+const LOGIN_TYPES = {
+  studio: {
+    id: "studio",
+    label: "Studio",
+    color: "#3F74FF",
+    hoverColor: "hover:bg-blue-700",
+    bgColor: "bg-[#3F74FF]",
+    redirectPath: "/dashboard/my-area",
+    fields: ["studioName", "email", "password"],
+  },
+  admin: {
+    id: "admin",
+    label: "Admin",
+    color: "#FF3F3F",
+    hoverColor: "hover:bg-red-700",
+    bgColor: "bg-[#FF3F3F]",
+    redirectPath: "/admin-dashboard/my-area",
+    fields: ["email", "password"],
+  },
+  member: {
+    id: "member",
+    label: "Member",
+    color: "#22C55E",
+    hoverColor: "hover:bg-green-700",
+    bgColor: "bg-green-600",
+    redirectPath: "/member-view/studio-menu",
+    fields: ["email", "password"],
+  },
+}
 
-  const [memberFormData, setMemberFormData] = useState({
-    email: "",
-    password: "",
-  })
+// Tab-Positionen für Animation
+const TAB_POSITIONS = {
+  studio: "0%",
+  admin: "33.33%",
+  member: "66.66%",
+}
 
   // Schnelle Navigation mit React Router (kein Page Reload!)
   // const redirectMember = () => navigate("/member-view/studio-menu")
   const redirectUser = () => navigate("/dashboard/my-area")
   const redirectAdmin = () => navigate("/admin-dashboard/my-area")
 
-  const handleUserSubmit = (e) => {
-    e.preventDefault()
-    redirectUser()
+  // -------------------------------------------------------------------------
+  // REFS für GSAP Animationen
+  // -------------------------------------------------------------------------
+  const tabIndicatorRef = useRef(null)
+  const tabRefs = {
+    studio: useRef(null),
+    admin: useRef(null),
+    member: useRef(null),
   }
+  const formContainerRef = useRef(null)
 
-  const handleAdminSubmit = (e) => {
-    e.preventDefault()
-    redirectAdmin()
-  }
+  // -------------------------------------------------------------------------
+  // EFFECTS
+  // -------------------------------------------------------------------------
+  
+  // Initiale Tab-Position setzen
+  useEffect(() => {
+    if (tabIndicatorRef.current) {
+      gsap.set(tabIndicatorRef.current, {
+        left: TAB_POSITIONS[activeLoginType],
+        backgroundColor: LOGIN_TYPES[activeLoginType].color,
+        width: "33.33%",
+      })
+    }
+  }, [])
 
   const handleMemberSubmit = async (e) => {
     e.preventDefault();
@@ -73,44 +116,43 @@ export default function SignInPage() {
     }
   }, [member, navigate]);
 
-  const switchTab = (type) => {
-    if (type === loginType) return
+  // Tab wechseln mit Animation
+  const handleTabSwitch = (newType) => {
+    if (newType === activeLoginType) return
 
     const formContainer = formContainerRef.current
+    const config = LOGIN_TYPES[newType]
+
+    // Fade out aktuelles Formular
     gsap.to(formContainer, {
       opacity: 0,
       y: 10,
-      duration: 0.3,
+      duration: 0.25,
+      ease: "power2.in",
       onComplete: () => {
-        setLoginType(type)
+        setActiveLoginType(newType)
 
-        const colorMap = {
-          user: "#3F74FF",
-          admin: "#FF3F3F",
-          member: "#22C55E",
-        }
-
-        const leftMap = {
-          user: "0%",
-          admin: "33.33%",
-          member: "66.66%",
-        }
-
-        gsap.to(tabAnimationRef.current, {
-          left: leftMap[type],
-          backgroundColor: colorMap[type],
-          duration: 0.4,
+        // Tab-Indikator animieren
+        gsap.to(tabIndicatorRef.current, {
+          left: TAB_POSITIONS[newType],
+          backgroundColor: config.color,
+          duration: 0.35,
           ease: "power2.inOut",
         })
 
-        gsap.to(userTabRef.current, { color: type === "user" ? "white" : "#9CA3AF", duration: 0.3 })
-        gsap.to(adminTabRef.current, { color: type === "admin" ? "white" : "#9CA3AF", duration: 0.3 })
-        gsap.to(memberTabRef.current, { color: type === "member" ? "white" : "#9CA3AF", duration: 0.3 })
+        // Tab-Text Farben aktualisieren
+        Object.entries(tabRefs).forEach(([type, ref]) => {
+          gsap.to(ref.current, {
+            color: type === newType ? "white" : "#9CA3AF",
+            duration: 0.25,
+          })
+        })
 
+        // Fade in neues Formular
         gsap.fromTo(
           formContainer,
           { opacity: 0, y: -10 },
-          { opacity: 1, y: 0, duration: 0.4, delay: 0.2 }
+          { opacity: 1, y: 0, duration: 0.3, delay: 0.1, ease: "power2.out" }
         )
       },
     })
@@ -126,137 +168,113 @@ export default function SignInPage() {
           ? "#FF3F3F"
           : "#22C55E"
 
-    gsap.set(tabAnimationRef.current, {
-      left: initialLeft,
-      backgroundColor: initialColor,
-      width: "33.33%",
-    })
-  }, [])
+  // -------------------------------------------------------------------------
+  // RENDER HELPERS
+  // -------------------------------------------------------------------------
+  
+  const renderFormFields = () => {
+    const config = LOGIN_TYPES[activeLoginType]
+    const currentFormData = formData[activeLoginType]
 
+    return (
+      <>
+        {/* Studio Name Feld (nur für Studio-Login) */}
+        {activeLoginType === "studio" && (
+          <div>
+            <label className="block text-xs text-gray-500 mb-1.5 ml-1">
+              Studio Name
+            </label>
+            <input
+              type="text"
+              placeholder="Enter your studio name"
+              className="w-full rounded-xl bg-[#181818] px-4 py-3 text-white placeholder-gray-500 outline-none text-sm border border-transparent focus:border-[#333333] transition-colors"
+              value={currentFormData.studioName || ""}
+              onChange={(e) => handleInputChange(activeLoginType, "studioName", e.target.value)}
+              autoComplete="organization"
+            />
+          </div>
+        )}
+
+        {/* Email Feld */}
+        <div>
+          <label className="block text-xs text-gray-500 mb-1.5 ml-1">
+            Email
+          </label>
+          <input
+            type="email"
+            placeholder={`Enter your ${config.label.toLowerCase()} email`}
+            className="w-full rounded-xl bg-[#181818] px-4 py-3 text-white placeholder-gray-500 outline-none text-sm border border-transparent focus:border-[#333333] transition-colors"
+            value={currentFormData.email}
+            onChange={(e) => handleInputChange(activeLoginType, "email", e.target.value)}
+            autoComplete="email"
+          />
+        </div>
+
+        {/* Password Feld */}
+        <div>
+          <label className="block text-xs text-gray-500 mb-1.5 ml-1">
+            Password
+          </label>
+          <input
+            type="password"
+            placeholder="Enter your password"
+            className="w-full rounded-xl bg-[#181818] px-4 py-3 text-white placeholder-gray-500 outline-none text-sm border border-transparent focus:border-[#333333] transition-colors"
+            value={currentFormData.password}
+            onChange={(e) => handleInputChange(activeLoginType, "password", e.target.value)}
+            autoComplete="current-password"
+          />
+        </div>
+      </>
+    )
+  }
+
+  const config = LOGIN_TYPES[activeLoginType]
+
+  // -------------------------------------------------------------------------
+  // RENDER
+  // -------------------------------------------------------------------------
   return (
-    <div className="h-screen bg-[#0E0E0E] overflow-hidden flex justify-center items-center md:p-8 p-3">
-      <div className="flex h-full w-full lg:p-10 md:p-8 p-3 flex-col lg:flex-row items-center justify-center">
-        {/* ==== LEFT SIDE (FORM) ==== */}
-        <div className="flex flex-1 flex-col justify-center lg:p-16 md:p-14 sm:p-8 p-5">
-          <div className="mx-auto w-full max-w-sm lg:max-w-md">
-            <h1 className="mb-2 text-2xl sm:text-3xl font-bold text-white text-center sm:text-left">
-              Welcome Back <span className="inline-block animate-wave">👋</span>
-            </h1>
-            <p className="mb-6 sm:mb-8 text-gray-400 text-sm sm:text-base text-center sm:text-left">
-              Today is a new day. It's your day. You shape it. <br className="hidden sm:block" />
-              Sign in to start managing your projects.
-            </p>
-
-            {/* Login Tabs */}
-            <div className="relative mb-5 sm:mb-6 rounded-xl overflow-hidden bg-[#181818] flex text-xs sm:text-sm">
-              <div
-                ref={tabAnimationRef}
-                className="absolute top-0 bottom-0 w-1/3 z-0 transition-all rounded-xl"
-              ></div>
-
-              <button
-                ref={userTabRef}
-                className="relative z-10 flex-1 py-2 text-white"
-                onClick={() => switchTab("user")}
-              >
-                User
-              </button>
-
-              <button
-                ref={adminTabRef}
-                className="relative z-10 flex-1 py-2 text-gray-400"
-                onClick={() => switchTab("admin")}
-              >
-                Admin
-              </button>
-
-              <button
-                ref={memberTabRef}
-                className="relative z-10 flex-1 py-2 text-gray-400"
-                onClick={() => switchTab("member")}
-              >
-                Member
-              </button>
+    <div className="min-h-screen bg-[#0E0E0E] flex items-center justify-center p-4 md:p-8">
+      <div className="flex w-full max-w-md flex-col items-center justify-center">
+        
+        {/* ================================================================= */}
+        {/* Login Form - Centered */}
+        {/* ================================================================= */}
+        <div className="flex flex-col justify-center w-full">
+          
+          {/* OrgaGym Logo */}
+          <div className="flex justify-center mb-8">
+            <div className="flex items-center gap-2">
+              <img src={OrgaGymLogo} alt="ORGAGYM" className="w-10 h-10" />
+              <span className="text-2xl font-bold text-white">ORGAGYM</span>
             </div>
+          </div>
 
-            {/* Form Container */}
-            <div ref={formContainerRef} className="space-y-4 sm:space-y-5">
-              {loginType === "user" && (
-                <form onSubmit={handleUserSubmit} className="space-y-3 sm:space-y-4">
-                  <input
-                    type="text"
-                    placeholder="Studio name"
-                    className="w-full rounded-xl bg-[#181818] px-3 py-2 sm:py-3 text-white placeholder-gray-500 outline-none text-sm"
-                    value={userFormData.studioName}
-                    onChange={(e) =>
-                      setUserFormData({ ...userFormData, studioName: e.target.value })
-                    }
-                  />
-                  <input
-                    type="email"
-                    placeholder="Email"
-                    className="w-full rounded-xl bg-[#181818] px-3 py-2 sm:py-3 text-white placeholder-gray-500 outline-none text-sm"
-                    value={userFormData.email}
-                    onChange={(e) =>
-                      setUserFormData({ ...userFormData, email: e.target.value })
-                    }
-                  />
-                  <input
-                    type="password"
-                    placeholder="Password"
-                    className="w-full rounded-xl bg-[#181818] px-3 py-2 sm:py-3 text-white placeholder-gray-500 outline-none text-sm"
-                    value={userFormData.password}
-                    onChange={(e) =>
-                      setUserFormData({ ...userFormData, password: e.target.value })
-                    }
-                  />
-                  <div className="text-right">
-                    <a href="#" className="text-xs sm:text-sm text-gray-400 hover:text-white">
-                      Forgot Password?
-                    </a>
-                  </div>
-                  <button
-                    type="submit"
-                    className="w-full rounded-xl bg-[#3F74FF] px-4 py-2 sm:py-3 text-white hover:bg-blue-700 transition-all duration-500 ease-in-out text-sm sm:text-base"
-                  >
-                    Sign In
-                  </button>
-                </form>
-              )}
+          {/* ============================================================= */}
+          {/* Login Type Tabs */}
+          {/* ============================================================= */}
+          <div className="relative mb-6 rounded-xl overflow-hidden bg-[#181818] flex">
+            {/* Animated Tab Indicator */}
+            <div
+              ref={tabIndicatorRef}
+              className="absolute top-0 bottom-0 w-1/3 rounded-xl transition-colors"
+              style={{ backgroundColor: config.color }}
+            />
 
-              {loginType === "admin" && (
-                <form onSubmit={handleAdminSubmit} className="space-y-3 sm:space-y-4">
-                  <input
-                    type="email"
-                    placeholder="Admin Email"
-                    className="w-full rounded-xl bg-[#181818] px-3 py-2 sm:py-3 text-white placeholder-gray-500 outline-none text-sm"
-                    value={adminFormData.email}
-                    onChange={(e) =>
-                      setAdminFormData({ ...adminFormData, email: e.target.value })
-                    }
-                  />
-                  <input
-                    type="password"
-                    placeholder="Admin Password"
-                    className="w-full rounded-xl bg-[#181818] px-3 py-2 sm:py-3 text-white placeholder-gray-500 outline-none text-sm"
-                    value={adminFormData.password}
-                    onChange={(e) =>
-                      setAdminFormData({ ...adminFormData, password: e.target.value })
-                    }
-                  />
-                  <div className="text-right">
-                    <a href="#" className="text-xs sm:text-sm text-gray-400 hover:text-white">
-                      Forgot Password?
-                    </a>
-                  </div>
-                  <button
-                    type="submit"
-                    className="w-full rounded-xl bg-[#FF3F3F] px-4 py-2 sm:py-3 text-white hover:bg-red-700 transition-all duration-500 ease-in-out text-sm sm:text-base"
-                  >
-                    Admin Sign In
-                  </button>
-                </form>
-              )}
+            {/* Tab Buttons */}
+            {Object.values(LOGIN_TYPES).map((type) => (
+              <button
+                key={type.id}
+                ref={tabRefs[type.id]}
+                onClick={() => handleTabSwitch(type.id)}
+                className={`relative z-10 flex-1 py-2.5 text-sm font-medium transition-colors ${
+                  activeLoginType === type.id ? "text-white" : "text-gray-400"
+                }`}
+              >
+                {type.label}
+              </button>
+            ))}
+          </div>
 
               {loginType === "member" && (
                 <form onSubmit={handleMemberSubmit} className="space-y-3 sm:space-y-4">
@@ -294,25 +312,24 @@ export default function SignInPage() {
                 </form>
               )}
 
-              {/* Sign Up Link */}
-              <div className="mt-6 text-center">
-                <span className="text-gray-400 text-sm">Don't have an account? </span>
-                <Link to="/register" className="text-blue-500 text-sm hover:underline">
-                  Sign Up
-                </Link>
+              {/* Forgot Password Link */}
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  className="text-xs sm:text-sm text-gray-400 hover:text-white transition-colors"
+                >
+                  Forgot Password?
+                </button>
               </div>
-            </div>
-          </div>
-        </div>
 
-        {/* ==== RIGHT SIDE (IMAGE) ==== */}
-        <div className="hidden lg:block flex-1 p-10">
-          <div className="relative h-full w-full">
-            <img
-              src={Art || "/placeholder.svg"}
-              alt="Fitness enthusiasts working out"
-              className="object-cover w-full h-full rounded-2xl"
-            />
+              {/* Submit Button */}
+              <button
+                type="submit"
+                className={`w-full rounded-xl ${config.bgColor} ${config.hoverColor} px-4 py-3 text-white font-medium transition-all duration-300 text-sm sm:text-base`}
+              >
+                Sign In as {config.label}
+              </button>
+            </form>
           </div>
         </div>
       </div>

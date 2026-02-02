@@ -55,11 +55,11 @@ import {
   SecurityScanOutlined,
 } from "@ant-design/icons"
 import DefaultAvatar from '../../../../public/gray-avatar-fotor-20250912192528.png'
-import "../../../custom-css/user-panel-configuration.css"
+import "../../../custom-css/studio-configuration.css"
 import { QRCode, Typography } from "antd"
 import { QrcodeOutlined, ImportOutlined } from "@ant-design/icons"
 
-import ContractBuilder from "../../../components/user-panel-components/configuration-components/ContractBuilder"
+import ContractBuilder from "../../../components/studio-components/configuration-components/ContractBuilder"
 import { WysiwygEditor } from "../../../components/shared/WysiwygEditor"
 import { PermissionModal } from "./permission-modal"
 

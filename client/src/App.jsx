@@ -1,7 +1,7 @@
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import Home from "./landing-page/home";
-import Footer from "./components/footer";
-import Header from "./components/navbar";
+import Footer from "./landing-page/footer";
+import Header from "./landing-page/navbar";
 import Login from './landing-page/login';
 import Register from './landing-page/register'
 import { useDispatch, useSelector } from 'react-redux';
@@ -37,7 +37,7 @@ import Tickets from "./dashboard-pages/user-panel-view/tickets";
 
 
 // Admin Dashboard
-import AdminDashboardLayout from './layouts/admin-dashboard-layout'
+import AdminDashboardLayout from './layouts/admin-view-layout'
 import AdminMyArea from './dashboard-pages/admin-view/my-area'
 import Studios from "./dashboard-pages/admin-view/studios";
 import AdminLeads from './dashboard-pages/admin-view/leads'
@@ -55,13 +55,13 @@ import AdminDemoAccess from './dashboard-pages/admin-view/demo-access'
 
 
 // Member Dashboard  
+import MemberDashboardLayout from "./layouts/member-view-layout";
 import MemberAppointments from './dashboard-pages/member-view/appointment'
 import MemberCommuncation from './dashboard-pages/member-view/communication'
 import MemberStudioMenu from './dashboard-pages/member-view/studio-menu'
 import MemberSettings from './dashboard-pages/member-view/configuration'
 import MemberViewProfile from './dashboard-pages/member-view/edit-profile'
 import MemberTraining from './dashboard-pages/member-view/training'
-import MemberDashboardLayout from "./layouts/member-dashboard-layout";
 import EditAdminPage from "./dashboard-pages/admin-view/edit-admin-page";
 import EditStudioPage from "./dashboard-pages/admin-view/edit-studio-page";
 import MemberFoodLogs from './dashboard-pages/member-view/nutrition-tracking/food-log'
@@ -119,7 +119,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="login" element={<Login />} />
-        <Route path="register" element={<Register />} />
+    
 
 
         <Route path="/dashboard" element={

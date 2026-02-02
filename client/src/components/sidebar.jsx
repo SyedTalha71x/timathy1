@@ -223,9 +223,13 @@ const FeedbackModal = ({
  * Props:
  * - isOpen: Boolean for mobile sidebar visibility
  * - onClose: Function to close mobile sidebar
+ * - isCollapsed: Boolean for collapsed state (optional, controlled externally)
+ * - onToggleCollapse: Function to toggle collapse (optional, controlled externally)
  */
-const Sidebar = ({ isOpen = false, onClose }) => {
-  const [isCollapsed, setIsCollapsed] = useState(false)
+const Sidebar = ({ isOpen = false, onClose, isCollapsed: externalIsCollapsed, onToggleCollapse }) => {
+  // Use external state if provided, otherwise use internal state
+  const [internalIsCollapsed, setInternalIsCollapsed] = useState(false)
+  const isCollapsed = externalIsCollapsed !== undefined ? externalIsCollapsed : internalIsCollapsed
   const [unreadMessages, setUnreadMessages] = useState(2)
   
   // Submenu states
@@ -283,7 +287,7 @@ const Sidebar = ({ isOpen = false, onClose }) => {
   const location = useLocation()
   const navigate = useNavigate()
 
-  const toggleCollapse = () => setIsCollapsed(!isCollapsed)
+  const toggleCollapse = onToggleCollapse || (() => setInternalIsCollapsed(!internalIsCollapsed))
 
   // Close sidebar on window resize (desktop)
   useEffect(() => {
@@ -472,22 +476,6 @@ const Sidebar = ({ isOpen = false, onClose }) => {
             ) : (
               <div className="w-full bg-orange-500 flex items-center justify-center p-2.5">
                 <img src="/Orgagym white.svg" className="h-16 w-auto max-w-full select-none pointer-events-none" alt="Orgagym Logo" draggable="false" />
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Collapse Button Section */}
-        <div className="p-2 hidden lg:block relative">
-          <div className={`flex ${isCollapsed ? "justify-center" : "items-center"} gap-4`}>
-            {!isCollapsed && (
-              <div className="absolute -right-1 top-1/2 transform -translate-y-1/2 bg-[#222222] rounded-full p-2 cursor-pointer z-50">
-                <ChevronLeft size={20} className="text-white" onClick={toggleCollapse} />
-              </div>
-            )}
-            {isCollapsed && (
-              <div className="absolute -right-2 top-1/3 transform -translate-y-1/2 bg-[#222222] rounded-full p-2 cursor-pointer z-50">
-                <ChevronRight size={20} className="text-white" onClick={toggleCollapse} />
               </div>
             )}
           </div>

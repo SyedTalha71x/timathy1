@@ -1,1588 +1,1887 @@
-// central sidebar reference code for widgets 
+// Central Sidebar - Widget Panel
+// Displays the same widgets as MyArea (except Analytics) in a sidebar format
+
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react/prop-types */
-/* eslint-disable no-unused-vars */
-import { useState, useRef, useCallback } from "react"
-import { Link } from "react-router-dom"
-import Chart from "react-apexcharts"
+import { useState, useEffect } from "react"
+import { createPortal } from "react-dom"
+import { useNavigate } from "react-router-dom"
 import {
   X,
-  Clock,
   ChevronDown,
   ChevronUp,
   Edit,
   Check,
   Plus,
-  MessageCircle,
-  ExternalLink,
-  MoreVertical,
-  Dumbbell,
   Eye,
   Bell,
   Settings,
-  AlertTriangle,
-  Info,
-  CalendarIcon,
-  Send,
-  Users,
-  Camera,
-  Reply,
-  Building2,
+  Clock,
   User,
+  Building2,
   Activity,
+  Reply,
+  ExternalLink,
   ChevronRight,
-  Minimize2,
-  Maximize2,
+  SlidersHorizontal,
+  Calendar,
+  CalendarCheck,
+  FileText,
+  MailWarning,
+  PauseCircle,
+  CreditCard,
+  UserCog,
 } from "lucide-react"
 import { toast } from "react-hot-toast"
-import PersonImage from '../../public/avatar3.png'
-import Avatar from "../../public/gray-avatar-fotor-20250912192528.png"
-import RightSidebarWidget from "./myarea-components/sidebar-components/RightSidebarWidget"
-import { SpecialNoteEditModal } from "./myarea-components/SpecialNoteEditModal"
+import { CiMonitor } from "react-icons/ci"
+
+// ============================================
+// Initials Avatar Component for Notifications
+// ============================================
+const InitialsAvatar = ({ firstName, lastName, size = 32, className = "", context = "member" }) => {
+  const getInitials = () => {
+    const firstInitial = firstName?.charAt(0)?.toUpperCase() || ""
+    const lastInitial = lastName?.charAt(0)?.toUpperCase() || ""
+    return `${firstInitial}${lastInitial}` || "?"
+  }
+
+  // Staff uses blue, members use orange
+  const bgColor = context === "staff" ? "bg-blue-600" : "bg-orange-500"
+
+  return (
+    <div
+      className={`${bgColor} rounded-xl flex items-center justify-center text-white font-semibold flex-shrink-0 ${className}`}
+      style={{ width: size, height: size, fontSize: size * 0.4 }}
+    >
+      {getInitials()}
+    </div>
+  )
+}
+
+// ============================================
+// Widget Component Imports
+// ============================================
+import ExpiringContractsWidget from "./myarea-components/widgets/ExpiringContractsWidget"
+import UpcomingAppointmentsWidget from "./myarea-components/widgets/UpcomingAppointmentsWidget"
 import StaffCheckInWidget from "./myarea-components/widgets/StaffWidgetCheckIn"
-import ViewManagementModal from "./myarea-components/sidebar-components/ViewManagementModal"
-import { bulletinBoardData, demoNotifications, memberTypesData } from "../utils/user-panel-states/myarea-states"
-import NotesWidget from "./myarea-components/widgets/NotesWidjets"
+import WebsiteLinksWidget from "./myarea-components/widgets/WebsiteLinksWidget"
+import ToDoWidget from "./myarea-components/widgets/ToDoWidget"
+import UpcomingBirthdaysWidget from "./myarea-components/widgets/UpcomingBirthdaysWidget"
 import BulletinBoardWidget from "./myarea-components/widgets/BulletinBoardWidget"
-import AddTaskModal from "./user-panel-components/todo-components/add-task-modal"
-import { configuredTagsData } from "../utils/user-panel-states/todo-states"
+import NotesWidget from "./myarea-components/widgets/NotesWidget"
 import ShiftScheduleWidget from "./myarea-components/widgets/ShiftScheduleWidget"
-import { createPortal } from "react-dom"
-import ReplyModal from "./myarea-components/sidebar-components/ReplyModal"
 
+// ============================================
+// Sidebar Component Imports
+// ============================================
+import DraggableWidget from "./myarea-components/DraggableWidget"
+import ViewManagementModal from "./myarea-components/ViewManagementModal"
+import ChatPopup from "./shared/communication/ChatPopup"
 
+// ============================================
+// Modal Component Imports
+// ============================================
+import AppointmentActionModal from "./studio-components/appointments-components/AppointmentActionModal"
+import EditMemberModalMain from "./studio-components/members-components/EditMemberModal"
+import EditLeadModal from "./studio-components/lead-studio-components/edit-lead-modal"
+import TrainingPlansModalMain from "./shared/training/TrainingPlanModal"
+import EditAppointmentModal from "./shared/appointments/EditAppointmentModal"
+
+// ============================================
+// Data Imports
+// ============================================
+import {
+  memberRelationsData,
+  availableMembersLeadsNew,
+  customLinksData,
+} from "../utils/studio-states/myarea-states"
+
+import {
+  generateSidebarActivityItems,
+  getTotalPendingCount,
+  activityMonitorTabs,
+} from "../utils/studio-states/activity-monitor-states"
+
+import {
+  appointmentsData,
+  membersData,
+  leadsData,
+  leadRelationsData,
+  freeAppointmentsData,
+  appointmentTypesData,
+  staffData,
+  memberChatListNew,
+  staffChatListNew,
+} from "../utils/studio-states"
+
+// ============================================
+// Constants
+// ============================================
+const WIDGET_DISPLAY_NAMES = {
+  todo: "To-Do",
+  birthday: "Birthdays",
+  websiteLinks: "Website Links",
+  appointments: "Upcoming Appointments",
+  expiringContracts: "Expiring Contracts",
+  bulletinBoard: "Bulletin Board",
+  notes: "Notes",
+  staffCheckIn: "Staff Check-In",
+  shiftSchedule: "Shift Schedule",
+}
+
+const RELATION_OPTIONS = {
+  family: ["Father", "Mother", "Brother", "Sister", "Uncle", "Aunt", "Cousin", "Grandfather", "Grandmother"],
+  friendship: ["Best Friend", "Close Friend", "Friend", "Acquaintance"],
+  relationship: ["Partner", "Spouse", "Ex-Partner", "Boyfriend", "Girlfriend"],
+  work: ["Colleague", "Boss", "Employee", "Business Partner", "Client"],
+  other: ["Neighbor", "Doctor", "Lawyer", "Trainer", "Other"],
+}
+
+const LEAD_COLUMNS = [
+  { id: "new", title: "New" },
+  { id: "contacted", title: "Contacted" },
+  { id: "qualified", title: "Qualified" },
+  { id: "negotiation", title: "Negotiation" },
+  { id: "won", title: "Won" },
+  { id: "lost", title: "Lost" },
+]
+
+const TRAINING_PLANS_DATA = {
+  1: [{ id: 1, name: "Beginner Full Body", description: "Complete full body workout for beginners", duration: "4 weeks", difficulty: "Beginner", assignedDate: "2025-01-15" }],
+  3: [{ id: 2, name: "Advanced Strength Training", description: "High intensity strength building program", duration: "8 weeks", difficulty: "Advanced", assignedDate: "2025-01-10" }],
+  4: [
+    { id: 4, name: "Muscle Building Split", description: "Targeted muscle building program", duration: "12 weeks", difficulty: "Intermediate", assignedDate: "2025-01-05" },
+    { id: 3, name: "Weight Loss Circuit", description: "Fat burning circuit training program", duration: "6 weeks", difficulty: "Intermediate", assignedDate: "2025-01-20" },
+  ],
+  6: [{ id: 1, name: "Beginner Full Body", description: "Complete full body workout for beginners", duration: "4 weeks", difficulty: "Beginner", assignedDate: "2025-01-18" }],
+}
+
+const AVAILABLE_TRAINING_PLANS = [
+  { id: 1, name: "Beginner Full Body", description: "Complete full body workout for beginners", duration: "4 weeks", difficulty: "Beginner" },
+  { id: 2, name: "Advanced Strength Training", description: "High intensity strength building program", duration: "8 weeks", difficulty: "Advanced" },
+  { id: 3, name: "Weight Loss Circuit", description: "Fat burning circuit training program", duration: "6 weeks", difficulty: "Intermediate" },
+  { id: 4, name: "Muscle Building Split", description: "Targeted muscle building program", duration: "12 weeks", difficulty: "Intermediate" },
+]
+
+// Activity types and tabs are imported from activity-monitor-states.jsx
+
+// ============================================
+// Main Sidebar Component
+// ============================================
 const Sidebar = ({
   isRightSidebarOpen,
-  toggleRightSidebar,
   isSidebarEditing,
   toggleSidebarEditing,
-  rightSidebarWidgets,
-  moveRightSidebarWidget,
-  removeRightSidebarWidget,
+  rightSidebarWidgets: propWidgets,
+  setRightSidebarWidgets: propSetWidgets,
+  moveRightSidebarWidget: propMoveWidget,
+  removeRightSidebarWidget: propRemoveWidget,
   setIsRightWidgetModalOpen,
-  todos,
-  setTodos,
-  handleTaskComplete,
-  openDropdownIndex,
-  toggleDropdown,
-  handleEditTask,
-  setTaskToCancel,
-  setTaskToDelete,
-  birthdays,
-  isBirthdayToday,
-  handleSendBirthdayMessage,
-  customLinks,
-  truncateUrl,
-  appointments,
-  handleDumbbellClick,
-  handleCheckIn,
-  handleAppointmentOptionsModal,
-  expiringContracts,
   onClose,
-  hasUnreadNotifications,
-  notifications,
-  onSaveSpecialNote,
 }) => {
-  const todoFilterDropdownRef = useRef(null);
-  const notePopoverRef = useRef(null);
+  const navigate = useNavigate()
+  
+  // Local widgets state - initialized from localStorage or props
+  const [localWidgets, setLocalWidgets] = useState(() => {
+    const saved = localStorage.getItem("sidebarWidgetsState")
+    if (saved) {
+      return JSON.parse(saved)
+    }
+    return propWidgets || []
+  })
+  
+  // Use local state if no setter is provided, otherwise use props
+  const rightSidebarWidgets = propSetWidgets ? propWidgets : localWidgets
+  const setRightSidebarWidgets = propSetWidgets || setLocalWidgets
+  
+  // Local move widget function
+  const moveWidget = (fromIndex, toIndex) => {
+    if (propMoveWidget && propSetWidgets) {
+      // Use prop function if available
+      propMoveWidget(fromIndex, toIndex)
+    } else {
+      // Use local state
+      if (toIndex < 0 || toIndex >= localWidgets.length) return
+      const newWidgets = [...localWidgets]
+      const [movedWidget] = newWidgets.splice(fromIndex, 1)
+      newWidgets.splice(toIndex, 0, movedWidget)
+      const updatedWidgets = newWidgets.map((widget, index) => ({
+        ...widget,
+        position: index,
+      }))
+      setLocalWidgets(updatedWidgets)
+    }
+  }
+  
+  // Local remove widget function
+  const removeWidget = (id) => {
+    if (propRemoveWidget && propSetWidgets) {
+      // Use prop function if available
+      propRemoveWidget(id)
+    } else {
+      // Use local state
+      setLocalWidgets((currentWidgets) => {
+        const filtered = currentWidgets.filter((w) => w.id !== id)
+        return filtered.map((widget, index) => ({
+          ...widget,
+          position: index,
+        }))
+      })
+    }
+  }
+  
+  // Persist local widgets to localStorage
+  useEffect(() => {
+    if (!propSetWidgets) {
+      localStorage.setItem("sidebarWidgetsState", JSON.stringify(localWidgets))
+    }
+  }, [localWidgets, propSetWidgets])
 
-  const [showActionConfirm, setShowActionConfirm] = useState(false);
-  const [pendingActivityAction, setPendingActivityAction] = useState(null);
+  // ============================================
+  // UI State
+  // ============================================
+  const [activeTab, setActiveTab] = useState("widgets")
+  const [collapsedWidgets, setCollapsedWidgets] = useState({})
 
-  const [savedViews, setSavedViews] = useState([]);
-  const [currentView, setCurrentView] = useState(null);
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("widgets");
+  // ============================================
+  // View Management State
+  // ============================================
+  const [savedViews, setSavedViews] = useState(() => {
+    // Load saved views from localStorage
+    const saved = localStorage.getItem("sidebarViews")
+    return saved ? JSON.parse(saved) : []
+  })
+  const [currentView, setCurrentView] = useState(() => {
+    // Load current view from localStorage
+    const saved = localStorage.getItem("sidebarCurrentView")
+    return saved ? JSON.parse(saved) : null
+  })
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false)
 
-  const [sidebarActiveNoteId, setSidebarActiveNoteId] = useState(null);
-  const [isSidebarSpecialNoteModalOpen, setIsSidebarSpecialNoteModalOpen] = useState(false);
-  const [selectedSidebarAppointmentForNote, setSelectedSidebarAppointmentForNote] = useState(null);
+  // ============================================
+  // Widget Settings State (visibleItems per widget - controls visible height)
+  // ============================================
+  const [widgetSettings, setWidgetSettings] = useState(() => {
+    // Load widget settings from localStorage
+    const saved = localStorage.getItem("sidebarWidgetSettings")
+    return saved ? JSON.parse(saved) : {}
+  })
+  const [openSettingsDropdown, setOpenSettingsDropdown] = useState(null)
+  const [tempInputValue, setTempInputValue] = useState("")
+  
+  // Persist views to localStorage
+  useEffect(() => {
+    localStorage.setItem("sidebarViews", JSON.stringify(savedViews))
+  }, [savedViews])
+  
+  useEffect(() => {
+    if (currentView) {
+      localStorage.setItem("sidebarCurrentView", JSON.stringify(currentView))
+    }
+  }, [currentView])
+  
+  useEffect(() => {
+    localStorage.setItem("sidebarWidgetSettings", JSON.stringify(widgetSettings))
+  }, [widgetSettings])
+  
+  // Load pinned view on mount
+  useEffect(() => {
+    const pinnedView = savedViews.find(view => view.isStandard)
+    if (pinnedView && setRightSidebarWidgets) {
+      // Load the pinned view's widgets
+      setRightSidebarWidgets([...pinnedView.widgets])
+      // Load widget settings if available
+      if (pinnedView.widgetSettings) {
+        setWidgetSettings({ ...pinnedView.widgetSettings })
+      }
+      setCurrentView(pinnedView)
+    }
+  }, []) // Only run on mount
+  
+  // Maximum visible items
+  const MAX_VISIBLE_ITEMS = 5
+  
+  // Default visible items per widget type
+  const getDefaultVisibleItems = (widgetType) => {
+    const defaults = {
+      todo: 2,
+      notes: 2,
+      bulletinBoard: 2,
+      appointments: 3,
+      expiringContracts: 3,
+      websiteLinks: 3,
+      birthday: 3,
+      shiftSchedule: 3,
+    }
+    return defaults[widgetType] || 3
+  }
+  
+  // Get visibleItems for a widget - this limits how many items are shown
+  const getWidgetVisibleItems = (widgetId, widgetType) => {
+    return widgetSettings[widgetId]?.visibleItems || getDefaultVisibleItems(widgetType)
+  }
+  
+  // Update visibleItems for a widget
+  const updateWidgetVisibleItems = (widgetId, visibleItems) => {
+    const clampedValue = Math.max(1, Math.min(MAX_VISIBLE_ITEMS, visibleItems))
+    setWidgetSettings(prev => ({
+      ...prev,
+      [widgetId]: { ...prev[widgetId], visibleItems: clampedValue }
+    }))
+    setOpenSettingsDropdown(null)
+    setTempInputValue("")
+  }
+  
+  // Widgets that support visibleItems setting (exclude staffCheckIn and chart)
+  const WIDGETS_WITH_SETTINGS = [
+    "appointments", "expiringContracts", "todo", "birthday", 
+    "websiteLinks", "bulletinBoard", "notes", "shiftSchedule"
+  ]
 
-  const [sidebarCustomLinks, setSidebarCustomLinks] = useState(customLinks || []);
-  const [sidebarOpenDropdownIndex, setSidebarOpenDropdownIndex] = useState(null);
-  const [editingLink, setEditingLink] = useState(null);
-  const [isWebsiteLinkModalOpen, setIsWebsiteLinkModalOpen] = useState(false);
+  // ============================================
+  // Widget Data State
+  // ============================================
+  const [customLinks, setCustomLinks] = useState(customLinksData)
+  const [appointments, setAppointments] = useState(appointmentsData)
+  const [memberRelations, setMemberRelations] = useState(memberRelationsData)
 
-  const [notePosition, setNotePosition] = useState({ top: 0, left: 0 });
-  const [hoveredNoteId, setHoveredNoteId] = useState(null);
-  const [hoverTimeout, setHoverTimeout] = useState(null);
+  // ============================================
+  // Appointment Modal State
+  // ============================================
+  const [isAppointmentActionModalOpen, setIsAppointmentActionModalOpen] = useState(false)
+  const [selectedAppointmentForAction, setSelectedAppointmentForAction] = useState(null)
+  const [isEditAppointmentModalOpen, setIsEditAppointmentModalOpen] = useState(false)
 
-  // Local state for todo filtering
-  const [todoFilter, setTodoFilter] = useState("all");
-  const [isTodoFilterDropdownOpen, setIsTodoFilterDropdownOpen] = useState(false);
+  // ============================================
+  // Edit Member Modal State
+  // ============================================
+  const [isEditMemberModalOpen, setIsEditMemberModalOpen] = useState(false)
+  const [selectedMemberForEdit, setSelectedMemberForEdit] = useState(null)
+  const [editMemberActiveTab, setEditMemberActiveTab] = useState("note")
+  const [editingRelationsMain, setEditingRelationsMain] = useState(false)
+  const [newRelationMain, setNewRelationMain] = useState({
+    name: "",
+    relation: "",
+    category: "family",
+    type: "manual",
+    selectedMemberId: null,
+  })
+  const [editFormMain, setEditFormMain] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    street: "",
+    zipCode: "",
+    city: "",
+    dateOfBirth: "",
+    about: "",
+    note: "",
+    noteStartDate: "",
+    noteEndDate: "",
+    noteImportance: "unimportant",
+    notes: [],
+  })
 
-  // New states for widget collapse and expand
-  const [collapsedWidgets, setCollapsedWidgets] = useState({});
-  const [expandedWidgetSizes, setExpandedWidgetSizes] = useState({});
+  // ============================================
+  // Edit Lead Modal State
+  // ============================================
+  const [isEditLeadModalOpen, setIsEditLeadModalOpen] = useState(false)
+  const [selectedLeadForEdit, setSelectedLeadForEdit] = useState(null)
+  const [editLeadActiveTab, setEditLeadActiveTab] = useState("note")
 
-  const [notificationData, setNotificationData] = useState(demoNotifications);
-  const [isReplyModalOpen, setIsReplyModalOpen] = useState(false);
-  const [selectedMessage, setSelectedMessage] = useState(null);
+  // ============================================
+  // Training Plan Modal State
+  // ============================================
+  const [isTrainingPlanModalOpen, setIsTrainingPlanModalOpen] = useState(false)
+  const [selectedUserForTrainingPlan, setSelectedUserForTrainingPlan] = useState(null)
+  const [memberTrainingPlans, setMemberTrainingPlans] = useState(TRAINING_PLANS_DATA)
+  const [availableTrainingPlans] = useState(AVAILABLE_TRAINING_PLANS)
+
+  // ============================================
+  // Notification State - generated from chat lists
+  // ============================================
+  const [notificationData, setNotificationData] = useState(() => {
+    // Generate initial notifications from chat lists
+    const memberNotifications = (memberChatListNew || []).map(chat => {
+      const lastMessage = chat.messages?.[chat.messages.length - 1]
+      const member = membersData.find(m => m.id === chat.memberId)
+      const isUnread = lastMessage && lastMessage.sender !== "You" && lastMessage.status !== "read"
+      
+      return {
+        id: `mc_${chat.id}`,
+        chatId: chat.id,
+        memberId: chat.memberId,
+        senderId: chat.memberId,
+        senderName: member ? `${member.firstName} ${member.lastName}` : chat.name,
+        senderAvatar: member?.image || chat.logo || null,
+        message: lastMessage?.content || "No messages",
+        time: lastMessage?.time || "",
+        isRead: !isUnread,
+        type: "member_chat",
+        dateOfBirth: member?.dateOfBirth
+      }
+    }).filter(n => n.memberId)
+    
+    const staffNotifications = (staffChatListNew || []).map(chat => {
+      const lastMessage = chat.messages?.[chat.messages.length - 1]
+      const staff = staffData.find(s => s.id === chat.staffId)
+      const isUnread = lastMessage && lastMessage.sender !== "You" && lastMessage.status !== "read"
+      
+      return {
+        id: `sc_${chat.id}`,
+        chatId: chat.id,
+        staffId: chat.staffId,
+        senderId: chat.staffId,
+        senderName: staff ? `${staff.firstName} ${staff.lastName}` : chat.name,
+        senderAvatar: staff?.img || staff?.image || chat.logo || null,
+        message: lastMessage?.content || "No messages",
+        time: lastMessage?.time || "",
+        isRead: !isUnread,
+        type: "studio_chat"
+      }
+    }).filter(n => n.staffId)
+    
+    return {
+      memberChat: memberNotifications,
+      studioChat: staffNotifications,
+    }
+  })
+  
+  // Activity Monitor State - separate from chat notifications
+  const [activityCategories, setActivityCategories] = useState(() => generateSidebarActivityItems())
+  
+  // ChatPopup state for notifications
+  const [isChatPopupOpen, setIsChatPopupOpen] = useState(false)
+  const [selectedChatMember, setSelectedChatMember] = useState(null)
+  const [chatContext, setChatContext] = useState("member") // "member" or "staff"
+  
   const [collapsedSections, setCollapsedSections] = useState({
     memberChat: false,
     studioChat: false,
     activityMonitor: false,
-  });
+  })
+  const [showActionConfirm, setShowActionConfirm] = useState(false)
+  const [pendingActivityAction, setPendingActivityAction] = useState(null)
 
-  const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
-  const [tasks, setTasks] = useState([]);
-  const [configuredTags, setConfiguredTags] = useState(configuredTagsData);
+  // ============================================
+  // Helper Functions
+  // ============================================
+  const getWidgetDisplayName = (widgetType) => WIDGET_DISPLAY_NAMES[widgetType] || widgetType
 
-  // Todo filter options
-  const todoFilterOptions = [
-    { value: "all", label: "All Tasks" },
-    { value: "ongoing", label: "Ongoing", color: "#f59e0b" },
-    { value: "completed", label: "Completed", color: "#10b981" },
-    { value: "canceled", label: "Canceled", color: "#ef4444" },
-  ];
-
-  // New functions for widget controls
-  const toggleWidgetCollapse = (widgetId) => {
-    setCollapsedWidgets(prev => ({
-      ...prev,
-      [widgetId]: !prev[widgetId]
-    }));
-  };
-
-  const toggleWidgetSize = (widgetId) => {
-    setExpandedWidgetSizes(prev => ({
-      ...prev,
-      [widgetId]: !prev[widgetId]
-    }));
-  };
-
-  const getWidgetHeightClass = (widgetId, defaultHeight = "h-auto") => {
-    if (expandedWidgetSizes[widgetId]) {
-      return "min-h-[500px] max-h-[600px] h-auto";
+  // Generate notifications from chat lists
+  const generateNotificationsFromChats = () => {
+    const memberNotifications = (memberChatListNew || []).map(chat => {
+      const lastMessage = chat.messages?.[chat.messages.length - 1]
+      const member = membersData.find(m => m.id === chat.memberId)
+      const isUnread = lastMessage && lastMessage.sender !== "You" && lastMessage.status !== "read"
+      
+      return {
+        id: `mc_${chat.id}`,
+        chatId: chat.id,
+        memberId: chat.memberId,
+        senderId: chat.memberId,
+        senderName: member ? `${member.firstName} ${member.lastName}` : chat.name,
+        senderAvatar: member?.image || chat.logo || null,
+        message: lastMessage?.content || "No messages",
+        time: lastMessage?.time || "",
+        isRead: !isUnread,
+        type: "member_chat",
+        dateOfBirth: member?.dateOfBirth
+      }
+    }).filter(n => n.memberId) // Only include chats with valid memberId
+    
+    const staffNotifications = (staffChatListNew || []).map(chat => {
+      const lastMessage = chat.messages?.[chat.messages.length - 1]
+      const staff = staffData.find(s => s.id === chat.staffId)
+      const isUnread = lastMessage && lastMessage.sender !== "You" && lastMessage.status !== "read"
+      
+      return {
+        id: `sc_${chat.id}`,
+        chatId: chat.id,
+        staffId: chat.staffId,
+        senderId: chat.staffId,
+        senderName: staff ? `${staff.firstName} ${staff.lastName}` : chat.name,
+        senderAvatar: staff?.img || staff?.image || chat.logo || null,
+        message: lastMessage?.content || "No messages",
+        time: lastMessage?.time || "",
+        isRead: !isUnread,
+        type: "studio_chat"
+      }
+    }).filter(n => n.staffId) // Only include chats with valid staffId
+    
+    return {
+      memberChat: memberNotifications,
+      studioChat: staffNotifications,
+      activityMonitor: demoNotifications?.activityMonitor || []
     }
-    return defaultHeight;
-  };
-
-  const getWidgetDisplayName = (widgetType) => {
-    const names = {
-      todo: "To-Do",
-      birthday: "Birthdays",
-      websiteLinks: "Website Links",
-      appointments: "Upcoming Appointments",
-      chart: "Analytics Chart",
-      expiringContracts: "Expiring Contracts",
-      bulletinBoard: "Bulletin Board",
-      notes: "Notes",
-      staffCheckIn: "Staff Login",
-      shiftSchedule: "Shift Schedule"
-    };
-    return names[widgetType] || widgetType;
-  };
-
-
-  const calculateAge = (dateOfBirth) => {
-    if (!dateOfBirth) return ""
-    const today = new Date()
-    const birthDate = new Date(dateOfBirth)
-    let age = today.getFullYear() - birthDate.getFullYear()
-    const m = today.getMonth() - birthDate.getMonth()
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-      age--
-    }
-    return age
   }
 
-  const handleAddTask = (newTask) => {
-    setTodos(prevTodos => [...prevTodos, newTask]);
-    toast.success("Task added successfully!");
-  };
+  const getMemberById = (memberId) => {
+    if (!memberId) return null
+    return membersData.find((m) => m.id === memberId) || null
+  }
 
-  const addCustomLink = () => {
-    setEditingLink({});
-    setIsWebsiteLinkModalOpen(true);
-  };
+  const getStaffById = (staffId) => {
+    if (!staffId) return null
+    return staffData.find((s) => s.id === staffId) || null
+  }
 
-  const updateCustomLink = (id, field, value) => {
-    setSidebarCustomLinks((currentLinks) =>
-      currentLinks.map((link) => (link.id === id ? { ...link, [field]: value } : link)),
-    );
-  };
-
-  const removeCustomLink = (id) => {
-    setSidebarCustomLinks((currentLinks) => currentLinks.filter((link) => link.id !== id));
-    setSidebarOpenDropdownIndex(null);
-  };
-
-  const getFilteredTodos = () => {
-    switch (todoFilter) {
-      case "ongoing":
-        return todos.filter((todo) => todo.status === "ongoing");
-      case "canceled":
-        return todos.filter((todo) => todo.status === "canceled");
-      case "completed":
-        return todos.filter((todo) => todo.status === "completed");
-      default:
-        return todos;
+  const getUnreadCount = (section) => {
+    if (section === "activityMonitor") {
+      // Activity Monitor count comes from categories
+      return Object.values(activityCategories).reduce((sum, cat) => sum + cat.count, 0)
     }
-  };
+    return notificationData[section]?.filter((msg) => !msg.isRead).length || 0
+  }
 
-  const handleSidebarEditNote = (appointmentId, currentNote) => {
-    const appointment = appointments.find((app) => app.id === appointmentId);
-    if (appointment) {
-      setIsSidebarSpecialNoteModalOpen(false);
-      setSelectedSidebarAppointmentForNote(null);
+  const getTotalUnreadCount = () => {
+    const chatCount = getUnreadCount("memberChat") + getUnreadCount("studioChat")
+    const activityCount = Object.values(activityCategories).reduce((sum, cat) => sum + cat.count, 0)
+    return chatCount + activityCount
+  }
 
-      setTimeout(() => {
-        setSelectedSidebarAppointmentForNote(appointment);
-        setIsSidebarSpecialNoteModalOpen(true);
-      }, 10);
-    }
-  };
-
-  const handleSaveSidebarSpecialNote = (appointmentId, updatedNote) => {
-    if (typeof onSaveSpecialNote === "function") {
-      onSaveSpecialNote(appointmentId, updatedNote);
-    }
-    toast.success("Special note updated successfully");
-  };
-
-  const renderSidebarSpecialNoteIcon = useCallback(
-    (specialNote, memberId) => {
-      if (!specialNote?.text) return null;
-      const isActive =
-        specialNote.startDate === null ||
-        (new Date() >= new Date(specialNote.startDate) && new Date() <= new Date(specialNote.endDate));
-      if (!isActive) return null;
-
-      const handleNoteClick = (e) => {
-        e.stopPropagation();
-        const rect = e.currentTarget.getBoundingClientRect();
-        setNotePosition({
-          top: rect.bottom + window.scrollY + 8,
-          left: rect.left + window.scrollX,
-        });
-        setSidebarActiveNoteId(sidebarActiveNoteId === memberId ? null : memberId);
-      };
-
-      const handleMouseEnter = (e) => {
-        e.stopPropagation();
-        if (hoverTimeout) {
-          clearTimeout(hoverTimeout);
-          setHoverTimeout(null);
-        }
-
-        const rect = e.currentTarget.getBoundingClientRect();
-        setNotePosition({
-          top: rect.bottom + window.scrollY + 8,
-          left: rect.left + window.scrollX,
-        });
-
-        const timeout = setTimeout(() => {
-          setHoveredNoteId(memberId);
-        }, 300);
-        setHoverTimeout(timeout);
-      };
-
-      const handleMouseLeave = (e) => {
-        e.stopPropagation();
-        if (hoverTimeout) {
-          clearTimeout(hoverTimeout);
-          setHoverTimeout(null);
-        }
-        setHoveredNoteId(null);
-      };
-
-      const handleEditClick = (e) => {
-        e.stopPropagation();
-        setSidebarActiveNoteId(null);
-        setHoveredNoteId(null);
-        handleSidebarEditNote(memberId, specialNote);
-      };
-
-      const shouldShowPopover = sidebarActiveNoteId === memberId || hoveredNoteId === memberId;
-
-      return (
-        <div className="relative">
-          <div
-            className={`${specialNote.isImportant ? "bg-red-500" : "bg-blue-500"
-              } rounded-full p-0.5 shadow-[0_0_0_1.5px_white] cursor-pointer transition-all duration-200 hover:scale-110`}
-            onClick={handleNoteClick}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
-          >
-            {specialNote.isImportant ? (
-              <AlertTriangle size={18} className="text-white" />
-            ) : (
-              <Info size={18} className="text-white" />
-            )}
-          </div>
-
-          {shouldShowPopover &&
-            createPortal(
-              <div
-                ref={notePopoverRef}
-                className="fixed w-64 sm:w-74 bg-black/90 backdrop-blur-xl rounded-lg border border-gray-700 shadow-lg z-[99999]"
-                style={{
-                  top: notePosition.top,
-                  left: notePosition.left,
-                }}
-                onMouseEnter={() => {
-                  if (hoveredNoteId === memberId) {
-                    setHoveredNoteId(memberId);
-                  }
-                }}
-                onMouseLeave={() => {
-                  if (hoveredNoteId === memberId) {
-                    setHoveredNoteId(null);
-                  }
-                }}
-              >
-                <div className="bg-gray-800 p-2 sm:p-3 rounded-t-lg border-b border-gray-700 flex items-center gap-2">
-                  {specialNote.isImportant ? (
-                    <AlertTriangle className="text-red-500 shrink-0" size={18} />
-                  ) : (
-                    <Info className="text-blue-500 shrink-0" size={18} />
-                  )}
-                  <h4 className="text-white flex gap-1 items-center font-medium">
-                    <div>Special Note</div>
-                    <div className="text-sm text-gray-400">{specialNote.isImportant ? "(Important)" : ""}</div>
-                  </h4>
-                  <button
-                    onClick={handleEditClick}
-                    className="ml-auto text-gray-400 hover:text-white mr-2 transition-colors"
-                    title="Edit Note"
-                  >
-                    <Edit size={16} />
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSidebarActiveNoteId(null);
-                      setHoveredNoteId(null);
-                    }}
-                    className="text-gray-400 hover:text-white transition-colors"
-                    title="Close"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-                <div className="p-3">
-                  <p className="text-white text-sm leading-relaxed">{specialNote.text}</p>
-                  {specialNote.startDate && specialNote.endDate ? (
-                    <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
-                      <p className="text-xs text-gray-300 flex items-center gap-1.5">
-                        <CalendarIcon size={12} />
-                        Valid from {new Date(specialNote.startDate).toLocaleDateString()} to{" "}
-                        {new Date(specialNote.endDate).toLocaleDateString()}
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="mt-3 bg-gray-800/50 p-2 rounded-md border-l-2 border-blue-500">
-                      <p className="text-xs text-gray-300 flex items-center gap-1.5">
-                        <CalendarIcon size={12} />
-                        Always valid
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>,
-              document.body
-            )}
-        </div>
-      );
-    },
-    [sidebarActiveNoteId, notePosition, hoveredNoteId, hoverTimeout],
-  );
-
-  const handleActionClick = (e, activity, action) => {
-    e.stopPropagation();
-    setPendingActivityAction({ activity, action });
-    setShowActionConfirm(true);
-  };
-
-  const handleConfirmAction = () => {
-    if (pendingActivityAction) {
-      handleActivityAction(pendingActivityAction.activity, pendingActivityAction.action);
-      setShowActionConfirm(false);
-      setPendingActivityAction(null);
-    }
-  };
-
-  const activityTypes = {
-    vacation: { icon: Users, color: "bg-blue-600" },
-    contract: { icon: Building2, color: "bg-orange-600" },
-    appointment: { icon: CalendarIcon, color: "bg-green-600" },
-    email: { icon: MessageCircle, color: "bg-purple-600" },
-  };
-
-  const handleMessageClick = (message) => {
-    setSelectedMessage(message);
-    setIsReplyModalOpen(true);
-  };
-
-  const handleSendReply = (chatId, replyText) => {
-    console.log(`Sending reply to chat ${chatId}: ${replyText}`);
-    setNotificationData((prev) => ({
+  // ============================================
+  // Widget Control Handlers
+  // ============================================
+  const toggleWidgetCollapse = (widgetId) => {
+    setCollapsedWidgets((prev) => ({
       ...prev,
-      memberChat: prev.memberChat.map((msg) => (msg.chatId === chatId ? { ...msg, isRead: true } : msg)),
-      studioChat: prev.studioChat.map((msg) => (msg.chatId === chatId ? { ...msg, isRead: true } : msg)),
-    }));
-  };
+      [widgetId]: !prev[widgetId],
+    }))
+  }
 
-  const handleOpenFullMessenger = () => {
-    window.location.href = "/dashboard/communication";
-  };
+  // ============================================
+  // Appointment Handlers
+  // ============================================
+  const handleCheckIn = (appointmentId) => {
+    setAppointments((prevAppointments) =>
+      prevAppointments.map((appointment) =>
+        appointment.id === appointmentId
+          ? { ...appointment, isCheckedIn: !appointment.isCheckedIn }
+          : appointment
+      )
+    )
+    const appointment = appointments.find((app) => app.id === appointmentId)
+    toast.success(appointment?.isCheckedIn ? "Member checked out successfully" : "Member checked in successfully")
+  }
 
+  const handleAppointmentOptionsModal = (appointment) => {
+    if (appointment.isBlocked || appointment.type === "Blocked Time") return
+    setSelectedAppointmentForAction(appointment)
+    setIsAppointmentActionModalOpen(true)
+  }
+
+  const handleEditAppointment = () => {
+    setIsAppointmentActionModalOpen(false)
+    setIsEditAppointmentModalOpen(true)
+  }
+
+  const handleCancelAppointment = () => {
+    if (selectedAppointmentForAction) {
+      setAppointments((prev) =>
+        prev.map((app) =>
+          app.id === selectedAppointmentForAction.id ? { ...app, isCancelled: true } : app
+        )
+      )
+    }
+    setIsAppointmentActionModalOpen(false)
+    setSelectedAppointmentForAction(null)
+  }
+
+  const handleDeleteAppointment = () => {
+    setAppointments((prev) => prev.filter((a) => a.id !== selectedAppointmentForAction?.id))
+    setIsAppointmentActionModalOpen(false)
+    setSelectedAppointmentForAction(null)
+  }
+
+  const handleViewMemberDetails = () => {
+    setIsAppointmentActionModalOpen(false)
+    if (!selectedAppointmentForAction) return
+
+    const { memberId, leadId, name, lastName } = selectedAppointmentForAction
+
+    if (memberId) {
+      const memberName = lastName ? `${name} ${lastName}` : name
+      navigate("/dashboard/members", {
+        state: { filterMemberId: memberId, filterMemberName: memberName },
+      })
+    } else if (leadId) {
+      navigate("/dashboard/leads", {
+        state: { filterLeadId: leadId },
+      })
+    }
+  }
+
+  // ============================================
+  // Edit Member Modal Handlers
+  // ============================================
+  const handleOpenEditMemberModal = (member, tab = "note") => {
+    if (!member) return
+
+    setSelectedMemberForEdit({
+      ...member,
+      note: member.note || "",
+      noteStartDate: member.noteStartDate || "",
+      noteEndDate: member.noteEndDate || "",
+      noteImportance: member.noteImportance || "unimportant",
+    })
+
+    setEditFormMain({
+      firstName: member.firstName || member.name?.split(" ")[0] || "",
+      lastName: member.lastName || member.name?.split(" ").slice(1).join(" ") || "",
+      email: member.email || "",
+      phone: member.phone || "",
+      street: member.street || "",
+      zipCode: member.zipCode || "",
+      city: member.city || "",
+      dateOfBirth: member.dateOfBirth || "",
+      about: member.about || "",
+      note: member.note || "",
+      noteStartDate: member.noteStartDate || "",
+      noteEndDate: member.noteEndDate || "",
+      noteImportance: member.noteImportance || "unimportant",
+      notes: member.notes || [],
+    })
+
+    setEditMemberActiveTab(tab)
+    setIsEditMemberModalOpen(true)
+  }
+
+  const handleInputChangeMain = (e) => {
+    const { name, value } = e.target
+    setEditFormMain((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleEditSubmitMain = (e, localRelations = null) => {
+    e?.preventDefault()
+
+    if (localRelations && selectedMemberForEdit?.id) {
+      setMemberRelations((prev) => ({
+        ...prev,
+        [selectedMemberForEdit.id]: localRelations,
+      }))
+    }
+
+    setIsEditMemberModalOpen(false)
+    setSelectedMemberForEdit(null)
+    setEditingRelationsMain(false)
+    toast.success("Member details have been updated successfully")
+  }
+
+  const handleAddRelationMain = () => {
+    if (!selectedMemberForEdit || !newRelationMain.name || !newRelationMain.relation) return
+
+    const { id: memberId } = selectedMemberForEdit
+    const { category } = newRelationMain
+
+    const newRelation = {
+      id: Date.now(),
+      name: newRelationMain.name,
+      relation: newRelationMain.relation,
+      type: newRelationMain.type,
+      memberId: newRelationMain.selectedMemberId,
+    }
+
+    setMemberRelations((prev) => ({
+      ...prev,
+      [memberId]: {
+        ...prev[memberId],
+        [category]: [...(prev[memberId]?.[category] || []), newRelation],
+      },
+    }))
+
+    setNewRelationMain({
+      name: "",
+      relation: "",
+      category: "family",
+      type: "manual",
+      selectedMemberId: null,
+    })
+    toast.success("Relation added successfully")
+  }
+
+  const handleDeleteRelationMain = (memberId, category, relationId) => {
+    setMemberRelations((prev) => ({
+      ...prev,
+      [memberId]: {
+        ...prev[memberId],
+        [category]: prev[memberId]?.[category]?.filter((r) => r.id !== relationId) || [],
+      },
+    }))
+    toast.success("Relation deleted successfully")
+  }
+
+  const handleCloseEditMemberModal = () => {
+    setIsEditMemberModalOpen(false)
+    setSelectedMemberForEdit(null)
+    setEditingRelationsMain(false)
+  }
+
+  // ============================================
+  // Edit Lead Modal Handlers
+  // ============================================
+  const handleOpenEditLeadModal = (leadId, tab = "note") => {
+    const lead = leadsData.find((l) => l.id === leadId)
+    if (!lead) return
+
+    setSelectedLeadForEdit({
+      ...lead,
+      note: lead.note || "",
+      noteStartDate: lead.noteStartDate || "",
+      noteEndDate: lead.noteEndDate || "",
+      noteImportance: lead.noteImportance || "unimportant",
+    })
+    setEditLeadActiveTab(tab)
+    setIsEditLeadModalOpen(true)
+  }
+
+  const handleSaveEditLead = () => {
+    setIsEditLeadModalOpen(false)
+    setSelectedLeadForEdit(null)
+    toast.success("Lead details have been updated successfully")
+  }
+
+  const handleCloseEditLeadModal = () => {
+    setIsEditLeadModalOpen(false)
+    setSelectedLeadForEdit(null)
+  }
+
+  // ============================================
+  // Training Plan Handlers
+  // ============================================
+  const handleDumbbellClick = (appointment, e) => {
+    if (e) e.stopPropagation()
+
+    const memberData = {
+      id: appointment.memberId,
+      firstName: appointment.name,
+      lastName: appointment.lastName || "",
+      email: appointment.email || "",
+    }
+
+    setSelectedUserForTrainingPlan(memberData)
+    setIsTrainingPlanModalOpen(true)
+  }
+
+  const handleAssignTrainingPlan = (memberId, planId) => {
+    const plan = availableTrainingPlans.find((p) => p.id === Number.parseInt(planId))
+    if (plan) {
+      const assignedPlan = {
+        ...plan,
+        assignedDate: new Date().toLocaleDateString(),
+      }
+
+      setMemberTrainingPlans((prev) => ({
+        ...prev,
+        [memberId]: [...(prev[memberId] || []), assignedPlan],
+      }))
+
+      toast.success(`Training plan "${plan.name}" assigned successfully!`)
+    }
+  }
+
+  const handleRemoveTrainingPlan = (memberId, planId) => {
+    setMemberTrainingPlans((prev) => ({
+      ...prev,
+      [memberId]: (prev[memberId] || []).filter((plan) => plan.id !== planId),
+    }))
+    toast.success("Training plan removed successfully!")
+  }
+
+  const handleCloseTrainingPlanModal = () => {
+    setIsTrainingPlanModalOpen(false)
+    setSelectedUserForTrainingPlan(null)
+  }
+
+  // ============================================
+  // Website Links Handlers
+  // ============================================
+  const handleAddLink = (newLink) => setCustomLinks((prev) => [...prev, newLink])
+
+  const handleEditLink = (updatedLink) => {
+    setCustomLinks((currentLinks) =>
+      currentLinks.map((link) => (link.id === updatedLink.id ? { ...link, ...updatedLink } : link))
+    )
+  }
+
+  const handleRemoveLink = (linkId) => {
+    setCustomLinks((currentLinks) => currentLinks.filter((link) => link.id !== linkId))
+  }
+
+  // ============================================
+  // Notification Handlers
+  // ============================================
   const toggleNotificationSection = (section) => {
     setCollapsedSections((prev) => ({
       ...prev,
       [section]: !prev[section],
-    }));
-  };
+    }))
+  }
 
   const markMessageAsRead = (messageId, messageType) => {
-    const sectionKey = messageType === "member_chat" ? "memberChat" : "studioChat";
+    const sectionKey = messageType === "member_chat" ? "memberChat" : "studioChat"
     setNotificationData((prev) => ({
       ...prev,
-      [sectionKey]: prev[sectionKey].map((msg) => (msg.id === messageId ? { ...msg, isRead: true } : msg)),
-    }));
-  };
-
-  const getUnreadCount = (section) => {
-    return notificationData[section].filter((msg) => !msg.isRead).length;
-  };
-
-  const handleActivityAction = (activity, action) => {
-    console.log(`Performing ${action} on activity:`, activity.id);
-    setNotificationData((prev) => ({
-      ...prev,
-      activityMonitor: prev.activityMonitor.map((item) =>
-        item.id === activity.id
-          ? {
-            ...item,
-            status: action === "approve" || action === "resolve" ? "completed" :
-              action === "reject" ? "rejected" : item.status,
-            isRead: true,
-            actionRequired: false
-          }
-          : item
+      [sectionKey]: prev[sectionKey].map((msg) =>
+        msg.id === messageId ? { ...msg, isRead: true } : msg
       ),
-    }));
+    }))
+  }
 
-    const actionMessages = {
-      approve: "Vacation request approved",
-      reject: "Vacation request rejected",
-      resolve: "Activity marked as resolved",
-      archive: "Activity archived",
-    };
-
-    toast.success(actionMessages[action] || "Action completed");
-  };
-
-  const handleActivityClick = (activity) => {
-    markMessageAsRead(activity.id, activity.type);
-    console.log("Activity clicked:", activity);
-  };
-
-  const handleJumpToActivityMonitor = (activity) => {
-    window.location.href = "/dashboard/activity-monitor";
-  };
-
-  const WebsiteLinkModal = ({ link, onClose }) => {
-    const [title, setTitle] = useState(link?.title?.trim() || "");
-    const [url, setUrl] = useState(link?.url?.trim() || "");
-
-    const handleSave = () => {
-      if (!title.trim() || !url.trim()) return;
-      if (link?.id) {
-        updateCustomLink(link.id, "title", title);
-        updateCustomLink(link.id, "url", url);
-      } else {
-        const newLink = {
-          id: `link${Date.now()}`,
-          url: url.trim(),
-          title: title.trim(),
-        };
-        setSidebarCustomLinks((prev) => [...prev, newLink]);
+  const handleMessageClick = (message) => {
+    // Determine context based on message type
+    const isStudioChat = message.type === "studio_chat"
+    
+    let personId = null
+    let personData = null
+    
+    if (isStudioChat) {
+      // Get staffId from notification or find in chat list
+      personId = message.staffId || message.senderId
+      
+      // If no direct staffId, try to find in chat list
+      if (!personId && message.chatId) {
+        const chatData = staffChatListNew?.find(c => c.id === message.chatId)
+        personId = chatData?.staffId
       }
-      onClose();
-    };
+      
+      // Get the REAL staff object from staffData
+      if (personId) {
+        const staff = staffData.find(s => s.id === personId)
+        if (staff) {
+          personData = {
+            id: staff.id,
+            firstName: staff.firstName,
+            lastName: staff.lastName,
+            name: `${staff.firstName} ${staff.lastName}`,
+            image: staff.img || staff.image,
+            email: staff.email,
+            dateOfBirth: staff.dateOfBirth
+          }
+        }
+      }
+    } else {
+      // Get memberId from notification or find in chat list
+      personId = message.memberId || message.senderId
+      
+      // If no direct memberId, try to find in chat list
+      if (!personId && message.chatId) {
+        const chatData = memberChatListNew?.find(c => c.id === message.chatId)
+        personId = chatData?.memberId
+      }
+      
+      // Get the REAL member object from membersData
+      if (personId) {
+        const member = membersData.find(m => m.id === personId)
+        if (member) {
+          personData = {
+            id: member.id,
+            firstName: member.firstName,
+            lastName: member.lastName,
+            name: `${member.firstName} ${member.lastName}`,
+            image: member.image,
+            email: member.email,
+            dateOfBirth: member.dateOfBirth
+          }
+        }
+      }
+    }
+    
+    // If we found the person, open chat
+    if (personData) {
+      setSelectedChatMember(personData)
+      setChatContext(isStudioChat ? "staff" : "member")
+      setIsChatPopupOpen(true)
+      markMessageAsRead(message.id, message.type)
+    } else {
+      // Fallback: Use notification data directly (not ideal but prevents crash)
+      console.warn("Could not find person data for notification:", message)
+      toast.error("Chat konnte nicht geöffnet werden")
+    }
+  }
+  
+  const handleCloseChatPopup = () => {
+    setIsChatPopupOpen(false)
+    setSelectedChatMember(null)
+  }
 
-    return (
-      <div className="fixed inset-0 text-white bg-black/50 flex items-center justify-center z-50">
-        <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
-          <div className="p-6 space-y-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-lg font-semibold">Website link</h2>
-              <button onClick={onClose} className="p-2 hover:bg-zinc-700 rounded-lg">
-                <X size={16} />
-              </button>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm text-zinc-400 mb-1">Title</label>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="w-full p-3 bg-black rounded-xl text-sm outline-none"
-                  placeholder="Enter title"
-                />
-              </div>
-              <div>
-                <label className="block text-sm text-zinc-400 mb-1">URL</label>
-                <input
-                  type="text"
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  className="w-full p-3 bg-black rounded-xl text-sm outline-none"
-                  placeholder="Enter URL"
-                />
-              </div>
-            </div>
-            <div className="flex gap-2 pt-4">
-              <button
-                onClick={onClose}
-                className="flex-1 px-4 py-2 bg-zinc-700 hover:bg-zinc-600 rounded-lg font-medium"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSave}
-                className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium"
-              >
-                Save
-              </button>
+  const handleSendReply = (chatId, replyText) => {
+    console.log(`Sending reply to chat ${chatId}: ${replyText}`)
+    setNotificationData((prev) => ({
+      ...prev,
+      memberChat: prev.memberChat.map((msg) => (msg.chatId === chatId ? { ...msg, isRead: true } : msg)),
+      studioChat: prev.studioChat.map((msg) => (msg.chatId === chatId ? { ...msg, isRead: true } : msg)),
+    }))
+  }
+
+  const handleOpenFullMessenger = (member, context) => {
+    // Navigate to communication page with the chat pre-selected
+    if (member && member.id) {
+      const chatType = context === "staff" ? "company" : "member"
+      navigate("/dashboard/communication", {
+        state: {
+          openChatId: member.id,
+          openChatType: chatType
+        }
+      })
+    } else {
+      navigate("/dashboard/communication")
+    }
+  }
+
+  // ============================================
+  // Activity Monitor Handlers
+  // ============================================
+  const handleActivityAction = (categoryId, itemId, action) => {
+    // Update the activity categories state
+    setActivityCategories((prev) => {
+      const updated = { ...prev }
+      if (updated[categoryId]) {
+        updated[categoryId] = {
+          ...updated[categoryId],
+          items: updated[categoryId].items.filter(item => item.id !== itemId),
+          count: updated[categoryId].count - 1,
+        }
+        // Remove category if empty
+        if (updated[categoryId].count <= 0) {
+          delete updated[categoryId]
+        }
+      }
+      return updated
+    })
+
+    // Activity-type specific messages
+    const getActionMessage = (categoryId, action) => {
+      const messages = {
+        vacation: {
+          approve: "Vacation request approved",
+          reject: "Vacation request rejected",
+        },
+        appointments: {
+          approve: "Appointment confirmed",
+          reject: "Appointment rejected",
+        },
+        contracts: {
+          view: "Opening contract details",
+        },
+        contractPause: {
+          approve: "Contract pause approved",
+          reject: "Contract pause rejected",
+        },
+        memberData: {
+          approve: "Data change approved",
+          reject: "Data change rejected",
+        },
+        bankData: {
+          approve: "Bank data change approved",
+          reject: "Bank data change rejected",
+        },
+        emails: {
+          retry: "Email retry initiated",
+        },
+      }
+      return messages[categoryId]?.[action] || "Action completed"
+    }
+
+    toast.success(getActionMessage(categoryId, action))
+  }
+
+  const handleJumpToActivityMonitor = (tabId) => {
+    // Navigate to activity monitor with the specific tab
+    navigate(`/dashboard/activity-monitor?tab=${tabId || "appointments"}`)
+  }
+
+  const handleConfirmAction = () => {
+    if (pendingActivityAction) {
+      const { categoryId, itemId, action } = pendingActivityAction
+      handleActivityAction(categoryId, itemId, action)
+      setShowActionConfirm(false)
+      setPendingActivityAction(null)
+    }
+  }
+
+  // ============================================
+  // Render Widget Content - Widgets have their own headers, but we hide them in sidebar
+  // ============================================
+  const renderWidgetContent = (widget) => {
+    // Pass showHeader={false} to widgets so they don't show their internal headers
+    // The sidebar shows its own header with the collapse chevron
+    // maxItems limits how many items are displayed
+    const visibleItems = getWidgetVisibleItems(widget.id, widget.type)
+    const commonProps = { 
+      showHeader: false,
+      maxItems: visibleItems
+    }
+    
+    switch (widget.type) {
+      case "expiringContracts":
+        return <ExpiringContractsWidget isSidebarEditing={isSidebarEditing} {...commonProps} />
+
+      case "appointments":
+        return (
+          <UpcomingAppointmentsWidget
+            isSidebarEditing={isSidebarEditing}
+            appointments={appointments}
+            onAppointmentClick={handleAppointmentOptionsModal}
+            onCheckIn={handleCheckIn}
+            onOpenEditMemberModal={handleOpenEditMemberModal}
+            onOpenEditLeadModal={handleOpenEditLeadModal}
+            onOpenTrainingPlansModal={handleDumbbellClick}
+            getMemberById={getMemberById}
+            showCollapseButton={false}
+            useFixedHeight={false}
+            backgroundColor="bg-[#2F2F2F]"
+            showDatePicker={true}
+            initialDate={new Date()}
+            {...commonProps}
+          />
+        )
+
+      case "staffCheckIn":
+        return <StaffCheckInWidget compact={true} showHeader={false} />
+
+      case "websiteLinks":
+        return (
+          <WebsiteLinksWidget
+            isEditing={isSidebarEditing}
+            onRemove={() => removeWidget(widget.id)}
+            customLinks={customLinks}
+            onAddLink={handleAddLink}
+            onEditLink={handleEditLink}
+            onRemoveLink={handleRemoveLink}
+            {...commonProps}
+          />
+        )
+
+      case "todo":
+        return <ToDoWidget isSidebarEditing={isSidebarEditing} compactMode={true} {...commonProps} />
+
+      case "birthday":
+        return <UpcomingBirthdaysWidget isSidebarEditing={isSidebarEditing} {...commonProps} />
+
+      case "bulletinBoard":
+        return <BulletinBoardWidget isSidebarEditing={isSidebarEditing} {...commonProps} />
+
+      case "notes":
+        return <NotesWidget isSidebarEditing={isSidebarEditing} {...commonProps} />
+
+      case "shiftSchedule":
+        return (
+          <ShiftScheduleWidget
+            isEditing={isSidebarEditing}
+            onRemove={() => removeWidget(widget.id)}
+            {...commonProps}
+          />
+        )
+
+      default:
+        return null
+    }
+  }
+
+  // ============================================
+  // Render Notifications Tab
+  // ============================================
+  const renderNotificationsTab = () => (
+    <div className="space-y-4">
+      <h2 className="text-lg md:text-xl font-bold">Notifications</h2>
+
+      {/* Member Chat Section */}
+      <NotificationSection
+        title="Member Chat"
+        icon={<User size={16} className="inline mr-2" />}
+        isCollapsed={collapsedSections.memberChat}
+        onToggle={() => toggleNotificationSection("memberChat")}
+        unreadCount={getUnreadCount("memberChat")}
+        messages={notificationData.memberChat}
+        onMessageClick={(msg) => {
+          handleMessageClick(msg)
+          markMessageAsRead(msg.id, msg.type)
+        }}
+        emptyMessage="No member messages"
+        highlightClass="bg-blue-900/20"
+        context="member"
+      />
+
+      {/* Studio Chat Section */}
+      <NotificationSection
+        title="Studio Chat"
+        icon={<Building2 size={16} className="inline mr-2" />}
+        isCollapsed={collapsedSections.studioChat}
+        onToggle={() => toggleNotificationSection("studioChat")}
+        unreadCount={getUnreadCount("studioChat")}
+        messages={notificationData.studioChat}
+        onMessageClick={(msg) => {
+          handleMessageClick(msg)
+          markMessageAsRead(msg.id, msg.type)
+        }}
+        emptyMessage="No studio messages"
+        highlightClass="bg-green-900/20"
+        context="staff"
+      />
+
+      {/* Activity Monitor Section */}
+      <ActivityMonitorSection
+        isCollapsed={collapsedSections.activityMonitor}
+        onToggle={() => toggleNotificationSection("activityMonitor")}
+        totalCount={getUnreadCount("activityMonitor")}
+        categories={activityCategories}
+        onAction={(categoryId, itemId, action) => {
+          setPendingActivityAction({ categoryId, itemId, action })
+          setShowActionConfirm(true)
+        }}
+        onJumpTo={handleJumpToActivityMonitor}
+      />
+    </div>
+  )
+
+  // ============================================
+  // Render Modals via Portal (centered on screen)
+  // ============================================
+  const renderModals = () => {
+    if (typeof document === 'undefined') return null
+
+    return createPortal(
+      <>
+        {/* Chat Popup for Notifications */}
+        {isChatPopupOpen && selectedChatMember && (
+          <ChatPopup
+            member={selectedChatMember}
+            isOpen={isChatPopupOpen}
+            onClose={handleCloseChatPopup}
+            onNavigateToChat={() => {
+              const member = selectedChatMember
+              const context = chatContext
+              handleCloseChatPopup()
+              handleOpenFullMessenger(member, context)
+            }}
+            context={chatContext}
+            communicationsPath="/dashboard/communication"
+          />
+        )}
+
+        {/* View Management Modal */}
+        {isViewModalOpen && (
+          <ViewManagementModal
+            isOpen={isViewModalOpen}
+            onClose={() => setIsViewModalOpen(false)}
+            savedViews={savedViews}
+            setSavedViews={setSavedViews}
+            currentView={currentView}
+            setCurrentView={setCurrentView}
+            sidebarWidgets={rightSidebarWidgets}
+            setSidebarWidgets={setRightSidebarWidgets}
+            widgetSettings={widgetSettings}
+            setWidgetSettings={setWidgetSettings}
+            variant="sidebar"
+          />
+        )}
+
+        {/* Appointment Action Modal */}
+        {isAppointmentActionModalOpen && (
+          <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/70" onClick={() => setIsAppointmentActionModalOpen(false)} />
+            <div className="relative z-10 w-full max-w-lg">
+              <AppointmentActionModal
+                isOpen={isAppointmentActionModalOpen}
+                onClose={() => {
+                  setIsAppointmentActionModalOpen(false)
+                  setSelectedAppointmentForAction(null)
+                }}
+                appointmentMain={selectedAppointmentForAction}
+                onEdit={handleEditAppointment}
+                onCancel={handleCancelAppointment}
+                onDelete={handleDeleteAppointment}
+                onViewMember={handleViewMemberDetails}
+                onEditMemberNote={handleOpenEditMemberModal}
+                onOpenEditLeadModal={handleOpenEditLeadModal}
+                memberRelations={memberRelationsData}
+                leadRelations={leadRelationsData}
+                appointmentsMain={appointments}
+                setAppointmentsMain={setAppointments}
+              />
             </div>
           </div>
-        </div>
-      </div>
-    );
-  };
+        )}
 
+        {/* Edit Appointment Modal */}
+        {isEditAppointmentModalOpen && selectedAppointmentForAction && (
+          <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/70" onClick={() => setIsEditAppointmentModalOpen(false)} />
+            <div className="relative z-10 w-full max-w-2xl max-h-[90vh] overflow-auto">
+              <EditAppointmentModal
+                selectedAppointmentMain={selectedAppointmentForAction}
+                setSelectedAppointmentMain={setSelectedAppointmentForAction}
+                appointmentTypesMain={appointmentTypesData}
+                freeAppointmentsMain={freeAppointmentsData}
+                handleAppointmentChange={(changes) =>
+                  setSelectedAppointmentForAction((prev) => ({ ...prev, ...changes }))
+                }
+                appointmentsMain={appointments}
+                setAppointmentsMain={setAppointments}
+                setIsNotifyMemberOpenMain={() => {}}
+                setNotifyActionMain={() => {}}
+                onDelete={() => {
+                  setAppointments((prev) => prev.filter((a) => a.id !== selectedAppointmentForAction?.id))
+                  setIsEditAppointmentModalOpen(false)
+                  setSelectedAppointmentForAction(null)
+                }}
+                onClose={() => {
+                  setIsEditAppointmentModalOpen(false)
+                  setSelectedAppointmentForAction(null)
+                }}
+                onOpenEditMemberModal={handleOpenEditMemberModal}
+                onOpenEditLeadModal={handleOpenEditLeadModal}
+                memberRelations={memberRelationsData}
+                leadRelations={leadRelationsData}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Edit Member Modal */}
+        {isEditMemberModalOpen && selectedMemberForEdit && (
+          <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/70" onClick={handleCloseEditMemberModal} />
+            <div className="relative z-10 w-full max-w-4xl max-h-[90vh] overflow-auto">
+              <EditMemberModalMain
+                isOpen={isEditMemberModalOpen}
+                onClose={handleCloseEditMemberModal}
+                selectedMemberMain={selectedMemberForEdit}
+                editModalTabMain={editMemberActiveTab}
+                setEditModalTabMain={setEditMemberActiveTab}
+                editFormMain={editFormMain}
+                handleInputChangeMain={handleInputChangeMain}
+                handleEditSubmitMain={handleEditSubmitMain}
+                editingRelationsMain={editingRelationsMain}
+                setEditingRelationsMain={setEditingRelationsMain}
+                newRelationMain={newRelationMain}
+                setNewRelationMain={setNewRelationMain}
+                availableMembersLeadsMain={availableMembersLeadsNew}
+                relationOptionsMain={RELATION_OPTIONS}
+                handleAddRelationMain={handleAddRelationMain}
+                memberRelationsMain={memberRelations}
+                handleDeleteRelationMain={handleDeleteRelationMain}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Edit Lead Modal */}
+        {isEditLeadModalOpen && selectedLeadForEdit && (
+          <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/70" onClick={handleCloseEditLeadModal} />
+            <div className="relative z-10 w-full max-w-4xl max-h-[90vh] overflow-auto">
+              <EditLeadModal
+                isVisible={isEditLeadModalOpen}
+                onClose={handleCloseEditLeadModal}
+                onSave={handleSaveEditLead}
+                leadData={selectedLeadForEdit}
+                memberRelationsLead={leadRelationsData[selectedLeadForEdit?.id] || {}}
+                setMemberRelationsLead={() => {}}
+                availableMembersLeads={availableMembersLeadsNew}
+                columns={LEAD_COLUMNS}
+                initialTab={editLeadActiveTab}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Training Plans Modal */}
+        {isTrainingPlanModalOpen && (
+          <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/70" onClick={handleCloseTrainingPlanModal} />
+            <div className="relative z-10 w-full max-w-2xl max-h-[90vh] overflow-auto">
+              <TrainingPlansModalMain
+                isOpen={isTrainingPlanModalOpen}
+                onClose={handleCloseTrainingPlanModal}
+                selectedMember={selectedUserForTrainingPlan}
+                memberTrainingPlans={memberTrainingPlans[selectedUserForTrainingPlan?.id] || []}
+                availableTrainingPlans={availableTrainingPlans}
+                onAssignPlan={handleAssignTrainingPlan}
+                onRemovePlan={handleRemoveTrainingPlan}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Action Confirmation Modal */}
+        {showActionConfirm && pendingActivityAction && (
+          <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/70" onClick={() => setShowActionConfirm(false)} />
+            <div className="relative z-10 w-full max-w-md">
+              <ActionConfirmModal
+                action={pendingActivityAction.action}
+                onCancel={() => {
+                  setShowActionConfirm(false)
+                  setPendingActivityAction(null)
+                }}
+                onConfirm={handleConfirmAction}
+              />
+            </div>
+          </div>
+        )}
+      </>,
+      document.body
+    )
+  }
+
+  // ============================================
+  // Main Render
+  // ============================================
   return (
     <>
-     <aside
-  className={`
-    fixed top-0 right-0 h-full text-white w-full sm:w-96 lg:w-88 bg-[#181818] border-l border-gray-700 z-[50]
-    transform transition-transform duration-500 ease-in-out
-    ${isRightSidebarOpen ? "translate-x-0" : "translate-x-full"}
-  `}
->
-      
-       <div className="p-4 md:p-5 custom-scrollbar overflow-y-auto h-full">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center justify-between w-full mb-3 sm:mb-4">
-              <div className="flex items-center gap-2 min-w-0">
-                <div className="flex items-center gap-2 min-w-0">
-                  <h2 className="text-base sm:text-lg font-semibold text-white truncate">Sidebar</h2>
-                </div>
-              </div>
-              <div></div>
-              <div className="flex items-center gap-1 sm:gap-2">
-                {!isSidebarEditing && activeTab !== "notifications" && (
-                  <button
-                    onClick={() => setIsViewModalOpen(true)}
-                    className="p-1.5 sm:p-2 flex items-center text-sm gap-2 bg-gray-600 text-white hover:bg-gray-700 rounded-lg cursor-pointer"
-                    title="Manage Sidebar Views"
-                  >
-                    <Eye size={16} />
-                    {currentView ? currentView.name : "Standard View"}
-                  </button>
-                )}
-                {activeTab === "widgets" && isSidebarEditing && (
-                  <button
-                    onClick={() => setIsRightWidgetModalOpen(true)}
-                    className="p-1.5 sm:p-2 bg-black text-white hover:bg-zinc-900 rounded-lg cursor-pointer"
-                    title="Add Widget"
-                  >
-                    <Plus size={20} />
-                  </button>
-                )}
-                {activeTab === "widgets" && (
-                  <button
-                    onClick={toggleSidebarEditing}
-                    className={`p-1.5 sm:p-2 ${isSidebarEditing ? "bg-blue-600 text-white" : "text-zinc-400 hover:bg-zinc-800"
-                      } rounded-lg flex items-center gap-1`}
-                    title="Toggle Edit Mode"
-                  >
-                    {isSidebarEditing ? <Check size={18} /> : <Edit size={18} />}
-                  </button>
-                )}
-                <button
-                  onClick={onClose}
-                  className="p-1.5 sm:p-2 text-zinc-400 hover:bg-zinc-700 rounded-xl "
-                  aria-label="Close sidebar"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-            </div>
-          </div>
+      <aside
+        className={`
+          fixed top-0 right-0 h-full text-white w-full sm:w-[400px] lg:w-[400px] bg-[#181818] border-l border-gray-700 z-[50]
+          transform transition-transform duration-500 ease-in-out
+          ${isRightSidebarOpen ? "translate-x-0" : "translate-x-full"}
+        `}
+      >
+        <div className="p-4 md:p-5 custom-scrollbar overflow-y-auto h-full">
+          {/* Header */}
+          <SidebarHeader
+            activeTab={activeTab}
+            isSidebarEditing={isSidebarEditing}
+            currentView={currentView}
+            onOpenViewModal={() => setIsViewModalOpen(true)}
+            onAddWidget={() => setIsRightWidgetModalOpen(true)}
+            onToggleEditing={toggleSidebarEditing}
+            onClose={onClose}
+          />
 
-          <div className="flex mb-3 sm:mb-4 bg-black rounded-xl p-1">
-            <button
-              onClick={() => setActiveTab("widgets")}
-              className={`flex-1 py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors ${activeTab === "widgets" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
-                }`}
-            >
-              <Settings size={14} className="inline mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">Widgets</span>
-            </button>
+          {/* Tab Navigation */}
+          <TabNavigation
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            unreadCount={getTotalUnreadCount()}
+          />
 
-            <button
-              onClick={() => setActiveTab("notifications")}
-              className={`flex-1 py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors relative ${activeTab === "notifications" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
-                }`}
-            >
-              <Bell size={14} className="inline mr-1 sm:mr-2" />
-              <span className="hidden sm:inline">Notifications</span>
-
-              {getUnreadCount("memberChat") + getUnreadCount("studioChat") + getUnreadCount("activityMonitor") > 0 && (
-                <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-orange-500 rounded-full">
-                  {getUnreadCount("memberChat") + getUnreadCount("studioChat") + getUnreadCount("activityMonitor")}
-                </span>
-              )}
-            </button>
-          </div>
-
-          {activeTab === "notifications" && (
-            <div className="space-y-4">
-              <h2 className="text-lg md:text-xl open_sans_font_700">Notifications</h2>
-
-              {/* Member Chat Section */}
-              <div className="bg-black rounded-xl overflow-hidden">
-                <button
-                  onClick={() => toggleNotificationSection("memberChat")}
-                  className="w-full p-3 flex items-center justify-between hover:bg-gray-800 transition-colors"
-                >
-                  <div className="flex items-center gap-2">
-                    <User size={16} className="inline mr-2" />
-                    <h3 className="text-white font-medium text-sm">Member Chat</h3>
-                    {getUnreadCount("memberChat") > 0 && (
-                      <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full">
-                        {getUnreadCount("memberChat")}
-                      </span>
-                    )}
-                  </div>
-                  {collapsedSections.memberChat ? (
-                    <ChevronDown size={16} className="text-gray-400" />
-                  ) : (
-                    <ChevronUp size={16} className="text-gray-400" />
-                  )}
-                </button>
-
-                {!collapsedSections.memberChat && (
-                  <div className="border-t border-gray-700">
-                    {notificationData.memberChat.length > 0 ? (
-                      notificationData.memberChat.map((message) => (
-                        <div
-                          key={message.id}
-                          className={`p-3 border-b border-gray-800 last:border-b-0 cursor-pointer hover:bg-gray-800 transition-colors ${!message.isRead ? "bg-blue-900/20" : ""
-                            }`}
-                          onClick={() => {
-                            handleMessageClick(message);
-                            markMessageAsRead(message.id, message.type);
-                          }}
-                        >
-                          <div className="flex items-start gap-3">
-                            <img
-                              src={message.senderAvatar || "/placeholder.svg"}
-                              alt={message.senderName}
-                              className="w-8 h-8 rounded-full flex-shrink-0"
-                            />
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <h4 className="text-white font-medium text-sm truncate">{message.senderName}</h4>
-                                {!message.isRead && (
-                                  <div className="w-2 h-2 bg-orange-500 rounded-full flex-shrink-0"></div>
-                                )}
-                              </div>
-                              <p className="text-gray-300 text-sm line-clamp-2 mb-1">{message.message}</p>
-                              <div className="flex items-center justify-between">
-                                <p className="text-gray-500 text-xs flex items-center gap-1">
-                                  <Clock size={12} />
-                                  {message.time}
-                                </p>
-                                <Reply size={14} className="text-gray-400" />
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="p-4 text-center text-gray-400">
-                        <MessageCircle size={24} className="mx-auto mb-2 opacity-50" />
-                        <p className="text-sm">No member messages</p>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Studio Chat Section */}
-              <div className="bg-black rounded-xl overflow-hidden">
-                <button
-                  onClick={() => toggleNotificationSection("studioChat")}
-                  className="w-full p-3 flex items-center justify-between hover:bg-gray-800 transition-colors"
-                >
-                  <div className="flex items-center gap-2">
-                    <Building2 size={16} className="inline mr-2" />
-                    <h3 className="text-white font-medium text-sm">Studio Chat</h3>
-                    {getUnreadCount("studioChat") > 0 && (
-                      <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full">
-                        {getUnreadCount("studioChat")}
-                      </span>
-                    )}
-                  </div>
-                  {collapsedSections.studioChat ? (
-                    <ChevronDown size={16} className="text-gray-400" />
-                  ) : (
-                    <ChevronUp size={16} className="text-gray-400" />
-                  )}
-                </button>
-
-                {!collapsedSections.studioChat && (
-                  <div className="border-t border-gray-700">
-                    {notificationData.studioChat.length > 0 ? (
-                      notificationData.studioChat.map((message) => (
-                        <div
-                          key={message.id}
-                          className={`p-3 border-b border-gray-800 last:border-b-0 cursor-pointer hover:bg-gray-800 transition-colors ${!message.isRead ? "bg-green-900/20" : ""
-                            }`}
-                          onClick={() => {
-                            handleMessageClick(message);
-                            markMessageAsRead(message.id, message.type);
-                          }}
-                        >
-                          <div className="flex items-start gap-3">
-                            <img
-                              src={message.senderAvatar || "/placeholder.svg"}
-                              alt={message.senderName}
-                              className="w-8 h-8 rounded-full flex-shrink-0"
-                            />
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
-                                <h4 className="text-white font-medium text-sm truncate">{message.senderName}</h4>
-                                {!message.isRead && (
-                                  <div className="w-2 h-2 bg-orange-500 rounded-full flex-shrink-0"></div>
-                                )}
-                              </div>
-                              <p className="text-gray-300 text-sm line-clamp-2 mb-1">{message.message}</p>
-                              <div className="flex items-center justify-between">
-                                <p className="text-gray-500 text-xs flex items-center gap-1">
-                                  <Clock size={12} />
-                                  {message.time}
-                                </p>
-                                <Reply size={14} className="text-gray-400" />
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="p-4 text-center text-gray-400">
-                        <MessageCircle size={24} className="mx-auto mb-2 opacity-50" />
-                        <p className="text-sm">No studio messages</p>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Activity Monitor Section */}
-              <div className="bg-black rounded-xl overflow-hidden">
-                <button
-                  onClick={() => toggleNotificationSection("activityMonitor")}
-                  className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-900 transition-colors"
-                >
-                  <div className="flex items-center gap-2">
-                    <Bell size={18} />
-                    <h3 className="text-white font-medium text-sm">Activity Monitor</h3>
-
-                    {getUnreadCount("activityMonitor") > 0 && (
-                      <span className="bg-orange-500 text-white text-[10px] sm:text-xs px-2 py-0.5 rounded-full">
-                        {getUnreadCount("activityMonitor")}
-                      </span>
-                    )}
-                  </div>
-
-                  {collapsedSections.activityMonitor ? (
-                    <ChevronDown size={18} className="text-gray-400" />
-                  ) : (
-                    <ChevronUp size={18} className="text-gray-400" />
-                  )}
-                </button>
-
-                {/* Content Section */}
-                {!collapsedSections.activityMonitor && (
-                  <div className="border-t border-gray-800">
-                    {notificationData.activityMonitor.length > 0 ? (
-                      <div className="divide-y divide-gray-800">
-                        {notificationData.activityMonitor.map((activity) => {
-                          const config = activityTypes[activity.activityType];
-                          const Icon = config ? config.icon : Bell;
-
-                          return (
-                            <div
-                              key={activity.id}
-                              className={`p-4 sm:p-5 hover:bg-gray-900 transition-colors cursor-pointer ${!activity.isRead ? "bg-purple-900/20" : ""
-                                }`}
-                              onClick={() => {
-                                handleActivityClick(activity);
-                                markMessageAsRead(activity.id, activity.type);
-                              }}
-                            >
-                              <div className="flex items-start gap-3">
-                                <div
-                                  className={`${config ? config.color : "bg-gray-700"
-                                    } p-2.5 rounded-xl flex-shrink-0`}
-                                >
-                                  <Icon size={18} className="text-white" />
-                                </div>
-
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center justify-between mb-1">
-                                    <h4 className="text-white font-medium text-sm sm:text-base truncate">
-                                      {activity.title}
-                                    </h4>
-                                    {!activity.isRead && (
-                                      <div className="w-2 h-2 bg-orange-500 rounded-full flex-shrink-0"></div>
-                                    )}
-                                  </div>
-
-                                  <p className="text-gray-400 text-xs sm:text-sm line-clamp-2 mb-2">
-                                    {activity.description}
-                                  </p>
-
-                                  <div className="flex flex-wrap items-center justify-between gap-2 mt-2">
-                                    {/* Time & Status */}
-                                    <div className="flex items-center gap-2 text-gray-500 text-xs sm:text-sm">
-                                      {activity.actionRequired && (
-                                        <span className="px-2 py-0.5 rounded text-[10px] sm:text-xs font-medium bg-yellow-600 text-white">
-                                          ACTION REQUIRED
-                                        </span>
-                                      )}
-                                    </div>
-
-                                    {/* Action Buttons */}
-                                    <div className="flex items-center gap-1 sm:gap-2">
-                                      {activity.actionRequired && activity.status === "pending" && (
-                                        <>
-                                          {activity.activityType === "vacation" && (
-                                            <>
-                                              <button
-                                                onClick={(e) => {
-                                                  e.stopPropagation();
-                                                  setPendingActivityAction({ activity, action: "approve" });
-                                                  setShowActionConfirm(true);
-                                                }}
-                                                className="p-1.5 sm:p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
-                                                title="Approve"
-                                              >
-                                                <Check size={12} className="text-white" />
-                                              </button>
-                                              <button
-                                                onClick={(e) => {
-                                                  e.stopPropagation();
-                                                  setPendingActivityAction({ activity, action: "reject" });
-                                                  setShowActionConfirm(true);
-                                                }}
-                                                className="p-1.5 sm:p-2 bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
-                                                title="Reject"
-                                              >
-                                                <X size={12} className="text-white" />
-                                              </button>
-                                            </>
-                                          )}
-
-                                          {(activity.activityType === "email" ||
-                                            activity.activityType === "contract" ||
-                                            activity.activityType === "appointment") && (
-                                              <button
-                                                onClick={(e) => {
-                                                  e.stopPropagation();
-                                                  setPendingActivityAction({ activity, action: "resolve" });
-                                                  setShowActionConfirm(true);
-                                                }}
-                                                className="p-1.5 sm:p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
-                                                title="Mark as Resolved"
-                                              >
-                                                <Check size={12} className="text-white" />
-                                              </button>
-                                            )}
-                                        </>
-                                      )}
-
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleJumpToActivityMonitor(activity);
-                                        }}
-                                        className="p-1.5 sm:p-2 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-lg transition-colors"
-                                        title="Open in Activity Monitor"
-                                      >
-                                        <ExternalLink size={12} className="text-gray-400" />
-                                      </button>
-                                      <div className="text-xs flex items-center gap-2">
-                                        <Activity size={12} className="text-gray-400" />
-                                        <span>{activity.time}</span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ) : (
-                      <div className="p-6 text-center text-gray-500">
-                        <Bell size={24} className="mx-auto mb-2 opacity-50" />
-                        <p className="text-sm">No activity notifications</p>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+          {/* Tab Content */}
+          {activeTab === "notifications" && renderNotificationsTab()}
 
           {activeTab === "widgets" && (
-            <>
+            <div className="space-y-3">
               {rightSidebarWidgets
                 .sort((a, b) => a.position - b.position)
                 .map((widget, index) => (
-                  <RightSidebarWidget
+                  <DraggableWidget
                     key={widget.id}
                     id={widget.id}
                     index={index}
                     isEditing={isSidebarEditing}
-                    moveRightSidebarWidget={moveRightSidebarWidget}
-                    removeRightSidebarWidget={removeRightSidebarWidget}
+                    moveWidget={moveWidget}
+                    removeWidget={removeWidget}
+                    variant="sidebar"
                   >
-                    {/* Collapsed State */}
                     {collapsedWidgets[widget.id] ? (
-                      <div
-                        className="p-4 rounded-xl bg-[#2F2F2F] flex items-center justify-between cursor-pointer hover:bg-[#3A3A3A] transition-colors"
+                      /* Collapsed State - nur Chevron + Titel */
+                      <button
                         onClick={() => toggleWidgetCollapse(widget.id)}
+                        className="flex items-center gap-2 p-3 rounded-xl bg-[#2F2F2F] hover:bg-[#3A3A3A] transition-colors w-full text-left"
                       >
-                        <div className="flex items-center gap-2">
-                          <ChevronRight size={16} />
-                          <span className="font-medium">{getWidgetDisplayName(widget.type)}</span>
-                        </div>
-                      </div>
+                        <ChevronRight size={14} className="text-zinc-400 flex-shrink-0" />
+                        <span className="font-semibold text-base text-white">{getWidgetDisplayName(widget.type)}</span>
+                      </button>
                     ) : (
-                      <div className="space-y-3">
-                        {/* Widget Header with Controls */}
-                        {!isSidebarEditing && widget.type !== "staffCheckIn" && (
-                          <div className="flex items-center justify-between px-1">
-                            <button
-                              onClick={() => toggleWidgetCollapse(widget.id)}
-                              className="p-1.5 hover:bg-zinc-700 rounded-lg transition-colors"
-                              title="Collapse widget"
-                            >
-                              <ChevronDown size={16} />
-                            </button>
-                            <button
-                              onClick={() => toggleWidgetSize(widget.id)}
-                              className="p-1.5 hover:bg-zinc-700 rounded-lg transition-colors"
-                              title={expandedWidgetSizes[widget.id] ? "Reduce size" : "Expand size"}
-                            >
-                              {expandedWidgetSizes[widget.id] ? (
-                                <Minimize2 size={16} />
-                              ) : (
-                                <Maximize2 size={16} />
-                              )}
-                            </button>
-                          </div>
-                        )}
-
-                        {/* Widget Content */}
-                        {widget.type === "todo" && (
-                          <div className={`space-y-3 p-4 rounded-xl bg-[#2F2F2F] ${getWidgetHeightClass(widget.id, "md:h-[340px]")} h-auto flex flex-col`}>
-                            <div className="flex justify-between items-center">
-                              <h2 className="text-lg font-semibold open_sans_font cursor-pointer">To-Do</h2>
-                              {!isSidebarEditing && (
-                                <button
-                                  onClick={() => setIsAddTaskModalOpen(true)}
-                                  className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
-                                >
-                                  <Plus size={18} />
-                                </button>
-                              )}
-                            </div>
-
-                            <div className="relative mb-3 w-full" ref={todoFilterDropdownRef}>
+                      /* Expanded State - Chevron-Header + Widget */
+                      <div>
+                        {/* Clickable Header mit Chevron vor dem Titel */}
+                        <div className="flex items-center justify-between mb-1 px-1">
+                          <button
+                            onClick={() => !isSidebarEditing && toggleWidgetCollapse(widget.id)}
+                            className={`flex items-center gap-2 py-1 rounded-lg transition-colors text-left ${
+                              isSidebarEditing ? 'cursor-default' : 'hover:bg-zinc-700/30 cursor-pointer'
+                            }`}
+                            disabled={isSidebarEditing}
+                          >
+                            {!isSidebarEditing && (
+                              <ChevronDown size={14} className="text-zinc-400 flex-shrink-0" />
+                            )}
+                            <span className="font-semibold text-base text-white">{getWidgetDisplayName(widget.type)}</span>
+                          </button>
+                          
+                          {/* Settings Icon - only for widgets that support maxItems, not during editing */}
+                          {!isSidebarEditing && WIDGETS_WITH_SETTINGS.includes(widget.type) && (
+                            <div className="relative">
                               <button
-                                onClick={() => setIsTodoFilterDropdownOpen(!isTodoFilterDropdownOpen)}
-                                className="flex items-center gap-2 px-3 py-1.5 bg-black rounded-xl text-white text-sm w-full justify-between"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  if (openSettingsDropdown === widget.id) {
+                                    setOpenSettingsDropdown(null)
+                                    setTempInputValue("")
+                                  } else {
+                                    setOpenSettingsDropdown(widget.id)
+                                    setTempInputValue(String(getWidgetVisibleItems(widget.id, widget.type)))
+                                  }
+                                }}
+                                className="p-1.5 hover:bg-zinc-700 rounded-lg transition-colors text-zinc-400 hover:text-white"
+                                title="Widget Settings"
                               >
-                                {todoFilterOptions.find((option) => option.value === todoFilter)?.label}
-                                <ChevronDown className="w-4 h-4" />
+                                <SlidersHorizontal size={14} />
                               </button>
-                              {isTodoFilterDropdownOpen && (
-                                <div className="absolute z-10 mt-2 w-full bg-[#2F2F2F] rounded-xl shadow-lg">
-                                  {todoFilterOptions.map((option) => (
-                                    <button
-                                      key={option.value}
-                                      className="flex items-center gap-2 w-full text-left px-4 py-2 text-sm text-white hover:bg-black first:rounded-t-xl last:rounded-b-xl"
-                                      onClick={() => {
-                                        setTodoFilter(option.value);
-                                        setIsTodoFilterDropdownOpen(false);
-                                      }}
-                                    >
-                                      {option.color && (
-                                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: option.color }} />
-                                      )}
-                                      {option.label}
-                                    </button>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Todo Items with Scroll */}
-                            <div className={`flex-1 overflow-y-auto custom-scrollbar pr-1 ${expandedWidgetSizes[widget.id] ? 'max-h-[400px]' : ''}`}>
-                              <div className="space-y-2">
-                                {getFilteredTodos().length > 0 ? (
-                                  <>
-                                    {getFilteredTodos()
-                                      .slice(0, expandedWidgetSizes[widget.id] ? 10 : 3)
-                                      .map((todo) => (
-                                        <div
-                                          key={todo.id}
-                                          className="p-3 bg-black rounded-xl flex items-center justify-between"
-                                        >
-                                          <div className="flex items-center gap-2 flex-1">
-                                            <input
-                                              type="checkbox"
-                                              checked={todo.completed}
-                                              onChange={() => handleTaskComplete(todo.id)}
-                                              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                                            />
-                                            <div className="flex-1">
-                                              <h3
-                                                className={`font-semibold open_sans_font text-sm ${todo.completed ? "line-through text-gray-500" : ""}`}
-                                              >
-                                                {todo.title}
-                                              </h3>
-                                              <p className="text-xs open_sans_font text-zinc-400">
-                                                Due: {todo.dueDate} {todo.dueTime && `at ${todo.dueTime}`}
-                                              </p>
-                                            </div>
-                                          </div>
-                                          <div className="relative">
-                                            <button
-                                              onClick={(e) => {
-                                                e.stopPropagation();
-                                                toggleDropdown(`todo-${todo.id}`);
-                                              }}
-                                              className="p-1 hover:bg-zinc-700 rounded"
-                                            >
-                                              <MoreVertical size={16} />
-                                            </button>
-                                            {openDropdownIndex === `todo-${todo.id}` && (
-                                              <div className="absolute right-0 top-8 bg-[#2F2F2F] rounded-lg shadow-lg z-10 min-w-[120px]">
-                                                <button
-                                                  onClick={() => {
-                                                    handleEditTask(todo);
-                                                  }}
-                                                  className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-t-lg"
-                                                >
-                                                  Edit Task
-                                                </button>
-                                                <button
-                                                  onClick={() => {
-                                                    setTaskToCancel(todo.id);
-                                                  }}
-                                                  className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600"
-                                                >
-                                                  Cancel Task
-                                                </button>
-                                                <button
-                                                  onClick={() => {
-                                                    setTaskToDelete(todo.id);
-                                                  }}
-                                                  className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-b-lg text-red-400"
-                                                >
-                                                  Delete Task
-                                                </button>
-                                              </div>
-                                            )}
-                                          </div>
-                                        </div>
-                                      ))}
-                                  </>
-                                ) : (
-                                  <div className="text-center py-4 text-gray-400">
-                                    <p className="text-sm">No tasks in this category</p>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-
-                            {!expandedWidgetSizes[widget.id] && getFilteredTodos().length > 3 && (
-                              <div className="flex justify-center">
-                                <Link
-                                  to={"/dashboard/to-do"}
-                                  className="text-sm open_sans_font text-white hover:underline"
-                                >
-                                  See all ({getFilteredTodos().length})
-                                </Link>
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {widget.type === "birthday" && (
-                          <div className={`space-y-3 p-4 rounded-xl bg-[#2F2F2F] ${getWidgetHeightClass(widget.id, "md:h-[340px]")} h-auto flex flex-col`}>
-                            <div className="flex justify-between items-center">
-                              <h2 className="text-lg font-semibold">Upcoming Birthday</h2>
-                            </div>
-
-                            {/* Scrollable area */}
-                            <div className={`flex-1 overflow-y-auto custom-scrollbar pr-1 ${expandedWidgetSizes[widget.id] ? 'max-h-[450px]' : ''}`}>
-                              <div className="space-y-2">
-                                {birthdays
-                                  .slice(0, expandedWidgetSizes[widget.id] ? 10 : 5)
-                                  .map((birthday) => (
-                                    <div
-                                      key={birthday.id}
-                                      className={`p-3 cursor-pointer rounded-xl flex items-center gap-3 justify-between ${isBirthdayToday(birthday.date)
-                                        ? "bg-yellow-900/30 border border-yellow-600"
-                                        : "bg-black"
-                                        }`}
-                                    >
-                                      <div className="flex items-center gap-3">
-                                        <div className="h-10 w-10 rounded-xl overflow-hidden">
-                                          <img
-                                            src={birthday.avatar || "/placeholder.svg"}
-                                            className="h-full w-full object-cover"
-                                            alt=""
-                                          />
-                                        </div>
-
-                                        <div>
-                                      <h3 className="font-semibold text-sm flex items-center gap-1">
-                                        {birthday.name}
-                                        {/* Check if dateOfBirth exists and calculate age */}
-                                        {birthday.dateOfBirth && (
-                                          <span className="text-zinc-400 font-normal">
-                                            ({calculateAge(birthday.dateOfBirth)})
-                                          </span>
-                                        )}
-                                        {isBirthdayToday(birthday.date) && (
-                                          <span className="text-yellow-500">🎂</span>
-                                        )}
-                                      </h3>
-                                      <p className="text-xs text-zinc-400">
-                                        {birthday.date} {/* This displays the birthdate */}
-                                        {/* If you want to show next birthday date instead, you might need different logic */}
-                                      </p>
+                              
+                              {/* Settings Dropdown with Custom Input */}
+                              {openSettingsDropdown === widget.id && (
+                                <>
+                                  <div 
+                                    className="fixed inset-0 z-40" 
+                                    onClick={() => {
+                                      setOpenSettingsDropdown(null)
+                                      setTempInputValue("")
+                                    }}
+                                  />
+                                  <div className="absolute right-0 top-full mt-1 bg-[#1a1a1a] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[140px] p-3">
+                                    <div className="text-[10px] text-gray-500 uppercase tracking-wide mb-2">
+                                      Visible items
                                     </div>
-                                      </div>
-
-                                      {isBirthdayToday(birthday.date) && (
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleSendBirthdayMessage(birthday);
-                                          }}
-                                          className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg"
-                                          title="Send Birthday Message"
-                                        >
-                                          <MessageCircle size={16} />
-                                        </button>
-                                      )}
-                                    </div>
-                                  ))}
-                              </div>
-                            </div>
-
-                            {!expandedWidgetSizes[widget.id] && birthdays.length > 5 && (
-                              <div className="flex justify-center">
-                                <Link to="/dashboard/birthdays" className="text-sm text-white hover:underline">
-                                  See all ({birthdays.length})
-                                </Link>
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {widget.type === "websiteLinks" && (
-                          <div className={`space-y-3 p-4 rounded-xl bg-[#2F2F2F] ${getWidgetHeightClass(widget.id, "md:h-[340px]")} h-auto flex flex-col`}>
-                            {/* Header */}
-                            <div className="flex justify-between items-center">
-                              <h2 className="text-lg font-semibold">Website Links</h2>
-                              {!isSidebarEditing && (
-                                <button
-                                  onClick={addCustomLink}
-                                  className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg cursor-pointer transition-colors"
-                                >
-                                  <Plus size={18} />
-                                </button>
-                              )}
-                            </div>
-
-                            {/* Scrollable Grid List */}
-                            <div className={`flex-1 overflow-y-auto custom-scrollbar pr-1 ${expandedWidgetSizes[widget.id] ? 'max-h-[450px]' : ''}`}>
-                              <div className="grid grid-cols-1 gap-3">
-                                {sidebarCustomLinks
-                                  .slice(0, expandedWidgetSizes[widget.id] ? 15 : 5)
-                                  .map((link) => (
-                                    <div
-                                      key={link.id}
-                                      className="p-5 bg-black rounded-xl flex items-center justify-between"
-                                    >
-                                      {/* Link Title + URL */}
-                                      <div className="flex-1 min-w-0">
-                                        <h3 className="text-sm font-medium truncate">{link.title}</h3>
-                                        <p className="text-xs mt-1 text-zinc-400 truncate max-w-[200px]">
-                                          {truncateUrl(link.url, 30)}
-                                        </p>
-                                      </div>
-
-                                      {/* Actions */}
-                                      <div className="flex items-center gap-2">
-                                        {/* Open in new tab */}
-                                        <button
-                                          onClick={() => window.open(link.url, "_blank")}
-                                          className="p-2 hover:bg-zinc-700 rounded-lg"
-                                        >
-                                          <ExternalLink size={16} />
-                                        </button>
-
-                                        {/* Dropdown */}
-                                        <div className="relative">
-                                          <button
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              setSidebarOpenDropdownIndex(
-                                                sidebarOpenDropdownIndex === `link-${link.id}` ? null : `link-${link.id}`
-                                              );
-                                            }}
-                                            className="p-2 hover:bg-zinc-700 rounded-lg"
-                                          >
-                                            <MoreVertical size={16} />
-                                          </button>
-
-                                          {sidebarOpenDropdownIndex === `link-${link.id}` && (
-                                            <div className="absolute right-0 top-full mt-1 w-32 bg-zinc-800 rounded-lg shadow-lg z-50 py-1">
-                                              <button
-                                                onClick={(e) => {
-                                                  e.stopPropagation();
-                                                  setEditingLink(link);
-                                                  setIsWebsiteLinkModalOpen(true);
-                                                  setSidebarOpenDropdownIndex(null);
-                                                }}
-                                                className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700"
-                                              >
-                                                Edit
-                                              </button>
-                                              <button
-                                                onClick={(e) => {
-                                                  e.stopPropagation();
-                                                  removeCustomLink(link.id);
-                                                  setSidebarOpenDropdownIndex(null);
-                                                }}
-                                                className="w-full text-left px-3 py-2 text-sm hover:bg-zinc-700 text-red-400"
-                                              >
-                                                Remove
-                                              </button>
-                                            </div>
-                                          )}
-                                        </div>
-                                      </div>
-                                    </div>
-                                  ))}
-                              </div>
-                            </div>
-
-                            {!expandedWidgetSizes[widget.id] && sidebarCustomLinks.length > 5 && (
-                              <div className="flex justify-center">
-                                <Link to="/dashboard/links" className="text-sm text-white hover:underline">
-                                  See all ({sidebarCustomLinks.length})
-                                </Link>
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {widget.type === "appointments" && (
-                          <div className={`space-y-3 p-4 rounded-xl ${getWidgetHeightClass(widget.id, "md:h-[340px]")} bg-[#2F2F2F]`}>
-                            <div className="flex justify-between items-center">
-                              <h2 className="text-lg font-semibold">Upcoming Appointments</h2>
-                            </div>
-                            <div className={`space-y-2 overflow-y-auto custom-scrollbar pr-1 ${expandedWidgetSizes[widget.id] ? 'max-h-[450px]' : 'max-h-[25vh]'}`}>
-                              {appointments.length > 0 ? (
-                                appointments
-                                  .slice(0, expandedWidgetSizes[widget.id] ? 8 : 3)
-                                  .map((appointment, index) => (
-                                    <div
-                                      key={appointment.id}
-                                      className={`${appointment.color} rounded-xl cursor-pointer p-3 relative`}
-                                    >
-                                      <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
-                                        {renderSidebarSpecialNoteIcon(appointment.specialNote, appointment.id)}
-                                        <div
-                                          className="cursor-pointer rounded mt-3 ml-1 transition-colors"
-                                          onClick={(e) => handleDumbbellClick(appointment, e)}
-                                        >
-                                          <Dumbbell size={16} />
-                                        </div>
-                                      </div>
-
-                                      <div
-                                        className="flex flex-col items-center justify-between gap-2 cursor-pointer pl-8"
-                                        onClick={() => {
-                                          handleAppointmentOptionsModal(appointment);
+                                    <div className="flex items-center gap-2">
+                                      <input
+                                        type="text"
+                                        inputMode="numeric"
+                                        pattern="[1-5]"
+                                        value={tempInputValue}
+                                        onChange={(e) => {
+                                          // Only allow digits 1-5
+                                          const val = e.target.value
+                                          if (val === '' || /^[1-5]$/.test(val)) {
+                                            setTempInputValue(val)
+                                          }
                                         }}
+                                        onKeyDown={(e) => {
+                                          if (e.key === 'Enter') {
+                                            const value = parseInt(tempInputValue)
+                                            if (!isNaN(value) && value >= 1 && value <= 5) {
+                                              updateWidgetVisibleItems(widget.id, value)
+                                            }
+                                          }
+                                        }}
+                                        onClick={(e) => e.stopPropagation()}
+                                        className="w-14 px-2 py-1.5 bg-black border border-gray-600 rounded-lg text-white text-sm text-center focus:border-orange-500 focus:outline-none"
+                                        placeholder={String(getWidgetVisibleItems(widget.id, widget.type))}
+                                      />
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          const value = parseInt(tempInputValue)
+                                          if (!isNaN(value) && value >= 1 && value <= 5) {
+                                            updateWidgetVisibleItems(widget.id, value)
+                                          }
+                                        }}
+                                        className="px-3 py-1.5 bg-orange-500 hover:bg-orange-600 text-white text-sm rounded-lg transition-colors"
                                       >
-                                        <div className="flex items-center gap-2 relative w-full justify-center">
-                                          <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center relative">
-                                            <img
-                                              src={Avatar || "/placeholder.svg"}
-                                              alt=""
-                                              className="w-full h-full rounded-xl"
-                                            />
-                                          </div>
-                                          <div className="text-white text-left flex-1">
-                                            <p className="font-semibold text-sm">
-                                              {appointment.name} {appointment.lastName || ""}
-                                            </p>
-                                            <p className="text-xs flex gap-1 items-center opacity-80">
-                                              <Clock size={14} />
-                                              {appointment.time} | {appointment.date.split("|")[0]}
-                                            </p>
-                                            <p className="text-xs opacity-80 mt-1">
-                                              {appointment.isTrial ? "Trial Session" : appointment.type}
-                                            </p>
-                                          </div>
-                                        </div>
-                                        <div className="flex items-center gap-2 w-full justify-center">
-                                          <button
-                                            onClick={(e) => {
-                                              e.stopPropagation();
-                                              handleCheckIn(appointment.id);
-                                            }}
-                                            className={`px-3 py-1 text-xs font-medium rounded-lg ${appointment.isCheckedIn
-                                              ? "border border-white/50 text-white bg-transparent"
-                                              : "bg-black text-white"
-                                              }`}
-                                          >
-                                            {appointment.isCheckedIn ? "Checked In" : "Check In"}
-                                          </button>
-                                        </div>
-                                      </div>
+                                        OK
+                                      </button>
                                     </div>
-                                  ))
-                              ) : (
-                                <p className="text-white text-center">No appointments scheduled for this date.</p>
+                                  </div>
+                                </>
                               )}
                             </div>
-                            {!expandedWidgetSizes[widget.id] && appointments.length > 3 && (
-                              <div className="flex justify-center">
-                                <Link to="/dashboard/appointments" className="text-sm text-white hover:underline">
-                                  See all ({appointments.length})
-                                </Link>
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {isSidebarSpecialNoteModalOpen && selectedSidebarAppointmentForNote && (
-                          <SpecialNoteEditModal
-                            isOpen={isSidebarSpecialNoteModalOpen}
-                            onClose={() => {
-                              setIsSidebarSpecialNoteModalOpen(false);
-                              setSelectedSidebarAppointmentForNote(null);
-                            }}
-                            appointment={selectedSidebarAppointmentForNote}
-                            onSave={handleSaveSidebarSpecialNote}
-                          />
-                        )}
-
-
-                        {widget.type === "expiringContracts" && (
-                          <div className={`space-y-3 p-4 rounded-xl bg-[#2F2F2F] ${getWidgetHeightClass(widget.id, "md:h-[340px]")} h-auto flex flex-col`}>
-                            <div className="flex justify-between items-center">
-                              <h2 className="text-lg font-semibold">Expiring Contracts</h2>
-                            </div>
-                            <div className={`flex-1 overflow-y-auto custom-scrollbar pr-1 ${expandedWidgetSizes[widget.id] ? 'max-h-[450px]' : ''}`}>
-                              <div className="grid grid-cols-1 gap-3">
-                                {expiringContracts
-                                  .slice(0, expandedWidgetSizes[widget.id] ? 10 : 5)
-                                  .map((contract) => (
-                                    <Link to={"/dashboard/contract"} key={contract.id}>
-                                      <div className="p-4 bg-black rounded-xl hover:bg-zinc-900 transition-colors">
-                                        <div className="flex justify-between items-start gap-3">
-                                          <div className="flex-1 min-w-0">
-                                            <h3 className="text-sm font-medium break-words line-clamp-2">
-                                              {contract.title}
-                                            </h3>
-                                            <p className="text-xs mt-1 text-zinc-400 whitespace-nowrap overflow-hidden text-ellipsis">
-                                              Expires: {contract.expiryDate}
-                                            </p>
-                                          </div>
-                                          <span className="px-2 py-1 text-xs rounded-full bg-yellow-500/20 text-yellow-400 whitespace-nowrap flex-shrink-0">
-                                            {contract.status}
-                                          </span>
-                                        </div>
-                                      </div>
-                                    </Link>
-                                  ))}
-                              </div>
-                            </div>
-                            {!expandedWidgetSizes[widget.id] && expiringContracts.length > 5 && (
-                              <div className="flex justify-center">
-                                <Link to="/dashboard/contracts" className="text-sm text-white hover:underline">
-                                  See all ({expiringContracts.length})
-                                </Link>
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {widget.type === "bulletinBoard" && (
-                          <div className={`${getWidgetHeightClass(widget.id)} h-auto flex flex-col`}>
-                            <BulletinBoardWidget isSidebarEditing={isSidebarEditing} expanded={expandedWidgetSizes[widget.id]} />
-                          </div>
-                        )}
-
-                        {widget.type === "notes" && (
-                          <div className={`space-y-3  rounded-xl bg-[#2F2F2F] ${getWidgetHeightClass(widget.id)} h-auto flex flex-col`}>
-                            <NotesWidget isSidebarEditing={isSidebarEditing} expanded={expandedWidgetSizes[widget.id]} />
-                          </div>
-                        )}
-
-                        {widget.type === "staffCheckIn" && (
-                          <div className={`space-y-3 p-4 rounded-xl bg-[#2F2F2F] ${getWidgetHeightClass(widget.id)} h-auto flex flex-col`}>
-                            <div className="flex items-center justify-between">
-                              <h2 className="text-lg md:text-xl open_sans_font_700 cursor-pointer">Staff login</h2>
-                              {/* Remove the expand button for this widget */}
-                              {!isSidebarEditing && widget.type !== "staffCheckIn" && (
-                                <button
-                                  onClick={() => toggleWidgetSize(widget.id)}
-                                  className="p-1.5 hover:bg-zinc-700 rounded-lg transition-colors"
-                                  title={expandedWidgetSizes[widget.id] ? "Reduce size" : "Expand size"}
-                                >
-                                  {expandedWidgetSizes[widget.id] ? (
-                                    <Minimize2 size={16} />
-                                  ) : (
-                                    <Maximize2 size={16} />
-                                  )}
-                                </button>
-                              )}
-                            </div>
-                            <div className="flex-1 bg-black rounded-xl p-4">
-                              <StaffCheckInWidget />
-                            </div>
-                          </div>
-                        )}
-
-                        {widget.type === "shiftSchedule" && (
-                          <div className={`space-y-3  rounded-xl bg-[#2F2F2F] ${getWidgetHeightClass(widget.id)} h-auto flex flex-col`}>
-                            <ShiftScheduleWidget
-                              isEditing={isSidebarEditing}
-                              onRemove={() => removeRightSidebarWidget(widget.id)}
-                              className="h-full"
-                              expanded={expandedWidgetSizes[widget.id]}
-                            />
-                          </div>
-                        )}
+                          )}
+                        </div>
+                        {/* Widget Content - mit showHeader=false um doppelte Titel zu vermeiden */}
+                        {renderWidgetContent(widget)}
                       </div>
                     )}
-                  </RightSidebarWidget>
+                  </DraggableWidget>
                 ))}
-            </>
+            </div>
           )}
         </div>
       </aside>
 
-      <ReplyModal
-        isOpen={isReplyModalOpen}
-        onClose={() => {
-          setIsReplyModalOpen(false);
-          setSelectedMessage(null);
-        }}
-        message={selectedMessage}
-        onSendReply={handleSendReply}
-        onOpenFullMessenger={handleOpenFullMessenger}
-      />
+      {/* Render all modals via portal */}
+      {renderModals()}
+    </>
+  )
+}
 
-      {isWebsiteLinkModalOpen && (
-        <WebsiteLinkModal
-          link={editingLink}
-          onClose={() => {
-            setIsWebsiteLinkModalOpen(false);
-            setEditingLink(null);
-          }}
-        />
+// ============================================
+// Sub-Components
+// ============================================
+
+const SidebarHeader = ({
+  activeTab,
+  isSidebarEditing,
+  currentView,
+  onOpenViewModal,
+  onAddWidget,
+  onToggleEditing,
+  onClose,
+}) => (
+  <div className="flex items-center justify-between w-full mb-4">
+    <h2 className="text-base sm:text-lg font-semibold text-white">Sidebar</h2>
+    <div className="flex items-center gap-1 sm:gap-2">
+      {!isSidebarEditing && activeTab !== "notifications" && (
+        <button
+          onClick={onOpenViewModal}
+          className="p-1.5 sm:p-2 flex items-center text-sm gap-2 bg-gray-600 text-white hover:bg-gray-700 rounded-lg cursor-pointer"
+          title="Manage Sidebar Views"
+        >
+          <Eye size={16} />
+          <span className="hidden sm:inline">{currentView ? currentView.name : "Standard View"}</span>
+        </button>
       )}
-
-      <ViewManagementModal
-        isOpen={isViewModalOpen}
-        onClose={() => setIsViewModalOpen(false)}
-        savedViews={savedViews}
-        setSavedViews={setSavedViews}
-        currentView={currentView}
-        setCurrentView={setCurrentView}
-        sidebarWidgets={rightSidebarWidgets}
-        setSidebarWidgets={() => { }}
-      />
-
-      {isAddTaskModalOpen && (
-        <AddTaskModal
-          onClose={() => setIsAddTaskModalOpen(false)}
-          onAddTask={handleAddTask}
-          configuredTags={configuredTags}
-        />
+      {activeTab === "widgets" && isSidebarEditing && (
+        <button
+          onClick={onAddWidget}
+          className="p-1.5 sm:p-2 bg-black text-white hover:bg-zinc-900 rounded-lg cursor-pointer"
+          title="Add Widget"
+        >
+          <Plus size={20} />
+        </button>
       )}
+      {activeTab === "widgets" && (
+        <button
+          onClick={onToggleEditing}
+          className={`p-1.5 sm:p-2 ${
+            isSidebarEditing ? "bg-orange-500 text-white" : "text-zinc-400 hover:bg-zinc-800"
+          } rounded-lg flex items-center gap-1`}
+          title="Toggle Edit Mode"
+        >
+          {isSidebarEditing ? <Check size={18} /> : <Edit size={18} />}
+        </button>
+      )}
+      <button
+        onClick={onClose}
+        className="p-1.5 sm:p-2 text-zinc-400 hover:bg-zinc-700 rounded-xl"
+        aria-label="Close sidebar"
+      >
+        <X size={16} />
+      </button>
+    </div>
+  </div>
+)
 
-      {/* Action Confirmation Modal */}
-      {showActionConfirm && pendingActivityAction && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[99999]">
-          <div className="bg-[#181818] rounded-xl w-full max-w-md mx-4">
-            <div className="p-6 space-y-4">
-              <div className="flex justify-between items-center">
-                <h2 className="text-lg font-semibold text-white">Confirm Action</h2>
-                <button
-                  onClick={() => {
-                    setShowActionConfirm(false);
-                    setPendingActivityAction(null);
-                  }}
-                  className="p-2 hover:bg-zinc-700 rounded-lg text-gray-400"
+const TabNavigation = ({ activeTab, onTabChange, unreadCount }) => (
+  <div className="flex mb-4 bg-black rounded-xl p-1">
+    <button
+      onClick={() => onTabChange("widgets")}
+      className={`flex-1 py-2 px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
+        activeTab === "widgets" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
+      }`}
+    >
+      <Settings size={14} className="inline mr-1 sm:mr-2" />
+      <span className="hidden sm:inline">Widgets</span>
+    </button>
+    <button
+      onClick={() => onTabChange("notifications")}
+      className={`flex-1 py-2 px-3 rounded-lg text-xs sm:text-sm font-medium transition-colors relative ${
+        activeTab === "notifications" ? "bg-blue-600 text-white" : "text-zinc-400 hover:text-white"
+      }`}
+    >
+      <Bell size={14} className="inline mr-1 sm:mr-2" />
+      <span className="hidden sm:inline">Notifications</span>
+      {unreadCount > 0 && (
+        <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-orange-500 rounded-full">
+          {unreadCount}
+        </span>
+      )}
+    </button>
+  </div>
+)
+
+const NotificationSection = ({
+  title,
+  icon,
+  isCollapsed,
+  onToggle,
+  unreadCount,
+  messages,
+  onMessageClick,
+  emptyMessage,
+  highlightClass,
+  context = "member", // "member" or "staff"
+}) => {
+  // Helper to get first/last name from senderName
+  const getNameParts = (senderName) => {
+    const parts = (senderName || "").split(" ")
+    return {
+      firstName: parts[0] || "",
+      lastName: parts.slice(1).join(" ") || ""
+    }
+  }
+
+  return (
+    <div className="bg-black rounded-xl overflow-hidden">
+      <button
+        onClick={onToggle}
+        className="w-full p-3 flex items-center justify-between hover:bg-gray-800 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          {icon}
+          <h3 className="text-white font-medium text-sm">{title}</h3>
+          {unreadCount > 0 && (
+            <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full">{unreadCount}</span>
+          )}
+        </div>
+        {isCollapsed ? <ChevronDown size={16} className="text-gray-400" /> : <ChevronUp size={16} className="text-gray-400" />}
+      </button>
+
+      {!isCollapsed && (
+        <div className="border-t border-gray-700">
+          {messages.length > 0 ? (
+            messages.map((message) => {
+              const { firstName, lastName } = getNameParts(message.senderName)
+              
+              return (
+                <div
+                  key={message.id}
+                  className={`p-3 border-b border-gray-800 last:border-b-0 cursor-pointer hover:bg-gray-800 transition-colors ${
+                    !message.isRead ? highlightClass : ""
+                  }`}
+                  onClick={() => onMessageClick(message)}
                 >
-                  <X size={16} />
-                </button>
-              </div>
-              <div className="space-y-4">
-                <p className="text-gray-300">
-                  Are you sure you want to <span className="font-semibold text-white">{pendingActivityAction.action}</span> this activity?
-                </p>
-                <div className="flex gap-2 pt-4">
-                  <button
-                    onClick={() => {
-                      setShowActionConfirm(false);
-                      setPendingActivityAction(null);
-                    }}
-                    className="flex-1 px-4 py-2 bg-zinc-700 hover:bg-zinc-600 rounded-lg font-medium text-white"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleConfirmAction}
-                    className={`flex-1 px-4 py-2 ${pendingActivityAction.action === "reject"
-                      ? "bg-red-600 hover:bg-red-700"
-                      : "bg-blue-600 hover:bg-blue-700"
-                      } rounded-lg font-medium text-white`}
-                  >
-                    Confirm {pendingActivityAction.action}
-                  </button>
+                  <div className="flex items-start gap-3">
+                    {message.senderAvatar ? (
+                      <img
+                        src={message.senderAvatar}
+                        alt={message.senderName}
+                        className="w-8 h-8 rounded-xl flex-shrink-0 object-cover"
+                      />
+                    ) : (
+                      <InitialsAvatar
+                        firstName={firstName}
+                        lastName={lastName}
+                        size={32}
+                        context={context}
+                      />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="text-white font-medium text-sm truncate">{message.senderName}</h4>
+                        {!message.isRead && <div className="w-2 h-2 bg-orange-500 rounded-full flex-shrink-0" />}
+                      </div>
+                      <p className="text-gray-300 text-sm line-clamp-2 mb-1">{message.message}</p>
+                      <div className="flex items-center justify-between">
+                        <p className="text-gray-500 text-xs flex items-center gap-1">
+                          <Clock size={12} />
+                          {message.time}
+                        </p>
+                        <Reply size={14} className="text-gray-400" />
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )
+            })
+          ) : (
+            <div className="p-4 text-center text-gray-400">
+              <Reply size={24} className="mx-auto mb-2 opacity-50" />
+              <p className="text-sm">{emptyMessage}</p>
             </div>
-          </div>
+          )}
         </div>
       )}
-    </>
-  );
-};
+    </div>
+  )
+}
+
+const ActivityMonitorSection = ({
+  isCollapsed,
+  onToggle,
+  totalCount,
+  categories,
+  onAction,
+  onJumpTo,
+}) => {
+  const categoryOrder = ["appointments", "contracts", "contractPause", "memberData", "bankData", "vacation", "emails"]
+  const sortedCategories = categoryOrder
+    .filter(id => categories[id])
+    .map(id => ({ id, ...categories[id] }))
+
+  return (
+    <div className="bg-black rounded-xl overflow-hidden">
+      <button
+        onClick={onToggle}
+        className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-900 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <CiMonitor size={20} />
+          <h3 className="text-white font-medium text-sm">Activity Monitor</h3>
+          {totalCount > 0 && (
+            <span className="bg-orange-500 text-white text-xs px-2 py-0.5 rounded-full">
+              {totalCount}
+            </span>
+          )}
+        </div>
+        {isCollapsed ? <ChevronDown size={18} className="text-gray-400" /> : <ChevronUp size={18} className="text-gray-400" />}
+      </button>
+
+      {!isCollapsed && (
+        <div className="border-t border-gray-800 max-h-[500px] overflow-y-auto custom-scrollbar">
+          {sortedCategories.length > 0 ? (
+            <div className="divide-y divide-gray-800">
+              {sortedCategories.map((category) => {
+                const Icon = category.icon
+                
+                return (
+                  <div key={category.id} className="p-3">
+                    {/* Category Header */}
+                    <div 
+                      className="flex items-center justify-between mb-2 cursor-pointer hover:opacity-80"
+                      onClick={() => onJumpTo(category.tabId)}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className={`${category.color} p-1.5 rounded-lg`}>
+                          <Icon size={14} className="text-white" />
+                        </div>
+                        <span className="text-white text-sm font-medium">{category.label}</span>
+                        <span className={`${category.color} text-white text-xs px-1.5 py-0.5 rounded-full`}>
+                          {category.count}
+                        </span>
+                      </div>
+                      <ExternalLink size={14} className="text-gray-500" />
+                    </div>
+                    
+                    {/* Category Items (show max 2) */}
+                    <div className="space-y-2 ml-8">
+                      {category.items.slice(0, 2).map((item) => (
+                        <div 
+                          key={item.id}
+                          className="bg-gray-900/50 rounded-lg p-2 hover:bg-gray-900 transition-colors"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-white text-xs font-medium truncate">{item.title}</p>
+                              <p className="text-gray-500 text-[10px] truncate">{item.subtitle}</p>
+                              <p className="text-gray-400 text-[10px] truncate">{item.description}</p>
+                            </div>
+                            <div className="flex items-center gap-1 flex-shrink-0">
+                              {/* Action buttons based on category */}
+                              {item.status === "pending" && (
+                                <>
+                                  {/* Approve/Reject for most categories */}
+                                  {(category.id === "appointments" || category.id === "contractPause" || 
+                                    category.id === "memberData" || category.id === "bankData") && (
+                                    <>
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          onAction(category.id, item.id, "approve")
+                                        }}
+                                        className={`p-1 ${category.color} hover:opacity-80 rounded transition-colors`}
+                                        title="Approve"
+                                      >
+                                        <Check size={10} className="text-white" />
+                                      </button>
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          onAction(category.id, item.id, "reject")
+                                        }}
+                                        className="p-1 bg-red-600 hover:bg-red-700 rounded transition-colors"
+                                        title="Reject"
+                                      >
+                                        <X size={10} className="text-white" />
+                                      </button>
+                                    </>
+                                  )}
+                                  {/* Vacation - Blue buttons */}
+                                  {category.id === "vacation" && (
+                                    <>
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          onAction(category.id, item.id, "approve")
+                                        }}
+                                        className="p-1 bg-blue-600 hover:bg-blue-700 rounded transition-colors"
+                                        title="Approve"
+                                      >
+                                        <Check size={10} className="text-white" />
+                                      </button>
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          onAction(category.id, item.id, "reject")
+                                        }}
+                                        className="p-1 bg-red-600 hover:bg-red-700 rounded transition-colors"
+                                        title="Reject"
+                                      >
+                                        <X size={10} className="text-white" />
+                                      </button>
+                                    </>
+                                  )}
+                                </>
+                              )}
+                              {/* Contracts - just show days left */}
+                              {category.id === "contracts" && (
+                                <span className={`text-[10px] ${category.textColor}`}>
+                                  {item.time}
+                                </span>
+                              )}
+                              {/* Emails - retry button */}
+                              {category.id === "emails" && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    onAction(category.id, item.id, "retry")
+                                  }}
+                                  className="p-1 bg-gray-600 hover:bg-gray-700 rounded transition-colors"
+                                  title="Retry"
+                                >
+                                  <Reply size={10} className="text-white" />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      {/* Show more link if more items */}
+                      {category.items.length > 2 && (
+                        <button
+                          onClick={() => onJumpTo(category.tabId)}
+                          className={`text-[10px] ${category.textColor} hover:underline`}
+                        >
+                          +{category.items.length - 2} more...
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          ) : (
+            <div className="p-6 text-center text-gray-500">
+              <CiMonitor size={24} className="mx-auto mb-2 opacity-50" />
+              <p className="text-sm">No pending activities</p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+const ActionConfirmModal = ({ action, onCancel, onConfirm }) => (
+  <div className="bg-[#181818] rounded-xl w-full p-6">
+    <div className="flex justify-between items-center mb-4">
+      <h2 className="text-lg font-semibold text-white">Confirm Action</h2>
+      <button onClick={onCancel} className="p-2 hover:bg-zinc-700 rounded-lg text-gray-400">
+        <X size={16} />
+      </button>
+    </div>
+    <p className="text-gray-300 mb-6">
+      Are you sure you want to <span className="font-semibold text-white">{action}</span> this activity?
+    </p>
+    <div className="flex gap-3 justify-end">
+      <button
+        onClick={onCancel}
+        className="px-4 py-2 bg-zinc-700 hover:bg-zinc-600 rounded-lg font-medium text-white"
+      >
+        Cancel
+      </button>
+      <button
+        onClick={onConfirm}
+        className={`px-4 py-2 ${
+          action === "reject" ? "bg-red-600 hover:bg-red-700" : "bg-blue-600 hover:bg-blue-700"
+        } rounded-lg font-medium text-white`}
+      >
+        Confirm
+      </button>
+    </div>
+  </div>
+)
 
 export default Sidebar

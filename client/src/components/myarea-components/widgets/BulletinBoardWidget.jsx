@@ -1,197 +1,219 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 /* eslint-disable react/no-unescaped-entities */
-import { useState, useEffect } from "react"
-import {
-  MoreVertical,
-  Plus,
-  Edit,
-  Trash2,
-} from "lucide-react"
-import Modal from "../bulletin-board-widjet-components/Modal"
+import { useState, useEffect, useRef } from "react"
+import { createPortal } from "react-dom"
+import { Plus, MoreVertical, Edit, Trash2, Eye, Calendar, Clock, Filter, X, ArrowUp, ArrowDown } from "lucide-react"
 import { Link } from "react-router-dom"
+import OptimizedCreateBulletinModal from "../../shared/bulletin-board/CreateBulletinBoard"
+import OptimizedEditBulletinModal from "../../shared/bulletin-board/EditBulletinBoard"
+import DeleteBulletinModal from "../../shared/bulletin-board/DeleteBulletinBoard"
+import ViewBulletinModal from "../../shared/bulletin-board/ViewBulletinBoard"
 import TagManagerModal from "../../shared/TagManagerModal"
+import { defaultTags, defaultPosts } from "../../../utils/studio-states/bulletin-board-states"
 
-export const BulletinBoardWidget = ({isSidebarEditing, expanded}) => {
-  const [bulletinPosts, setBulletinPosts] = useState([
-    {
-      id: 1,
-      title: "Welcome to Our Studio!",
-      content: "We're excited to announce our new fitness programs starting next month. Stay tuned for more updates!",
-      category: "staff",
-      date: "2024-01-15",
-      visibility: "Staff",
-      status: "Active",
-      image: null,
-      tags: [],
-      author: "Admin",
-      createdAt: "2024-01-15",
-      createdBy: "current-user"
-    },
-    {
-      id: 2,
-      title: "Holiday Schedule",
-      content: "Please note our modified hours during the holiday season. The studio will close early on December 24th.",
-      category: "members",
-      date: "2024-01-10",
-      visibility: "Members",
-      status: "Active",
-      image: null,
-      tags: [],
-      author: "Admin",
-      createdAt: "2024-01-10",
-      createdBy: "current-user"
-    },
-    {
-      id: 3,
-      title: "New Equipment Arrival",
-      content: "We've added new cardio machines in section B. Members are welcome to try them out!",
-      category: "members",
-      date: "2024-01-08",
-      visibility: "Members",
-      status: "Active",
-      image: null,
-      tags: [],
-      author: "Admin",
-      createdAt: "2024-01-08",
-      createdBy: "current-user"
-    }
-  ])
+// Helper function to strip HTML tags for preview
+const stripHtmlTags = (html) => {
+  if (!html) return ''
+  let text = html
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n')
+    .replace(/<\/div>/gi, '\n')
+    .replace(/<\/li>/gi, '\n')
+    .replace(/<\/h[1-6]>/gi, '\n')
+  const tmp = document.createElement('div')
+  tmp.innerHTML = text
+  text = tmp.textContent || tmp.innerText || ''
+  return text.replace(/\n{3,}/g, '\n\n').trim()
+}
 
-  const [tags, setTags] = useState([
-    { id: 1, name: "Important", color: "#FF6B6B" },
-    { id: 2, name: "Update", color: "#4ECDC4" },
-    { id: 3, name: "Announcement", color: "#FFE66D" },
-  ])
+// Format schedule date for display
+const formatScheduleDate = (dateStr) => {
+  if (!dateStr) return ''
+  const date = new Date(dateStr)
+  return date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+}
 
-  const [filter, setFilter] = useState("all")
+// Format schedule time for display
+const formatScheduleTime = (time) => {
+  if (!time) return ''
+  const [hours, minutes] = time.split(':')
+  const hour = parseInt(hours)
+  const ampm = hour >= 12 ? 'PM' : 'AM'
+  const formattedHour = hour % 12 || 12
+  return `${formattedHour}:${minutes} ${ampm}`
+}
+
+// Visibility Configuration
+const VISIBILITY_CONFIG = {
+  members: {
+    label: "Members",
+  },
+  staff: {
+    label: "Staff",
+  },
+}
+
+export const BulletinBoardWidget = ({ isSidebarEditing, expanded, showHeader = true, maxItems = null }) => {
+  const [bulletinPosts, setBulletinPosts] = useState(defaultPosts)
+  const [tags, setTags] = useState(defaultTags)
+
+  // Tab state - "members" or "staff"
+  const [activeTab, setActiveTab] = useState("members")
+  
+  // Status filter state
+  const [statusFilter, setStatusFilter] = useState("all")
+  const [isStatusFilterOpen, setIsStatusFilterOpen] = useState(false)
+  
+  // Sort state
+  const [sortBy, setSortBy] = useState("recentlyAdded")
+  const [sortOrder, setSortOrder] = useState("desc")
+  const [isSortDropdownOpen, setIsSortDropdownOpen] = useState(false)
+  
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [showViewModal, setShowViewModal] = useState(false)
   const [showTagManager, setShowTagManager] = useState(false)
   const [selectedPost, setSelectedPost] = useState(null)
-  const [dropdownOpenId, setDropdownOpenId] = useState(null)
-  const [expandedImage, setExpandedImage] = useState(null)
+  const [openDropdownId, setOpenDropdownId] = useState(null)
+  const [dropdownPosition, setDropdownPosition] = useState({})
+  const [schedulePopupPostId, setSchedulePopupPostId] = useState(null)
 
-  const [formData, setFormData] = useState({
-    title: "",
-    content: "",
-    visibility: "Members",
-    status: "Active",
-    image: null,
-    tags: []
-  })
+  const dropdownRef = useRef(null)
+  const statusFilterRef = useRef(null)
+  const sortDropdownRef = useRef(null)
 
-  // Close dropdown when clicking outside
+  // Close dropdowns on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
-      const isDropdownClick = event.target.closest('[data-dropdown-button]') ||
-        event.target.closest('[data-dropdown-menu]');
-
-      if (!isDropdownClick) {
-        setDropdownOpenId(null);
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setOpenDropdownId(null)
       }
-    };
+      if (statusFilterRef.current && !statusFilterRef.current.contains(event.target)) {
+        setIsStatusFilterOpen(false)
+      }
+      if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target)) {
+        setIsSortDropdownOpen(false)
+      }
+      if (schedulePopupPostId && !event.target.closest('[data-schedule-popup]')) {
+        setSchedulePopupPostId(null)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [schedulePopupPostId])
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
+  // Calculate counts for each tab
+  const tabCounts = {
+    members: bulletinPosts.filter(p => p.visibility === "Members").length,
+    staff: bulletinPosts.filter(p => p.visibility === "Staff").length,
+  }
 
-  // Filter posts based on category
+  // Filter posts based on active tab and status filter
   const getFilteredPosts = () => {
-    if (filter === "all") {
-      return bulletinPosts
-    }
-    return bulletinPosts.filter(post => post.category === filter)
-  }
+    let filtered = bulletinPosts.filter(post => {
+      // Filter by visibility (tab)
+      if (activeTab === "members" && post.visibility !== "Members") return false
+      if (activeTab === "staff" && post.visibility !== "Staff") return false
 
-  // Handle image upload
-  const handleImageChange = (e) => {
-    const file = e.target.files[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setFormData({ ...formData, image: reader.result })
+      // Filter by status
+      if (statusFilter !== "all") {
+        if (statusFilter === "active" && post.status !== "Active") return false
+        if (statusFilter === "inactive" && post.status !== "Inactive") return false
+        if (statusFilter === "scheduled" && post.status !== "Scheduled") return false
       }
-      reader.readAsDataURL(file)
-    }
-  }
 
-  // Handle tag toggle
-  const handleTagToggle = (tagId) => {
-    const selectedTags = formData.tags || []
-    if (selectedTags.includes(tagId)) {
-      setFormData({
-        ...formData,
-        tags: selectedTags.filter((id) => id !== tagId),
-      })
-    } else {
-      setFormData({
-        ...formData,
-        tags: [...selectedTags, tagId],
+      return true
+    })
+
+    // Sort posts
+    if (sortBy !== "custom") {
+      filtered.sort((a, b) => {
+        let comparison = 0
+        
+        switch (sortBy) {
+          case "title":
+            comparison = a.title.localeCompare(b.title)
+            break
+          case "author":
+            comparison = a.author.localeCompare(b.author)
+            break
+          case "recentlyAdded":
+          default:
+            comparison = (a.createdAt || 0) - (b.createdAt || 0)
+            break
+        }
+        
+        return sortOrder === "asc" ? comparison : -comparison
       })
     }
-  }
 
+    return filtered
+  }
 
   // Handle create new post
-  const handleCreatePost = () => {
-    if (!formData.title.trim() || !formData.content.trim()) {
-      alert("Please fill in all fields")
-      return
-    }
+  const handleCreatePost = (formData) => {
+    if (formData.title.trim() && stripHtmlTags(formData.content).trim()) {
+      let finalStatus = formData.status
+      if (formData.schedule && formData.schedule.type === 'scheduled') {
+        finalStatus = 'Scheduled'
+      }
 
-    const newPost = {
-      id: Date.now(),
-      title: formData.title,
-      content: formData.content,
-      category: formData.visibility.toLowerCase().includes("staff") ? "staff" : "members",
-      date: new Date().toISOString().split('T')[0],
-      visibility: formData.visibility,
-      status: formData.status,
-      image: formData.image,
-      tags: formData.tags || [],
-      author: "Current User",
-      createdAt: new Date().toLocaleDateString(),
-      createdBy: "current-user"
-    }
+      const newPost = {
+        id: Date.now(),
+        title: formData.title,
+        content: formData.content,
+        visibility: activeTab === "members" ? "Members" : "Staff",
+        status: finalStatus,
+        image: formData.image,
+        tags: formData.tags || [],
+        author: "Current User",
+        createdAt: Date.now(),
+        createdBy: "current-user",
+        schedule: (formData.schedule && formData.schedule.type === 'scheduled') 
+          ? formData.schedule 
+          : null,
+      }
 
-    setBulletinPosts(prev => [newPost, ...prev])
-    setShowCreateModal(false)
-    setFormData({ title: "", content: "", visibility: "Members", status: "Active", image: null, tags: [] })
-    console.log("Post created successfully!")
+      setBulletinPosts(prev => [newPost, ...prev])
+      setShowCreateModal(false)
+    }
   }
 
   // Handle edit post
-  const handleEditPost = () => {
-    if (!formData.title.trim() || !formData.content.trim()) {
-      alert("Please fill in all fields")
-      return
-    }
+  const handleEditPost = (formData) => {
+    if (formData.title.trim() && stripHtmlTags(formData.content).trim() && selectedPost) {
+      let finalStatus = formData.status
+      if (formData.schedule && formData.schedule.type === 'scheduled') {
+        finalStatus = 'Scheduled'
+      } else if (selectedPost.status === 'Scheduled') {
+        finalStatus = 'Active'
+      }
 
-    setBulletinPosts(prev =>
-      prev.map(post =>
-        post.id === selectedPost.id
-          ? {
-            ...post,
-            title: formData.title,
-            content: formData.content,
-            visibility: formData.visibility,
-            status: formData.status,
-            image: formData.image,
-            tags: formData.tags || [],
-            category: formData.visibility.toLowerCase().includes("staff") ? "staff" : "members"
-          }
-          : post
+      setBulletinPosts(prev =>
+        prev.map(post =>
+          post.id === selectedPost.id
+            ? {
+              ...post,
+              title: formData.title,
+              content: formData.content,
+              visibility: formData.visibility,
+              status: finalStatus,
+              image: formData.image,
+              tags: formData.tags || [],
+              schedule: (formData.schedule && formData.schedule.type === 'scheduled') 
+                ? formData.schedule 
+                : null,
+              updatedAt: Date.now()
+            }
+            : post
+        )
       )
-    )
 
-    setShowEditModal(false)
-    setSelectedPost(null)
-    setFormData({ title: "", content: "", visibility: "Members", status: "Active", image: null, tags: [] })
-    console.log("Post updated successfully!")
+      setShowEditModal(false)
+      setSelectedPost(null)
+    }
   }
 
   // Handle delete post
@@ -199,496 +221,61 @@ export const BulletinBoardWidget = ({isSidebarEditing, expanded}) => {
     setBulletinPosts(prev => prev.filter(post => post.id !== selectedPost.id))
     setShowDeleteModal(false)
     setSelectedPost(null)
-    console.log("Post deleted successfully!")
   }
 
-  // Open edit modal
-  const openEditModal = (post, e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setSelectedPost(post)
-    setFormData({
-      title: post.title,
-      content: post.content,
-      visibility: post.visibility,
-      status: post.status,
-      image: post.image,
-      tags: post.tags || []
+  // Handle dropdown toggle
+  const handleDropdownToggle = (postId, event) => {
+    if (openDropdownId === postId) {
+      setOpenDropdownId(null)
+      return
+    }
+
+    const button = event.currentTarget
+    const rect = button.getBoundingClientRect()
+    const viewportHeight = window.innerHeight
+    const dropdownHeight = 120
+    const spaceBelow = viewportHeight - rect.bottom
+    const spaceAbove = rect.top
+
+    const openUpwards = spaceBelow < dropdownHeight && spaceAbove > spaceBelow
+
+    setDropdownPosition({
+      [postId]: openUpwards ? 'top' : 'bottom'
     })
-    setShowEditModal(true)
-    setDropdownOpenId(null)
+    setOpenDropdownId(postId)
   }
 
-  // Open delete modal
-  const openDeleteModal = (post, e) => {
-    e.preventDefault();
-    e.stopPropagation();
+  // Handle view post
+  const handleViewClick = (post) => {
+    setSelectedPost(post)
+    setShowViewModal(true)
+    setOpenDropdownId(null)
+  }
+
+  // Handle edit click
+  const handleEditClick = (post) => {
+    setSelectedPost(post)
+    setShowEditModal(true)
+    setOpenDropdownId(null)
+  }
+
+  // Handle delete click
+  const handleDeleteClick = (post) => {
     setSelectedPost(post)
     setShowDeleteModal(true)
-    setDropdownOpenId(null)
+    setOpenDropdownId(null)
   }
-
-  // Open create modal
-  const openCreateModal = () => {
-    setFormData({ title: "", content: "", visibility: "Members", status: "Active", image: null, tags: [] })
-    setShowCreateModal(true)
-  }
-
-  // Toggle dropdown
-  const toggleDropdown = (postId, e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDropdownOpenId(dropdownOpenId === postId ? null : postId);
-  };
 
   // Get tag by ID
   const getTagById = (tagId) => {
     return tags.find((tag) => tag.id === tagId)
   }
 
-  return (
-    <div className="space-y-3 p-4 rounded-xl bg-[#2F2F2F] md:h-[340px] h-auto flex flex-col">
-      {/* Header with + icon */}
-      <div className="flex justify-between items-center">
-        <h2 className="text-lg font-semibold">Bulletin Board</h2>
-      {!isSidebarEditing &&  <button
-          onClick={openCreateModal}
-          className="p-2 bg-blue-600 hover:bg-blue-700 rounded-lg cursor-pointer transition-colors"
-          title="Add New Post"
-        >
-          <Plus size={18} />
-        </button>}
-      </div>
+  const handleAddTag = (newTag) => {
+    setTags([...tags, newTag])
+  }
 
-      {/* Filter */}
-      <div className="relative">
-        <select
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          className="w-full p-2 bg-black rounded-xl text-white text-sm cursor-pointer"
-        >
-          <option value="all">All Posts</option>
-          <option value="staff">Staff Only</option>
-          <option value="members">Members Only</option>
-        </select>
-      </div>
-
-
-      <div className="flex-1 overflow-y-auto max-h-60 custom-scrollbar pr-1 mt-2">
-        <div className="space-y-2">
-          {getFilteredPosts().length > 0 ? (
-            getFilteredPosts().slice(0, 3).map((post) => (
-              <div key={post.id} className="p-3 bg-black rounded-xl relative">
-                <div className="absolute top-3 right-3">
-                  <button
-                    data-dropdown-button
-                    onClick={(e) => toggleDropdown(post.id, e)}
-                    className="p-1 hover:bg-gray-700 rounded transition-colors"
-                  >
-                    <MoreVertical size={14} />
-                  </button>
-
-                  {dropdownOpenId === post.id && (
-                    <div
-                      data-dropdown-menu
-                      className="absolute right-0 top-8 bg-[#2F2F2F] rounded-lg shadow-lg z-10 min-w-[120px] border border-gray-600"
-                    >
-
-                      {post.createdBy === "current-user" && (
-                        <>
-                          <button
-                            onClick={(e) => openEditModal(post, e)}
-                            className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 flex items-center gap-2 transition-colors"
-                          >
-                            <Edit size={14} />
-                            Edit
-                          </button>
-                          <button
-                            onClick={(e) => openDeleteModal(post, e)}
-                            className="w-full px-3 py-2 text-left text-sm hover:bg-zinc-600 rounded-b-lg text-red-400 flex items-center gap-2 transition-colors"
-                          >
-                            <Trash2 size={14} />
-                            Delete
-                          </button>
-                        </>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                <div className="pr-8">
-                  {/* Post image thumbnail */}
-                  {post.image && (
-                    <div className="mb-2 rounded-lg overflow-hidden border border-gray-700 h-16">
-                      <img 
-                        src={post.image} 
-                        alt="Post" 
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  )}
-
-                  <h3 className="font-semibold text-sm">{post.title}</h3>
-                  <p className="text-xs text-zinc-400 mt-1 line-clamp-2">{post.content}</p>
-                  
-                  {/* Tags */}
-                  {post.tags && post.tags.length > 0 && (
-                    <div className="flex gap-1 mt-2 flex-wrap">
-                      {post.tags.map((tagId) => {
-                        const tag = getTagById(tagId)
-                        return tag ? (
-                          <span
-                            key={tag.id}
-                            className="px-2 py-0.5 rounded-full text-xs font-medium text-white"
-                            style={{ backgroundColor: tag.color }}
-                          >
-                            {tag.name}
-                          </span>
-                        ) : null
-                      })}
-                    </div>
-                  )}
-
-                  <div className="flex justify-between items-center mt-2">
-                    <span className="text-xs text-zinc-500 capitalize">{post.category}</span>
-                    <span className="text-xs text-zinc-500">{post.date}</span>
-                  </div>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="text-center py-4 text-gray-400">
-              <p className="text-sm">No posts found</p>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* See All Link */}
-      {getFilteredPosts().length > 0 && (
-        <Link to={"/dashboard/bulletin-board"}>
-          <div className="flex justify-center pt-2">
-            <button className="text-sm text-white hover:underline">
-              See all
-            </button>
-          </div>
-        </Link>
-      )}
-
-      {/* Create Post Modal */}
-      <Modal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} title="Create New Post">
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Title</label>
-            <input
-              type="text"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full bg-[#181818] border outline-none border-slate-300/10 text-white rounded-xl px-4 py-2 text-sm"
-              placeholder="Enter post title..."
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Content</label>
-            <textarea
-              value={formData.content}
-              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-              rows={6}
-              className="w-full bg-[#181818] border outline-none border-slate-300/10 text-white rounded-xl px-4 py-2 text-sm resize-none"
-              placeholder="Write your post content here..."
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Image</label>
-            <div className="flex items-center gap-2">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="w-full bg-[#181818] border outline-none border-slate-300/10 text-white rounded-xl px-4 py-2 text-sm"
-              />
-              {formData.image && (
-                <button
-                  onClick={() => setFormData({ ...formData, image: null })}
-                  className="text-red-400 hover:text-red-300 transition-colors p-2"
-                  title="Remove image"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              )}
-            </div>
-            {formData.image && (
-              <div className="mt-2 relative w-20 h-20 rounded-lg overflow-hidden border border-gray-700">
-                <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
-              </div>
-            )}
-          </div>
-
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm font-medium text-gray-300">Tags</label>
-              <button
-                onClick={() => setShowTagManager(true)}
-                className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
-              >
-                Manage Tags
-              </button>
-            </div>
-            <div className="bg-[#181818] border border-slate-300/10 rounded-xl p-3 max-h-32 overflow-y-auto">
-              {tags && tags.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
-                  {tags.map((tag) => (
-                    <button
-                      key={tag.id}
-                      onClick={() => handleTagToggle(tag.id)}
-                      className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
-                        (formData.tags || []).includes(tag.id)
-                          ? "opacity-100 border-2"
-                          : "opacity-50 border border-gray-600"
-                      }`}
-                      style={{
-                        backgroundColor: tag.color,
-                        borderColor: tag.color,
-                        color: "white",
-                      }}
-                    >
-                      {tag.name}
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-400 text-xs">No tags available. Create one using Manage Tags.</p>
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Visibility</label>
-              <select
-                value={formData.visibility}
-                onChange={(e) => setFormData({ ...formData, visibility: e.target.value })}
-                className="w-full bg-[#181818] border outline-none border-slate-300/10 text-white rounded-xl px-4 py-2 text-sm"
-              >
-                <option value="Members">Members</option>
-                <option value="Staff">Staff</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Status</label>
-              <select
-                value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className="w-full bg-[#181818] border outline-none border-slate-300/10 text-white rounded-xl px-4 py-2 text-sm"
-              >
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-              </select>
-            </div>
-          </div>
-          <div className="flex gap-3 pt-4">
-            <button
-              onClick={() => setShowCreateModal(false)}
-              className="flex-1 bg-gray-600 text-sm cursor-pointer hover:bg-gray-700 text-white py-3 px-4 rounded-lg font-medium transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleCreatePost}
-              className="flex-1 bg-blue-600 text-sm cursor-pointer hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium transition-colors"
-            >
-              Create Post
-            </button>
-          </div>
-        </div>
-      </Modal>
-
-      {/* Edit Post Modal */}
-      <Modal isOpen={showEditModal} onClose={() => setShowEditModal(false)} title="Edit Post">
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Title</label>
-            <input
-              type="text"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full bg-[#181818] border outline-none border-slate-300/10 text-white rounded-xl px-4 py-2 text-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Content</label>
-            <textarea
-              value={formData.content}
-              onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-              rows={6}
-              className="w-full bg-[#181818] border outline-none border-slate-300/10 text-white rounded-xl px-4 py-2 text-sm resize-none"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Image</label>
-            <div className="flex items-center gap-2">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="w-full bg-[#181818] border outline-none border-slate-300/10 text-white rounded-xl px-4 py-2 text-sm"
-              />
-              {formData.image && (
-                <button
-                  onClick={() => setFormData({ ...formData, image: null })}
-                  className="text-red-400 hover:text-red-300 transition-colors p-2"
-                  title="Remove image"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              )}
-            </div>
-            {formData.image && (
-              <div className="mt-2 relative w-20 h-20 rounded-lg overflow-hidden border border-gray-700">
-                <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
-              </div>
-            )}
-          </div>
-
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm font-medium text-gray-300">Tags</label>
-              <button
-                onClick={() => setShowTagManager(true)}
-                className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
-              >
-                Manage Tags
-              </button>
-            </div>
-            <div className="bg-[#181818] border border-slate-300/10 rounded-xl p-3 max-h-32 overflow-y-auto">
-              {tags && tags.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
-                  {tags.map((tag) => (
-                    <button
-                      key={tag.id}
-                      onClick={() => handleTagToggle(tag.id)}
-                      className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
-                        (formData.tags || []).includes(tag.id)
-                          ? "opacity-100 border-2"
-                          : "opacity-50 border border-gray-600"
-                      }`}
-                      style={{
-                        backgroundColor: tag.color,
-                        borderColor: tag.color,
-                        color: "white",
-                      }}
-                    >
-                      {tag.name}
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-400 text-xs">No tags available. Create one using Manage Tags.</p>
-              )}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Visibility</label>
-              <select
-                value={formData.visibility}
-                onChange={(e) => setFormData({ ...formData, visibility: e.target.value })}
-                className="w-full bg-[#181818] border outline-none border-slate-300/10 text-white rounded-xl px-4 py-2 text-sm"
-              >
-                <option value="Members">Members</option>
-                <option value="Staff">Staff</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Status</label>
-              <select
-                value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className="w-full bg-[#181818] border outline-none border-slate-300/10 text-white rounded-xl px-4 py-2 text-sm"
-              >
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-              </select>
-            </div>
-          </div>
-          <div className="flex gap-3 pt-4">
-            <button
-              onClick={() => setShowEditModal(false)}
-              className="flex-1 bg-gray-600 text-sm cursor-pointer hover:bg-gray-700 text-white py-3 px-4 rounded-lg font-medium transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleEditPost}
-              className="flex-1 bg-blue-600 text-sm cursor-pointer hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium transition-colors"
-            >
-              Save Changes
-            </button>
-          </div>
-        </div>
-      </Modal>
-
-      {/* Delete Post Modal */}
-      <Modal isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)} title="Delete Post">
-        <div className="space-y-4">
-          <div className="text-center">
-            <p className="text-gray-300 mb-4">
-              Do you really want to delete "{selectedPost?.title}"? This action cannot be undone.
-            </p>
-          </div>
-          <div className="flex gap-3">
-            <button
-              onClick={() => setShowDeleteModal(false)}
-              className="flex-1 text-sm cursor-pointer bg-gray-600 hover:bg-gray-700 text-white py-3 px-4 rounded-lg font-medium transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleDeletePost}
-              className="flex-1 text-sm cursor-pointer bg-red-600 hover:bg-red-700 text-white py-3 px-4 rounded-lg font-medium transition-colors"
-            >
-              Delete Post
-            </button>
-          </div>
-        </div>
-      </Modal>
-
-      {/* Expanded Image Modal */}
-      {expandedImage && (
-        <div
-          className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
-          onClick={() => setExpandedImage(null)}
-        >
-          <div className="relative max-w-4xl max-h-[90vh]">
-            <img src={expandedImage} alt="Expanded" className="w-full md:h-[500px] h-auto object-contain" />
-            <button
-              onClick={() => setExpandedImage(null)}
-              className="absolute top-4 right-4 bg-white/20 hover:bg-white/30 text-white p-2 rounded-lg transition-colors"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        
-      )}
-      <TagManagerModal
-  isOpen={showTagManager}
-  onClose={() => setShowTagManager(false)}
-  tags={tags}
-  onAddTag={(tag) => {
-    setTags([...tags, tag])
-  }}
-  onDeleteTag={(tagId) => {
+  const handleDeleteTag = (tagId) => {
     setTags(tags.filter((tag) => tag.id !== tagId))
     setBulletinPosts(
       bulletinPosts.map((post) => ({
@@ -696,11 +283,641 @@ export const BulletinBoardWidget = ({isSidebarEditing, expanded}) => {
         tags: post.tags.filter((id) => id !== tagId),
       }))
     )
-  }}
-/>
-    </div>
+  }
 
-    
+  const handleSortChange = (newSortBy) => {
+    if (sortBy === newSortBy) {
+      setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"))
+    } else {
+      setSortBy(newSortBy)
+      setSortOrder("asc")
+    }
+  }
+
+  const truncateText = (text, maxLength = 80) => {
+    const plainText = stripHtmlTags(text)
+    if (plainText.length <= maxLength) return plainText
+    return plainText.substring(0, maxLength - 3) + "..."
+  }
+
+  const filteredPosts = getFilteredPosts()
+
+  return (
+    <div className={`p-4 rounded-xl bg-[#2F2F2F] flex flex-col space-y-3 ${showHeader ? 'h-[320px] md:h-[340px]' : ''}`}>
+      {/* Header - Full version with title (My Area) */}
+      {showHeader && (
+        <div className="flex justify-between items-center flex-shrink-0">
+          <h2 className="text-lg font-semibold">Bulletin Board</h2>
+          <div className="flex items-center gap-2">
+            {/* Status Filter */}
+            <div className="relative" ref={statusFilterRef}>
+              <button
+                onClick={() => !isSidebarEditing && setIsStatusFilterOpen(!isStatusFilterOpen)}
+                disabled={isSidebarEditing}
+                className={`p-1.5 rounded-lg transition-colors ${
+                  statusFilter !== "all"
+                    ? "bg-blue-600 text-white"
+                    : "bg-black text-gray-400 hover:text-white"
+                } ${isSidebarEditing ? "opacity-50 cursor-not-allowed" : ""}`}
+                title="Filter by status"
+              >
+                <Filter size={14} />
+              </button>
+
+              {isStatusFilterOpen && (
+                <div className="absolute right-0 top-8 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[140px] py-1">
+                  <div className="px-3 py-2 border-b border-gray-700">
+                    <p className="text-xs text-gray-500 font-medium">Filter by Status</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setStatusFilter("all")
+                      setIsStatusFilterOpen(false)
+                    }}
+                    className={`w-full text-left px-3 py-2 text-xs transition-colors ${
+                      statusFilter === "all"
+                        ? "bg-blue-600 text-white"
+                        : "text-gray-300 hover:bg-gray-800"
+                    }`}
+                  >
+                    All Posts
+                  </button>
+                  <button
+                    onClick={() => {
+                      setStatusFilter("active")
+                      setIsStatusFilterOpen(false)
+                    }}
+                    className={`w-full text-left px-3 py-2 text-xs transition-colors ${
+                      statusFilter === "active"
+                        ? "bg-blue-600 text-white"
+                        : "text-gray-300 hover:bg-gray-800"
+                    }`}
+                  >
+                    Active
+                  </button>
+                  <button
+                    onClick={() => {
+                      setStatusFilter("scheduled")
+                      setIsStatusFilterOpen(false)
+                    }}
+                    className={`w-full text-left px-3 py-2 text-xs transition-colors ${
+                      statusFilter === "scheduled"
+                        ? "bg-blue-600 text-white"
+                        : "text-gray-300 hover:bg-gray-800"
+                    }`}
+                  >
+                    Scheduled
+                  </button>
+                  <button
+                    onClick={() => {
+                      setStatusFilter("inactive")
+                      setIsStatusFilterOpen(false)
+                    }}
+                    className={`w-full text-left px-3 py-2 text-xs transition-colors ${
+                      statusFilter === "inactive"
+                        ? "bg-blue-600 text-white"
+                        : "text-gray-300 hover:bg-gray-800"
+                    }`}
+                  >
+                    Inactive
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Sort Dropdown */}
+            <div className="relative" ref={sortDropdownRef}>
+              <button
+                onClick={() => !isSidebarEditing && setIsSortDropdownOpen(!isSortDropdownOpen)}
+                disabled={isSidebarEditing}
+                className={`p-1.5 bg-black rounded-lg text-gray-400 hover:text-white transition-colors ${
+                  isSidebarEditing ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+                title="Sort posts"
+              >
+                {sortOrder === "asc" ? (
+                  <ArrowUp size={14} />
+                ) : (
+                  <ArrowDown size={14} />
+                )}
+              </button>
+
+              {isSortDropdownOpen && (
+                <div className="absolute right-0 top-8 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[160px] py-1">
+                  <div className="px-3 py-2 border-b border-gray-700">
+                    <p className="text-xs text-gray-500 font-medium">Sort by</p>
+                  </div>
+                  {[
+                    { value: "custom", label: "Custom" },
+                    { value: "title", label: "Title" },
+                    { value: "author", label: "Author" },
+                    { value: "recentlyAdded", label: "Recent" },
+                  ].map((option) => (
+                    <div
+                      key={option.value}
+                      className={`flex items-center justify-between px-3 py-2 text-xs transition-colors ${
+                        sortBy === option.value ? "bg-gray-800 text-white" : "text-gray-300 hover:bg-gray-800"
+                      }`}
+                    >
+                      <button
+                        onClick={() => {
+                          handleSortChange(option.value)
+                          if (option.value === "custom") setIsSortDropdownOpen(false)
+                        }}
+                        className="flex-1 text-left"
+                      >
+                        {option.label}
+                      </button>
+                      {sortBy === option.value && option.value !== "custom" && (
+                        <button
+                          onClick={() => setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"))}
+                          className="ml-2"
+                        >
+                          {sortOrder === "asc" ? (
+                            <ArrowUp size={12} className="text-gray-400" />
+                          ) : (
+                            <ArrowDown size={12} className="text-gray-400" />
+                          )}
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {!isSidebarEditing && (
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="p-2 bg-orange-500 hover:bg-orange-600 rounded-lg cursor-pointer transition-colors"
+                title="Add New Post"
+              >
+                <Plus size={18} />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Compact Header for Sidebar - Tabs and Icons in one row */}
+      {!showHeader && (
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {/* Compact Tabs */}
+          <div className="flex gap-0.5 p-0.5 bg-black rounded-lg flex-1 min-w-0">
+            {Object.entries(VISIBILITY_CONFIG).map(([visibility, config]) => (
+              <button
+                key={visibility}
+                onClick={() => setActiveTab(visibility)}
+                className={`flex-1 flex items-center justify-center gap-1 py-1 px-1.5 rounded-md text-[10px] font-medium transition-all ${
+                  activeTab === visibility
+                    ? "bg-gray-800 text-white"
+                    : "text-gray-400 hover:text-gray-200"
+                }`}
+              >
+                <span>{config.label}</span>
+                <span
+                  className={`text-[9px] px-1 py-0.5 rounded-full font-medium ${
+                    activeTab === visibility ? "bg-white/10 text-white" : "bg-gray-900 text-gray-500"
+                  }`}
+                >
+                  {tabCounts[visibility]}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {/* Icons */}
+          <div className="flex items-center gap-1 flex-shrink-0">
+            {/* Status Filter */}
+            <div className="relative" ref={statusFilterRef}>
+              <button
+                onClick={() => !isSidebarEditing && setIsStatusFilterOpen(!isStatusFilterOpen)}
+                disabled={isSidebarEditing}
+                className={`p-1.5 rounded-md transition-colors ${
+                  statusFilter !== "all"
+                    ? "bg-blue-600 text-white"
+                    : "bg-black text-gray-400 hover:text-white"
+                } ${isSidebarEditing ? "opacity-50 cursor-not-allowed" : ""}`}
+                title="Filter by status"
+              >
+                <Filter size={12} />
+              </button>
+
+              {isStatusFilterOpen && (
+                <div className="absolute right-0 top-7 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[140px] py-1">
+                  <div className="px-3 py-2 border-b border-gray-700">
+                    <p className="text-xs text-gray-500 font-medium">Filter by Status</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setStatusFilter("all")
+                      setIsStatusFilterOpen(false)
+                    }}
+                    className={`w-full text-left px-3 py-2 text-xs transition-colors ${
+                      statusFilter === "all"
+                        ? "bg-blue-600 text-white"
+                        : "text-gray-300 hover:bg-gray-800"
+                    }`}
+                  >
+                    All Posts
+                  </button>
+                  <button
+                    onClick={() => {
+                      setStatusFilter("active")
+                      setIsStatusFilterOpen(false)
+                    }}
+                    className={`w-full text-left px-3 py-2 text-xs transition-colors ${
+                      statusFilter === "active"
+                        ? "bg-blue-600 text-white"
+                        : "text-gray-300 hover:bg-gray-800"
+                    }`}
+                  >
+                    Active
+                  </button>
+                  <button
+                    onClick={() => {
+                      setStatusFilter("scheduled")
+                      setIsStatusFilterOpen(false)
+                    }}
+                    className={`w-full text-left px-3 py-2 text-xs transition-colors ${
+                      statusFilter === "scheduled"
+                        ? "bg-blue-600 text-white"
+                        : "text-gray-300 hover:bg-gray-800"
+                    }`}
+                  >
+                    Scheduled
+                  </button>
+                  <button
+                    onClick={() => {
+                      setStatusFilter("inactive")
+                      setIsStatusFilterOpen(false)
+                    }}
+                    className={`w-full text-left px-3 py-2 text-xs transition-colors ${
+                      statusFilter === "inactive"
+                        ? "bg-blue-600 text-white"
+                        : "text-gray-300 hover:bg-gray-800"
+                    }`}
+                  >
+                    Inactive
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Sort Dropdown */}
+            <div className="relative" ref={sortDropdownRef}>
+              <button
+                onClick={() => !isSidebarEditing && setIsSortDropdownOpen(!isSortDropdownOpen)}
+                disabled={isSidebarEditing}
+                className={`p-1.5 bg-black rounded-md text-gray-400 hover:text-white transition-colors ${
+                  isSidebarEditing ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+                title="Sort posts"
+              >
+                {sortOrder === "asc" ? (
+                  <ArrowUp size={12} />
+                ) : (
+                  <ArrowDown size={12} />
+                )}
+              </button>
+
+              {isSortDropdownOpen && (
+                <div className="absolute right-0 top-7 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[160px] py-1">
+                  <div className="px-3 py-2 border-b border-gray-700">
+                    <p className="text-xs text-gray-500 font-medium">Sort by</p>
+                  </div>
+                  {[
+                    { value: "custom", label: "Custom" },
+                    { value: "title", label: "Title" },
+                    { value: "author", label: "Author" },
+                    { value: "recentlyAdded", label: "Recent" },
+                  ].map((option) => (
+                    <div
+                      key={option.value}
+                      className={`flex items-center justify-between px-3 py-2 text-xs transition-colors ${
+                        sortBy === option.value ? "bg-gray-800 text-white" : "text-gray-300 hover:bg-gray-800"
+                      }`}
+                    >
+                      <button
+                        onClick={() => {
+                          handleSortChange(option.value)
+                          if (option.value === "custom") setIsSortDropdownOpen(false)
+                        }}
+                        className="flex-1 text-left"
+                      >
+                        {option.label}
+                      </button>
+                      {sortBy === option.value && option.value !== "custom" && (
+                        <button
+                          onClick={() => setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"))}
+                          className="ml-2"
+                        >
+                          {sortOrder === "asc" ? (
+                            <ArrowUp size={12} className="text-gray-400" />
+                          ) : (
+                            <ArrowDown size={12} className="text-gray-400" />
+                          )}
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {!isSidebarEditing && (
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="p-1.5 bg-orange-500 hover:bg-orange-600 rounded-md cursor-pointer transition-colors"
+                title="Add New Post"
+              >
+                <Plus size={14} />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Visibility Tabs - Only shown when showHeader is true (My Area) */}
+      {showHeader && (
+        <div className="flex gap-1 p-1 bg-black rounded-xl flex-shrink-0">
+          {Object.entries(VISIBILITY_CONFIG).map(([visibility, config]) => (
+            <button
+              key={visibility}
+              onClick={() => setActiveTab(visibility)}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-medium transition-all ${
+                activeTab === visibility
+                  ? "bg-gray-800 text-white"
+                  : "text-gray-400 hover:text-gray-200"
+              }`}
+            >
+              <span>{config.label}</span>
+              <span
+                className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
+                  activeTab === visibility ? "bg-white/10 text-white" : "bg-gray-900 text-gray-500"
+                }`}
+              >
+                {tabCounts[visibility]}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Active Status Filter Indicator */}
+      {statusFilter !== "all" && (
+        <div className="flex items-center gap-2 text-xs text-blue-400 flex-shrink-0">
+          <Filter size={12} />
+          <span>Showing {statusFilter} posts</span>
+          <button
+            onClick={() => setStatusFilter("all")}
+            className="ml-auto text-gray-400 hover:text-white"
+          >
+            <X size={12} />
+          </button>
+        </div>
+      )}
+
+      {/* Posts List */}
+      <div className={`overflow-y-auto custom-scrollbar pr-1 space-y-1.5 ${showHeader ? 'flex-1' : ''}`}>
+        {(maxItems ? filteredPosts.slice(0, maxItems) : filteredPosts).map((post) => (
+          <div
+            key={post.id}
+            className="p-3 rounded-xl bg-[#1a1a1a] hover:bg-gray-800 transition-all"
+          >
+            <div className="flex items-start gap-3">
+              {/* Post Image Thumbnail */}
+              {post.image && (
+                <div className="w-16 h-16 rounded-lg overflow-hidden border border-gray-700 flex-shrink-0">
+                  <img 
+                    src={post.image} 
+                    alt="Post" 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+
+              {/* Post Content */}
+              <div className="flex-1 min-w-0">
+                <h3 className="text-sm font-semibold text-white truncate mb-1">
+                  {post.title}
+                </h3>
+                
+                {/* Tags */}
+                {post.tags && post.tags.length > 0 && (
+                  <div className="flex gap-1 flex-wrap mb-1">
+                    {post.tags.slice(0, 2).map((tagId) => {
+                      const tag = getTagById(tagId)
+                      return tag ? (
+                        <span
+                          key={tag.id}
+                          className="text-[10px] px-1.5 py-0.5 rounded text-white"
+                          style={{ backgroundColor: tag.color }}
+                        >
+                          {tag.name}
+                        </span>
+                      ) : null
+                    })}
+                    {post.tags.length > 2 && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-600 text-gray-300">
+                        +{post.tags.length - 2}
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                <p className="text-xs text-gray-400 line-clamp-2">
+                  {truncateText(post.content)}
+                </p>
+
+                {/* Status Indicator */}
+                <div className="flex items-center gap-2 mt-2">
+                  {post.status === "Scheduled" ? (
+                    <div 
+                      className="relative flex items-center gap-1.5"
+                      data-schedule-popup
+                      onMouseEnter={() => setSchedulePopupPostId(post.id)}
+                      onMouseLeave={() => setSchedulePopupPostId(null)}
+                    >
+                      <div className="w-1.5 h-1.5 rounded-full bg-orange-500 animate-pulse" />
+                      <span className="text-[10px] text-orange-400 font-medium">
+                        Scheduled
+                      </span>
+                      
+                      {/* Schedule Popup */}
+                      {post.schedule && schedulePopupPostId === post.id && (
+                        <div className="absolute bottom-full left-0 mb-2 px-2 py-1.5 bg-[#1a1a1a] border border-gray-700 rounded-lg shadow-xl z-50 whitespace-nowrap">
+                          <div className="text-[10px] space-y-0.5">
+                            {post.schedule.startDate && (
+                              <div className="flex items-center gap-1.5 text-orange-400">
+                                <Calendar size={8} />
+                                <span>{formatScheduleDate(post.schedule.startDate)}</span>
+                              </div>
+                            )}
+                          </div>
+                          <div className="absolute -bottom-1 left-3 w-1.5 h-1.5 bg-[#1a1a1a] border-r border-b border-gray-700 transform rotate-45" />
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <>
+                      <div className={`w-1.5 h-1.5 rounded-full ${post.status === "Active" ? "bg-green-500" : "bg-gray-500"}`} />
+                      <span className="text-[10px] text-gray-400 capitalize">
+                        {post.status}
+                      </span>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Actions Dropdown */}
+              <div className="flex-shrink-0 relative" ref={openDropdownId === post.id ? dropdownRef : null}>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleDropdownToggle(post.id, e)
+                  }}
+                  className="p-1 hover:bg-zinc-700 rounded text-gray-400 hover:text-white transition-colors"
+                >
+                  <MoreVertical size={14} />
+                </button>
+
+                {openDropdownId === post.id && (
+                  <div 
+                    className={`absolute right-0 bg-[#2F2F2F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[120px] py-1 ${
+                      dropdownPosition[post.id] === 'top' ? 'bottom-full mb-1' : 'top-6'
+                    }`}
+                  >
+                    <button
+                      onClick={() => handleViewClick(post)}
+                      className="w-full px-3 py-2 text-left text-xs hover:bg-zinc-600 flex items-center gap-2 text-white transition-colors"
+                    >
+                      <Eye size={12} />
+                      View
+                    </button>
+                    {post.createdBy === "current-user" && (
+                      <>
+                        <button
+                          onClick={() => handleEditClick(post)}
+                          className="w-full px-3 py-2 text-left text-xs hover:bg-zinc-600 flex items-center gap-2 text-white transition-colors"
+                        >
+                          <Edit size={12} />
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDeleteClick(post)}
+                          className="w-full px-3 py-2 text-left text-xs hover:bg-zinc-600 text-red-400 flex items-center gap-2 transition-colors"
+                        >
+                          <Trash2 size={12} />
+                          Delete
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {/* Empty State */}
+        {filteredPosts.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-8 text-gray-500">
+            <div className="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center mb-3">
+              <Calendar size={20} className="text-gray-600" />
+            </div>
+            <p className="text-sm">No {activeTab} posts</p>
+            {statusFilter !== "all" && (
+              <p className="text-xs mt-1">Try adjusting your filter</p>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Footer Link */}
+      <div className="flex justify-center pt-2 border-t border-gray-700 flex-shrink-0">
+        <Link to="/dashboard/bulletin-board" className="text-xs text-gray-400 hover:text-white transition-colors">
+          View all posts →
+        </Link>
+      </div>
+
+      {/* Modals - rendered via portal */}
+      {showCreateModal && createPortal(
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[99999] p-4">
+          <div className="relative w-full max-w-2xl max-h-[90vh] overflow-auto">
+            <OptimizedCreateBulletinModal 
+              isOpen={showCreateModal} 
+              onClose={() => setShowCreateModal(false)} 
+              onCreate={handleCreatePost} 
+              availableTags={tags} 
+              onOpenTagManager={() => setShowTagManager(true)} 
+            />
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {showEditModal && createPortal(
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[99999] p-4">
+          <div className="relative w-full max-w-2xl max-h-[90vh] overflow-auto">
+            <OptimizedEditBulletinModal 
+              isOpen={showEditModal} 
+              onClose={() => { 
+                setShowEditModal(false)
+                setSelectedPost(null) 
+              }} 
+              post={selectedPost} 
+              onSave={handleEditPost} 
+              availableTags={tags} 
+              onOpenTagManager={() => setShowTagManager(true)} 
+            />
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {showDeleteModal && createPortal(
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[99999] p-4">
+          <DeleteBulletinModal 
+            isOpen={showDeleteModal} 
+            onClose={() => setShowDeleteModal(false)} 
+            post={selectedPost} 
+            onDelete={handleDeletePost} 
+          />
+        </div>,
+        document.body
+      )}
+
+      {showViewModal && createPortal(
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[99999] p-4">
+          <div className="relative w-full max-w-2xl max-h-[90vh] overflow-auto">
+            <ViewBulletinModal 
+              isOpen={showViewModal} 
+              onClose={() => {
+                setShowViewModal(false)
+                setSelectedPost(null)
+              }} 
+              post={selectedPost} 
+              allTags={tags} 
+            />
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {showTagManager && createPortal(
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[99999] p-4">
+          <TagManagerModal
+            isOpen={showTagManager}
+            onClose={() => setShowTagManager(false)}
+            tags={tags}
+            onAddTag={handleAddTag}
+            onDeleteTag={handleDeleteTag}
+          />
+        </div>,
+        document.body
+      )}
+    </div>
   )
 }
 

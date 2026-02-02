@@ -86,7 +86,7 @@
   import { AddLeadModal } from "../../components/admin-dashboard-components/studios-modal/lead-components/add-lead-modal";
   import { ViewLeadModal } from "../../components/admin-dashboard-components/studios-modal/lead-components/view-lead-details";
   import { EditLeadModal } from "../../components/admin-dashboard-components/studios-modal/lead-components/edit-lead-modal";
-  import { availableMembersLeadsMain, memberRelationsMainData } from "../../utils/user-panel-states/app-states";
+  import { availableMembersLeadsMain, memberRelationsMainData } from "../../utils/studio-states";
   import EditStudioOptionsModal from "../../components/admin-dashboard-components/studios-modal/edit-studio-options-modal";
   import { useNavigate } from "react-router-dom";
   import CreateTempMemberModal from "../../components/admin-dashboard-components/studios-modal/members-component/create-temporary-member-modal";

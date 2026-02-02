@@ -12,7 +12,7 @@ import WebsiteLinkModal from "./website-link-modal"
 import ConfirmationModal from "./confirmation-modal"
 import { toast } from "react-hot-toast"
 import AddTaskModal from "./add-task-modal"
-import { configuredTagsData } from "../../../utils/user-panel-states/todo-states"
+import { configuredTagsData } from "../../../utils/studio-states/todo-states"
 import EditTaskModal from "./edit-task-modal"
 
 const DraggableSidebarWidget = ({

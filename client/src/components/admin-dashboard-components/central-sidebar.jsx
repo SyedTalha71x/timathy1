@@ -18,7 +18,7 @@ import NotesWidget from "./myarea-components/notes-widgets"
 import toast from "react-hot-toast"
 import ConfirmationModal from "./myarea-components/confirmation-modal"
 import WebsiteLinkModal from "./myarea-components/website-link-modal"
-import { configuredTagsData } from "../../utils/user-panel-states/todo-states"
+import { configuredTagsData } from "../../utils/studio-states/todo-states"
 import AddTaskModal from "./myarea-components/add-task-modal"
 import EditTaskModal from "./myarea-components/edit-task-modal"
 

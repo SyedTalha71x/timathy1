@@ -224,8 +224,8 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 md:gap-3">
-              <img src={OrgaGymLogo} alt="OrgaGym" className="h-8 md:h-10 w-auto" />
-              <span className="text-lg md:text-xl font-bold text-white tracking-tight">OrgaGym</span>
+              <img src={OrgaGymLogo} alt="ORGAGYM" className="h-8 md:h-10 w-auto" />
+              <span className="text-lg md:text-xl font-bold text-white tracking-tight">ORGAGYM</span>
             </div>
             
             {/* Desktop Navigation */}
