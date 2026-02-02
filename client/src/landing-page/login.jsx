@@ -14,8 +14,8 @@ export default function SignInPage() {
   const [loginType, setLoginType] = useState("user")
   const { member, loading, error } = useSelector((state) => state.members)
   const tabAnimationRef = useRef(null)
-  const userTabRef = useRef(null)
-  const adminTabRef = useRef(null)
+  const userTabRef = useRef(null);
+  const adminTabRef = useRef(null);
   const memberTabRef = useRef(null)
   const formContainerRef = useRef(null)
   const didInitRef = useRef(false);
