@@ -1,6 +1,8 @@
-const mongoose = require('mongoose');
-
 require('dotenv').config();
+const mongoose = require('mongoose');
+const dns = require('dns')
+
+dns.setDefaultResultOrder('ipv4first');
 
 const db = mongoose.connect(process.env.MONGO_URI);
 

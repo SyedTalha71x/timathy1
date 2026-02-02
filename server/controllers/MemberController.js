@@ -26,12 +26,12 @@ const createMember = async (req, res, next) => {
       password,
       phone,
       gender,
-      username,
       city,
       street,
+      country,
       zipCode,
       dateOfBirth,
-      // about,
+      houseNumber
     } = req.body;
 
     // check for duplicate email
@@ -56,14 +56,14 @@ const createMember = async (req, res, next) => {
     const member = await MemberModel.create({
       firstName,
       lastName,
-      username,
       gender,
       phone,
       city,
       street,
       zipCode,
       dateOfBirth,
-      about,
+      houseNumber,
+      country,
       email,
       memberNumber,
       password: securePassword,
@@ -77,10 +77,8 @@ const createMember = async (req, res, next) => {
       _id: member._id,
       firstName: member.firstName,
       lastName: member.lastName,
-      username: member.username,
       email: member.email,
       role: member.role,
-      // img: member.img?.url,
       gender: member.gender,
     });
 
@@ -110,10 +108,8 @@ const createMember = async (req, res, next) => {
         id: member._id,
         firstName: member.firstName,
         lastName: member.lastName,
-        // username: member.username,
         // email: member.email,
         role: member.role,
-        // img: member.img?.url,
         // gender: member.gender,
       },
     });
@@ -141,10 +137,8 @@ const loginMember = async (req, res, next) => {
       _id: member._id,
       firstName: member.firstName,
       lastName: member.lastName,
-      // username: member.username,
       email: member.email,
       role: member.role,
-      // img: member.img?.url,
       gender: member.gender,
       studioId: member.studio
     });

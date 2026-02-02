@@ -9,14 +9,14 @@ const {
     ConflictError
 } = require('../middleware/error/httpErrors');
 const UserModel = require('../models/UserModel');
-const { uploadToCloudinary } = require('../utils/CloudinaryUpload');
+// const { uploadToCloudinary } = require('../utils/CloudinaryUpload');
 
 // Create Admin
 const createAdmin = async (req, res, next) => {
     try {
-        const { firstName,
+        const {
+            firstName,
             lastName,
-            username,
             phone,
             gender,
             dateOfBirth,
@@ -26,6 +26,7 @@ const createAdmin = async (req, res, next) => {
             about,
             email,
             password,
+            country,
             authCode } = req.body;
 
         if (authCode !== process.env.AUTH_CODE)
@@ -47,7 +48,6 @@ const createAdmin = async (req, res, next) => {
         const admin = await AdminModel.create({
             firstName,
             lastName,
-            username,
             phone,
             gender,
             dateOfBirth,
@@ -56,30 +56,42 @@ const createAdmin = async (req, res, next) => {
             street,
             about,
             email,
+            country,
             password: securePassword
         });
 
         const { AccessToken, RefreshToken } = GenerateToken({
             firstName: admin.firstName,
             lastName: admin.lastName,
-            username: admin.username,
-            id: admin.id,
+            _id: admin._id,
             email: admin.email,
             role: admin.role,
         });
         admin.refreshToken = RefreshToken;
         await admin.save();
 
-        res.cookie('token', AccessToken);
-        res.cookie('refreshToken', RefreshToken);
+        res.cookie("token", AccessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production", // true if on https
+            //sameSite: "lax",
+            sameSite: "None",
 
+            maxAge: 24 * 60 * 1000, // 15 minutes (or whatever your access token expiry is)
+        });
+
+        res.cookie("refreshToken", RefreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            //sameSite: "lax",
+            sameSite: "None",
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        });
         return res.status(200).json({
             message: "Created Successfully",
             admin: {
                 firstName: admin.firstName,
                 lastName: admin.lastName,
-                username: admin.username,
-                id: admin.id,
+                _id: admin._id,
                 email: admin.email,
                 role: admin.role,
             }
@@ -103,31 +115,40 @@ const loginAdmin = async (req, res, next) => {
         const { AccessToken, RefreshToken } = GenerateToken({
             firstName: admin.firstName,
             lastName: admin.lastName,
-            username: admin.username,
             _id: admin._id,
             email: admin.email,
             role: admin.role,
-            img: admin.img?.url
         });
 
         admin.refreshToken = RefreshToken;
         await admin.save();
 
-        res.cookie('token', AccessToken);
-        res.cookie('refreshToken', RefreshToken);
+        res.cookie("token", AccessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production", // true if on https
+            //sameSite: "lax",
+            sameSite: "None",
 
+            maxAge: 24 * 60 * 1000, // 15 minutes (or whatever your access token expiry is)
+        });
+
+        res.cookie("refreshToken", RefreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+            //sameSite: "lax",
+            sameSite: "None",
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+        });
         return res.status(200).json({
             message: "Login Successfully",
             token: AccessToken,
             admin: {
                 firstName: admin.firstName,
                 lastName: admin.lastName,
-                username: admin.username,
                 _id: admin._id,
                 email: admin.email,
                 role: admin.role,
-                img: admin.img?.url,
-                studio:admin.studio,
+                studio: admin.studio,
             }
         });
     } catch (error) {
@@ -143,12 +164,12 @@ const updateAdminById = async (req, res, next) => {
         let updateAdmin = { ...req.body };
 
         if (!req.file) throw new NotFoundError("Image Not Uploaded");
-        const cloudinaryResult = await uploadToCloudinary(req.file.buffer);
-        // ✅ Save new image URL + public_id into update object
-        updateAdmin.img = {
-            url: cloudinaryResult.secure_url,
-            public_id: cloudinaryResult.public_id,
-        };
+        // const cloudinaryResult = await uploadToCloudinary(req.file.buffer);
+        // ✅ Save new image URL + public__id into update object
+        // updateAdmin.img = {
+        //     url: cloudinaryResult.secure_url,
+        //     public__id: cloudinaryResult.public__id,
+        // };
 
         // Update admin in MongoDB
         const admin = await AdminModel.findByIdAndUpdate(id, updateAdmin, { new: true });
@@ -157,15 +178,13 @@ const updateAdminById = async (req, res, next) => {
         res.status(200).json({
             message: "Successfully Updated",
             admin: {
-                id: admin._id,
+                _id: admin._id,
                 firstName: admin.firstName,
                 lastName: admin.lastName,
-                username: admin.username,
                 email: admin.email,
                 studioName: admin.studioName,
                 role: admin.role,
-                img: admin.img?.url, // ✅ now points to Cloudinary URL
-                adminRole: admin.adminRole,
+                // img: admin.img?.url, // ✅ now points to Cloudinary URL
             },
         });
     } catch (err) {
@@ -181,10 +200,9 @@ const getUsers = async (req, res, next) => {
             message: 'All User is Available ',
             users: users.map(user => (
                 {
-                    id: user._id,
+                    _id: user._id,
                     firstName: user.firstName,
                     lastName: user.lastName,
-                    username: user.username,
                     studioName: user.studioName,
                     email: user.email,
                     role: user.role,

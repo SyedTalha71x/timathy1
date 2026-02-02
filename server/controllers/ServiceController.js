@@ -42,9 +42,6 @@ const createService = async (req, res, next) => {
       createdBy: userId
     });
 
-    await StudioModel.findByIdAndUpdate(studioId, {
-      $push: { services: service._id }
-    })
 
     return res.status(201).json({
       success: true,

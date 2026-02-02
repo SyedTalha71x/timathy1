@@ -3,12 +3,12 @@ const { createAdmin, loginAdmin, getUsers, updateAdminById, deleteUser } = requi
 const { isAdmin } = require('../middleware/RoleCheck');
 const { verifyAccessToken } = require('../middleware/verifyToken');
 const { forgetPassword, resetPassword, requestEmailChange, changePassword } = require('../controllers/AuthController');
-const upload = require('../config/upload')
+
 const router = express.Router();
 
 
-router.post('/create', upload.single('img'), createAdmin)
-router.put('/:id', upload.single('img'), updateAdminById)
+router.post('/create', createAdmin)
+router.put('/:id',  updateAdminById)
 router.post('/login', loginAdmin)
 router.post('/forget-password', forgetPassword)
 router.post('/reset-password/:token', resetPassword)
