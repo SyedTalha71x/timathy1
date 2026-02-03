@@ -4,9 +4,8 @@ import PropTypes from "prop-types";
 
 const ProtectedRoutes = ({ children, allowedRoles }) => {
     const { user, loading } = useSelector((state) => state.auth);
-    const { member } = useSelector((state) => state.members);
 
-    const currentUser = user || member;
+    const currentUser = user;
 
     if (loading) return <div>Loading...</div>; // wait for login check
 

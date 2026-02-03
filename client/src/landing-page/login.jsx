@@ -312,12 +312,11 @@ export default function SignInPage() {
               >
                 {loading ? "Signing in..." : `Sign In as ${config.label}`}
               </button>
-  {error && (
-  <p className="text-xs text-red-500 text-center">
-    {typeof error === "string" ? error : error.message || "Something went wrong"}
-  </p>
-)}
-
+              {error && (
+                <p className="text-xs text-red-500 text-center">
+                  {typeof error === "string" ? error : error.message || "Something went wrong"}
+                </p>
+              )}
 
 
             </form>
