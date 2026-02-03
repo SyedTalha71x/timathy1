@@ -1,7 +1,14 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import * as authApi from './authApi';
 
-
+export const memberLogin = createAsyncThunk('member/login', async (credentials, { rejectWithValue }) => {
+  try {
+    const data = await authApi.loginMember(credentials);
+    return data;
+  } catch (error) {
+    return rejectWithValue(error.response?.data);
+  }
+});
 
 export const logout = createAsyncThunk(
   'auth/logout',
@@ -28,7 +35,15 @@ export const me = createAsyncThunk(
 );
 
 
-
+export const updateMemberData = createAsyncThunk('/member/update', async (updateData, { rejectWithValue }) => {
+  try {
+    const res = await authApi.updateMember(updateData)
+    return res.data;
+  }
+  catch (error) {
+    return rejectWithValue(error.response?.data)
+  }
+})
 
 const authSlice = createSlice({
   name: 'auth',
@@ -69,7 +84,37 @@ const authSlice = createSlice({
       .addCase(logout.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || 'Logout failed';
-      });
+      })
+      .addCase(memberLogin.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(memberLogin.fulfilled, (state, action) => {
+        state.loading = false;
+        state.member = action.payload.member;
+        state.token = action.payload.token;
+      })
+      .addCase(memberLogin.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload?.error;
+      })
+      .addCase(updateMemberData.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateMemberData.fulfilled, (state, action) => {
+        state.loading = false;
+        state.member = {
+          ...state.member,    // keep existing fields
+          ...action.payload.member  // overwrite only updated fields
+        };
+        state.error = null;
+      })
+
+      .addCase(updateMemberData.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload?.error;
+      })
 
   }
 });

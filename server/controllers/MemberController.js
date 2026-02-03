@@ -126,7 +126,7 @@ const loginMember = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    const member = await UserModel.findOne({ email }).select('+password')
+    const member = await MemberModel.findOne({ email }).select('+password')
     if (!member) throw new NotFoundError('Invalid email');
 
 
@@ -169,7 +169,7 @@ const loginMember = async (req, res, next) => {
 
     res.status(200).json({
       message: 'Logged in successfully',
-      member: memberData,
+      user: memberData,
 
     });
   } catch (err) {
@@ -209,7 +209,7 @@ const updateMemberById = async (req, res, next) => {
     // };
 
     // Update member in MongoDB
-    const member = await UserModel.findByIdAndUpdate(memberId, {
+    const member = await MemberModel.findByIdAndUpdate(memberId, {
       firstName,
       lastName,
       username,
@@ -228,7 +228,7 @@ const updateMemberById = async (req, res, next) => {
 
     res.status(200).json({
       message: "Successfully Updated",
-      member,
+      user:member,
     });
   } catch (err) {
     next(err);

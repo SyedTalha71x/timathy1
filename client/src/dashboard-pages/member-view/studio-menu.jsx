@@ -7,7 +7,7 @@ import PaymentMethodPopup from "../../components/member-panel-components/studio-
 import CancelMembershipPopup from "../../components/member-panel-components/studio-menu-components/CancelMembershipPopup"
 import IdlePeriodFormPopup from "../../components/member-panel-components/studio-menu-components/IdlePeriodFormPopup"
 import { useDispatch, useSelector } from "react-redux"
-import { updateMemberData } from "../../features/member/memberSlice"
+import { updateMemberData } from "../../features/auth/authSlice"
 
 // import { fetchMyStudio } from "../../features/studio/studioSlice"
 const StudioMenu = () => {

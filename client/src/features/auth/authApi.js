@@ -55,3 +55,15 @@ export const refreshAccessToken = async () => {
         return res;
     });
 };
+
+
+export const updateMember = async (updateData) => {
+    const res = await api.put('/member/update', updateData, { withCredentials: true })
+    return res.data;
+}
+
+export const loginMember = async (credentials) => {
+    const res = await api.post('/member/login', credentials, { withCredentials: true })
+    return res.data;
+}
+
