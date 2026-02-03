@@ -91,7 +91,7 @@ const authSlice = createSlice({
       })
       .addCase(memberLogin.fulfilled, (state, action) => {
         state.loading = false;
-        state.member = action.payload.member;
+        state.user = action.payload.user;
         state.token = action.payload.token;
       })
       .addCase(memberLogin.rejected, (state, action) => {
@@ -104,9 +104,9 @@ const authSlice = createSlice({
       })
       .addCase(updateMemberData.fulfilled, (state, action) => {
         state.loading = false;
-        state.member = {
-          ...state.member,    // keep existing fields
-          ...action.payload.member  // overwrite only updated fields
+        state.user = {
+          ...state.user,    // keep existing fields
+          ...action.payload.user  // overwrite only updated fields
         };
         state.error = null;
       })
