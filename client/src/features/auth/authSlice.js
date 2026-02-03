@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import * as authApi from './authApi';
 
 export const memberLogin = createAsyncThunk(
-  'member/login',
+  'auth/login',
   async (credentials, { rejectWithValue }) => {
     try {
       const data = await authApi.loginMember(credentials);
@@ -38,11 +38,11 @@ export const me = createAsyncThunk(
 );
 
 export const updateMemberData = createAsyncThunk(
-  '/member/update',
+  'auth/update',
   async (updateData, { rejectWithValue }) => {
     try {
       const res = await authApi.updateMember(updateData);
-      return res.data;
+      return res.user;
     } catch (error) {
       return rejectWithValue(error.response?.data || { message: 'Update failed' });
     }
@@ -105,7 +105,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.user = action.payload.user || null;
         state.token = action.payload.token || null;
-        state.isAuthenticated =!!action.payload.user;
+        state.isAuthenticated = !!action.payload.user;
         state.error = null;
       })
       .addCase(memberLogin.rejected, (state, action) => {
@@ -120,16 +120,16 @@ const authSlice = createSlice({
       })
       .addCase(updateMemberData.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = {
-          ...state.user,
-<<<<<<< HEAD
-          ...action.payload.user,
-=======
-          ...(action.payload.user || {}),
->>>>>>> e334f5f86db13d986d73e142532cb7da712fd58e
-        };
+
+        // Merge safely into existing user object
+        if (action.payload) {
+          state.user = { ...state.user, ...(action.payload.user || action.payload) };
+          state.isAuthenticated = !!state.user;
+        }
+
         state.error = null;
       })
+
       .addCase(updateMemberData.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload?.message || 'Update failed';
