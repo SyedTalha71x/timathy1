@@ -314,9 +314,10 @@ export default function SignInPage() {
               </button>
               {error && (
                 <p className="text-xs text-red-500 text-center">
-                  {error}
+                  {typeof error === "string" ? error : error.message || "Something went wrong"}
                 </p>
               )}
+
 
             </form>
           </div>
