@@ -292,45 +292,64 @@ const StudioMenu = () => {
   };
 
 
-  const handlePersonalDataSubmit = () => {
-    dispatch(updateMemberData(personalData))
-      .unwrap()
-      .then(() => {
+const handlePersonalDataSubmit = () => {
+  dispatch(updateMemberData(personalData))
+    .unwrap()
+    .then((res) => {
+      if (res?.message === "Successfully Updated") {
         alert("Personal data updated successfully!");
         setIsEditingPersonal(false);
-      })
-      .catch((err) => {
-        console.error(err);
+        // The updated member is already in the store,
+        // so the UI will reflect it automatically
+      } else {
         alert("Failed to update personal data.");
-      });
-  };
+      }
+    })
+    .catch((err) => {
+      console.error(err);
+      alert(err?.message || "Failed to update personal data.");
+    });
+};
+
 
 
   const handleAddressDataSubmit = () => {
     dispatch(updateMemberData(addressData))
       .unwrap()
-      .then(() => {
-        alert("Address updated successfully!");
-        setIsEditingAddress(false);
-      })
-      .catch((err) => {
-        console.error(err);
-        alert("Failed to update address.");
-      });
+      .then((res) => {
+      if (res?.message === "Successfully Updated") {
+        alert("Address data updated successfully!");
+        setIsEditingPersonal(false);
+        // The updated member is already in the store,
+        // so the UI will reflect it automatically
+      } else {
+        alert("Failed to update Address data.");
+      }
+    })
+    .catch((err) => {
+      console.error(err);
+      alert(err?.message || "Failed to update address data.");
+    });
   };
 
 
   const handleContactDataSubmit = () => {
     dispatch(updateMemberData(contactData))
       .unwrap()
-      .then(() => {
+      .then((res) => {
+      if (res?.message === "Successfully Updated") {
         alert("Contact data updated successfully!");
-        setIsEditingContact(false);
-      })
-      .catch((err) => {
-        console.error(err);
+        setIsEditingPersonal(false);
+        // The updated member is already in the store,
+        // so the UI will reflect it automatically
+      } else {
         alert("Failed to update contact data.");
-      });
+      }
+    })
+    .catch((err) => {
+      console.error(err);
+      alert(err?.message || "Failed to update contact data.");
+    });
   };
 
 
