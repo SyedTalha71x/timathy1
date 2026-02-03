@@ -8,6 +8,9 @@ import { memberLogin } from '../features/auth/authSlice'
 // Import logo
 import OrgaGymLogo from "../../public/Orgagym white without text.svg"
 import { useSelector, useDispatch } from "react-redux"
+import { fetchMyAppointments } from "../features/appointments/AppointmentSlice"
+import { fetchMyServices } from "../features/services/servicesSlice"
+import { fetchMyStudio } from "../features/studio/studioSlice"
 
 // ============================================================================
 // LOGIN PAGE COMPONENT
@@ -164,6 +167,9 @@ export default function SignInPage() {
       try {
         const res = await dispatch(memberLogin(currentFormData)).unwrap()
 
+        dispatch(fetchMyAppointments())
+        dispatch(fetchMyServices())
+        dispatch(fetchMyStudio())
         // success → redirect
         navigate(config.redirectPath)
       } catch (err) {
@@ -314,7 +320,7 @@ export default function SignInPage() {
               </button>
               {error && (
                 <p className="text-xs text-red-500 text-center">
-                  {typeof error === "string" ? error : error.message || "Something went wrong"}
+                  {error ? error.message : 'Something went wrong'}
                 </p>
               )}
 
