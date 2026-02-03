@@ -76,6 +76,7 @@ const memberSlice = createSlice({
             .addCase(updateMemberData.fulfilled, (state, action) => {
                 state.loading = false;
                 state.member = action.payload.member;
+                state.error = null
             })
             .addCase(updateMemberData.rejected, (state, action) => {
                 state.loading = false;
