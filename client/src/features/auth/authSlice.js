@@ -122,7 +122,11 @@ const authSlice = createSlice({
         state.loading = false;
         state.user = {
           ...state.user,
+<<<<<<< HEAD
           ...action.payload.user,
+=======
+          ...(action.payload.user || {}),
+>>>>>>> e334f5f86db13d986d73e142532cb7da712fd58e
         };
         state.error = null;
       })
