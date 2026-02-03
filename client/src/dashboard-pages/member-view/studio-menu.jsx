@@ -8,7 +8,7 @@ import CancelMembershipPopup from "../../components/member-panel-components/stud
 import IdlePeriodFormPopup from "../../components/member-panel-components/studio-menu-components/IdlePeriodFormPopup"
 import { useDispatch, useSelector } from "react-redux"
 import { updateMemberData } from "../../features/member/memberSlice"
-import { getMemberById } from "../../../../server/controllers/MemberController"
+
 // import { fetchMyStudio } from "../../features/studio/studioSlice"
 const StudioMenu = () => {
   const { member, loading, error } = useSelector((state) => state.members);
