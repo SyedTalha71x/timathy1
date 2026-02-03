@@ -13,6 +13,7 @@ const {
   NotFoundError,
   ConflictError,
 } = require('../middleware/error/httpErrors');
+const UserModel = require('../models/UserModel');
 
 /**
  * Create new member
@@ -125,7 +126,7 @@ const loginMember = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    const member = await MemberModel.findOne({ email }).select('+password')
+    const member = await UserModel.findOne({ email }).select('+password')
     if (!member) throw new NotFoundError('Invalid email');
 
 
@@ -208,7 +209,7 @@ const updateMemberById = async (req, res, next) => {
     // };
 
     // Update member in MongoDB
-    const member = await MemberModel.findByIdAndUpdate(memberId, {
+    const member = await UserModel.findByIdAndUpdate(memberId, {
       firstName,
       lastName,
       username,
@@ -227,17 +228,7 @@ const updateMemberById = async (req, res, next) => {
 
     res.status(200).json({
       message: "Successfully Updated",
-      member: {
-        _id: member._id,
-        firstName: member.firstName,
-        lastName: member.lastName,
-        // username: member.username,
-        email: member.email,
-        studioName: member.studioName,
-        role: member.role,
-        // img: member.img?.url, // ✅ now points to Cloudinary URL
-        memberRole: member.memberRole,
-      },
+      member,
     });
   } catch (err) {
     next(err);

@@ -5,6 +5,7 @@ import { useState, useRef, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { gsap } from "gsap"
 import { useSelector, useDispatch } from "react-redux"
+import { me } from "../features/auth/authSlice"
 import { memberLogin } from "../features/member/memberSlice"
 import { fetchMyStudio } from "../features/studio/studioSlice"
 import { fetchMyServices } from "../features/services/servicesSlice"
@@ -63,6 +64,7 @@ export default function SignInPage() {
     e.preventDefault()
     try {
       await dispatch(memberLogin(memberFormData)).unwrap()
+      await dispatch(me())
     } catch (err) {
       console.log(err)
     }
@@ -80,13 +82,15 @@ export default function SignInPage() {
   }, [])
 
   useEffect(() => {
-    if (member) {
+    if (!loading && member && member.role === "member") {
       dispatch(fetchMyStudio())
       dispatch(fetchMyServices())
       dispatch(fetchMyAppointments())
       navigate("/member-view/studio-menu")
     }
-  }, [member])
+  }, [member, loading])
+
+
 
   /* ---------------- HANDLERS ---------------- */
   const handleTabSwitch = (newType) => {
@@ -180,7 +184,12 @@ export default function SignInPage() {
                 {loading ? "Signing in..." : "Sign In as Member"}
               </button>
 
-              {error && <p className="text-red-500 text-sm">{error}</p>}
+              {error && (
+                <p className="text-red-500 text-sm">
+                  {typeof error === "string" ? error : error.message || "Something went wrong"}
+                </p>
+              )}
+
             </form>
           )}
 

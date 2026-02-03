@@ -75,9 +75,13 @@ const memberSlice = createSlice({
             })
             .addCase(updateMemberData.fulfilled, (state, action) => {
                 state.loading = false;
-                state.member = action.payload.member;
-                state.error = null
+                state.member = {
+                    ...state.member,    // keep existing fields
+                    ...action.payload.member  // overwrite only updated fields
+                };
+                state.error = null;
             })
+
             .addCase(updateMemberData.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload?.error;

@@ -11,7 +11,6 @@ import { updateMemberData } from "../../features/member/memberSlice"
 
 // import { fetchMyStudio } from "../../features/studio/studioSlice"
 const StudioMenu = () => {
-  const { member, loading, error } = useSelector((state) => state.members);
   const { user } = useSelector((state) => state.auth)
   const { studio } = useSelector((state) => state.studios);
 
@@ -62,31 +61,31 @@ const StudioMenu = () => {
     phone: "",
   })
   useEffect(() => {
-    if (member) {
+    if (user) {
       // Personal info
       setPersonalData({
-        firstName: member.firstName || "",
-        lastName: member.lastName || "",
-        dateOfBirth: member.dateOfBirth || "",
-        gender: member.gender || "Male",
+        firstName: user.firstName || "",
+        lastName: user.lastName || "",
+        dateOfBirth: user.dateOfBirth || "",
+        gender: user.gender || "Male",
       });
 
       // Address info
       setAddressData({
-        street: member.street || "",
-        houseNumber: member.houseNumber || "",
-        zipCode: member.zipCode || "",
-        city: member.city || "",
-        country: member.country || "",
+        street: user.street || "",
+        houseNumber: user.houseNumber || "",
+        zipCode: user.zipCode || "",
+        city: user.city || "",
+        country: user.country || "",
       });
 
       // Contact info
       setContactData({
-        email: member.email || "",
-        phone: member.phone || "",
+        email: user.email || "",
+        phone: user.phone || "",
       });
     }
-  }, [member]);
+  }, [user]);
 
 
   // Add state for viewing post image in full resolution
@@ -319,7 +318,7 @@ const handlePersonalDataSubmit = () => {
       .then((res) => {
       if (res?.message === "Successfully Updated") {
         alert("Address data updated successfully!");
-        setIsEditingPersonal(false);
+        setIsEditingAddress(false);
         // The updated member is already in the store,
         // so the UI will reflect it automatically
       } else {
@@ -339,7 +338,7 @@ const handlePersonalDataSubmit = () => {
       .then((res) => {
       if (res?.message === "Successfully Updated") {
         alert("Contact data updated successfully!");
-        setIsEditingPersonal(false);
+        setIsEditingContact(false);
         // The updated member is already in the store,
         // so the UI will reflect it automatically
       } else {
@@ -870,11 +869,11 @@ const handlePersonalDataSubmit = () => {
               <div className="space-y-2 sm:space-y-3 mb-4">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-gray-700/50 rounded-lg p-2.5 sm:p-3 gap-1">
                   <span className="text-gray-400 text-xs sm:text-sm">Member Number:</span>
-                  <span className="text-white font-mono text-xs sm:text-sm">{member?.memberNumber}</span>
+                  <span className="text-white font-mono text-xs sm:text-sm">{user?.memberNumber}</span>
                 </div>
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-gray-700/50 rounded-lg p-2.5 sm:p-3 gap-1">
                   <span className="text-gray-400 text-xs sm:text-sm">Member Since:</span>
-                  <span className="text-white text-xs sm:text-sm">{new Date(member?.dateOfBirth).toLocaleDateString("en-US", {
+                  <span className="text-white text-xs sm:text-sm">{new Date(user?.dateOfBirth).toLocaleDateString("en-US", {
                     year: "numeric",
                     month: "long",
                     day: "numeric",
@@ -904,15 +903,15 @@ const handlePersonalDataSubmit = () => {
                       <>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">First Name:</span>
-                          <span className="text-white text-sm sm:text-base">{member?.firstName}</span>
+                          <span className="text-white text-sm sm:text-base">{user?.firstName}</span>
                         </div>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">Last Name:</span>
-                          <span className="text-white text-sm sm:text-base">{member?.lastName}</span>
+                          <span className="text-white text-sm sm:text-base">{user?.lastName}</span>
                         </div>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">Date of Birth:</span>
-                          <span className="text-white text-sm sm:text-base">{new Date(member?.dateOfBirth).toLocaleDateString("en-US", {
+                          <span className="text-white text-sm sm:text-base">{new Date(user?.dateOfBirth).toLocaleDateString("en-US", {
                             year: "numeric",
                             month: "long",
                             day: "numeric",
@@ -920,7 +919,7 @@ const handlePersonalDataSubmit = () => {
                         </div>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">Gender:</span>
-                          <span className="text-white text-sm sm:text-base">{member?.gender}</span>
+                          <span className="text-white text-sm sm:text-base">{user?.gender}</span>
                         </div>
                         <button
                           onClick={() => setIsEditingPersonal(true)}
@@ -1012,23 +1011,23 @@ const handlePersonalDataSubmit = () => {
                       <>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">Street:</span>
-                          <span className="text-white text-sm sm:text-base">{member?.street}</span>
+                          <span className="text-white text-sm sm:text-base">{user?.street}</span>
                         </div>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">House Number:</span>
-                          <span className="text-white text-sm sm:text-base">{member?.houseNumber}</span>
+                          <span className="text-white text-sm sm:text-base">{user?.houseNumber}</span>
                         </div>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">Zip Code:</span>
-                          <span className="text-white text-sm sm:text-base">{member?.zipCode}</span>
+                          <span className="text-white text-sm sm:text-base">{user?.zipCode}</span>
                         </div>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">City:</span>
-                          <span className="text-white text-sm sm:text-base">{member?.city}</span>
+                          <span className="text-white text-sm sm:text-base">{user?.city}</span>
                         </div>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">Country:</span>
-                          <span className="text-white text-sm sm:text-base">{member?.country}</span>
+                          <span className="text-white text-sm sm:text-base">{user?.country}</span>
                         </div>
                         <button
                           onClick={() => setIsEditingAddress(true)}
@@ -1126,11 +1125,11 @@ const handlePersonalDataSubmit = () => {
                       <>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">Email:</span>
-                          <span className="text-white text-sm sm:text-base break-all">{member?.email}</span>
+                          <span className="text-white text-sm sm:text-base break-all">{user?.email}</span>
                         </div>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">Phone:</span>
-                          <span className="text-white text-sm sm:text-base">{member?.phone}</span>
+                          <span className="text-white text-sm sm:text-base">{user?.phone}</span>
                         </div>
                         <button
                           onClick={() => setIsEditingContact(true)}
