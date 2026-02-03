@@ -7,12 +7,14 @@ import PaymentMethodPopup from "../../components/member-panel-components/studio-
 import CancelMembershipPopup from "../../components/member-panel-components/studio-menu-components/CancelMembershipPopup"
 import IdlePeriodFormPopup from "../../components/member-panel-components/studio-menu-components/IdlePeriodFormPopup"
 import { useDispatch, useSelector } from "react-redux"
+import { updateMemberData } from "../../features/member/memberSlice"
 // import { fetchMyStudio } from "../../features/studio/studioSlice"
 const StudioMenu = () => {
   const { member, loading, error } = useSelector((state) => state.members);
   const { user } = useSelector((state) => state.auth)
   const { studio } = useSelector((state) => state.studios);
-  // const dispatch = useDispatch();
+
+  const dispatch = useDispatch();
   const [activeSection, setActiveSection] = useState("info")
   const [showImprintPopup, setShowImprintPopup] = useState(false)
   const [showTermsPopup, setShowTermsPopup] = useState(false)
@@ -40,24 +42,51 @@ const StudioMenu = () => {
   const [isEditingContact, setIsEditingContact] = useState(false)
 
   const [personalData, setPersonalData] = useState({
-    firstName: "John",
-    lastName: "Doe",
-    dateOfBirth: "01/01/1990",
-    gender: "Male",
+    firstName: "",
+    lastName: "",
+    dateOfBirth: "",
+    gender: "",
   })
 
   const [addressData, setAddressData] = useState({
-    street: "Musterstraße",
-    houseNumber: "123",
-    zipCode: "10117",
-    city: "Berlin",
-    country: "Germany",
+    street: "",
+    houseNumber: "",
+    zipCode: "",
+    city: "",
+    country: "",
   })
 
   const [contactData, setContactData] = useState({
-    email: "john.doe@email.com",
-    phone: "+49 30 1234 5678",
+    email: "",
+    phone: "",
   })
+  useEffect(() => {
+    if (member) {
+      // Personal info
+      setPersonalData({
+        firstName: member.firstName || "",
+        lastName: member.lastName || "",
+        dateOfBirth: member.dateOfBirth || "",
+        gender: member.gender || "Male",
+      });
+
+      // Address info
+      setAddressData({
+        street: member.street || "",
+        houseNumber: member.houseNumber || "",
+        zipCode: member.zipCode || "",
+        city: member.city || "",
+        country: member.country || "",
+      });
+
+      // Contact info
+      setContactData({
+        email: member.email || "",
+        phone: member.phone || "",
+      });
+    }
+  }, [member]);
+
 
   // Add state for viewing post image in full resolution
   const [viewingPost, setViewingPost] = useState(null)
@@ -246,37 +275,66 @@ const StudioMenu = () => {
     return () => {
       stopScanning()
     }
-  }, [])
+  }, []);
+
 
   const handlePersonalDataChange = (field, value) => {
-    setPersonalData((prev) => ({ ...prev, [field]: value }))
-  }
+    setPersonalData(prev => ({ ...prev, [field]: value }));
+  };
 
   const handleAddressDataChange = (field, value) => {
-    setAddressData((prev) => ({ ...prev, [field]: value }))
-  }
+    setAddressData(prev => ({ ...prev, [field]: value }));
+  };
 
   const handleContactDataChange = (field, value) => {
-    setContactData((prev) => ({ ...prev, [field]: value }))
-  }
+    setContactData(prev => ({ ...prev, [field]: value }));
+  };
+
 
   const handlePersonalDataSubmit = () => {
-    console.log("Requesting personal data change:", personalData)
-    alert("Personal data change request submitted successfully!")
-    setIsEditingPersonal(false)
-  }
+    dispatch(updateMemberData(personalData))
+      .unwrap()
+      .then(() => {
+        alert("Personal data updated successfully!");
+        setIsEditingPersonal(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        alert("Failed to update personal data.");
+      });
+  };
+
 
   const handleAddressDataSubmit = () => {
-    console.log("Requesting address change:", addressData)
-    alert("Address change request submitted successfully!")
-    setIsEditingAddress(false)
-  }
+    dispatch(updateMemberData(addressData))
+      .unwrap()
+      .then(() => {
+        alert("Address updated successfully!");
+        setIsEditingAddress(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        alert("Failed to update address.");
+      });
+  };
+
 
   const handleContactDataSubmit = () => {
-    console.log("Requesting contact data change:", contactData)
-    alert("Contact data change request submitted successfully!")
-    setIsEditingContact(false)
-  }
+    dispatch(updateMemberData(contactData))
+      .unwrap()
+      .then(() => {
+        alert("Contact data updated successfully!");
+        setIsEditingContact(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        alert("Failed to update contact data.");
+      });
+  };
+
+
+  
+
 
   const studioAddress = `${studio?.street}, ${studio?.zipCode} ${studio?.city}, ${studio?.country}`;
 

@@ -16,7 +16,7 @@ router.get('/members', verifyAccessToken, isAdmin, getMembers)
 router.get('/:id', verifyAccessToken, getMemberById)
 router.post('/create', createMember)
 router.post('/login', loginMember)
-router.put('/:id', verifyAccessToken, updateMemberById)
+router.put('/update', verifyAccessToken, updateMemberById)
 router.delete('/:id', verifyAccessToken, isAdmin, deleteMemberById)
 
 module.exports = router
