@@ -8,6 +8,7 @@ import CancelMembershipPopup from "../../components/member-panel-components/stud
 import IdlePeriodFormPopup from "../../components/member-panel-components/studio-menu-components/IdlePeriodFormPopup"
 import { useDispatch, useSelector } from "react-redux"
 import { updateMemberData } from "../../features/member/memberSlice"
+import { getMemberById } from "../../../../server/controllers/MemberController"
 // import { fetchMyStudio } from "../../features/studio/studioSlice"
 const StudioMenu = () => {
   const { member, loading, error } = useSelector((state) => state.members);
@@ -884,15 +885,15 @@ const StudioMenu = () => {
                       <>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">First Name:</span>
-                          <span className="text-white text-sm sm:text-base">{user?.firstName}</span>
+                          <span className="text-white text-sm sm:text-base">{member?.firstName}</span>
                         </div>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">Last Name:</span>
-                          <span className="text-white text-sm sm:text-base">{user?.lastName}</span>
+                          <span className="text-white text-sm sm:text-base">{member?.lastName}</span>
                         </div>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">Date of Birth:</span>
-                          <span className="text-white text-sm sm:text-base">{new Date(user?.dateOfBirth).toLocaleDateString("en-US", {
+                          <span className="text-white text-sm sm:text-base">{new Date(member?.dateOfBirth).toLocaleDateString("en-US", {
                             year: "numeric",
                             month: "long",
                             day: "numeric",
@@ -900,7 +901,7 @@ const StudioMenu = () => {
                         </div>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">Gender:</span>
-                          <span className="text-white text-sm sm:text-base">{user?.gender}</span>
+                          <span className="text-white text-sm sm:text-base">{member?.gender}</span>
                         </div>
                         <button
                           onClick={() => setIsEditingPersonal(true)}
@@ -992,23 +993,23 @@ const StudioMenu = () => {
                       <>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">Street:</span>
-                          <span className="text-white text-sm sm:text-base">{user?.street}</span>
+                          <span className="text-white text-sm sm:text-base">{member?.street}</span>
                         </div>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">House Number:</span>
-                          <span className="text-white text-sm sm:text-base">{user?.houseNumber}</span>
+                          <span className="text-white text-sm sm:text-base">{member?.houseNumber}</span>
                         </div>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">Zip Code:</span>
-                          <span className="text-white text-sm sm:text-base">{user?.zipCode}</span>
+                          <span className="text-white text-sm sm:text-base">{member?.zipCode}</span>
                         </div>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">City:</span>
-                          <span className="text-white text-sm sm:text-base">{user?.city}</span>
+                          <span className="text-white text-sm sm:text-base">{member?.city}</span>
                         </div>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">Country:</span>
-                          <span className="text-white text-sm sm:text-base">{user?.country}</span>
+                          <span className="text-white text-sm sm:text-base">{member?.country}</span>
                         </div>
                         <button
                           onClick={() => setIsEditingAddress(true)}
@@ -1106,11 +1107,11 @@ const StudioMenu = () => {
                       <>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">Email:</span>
-                          <span className="text-white text-sm sm:text-base break-all">{user?.email}</span>
+                          <span className="text-white text-sm sm:text-base break-all">{member?.email}</span>
                         </div>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">Phone:</span>
-                          <span className="text-white text-sm sm:text-base">{user?.phone}</span>
+                          <span className="text-white text-sm sm:text-base">{member?.phone}</span>
                         </div>
                         <button
                           onClick={() => setIsEditingContact(true)}
