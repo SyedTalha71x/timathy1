@@ -24,6 +24,16 @@ export const memberCreate = createAsyncThunk('member/create', async (memberData,
 })
 
 
+export const updateMemberData = createAsyncThunk('/member/update', async (updateData, { rejectWithValue }) => {
+    try {
+        const res = await memberApi.updateMember(updateData)
+        return res.data;
+    }
+    catch (error) {
+        return rejectWithValue(error.response?.data)
+    }
+})
+
 
 
 
@@ -59,6 +69,19 @@ const memberSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload?.error;
             })
+            .addCase(updateMemberData.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(updateMemberData.fulfilled, (state, action) => {
+                state.loading = false;
+                state.member = action.payload.member;
+            })
+            .addCase(updateMemberData.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.error;
+            })
+
     }
 })
 

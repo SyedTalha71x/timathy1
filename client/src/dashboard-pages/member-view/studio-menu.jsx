@@ -7,12 +7,14 @@ import PaymentMethodPopup from "../../components/member-panel-components/studio-
 import CancelMembershipPopup from "../../components/member-panel-components/studio-menu-components/CancelMembershipPopup"
 import IdlePeriodFormPopup from "../../components/member-panel-components/studio-menu-components/IdlePeriodFormPopup"
 import { useDispatch, useSelector } from "react-redux"
+import { updateMemberData } from "../../features/member/memberSlice"
 // import { fetchMyStudio } from "../../features/studio/studioSlice"
 const StudioMenu = () => {
   const { member, loading, error } = useSelector((state) => state.members);
   const { user } = useSelector((state) => state.auth)
   const { studio } = useSelector((state) => state.studios);
-  // const dispatch = useDispatch();
+
+  const dispatch = useDispatch();
   const [activeSection, setActiveSection] = useState("info")
   const [showImprintPopup, setShowImprintPopup] = useState(false)
   const [showTermsPopup, setShowTermsPopup] = useState(false)
@@ -40,24 +42,51 @@ const StudioMenu = () => {
   const [isEditingContact, setIsEditingContact] = useState(false)
 
   const [personalData, setPersonalData] = useState({
-    firstName: "John",
-    lastName: "Doe",
-    dateOfBirth: "01/01/1990",
-    gender: "Male",
+    firstName: "",
+    lastName: "",
+    dateOfBirth: "",
+    gender: "",
   })
 
   const [addressData, setAddressData] = useState({
-    street: "Musterstraße",
-    houseNumber: "123",
-    zipCode: "10117",
-    city: "Berlin",
-    country: "Germany",
+    street: "",
+    houseNumber: "",
+    zipCode: "",
+    city: "",
+    country: "",
   })
 
   const [contactData, setContactData] = useState({
-    email: "john.doe@email.com",
-    phone: "+49 30 1234 5678",
+    email: "",
+    phone: "",
   })
+  useEffect(() => {
+    if (member) {
+      // Personal info
+      setPersonalData({
+        firstName: member.firstName || "",
+        lastName: member.lastName || "",
+        dateOfBirth: member.dateOfBirth || "",
+        gender: member.gender || "Male",
+      });
+
+      // Address info
+      setAddressData({
+        street: member.street || "",
+        houseNumber: member.houseNumber || "",
+        zipCode: member.zipCode || "",
+        city: member.city || "",
+        country: member.country || "",
+      });
+
+      // Contact info
+      setContactData({
+        email: member.email || "",
+        phone: member.phone || "",
+      });
+    }
+  }, [member]);
+
 
   // Add state for viewing post image in full resolution
   const [viewingPost, setViewingPost] = useState(null)
@@ -246,37 +275,66 @@ const StudioMenu = () => {
     return () => {
       stopScanning()
     }
-  }, [])
+  }, []);
+
 
   const handlePersonalDataChange = (field, value) => {
-    setPersonalData((prev) => ({ ...prev, [field]: value }))
-  }
+    setPersonalData(prev => ({ ...prev, [field]: value }));
+  };
 
   const handleAddressDataChange = (field, value) => {
-    setAddressData((prev) => ({ ...prev, [field]: value }))
-  }
+    setAddressData(prev => ({ ...prev, [field]: value }));
+  };
 
   const handleContactDataChange = (field, value) => {
-    setContactData((prev) => ({ ...prev, [field]: value }))
-  }
+    setContactData(prev => ({ ...prev, [field]: value }));
+  };
+
 
   const handlePersonalDataSubmit = () => {
-    console.log("Requesting personal data change:", personalData)
-    alert("Personal data change request submitted successfully!")
-    setIsEditingPersonal(false)
-  }
+    dispatch(updateMemberData(personalData))
+      .unwrap()
+      .then(() => {
+        alert("Personal data updated successfully!");
+        setIsEditingPersonal(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        alert("Failed to update personal data.");
+      });
+  };
+
 
   const handleAddressDataSubmit = () => {
-    console.log("Requesting address change:", addressData)
-    alert("Address change request submitted successfully!")
-    setIsEditingAddress(false)
-  }
+    dispatch(updateMemberData(addressData))
+      .unwrap()
+      .then(() => {
+        alert("Address updated successfully!");
+        setIsEditingAddress(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        alert("Failed to update address.");
+      });
+  };
+
 
   const handleContactDataSubmit = () => {
-    console.log("Requesting contact data change:", contactData)
-    alert("Contact data change request submitted successfully!")
-    setIsEditingContact(false)
-  }
+    dispatch(updateMemberData(contactData))
+      .unwrap()
+      .then(() => {
+        alert("Contact data updated successfully!");
+        setIsEditingContact(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        alert("Failed to update contact data.");
+      });
+  };
+
+
+  
+
 
   const studioAddress = `${studio?.street}, ${studio?.zipCode} ${studio?.city}, ${studio?.country}`;
 
@@ -826,15 +884,15 @@ const StudioMenu = () => {
                       <>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">First Name:</span>
-                          <span className="text-white text-sm sm:text-base">{member?.firstName}</span>
+                          <span className="text-white text-sm sm:text-base">{user?.firstName}</span>
                         </div>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">Last Name:</span>
-                          <span className="text-white text-sm sm:text-base">{member?.lastName}</span>
+                          <span className="text-white text-sm sm:text-base">{user?.lastName}</span>
                         </div>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">Date of Birth:</span>
-                          <span className="text-white text-sm sm:text-base">{new Date(member?.dateOfBirth).toLocaleDateString("en-US", {
+                          <span className="text-white text-sm sm:text-base">{new Date(user?.dateOfBirth).toLocaleDateString("en-US", {
                             year: "numeric",
                             month: "long",
                             day: "numeric",
@@ -842,7 +900,7 @@ const StudioMenu = () => {
                         </div>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">Gender:</span>
-                          <span className="text-white text-sm sm:text-base">{member?.gender}</span>
+                          <span className="text-white text-sm sm:text-base">{user?.gender}</span>
                         </div>
                         <button
                           onClick={() => setIsEditingPersonal(true)}
@@ -934,23 +992,23 @@ const StudioMenu = () => {
                       <>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">Street:</span>
-                          <span className="text-white text-sm sm:text-base">{member?.street}</span>
+                          <span className="text-white text-sm sm:text-base">{user?.street}</span>
                         </div>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">House Number:</span>
-                          <span className="text-white text-sm sm:text-base">{member?.houseNumber}</span>
+                          <span className="text-white text-sm sm:text-base">{user?.houseNumber}</span>
                         </div>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">Zip Code:</span>
-                          <span className="text-white text-sm sm:text-base">{member?.zipCode}</span>
+                          <span className="text-white text-sm sm:text-base">{user?.zipCode}</span>
                         </div>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">City:</span>
-                          <span className="text-white text-sm sm:text-base">{member?.city}</span>
+                          <span className="text-white text-sm sm:text-base">{user?.city}</span>
                         </div>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">Country:</span>
-                          <span className="text-white text-sm sm:text-base">{member?.country}</span>
+                          <span className="text-white text-sm sm:text-base">{user?.country}</span>
                         </div>
                         <button
                           onClick={() => setIsEditingAddress(true)}
@@ -1048,11 +1106,11 @@ const StudioMenu = () => {
                       <>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">Email:</span>
-                          <span className="text-white text-sm sm:text-base break-all">{member?.email}</span>
+                          <span className="text-white text-sm sm:text-base break-all">{user?.email}</span>
                         </div>
                         <div className="flex flex-col sm:flex-row justify-between gap-1">
                           <span className="text-gray-400 text-xs sm:text-sm">Phone:</span>
-                          <span className="text-white text-sm sm:text-base">{member?.phone}</span>
+                          <span className="text-white text-sm sm:text-base">{user?.phone}</span>
                         </div>
                         <button
                           onClick={() => setIsEditingContact(true)}
