@@ -37,7 +37,6 @@ import Tickets from "./dashboard-pages/studio-view/tickets";
 
 // Admin Dashboard
 import AdminDashboardLayout from './layouts/admin-view-layout'
-import AdminMyArea from './dashboard-pages/admin-view/my-area'
 import Studios from "./dashboard-pages/admin-view/studios";
 import AdminLeads from './dashboard-pages/admin-view/leads'
 import AdminTodo from './dashboard-pages/admin-view/todo'
@@ -51,6 +50,7 @@ import AdminMarketPlace from './dashboard-pages/admin-view/marketplace'
 import AdminEmailManagement from './dashboard-pages/admin-view/email'
 import AdminNotes from './dashboard-pages/admin-view/notes'
 import AdminDemoAccess from './dashboard-pages/admin-view/demo-access'
+import AdminFeedback from './dashboard-pages/admin-view/feedback'
 
 
 // Member Dashboard  
@@ -157,7 +157,6 @@ function App() {
             <AdminDashboardLayout />
           </ProtectedRoutes>
         }>
-          <Route path="my-area" element={<AdminMyArea />} />
           <Route path="to-do" element={<AdminTodo />} />
           <Route path="contract" element={<AdminContracts />} />
           <Route path="configuration" element={<AdminConfiguration />} />
@@ -171,6 +170,7 @@ function App() {
           <Route path="email" element={<AdminEmailManagement />} />
           <Route path="notes" element={<AdminNotes />} />
           <Route path="demo-access" element={<AdminDemoAccess />} />
+          <Route path="feedback" element={<AdminFeedback />} />
 
           <Route path="edit-studio-configuration/:studioId" element={<EditStudioPage />} />
           <Route path="edit-admin-configuration/:studioId" element={<EditAdminPage />} />
