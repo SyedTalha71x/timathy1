@@ -857,7 +857,7 @@ const handleContactDataSubmit = () => {
                 </div>
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-gray-700/50 rounded-lg p-2.5 sm:p-3 gap-1">
                   <span className="text-gray-400 text-xs sm:text-sm">Member Since:</span>
-                  <span className="text-white text-xs sm:text-sm">{new Date(user?.dateOfBirth).toLocaleDateString("en-US", {
+                  <span className="text-white text-xs sm:text-sm">{new Date(user?.createdAt).toLocaleDateString("en-US", {
                     year: "numeric",
                     month: "long",
                     day: "numeric",
