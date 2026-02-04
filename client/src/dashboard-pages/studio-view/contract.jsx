@@ -29,10 +29,9 @@ import {
 import { toast, Toaster } from "react-hot-toast"
 import { useNavigate, useLocation } from "react-router-dom"
 
-import { AddContractModal } from "../../components/shared/contracts/add-contract-modal"
+import { ContractModal } from "../../components/shared/contracts/contract-modal"
 import { PauseContractModal } from "../../components/studio-components/contract-components/pause-contract-modal"
 import { CancelContractModal } from "../../components/studio-components/contract-components/cancel-contract-modal"
-import { EditContractModal } from "../../components/studio-components/contract-components/edit-contract-modal"
 import { ContractManagement } from "../../components/studio-components/contract-components/contract-management"
 import { BonusTimeModal } from "../../components/studio-components/contract-components/bonus-time-modal"
 import { RenewContractModal } from "../../components/studio-components/contract-components/renew-contract-modal"
@@ -40,9 +39,20 @@ import { ChangeContractModal } from "../../components/studio-components/contract
 import { ContractHistoryModal } from "../../components/studio-components/contract-components/contract-history-modal"
 import { DeleteContractModal } from "../../components/studio-components/contract-components/delete-contract-modal"
 import { contractHistory, initialContracts, sampleLeads } from "../../utils/studio-states/contract-states"
+import { DEFAULT_CONTRACT_TYPES } from "../../utils/studio-states/configuration-states"
+import { leadsData } from "../../utils/studio-states/leads-states"
+import { membersData } from "../../utils/studio-states"
 
 // Status Tag Component - matches members.jsx
-const StatusTag = ({ status, compact = false }) => {
+const StatusTag = ({ 
+  status, 
+  compact = false, 
+  pauseReason = null, 
+  pauseStartDate = null, 
+  pauseEndDate = null,
+  cancelReason = null,
+  cancelDate = null 
+}) => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'Active': return 'bg-green-600';
@@ -54,18 +64,103 @@ const StatusTag = ({ status, compact = false }) => {
   };
 
   const bgColor = getStatusColor(status);
+  const hasTooltip = status === 'Paused' || status === 'Cancelled';
+  const hasHoverEffect = status === 'Paused' || status === 'Cancelled';
+  
+  // Format date helper
+  const formatD = (d) => d ? new Date(d).toLocaleDateString('de-DE') : null;
+
+  // Build tooltip content for Paused
+  const renderPauseTooltip = () => {
+    if (status !== 'Paused') return null;
+    return (
+      <>
+        {pauseReason && (
+          <div className="flex items-center gap-2">
+            <span className="text-yellow-400 font-medium">Reason:</span>
+            <span>{pauseReason}</span>
+          </div>
+        )}
+        {pauseStartDate && pauseEndDate && (
+          <div className="flex items-center gap-2">
+            <span className="text-yellow-400 font-medium">Period:</span>
+            <span>{formatD(pauseStartDate)} - {formatD(pauseEndDate)}</span>
+          </div>
+        )}
+        {pauseStartDate && !pauseEndDate && (
+          <div className="flex items-center gap-2">
+            <span className="text-yellow-400 font-medium">Since:</span>
+            <span>{formatD(pauseStartDate)}</span>
+          </div>
+        )}
+        {!pauseReason && !pauseStartDate && (
+          <span>Contract is paused</span>
+        )}
+      </>
+    );
+  };
+
+  // Build tooltip content for Cancelled
+  const renderCancelTooltip = () => {
+    if (status !== 'Cancelled') return null;
+    return (
+      <>
+        {cancelReason && (
+          <div className="flex items-center gap-2">
+            <span className="text-red-400 font-medium">Reason:</span>
+            <span>{cancelReason}</span>
+          </div>
+        )}
+        {cancelDate && (
+          <div className="flex items-center gap-2">
+            <span className="text-red-400 font-medium">Cancelled:</span>
+            <span>{formatD(cancelDate)}</span>
+          </div>
+        )}
+        {!cancelReason && !cancelDate && (
+          <span>Contract was cancelled</span>
+        )}
+      </>
+    );
+  };
 
   if (compact) {
     return (
-      <div className={`inline-flex items-center gap-1 ${bgColor} text-white px-2 py-1 rounded-lg text-xs font-medium`}>
-        <span className="truncate max-w-[140px]">{status}</span>
+      <div className={`relative ${hasTooltip ? 'group' : ''}`}>
+        <div className={`inline-flex items-center gap-1 ${bgColor} text-white px-2 py-1 rounded-lg text-xs font-medium transition-transform duration-200 ${hasHoverEffect ? 'cursor-pointer hover:scale-110' : ''}`}>
+          <span className="truncate max-w-[140px]">{status}</span>
+        </div>
+        {/* Custom Tooltip */}
+        {hasTooltip && (
+          <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/95 text-white px-3 py-2 rounded-lg text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none">
+            <div className="flex flex-col gap-1">
+              {renderPauseTooltip()}
+              {renderCancelTooltip()}
+            </div>
+            {/* Arrow pointing up */}
+            <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/95" />
+          </div>
+        )}
       </div>
     );
   }
 
   return (
-    <div className={`inline-flex items-center gap-2 ${bgColor} text-white px-3 py-1.5 rounded-xl text-xs font-medium`}>
-      <span>{status}</span>
+    <div className={`relative ${hasTooltip ? 'group' : ''}`}>
+      <div className={`inline-flex items-center gap-2 ${bgColor} text-white px-3 py-1.5 rounded-xl text-xs font-medium transition-transform duration-200 ${hasHoverEffect ? 'cursor-pointer hover:scale-110' : ''}`}>
+        <span>{status}</span>
+      </div>
+      {/* Custom Tooltip */}
+      {hasTooltip && (
+        <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/95 text-white px-3 py-2 rounded-lg text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none">
+          <div className="flex flex-col gap-1">
+            {renderPauseTooltip()}
+            {renderCancelTooltip()}
+          </div>
+          {/* Arrow pointing up */}
+          <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/95" />
+        </div>
+      )}
     </div>
   );
 };
@@ -108,11 +203,19 @@ export default function ContractList() {
   // Contract data
   const [contracts, setContracts] = useState(initialContracts)
   
+  // Leads and Members data for conversion
+  const [leads, setLeads] = useState(leadsData)
+  const [members, setMembers] = useState(membersData)
+  
   // Search states - matches members.jsx
   const [searchQuery, setSearchQuery] = useState("")
   const [showSearchDropdown, setShowSearchDropdown] = useState(false)
   const searchDropdownRef = useRef(null)
   const searchInputRef = useRef(null)
+  
+  // Member filters - array of filtered members (can be multiple)
+  const [memberFilters, setMemberFilters] = useState([])
+  // [{ memberId: string, memberName: string }, ...]
 
   // Filter states
   const [filterStatus, setFilterStatus] = useState("all")
@@ -193,15 +296,149 @@ export default function ContractList() {
     return contractEndDate <= thirtyDaysFromNow && contractEndDate > today
   }
 
+  // Check if contract should show expiring warning
+  // For auto-renewal contracts: only show if not indefinite and autoRenewalEndDate is approaching
+  const shouldShowExpiring = (contract) => {
+    // If no auto-renewal, use normal expiring logic
+    if (!contract.autoRenewal) {
+      return isContractExpiringSoon(contract.endDate)
+    }
+    
+    // If renewal is indefinite, never show expiring
+    if (contract.renewalIndefinite === true) {
+      return false
+    }
+    
+    // If auto-renewal with end date (limited renewal), check the final end date
+    if (contract.autoRenewalEndDate) {
+      return isContractExpiringSoon(contract.autoRenewalEndDate)
+    }
+    
+    // Auto-renewal without end date set - never show expiring (assume unlimited)
+    return false
+  }
+
+  // Check if contract should show expired warning
+  const shouldShowExpired = (contract) => {
+    // If no auto-renewal, use normal expired logic
+    if (!contract.autoRenewal) {
+      return isContractExpired(contract.endDate)
+    }
+    
+    // If renewal is indefinite, never show expired
+    if (contract.renewalIndefinite === true) {
+      return false
+    }
+    
+    // If auto-renewal with end date, check the final end date
+    if (contract.autoRenewalEndDate) {
+      return isContractExpired(contract.autoRenewalEndDate)
+    }
+    
+    // Auto-renewal without end date - never show expired
+    return false
+  }
+
+  // Get auto renewal display info for a contract
+  const getAutoRenewalInfo = (contract) => {
+    if (!contract.autoRenewal) {
+      return { hasRenewal: false, label: "No", tooltip: "No auto renewal" }
+    }
+    
+    // Check if renewal is indefinite (from contract or lookup from contract type)
+    const isIndefinite = contract.renewalIndefinite === true
+    
+    if (isIndefinite) {
+      return { 
+        hasRenewal: true, 
+        label: "Yes", 
+        sublabel: "unlimited",
+        tooltip: "Unlimited auto renewal" 
+      }
+    }
+    
+    // Limited renewal - show the renewal period or end date
+    if (contract.autoRenewalEndDate) {
+      return { 
+        hasRenewal: true, 
+        label: "Yes", 
+        sublabel: `until ${formatDate(contract.autoRenewalEndDate)}`,
+        tooltip: `Auto renewal until ${formatDate(contract.autoRenewalEndDate)}` 
+      }
+    }
+    
+    // Lookup from contract type if available
+    const contractType = DEFAULT_CONTRACT_TYPES.find(t => t.name === contract.contractType)
+    if (contractType?.renewalPeriod) {
+      return { 
+        hasRenewal: true, 
+        label: "Yes", 
+        sublabel: `+${contractType.renewalPeriod} months`,
+        tooltip: `Renews for ${contractType.renewalPeriod} months` 
+      }
+    }
+    
+    // Fallback
+    return { hasRenewal: true, label: "Yes", sublabel: "", tooltip: "Auto renewal enabled" }
+  }
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('de-DE')
   }
 
-  // Search autocomplete matches
-  const searchMatches = contracts.filter(contract =>
-    contract.memberName.toLowerCase().includes(searchQuery.toLowerCase()) &&
-    searchQuery.length > 0
-  ).slice(0, 5)
+  // Get unique members from contracts for search suggestions
+  const getUniqueMembersFromContracts = () => {
+    const memberMap = new Map()
+    contracts.forEach(contract => {
+      if (!memberMap.has(contract.memberId)) {
+        memberMap.set(contract.memberId, {
+          memberId: contract.memberId,
+          memberName: contract.memberName,
+          contractType: contract.contractType,
+        })
+      }
+    })
+    return Array.from(memberMap.values())
+  }
+
+  // Get search suggestions based on query (exclude already filtered members)
+  const getSearchSuggestions = () => {
+    if (!searchQuery.trim()) return []
+    const uniqueMembers = getUniqueMembersFromContracts()
+    return uniqueMembers.filter((member) => {
+      // Exclude already filtered members
+      const isAlreadyFiltered = memberFilters.some(f => f.memberId === member.memberId)
+      if (isAlreadyFiltered) return false
+      
+      return member.memberName.toLowerCase().includes(searchQuery.toLowerCase())
+    }).slice(0, 6)
+  }
+
+  // Handle selecting a member from search suggestions
+  const handleSelectMember = (member) => {
+    setMemberFilters([...memberFilters, {
+      memberId: member.memberId,
+      memberName: member.memberName
+    }])
+    setSearchQuery("")
+    setShowSearchDropdown(false)
+    searchInputRef.current?.focus()
+  }
+
+  // Handle removing a member filter
+  const handleRemoveFilter = (memberId) => {
+    setMemberFilters(memberFilters.filter(f => f.memberId !== memberId))
+  }
+
+  // Handle keyboard navigation
+  const handleSearchKeyDown = (e) => {
+    if (e.key === 'Backspace' && !searchQuery && memberFilters.length > 0) {
+      // Remove last filter when backspace is pressed with empty input
+      setMemberFilters(memberFilters.slice(0, -1))
+    } else if (e.key === 'Escape') {
+      setShowSearchDropdown(false)
+    }
+  }
 
   // Filter and sort contracts
   const filteredAndSortedContracts = () => {
@@ -228,8 +465,14 @@ export default function ContractList() {
       return cancelled[0] || null
     }
 
-    // For "all" filter, show only the most relevant contract per member
-    if (filterStatus === "all") {
+    // If memberFilters are active, show only those members' contracts
+    if (memberFilters.length > 0) {
+      const filterIds = memberFilters.map(f => f.memberId)
+      filtered = filtered.filter(contract => filterIds.includes(contract.memberId))
+    }
+
+    // For "all" filter (and no member filters), show only the most relevant contract per member
+    if (filterStatus === "all" && memberFilters.length === 0) {
       // Group by memberId
       const memberMap = new Map()
       filtered.forEach(contract => {
@@ -248,7 +491,7 @@ export default function ContractList() {
           filtered.push(displayContract)
         }
       })
-    } else {
+    } else if (filterStatus !== "all") {
       // Apply specific status filter - show all matching contracts
       filtered = filtered.filter(contract => {
         if (filterStatus === "active") return contract.status === "Active"
@@ -257,13 +500,6 @@ export default function ContractList() {
         if (filterStatus === "cancelled") return contract.status === "Cancelled"
         return true
       })
-    }
-
-    // Apply search filter
-    if (searchQuery.trim()) {
-      filtered = filtered.filter(contract =>
-        contract.memberName.toLowerCase().includes(searchQuery.toLowerCase())
-      )
     }
 
     // Apply sorting
@@ -328,6 +564,19 @@ export default function ContractList() {
     document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
+
+  // Handle navigation state from other pages (e.g., Leads)
+  useEffect(() => {
+    if (location.state?.filterMemberId) {
+      // Set filter for the member from another page (e.g., Leads, Expiring Contracts Widget)
+      setMemberFilters([{
+        memberId: location.state.filterMemberId,
+        memberName: location.state.filterMemberName || 'Member'
+      }])
+      // Clear the navigation state to prevent re-filtering on refresh
+      window.history.replaceState({}, document.title)
+    }
+  }, [location.state])
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -461,26 +710,139 @@ export default function ContractList() {
   }
 
   const handleSaveNewContract = (contractData) => {
-    const newContract = {
-      id: `12321-${contracts.length + 1}`,
-      memberName: contractData.fullName,
-      contractType: contractData.rateType || "Basic",
-      startDate: new Date().toISOString().split("T")[0],
-      endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split("T")[0],
-      status: "Active",
-      pauseReason: null,
-      cancelReason: null,
-      isDigital: contractData.isDigital,
-      email: contractData.email,
-      phone: contractData.phone,
-      iban: contractData.iban,
-      sepaMandate: contractData.sepaMandate,
-      files: contractData.signedFile ? [contractData.signedFile] : [],
-      autoRenewal: contractData.autoRenewal || false,
+    // Check if this is the new format (full contract object from ContractFormFillModal)
+    // New format has contractFormSnapshot or formData property
+    const isNewFormat = !!(contractData.contractFormSnapshot || contractData.formData || contractData.contractNumber)
+    
+    let newContract
+    
+    if (isNewFormat) {
+      // New format: Full contract object from ContractFormFillModal
+      newContract = {
+        id: contractData.id || `12321-${contracts.length + 1}`,
+        contractNumber: contractData.contractNumber || `C-${Date.now()}`,
+        memberName: contractData.memberName,
+        memberId: contractData.memberId || `M-${Date.now()}`,
+        contractType: contractData.contractType,
+        startDate: contractData.startDate,
+        endDate: contractData.endDate,
+        trainingStartDate: contractData.trainingStartDate,
+        status: contractData.status || "Active",
+        autoRenewal: contractData.autoRenewal || false,
+        cost: contractData.cost,
+        billingPeriod: contractData.billingPeriod,
+        email: contractData.email,
+        phone: contractData.phone,
+        iban: contractData.iban,
+        bic: contractData.bic,
+        sepaMandate: contractData.sepaMandate,
+        address: contractData.address || {},
+        discount: contractData.discount,
+        // Store the form data for PDF generation
+        formData: contractData.formData,
+        contractFormSnapshot: contractData.contractFormSnapshot,
+        files: contractData.files || [],
+        isDigital: contractData.isDigital,
+        isDraft: contractData.isDraft || false,
+        dateOfBirth: contractData.dateOfBirth,
+        bankName: contractData.bankName,
+        salutation: contractData.salutation,
+        pauseReason: null,
+        cancelReason: null,
+      }
+    } else {
+      // Legacy format: Basic contract data from old flow
+      newContract = {
+        id: `12321-${contracts.length + 1}`,
+        memberName: contractData.fullName,
+        contractType: contractData.rateType || "Basic",
+        startDate: new Date().toISOString().split("T")[0],
+        endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split("T")[0],
+        status: "Active",
+        pauseReason: null,
+        cancelReason: null,
+        isDigital: contractData.isDigital,
+        email: contractData.email,
+        phone: contractData.phone,
+        iban: contractData.iban,
+        sepaMandate: contractData.sepaMandate,
+        files: contractData.signedFile ? [contractData.signedFile] : [],
+        autoRenewal: contractData.autoRenewal || false,
+      }
     }
+    
     setContracts([...contracts, newContract])
     setIsModalOpen(false)
-    toast.success("Contract added successfully")
+    
+    // Set filter to show the newly created contract's member
+    setMemberFilters([{
+      memberId: newContract.memberId,
+      memberName: newContract.memberName
+    }])
+    
+    // Lead-to-Member Conversion Logic
+    // Only convert when contract status is "Active" (not "Ongoing")
+    const contractStatus = newContract.status || "Active"
+    const leadId = contractData.leadId || contractData.memberId
+    
+    if (contractStatus === "Active" && leadId) {
+      // Find the lead to convert
+      const leadToConvert = leads.find(lead => 
+        lead.id === leadId || 
+        lead.leadId === leadId ||
+        `${lead.firstName} ${lead.lastName}` === newContract.memberName
+      )
+      
+      if (leadToConvert) {
+        // Create new member from lead data
+        const newMember = {
+          id: newContract.memberId || `member-${Date.now()}`,
+          firstName: leadToConvert.firstName || contractData.firstName || newContract.memberName?.split(' ')[0] || '',
+          lastName: leadToConvert.lastName || contractData.lastName || newContract.memberName?.split(' ').slice(1).join(' ') || '',
+          title: newContract.memberName,
+          email: leadToConvert.email || contractData.email || newContract.email || '',
+          phone: leadToConvert.phoneNumber || leadToConvert.telephoneNumber || contractData.phone || newContract.phone || '',
+          phoneNumber: leadToConvert.phoneNumber || leadToConvert.telephoneNumber || contractData.phone || newContract.phone || '',
+          street: leadToConvert.street || contractData.address?.street || '',
+          zipCode: leadToConvert.zipCode || contractData.address?.zipCode || '',
+          city: leadToConvert.city || contractData.address?.city || '',
+          country: leadToConvert.country || '',
+          birthday: leadToConvert.birthday || contractData.dateOfBirth || '',
+          gender: leadToConvert.gender || '',
+          status: 'active',
+          memberType: 'member',
+          memberSince: newContract.startDate || new Date().toISOString().split('T')[0],
+          contractType: newContract.contractType,
+          image: leadToConvert.avatar || null,
+          notes: leadToConvert.notes || [],
+          // Banking info
+          iban: contractData.iban || newContract.iban || '',
+          bic: contractData.bic || newContract.bic || '',
+          bankName: contractData.bankName || newContract.bankName || '',
+          // Additional data from lead
+          source: leadToConvert.source || leadToConvert.leadSource || '',
+          convertedFromLead: true,
+          originalLeadId: leadToConvert.id,
+          convertedAt: new Date().toISOString(),
+        }
+        
+        // Add new member
+        setMembers(prevMembers => [...prevMembers, newMember])
+        
+        // Remove lead from leads list
+        setLeads(prevLeads => prevLeads.filter(lead => lead.id !== leadToConvert.id))
+        
+        toast.success(`Lead "${newContract.memberName}" converted to member!`)
+      }
+    } else if (contractStatus === "Ongoing") {
+      // For Ongoing contracts, keep the lead - no conversion yet
+      toast.info("Contract saved as draft. Lead will be converted when contract is activated.")
+    }
+    
+    // Toast is handled by contract-modal.jsx for new format
+    if (!isNewFormat) {
+      toast.success("Contract added successfully")
+    }
   }
 
   const handleSaveEditedContract = (updatedContract) => {
@@ -558,7 +920,7 @@ export default function ContractList() {
         }}
       />
 
-      <div className="flex flex-col lg:flex-row rounded-3xl bg-[#1C1C1C] transition-all duration-500 text-white relative">
+      <div className="flex flex-col lg:flex-row rounded-3xl bg-[#1C1C1C] transition-all duration-500 text-white relative select-none">
         <div className="flex-1 min-w-0 md:p-6 p-4 pb-36">
           {/* Header - matches members.jsx */}
           <div className="flex sm:items-center justify-between mb-6 sm:mb-8 gap-4">
@@ -690,7 +1052,7 @@ export default function ContractList() {
             </div>
           </div>
 
-          {/* Search Bar */}
+          {/* Search Bar with Inline Filter Chips */}
           <div className="mb-4" ref={searchDropdownRef}>
             <div className="relative">
               <div 
@@ -699,27 +1061,52 @@ export default function ContractList() {
               >
                 <Search className="text-gray-400 flex-shrink-0" size={16} />
                 
+                {/* Filter Chips */}
+                {memberFilters.map((filter) => (
+                  <div 
+                    key={filter.memberId}
+                    className="flex items-center gap-1.5 bg-[#3F74FF]/20 border border-[#3F74FF]/40 rounded-lg px-2 py-1 text-sm"
+                  >
+                    <div className="w-5 h-5 rounded bg-[#2a2a2a] flex items-center justify-center flex-shrink-0">
+                      <FileText size={12} className="text-orange-400" />
+                    </div>
+                    <span className="text-white text-xs whitespace-nowrap">{filter.memberName}</span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveFilter(filter.memberId);
+                      }}
+                      className="p-0.5 hover:bg-[#3F74FF]/30 rounded transition-colors"
+                    >
+                      <X size={12} className="text-gray-400 hover:text-white" />
+                    </button>
+                  </div>
+                ))}
+                
+                {/* Search Input */}
                 <input
                   ref={searchInputRef}
                   type="text"
-                  placeholder="Search contracts..."
+                  placeholder={memberFilters.length > 0 ? "Add more..." : "Search contracts..."}
                   value={searchQuery}
                   onChange={(e) => {
                     setSearchQuery(e.target.value)
                     setShowSearchDropdown(true)
                   }}
                   onFocus={() => searchQuery && setShowSearchDropdown(true)}
+                  onKeyDown={handleSearchKeyDown}
                   className="flex-1 min-w-[100px] bg-transparent outline-none text-sm text-white placeholder-gray-500"
                 />
                 
-                {searchQuery && (
+                {/* Clear All Button */}
+                {memberFilters.length > 0 && (
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
-                      setSearchQuery("")
-                      setShowSearchDropdown(false)
+                      setMemberFilters([])
                     }}
                     className="p-1 hover:bg-gray-700 rounded-lg transition-colors flex-shrink-0"
+                    title="Clear all filters"
                   >
                     <X size={14} className="text-gray-400 hover:text-white" />
                   </button>
@@ -727,23 +1114,20 @@ export default function ContractList() {
               </div>
               
               {/* Autocomplete Dropdown */}
-              {showSearchDropdown && searchQuery.trim() && searchMatches.length > 0 && (
+              {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length > 0 && (
                 <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a1a] border border-[#333333] rounded-xl shadow-lg z-50 overflow-hidden">
-                  {searchMatches.map((contract) => (
+                  {getSearchSuggestions().map((member) => (
                     <button
-                      key={contract.id}
-                      onClick={() => {
-                        setSearchQuery(contract.memberName)
-                        setShowSearchDropdown(false)
-                      }}
+                      key={member.memberId}
+                      onClick={() => handleSelectMember(member)}
                       className="w-full px-3 py-2.5 flex items-center gap-3 hover:bg-[#252525] transition-colors text-left"
                     >
-                      <div className="w-9 h-9 bg-[#2a2a2a] rounded-xl flex items-center justify-center flex-shrink-0">
-                        <FileText size={18} className="text-orange-400" />
+                      <div className="w-8 h-8 rounded-lg bg-[#2a2a2a] flex items-center justify-center flex-shrink-0">
+                        <FileText size={16} className="text-orange-400" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-white truncate">{contract.memberName}</p>
-                        <p className="text-xs text-gray-500 truncate">{contract.contractType}</p>
+                        <p className="text-sm text-white truncate">{member.memberName}</p>
+                        <p className="text-xs text-gray-500 truncate">{member.contractType}</p>
                       </div>
                     </button>
                   ))}
@@ -751,9 +1135,9 @@ export default function ContractList() {
               )}
               
               {/* No results message */}
-              {showSearchDropdown && searchQuery.trim() && searchMatches.length === 0 && (
+              {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length === 0 && (
                 <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a1a] border border-[#333333] rounded-xl shadow-lg z-50 p-3">
-                  <p className="text-sm text-gray-500 text-center">No contracts found</p>
+                  <p className="text-sm text-gray-500 text-center">No members found</p>
                 </div>
               )}
             </div>
@@ -885,7 +1269,7 @@ export default function ContractList() {
                               <span className="text-white font-medium text-sm truncate">{contract.memberName}</span>
                             </div>
                             <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                              <StatusTag status={contract.status} compact={true} />
+                              <StatusTag status={contract.status} compact={true} pauseReason={contract.pauseReason} pauseStartDate={contract.pauseStartDate} pauseEndDate={contract.pauseEndDate} cancelReason={contract.cancelReason} cancelDate={contract.cancelDate} />
                               <span className="text-gray-400 text-xs">{contract.contractType}</span>
                             </div>
                           </div>
@@ -905,7 +1289,7 @@ export default function ContractList() {
                               <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-700/50 text-gray-300">
                                 {formatDate(contract.startDate)} - {formatDate(contract.endDate)}
                               </span>
-                              {isContractExpiringSoon(contract.endDate) && (
+                              {shouldShowExpiring(contract) && (
                                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-500/20 text-red-400">
                                   Expiring
                                 </span>
@@ -1070,19 +1454,33 @@ export default function ContractList() {
                             <span className="text-white font-medium">{contract.memberName}</span>
                           </div>
                           <div className="text-gray-300">{contract.contractType}</div>
-                          <div><StatusTag status={contract.status} compact={true} /></div>
+                          <div><StatusTag status={contract.status} compact={true} pauseReason={contract.pauseReason} pauseStartDate={contract.pauseStartDate} pauseEndDate={contract.pauseEndDate} cancelReason={contract.cancelReason} cancelDate={contract.cancelDate} /></div>
                           <div className="text-gray-300 text-sm">
-                            {contract.autoRenewal ? (
-                              <span className="text-orange-400 flex items-center gap-1">
-                                <RefreshCw size={12} /> Yes
-                              </span>
-                            ) : (
-                              <span className="text-gray-500">No</span>
-                            )}
+                            {(() => {
+                              const renewalInfo = getAutoRenewalInfo(contract)
+                              return renewalInfo.hasRenewal ? (
+                                <div className="relative group inline-flex">
+                                  <span className="text-orange-400 flex items-center gap-1 cursor-pointer transition-transform duration-200 hover:scale-110">
+                                    <RefreshCw size={12} /> Yes
+                                  </span>
+                                  {/* Custom Tooltip */}
+                                  <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/95 text-white px-3 py-2 rounded-lg text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none">
+                                    <div className="flex items-center gap-2">
+                                      <RefreshCw size={10} className="text-orange-400" />
+                                      <span>{renewalInfo.tooltip}</span>
+                                    </div>
+                                    {/* Arrow */}
+                                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/95" />
+                                  </div>
+                                </div>
+                              ) : (
+                                <span className="text-gray-500">No</span>
+                              )
+                            })()}
                           </div>
                           <div className="text-gray-400 text-sm">
                             {formatDate(contract.startDate)} - {formatDate(contract.endDate)}
-                            {isContractExpiringSoon(contract.endDate) && (
+                            {shouldShowExpiring(contract) && (
                               <span className="ml-2 text-red-400 text-xs flex items-center gap-1 inline-flex">
                                 <AlertTriangle size={12} />
                                 Expiring
@@ -1244,7 +1642,7 @@ export default function ContractList() {
                             <div className="flex-1 min-w-0">
                               <span className="text-white font-medium truncate block">{contract.memberName}</span>
                               <div className="flex items-center gap-2 mt-1">
-                                <StatusTag status={contract.status} compact={true} />
+                                <StatusTag status={contract.status} compact={true} pauseReason={contract.pauseReason} pauseStartDate={contract.pauseStartDate} pauseEndDate={contract.pauseEndDate} cancelReason={contract.cancelReason} cancelDate={contract.cancelDate} />
                                 <span className="text-gray-400 text-xs">{contract.contractType}</span>
                               </div>
                             </div>
@@ -1366,22 +1764,36 @@ export default function ContractList() {
                       </button>
                       <h3 className="text-white font-medium text-lg text-center">{contract.memberName}</h3>
                       <div className="flex items-center gap-2 mt-2">
-                        <StatusTag status={contract.status} />
+                        <StatusTag status={contract.status} pauseReason={contract.pauseReason} pauseStartDate={contract.pauseStartDate} pauseEndDate={contract.pauseEndDate} cancelReason={contract.cancelReason} cancelDate={contract.cancelDate} />
                       </div>
                       <p className="text-gray-400 text-sm mt-2">{contract.contractType}</p>
                       <p className="text-gray-500 text-xs mt-1">
                         {formatDate(contract.startDate)} - {formatDate(contract.endDate)}
                       </p>
                       <div className="flex items-center gap-1 mt-1 text-xs">
-                        {contract.autoRenewal ? (
-                          <span className="text-orange-400 flex items-center gap-1">
-                            <RefreshCw size={10} /> Auto Renewal
-                          </span>
-                        ) : (
-                          <span className="text-gray-500">No Auto Renewal</span>
-                        )}
+                        {(() => {
+                          const renewalInfo = getAutoRenewalInfo(contract)
+                          return renewalInfo.hasRenewal ? (
+                            <div className="relative group inline-flex">
+                              <span className="text-orange-400 flex items-center gap-1 cursor-pointer transition-transform duration-200 hover:scale-110">
+                                <RefreshCw size={10} /> Auto Renewal
+                              </span>
+                              {/* Custom Tooltip */}
+                              <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 bg-black/95 text-white px-3 py-2 rounded-lg text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none">
+                                <div className="flex items-center gap-2">
+                                  <RefreshCw size={10} className="text-orange-400" />
+                                  <span>{renewalInfo.tooltip}</span>
+                                </div>
+                                {/* Arrow pointing down */}
+                                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-black/95" />
+                              </div>
+                            </div>
+                          ) : (
+                            <span className="text-gray-500">No Auto Renewal</span>
+                          )
+                        })()}
                       </div>
-                      {isContractExpiringSoon(contract.endDate) && (
+                      {shouldShowExpiring(contract) && (
                         <span className="mt-2 text-xs px-2 py-1 rounded-full bg-red-500/20 text-red-400 flex items-center gap-1">
                           <AlertTriangle size={12} /> Expiring
                         </span>
@@ -1459,7 +1871,7 @@ export default function ContractList() {
 
         {/* Modals */}
         {isModalOpen && (
-          <AddContractModal
+          <ContractModal
             onClose={() => setIsModalOpen(false)}
             onSave={handleSaveNewContract}
             leadData={selectedLead}
@@ -1483,7 +1895,7 @@ export default function ContractList() {
         )}
 
         {isEditModalOpenContract && selectedContract && (
-          <EditContractModal
+          <ContractModal
             contract={selectedContract}
             onClose={() => setIsEditModalOpenContract(false)}
             onSave={handleSaveEditedContract}

@@ -16,6 +16,133 @@ const SizeStyle = Quill.import('attributors/style/size')
 SizeStyle.whitelist = ['10px', '12px', '14px', '16px', '18px', '20px', '24px', '28px', '32px', '36px']
 Quill.register(SizeStyle, true)
 
+// Custom Image blot to preserve width, height, style and alignment attributes
+const BaseImageBlot = Quill.import('formats/image')
+class ImageBlot extends BaseImageBlot {
+  static create(value) {
+    // Handle both string (src only) and object (with dimensions) values
+    const node = super.create(typeof value === 'object' ? value.src : value)
+    
+    if (typeof value === 'object') {
+      if (value.width) {
+        node.setAttribute('width', value.width)
+        node.style.width = `${value.width}px`
+      }
+      if (value.height) {
+        node.setAttribute('height', value.height)
+        node.style.height = `${value.height}px`
+      }
+      if (value.style) {
+        node.setAttribute('style', value.style)
+      }
+      if (value.align) {
+        node.setAttribute('data-align', value.align)
+        // Apply alignment styles
+        ImageBlot.applyAlignmentStyles(node, value.align)
+      }
+    }
+    return node
+  }
+
+  // Helper to apply alignment styles
+  static applyAlignmentStyles(node, align) {
+    // Reset alignment styles first
+    node.style.float = ''
+    node.style.display = ''
+    node.style.marginLeft = ''
+    node.style.marginRight = ''
+    node.style.marginBottom = ''
+    
+    switch (align) {
+      case 'left':
+        node.style.float = 'left'
+        node.style.marginRight = '12px'
+        node.style.marginBottom = '8px'
+        break
+      case 'center':
+        node.style.display = 'block'
+        node.style.marginLeft = 'auto'
+        node.style.marginRight = 'auto'
+        node.style.float = 'none'
+        break
+      case 'right':
+        node.style.float = 'right'
+        node.style.marginLeft = '12px'
+        node.style.marginBottom = '8px'
+        break
+    }
+  }
+
+  static value(node) {
+    const src = node.getAttribute('src')
+    const width = node.getAttribute('width') || (node.style.width ? node.style.width.replace('px', '') : null)
+    const height = node.getAttribute('height') || (node.style.height ? node.style.height.replace('px', '') : null)
+    const style = node.getAttribute('style')
+    const align = node.getAttribute('data-align')
+    
+    // If there are custom dimensions, style or alignment, return an object
+    if (width || height || style || align) {
+      const result = { src }
+      if (width) result.width = String(width).replace('px', '')
+      if (height) result.height = String(height).replace('px', '')
+      if (style) result.style = style
+      if (align) result.align = align
+      return result
+    }
+    // Otherwise just return the src for backward compatibility
+    return src
+  }
+
+  static formats(node) {
+    return {
+      src: node.getAttribute('src'),
+      width: node.getAttribute('width'),
+      height: node.getAttribute('height'),
+      style: node.getAttribute('style'),
+      align: node.getAttribute('data-align')
+    }
+  }
+
+  format(name, value) {
+    if (name === 'width') {
+      if (value) {
+        this.domNode.setAttribute('width', value)
+        this.domNode.style.width = `${value}px`
+      } else {
+        this.domNode.removeAttribute('width')
+        this.domNode.style.width = ''
+      }
+    } else if (name === 'height') {
+      if (value) {
+        this.domNode.setAttribute('height', value)
+        this.domNode.style.height = `${value}px`
+      } else {
+        this.domNode.removeAttribute('height')
+        this.domNode.style.height = ''
+      }
+    } else if (name === 'style') {
+      if (value) {
+        this.domNode.setAttribute('style', value)
+      } else {
+        this.domNode.removeAttribute('style')
+      }
+    } else if (name === 'align') {
+      if (value) {
+        this.domNode.setAttribute('data-align', value)
+        ImageBlot.applyAlignmentStyles(this.domNode, value)
+      } else {
+        this.domNode.removeAttribute('data-align')
+        ImageBlot.applyAlignmentStyles(this.domNode, null)
+      }
+    } else {
+      super.format(name, value)
+    }
+  }
+}
+ImageBlot.blotName = 'image'
+ImageBlot.tagName = 'IMG'
+Quill.register(ImageBlot, true)
+
 // Editor Modal
 const EditorModal = ({ show, onClose, title, children, onSubmit, submitText, submitDisabled = false }) => {
   if (!show) return null
@@ -45,6 +172,18 @@ export const WysiwygEditor = forwardRef(({
   showImages = true,
   className = ""
 }, ref) => {
+  // Normalize HTML before passing to Quill to prevent extra line breaks
+  const normalizedValue = useMemo(() => {
+    if (!value) return value
+    return value
+      // Remove newlines and extra whitespace between tags (but preserve within text)
+      .replace(/>\s*\n\s*</g, '><')
+      // Remove multiple consecutive empty paragraphs
+      .replace(/(<p><br><\/p>){2,}/gi, '<p><br></p>')
+      // Trim leading/trailing whitespace
+      .trim()
+  }, [value])
+  
   const editorId = useRef(`editor-${Math.random().toString(36).substr(2, 9)}`).current
   const quillRef = useRef(null)
   const containerRef = useRef(null)
@@ -64,9 +203,9 @@ export const WysiwygEditor = forwardRef(({
   const isDraggingFromHandle = useRef(false)
   const emojiPickerRef = useRef(null)
   
-  const lastValueRef = useRef(value)
+  const lastValueRef = useRef(normalizedValue)
   const isInternalUpdate = useRef(false)
-  const savedContentRef = useRef(value || '')
+  const savedContentRef = useRef(normalizedValue || '')
   const hasInitialized = useRef(false)
 
   // Expose insertText method to parent components via ref
@@ -348,8 +487,8 @@ export const WysiwygEditor = forwardRef(({
     // Skip on first render - let defaultValue handle it
     if (!hasInitialized.current) {
       hasInitialized.current = true
-      lastValueRef.current = value
-      if (value) savedContentRef.current = value
+      lastValueRef.current = normalizedValue
+      if (normalizedValue) savedContentRef.current = normalizedValue
       return
     }
     
@@ -357,7 +496,7 @@ export const WysiwygEditor = forwardRef(({
     if (isInternalUpdate.current) return
     
     // Skip if value hasn't changed
-    if (value === lastValueRef.current) return
+    if (normalizedValue === lastValueRef.current) return
     
     const quill = quillRef.current?.getEditor()
     if (!quill) return
@@ -365,33 +504,33 @@ export const WysiwygEditor = forwardRef(({
     const currentContent = quill.root.innerHTML
     
     // Normalize for comparison (ignore whitespace differences)
-    const normalizeHtml = (html) => (html || '').replace(/\s+/g, ' ').trim()
-    const normalizedValue = normalizeHtml(value)
-    const normalizedCurrent = normalizeHtml(currentContent)
+    const normalizeForCompare = (html) => (html || '').replace(/\s+/g, ' ').trim()
+    const normalizedProp = normalizeForCompare(normalizedValue)
+    const normalizedCurrent = normalizeForCompare(currentContent)
     
     // If content is essentially the same, just update ref
-    if (normalizedValue === normalizedCurrent) {
-      lastValueRef.current = value
+    if (normalizedProp === normalizedCurrent) {
+      lastValueRef.current = normalizedValue
       return
     }
     
     // Check if this looks like a template change (significant content change)
     const isTemplateChange = !normalizedCurrent || 
       normalizedCurrent === '<p><br></p>' || 
-      (normalizedValue.length > 50 && Math.abs(normalizedValue.length - normalizedCurrent.length) > normalizedCurrent.length * 0.5)
+      (normalizedProp.length > 50 && Math.abs(normalizedProp.length - normalizedCurrent.length) > normalizedCurrent.length * 0.5)
     
     if (isTemplateChange) {
       // This is a template change - update editor
       const selection = quill.getSelection()
-      quill.root.innerHTML = value || ''
+      quill.root.innerHTML = normalizedValue || ''
       if (selection) try { quill.setSelection(selection) } catch (e) {}
-      lastValueRef.current = value
-      if (value) savedContentRef.current = value
+      lastValueRef.current = normalizedValue
+      if (normalizedValue) savedContentRef.current = normalizedValue
     } else {
       // Minor difference - keep current content, update ref
-      lastValueRef.current = value
+      lastValueRef.current = normalizedValue
     }
-  }, [value])
+  }, [normalizedValue])
   
   const handleChange = (content, delta, source) => {
     if (source === 'user') {
@@ -480,14 +619,14 @@ export const WysiwygEditor = forwardRef(({
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
-  const triggerOnChange = (quill) => {
+  const triggerOnChange = useCallback((quill) => {
     const newHtml = quill.root.innerHTML
     isInternalUpdate.current = true
     lastValueRef.current = newHtml
     savedContentRef.current = newHtml
     onChange(newHtml)
     setTimeout(() => { isInternalUpdate.current = false }, 100)
-  }
+  }, [onChange])
 
   const updateImageRect = useCallback((img) => {
     if (!img || !containerRef.current) { setImageRect(null); return }
@@ -1441,8 +1580,75 @@ export const WysiwygEditor = forwardRef(({
     }
   }, [selectedImage, updateEditorBounds])
 
+  // Image alignment handler
+  const alignImage = useCallback((alignment) => {
+    if (!selectedImage) return
+    
+    const quill = quillRef.current?.getEditor()
+    if (!quill) return
+    
+    // Remove existing alignment styles
+    selectedImage.style.float = ''
+    selectedImage.style.display = ''
+    selectedImage.style.marginLeft = ''
+    selectedImage.style.marginRight = ''
+    selectedImage.style.margin = ''
+    selectedImage.removeAttribute('data-align')
+    
+    // Apply new alignment
+    switch (alignment) {
+      case 'left':
+        selectedImage.style.float = 'left'
+        selectedImage.style.marginRight = '12px'
+        selectedImage.style.marginBottom = '8px'
+        selectedImage.setAttribute('data-align', 'left')
+        break
+      case 'center':
+        selectedImage.style.display = 'block'
+        selectedImage.style.marginLeft = 'auto'
+        selectedImage.style.marginRight = 'auto'
+        selectedImage.style.float = 'none'
+        selectedImage.setAttribute('data-align', 'center')
+        break
+      case 'right':
+        selectedImage.style.float = 'right'
+        selectedImage.style.marginLeft = '12px'
+        selectedImage.style.marginBottom = '8px'
+        selectedImage.setAttribute('data-align', 'right')
+        break
+      default:
+        // No alignment (inline)
+        break
+    }
+    
+    // Update image rect and trigger change
+    updateImageRect(selectedImage)
+    triggerOnChange(quill)
+  }, [selectedImage, updateImageRect, triggerOnChange])
+
+  // Get current image alignment
+  const getImageAlignment = useCallback(() => {
+    if (!selectedImage) return null
+    
+    const dataAlign = selectedImage.getAttribute('data-align')
+    if (dataAlign) return dataAlign
+    
+    const float = selectedImage.style.float
+    const display = selectedImage.style.display
+    const marginLeft = selectedImage.style.marginLeft
+    const marginRight = selectedImage.style.marginRight
+    
+    if (float === 'left') return 'left'
+    if (float === 'right') return 'right'
+    if (display === 'block' && marginLeft === 'auto' && marginRight === 'auto') return 'center'
+    
+    return null
+  }, [selectedImage])
+
   const renderImageSelection = () => {
     if (!selectedImage || !imageRect || !editorBounds || showLinkModal || showImageModal) return null
+    
+    const currentAlignment = getImageAlignment()
     
     return (
       <>
@@ -1521,9 +1727,102 @@ export const WysiwygEditor = forwardRef(({
               style={{ position: 'absolute', width: 10, height: 32, backgroundColor: '#FF843E', border: '2px solid white', borderRadius: 4, pointerEvents: 'auto', top: '50%', left: -6, transform: 'translateY(-50%)', cursor: 'ew-resize', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }}
             />
             
+            {/* Alignment buttons - positioned above the image */}
+            <div 
+              style={{ 
+                position: 'absolute', 
+                left: '50%', 
+                transform: 'translateX(-50%)', 
+                top: -36, 
+                display: 'flex',
+                gap: 2,
+                backgroundColor: '#1a1a1a',
+                borderRadius: 6,
+                padding: 3,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
+                pointerEvents: 'auto',
+                zIndex: 10
+              }}
+            >
+              {/* Align Left */}
+              <button
+                onClick={(e) => { e.stopPropagation(); alignImage('left'); }}
+                title="Linksbündig"
+                style={{
+                  width: 28,
+                  height: 28,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: currentAlignment === 'left' ? '#FF843E' : 'transparent',
+                  border: 'none',
+                  borderRadius: 4,
+                  cursor: 'pointer',
+                  color: currentAlignment === 'left' ? 'white' : '#a0a0a0',
+                  transition: 'all 0.15s'
+                }}
+                onMouseEnter={(e) => { if (currentAlignment !== 'left') e.target.style.backgroundColor = 'rgba(255,255,255,0.1)' }}
+                onMouseLeave={(e) => { if (currentAlignment !== 'left') e.target.style.backgroundColor = 'transparent' }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="18" y2="18"/>
+                </svg>
+              </button>
+              
+              {/* Align Center */}
+              <button
+                onClick={(e) => { e.stopPropagation(); alignImage('center'); }}
+                title="Zentriert"
+                style={{
+                  width: 28,
+                  height: 28,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: currentAlignment === 'center' ? '#FF843E' : 'transparent',
+                  border: 'none',
+                  borderRadius: 4,
+                  cursor: 'pointer',
+                  color: currentAlignment === 'center' ? 'white' : '#a0a0a0',
+                  transition: 'all 0.15s'
+                }}
+                onMouseEnter={(e) => { if (currentAlignment !== 'center') e.target.style.backgroundColor = 'rgba(255,255,255,0.1)' }}
+                onMouseLeave={(e) => { if (currentAlignment !== 'center') e.target.style.backgroundColor = 'transparent' }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/>
+                </svg>
+              </button>
+              
+              {/* Align Right */}
+              <button
+                onClick={(e) => { e.stopPropagation(); alignImage('right'); }}
+                title="Rechtsbündig"
+                style={{
+                  width: 28,
+                  height: 28,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: currentAlignment === 'right' ? '#FF843E' : 'transparent',
+                  border: 'none',
+                  borderRadius: 4,
+                  cursor: 'pointer',
+                  color: currentAlignment === 'right' ? 'white' : '#a0a0a0',
+                  transition: 'all 0.15s'
+                }}
+                onMouseEnter={(e) => { if (currentAlignment !== 'right') e.target.style.backgroundColor = 'rgba(255,255,255,0.1)' }}
+                onMouseLeave={(e) => { if (currentAlignment !== 'right') e.target.style.backgroundColor = 'transparent' }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="3" y1="6" x2="21" y2="6"/><line x1="9" y1="12" x2="21" y2="12"/><line x1="6" y1="18" x2="21" y2="18"/>
+                </svg>
+              </button>
+            </div>
+            
             {/* Size indicator */}
             <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', bottom: -24, padding: '3px 10px', backgroundColor: '#FF843E', color: 'white', borderRadius: 4, fontSize: 11, fontWeight: 500, whiteSpace: 'nowrap', pointerEvents: 'none' }}>
-              {Math.round(imageRect.width)} Ã— {Math.round(imageRect.height)}
+              {Math.round(imageRect.width)} × {Math.round(imageRect.height)}
             </div>
           </div>
         </div>
@@ -1544,13 +1843,12 @@ export const WysiwygEditor = forwardRef(({
       >
         <ReactQuill
           ref={quillRef}
-          defaultValue={value}
+          defaultValue={normalizedValue}
           onChange={handleChange}
           modules={modules}
           formats={formats}
           placeholder={placeholder}
           theme="snow"
-          preserveWhitespace
         />
         {renderImageSelection()}
         

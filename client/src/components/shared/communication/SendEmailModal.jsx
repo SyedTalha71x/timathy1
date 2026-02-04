@@ -1,12 +1,13 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import React, { useRef, useState, useEffect } from "react";
-import { Mail, X, Search, Send, ChevronDown, Paperclip, Image, FileText, File, Trash2 } from "lucide-react";
+import { Mail, X, Search, Send, ChevronDown, Paperclip, Image, FileText, File, Trash2, AlertTriangle } from "lucide-react";
 import { WysiwygEditor } from "../WysiwygEditor";
 import DraftModal from "./DraftModal";
 
 // Import email signature from configuration (Single Source of Truth)
 import { DEFAULT_COMMUNICATION_SETTINGS } from "../../../utils/studio-states/configuration-states";
+import { emailTemplatesData } from "../../../utils/studio-states/communication-states";
 
 // Initials Avatar Component
 const InitialsAvatar = ({ firstName, lastName, size = 32, className = "", isStaff = false }) => {
@@ -331,6 +332,9 @@ const SendEmailModal = ({
   const [toRecipients, setToRecipients] = useState([]);
   const [ccRecipients, setCcRecipients] = useState([]);
   const [bccRecipients, setBccRecipients] = useState([]);
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
+  const [showTemplateDropdown, setShowTemplateDropdown] = useState(false);
+  const templateDropdownRef = useRef(null);
 
   // Set preselected member when modal opens
   useEffect(() => {
@@ -447,7 +451,69 @@ const SendEmailModal = ({
     setCcRecipients([]);
     setBccRecipients([]);
     setShowDraftConfirmModal(false);
+    setSelectedTemplate(null);
+    setShowTemplateDropdown(false);
   };
+
+  // Check if text contains template variables like {Member_Name}
+  const containsVariables = (text) => {
+    if (!text) return false;
+    return /\{[A-Za-z_]+\}/.test(text);
+  };
+
+  // Get all variables from a template
+  const extractVariables = (template) => {
+    const vars = new Set();
+    const regex = /\{[A-Za-z_]+\}/g;
+    let match;
+    if (template.subject) {
+      while ((match = regex.exec(template.subject)) !== null) vars.add(match[0]);
+    }
+    if (template.body) {
+      regex.lastIndex = 0;
+      while ((match = regex.exec(template.body)) !== null) vars.add(match[0]);
+    }
+    return [...vars];
+  };
+
+  // Highlight variables in text for display
+  const highlightVariables = (text) => {
+    if (!text) return text;
+    return text.replace(/\{([A-Za-z_]+)\}/g, '<span style="background-color: rgba(234, 179, 8, 0.2); color: #eab308; padding: 1px 4px; border-radius: 4px; font-size: 12px;">{$1}</span>');
+  };
+
+  // Handle template selection
+  const handleSelectTemplate = (template) => {
+    setSelectedTemplate(template);
+    setShowTemplateDropdown(false);
+    setEmailData({
+      ...emailData,
+      subject: template.subject || "",
+      body: template.body?.replace(/\n/g, "<br>") || "",
+    });
+  };
+
+  // Handle clearing template
+  const handleClearTemplate = () => {
+    setSelectedTemplate(null);
+    setEmailData({ ...emailData, subject: "", body: "" });
+  };
+
+  // Check if selected template has variables and multiple recipients
+  const totalRecipients = toRecipients.length + ccRecipients.length + bccRecipients.length;
+  const templateHasVariables = selectedTemplate && (containsVariables(selectedTemplate.subject) || containsVariables(selectedTemplate.body));
+  const showVariableWarning = templateHasVariables && totalRecipients > 1;
+
+  // Close template dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (templateDropdownRef.current && !templateDropdownRef.current.contains(e.target)) {
+        setShowTemplateDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Normalize HTML for comparison (remove whitespace and empty tags)
   const normalizeHtml = (html) => {
@@ -553,6 +619,76 @@ const SendEmailModal = ({
           </div>
 
           <div className="space-y-4 flex-1 overflow-y-auto custom-scrollbar pr-1">
+            {/* Template Selector */}
+            <div ref={templateDropdownRef} className="relative">
+              <label className="block text-sm font-medium text-gray-400 mb-1">Template</label>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowTemplateDropdown(!showTemplateDropdown)}
+                  className="flex-1 flex items-center justify-between bg-[#222222] hover:bg-[#2a2a2a] text-sm rounded-xl px-4 py-2.5 transition-colors"
+                >
+                  <span className={selectedTemplate ? "text-white" : "text-gray-500"}>
+                    {selectedTemplate ? selectedTemplate.name : "Select a template (optional)"}
+                  </span>
+                  <ChevronDown size={16} className={`text-gray-400 transition-transform ${showTemplateDropdown ? "rotate-180" : ""}`} />
+                </button>
+                {selectedTemplate && (
+                  <button
+                    onClick={handleClearTemplate}
+                    className="p-2.5 bg-[#222222] hover:bg-[#2a2a2a] rounded-xl transition-colors"
+                    title="Clear template"
+                  >
+                    <X size={16} className="text-gray-400 hover:text-white" />
+                  </button>
+                )}
+              </div>
+              
+              {showTemplateDropdown && (
+                <div className="absolute left-0 right-0 mt-1 bg-[#1C1C1C] border border-gray-800 rounded-xl shadow-xl z-20 max-h-48 overflow-y-auto custom-scrollbar">
+                  {emailTemplatesData.length > 0 ? (
+                    emailTemplatesData.map((template) => {
+                      const hasVars = containsVariables(template.subject) || containsVariables(template.body);
+                      return (
+                        <button
+                          key={template.id}
+                          onClick={() => handleSelectTemplate(template)}
+                          className={`w-full text-left p-3 hover:bg-[#2F2F2F] transition-colors border-b border-gray-800/50 last:border-b-0 ${selectedTemplate?.id === template.id ? "bg-[#2F2F2F]" : ""}`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-white font-medium">{template.name}</span>
+                            {hasVars && (
+                              <span className="text-[10px] px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 rounded-full">Variables</span>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-500 mt-0.5 truncate">{template.subject}</p>
+                        </button>
+                      );
+                    })
+                  ) : (
+                    <p className="p-3 text-sm text-gray-500">No templates available</p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Variable Warning */}
+            {showVariableWarning && (
+              <div className="flex items-start gap-2.5 bg-yellow-500/10 border border-yellow-500/30 rounded-xl px-3.5 py-2.5">
+                <AlertTriangle size={16} className="text-yellow-400 flex-shrink-0 mt-0.5" />
+                <div className="text-xs">
+                  <p className="text-yellow-400 font-medium">Template contains variables</p>
+                  <p className="text-yellow-400/70 mt-0.5">
+                    Variables like {extractVariables(selectedTemplate).map((v, i) => (
+                      <span key={v}>
+                        {i > 0 && ", "}
+                        <span className="bg-yellow-500/20 px-1 py-0.5 rounded text-yellow-300">{v}</span>
+                      </span>
+                    ))} will only be replaced when sending to a single recipient. For multiple recipients, variables will be sent as-is.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* To Field with Tags */}
             <EmailTagInput
               recipients={toRecipients}
@@ -628,6 +764,7 @@ const SendEmailModal = ({
                 </button>
               </div>
               <WysiwygEditor
+                key={`editor-${selectedTemplate?.id || 'custom'}`}
                 ref={editorRef}
                 value={emailData.body}
                 onChange={(content) => setEmailData({ ...emailData, body: content })}

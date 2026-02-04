@@ -9,11 +9,13 @@ import {
   AlertTriangle, AlertCircle, Printer
 } from "lucide-react"
 import { toast } from "react-hot-toast"
-import { EditContractModal } from "./edit-contract-modal"
+import { pdf } from "@react-pdf/renderer"
+import ContractPDFDocument from "./ContractPDFDocument"
+
 
 // ============================================
-// Required Libraries for Document Preview:
-// npm install mammoth xlsx
+// Required Libraries:
+// npm install mammoth xlsx @react-pdf/renderer
 // ============================================
 import * as mammoth from "mammoth"
 import * as XLSX from "xlsx"
@@ -246,7 +248,7 @@ function DocumentViewerModal({ isOpen, onClose, document, onDownload, onPrint })
 }
 
 // Status Tag Component
-const ContractStatusTag = ({ status }) => {
+const ContractStatusTag = ({ status, pauseReason = null, pauseStartDate = null, pauseEndDate = null, cancelReason = null, cancelDate = null }) => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'Active': return 'bg-green-600';
@@ -257,10 +259,83 @@ const ContractStatusTag = ({ status }) => {
     }
   };
 
+  const hasTooltip = status === 'Paused' || status === 'Cancelled';
+  const hasHoverEffect = status === 'Paused' || status === 'Cancelled';
+  
+  // Format date helper
+  const formatD = (d) => d ? new Date(d).toLocaleDateString('de-DE') : null;
+
+  // Build tooltip content for Paused
+  const renderPauseTooltip = () => {
+    if (status !== 'Paused') return null;
+    return (
+      <>
+        {pauseReason && (
+          <div className="flex items-center gap-2">
+            <span className="text-yellow-400 font-medium">Reason:</span>
+            <span>{pauseReason}</span>
+          </div>
+        )}
+        {pauseStartDate && pauseEndDate && (
+          <div className="flex items-center gap-2">
+            <span className="text-yellow-400 font-medium">Period:</span>
+            <span>{formatD(pauseStartDate)} - {formatD(pauseEndDate)}</span>
+          </div>
+        )}
+        {pauseStartDate && !pauseEndDate && (
+          <div className="flex items-center gap-2">
+            <span className="text-yellow-400 font-medium">Since:</span>
+            <span>{formatD(pauseStartDate)}</span>
+          </div>
+        )}
+        {!pauseReason && !pauseStartDate && (
+          <span>Contract is paused</span>
+        )}
+      </>
+    );
+  };
+
+  // Build tooltip content for Cancelled
+  const renderCancelTooltip = () => {
+    if (status !== 'Cancelled') return null;
+    return (
+      <>
+        {cancelReason && (
+          <div className="flex items-center gap-2">
+            <span className="text-red-400 font-medium">Reason:</span>
+            <span>{cancelReason}</span>
+          </div>
+        )}
+        {cancelDate && (
+          <div className="flex items-center gap-2">
+            <span className="text-red-400 font-medium">Cancelled:</span>
+            <span>{formatD(cancelDate)}</span>
+          </div>
+        )}
+        {!cancelReason && !cancelDate && (
+          <span>Contract was cancelled</span>
+        )}
+      </>
+    );
+  };
+
   return (
-    <span className={`${getStatusColor(status)} text-white px-2 py-0.5 rounded-lg text-xs font-medium`}>
-      {status}
-    </span>
+    <div className={`relative ${hasTooltip ? 'group' : ''} inline-flex`}>
+      <span className={`${getStatusColor(status)} text-white px-2 py-0.5 rounded-lg text-xs font-medium transition-transform duration-200 ${hasHoverEffect ? 'cursor-pointer hover:scale-110' : ''}`}>
+        {status}
+      </span>
+      {/* Custom Tooltip */}
+      {hasTooltip && (
+        <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/95 text-white px-3 py-2 rounded-lg text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none">
+          <div className="flex flex-col gap-1">
+            {renderPauseTooltip()}
+            {renderCancelTooltip()}
+          </div>
+          {/* Arrow pointing up */}
+          <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/95" />
+        </div>
+      )}
+    </div>
   );
 };
 
@@ -345,6 +420,39 @@ export function ContractManagement({ contract, allContracts = [], onClose }) {
   // Check if contract is expired
   const isExpired = (endDate) => {
     return new Date(endDate) < new Date()
+  }
+
+  // Check if contract should show expiring warning
+  // For auto-renewal contracts: only show if not indefinite and autoRenewalEndDate is approaching
+  const shouldShowExpiring = (contractItem) => {
+    if (!contractItem.autoRenewal) {
+      return isExpiringSoon(contractItem.endDate)
+    }
+    // If renewal is indefinite, never show expiring
+    if (contractItem.renewalIndefinite === true) {
+      return false
+    }
+    // If auto-renewal with end date (limited renewal), check the final end date
+    if (contractItem.autoRenewalEndDate) {
+      return isExpiringSoon(contractItem.autoRenewalEndDate)
+    }
+    // Auto-renewal without end date (assume unlimited) - never show expiring
+    return false
+  }
+
+  // Check if contract should show expired warning
+  const shouldShowExpired = (contractItem) => {
+    if (!contractItem.autoRenewal) {
+      return isExpired(contractItem.endDate)
+    }
+    // If renewal is indefinite, never show expired
+    if (contractItem.renewalIndefinite === true) {
+      return false
+    }
+    if (contractItem.autoRenewalEndDate) {
+      return isExpired(contractItem.autoRenewalEndDate)
+    }
+    return false
   }
 
   // Navigate to member with search filter
@@ -638,16 +746,137 @@ export function ContractManagement({ contract, allContracts = [], onClose }) {
     const isCurrent = contractItem.status === 'Active' || contractItem.status === 'Paused' || contractItem.status === 'Ongoing'
     const isDocsExpanded = expandedDocsContractId === contractItem.id
     
-    // Handle contract view
-    const handleViewContract = (e) => {
-      e.stopPropagation()
-      toast.success(`Viewing contract ${contractItem.contractNumber || contractItem.id}`)
+    // Check if contract has form data (from ContractFormFillModal)
+    const hasContractForm = !!(contractItem.contractFormSnapshot || contractItem.formData)
+    
+    // Ongoing contracts should not have actions available
+    const isOngoing = contractItem.status === 'Ongoing'
+    const canPerformActions = hasContractForm && !isOngoing
+    
+    // Get the contract form data for PDF generation
+    const contractFormData = contractItem.contractFormSnapshot?.contractFormData || contractItem.formData?.contractFormData
+    const formValues = contractItem.contractFormSnapshot?.formValues || contractItem.formData?.formValues || {}
+    const systemValues = contractItem.contractFormSnapshot?.systemValues || contractItem.formData?.systemValues || {}
+    
+    // Generate PDF using @react-pdf/renderer
+    const generateContractPDF = async () => {
+      if (!contractFormData) {
+        throw new Error('No contract form data available for PDF generation')
+      }
+      
+      // Create PDF blob using @react-pdf/renderer
+      const pdfBlob = await pdf(
+        <ContractPDFDocument
+          contractForm={contractFormData}
+          formValues={formValues}
+          systemValues={systemValues}
+        />
+      ).toBlob()
+      
+      return pdfBlob
     }
     
-    // Handle contract download
-    const handleDownloadContract = (e) => {
+    // Handle contract view - opens PDF in new tab
+    const handleViewContract = async (e) => {
       e.stopPropagation()
-      toast.success(`Downloading contract ${contractItem.contractNumber || contractItem.id}`)
+      if (!canPerformActions) {
+        if (isOngoing) {
+          toast.info('Contract is ongoing (draft). Complete the contract first.')
+        } else {
+          toast.info('No contract form data available. Fill out the contract form first.')
+        }
+        return
+      }
+      if (hasContractForm && contractFormData) {
+        toast.loading('Generating PDF...', { id: 'pdf-view' })
+        try {
+          const pdfBlob = await generateContractPDF()
+          const pdfUrl = URL.createObjectURL(pdfBlob)
+          window.open(pdfUrl, '_blank')
+          toast.dismiss('pdf-view')
+          toast.success('PDF opened in new tab')
+        } catch (error) {
+          toast.dismiss('pdf-view')
+          toast.error('Failed to generate PDF')
+          console.error(error)
+        }
+      } else {
+        toast.info('No contract form data available. Fill out the contract form first.')
+      }
+    }
+    
+    // Handle contract download - downloads PDF file
+    const handleDownloadContract = async (e) => {
+      e.stopPropagation()
+      if (!canPerformActions) {
+        if (isOngoing) {
+          toast.info('Contract is ongoing (draft). Complete the contract first.')
+        } else {
+          toast.info('No contract form data available. Fill out the contract form first.')
+        }
+        return
+      }
+      if (hasContractForm && contractFormData) {
+        toast.loading('Generating PDF...', { id: 'pdf-download' })
+        try {
+          const pdfBlob = await generateContractPDF()
+          const fileName = `Contract_${contractItem.contractNumber || contractItem.id}_${contractItem.memberName?.replace(/\s+/g, '_') || 'Member'}.pdf`
+          
+          // Create download link
+          const url = URL.createObjectURL(pdfBlob)
+          const link = document.createElement('a')
+          link.href = url
+          link.download = fileName
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
+          URL.revokeObjectURL(url)
+          
+          toast.dismiss('pdf-download')
+          toast.success('PDF downloaded!')
+        } catch (error) {
+          toast.dismiss('pdf-download')
+          toast.error('Failed to generate PDF')
+          console.error(error)
+        }
+      } else {
+        toast.info('No contract form data available. Fill out the contract form first.')
+      }
+    }
+    
+    // Handle contract print
+    const handlePrintContract = async (e) => {
+      e.stopPropagation()
+      if (!canPerformActions) {
+        if (isOngoing) {
+          toast.info('Contract is ongoing (draft). Complete the contract first.')
+        } else {
+          toast.info('No contract form data available. Fill out the contract form first.')
+        }
+        return
+      }
+      if (hasContractForm && contractFormData) {
+        toast.loading('Preparing for print...', { id: 'pdf-print' })
+        try {
+          const pdfBlob = await generateContractPDF()
+          const pdfUrl = URL.createObjectURL(pdfBlob)
+          const printWindow = window.open(pdfUrl, '_blank')
+          if (printWindow) {
+            printWindow.onload = () => {
+              setTimeout(() => {
+                printWindow.print()
+              }, 500)
+            }
+          }
+          toast.dismiss('pdf-print')
+        } catch (error) {
+          toast.dismiss('pdf-print')
+          toast.error('Failed to generate PDF for printing')
+          console.error(error)
+        }
+      } else {
+        toast.info('No contract form data available. Fill out the contract form first.')
+      }
     }
     
     return (
@@ -671,13 +900,42 @@ export function ContractManagement({ contract, allContracts = [], onClose }) {
                 <span className="text-white font-medium">
                   Contract {contractItem.contractNumber || contractItem.id}
                 </span>
-                <ContractStatusTag status={contractItem.status} />
-                {isExpiringSoon(contractItem.endDate) && contractItem.status === 'Active' && (
+                <ContractStatusTag 
+                  status={contractItem.status} 
+                  pauseReason={contractItem.pauseReason}
+                  pauseStartDate={contractItem.pauseStartDate}
+                  pauseEndDate={contractItem.pauseEndDate}
+                  cancelReason={contractItem.cancelReason}
+                  cancelDate={contractItem.cancelDate}
+                />
+                {contractItem.autoRenewal && contractItem.status === 'Active' && (
+                  <div className="relative group inline-flex">
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 flex items-center gap-1 cursor-pointer transition-transform duration-200 hover:scale-110">
+                      <RefreshCw size={10} /> Auto Renewal
+                    </span>
+                    {/* Custom Tooltip */}
+                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/95 text-white px-3 py-2 rounded-lg text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none">
+                      <div className="flex items-center gap-2">
+                        <RefreshCw size={10} className="text-orange-400" />
+                        <span>
+                          {contractItem.renewalIndefinite === true 
+                            ? 'Unlimited auto renewal' 
+                            : contractItem.autoRenewalEndDate 
+                              ? `Auto renewal until ${formatDate(contractItem.autoRenewalEndDate)}` 
+                              : 'Auto renewal enabled'}
+                        </span>
+                      </div>
+                      {/* Arrow */}
+                      <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/95" />
+                    </div>
+                  </div>
+                )}
+                {shouldShowExpiring(contractItem) && contractItem.status === 'Active' && (
                   <span className="text-xs px-2 py-0.5 rounded-full bg-red-500/20 text-red-400 flex items-center gap-1">
                     <AlertTriangle size={10} /> Expiring
                   </span>
                 )}
-                {isExpired(contractItem.endDate) && contractItem.status === 'Active' && (
+                {shouldShowExpired(contractItem) && contractItem.status === 'Active' && (
                   <span className="text-xs px-2 py-0.5 rounded-full bg-red-500/20 text-red-400">
                     Expired
                   </span>
@@ -691,21 +949,43 @@ export function ContractManagement({ contract, allContracts = [], onClose }) {
             </div>
           </button>
           
-          {/* Contract Actions - Eye & Download */}
+          {/* Contract Actions - Eye, Download & Print */}
           <div className="flex items-center gap-1 mr-2">
             <button
               onClick={handleViewContract}
-              className="p-2 bg-[#2a2a2a] text-gray-300 rounded-lg hover:bg-[#333] hover:text-white transition-colors"
-              title="View Contract"
+              disabled={!canPerformActions}
+              className={`p-2 rounded-lg transition-colors ${
+                canPerformActions 
+                  ? 'bg-orange-500/20 text-orange-400 hover:bg-orange-500/30' 
+                  : 'bg-[#2a2a2a] text-gray-500 cursor-not-allowed'
+              }`}
+              title={isOngoing ? "Contract is ongoing (draft)" : hasContractForm ? "View Contract" : "No form data available"}
             >
               <Eye size={16} />
             </button>
             <button
               onClick={handleDownloadContract}
-              className="p-2 bg-[#2a2a2a] text-gray-300 rounded-lg hover:bg-[#333] hover:text-white transition-colors"
-              title="Download Contract"
+              disabled={!canPerformActions}
+              className={`p-2 rounded-lg transition-colors ${
+                canPerformActions 
+                  ? 'bg-orange-500/20 text-orange-400 hover:bg-orange-500/30' 
+                  : 'bg-[#2a2a2a] text-gray-500 cursor-not-allowed'
+              }`}
+              title={isOngoing ? "Contract is ongoing (draft)" : hasContractForm ? "Download Contract" : "No form data available"}
             >
               <Download size={16} />
+            </button>
+            <button
+              onClick={handlePrintContract}
+              disabled={!canPerformActions}
+              className={`p-2 rounded-lg transition-colors ${
+                canPerformActions 
+                  ? 'bg-orange-500/20 text-orange-400 hover:bg-orange-500/30' 
+                  : 'bg-[#2a2a2a] text-gray-500 cursor-not-allowed'
+              }`}
+              title={isOngoing ? "Contract is ongoing (draft)" : hasContractForm ? "Print Contract" : "No form data available"}
+            >
+              <Printer size={16} />
             </button>
           </div>
           
@@ -807,8 +1087,15 @@ export function ContractManagement({ contract, allContracts = [], onClose }) {
                   <p className="text-xs text-gray-500 mb-1">Auto Renewal</p>
                   <span className={`text-sm ${contractItem.autoRenewal ? 'text-orange-400' : 'text-gray-400'}`}>
                     {contractItem.autoRenewal ? (
-                      <span className="flex items-center gap-1">
+                      <span className="flex items-center gap-1 flex-wrap">
                         <RefreshCw size={12} /> Yes
+                        <span className="text-orange-300/70 text-xs">
+                          {contractItem.renewalIndefinite === true 
+                            ? '(unlimited)' 
+                            : contractItem.autoRenewalEndDate 
+                              ? `(until ${formatDate(contractItem.autoRenewalEndDate)})` 
+                              : ''}
+                        </span>
                       </span>
                     ) : 'No'}
                   </span>

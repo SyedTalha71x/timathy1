@@ -11,12 +11,19 @@ import {
   ChevronDown,
   AlertTriangle
 } from "lucide-react"
-import { WysiwygEditor } from "../../shared/WysiwygEditor"
+import { WysiwygEditor } from "./WysiwygEditor"
 
 /**
  * IntroMaterialEditorModal - Multi-page document editor using WysiwygEditor
  * 
- * Features from WysiwygEditor:
+ * Props:
+ * - visible: boolean - Show/hide modal
+ * - onClose: function - Close handler
+ * - material: object - Material data with pages
+ * - onSave: function - Save handler (not used in preview mode)
+ * - previewMode: boolean - If true, shows read-only preview without editing capabilities
+ * 
+ * Features from WysiwygEditor (Edit Mode only):
  * - Undo/Redo buttons
  * - Font picker (Arial, Times New Roman, Georgia, Verdana, Courier New, Trebuchet MS, Comic Sans)
  * - Size picker (10px - 36px)
@@ -25,7 +32,7 @@ import { WysiwygEditor } from "../../shared/WysiwygEditor"
  * - Link and image modals
  * - Bold, italic, underline, strike, colors, lists, alignment
  */
-const IntroMaterialEditorModal = ({ visible, onClose, material, onSave }) => {
+const IntroMaterialEditorModal = ({ visible, onClose, material, onSave, previewMode = false }) => {
   // State
   const [materialId, setMaterialId] = useState(null)
   const [materialName, setMaterialName] = useState("")
@@ -35,9 +42,11 @@ const IntroMaterialEditorModal = ({ visible, onClose, material, onSave }) => {
   const [showExitConfirm, setShowExitConfirm] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null)
   const [editorKey, setEditorKey] = useState(0)
+  const [livePreviewContent, setLivePreviewContent] = useState("") // Live preview for active page
   
   // Refs
   const currentContentRef = useRef("")
+  const previewUpdateTimeoutRef = useRef(null)
 
   // Initialize when modal opens
   useEffect(() => {
@@ -56,13 +65,31 @@ const IntroMaterialEditorModal = ({ visible, onClose, material, onSave }) => {
       setEditorKey(prev => prev + 1)
       setHasUnsavedChanges(false)
       currentContentRef.current = initPages[0]?.content || ""
+      setLivePreviewContent(initPages[0]?.content || "")
     }
   }, [visible, material])
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (previewUpdateTimeoutRef.current) {
+        clearTimeout(previewUpdateTimeoutRef.current)
+      }
+    }
+  }, [])
 
   // Handle content change from WysiwygEditor
   const handleContentChange = useCallback((content) => {
     currentContentRef.current = content
     setHasUnsavedChanges(true)
+    
+    // Debounced preview update (100ms delay for smooth performance)
+    if (previewUpdateTimeoutRef.current) {
+      clearTimeout(previewUpdateTimeoutRef.current)
+    }
+    previewUpdateTimeoutRef.current = setTimeout(() => {
+      setLivePreviewContent(content)
+    }, 100)
   }, [])
 
   // Page management
@@ -85,6 +112,7 @@ const IntroMaterialEditorModal = ({ visible, onClose, material, onSave }) => {
     setEditorKey(prev => prev + 1)
     setHasUnsavedChanges(true)
     currentContentRef.current = ""
+    setLivePreviewContent("") // Set empty preview for new page
   }
 
   const handleDeletePage = (index) => setShowDeleteConfirm(index)
@@ -116,6 +144,7 @@ const IntroMaterialEditorModal = ({ visible, onClose, material, onSave }) => {
     setShowDeleteConfirm(null)
     setHasUnsavedChanges(true)
     currentContentRef.current = newPages[newActiveIndex]?.content || ""
+    setLivePreviewContent(newPages[newActiveIndex]?.content || "")
   }
 
   const handlePageChange = (newIndex) => {
@@ -132,6 +161,7 @@ const IntroMaterialEditorModal = ({ visible, onClose, material, onSave }) => {
     setActivePageIndex(newIndex)
     setEditorKey(prev => prev + 1)
     currentContentRef.current = updatedPages[newIndex]?.content || ""
+    setLivePreviewContent(updatedPages[newIndex]?.content || "")
   }
 
   const handleMovePage = (fromIndex, direction) => {
@@ -195,6 +225,10 @@ const IntroMaterialEditorModal = ({ visible, onClose, material, onSave }) => {
   }
 
   const handleCloseAttempt = () => {
+    if (previewMode) {
+      onClose()
+      return
+    }
     if (hasUnsavedChanges) {
       setShowExitConfirm(true)
     } else {
@@ -207,6 +241,131 @@ const IntroMaterialEditorModal = ({ visible, onClose, material, onSave }) => {
 
   const currentPage = pages[activePageIndex]
   const currentContent = currentPage?.content || ""
+
+  // Preview Mode Render
+  if (previewMode) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80">
+        <div className="bg-[#1C1C1C] rounded-2xl w-full max-w-6xl h-[90vh] flex flex-col overflow-hidden shadow-2xl">
+          {/* Header - Preview Mode */}
+          <div className="flex items-center justify-between p-4 border-b border-[#333333]">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={onClose}
+                className="p-2 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              <div className="flex items-center gap-2">
+                <span className="text-white text-lg font-semibold">{materialName || "Untitled Material"}</span>
+              </div>
+            </div>
+            <button
+              onClick={onClose}
+              className="px-4 py-2 bg-[#2F2F2F] text-white text-sm font-medium rounded-xl hover:bg-[#3F3F3F] transition-colors"
+            >
+              Close
+            </button>
+          </div>
+
+          {/* Main Content - Preview Mode */}
+          <div className="flex flex-1 overflow-hidden">
+            {/* Slides Sidebar - Preview Mode (read-only) */}
+            <div className="w-48 bg-[#141414] border-r border-[#333333] flex flex-col">
+              <div className="p-3 border-b border-[#333333]">
+                <div className="text-sm text-gray-400 text-center">
+                  {pages.length} Page{pages.length !== 1 ? 's' : ''}
+                </div>
+              </div>
+              <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                {pages.map((page, pageIndex) => (
+                  <div
+                    key={page.id}
+                    className={`cursor-pointer rounded-lg border-2 transition-all overflow-hidden ${
+                      pageIndex === activePageIndex
+                        ? "border-orange-500"
+                        : "border-[#333333] hover:border-[#444444]"
+                    }`}
+                    onClick={() => setActivePageIndex(pageIndex)}
+                  >
+                    <div className="aspect-[4/3] bg-white p-1 overflow-hidden">
+                      <div 
+                        className="w-full h-full overflow-hidden pointer-events-none"
+                        style={{ 
+                          transform: 'scale(0.18)', 
+                          transformOrigin: 'top left', 
+                          width: '555%', 
+                          height: '555%',
+                          fontSize: '11px',
+                          padding: '6px',
+                          color: '#000',
+                          lineHeight: '1.4',
+                          fontFamily: 'Arial, Helvetica, sans-serif'
+                        }}
+                        dangerouslySetInnerHTML={{ __html: page.content || '<p style="color:#bbb">Empty</p>' }}
+                      />
+                    </div>
+                    <div className="p-1.5 bg-[#1C1C1C]">
+                      <span className="text-[10px] text-gray-400 truncate block">
+                        {pageIndex + 1}. {page.title || "Untitled"}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="p-2 border-t border-[#333333] flex items-center justify-between">
+                <button
+                  onClick={() => setActivePageIndex(Math.max(0, activePageIndex - 1))}
+                  disabled={activePageIndex === 0}
+                  className="p-1.5 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded-lg disabled:opacity-30"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <span className="text-xs text-gray-400">
+                  {activePageIndex + 1} / {pages.length}
+                </span>
+                <button
+                  onClick={() => setActivePageIndex(Math.min(pages.length - 1, activePageIndex + 1))}
+                  disabled={activePageIndex === pages.length - 1}
+                  className="p-1.5 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded-lg disabled:opacity-30"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Content Area - Preview Mode (read-only) */}
+            <div className="flex-1 flex flex-col bg-[#0f0f0f] overflow-hidden">
+              {/* Page Title - Preview Mode */}
+              <div className="p-3 border-b border-[#333333] bg-[#141414]">
+                <h2 className="text-white text-lg font-semibold">
+                  {currentPage?.title || "Untitled Page"}
+                </h2>
+              </div>
+
+              {/* Content Display - Preview Mode */}
+              <div className="flex-1 overflow-auto p-4">
+                <div className="bg-white rounded-xl p-6 min-h-[500px] max-h-[600px] overflow-auto">
+                  <div 
+                    className="prose prose-sm max-w-none"
+                    style={{ 
+                      color: '#000',
+                      lineHeight: '1.6',
+                      fontFamily: 'Arial, Helvetica, sans-serif'
+                    }}
+                    dangerouslySetInnerHTML={{ __html: currentContent || '<p style="color:#999">No content</p>' }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Edit Mode Render
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80">
@@ -257,69 +416,76 @@ const IntroMaterialEditorModal = ({ visible, onClose, material, onSave }) => {
               </button>
             </div>
             <div className="flex-1 overflow-y-auto p-3 space-y-2">
-              {pages.map((page, pageIndex) => (
-                <div
-                  key={page.id}
-                  className={`group relative cursor-pointer rounded-lg border-2 transition-all overflow-hidden ${
-                    pageIndex === activePageIndex
-                      ? "border-orange-500"
-                      : "border-[#333333] hover:border-[#444444]"
-                  }`}
-                  onClick={() => handlePageChange(pageIndex)}
-                >
-                  <div className="aspect-[4/3] bg-white p-1 overflow-hidden">
-                    <div 
-                      className="w-full h-full overflow-hidden pointer-events-none"
-                      style={{ 
-                        transform: 'scale(0.18)', 
-                        transformOrigin: 'top left', 
-                        width: '555%', 
-                        height: '555%',
-                        fontSize: '11px',
-                        padding: '6px',
-                        color: '#000',
-                        lineHeight: '1.4',
-                        fontFamily: 'Arial, Helvetica, sans-serif'
-                      }}
-                      dangerouslySetInnerHTML={{ __html: page.content || '<p style="color:#bbb">Empty</p>' }}
-                    />
-                  </div>
-                  <div className="p-1.5 bg-[#1C1C1C] flex items-center justify-between">
-                    <span className="text-[10px] text-gray-400 truncate flex-1">
-                      {pageIndex + 1}. {page.title || "Untitled"}
-                    </span>
-                    <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {pageIndex > 0 && (
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handleMovePage(pageIndex, 'up') }}
-                          className="p-0.5 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded"
-                          title="Move up"
-                        >
-                          <ChevronUp className="w-3 h-3" />
-                        </button>
-                      )}
-                      {pageIndex < pages.length - 1 && (
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handleMovePage(pageIndex, 'down') }}
-                          className="p-0.5 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded"
-                          title="Move down"
-                        >
-                          <ChevronDown className="w-3 h-3" />
-                        </button>
-                      )}
-                      {pages.length > 1 && (
-                        <button
-                          onClick={(e) => { e.stopPropagation(); handleDeletePage(pageIndex) }}
-                          className="p-0.5 text-red-400 hover:bg-red-500/20 rounded"
-                          title="Delete"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
-                      )}
+              {pages.map((page, pageIndex) => {
+                // Use live preview content for active page, otherwise use saved page.content
+                const previewContent = pageIndex === activePageIndex 
+                  ? livePreviewContent 
+                  : page.content
+                
+                return (
+                  <div
+                    key={page.id}
+                    className={`group relative cursor-pointer rounded-lg border-2 transition-all overflow-hidden ${
+                      pageIndex === activePageIndex
+                        ? "border-orange-500"
+                        : "border-[#333333] hover:border-[#444444]"
+                    }`}
+                    onClick={() => handlePageChange(pageIndex)}
+                  >
+                    <div className="aspect-[4/3] bg-white p-1 overflow-hidden">
+                      <div 
+                        className="w-full h-full overflow-hidden pointer-events-none"
+                        style={{ 
+                          transform: 'scale(0.18)', 
+                          transformOrigin: 'top left', 
+                          width: '555%', 
+                          height: '555%',
+                          fontSize: '11px',
+                          padding: '6px',
+                          color: '#000',
+                          lineHeight: '1.4',
+                          fontFamily: 'Arial, Helvetica, sans-serif'
+                        }}
+                        dangerouslySetInnerHTML={{ __html: previewContent || '<p style="color:#bbb">Empty</p>' }}
+                      />
+                    </div>
+                    <div className="p-1.5 bg-[#1C1C1C] flex items-center justify-between">
+                      <span className="text-[10px] text-gray-400 truncate flex-1">
+                        {pageIndex + 1}. {page.title || "Untitled"}
+                      </span>
+                      <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {pageIndex > 0 && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleMovePage(pageIndex, 'up') }}
+                            className="p-0.5 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded"
+                            title="Move up"
+                          >
+                            <ChevronUp className="w-3 h-3" />
+                          </button>
+                        )}
+                        {pageIndex < pages.length - 1 && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleMovePage(pageIndex, 'down') }}
+                            className="p-0.5 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded"
+                            title="Move down"
+                          >
+                            <ChevronDown className="w-3 h-3" />
+                          </button>
+                        )}
+                        {pages.length > 1 && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleDeletePage(pageIndex) }}
+                            className="p-0.5 text-red-400 hover:bg-red-500/20 rounded"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
             
             <div className="p-2 border-t border-[#333333] flex items-center justify-between">

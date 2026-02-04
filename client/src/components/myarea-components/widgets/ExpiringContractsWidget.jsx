@@ -165,7 +165,7 @@ export const ExpiringContractsWidget = ({ isSidebarEditing, showHeader = true, m
                 const daysRemaining = calculateDaysRemaining(member.contractEnd)
                 
                 return (
-                  <Link to="/dashboard/contract" key={member.id} className="block">
+                  <Link to="/dashboard/contract" key={member.id} state={{ filterMemberId: member.id, filterMemberName: `${member.firstName} ${member.lastName}` }} className="block">
                     <div className="p-3 bg-black rounded-xl hover:bg-zinc-900 transition-colors">
                       <div className="flex items-center gap-3">
                         {/* Avatar */}
@@ -232,7 +232,7 @@ export const ExpiringContractsWidget = ({ isSidebarEditing, showHeader = true, m
         {/* Footer Link */}
         <div className="flex justify-center pt-2 border-t border-gray-700 flex-shrink-0 mt-2">
           <Link to="/dashboard/contract" className="text-xs text-gray-400 hover:text-white transition-colors">
-            View all contracts →
+            View all contracts â†’
           </Link>
         </div>
       </div>

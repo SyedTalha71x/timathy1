@@ -2,10 +2,13 @@
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
-import { X, FileText, Pencil, ArrowLeft, BookOpen, ChevronDown, ChevronUp } from "lucide-react"
+import { X, FileText, Pencil, ArrowLeft, BookOpen, ChevronDown, ChevronUp, Eye } from "lucide-react"
 import { useState, useEffect } from "react"
-import { contractTypes, mediaTemplates } from "../../../utils/studio-states/contract-states"
+import { DEFAULT_CONTRACT_TYPES, DEFAULT_INTRODUCTORY_MATERIALS, DEFAULT_CONTRACT_FORMS, studioData } from "../../../utils/studio-states/configuration-states"
 import { leadsData } from "../../../utils/studio-states/leads-states"
+import IntroMaterialEditorModal from "../../shared/IntroMaterialEditorModal"
+import { ContractFormFillModal } from "./ContractFormFillModal"
+import { toast } from "react-hot-toast"
 
 // Add print-specific styles
 const printStyles = `
@@ -27,55 +30,82 @@ const printStyles = `
     }
   }`
 
-// Named export for leads menu usage
-export function AddContractModal({ onClose, onSave, leadData = null }) {
-  return <AddContractModalContent onClose={onClose} onSave={onSave} leadData={leadData} />
-}
-
-// Default export for contracts menu usage
-export default function AddContractModalDefault({ onClose, onSave, leadData = null }) {
-  return <AddContractModalContent onClose={onClose} onSave={onSave} leadData={leadData} />
-}
-
-// Main component
-function AddContractModalContent({ onClose, onSave, leadData = null }) {
-  // Determine if lead is pre-selected (from leads menu)
+/**
+ * Unified Contract Modal - Handles both Add and Edit modes
+ * 
+ * Props:
+ * - onClose: function - Close handler
+ * - onSave: function - Save handler
+ * - contract: object (optional) - Existing contract data for edit mode
+ * - leadData: object (optional) - Pre-selected lead data for add mode
+ * 
+ * Mode Detection:
+ * - If `contract` prop is provided → Edit Mode
+ * - Otherwise → Add Mode
+ */
+export function ContractModal({ onClose, onSave, contract = null, leadData = null }) {
+  // Mode detection
+  const isEditMode = contract !== null
   const isLeadPreSelected = leadData !== null
+  const currency = studioData?.currency || "€"
+
+  // Parse name helper
+  const parseName = (fullName) => {
+    if (!fullName) return { firstName: "", lastName: "" }
+    const parts = fullName.split(" ")
+    return { firstName: parts[0] || "", lastName: parts.slice(1).join(" ") || "" }
+  }
+
+  // Get initial name based on mode
+  const getInitialName = () => {
+    if (isEditMode && contract?.memberName) {
+      return parseName(contract.memberName)
+    }
+    if (leadData?.name) {
+      return parseName(leadData.name)
+    }
+    if (leadData?.firstName) {
+      return { firstName: leadData.firstName, lastName: leadData.lastName || "" }
+    }
+    return { firstName: "", lastName: "" }
+  }
+
+  const { firstName: initialFirstName, lastName: initialLastName } = getInitialName()
 
   const [currentPage, setCurrentPage] = useState(0)
-  // If lead is pre-selected, skip lead selection
-  const [showLeadSelection, setShowLeadSelection] = useState(!isLeadPreSelected)
+  const [showLeadSelection, setShowLeadSelection] = useState(!isEditMode && !isLeadPreSelected)
+  const [showFormView, setShowFormView] = useState(true)
   const [contractData, setContractData] = useState({
-    fullName: "",
-    studioName: "",
-    studioOwnerName: "",
+    fullName: isEditMode ? (contract?.memberName || "") : (leadData?.name || `${initialFirstName} ${initialLastName}`.trim()),
+    studioName: leadData?.company || "",
+    studioOwnerName: isEditMode ? (contract?.memberName || "") : "",
     contractTerm: "",
-    iban: "",
-    email: "",
-    phone: "",
-    sepaMandate: "",
-    leadId: "",
-    rateType: "",
+    iban: isEditMode ? (contract?.iban || "") : "",
+    email: isEditMode ? (contract?.email || "") : (leadData?.email || ""),
+    phone: isEditMode ? (contract?.phone || "") : (leadData?.phone || leadData?.phoneNumber || ""),
+    sepaMandate: isEditMode ? (contract?.sepaMandate || "") : "",
+    leadId: isEditMode ? (contract?.memberId || contract?.id || "") : (leadData?.id || ""),
+    rateType: isEditMode ? (contract?.contractType || "") : (leadData?.interestedIn || ""),
     signedFile: null,
     // Additional fields for the contract form
-    vorname: "",
-    nachname: "",
+    vorname: initialFirstName,
+    nachname: initialLastName,
     anrede: "",
     strasse: "",
     hausnummer: "",
     plz: "",
     ort: "",
-    telefonnummer: "",
+    telefonnummer: isEditMode ? (contract?.phone || "") : (leadData?.phone || leadData?.phoneNumber || ""),
     mobil: "",
-    emailAdresse: "",
+    emailAdresse: isEditMode ? (contract?.email || "") : (leadData?.email || ""),
     geburtsdatum: "",
-    mitgliedsnummer: "",
+    mitgliedsnummer: isEditMode ? (contract?.contractNumber || "") : "",
     tarifMindestlaufzeit: "",
     startbox: "",
     mindestlaufzeit: "",
     preisProWoche: "",
-    startDerMitgliedschaft: "",
-    startDesTrainings: "",
+    startDerMitgliedschaft: isEditMode ? (contract?.startDate || "") : "",
+    startDesTrainings: isEditMode ? (contract?.startDate || "") : "",
     vertragsverlaengerungsdauer: "",
     kuendigungsfrist: "",
     kreditinstitut: "",
@@ -84,32 +114,35 @@ function AddContractModalContent({ onClose, onSave, leadData = null }) {
     acceptTerms: true,
     acceptPrivacy: true,
   })
-  const [showFormView, setShowFormView] = useState(true)
+
   const [searchTerm, setSearchTerm] = useState("")
+  const [filteredLeads, setFilteredLeads] = useState([])
   const [showSignatureOptions, setShowSignatureOptions] = useState(false)
   const [showPrintPrompt, setShowPrintPrompt] = useState(false)
   const [selectedContractType, setSelectedContractType] = useState(null)
+  
   const [discount, setDiscount] = useState({
     percentage: 0,
     duration: "1",
     isPermanent: false,
   })
-  // Discount section collapsed by default
   const [isDiscountExpanded, setIsDiscountExpanded] = useState(false)
 
   const [contractStartDate, setContractStartDate] = useState(new Date().toISOString().split('T')[0])
   const [trainingStartDate, setTrainingStartDate] = useState(new Date().toISOString().split('T')[0])
   const [contractEndDate, setContractEndDate] = useState("")
 
-  const [filteredLeads, setFilteredLeads] = useState([])
   const [showIntroductoryMaterials, setShowIntroductoryMaterials] = useState(false)
-  const [selectedTemplate, setSelectedTemplate] = useState(null)
-  const [currentMediaPage, setCurrentMediaPage] = useState(0)
+  const [selectedMaterial, setSelectedMaterial] = useState(null)
+  const [showMaterialPreview, setShowMaterialPreview] = useState(false)
+
+  // NEW: Contract Form Fill Modal state
+  const [showContractFormFillModal, setShowContractFormFillModal] = useState(false)
+  const [filledFormData, setFilledFormData] = useState(null)
 
   // Initialize with lead data if provided (from leads menu)
   useEffect(() => {
     if (leadData) {
-      // Parse the name if it's a combined "firstName lastName" format
       let firstName = ""
       let lastName = ""
       
@@ -135,10 +168,48 @@ function AddContractModalContent({ onClose, onSave, leadData = null }) {
         emailAdresse: leadData.email || "",
         telefonnummer: leadData.phone || leadData.phoneNumber || "",
         rateType: leadData.interestedIn || "",
+        strasse: leadData.street || "",
+        plz: leadData.zipCode || "",
+        ort: leadData.city || "",
       }))
       setSearchTerm(leadData.name || `${firstName} ${lastName}`.trim())
     }
   }, [leadData])
+
+  // Initialize with contract data for edit mode
+  useEffect(() => {
+    if (isEditMode && contract) {
+      const { firstName, lastName } = parseName(contract.memberName)
+      setContractData((prev) => ({
+        ...prev,
+        fullName: contract.memberName || "",
+        email: contract.email || "",
+        phone: contract.phone || "",
+        vorname: firstName,
+        nachname: lastName,
+        emailAdresse: contract.email || "",
+        telefonnummer: contract.phone || "",
+        iban: contract.iban || "",
+        sepaMandate: contract.sepaMandate || "",
+        rateType: contract.contractType || "",
+        mitgliedsnummer: contract.contractNumber || "",
+        strasse: contract.address?.street || "",
+        hausnummer: contract.address?.houseNumber || "",
+        plz: contract.address?.zipCode || "",
+        ort: contract.address?.city || "",
+      }))
+      setContractStartDate(contract.startDate || new Date().toISOString().split('T')[0])
+      setTrainingStartDate(contract.startDate || new Date().toISOString().split('T')[0])
+      
+      if (contract.discount) {
+        setDiscount({
+          percentage: contract.discount.percentage || 0,
+          duration: contract.discount.duration === "permanent" ? "1" : (contract.discount.duration || "1"),
+          isPermanent: contract.discount.duration === "permanent",
+        })
+      }
+    }
+  }, [isEditMode, contract])
 
   // Calculate final price after discount
   const calculateFinalPrice = () => {
@@ -146,7 +217,7 @@ function AddContractModalContent({ onClose, onSave, leadData = null }) {
       return null
     }
 
-    const originalPrice = Number.parseFloat(selectedContractType.cost.replace("$", ""))
+    const originalPrice = selectedContractType.cost || 0
     const discountAmount = (originalPrice * discount.percentage) / 100
     const finalPrice = originalPrice - discountAmount
 
@@ -154,26 +225,68 @@ function AddContractModalContent({ onClose, onSave, leadData = null }) {
       originalPrice,
       discountAmount,
       finalPrice,
-      currency: selectedContractType.cost.charAt(0),
+      currency: currency,
     }
+  }
+
+  // Calculate end date based on start date and duration
+  const calculateEndDate = (startDate, durationString) => {
+    if (!startDate || !durationString) return ""
+
+    const start = new Date(startDate)
+    const end = new Date(start)
+
+    // Handle both "12 months" string format and number
+    let months = 12
+    if (typeof durationString === 'string') {
+      const monthsMatch = durationString.match(/(\d+)\s*months?/i)
+      months = monthsMatch ? parseInt(monthsMatch[1], 10) : 12
+    } else if (typeof durationString === 'number') {
+      months = durationString
+    }
+
+    end.setMonth(end.getMonth() + months)
+    return end.toISOString().split('T')[0]
+  }
+
+  // Calculate auto-renewal end date based on contract end date and renewal settings
+  // Uses existing fields: autoRenewal, renewalIndefinite, renewalPeriod
+  // Returns null for unlimited renewal, or a date string for limited renewal
+  const calculateAutoRenewalEndDate = (endDate, contractType) => {
+    if (!contractType?.autoRenewal) return null
+    
+    // If renewalIndefinite is true, renewal is unlimited
+    if (contractType.renewalIndefinite === true) {
+      return null // Unlimited renewal
+    }
+    
+    // If renewalPeriod is set, calculate the maximum end date
+    const renewalDuration = contractType.renewalPeriod || contractType.autoRenewalDuration
+    if (!renewalDuration || !endDate) return null
+    
+    const end = new Date(endDate)
+    end.setMonth(end.getMonth() + renewalDuration)
+    return end.toISOString().split('T')[0]
   }
 
   useEffect(() => {
     if (contractStartDate && selectedContractType) {
-      const endDate = calculateEndDate(contractStartDate, selectedContractType.duration)
+      const duration = selectedContractType.duration
+      const endDate = calculateEndDate(contractStartDate, duration)
       setContractEndDate(endDate)
     }
   }, [contractStartDate, selectedContractType])
 
   // Filter leads based on search term (only when not pre-selected)
   useEffect(() => {
-    if (!isLeadPreSelected) {
+    if (!isLeadPreSelected && !isEditMode) {
       if (searchTerm.trim() === "") {
         setFilteredLeads([])
       } else {
         const filtered = leadsData.filter(
           (lead) =>
-            `${lead.firstName} ${lead.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (lead.name && lead.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (`${lead.firstName} ${lead.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())) ||
             lead.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             lead.company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             lead.phoneNumber?.includes(searchTerm),
@@ -181,12 +294,12 @@ function AddContractModalContent({ onClose, onSave, leadData = null }) {
         setFilteredLeads(filtered)
       }
     }
-  }, [searchTerm, isLeadPreSelected])
+  }, [searchTerm, isLeadPreSelected, isEditMode])
 
   // Update selected contract type when rate type changes
   useEffect(() => {
-    const contractType = contractTypes.find((type) => type.name === contractData.rateType)
-    setSelectedContractType(contractType)
+    const contractType = DEFAULT_CONTRACT_TYPES.find((type) => type.name === contractData.rateType)
+    setSelectedContractType(contractType || null)
   }, [contractData.rateType])
 
   const handleInputChange = (e) => {
@@ -206,25 +319,27 @@ function AddContractModalContent({ onClose, onSave, leadData = null }) {
   }
 
   const handleLeadSelect = (lead) => {
+    const firstName = lead.firstName || (lead.name ? lead.name.split(" ")[0] : "")
+    const lastName = lead.lastName || (lead.name ? lead.name.split(" ").slice(1).join(" ") : "")
+    
     setContractData({
       ...contractData,
       leadId: lead.id,
       studioName: lead.company || "",
-      studioOwnerName: `${lead.firstName} ${lead.lastName}`,
-      fullName: `${lead.firstName} ${lead.lastName}`,
+      studioOwnerName: lead.name || `${firstName} ${lastName}`,
+      fullName: lead.name || `${firstName} ${lastName}`,
       email: lead.email || "",
-      phone: lead.phoneNumber || "",
-      vorname: lead.firstName,
-      nachname: lead.lastName,
+      phone: lead.phoneNumber || lead.phone || "",
+      vorname: firstName,
+      nachname: lastName,
       emailAdresse: lead.email || "",
-      telefonnummer: lead.phoneNumber || "",
+      telefonnummer: lead.phoneNumber || lead.phone || "",
       rateType: lead.interestedIn || "",
-      // Additional fields from leadsData
       strasse: lead.street || "",
       plz: lead.zipCode || "",
       ort: lead.city || "",
     })
-    setSearchTerm(`${lead.firstName} ${lead.lastName}`)
+    setSearchTerm(lead.name || `${firstName} ${lastName}`)
     setFilteredLeads([])
     setShowLeadSelection(false)
   }
@@ -235,8 +350,7 @@ function AddContractModalContent({ onClose, onSave, leadData = null }) {
   }
 
   const handleBackToLeadSelection = () => {
-    // Only allow going back if lead was not pre-selected
-    if (!isLeadPreSelected) {
+    if (!isLeadPreSelected && !isEditMode) {
       setShowLeadSelection(true)
       setSearchTerm("")
       setFilteredLeads([])
@@ -245,19 +359,6 @@ function AddContractModalContent({ onClose, onSave, leadData = null }) {
 
   const handleGenerateContract = () => {
     setShowSignatureOptions(true)
-  }
-
-  const calculateEndDate = (startDate, durationString) => {
-    if (!startDate || !durationString) return ""
-
-    const start = new Date(startDate)
-    const end = new Date(start)
-
-    const monthsMatch = durationString.match(/(\d+)\s*months?/i)
-    const months = monthsMatch ? parseInt(monthsMatch[1], 10) : 12
-
-    end.setMonth(end.getMonth() + months)
-    return end.toISOString().split('T')[0]
   }
 
   const handleSignatureOption = (withSignature) => {
@@ -273,15 +374,11 @@ function AddContractModalContent({ onClose, onSave, leadData = null }) {
     }
     
     if (withSignature) {
-      alert("Contract generated with digital signature")
-      onSave({
+      toast.success("Contract generated with digital signature")
+      saveContract({
         ...dataToSave,
         isDigital: true,
         status: "Digital signed",
-        discount: discount.percentage > 0 ? {
-          percentage: discount.percentage,
-          duration: discount.isPermanent ? "permanent" : discount.duration,
-        } : null,
       })
     } else {
       setShowPrintPrompt(true)
@@ -304,19 +401,139 @@ function AddContractModalContent({ onClose, onSave, leadData = null }) {
       window.print()
     }
     
-    onSave({
+    saveContract({
       ...dataToSave,
       isDigital: false,
       status: "Analog signed",
+    })
+  }
+
+  const saveContract = (dataToSave) => {
+    const endDate = dataToSave.contractEndDate || contractEndDate
+    const newContract = {
+      id: isEditMode ? contract.id : Date.now(),
+      memberName: `${dataToSave.vorname} ${dataToSave.nachname}`.trim() || dataToSave.fullName,
+      memberId: dataToSave.leadId || `M-${Date.now()}`,
+      contractType: selectedContractType?.name || dataToSave.rateType,
+      contractNumber: dataToSave.mitgliedsnummer || `C-${Date.now()}`,
+      status: dataToSave.status || (isEditMode ? contract.status : "Ongoing"),
+      startDate: dataToSave.contractStartDate || contractStartDate,
+      endDate: endDate,
+      autoRenewal: selectedContractType?.autoRenewal || false,
+      renewalIndefinite: selectedContractType?.renewalIndefinite ?? true,
+      autoRenewalEndDate: calculateAutoRenewalEndDate(endDate, selectedContractType),
+      cost: calculateFinalPrice()?.finalPrice || selectedContractType?.cost,
+      billingPeriod: selectedContractType?.billingPeriod,
+      email: dataToSave.emailAdresse || dataToSave.email,
+      phone: dataToSave.telefonnummer || dataToSave.phone,
+      iban: dataToSave.iban,
+      sepaMandate: dataToSave.sepaMandate,
       discount: discount.percentage > 0 ? {
         percentage: discount.percentage,
         duration: discount.isPermanent ? "permanent" : discount.duration,
       } : null,
-    })
+      address: {
+        street: dataToSave.strasse,
+        houseNumber: dataToSave.hausnummer,
+        zipCode: dataToSave.plz,
+        city: dataToSave.ort,
+      },
+      formData: filledFormData,
+      isDigital: dataToSave.isDigital,
+    }
+
+    onSave(newContract)
+    toast.success(isEditMode ? "Contract updated!" : "Contract created!")
+    onClose()
   }
 
   const toggleView = () => {
     setShowFormView(!showFormView)
+  }
+
+  // Handle opening the ContractFormFillModal
+  const handleFillOutContract = () => {
+    setShowContractFormFillModal(true)
+  }
+
+  // Handle contract form submission from ContractFormFillModal
+  // This creates and saves the contract directly
+  const handleFormFillComplete = (formData) => {
+    setFilledFormData(formData)
+    setShowContractFormFillModal(false)
+    
+    // Get form values
+    const fv = formData?.formValues || {}
+    const sv = formData?.systemValues || {}
+    
+    // Determine status - use formData status if provided, otherwise default
+    // "Active" for completed contracts, "Ongoing" for drafts
+    const contractStatus = formData?.status || (formData?.completedAt ? "Active" : "Ongoing")
+    const isDraft = formData?.isDraft || false
+    
+    // Merge form data into local variables for contract creation
+    const firstName = fv.firstName || contractData.vorname
+    const lastName = fv.lastName || contractData.nachname
+    const memberName = `${firstName} ${lastName}`.trim()
+    
+    // Create the full contract object
+    const newContract = {
+      id: isEditMode ? contract.id : Date.now(),
+      contractNumber: contractData.mitgliedsnummer || `C-${Date.now()}`,
+      memberName: memberName,
+      memberId: contractData.leadId || `M-${Date.now()}`,
+      contractType: selectedContractType?.name || contractData.rateType,
+      startDate: contractStartDate,
+      endDate: contractEndDate,
+      trainingStartDate: trainingStartDate,
+      status: isEditMode ? contract.status : contractStatus,
+      autoRenewal: selectedContractType?.autoRenewal || false,
+      renewalIndefinite: selectedContractType?.renewalIndefinite ?? true,
+      autoRenewalEndDate: calculateAutoRenewalEndDate(contractEndDate, selectedContractType),
+      cost: calculateFinalPrice()?.finalPrice || selectedContractType?.cost,
+      billingPeriod: selectedContractType?.billingPeriod,
+      email: fv.email || contractData.emailAdresse,
+      phone: fv.telephone || contractData.telefonnummer,
+      iban: fv.iban || contractData.iban,
+      bic: fv.bic || contractData.bic,
+      sepaMandate: contractData.sepaMandate || sv.sepaReference,
+      address: {
+        street: fv.street || contractData.strasse,
+        houseNumber: fv.houseNumber || contractData.hausnummer,
+        zipCode: fv.zipCode || contractData.plz,
+        city: fv.city || contractData.ort,
+      },
+      discount: discount.percentage > 0 ? {
+        percentage: discount.percentage,
+        duration: discount.isPermanent ? "permanent" : discount.duration,
+      } : null,
+      // Store the complete form data for PDF generation with @react-pdf/renderer
+      formData: formData,
+      contractFormSnapshot: {
+        formId: formData?.contractFormId,
+        formName: formData?.contractFormName,
+        formValues: fv,
+        systemValues: sv,
+        completedAt: formData?.completedAt,
+        contractFormData: formData?.contractFormData, // Full form structure for PDF generation
+      },
+      isDigital: true,
+      isDraft: isDraft,
+      dateOfBirth: fv.dateOfBirth || contractData.geburtsdatum,
+      bankName: fv.bankName || contractData.kreditinstitut,
+      salutation: fv.salutation || contractData.anrede,
+    }
+
+    // Call onSave to pass contract to parent component
+    onSave(newContract)
+    
+    // Show appropriate message based on status
+    if (isDraft) {
+      toast.success("Contract saved as draft (Ongoing)")
+    } else {
+      toast.success(isEditMode ? "Contract updated!" : "Contract created successfully!")
+    }
+    onClose()
   }
 
   const nextPage = () => {
@@ -327,165 +544,133 @@ function AddContractModalContent({ onClose, onSave, leadData = null }) {
     setCurrentPage(0)
   }
 
-  const handleTemplateSelect = (template) => {
-    setSelectedTemplate(template)
-    setCurrentMediaPage(0)
-  }
-
-  const nextMediaPage = () => {
-    if (selectedTemplate && currentMediaPage < selectedTemplate.pages.length - 1) {
-      setCurrentMediaPage(currentMediaPage + 1)
-    }
-  }
-
-  const prevMediaPage = () => {
-    if (currentMediaPage > 0) {
-      setCurrentMediaPage(currentMediaPage - 1)
-    }
-  }
-
   const priceCalculation = calculateFinalPrice()
+
+  // Get duration display text
+  const getDurationDisplay = () => {
+    if (!selectedContractType) return '12 months'
+    const duration = selectedContractType.duration
+    if (typeof duration === 'number') return `${duration} months`
+    return duration
+  }
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] font-sans">
       <style>{printStyles}</style>
 
+      {/* Introductory Materials Selection Modal */}
       {showIntroductoryMaterials && (
         <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-[1001]">
-          <div className="relative bg-[#181818] p-6 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-            {/* Close button */}
-            <button
-              onClick={() => setShowIntroductoryMaterials(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-white z-10"
-            >
-              <X size={20} />
-            </button>
-
-            {!selectedTemplate ? (
-              // Template Selection View
+          <div className="relative bg-[#1C1C1C] p-6 rounded-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-6">
               <div>
-                <h3 className="text-white text-lg font-semibold mb-4">Select Media Template</h3>
-                <p className="text-gray-300 mb-6">Choose a template for your introductory materials</p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto">
-                  {mediaTemplates.map((template) => (
-                    <div
-                      key={template.id}
-                      className="bg-[#101010] p-4 rounded-xl border border-gray-800 hover:border-[#3F74FF] cursor-pointer transition-colors"
-                      onClick={() => handleTemplateSelect(template)}
-                    >
-                      <h4 className="text-white font-medium mb-2">{template.name}</h4>
-                      <p className="text-gray-400 text-sm mb-3">{template.description}</p>
-                      <div className="text-xs text-gray-500">
-                        {template.pages.length} page{template.pages.length !== 1 ? 's' : ''}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <h3 className="text-white text-lg font-semibold">Introductory Materials</h3>
+                <p className="text-gray-400 text-sm mt-1">Select a material to preview</p>
+              </div>
+              <button
+                onClick={() => setShowIntroductoryMaterials(false)}
+                className="p-2 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded-lg transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Materials Grid */}
+            {DEFAULT_INTRODUCTORY_MATERIALS.length === 0 ? (
+              <div className="bg-[#141414] rounded-xl p-8 text-center">
+                <BookOpen className="w-12 h-12 mx-auto mb-3 text-gray-600" />
+                <p className="text-gray-400">No introductory materials available</p>
+                <p className="text-sm text-gray-500 mt-1">Materials can be created in Settings → Introductory Materials</p>
               </div>
             ) : (
-              // Media Presentation View
-              <div className="h-full flex flex-col">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-white text-lg font-semibold">{selectedTemplate.name}</h3>
-                  <button
-                    onClick={() => setSelectedTemplate(null)}
-                    className="text-gray-400 hover:text-white text-sm flex items-center gap-1"
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2">
+                {DEFAULT_INTRODUCTORY_MATERIALS.map((material) => (
+                  <div 
+                    key={material.id} 
+                    className="bg-[#141414] rounded-xl p-4 border border-[#333333] hover:border-blue-500 transition-colors"
                   >
-                    <ArrowLeft size={16} />
-                    Back to Templates
-                  </button>
-                </div>
-
-                {/* PowerPoint-like Presentation */}
-                <div className="flex-1 bg-white rounded-lg overflow-hidden flex flex-col">
-                  {/* Presentation Header */}
-                  <div className="bg-gray-100 px-6 py-3 border-b flex justify-between items-center">
-                    <div className="text-gray-700 font-medium">
-                      Page {currentMediaPage + 1} of {selectedTemplate.pages.length}
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={prevMediaPage}
-                        disabled={currentMediaPage === 0}
-                        className={`px-3 py-1 rounded text-sm ${currentMediaPage === 0
-                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                            : 'bg-gray-600 text-white hover:bg-gray-700'
-                          }`}
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-white font-medium truncate">
+                            {material.name || "Untitled Material"}
+                          </h4>
+                          <div className="flex items-center gap-2 text-sm text-gray-400 mt-1">
+                            <BookOpen className="w-4 h-4" />
+                            {material.pages?.length || 0} page{(material.pages?.length || 0) !== 1 ? 's' : ''}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Page previews */}
+                      {material.pages && material.pages.length > 0 && (
+                        <div className="flex gap-1 overflow-x-auto pb-1">
+                          {material.pages.slice(0, 5).map((page) => (
+                            <div 
+                              key={page.id} 
+                              className="w-10 h-14 bg-white border border-[#333333] rounded flex-shrink-0 overflow-hidden"
+                            >
+                              <div 
+                                className="w-full h-full overflow-hidden pointer-events-none"
+                                style={{ 
+                                  transform: 'scale(0.1)', 
+                                  transformOrigin: 'top left', 
+                                  width: '1000%', 
+                                  height: '1000%',
+                                  fontSize: '10px',
+                                  padding: '4px',
+                                  color: '#000',
+                                  lineHeight: '1.2',
+                                  fontFamily: 'Arial, sans-serif'
+                                }}
+                                dangerouslySetInnerHTML={{ __html: page.content || '<p style="color:#ccc">Empty</p>' }}
+                              />
+                            </div>
+                          ))}
+                          {material.pages.length > 5 && (
+                            <div className="w-10 h-14 bg-[#1C1C1C] border border-[#333333] rounded flex-shrink-0 flex items-center justify-center text-xs text-gray-500">
+                              +{material.pages.length - 5}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
+                      <button 
+                        onClick={() => {
+                          setSelectedMaterial(material)
+                          setShowMaterialPreview(true)
+                          setShowIntroductoryMaterials(false)
+                        }}
+                        className="w-full px-4 py-2 bg-[#2F2F2F] text-white text-sm rounded-xl hover:bg-[#3F3F3F] transition-colors flex items-center justify-center gap-2"
                       >
-                        Previous
-                      </button>
-                      <button
-                        onClick={nextMediaPage}
-                        disabled={currentMediaPage === selectedTemplate.pages.length - 1}
-                        className={`px-3 py-1 rounded text-sm ${currentMediaPage === selectedTemplate.pages.length - 1
-                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                            : 'bg-gray-600 text-white hover:bg-gray-700'
-                          }`}
-                      >
-                        Next
+                        <Eye className="w-4 h-4" />
+                        Preview
                       </button>
                     </div>
                   </div>
-
-                  {/* Presentation Content */}
-                  <div className="flex-1 p-8 flex flex-col items-center justify-center">
-                    <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">
-                      {selectedTemplate.pages[currentMediaPage].title}
-                    </h2>
-                    <p className="text-gray-600 mb-6 text-center max-w-2xl">
-                      {selectedTemplate.pages[currentMediaPage].content}
-                    </p>
-
-                    {/* Media Display Area */}
-                    <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-8 w-full max-w-2xl text-center">
-                      <div className="text-gray-500 mb-4">
-                        Media content would be displayed here
-                      </div>
-                      <div className="text-sm text-gray-400">
-                        Available media: {selectedTemplate.pages[currentMediaPage].media.join(', ')}
-                      </div>
-
-                      {/* Example clickable links */}
-                      <div className="mt-6 flex flex-wrap gap-3 justify-center">
-                        {selectedTemplate.pages[currentMediaPage].media.map((media, index) => (
-                          <a
-                            key={index}
-                            href="#"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              alert(`Opening: ${media}`);
-                            }}
-                            className="px-4 py-2 bg-[#3F74FF] text-white rounded-lg text-sm hover:bg-[#3F74FF]/90 transition-colors"
-                          >
-                            Open {media.split('.').pop().toUpperCase()}
-                          </a>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Page Navigation Dots */}
-                  <div className="bg-gray-100 px-6 py-3 border-t flex justify-center gap-2">
-                    {selectedTemplate.pages.map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setCurrentMediaPage(index)}
-                        className={`w-3 h-3 rounded-full ${index === currentMediaPage ? 'bg-[#3F74FF]' : 'bg-gray-400'
-                          }`}
-                      />
-                    ))}
-                  </div>
-                </div>
+                ))}
               </div>
             )}
           </div>
         </div>
       )}
 
+      {/* Material Preview Modal */}
+      <IntroMaterialEditorModal
+        visible={showMaterialPreview}
+        onClose={() => {
+          setShowMaterialPreview(false)
+          setSelectedMaterial(null)
+        }}
+        material={selectedMaterial}
+        previewMode={true}
+      />
+
+      {/* Signature Options Modal */}
       {showSignatureOptions && (
         <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-[1001]">
           <div className="relative bg-[#181818] p-6 rounded-2xl max-w-md w-full">
-            {/* Close button */}
             <button
               onClick={() => setShowSignatureOptions(false)}
               className="absolute top-4 right-4 text-gray-400 hover:text-white"
@@ -512,6 +697,7 @@ function AddContractModalContent({ onClose, onSave, leadData = null }) {
         </div>
       )}
 
+      {/* Print Prompt Modal */}
       {showPrintPrompt && (
         <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-[1001]">
           <div className="bg-[#181818] p-6 rounded-2xl max-w-md w-full">
@@ -535,11 +721,14 @@ function AddContractModalContent({ onClose, onSave, leadData = null }) {
         </div>
       )}
 
+      {/* Main Modal */}
       <div className="bg-[#181818] p-3 w-full max-w-3xl mx-4 rounded-2xl">
         <div className="px-4 py-3 border-b border-gray-800 custom-scrollbar max-h-[10vh] sm:max-h-[80vh] overflow-y-auto">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
-              <h2 className="text-base font-bold text-white">Add Contract</h2>
+              <h2 className="text-base font-bold text-white">
+                {isEditMode ? "Edit Contract" : "Add Contract"}
+              </h2>
               {/* Introductory Materials Icon */}
               <button
                 type="button"
@@ -560,8 +749,8 @@ function AddContractModalContent({ onClose, onSave, leadData = null }) {
                   <span className="text-xs">Form View</span>
                 </button>
               )}
-              {/* Show "Back to Lead Selection" in form view, but NOT in contract document view (after Fill out Contract) */}
-              {!showLeadSelection && !isLeadPreSelected && showFormView && (
+              {/* Show "Back to Lead Selection" in form view, but NOT in contract document view */}
+              {!showLeadSelection && !isLeadPreSelected && !isEditMode && showFormView && (
                 <button
                   onClick={handleBackToLeadSelection}
                   className="text-gray-400 hover:text-white transition-colors p-1.5 hover:bg-gray-800 rounded-xl flex items-center gap-1"
@@ -579,7 +768,9 @@ function AddContractModalContent({ onClose, onSave, leadData = null }) {
             </div>
           </div>
         </div>
+
         <div className="px-4 py-3 max-h-[75vh] overflow-y-auto sm:max-h-none sm:overflow-visible">
+          {/* Lead Selection View */}
           {showLeadSelection ? (
             <div className="space-y-6">
               <div className="text-center mb-6">
@@ -606,7 +797,7 @@ function AddContractModalContent({ onClose, onSave, leadData = null }) {
                             onClick={() => handleLeadSelect(lead)}
                           >
                             <div className="font-medium">
-                              {lead.firstName} {lead.lastName}
+                              {lead.name || `${lead.firstName} ${lead.lastName}`}
                             </div>
                             <div className="text-sm text-gray-400">{lead.email}</div>
                           </div>
@@ -626,9 +817,10 @@ function AddContractModalContent({ onClose, onSave, leadData = null }) {
               </div>
             </div>
           ) : showFormView ? (
+            /* Form View - Contract Settings */
             <div>
               <div className="space-y-4 mb-4">
-                {/* Show selected lead info - different styling based on whether pre-selected or searched */}
+                {/* Show selected lead info */}
                 {contractData.leadId && (
                   <div className="bg-[#101010]/60 p-4 rounded-xl border border-gray-800">
                     <h4 className="text-white text-sm font-medium mb-2">
@@ -646,16 +838,18 @@ function AddContractModalContent({ onClose, onSave, leadData = null }) {
                     </div>
                   </div>
                 )}
+
+                {/* Contract Type Dropdown */}
                 <div className="space-y-1.5">
-                  <label className="text-xs text-gray-200 block pl-1">Rate Type</label>
+                  <label className="text-xs text-gray-200 block pl-1">Contract Type</label>
                   <select
                     className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200 appearance-none"
                     name="rateType"
                     value={contractData.rateType}
                     onChange={handleInputChange}
                   >
-                    <option value="">Select rate type</option>
-                    {contractTypes.map((type) => (
+                    <option value="">Select contract type</option>
+                    {DEFAULT_CONTRACT_TYPES.map((type) => (
                       <option key={type.id} value={type.name}>
                         {type.name}
                       </option>
@@ -663,51 +857,56 @@ function AddContractModalContent({ onClose, onSave, leadData = null }) {
                   </select>
                 </div>
 
-                <div className="space-y-3">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-1.5">
-                      <label className="text-xs text-gray-200 block pl-1">Contract Start Date</label>
-                      <input
-                        type="date"
-                        value={contractStartDate}
-                        onChange={(e) => setContractStartDate(e.target.value)}
-                        className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
-                      />
+                {/* Date Fields - only show when contract type is selected */}
+                {selectedContractType && (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <label className="text-xs text-gray-200 block pl-1">Contract Start Date</label>
+                        <input
+                          type="date"
+                          value={contractStartDate}
+                          onChange={(e) => setContractStartDate(e.target.value)}
+                          className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-xs text-gray-200 block pl-1">Training Start Date</label>
+                        <input
+                          type="date"
+                          value={trainingStartDate}
+                          onChange={(e) => setTrainingStartDate(e.target.value)}
+                          className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
+                        />
+                      </div>
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-xs text-gray-200 block pl-1">Training Start Date</label>
+                      <label className="text-xs text-gray-200 block pl-1">
+                        Contract End Date ({getDurationDisplay()})
+                      </label>
                       <input
-                        type="date"
-                        value={trainingStartDate}
-                        onChange={(e) => setTrainingStartDate(e.target.value)}
-                        className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
+                        type="text"
+                        value={contractEndDate}
+                        readOnly
+                        disabled
+                        className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-gray-400 outline-none cursor-not-allowed pointer-events-none"
                       />
                     </div>
                   </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs text-gray-200 block pl-1">
-                      Contract End Date ({selectedContractType?.duration || '12 months'})
-                    </label>
-                    <input
-                      type="text"
-                      value={contractEndDate}
-                      readOnly
-                      className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-gray-400 outline-none cursor-not-allowed"
-                    />
-                  </div>
-                </div>
+                )}
 
+                {/* Contract Details Box */}
                 {selectedContractType && (
                   <div className="bg-[#101010]/60 p-4 rounded-xl border border-gray-800">
                     <h4 className="text-white text-sm font-medium mb-2">Contract Details</h4>
                     <div className="grid grid-cols-3 gap-4 text-sm">
                       <div>
                         <span className="block text-gray-400 text-xs">Duration</span>
-                        <span className="text-white">{selectedContractType.duration}</span>
+                        <span className="text-white">{getDurationDisplay()}</span>
                       </div>
                       <div>
                         <span className="block text-gray-400 text-xs">Cost</span>
-                        <span className="text-white">{selectedContractType.cost}</span>
+                        <span className="text-white">{currency}{selectedContractType.cost}</span>
                       </div>
                       <div>
                         <span className="block text-gray-400 text-xs">Billing Period</span>
@@ -717,8 +916,8 @@ function AddContractModalContent({ onClose, onSave, leadData = null }) {
                   </div>
                 )}
 
-                {/* Discount Section - Collapsible, collapsed by default */}
-                {contractData.rateType && (
+                {/* Discount Section - Collapsible, only show when contract type is selected */}
+                {selectedContractType && (
                   <div className="bg-[#101010]/60 rounded-xl border border-gray-800 overflow-hidden">
                     <button
                       type="button"
@@ -803,8 +1002,7 @@ function AddContractModalContent({ onClose, onSave, leadData = null }) {
                               <div className="text-xs text-gray-500">
                                 {discount.isPermanent
                                   ? "Discount applies for the entire contract duration"
-                                  : `Discount applies for ${discount.duration} billing period${discount.duration > 1 ? "s" : ""
-                                  }`}
+                                  : `Discount applies for ${discount.duration} billing period${Number(discount.duration) > 1 ? "s" : ""}`}
                               </div>
                             </div>
                           </div>
@@ -815,21 +1013,24 @@ function AddContractModalContent({ onClose, onSave, leadData = null }) {
                 )}
               </div>
 
+              {/* Fill out Contract Button */}
               <div className="flex gap-3">
                 <button
                   type="button"
-                  onClick={toggleView}
-                  disabled={!contractData.rateType}
-                  className={`w-full px-4 py-2 text-sm font-medium rounded-xl transition-colors duration-200 flex items-center justify-center gap-2 ${contractData.rateType
+                  onClick={handleFillOutContract}
+                  disabled={!selectedContractType}
+                  className={`w-full px-4 py-2 text-sm font-medium rounded-xl transition-colors duration-200 flex items-center justify-center gap-2 ${
+                    selectedContractType
                       ? "bg-orange-500 text-white hover:bg-orange-600"
                       : "bg-gray-600 text-gray-400 cursor-not-allowed"
-                    }`}
+                  }`}
                 >
                   <Pencil size={16} /> Fill out Contract
                 </button>
               </div>
             </div>
           ) : (
+            /* Contract Document View (Legacy - keeping for backwards compatibility) */
             <div className="max-h-[70vh] overflow-y-auto">
               {currentPage === 0 ? (
                 <div className="bg-white rounded-lg p-6 relative font-sans">
@@ -972,201 +1173,6 @@ function AddContractModalContent({ onClose, onSave, leadData = null }) {
                       </div>
                     </div>
                   </div>
-                  <div className="mb-6">
-                    <h2 className="text-gray-700 font-semibold mb-2 uppercase text-sm tracking-wide">
-                      CONTRACT DETAILS
-                    </h2>
-                    <p className="text-sm text-gray-700 mb-2">I have chosen the following plan:</p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="block text-xs text-gray-600 mb-1">Plan Minimum Term</label>
-                          <input
-                            type="text"
-                            name="tarifMindestlaufzeit"
-                            value={contractData.tarifMindestlaufzeit}
-                            onChange={handleInputChange}
-                            className="w-full border border-gray-300 rounded p-2 text-black"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs text-gray-600 mb-1">Price per Week (€)</label>
-                          <input
-                            type="text"
-                            name="preisProWoche"
-                            value={contractData.preisProWoche}
-                            onChange={handleInputChange}
-                            className="w-full border border-gray-300 rounded p-2 text-black"
-                          />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="block text-xs text-gray-600 mb-1">Starter Box</label>
-                          <input
-                            type="text"
-                            name="startbox"
-                            value={contractData.startbox}
-                            onChange={handleInputChange}
-                            className="w-full border border-gray-300 rounded p-2 text-black"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs text-gray-600 mb-1">Minimum Term</label>
-                          <input
-                            type="text"
-                            name="mindestlaufzeit"
-                            value={contractData.mindestlaufzeit}
-                            onChange={handleInputChange}
-                            className="w-full border border-gray-300 rounded p-2 text-black"
-                          />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="block text-xs text-gray-600 mb-1">Contract Start (Monday)</label>
-                          <input
-                            type="date"
-                            name="startDerMitgliedschaft"
-                            value={contractData.startDerMitgliedschaft}
-                            onChange={handleInputChange}
-                            className="w-full border border-gray-300 rounded p-2 text-black"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs text-gray-600 mb-1">Service Start</label>
-                          <input
-                            type="date"
-                            name="startDesTrainings"
-                            value={contractData.startDesTrainings}
-                            onChange={handleInputChange}
-                            className="w-full border border-gray-300 rounded p-2 text-black"
-                          />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="block text-xs text-gray-600 mb-1">Contract Extension Period</label>
-                          <input
-                            type="text"
-                            name="vertragsverlaengerungsdauer"
-                            value={contractData.vertragsverlaengerungsdauer}
-                            onChange={handleInputChange}
-                            className="w-full border border-gray-300 rounded p-2 text-black"
-                            placeholder="1 Week"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs text-gray-600 mb-1">Notice Period</label>
-                          <input
-                            type="text"
-                            name="kuendigungsfrist"
-                            value={contractData.kuendigungsfrist}
-                            onChange={handleInputChange}
-                            className="w-full border border-gray-300 rounded p-2 text-black"
-                            placeholder="1 Month"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    <div className="mt-4 text-sm text-gray-700">
-                      <p>The provider's terms and conditions apply, namely:</p>
-                      <p className="mt-2">
-                        After the minimum term expires, the contract will continue indefinitely at a price of
-                        €42.90/week, unless terminated in writing within the notice period of 1 month before the end of
-                        the minimum term & no individual conditions for the subsequent period are agreed in the
-                        "Contract remarks" text field.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="mb-6">
-                    <h2 className="text-gray-700 font-semibold mb-2 uppercase text-sm tracking-wide">
-                      FEE ADJUSTMENTS
-                    </h2>
-                    <div className="grid grid-cols-3 gap-2">
-                      <input type="text" className="w-full border border-gray-300 rounded p-2 text-black" />
-                      <input type="text" className="w-full border border-gray-300 rounded p-2 text-black" />
-                      <input type="text" className="w-full border border-gray-300 rounded p-2 text-black" />
-                    </div>
-                  </div>
-                  {discount.percentage > 0 && (
-                    <div className="mb-6">
-                      <h2 className="text-gray-700 font-semibold mb-2 uppercase text-sm tracking-wide">DISCOUNT</h2>
-                      <div className="grid grid-cols-2 gap-2 mb-3">
-                        <div>
-                          <label className="block text-xs text-gray-600 mb-1">Discount Percentage</label>
-                          <input
-                            type="text"
-                            value={`${discount.percentage}%`}
-                            readOnly
-                            className="w-full border border-gray-300 rounded p-2 text-black bg-gray-50"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs text-gray-600 mb-1">Duration</label>
-                          <input
-                            type="text"
-                            value={
-                              discount.isPermanent ? "Till End of Contract" : `${discount.duration} Billing Periods`
-                            }
-                            readOnly
-                            className="w-full border border-gray-300 rounded p-2 text-black bg-gray-50"
-                          />
-                        </div>
-                      </div>
-                      {/* Final Price in Contract Document */}
-                      {priceCalculation && (
-                        <div className="bg-gray-50 p-3 rounded border">
-                          <h3 className="text-xs text-gray-600 font-semibold mb-2 uppercase">FINAL PRICING</h3>
-                          <div className="grid grid-cols-3 gap-2 text-sm">
-                            <div>
-                              <span className="block text-xs text-gray-500">Original Price</span>
-                              <span className="text-black">
-                                {priceCalculation.currency}
-                                {priceCalculation.originalPrice.toFixed(2)}
-                              </span>
-                            </div>
-                            <div>
-                              <span className="block text-xs text-gray-500">Discount</span>
-                              <span className="text-red-600">
-                                -{priceCalculation.currency}
-                                {priceCalculation.discountAmount.toFixed(2)}
-                              </span>
-                            </div>
-                            <div>
-                              <span className="block text-xs text-gray-500">Final Price</span>
-                              <span className="text-green-600 font-semibold">
-                                {priceCalculation.currency}
-                                {priceCalculation.finalPrice.toFixed(2)}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  <div className="mb-6">
-                    <div className="border-t border-gray-300 pt-4 mt-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-xs text-gray-600 mb-1">
-                            Place, Date/Signature of Contracting Party
-                          </label>
-                          <input
-                            type="text"
-                            name="ort_datum_unterschrift"
-                            value={contractData.ort_datum_unterschrift}
-                            onChange={handleInputChange}
-                            className="w-full border border-gray-300 rounded p-2 text-black"
-                          />
-                        </div>
-                        <div>
-                          <p className="text-xs text-gray-600 mb-1">This contract is valid without signature</p>
-                          <p className="text-xs text-gray-600">i.A.kom.</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
                   <div className="text-right">
                     <button
                       type="button"
@@ -1179,7 +1185,7 @@ function AddContractModalContent({ onClose, onSave, leadData = null }) {
                 </div>
               ) : (
                 <div className="bg-white rounded-lg p-6 relative font-sans">
-                  <h1 className="text-black text-xl font-bold mb-4 ">SEPA DIRECT DEBIT MANDATE</h1>
+                  <h1 className="text-black text-xl font-bold mb-4">SEPA DIRECT DEBIT MANDATE</h1>
                   <p className="text-sm text-gray-700 mb-4">
                     I authorize <span className="font-medium">payments from my account with creditor ID no:</span> to be
                     collected by direct debit.
@@ -1300,7 +1306,7 @@ function AddContractModalContent({ onClose, onSave, leadData = null }) {
                       onClick={handleGenerateContract}
                       className="px-4 py-2 bg-[#3F74FF] text-white rounded-xl text-sm"
                     >
-                      Generate Contract
+                      {isEditMode ? "Update Contract" : "Generate Contract"}
                     </button>
                   </div>
                 </div>
@@ -1309,6 +1315,46 @@ function AddContractModalContent({ onClose, onSave, leadData = null }) {
           )}
         </div>
       </div>
+
+      {/* Contract Form Fill Modal */}
+      <ContractFormFillModal
+        isOpen={showContractFormFillModal}
+        onClose={() => setShowContractFormFillModal(false)}
+        onSubmit={handleFormFillComplete}
+        contractType={selectedContractType}
+        contractData={{
+          memberId: contractData.leadId,
+          startDate: contractStartDate,
+          sepaReference: contractData.sepaMandate,
+        }}
+        leadData={{
+          firstName: contractData.vorname,
+          lastName: contractData.nachname,
+          email: contractData.emailAdresse,
+          phone: contractData.telefonnummer,
+          street: contractData.strasse,
+          houseNumber: contractData.hausnummer,
+          zipCode: contractData.plz,
+          city: contractData.ort,
+          dateOfBirth: contractData.geburtsdatum,
+          iban: contractData.iban,
+          bic: contractData.bic,
+          bankName: contractData.kreditinstitut,
+          salutation: contractData.anrede,
+        }}
+        existingFormData={filledFormData?.formValues}
+      />
     </div>
   )
 }
+
+// Backwards compatible exports
+export function AddContractModal({ onClose, onSave, leadData = null }) {
+  return <ContractModal onClose={onClose} onSave={onSave} leadData={leadData} contract={null} />
+}
+
+export function EditContractModal({ onClose, onSave, contract }) {
+  return <ContractModal onClose={onClose} onSave={onSave} contract={contract} leadData={null} />
+}
+
+export default ContractModal

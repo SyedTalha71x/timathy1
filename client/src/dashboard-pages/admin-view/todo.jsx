@@ -4,19 +4,15 @@
 /* eslint-disable react/prop-types */
 
 import React, { useState, useRef, useEffect, useCallback, useMemo } from "react"
-import { Plus, X, Calendar, Tag, Repeat, Check, ChevronDown, Clock, Bell, Users, ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, Pin, PinOff, Copy, Trash2, Edit, GripVertical } from "lucide-react"
+import { Plus, X, Calendar, Tag, Repeat, Check, ChevronDown, Clock, Bell, ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, Pin, PinOff, Copy, Trash2, Edit, GripVertical } from "lucide-react"
 
-// toast removed
-import RepeatTaskModal from "../../components/studio-components/todo-components/repeat-task-modal"
-import AssignModal from "../../components/shared/to-do/assign-modal"
-import TagsModal from "../../components/shared/to-do/edit-tags"
-import CalendarModal from "../../components/shared/to-do/calendar-modal"
-import { UserCheck } from "lucide-react"
-import { todosTaskData, configuredTagsData, availableAssigneesData } from "../../utils/studio-states/todo-states"
-import DeleteModal from "../../components/studio-components/todo-components/delete-task"
-import { trainingVideosData } from "../../utils/studio-states/training-states"
-import { OptimizedTextarea } from "../../components/studio-components/todo-components/optimized-text-area"
-import TagManagerModal from "../../components/shared/TagManagerModal"
+import RepeatTaskModal from "../../components/admin-dashboard-components/todo-components/repeat-task-modal"
+import TagsModal from "../../components/admin-dashboard-components/todo-components/edit-tags"
+import CalendarModal from "../../components/admin-dashboard-components/todo-components/calendar-modal"
+import { todosTaskData, configuredTagsData } from "../../utils/admin-panel-states/todo-states"
+import DeleteModal from "../../components/admin-dashboard-components/todo-components/delete-task"
+import { OptimizedTextarea } from "../../components/admin-dashboard-components/todo-components/optimized-text-area"
+import TagManagerModal from "../../components/admin-dashboard-components/shared/TagManagerModal"
 
 // @dnd-kit imports
 import {
@@ -32,21 +28,19 @@ import {
 } from "@dnd-kit/core"
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable"
 
-// New sortable components
-import SortableTaskColumn from "../../components/studio-components/todo-components/sortable-task-column"
-import SortableTaskCard from "../../components/studio-components/todo-components/sortable-task-card"
+// Sortable components
+import SortableTaskColumn from "../../components/admin-dashboard-components/todo-components/sortable-task-column"
+import SortableTaskCard from "../../components/admin-dashboard-components/todo-components/sortable-task-card"
 
 // ============================================
-// Mobile Create Task Modal Component (Redesigned)
+// Mobile Create Task Modal Component
 // ============================================
 const MobileCreateTaskModal = ({
   isOpen,
   onClose,
   onCreateTask,
   configuredTags,
-  availableAssignees,
   onOpenCalendarModal,
-  onOpenAssignModal,
   onOpenTagsModal,
   newTaskData,
   setNewTaskData,
@@ -54,7 +48,6 @@ const MobileCreateTaskModal = ({
   const [taskTitle, setTaskTitle] = useState("")
   const titleInputRef = useRef(null)
 
-  // Focus title input when modal opens
   useEffect(() => {
     if (isOpen && titleInputRef.current) {
       setTimeout(() => {
@@ -63,14 +56,12 @@ const MobileCreateTaskModal = ({
     }
   }, [isOpen])
 
-  // Reset form when modal closes
   useEffect(() => {
     if (!isOpen) {
       setTaskTitle("")
     }
   }, [isOpen])
 
-  // Sync title with newTaskData
   useEffect(() => {
     if (isOpen) {
       setTaskTitle(newTaskData.title || "")
@@ -159,7 +150,7 @@ const MobileCreateTaskModal = ({
           />
         </div>
 
-        {/* Date & Time Section - Clickable (opens CalendarModal) */}
+        {/* Date & Time Section */}
         <button
           onClick={() => onOpenCalendarModal()}
           className="w-full p-4 border-b border-gray-800 flex items-center justify-between active:bg-gray-800/50"
@@ -178,7 +169,7 @@ const MobileCreateTaskModal = ({
           <ChevronDown size={18} className="text-gray-400" />
         </button>
 
-        {/* Reminder Section (shown if set) */}
+        {/* Reminder Section */}
         {newTaskData.reminder && newTaskData.reminder !== "" && (
           <div className="p-4 border-b border-gray-800 flex items-center gap-3">
             <div className="p-2 rounded-xl bg-gray-800">
@@ -191,37 +182,7 @@ const MobileCreateTaskModal = ({
           </div>
         )}
 
-        {/* Assignees Section - Clickable (opens AssignModal) */}
-        <button
-          onClick={() => onOpenAssignModal()}
-          className="w-full p-4 border-b border-gray-800 text-left active:bg-gray-800/50"
-        >
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-gray-800">
-              <Users size={18} className="text-gray-400" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-gray-300">Assigned To</p>
-              {newTaskData.assignees && newTaskData.assignees.length > 0 ? (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {newTaskData.assignees.map((assignee, idx) => (
-                    <span 
-                      key={idx}
-                      className="px-3 py-1.5 bg-[#2F2F2F] text-gray-300 rounded-lg text-sm"
-                    >
-                      {assignee}
-                    </span>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-gray-500">No one assigned</p>
-              )}
-            </div>
-            <ChevronDown size={18} className="text-gray-400 flex-shrink-0" />
-          </div>
-        </button>
-
-        {/* Tags Section - Clickable (opens TagsModal) */}
+        {/* Tags Section */}
         <button
           onClick={() => onOpenTagsModal()}
           className="w-full p-4 border-b border-gray-800 text-left active:bg-gray-800/50"
@@ -269,9 +230,7 @@ const MobileTaskDetail = ({
   onPinToggle,
   onRepeat,
   configuredTags,
-  availableAssignees,
   onOpenCalendarModal,
-  onOpenAssignModal,
   onOpenTagsModal,
   repeatConfigs
 }) => {
@@ -285,7 +244,6 @@ const MobileTaskDetail = ({
     setEditedTitle(task.title || "")
   }, [task])
 
-  // Auto-resize textarea on mount and when editedTitle changes
   useEffect(() => {
     if (titleTextareaRef.current) {
       titleTextareaRef.current.style.height = 'auto'
@@ -293,7 +251,6 @@ const MobileTaskDetail = ({
     }
   }, [editedTitle])
 
-  // Close actions menu on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (actionsMenuRef.current && !actionsMenuRef.current.contains(event.target)) {
@@ -363,7 +320,7 @@ const MobileTaskDetail = ({
             {task.status.charAt(0).toUpperCase() + task.status.slice(1)}
           </span>
           
-          {/* 3-Dot Actions Menu */}
+          {/* Actions Menu */}
           <div className="relative" ref={actionsMenuRef}>
             <button
               onClick={() => setShowActionsMenu(!showActionsMenu)}
@@ -378,7 +335,6 @@ const MobileTaskDetail = ({
             {showActionsMenu && (
               <div className="absolute top-full right-0 mt-2 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg min-w-[200px] z-[100] overflow-hidden">
                 <div className="py-1">
-                  {/* Mark Complete / Set Ongoing */}
                   {!isCompleted && !isCanceled && (
                     <button
                       onClick={() => {
@@ -406,7 +362,6 @@ const MobileTaskDetail = ({
                     </button>
                   )}
 
-                  {/* Cancel Task / Set Ongoing for canceled */}
                   {!isCompleted && !isCanceled && (
                     <button
                       onClick={() => {
@@ -449,7 +404,6 @@ const MobileTaskDetail = ({
 
                   <div className="border-t border-gray-700 my-1"></div>
 
-                  {/* Pin/Unpin */}
                   <button
                     onClick={() => {
                       onPinToggle(task.id)
@@ -461,7 +415,6 @@ const MobileTaskDetail = ({
                     <span>{task.isPinned ? 'Unpin Task' : 'Pin Task'}</span>
                   </button>
                   
-                  {/* Duplicate */}
                   <button
                     onClick={() => {
                       onDuplicate(task)
@@ -474,7 +427,6 @@ const MobileTaskDetail = ({
                     <span>Duplicate</span>
                   </button>
                   
-                  {/* Repeat */}
                   <button
                     onClick={() => {
                       onRepeat(task)
@@ -488,7 +440,6 @@ const MobileTaskDetail = ({
 
                   <div className="border-t border-gray-700 my-1"></div>
                   
-                  {/* Delete */}
                   <button
                     onClick={() => {
                       onDelete(task.id)
@@ -543,7 +494,7 @@ const MobileTaskDetail = ({
           )}
         </div>
 
-        {/* Date & Time Section - Clickable */}
+        {/* Date & Time Section */}
         <button
           onClick={() => {
             if (!isCompleted && !isCanceled) {
@@ -589,46 +540,7 @@ const MobileTaskDetail = ({
           </div>
         )}
 
-        {/* Assignees Section - Clickable */}
-        <button
-          onClick={() => {
-            if (!isCompleted && !isCanceled) {
-              onOpenAssignModal(task)
-            }
-          }}
-          className={`w-full p-4 border-b border-gray-800 text-left ${
-            !isCompleted && !isCanceled ? 'active:bg-gray-800/50' : ''
-          }`}
-          disabled={isCompleted || isCanceled}
-        >
-          <div className="flex items-center gap-3 mb-3">
-            <div className="p-2 rounded-xl bg-gray-800">
-              <Users size={18} className="text-gray-400" />
-            </div>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-gray-300">Assigned To</p>
-              {task.assignees && task.assignees.length > 0 ? (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {task.assignees.map((assignee, idx) => (
-                    <span 
-                      key={idx}
-                      className="px-3 py-1.5 bg-[#2F2F2F] text-gray-300 rounded-lg text-sm"
-                    >
-                      {assignee}
-                    </span>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-gray-500">No one assigned</p>
-              )}
-            </div>
-            {!isCompleted && !isCanceled && (
-              <ChevronDown size={18} className="text-gray-400 flex-shrink-0" />
-            )}
-          </div>
-        </button>
-
-        {/* Tags Section - Clickable */}
+        {/* Tags Section */}
         <button
           onClick={() => {
             if (!isCompleted && !isCanceled) {
@@ -673,7 +585,7 @@ const MobileTaskDetail = ({
 }
 
 // ============================================
-// Mobile Task Card Component (Simplified)
+// Mobile Task Card Component
 // ============================================
 const MobileTaskCard = ({
   task,
@@ -705,7 +617,7 @@ const MobileTaskCard = ({
       }`}
     >
       <div className="flex items-start gap-3">
-        {/* Checkbox / X for canceled */}
+        {/* Checkbox */}
         {isCanceled ? (
           <button
             onClick={(e) => {
@@ -746,23 +658,12 @@ const MobileTaskCard = ({
 
           {/* Meta Row */}
           <div className="flex items-center gap-2 mt-2 flex-wrap">
-            {/* Date */}
             {formatDate() && (
               <span className={`text-xs px-2 py-0.5 rounded-md flex items-center gap-1 ${
                 isCompleted || isCanceled ? 'bg-gray-800 text-gray-500' : 'bg-blue-900/30 text-blue-300'
               }`}>
                 <Calendar size={10} />
                 {formatDate()}
-              </span>
-            )}
-            
-            {/* Assignees Count */}
-            {task.assignees && task.assignees.length > 0 && (
-              <span className={`text-xs px-2 py-0.5 rounded-md flex items-center gap-1 ${
-                isCompleted || isCanceled ? 'bg-gray-800 text-gray-500' : 'bg-gray-700 text-gray-300'
-              }`}>
-                <Users size={10} />
-                {task.assignees.length}
               </span>
             )}
 
@@ -858,22 +759,14 @@ export default function TodoApp() {
   // ============================================
   const [tasks, setTasks] = useState(todosTaskData)
   const [configuredTags, setConfiguredTags] = useState(configuredTagsData)
-  const [availableAssignees] = useState(availableAssigneesData)
   const [repeatConfigs, setRepeatConfigs] = useState({})
-
-  // ============================================
-  // Staff Filter State
-  // ============================================
-  const [selectedStaffFilter, setSelectedStaffFilter] = useState([])
 
   // ============================================
   // Mobile State
   // ============================================
   const [selectedMobileTask, setSelectedMobileTask] = useState(null)
   const [showMobileCreateModal, setShowMobileCreateModal] = useState(false)
-  const [mobileSortMenuOpen, setMobileSortMenuOpen] = useState(null) // null or columnId
-  const [showMobileFilterMenu, setShowMobileFilterMenu] = useState(false)
-  const mobileFilterRef = useRef(null)
+  const [mobileSortMenuOpen, setMobileSortMenuOpen] = useState(null)
 
   // ============================================
   // New Task Data for Create Modal
@@ -881,20 +774,17 @@ export default function TodoApp() {
   const [newTaskData, setNewTaskData] = useState({
     title: "",
     tags: [],
-    assignees: [],
     dueDate: "",
     dueTime: "",
     reminder: "",
     repeat: "",
   })
 
-  // Reset newTaskData when create modal closes
   useEffect(() => {
     if (!showMobileCreateModal) {
       setNewTaskData({
         title: "",
         tags: [],
-        assignees: [],
         dueDate: "",
         dueTime: "",
         reminder: "",
@@ -911,20 +801,14 @@ export default function TodoApp() {
   const [selectedTime, setSelectedTime] = useState("")
   const [selectedReminder, setSelectedReminder] = useState("")
   const [selectedRepeat, setSelectedRepeat] = useState("")
-  const [customReminderValue, setCustomReminderValue] = useState("")
-  const [customReminderUnit, setCustomReminderUnit] = useState("Minutes")
-  const [isAssignDropdownOpen, setIsAssignDropdownOpen] = useState(false)
   const [isTagDropdownOpen, setIsTagDropdownOpen] = useState(false)
   const [isTagManagerOpen, setIsTagManagerOpen] = useState(false)
-  const [isEditModalOpenTask, setIsEditModalOpenTask] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [selectedTask, setSelectedTask] = useState(null)
   const [newTaskInput, setNewTaskInput] = useState("")
   const [isRepeatModalOpen, setIsRepeatModalOpen] = useState(false)
   const [selectedTaskForRepeat, setSelectedTaskForRepeat] = useState(null)
-  const [selectedAssignees, setSelectedAssignees] = useState([])
   const [selectedTags, setSelectedTags] = useState([])
-  const [assignModalTask, setAssignModalTask] = useState(null)
   const [tagsModalTask, setTagsModalTask] = useState(null)
   const [calendarModal, setCalendarModal] = useState({
     isOpen: false,
@@ -938,7 +822,6 @@ export default function TodoApp() {
   // ============================================
   // Create Modal - Modal States
   // ============================================
-  const [createModeAssignModal, setCreateModeAssignModal] = useState(false)
   const [createModeTagsModal, setCreateModeTagsModal] = useState(false)
   const [createModeCalendarModal, setCreateModeCalendarModal] = useState(false)
 
@@ -948,7 +831,6 @@ export default function TodoApp() {
   const [activeId, setActiveId] = useState(null)
   const [activeTask, setActiveTask] = useState(null)
 
-  // Configure sensors with mobile optimizations
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -966,7 +848,6 @@ export default function TodoApp() {
     })
   )
 
-  // Custom collision detection
   const collisionDetection = useCallback((args) => {
     const pointerCollisions = pointerWithin(args)
     if (pointerCollisions.length > 0) {
@@ -975,21 +856,13 @@ export default function TodoApp() {
     return rectIntersection(args)
   }, [])
 
-  // Close mobile menus on outside click or scroll
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (!event.target.closest(".mobile-sort-dropdown")) {
         setMobileSortMenuOpen(null)
       }
-      if (mobileFilterRef.current && !mobileFilterRef.current.contains(event.target)) {
-        setShowMobileFilterMenu(false)
-      }
       if (!event.target.closest(".calendar-dropdown")) {
         setIsCalendarOpen(false)
-      }
-      // Only close assign dropdown if click is truly outside
-      if (!event.target.closest(".assign-dropdown")) {
-        setIsAssignDropdownOpen(false)
       }
       if (!event.target.closest(".tag-dropdown")) {
         setIsTagDropdownOpen(false)
@@ -997,33 +870,27 @@ export default function TodoApp() {
     }
     
     const handleScroll = (event) => {
-      // Don't close dropdowns if scrolling inside them
-      if (event.target.closest(".assign-dropdown") || 
-          event.target.closest(".tag-dropdown") ||
+      if (event.target.closest(".tag-dropdown") ||
           event.target.closest(".calendar-dropdown") ||
-          event.target.closest(".mobile-sort-dropdown") ||
-          event.target.closest(".mobile-filter-dropdown")) {
+          event.target.closest(".mobile-sort-dropdown")) {
         return
       }
       setMobileSortMenuOpen(null)
-      setShowMobileFilterMenu(false)
       setIsCalendarOpen(false)
-      setIsAssignDropdownOpen(false)
       setIsTagDropdownOpen(false)
     }
     
     document.addEventListener("click", handleClickOutside)
-    window.addEventListener("scroll", handleScroll, true) // true for capture phase to catch all scroll events
+    window.addEventListener("scroll", handleScroll, true)
     return () => {
       document.removeEventListener("click", handleClickOutside)
       window.removeEventListener("scroll", handleScroll, true)
     }
   }, [])
 
-  // Keyboard shortcuts: T for Tags, C for Create, ESC for closing modals
+  // Keyboard shortcuts
   useEffect(() => {
     const handleKeyPress = (e) => {
-      // Check if user is typing in an input field
       const target = e.target
       const activeEl = document.activeElement
       
@@ -1035,7 +902,6 @@ export default function TodoApp() {
         activeEl?.tagName === 'TEXTAREA' ||
         activeEl?.isContentEditable === true
 
-      // If in editable area, only handle Escape
       if (isInEditableArea) {
         if (e.key === 'Escape') {
           activeEl?.blur?.()
@@ -1043,7 +909,6 @@ export default function TodoApp() {
         return
       }
 
-      // Handle Escape for modals (priority order)
       if (e.key === 'Escape') {
         if (isDeleteModalOpen) {
           setIsDeleteModalOpen(false)
@@ -1051,9 +916,6 @@ export default function TodoApp() {
         } else if (isRepeatModalOpen) {
           setIsRepeatModalOpen(false)
           setSelectedTaskForRepeat(null)
-        } else if (assignModalTask) {
-          if (createModeAssignModal) setCreateModeAssignModal(false)
-          setAssignModalTask(null)
         } else if (tagsModalTask) {
           if (createModeTagsModal) setCreateModeTagsModal(false)
           setTagsModalTask(null)
@@ -1062,45 +924,33 @@ export default function TodoApp() {
           setCalendarModal({ isOpen: false, taskId: null, initialDate: "", initialTime: "", initialReminder: "", initialRepeat: "" })
         } else if (isTagManagerOpen) {
           setIsTagManagerOpen(false)
-        } else if (isEditModalOpenTask) {
-          setIsEditModalOpenTask(false)
-          setSelectedTask(null)
         } else if (showMobileCreateModal) {
           setShowMobileCreateModal(false)
         } else if (selectedMobileTask) {
           setSelectedMobileTask(null)
         } else if (mobileSortMenuOpen) {
           setMobileSortMenuOpen(null)
-        } else if (showMobileFilterMenu) {
-          setShowMobileFilterMenu(false)
         }
         return
       }
 
-      // Don't handle other shortcuts if modifier keys are pressed
       if (e.ctrlKey || e.metaKey || e.altKey) return
 
-      // Check if ANY modal is open - if so, don't trigger other hotkeys
       const anyModalOpen = 
         isDeleteModalOpen ||
         isRepeatModalOpen ||
-        assignModalTask ||
         tagsModalTask ||
         calendarModal.isOpen ||
         isTagManagerOpen ||
-        isEditModalOpenTask ||
         showMobileCreateModal ||
         selectedMobileTask ||
-        mobileSortMenuOpen ||
-        showMobileFilterMenu
+        mobileSortMenuOpen
       
-      // Also check if any modal overlay is visible in the DOM
       const hasVisibleModal = document.querySelector('[class*="fixed"][class*="inset-0"][class*="z-50"]') ||
                               document.querySelector('[class*="fixed"][class*="inset-0"][class*="z-40"]')
       
       if (anyModalOpen || hasVisibleModal) return
 
-      // T - Open Tag Manager
       if (e.key === 't' || e.key === 'T') {
         e.preventDefault()
         setIsTagManagerOpen(true)
@@ -1112,20 +962,15 @@ export default function TodoApp() {
   }, [
     isDeleteModalOpen, 
     isRepeatModalOpen, 
-    assignModalTask, 
     tagsModalTask, 
     calendarModal.isOpen, 
     isTagManagerOpen, 
-    isEditModalOpenTask, 
     showMobileCreateModal, 
     selectedMobileTask,
     mobileSortMenuOpen,
-    showMobileFilterMenu,
-    createModeAssignModal,
     createModeTagsModal
   ])
 
-  // Get column ID from droppable ID
   const getColumnId = (id) => {
     if (!id) return null
     if (typeof id === "string" && id.startsWith("column-")) {
@@ -1135,7 +980,6 @@ export default function TodoApp() {
     return task?.status || null
   }
 
-  // Handle drag start
   const handleDragStart = (event) => {
     const { active } = event
     setActiveId(active.id)
@@ -1143,10 +987,8 @@ export default function TodoApp() {
     if (task) setActiveTask(task)
   }
 
-  // Handle drag over
   const handleDragOver = (event) => {}
 
-  // Handle drag end
   const handleDragEnd = (event) => {
     const { active, over } = event
     setActiveId(null)
@@ -1170,7 +1012,6 @@ export default function TodoApp() {
 
     if (!targetColumnId) return
 
-    // Same column - reorder
     if (sourceColumnId === targetColumnId) {
       setColumnSortSettings(prev => ({
         ...prev,
@@ -1187,16 +1028,13 @@ export default function TodoApp() {
         const reorderedColumnTasks = arrayMove(columnTasks, oldIndex, newIndex)
         const otherTasks = tasks.filter((t) => t.status !== sourceColumnId)
         setTasks([...otherTasks, ...reorderedColumnTasks])
-        
       }
       return
     }
 
-    // Different column - move task
     moveTaskToColumn(draggedTask, sourceColumnId, targetColumnId, overId)
   }
 
-  // Move task to new column
   const moveTaskToColumn = (task, sourceColumnId, targetColumnId, overId = null) => {
     const targetColumnTasks = tasks.filter((t) => t.status === targetColumnId)
     let insertIndex = targetColumnTasks.length
@@ -1261,7 +1099,6 @@ export default function TodoApp() {
     return sorted
   }, [columnSortSettings])
 
-  // Handle sort change
   const handleSortChange = useCallback((columnId, sortBy) => {
     setColumnSortSettings(prev => {
       const currentSettings = prev[columnId]
@@ -1273,7 +1110,6 @@ export default function TodoApp() {
     })
   }, [])
 
-  // Toggle sort order
   const handleToggleSortOrder = useCallback((columnId) => {
     setColumnSortSettings(prev => ({
       ...prev,
@@ -1281,55 +1117,21 @@ export default function TodoApp() {
     }))
   }, [])
 
-  // Get filtered and sorted tasks for column
   const getColumnTasks = useCallback((columnId) => {
     let columnTasks = tasks.filter((task) => task.status === columnId)
-    
-    // Apply staff filter
-    if (selectedStaffFilter.length > 0) {
-      columnTasks = columnTasks.filter(task => {
-        if (!task.assignees || task.assignees.length === 0) return false
-        return task.assignees.some(assignee => {
-          return selectedStaffFilter.some(staffId => {
-            const staff = availableAssignees.find(a => a.id === staffId)
-            if (!staff) return false
-            return assignee === `${staff.firstName} ${staff.lastName}`
-          })
-        })
-      })
-    }
-    
     return sortTasks(columnTasks, columnId)
-  }, [tasks, sortTasks, selectedStaffFilter, availableAssignees])
+  }, [tasks, sortTasks])
 
-  // Get all tasks for mobile view - NOW WITH SORTING
   const getAllFilteredTasks = useCallback(() => {
     let allTasks = [...tasks]
-    
-    if (selectedStaffFilter.length > 0) {
-      allTasks = allTasks.filter(task => {
-        if (!task.assignees || task.assignees.length === 0) return false
-        return task.assignees.some(assignee => {
-          return selectedStaffFilter.some(staffId => {
-            const staff = availableAssignees.find(a => a.id === staffId)
-            if (!staff) return false
-            return assignee === `${staff.firstName} ${staff.lastName}`
-          })
-        })
-      })
-    }
 
-    // Group by status AND apply sorting for each status
     const ongoing = sortTasks(allTasks.filter(t => t.status === 'ongoing'), 'ongoing')
     const completed = sortTasks(allTasks.filter(t => t.status === 'completed'), 'completed')
     const canceled = sortTasks(allTasks.filter(t => t.status === 'canceled'), 'canceled')
 
     return { ongoing, completed, canceled, total: allTasks.length }
-  }, [tasks, selectedStaffFilter, availableAssignees, sortTasks])
+  }, [tasks, sortTasks])
 
-  // ============================================
-  // Column collapse
-  // ============================================
   const toggleColumnCollapse = (columnId) => {
     setCollapsedColumns((prev) => ({ ...prev, [columnId]: !prev[columnId] }))
   }
@@ -1356,7 +1158,6 @@ export default function TodoApp() {
   }
 
   const handleCalendarSave = (calendarData) => {
-    // Check if this is for create mode
     if (createModeCalendarModal) {
       setNewTaskData(prev => ({
         ...prev,
@@ -1383,12 +1184,9 @@ export default function TodoApp() {
       }
       handleTaskUpdate(updatedTask)
       
-      // Update mobile task if viewing
       if (selectedMobileTask && selectedMobileTask.id === calendarModal.taskId) {
         setSelectedMobileTask(updatedTask)
       }
-      
-      
     } else {
       setSelectedDate(calendarData.date)
       setSelectedTime(calendarData.time)
@@ -1403,15 +1201,8 @@ export default function TodoApp() {
     setCalendarModal({ isOpen: false, taskId: null, initialDate: "", initialTime: "", initialReminder: "", initialRepeat: "" })
   }
 
-  // ============================================
-  // Modal Handlers
-  // ============================================
-  const handleOpenAssignModal = (task) => setAssignModalTask(task)
   const handleOpenTagsModal = (task) => setTagsModalTask(task)
 
-  // ============================================
-  // Create Mode Modal Handlers
-  // ============================================
   const handleOpenCreateCalendarModal = () => {
     setCreateModeCalendarModal(true)
     setCalendarModal({
@@ -1424,19 +1215,8 @@ export default function TodoApp() {
     })
   }
 
-  const handleOpenCreateAssignModal = () => {
-    setCreateModeAssignModal(true)
-    // Create a temporary task object for the assign modal
-    setAssignModalTask({
-      id: 'new-task',
-      title: newTaskData.title || 'New Task',
-      assignees: newTaskData.assignees || [],
-    })
-  }
-
   const handleOpenCreateTagsModal = () => {
     setCreateModeTagsModal(true)
-    // Create a temporary task object for the tags modal
     setTagsModalTask({
       id: 'new-task',
       title: newTaskData.title || 'New Task',
@@ -1458,17 +1238,6 @@ export default function TodoApp() {
   }
 
   const handleTaskUpdate = (updatedTask) => {
-    // Check if this is for create mode
-    if (createModeAssignModal && updatedTask.id === 'new-task') {
-      setNewTaskData(prev => ({
-        ...prev,
-        assignees: updatedTask.assignees || [],
-      }))
-      setCreateModeAssignModal(false)
-      setAssignModalTask(null)
-      return
-    }
-    
     if (createModeTagsModal && updatedTask.id === 'new-task') {
       setNewTaskData(prev => ({
         ...prev,
@@ -1483,7 +1252,6 @@ export default function TodoApp() {
     if (selectedMobileTask && selectedMobileTask.id === updatedTask.id) {
       setSelectedMobileTask(updatedTask)
     }
-    
   }
 
   const handleTaskRemove = (taskId) => {
@@ -1491,7 +1259,6 @@ export default function TodoApp() {
     if (selectedMobileTask && selectedMobileTask.id === taskId) {
       setSelectedMobileTask(null)
     }
-    
   }
 
   const handleTaskPinToggle = (taskId) => {
@@ -1501,11 +1268,6 @@ export default function TodoApp() {
     if (selectedMobileTask && selectedMobileTask.id === taskId) {
       setSelectedMobileTask({ ...selectedMobileTask, isPinned: !selectedMobileTask.isPinned })
     }
-  }
-
-  const handleEditRequest = (task) => {
-    setSelectedTask(task)
-    setIsEditModalOpenTask(true)
   }
 
   const handleDeleteRequest = (taskId) => {
@@ -1534,7 +1296,6 @@ export default function TodoApp() {
         createdAt: new Date().toISOString(),
       },
     ])
-    
   }
 
   const handleRepeatRequest = (task) => {
@@ -1557,16 +1318,11 @@ export default function TodoApp() {
     setSelectedTaskForRepeat(null)
   }
 
-  // ============================================
-  // Mobile Task Creation
-  // ============================================
   const handleMobileCreateTask = (taskData) => {
     const newId = tasks.length > 0 ? Math.max(...tasks.map((t) => t.id)) + 1 : 1
     const newTask = {
       id: newId,
       title: taskData.title,
-      assignees: taskData.assignees || [],
-      roles: [],
       tags: taskData.tags || [],
       status: "ongoing",
       category: "general",
@@ -1578,12 +1334,8 @@ export default function TodoApp() {
       createdAt: new Date().toISOString(),
     }
     setTasks((prevTasks) => [...prevTasks, newTask])
-    
   }
 
-  // ============================================
-  // Tag Management
-  // ============================================
   const deleteTag = (tagId) => {
     setConfiguredTags(configuredTags.filter((tag) => tag.id !== tagId))
     setTasks(
@@ -1595,17 +1347,6 @@ export default function TodoApp() {
         }),
       }))
     )
-    
-  }
-
-  // ============================================
-  // Assignment Helpers
-  // ============================================
-  const toggleAssignee = (assignee) => {
-    setSelectedAssignees((prev) => {
-      const isSelected = prev.find((a) => a.id === assignee.id)
-      return isSelected ? prev.filter((a) => a.id !== assignee.id) : [...prev, assignee]
-    })
   }
 
   const toggleTag = (tag) => {
@@ -1615,14 +1356,6 @@ export default function TodoApp() {
     })
   }
 
-  // Staff Filter Toggle
-  const toggleStaffFilter = (staffId) => {
-    setSelectedStaffFilter(prev => prev.includes(staffId) ? prev.filter(id => id !== staffId) : [...prev, staffId])
-  }
-
-  // ============================================
-  // Add Task Handler (Desktop)
-  // ============================================
   const handleAddTask = useCallback((inputValue) => {
     const titleToUse = inputValue || newTaskInput
     if (titleToUse.trim() !== "") {
@@ -1630,8 +1363,6 @@ export default function TodoApp() {
       const newTask = {
         id: newId,
         title: titleToUse.trim(),
-        assignees: selectedAssignees.map((a) => `${a.firstName} ${a.lastName}`),
-        roles: [],
         tags: selectedTags.map((t) => t.name),
         status: "ongoing",
         category: "general",
@@ -1644,18 +1375,14 @@ export default function TodoApp() {
       setNewTaskInput("")
       setSelectedDate("")
       setSelectedTime("")
-      setSelectedAssignees([])
       setSelectedTags([])
-      
     }
-  }, [tasks, selectedAssignees, selectedTags, selectedDate, selectedTime, newTaskInput])
+  }, [tasks, selectedTags, selectedDate, selectedTime, newTaskInput])
 
   const handleTextareaChange = useCallback((newValue) => {
     setNewTaskInput(newValue)
   }, [])
 
-
-  // Get task counts
   const filteredTasks = getAllFilteredTasks()
 
   // ============================================
@@ -1696,8 +1423,6 @@ export default function TodoApp() {
       <div
         className="flex flex-col lg:flex-row rounded-3xl transition-all duration-500 bg-[#1C1C1C] text-white relative min-h-screen md:min-h-0 md:h-[105vh] overflow-hidden"
       >
-
-        
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* ============================================ */}
           {/* HEADER */}
@@ -1707,51 +1432,7 @@ export default function TodoApp() {
               <h1 className="text-xl md:text-2xl font-bold text-white">To-Do</h1>
               
               <div className="flex items-center gap-2">
-                {/* Mobile: Staff Filter - Now in header */}
-                <div className="relative md:hidden" ref={mobileFilterRef}>
-                  <button
-                    onClick={() => setShowMobileFilterMenu(!showMobileFilterMenu)}
-                    className={`p-2 rounded-lg transition-colors active:scale-95 ${
-                      selectedStaffFilter.length > 0 ? 'bg-blue-600 text-white' : 'bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]'
-                    }`}
-                  >
-                    <Users size={18} />
-                  </button>
-                  
-                  {showMobileFilterMenu && (
-                    <div className="absolute right-0 top-full mt-2 bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg z-50 min-w-[220px] overflow-hidden">
-                      <div className="p-2 border-b border-gray-700">
-                        <p className="text-xs text-gray-500 font-medium px-2">Filter by Staff</p>
-                      </div>
-                      <button
-                        onClick={() => {
-                          setSelectedStaffFilter([])
-                        }}
-                        className={`w-full text-left px-4 py-3 text-sm transition-colors flex items-center gap-2 ${
-                          selectedStaffFilter.length === 0 ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-800'
-                        }`}
-                      >
-                        All Tasks
-                      </button>
-                      {availableAssignees.map((staff) => (
-                        <button
-                          key={staff.id}
-                          onClick={() => {
-                            toggleStaffFilter(staff.id)
-                          }}
-                          className={`w-full text-left px-4 py-3 text-sm transition-colors flex items-center gap-2 ${
-                            selectedStaffFilter.includes(staff.id) ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-gray-800'
-                          }`}
-                        >
-                          <UserCheck size={14} />
-                          {staff.firstName} {staff.lastName}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Mobile: Tags Button - Now in header */}
+                {/* Mobile: Tags Button */}
                 <button
                   onClick={() => setIsTagManagerOpen(true)}
                   className="md:hidden bg-[#2F2F2F] text-gray-300 p-2 rounded-lg hover:bg-[#3F3F3F] transition-colors active:scale-95"
@@ -1796,45 +1477,19 @@ export default function TodoApp() {
                   </button>
                 </div>
 
-                {/* Assignment dropdown */}
-                <div className="relative assign-dropdown">
+                {/* Tag dropdown */}
+                <div className="relative tag-dropdown">
                   <button
                     type="button"
-                    onClick={() => setIsAssignDropdownOpen(!isAssignDropdownOpen)}
+                    onClick={() => setIsTagDropdownOpen(!isTagDropdownOpen)}
                     className="text-gray-400 hover:text-white ml-2 p-1"
-                    title="Assign task"
+                    title="Add tags"
                   >
                     <ChevronDown size={18} />
                   </button>
-                  {isAssignDropdownOpen && (
-                    <div className="absolute top-full right-0 mt-2 bg-[#2F2F2F] rounded-xl shadow-lg z-50 p-3 w-72 max-h-[450px] overflow-y-auto assign-dropdown-content">
+                  {isTagDropdownOpen && (
+                    <div className="absolute top-full right-0 mt-2 bg-[#2F2F2F] rounded-xl shadow-lg z-50 p-3 w-72 max-h-[450px] overflow-y-auto tag-dropdown-content">
                       <div className="space-y-4">
-                        <div>
-                          <h4 className="text-white text-sm font-medium mb-2 flex items-center gap-2">
-                            <Users size={14} />
-                            Assign to Staff
-                          </h4>
-                          <div className="space-y-1 max-h-48 overflow-y-auto custom-scrollbar">
-                            {availableAssignees.map((assignee) => {
-                              const isSelected = selectedAssignees.find((a) => a.id === assignee.id)
-                              return (
-                                <button
-                                  key={assignee.id}
-                                  className="flex items-center gap-2 w-full text-left px-2 py-1.5 text-sm text-white hover:bg-gray-600 rounded"
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    toggleAssignee(assignee)
-                                  }}
-                                >
-                                  <UserCheck size={14} />
-                                  <span className="flex-1">{assignee.firstName} {assignee.lastName}</span>
-                                  {isSelected && <Check size={14} className="text-green-400" />}
-                                </button>
-                              )
-                            })}
-                          </div>
-                        </div>
-                        
                         <div>
                           <h4 className="text-white text-sm font-medium mb-2 flex items-center gap-2">
                             <Tag size={14} />
@@ -1867,7 +1522,7 @@ export default function TodoApp() {
                         </div>
                         
                         <button
-                          onClick={() => setIsAssignDropdownOpen(false)}
+                          onClick={() => setIsTagDropdownOpen(false)}
                           className="w-full px-3 py-2 bg-gray-600 text-white rounded-lg text-xs hover:bg-gray-700"
                         >
                           Close
@@ -1898,30 +1553,6 @@ export default function TodoApp() {
                 </div>
               </div>
             </div>
-
-            {/* Desktop: Staff Filter Pills */}
-            <div className="hidden md:flex flex-wrap gap-2 mb-4">
-              <button
-                onClick={() => setSelectedStaffFilter([])}
-                className={`px-4 py-2 rounded-xl cursor-pointer text-sm font-medium transition-colors ${
-                  selectedStaffFilter.length === 0 ? "bg-blue-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
-                }`}
-              >
-                All Tasks
-              </button>
-              {availableAssignees.map((staff) => (
-                <button
-                  key={staff.id}
-                  onClick={() => toggleStaffFilter(staff.id)}
-                  className={`px-4 py-2 rounded-xl cursor-pointer text-sm font-medium transition-colors flex items-center gap-2 ${
-                    selectedStaffFilter.includes(staff.id) ? "bg-blue-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
-                  }`}
-                >
-                  <UserCheck size={14} />
-                  {staff.firstName} {staff.lastName}
-                </button>
-              ))}
-            </div>
           </div>
 
           {/* ============================================ */}
@@ -1947,13 +1578,10 @@ export default function TodoApp() {
                     onTaskUpdate={handleTaskUpdate}
                     onTaskPinToggle={handleTaskPinToggle}
                     onTaskRemove={handleTaskRemove}
-                    onEditRequest={handleEditRequest}
                     onDeleteRequest={handleDeleteRequest}
                     onDuplicateRequest={handleDuplicateTask}
                     onRepeatRequest={handleRepeatRequest}
                     configuredTags={configuredTags}
-                    availableAssignees={availableAssignees}
-                    onOpenAssignModal={handleOpenAssignModal}
                     onOpenTagsModal={handleOpenTagsModal}
                     onOpenCalendarModal={handleOpenCalendarModal}
                     repeatConfigs={repeatConfigs}
@@ -1974,17 +1602,14 @@ export default function TodoApp() {
                     index={0}
                     isDraggingOverlay={true}
                     configuredTags={configuredTags}
-                    availableAssignees={availableAssignees}
                     repeatConfigs={repeatConfigs}
                     onStatusChange={() => {}}
                     onUpdate={() => {}}
                     onPinToggle={() => {}}
                     onRemove={() => {}}
-                    onEditRequest={() => {}}
                     onDeleteRequest={() => {}}
                     onDuplicateRequest={() => {}}
                     onRepeatRequest={() => {}}
-                    onOpenAssignModal={() => {}}
                     onOpenTagsModal={() => {}}
                     onOpenCalendarModal={() => {}}
                   />
@@ -2050,7 +1675,6 @@ export default function TodoApp() {
                               onClick={(e) => {
                                 e.stopPropagation()
                                 handleSortChange('ongoing', option.value)
-                                // Only close for 'custom' option which has no direction toggle
                                 if (option.value === 'custom') {
                                   setMobileSortMenuOpen(null)
                                 }
@@ -2195,7 +1819,6 @@ export default function TodoApp() {
                               onClick={(e) => {
                                 e.stopPropagation()
                                 handleSortChange('completed', option.value)
-                                // Only close for 'custom' option which has no direction toggle
                                 if (option.value === 'custom') {
                                   setMobileSortMenuOpen(null)
                                 }
@@ -2306,7 +1929,6 @@ export default function TodoApp() {
                               onClick={(e) => {
                                 e.stopPropagation()
                                 handleSortChange('canceled', option.value)
-                                // Only close for 'custom' option which has no direction toggle
                                 if (option.value === 'custom') {
                                   setMobileSortMenuOpen(null)
                                 }
@@ -2387,9 +2009,7 @@ export default function TodoApp() {
             onPinToggle={handleTaskPinToggle}
             onRepeat={handleRepeatRequest}
             configuredTags={configuredTags}
-            availableAssignees={availableAssignees}
             onOpenCalendarModal={handleOpenCalendarModal}
-            onOpenAssignModal={handleOpenAssignModal}
             onOpenTagsModal={handleOpenTagsModal}
             repeatConfigs={repeatConfigs}
           />
@@ -2403,16 +2023,14 @@ export default function TodoApp() {
           onClose={() => setShowMobileCreateModal(false)}
           onCreateTask={handleMobileCreateTask}
           configuredTags={configuredTags}
-          availableAssignees={availableAssignees}
           onOpenCalendarModal={handleOpenCreateCalendarModal}
-          onOpenAssignModal={handleOpenCreateAssignModal}
           onOpenTagsModal={handleOpenCreateTagsModal}
           newTaskData={newTaskData}
           setNewTaskData={setNewTaskData}
         />
 
         {/* ============================================ */}
-        {/* Floating Action Button - Mobile Only (Orange) */}
+        {/* Floating Action Button - Mobile Only */}
         {/* ============================================ */}
         <button
           onClick={() => setShowMobileCreateModal(true)}
@@ -2433,13 +2051,9 @@ export default function TodoApp() {
           tags={configuredTags}
           onAddTag={(newTag) => {
             setConfiguredTags([...configuredTags, newTag])
-            
           }}
           onDeleteTag={deleteTag}
         />
-
-      
-
 
         {/* Delete Modal */}
         <DeleteModal
@@ -2464,35 +2078,7 @@ export default function TodoApp() {
           />
         )}
 
-        {/* Assign Modal - Higher z-index for mobile */}
-        {assignModalTask && (
-          <div className="fixed inset-0 z-[80]">
-            <AssignModal
-              task={assignModalTask}
-              availableAssignees={availableAssignees}
-              availableRoles={[]}
-              onClose={() => {
-                if (createModeAssignModal) {
-                  setCreateModeAssignModal(false)
-                }
-                setAssignModalTask(null)
-              }}
-              onUpdate={(updatedTask) => {
-                handleTaskUpdate(updatedTask)
-                // Update mobile task view immediately
-                if (selectedMobileTask && selectedMobileTask.id === updatedTask.id) {
-                  setSelectedMobileTask(updatedTask)
-                }
-                if (createModeAssignModal) {
-                  setCreateModeAssignModal(false)
-                }
-                setAssignModalTask(null)
-              }}
-            />
-          </div>
-        )}
-
-        {/* Tags Modal - Higher z-index for mobile */}
+        {/* Tags Modal */}
         {tagsModalTask && (
           <div className="fixed inset-0 z-[80]">
             <TagsModal
@@ -2506,7 +2092,6 @@ export default function TodoApp() {
               }}
               onUpdate={(updatedTask) => {
                 handleTaskUpdate(updatedTask)
-                // Update mobile task view immediately
                 if (selectedMobileTask && selectedMobileTask.id === updatedTask.id) {
                   setSelectedMobileTask(updatedTask)
                 }
@@ -2519,7 +2104,7 @@ export default function TodoApp() {
           </div>
         )}
 
-        {/* Calendar Modal - Higher z-index for mobile */}
+        {/* Calendar Modal */}
         <div className={calendarModal.isOpen ? "fixed inset-0 z-[80]" : ""}>
           <CalendarModal
             isOpen={calendarModal.isOpen}
@@ -2531,7 +2116,6 @@ export default function TodoApp() {
             initialRepeat={calendarModal.initialRepeat}
           />
         </div>
-
       </div>
     </>
   )

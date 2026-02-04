@@ -489,13 +489,15 @@ export default function Members() {
     }
     // Handle navigation from Contracts - filter by member name/id
     if (location.state?.fromContract && location.state?.searchQuery) {
-      setSearchQuery(location.state.searchQuery);
-      // If memberId is provided, add to member filters for exact match
+      // If memberId is provided, only add to member filters (no searchQuery to avoid duplicate display)
       if (location.state.memberId) {
         setMemberFilters([{
           memberId: location.state.memberId,
           memberName: location.state.searchQuery
         }]);
+      } else {
+        // Fallback: use searchQuery if no memberId
+        setSearchQuery(location.state.searchQuery);
       }
       // Clear the navigation state to prevent re-filtering on refresh
       window.history.replaceState({}, document.title);

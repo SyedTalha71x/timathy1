@@ -55,7 +55,7 @@ import { RoleItem } from "../../components/studio-components/configuration-compo
 import { StaffAssignmentModal } from "../../components/studio-components/configuration-components/StaffAssignmentModal"
 import ImageSourceModal from "../../components/shared/image-handler/ImageSourceModal"
 import ImageCropModal from "../../components/shared/image-handler/ImageCropModal"
-import IntroMaterialEditorModal from "../../components/studio-components/configuration-components/IntroMaterialEditorModal"
+import IntroMaterialEditorModal from "../../components/shared/IntroMaterialEditorModal"
 import MediaLibraryPickerModal from "../../components/shared/image-handler/MediaLibraryPickerModal"
 import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'
 
@@ -174,12 +174,14 @@ const navigationItems = [
     label: "Communication",
     icon: MessageCircle,
     sections: [
-      { id: "comm-general", label: "General Settings" },
-      { id: "email-notifications", label: "Email Notifications" },
-      { id: "app-notifications", label: "App Notifications" },
-      { id: "smtp-setup", label: "SMTP Setup" },
-      { id: "email-signature", label: "Email Signature" },
-      { id: "e-invoice-template", label: "E-Invoice Template" },
+      { id: "comm-general", label: "General Settings", group: "General" },
+      { id: "smtp-setup", label: "SMTP Setup", group: "General" },
+      { id: "email-signature", label: "Email Signature", group: "General" },
+      { id: "email-notifications", label: "Email Notifications", group: "Notifications" },
+      { id: "app-notifications", label: "App Notifications", group: "Notifications" },
+      { id: "e-invoice-template", label: "E-Invoice", group: "Email Templates" },
+      { id: "contract-cancellation-template", label: "Contract Cancellation", group: "Email Templates" },
+      { id: "contract-conclusion-template", label: "Conclusion of Contract", group: "Email Templates" },
     ],
   },
   {
@@ -2669,19 +2671,40 @@ const ConfigurationPage = () => {
                         </button>
                       </div>
                       
-                      {/* Page previews */}
-                      <div className="flex gap-1 overflow-x-auto pb-1">
-                        {material.pages.slice(0, 5).map((page, pageIndex) => (
+                      {/* Page previews with content thumbnails */}
+                      <div className="flex gap-1.5 overflow-x-auto pb-1">
+                        {material.pages.slice(0, 4).map((page, pageIndex) => (
                           <div 
                             key={page.id} 
-                            className="w-12 h-16 bg-[#141414] border border-[#333333] rounded flex-shrink-0 flex items-center justify-center text-xs text-gray-500"
+                            className="w-14 h-[72px] bg-white border border-[#333333] rounded-lg flex-shrink-0 overflow-hidden relative"
                           >
-                            {pageIndex + 1}
+                            {/* Scaled content preview */}
+                            <div 
+                              className="w-full h-full overflow-hidden pointer-events-none"
+                              style={{ 
+                                transform: 'scale(0.12)', 
+                                transformOrigin: 'top left', 
+                                width: '833%', 
+                                height: '833%',
+                                fontSize: '11px',
+                                padding: '4px',
+                                color: '#000',
+                                lineHeight: '1.3',
+                                fontFamily: 'Arial, sans-serif'
+                              }}
+                              dangerouslySetInnerHTML={{ 
+                                __html: page.content || `<p style="color:#ccc;text-align:center;padding-top:40px;">Page ${pageIndex + 1}</p>` 
+                              }}
+                            />
+                            {/* Page number badge */}
+                            <div className="absolute bottom-0.5 right-0.5 bg-black/60 text-white text-[8px] px-1 rounded">
+                              {pageIndex + 1}
+                            </div>
                           </div>
                         ))}
-                        {material.pages.length > 5 && (
-                          <div className="w-12 h-16 bg-[#141414] border border-[#333333] rounded flex-shrink-0 flex items-center justify-center text-xs text-gray-500">
-                            +{material.pages.length - 5}
+                        {material.pages.length > 4 && (
+                          <div className="w-14 h-[72px] bg-[#141414] border border-[#333333] rounded-lg flex-shrink-0 flex items-center justify-center text-xs text-gray-400 font-medium">
+                            +{material.pages.length - 4}
                           </div>
                         )}
                       </div>
@@ -3524,7 +3547,7 @@ const ConfigurationPage = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-white font-medium">Birthday Email</h3>
-                    <p className="text-sm text-gray-400">Send birthday greetings via email</p>
+                    <p className="text-sm text-gray-400">Automatically sends birthday greetings via email when enabled</p>
                   </div>
                   <Toggle
                     checked={settings.birthdayEmailEnabled}
@@ -3773,7 +3796,7 @@ const ConfigurationPage = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-white font-medium">Birthday Push Notification</h3>
-                    <p className="text-sm text-gray-400">Send birthday greetings via app push notification</p>
+                    <p className="text-sm text-gray-400">Automatically sends birthday greetings via app push notification when enabled</p>
                   </div>
                   <Toggle
                     checked={settings.birthdayAppEnabled}
@@ -4188,6 +4211,148 @@ const ConfigurationPage = () => {
           </div>
         )
 
+      case "contract-cancellation-template":
+        return (
+          <div className="space-y-6">
+            <SectionHeader title="Contract Cancellation Template" description="Email template sent to members when their contract is cancelled" />
+            <SettingsCard>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-300 mb-2 block">Subject</label>
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                    <span className="text-xs text-gray-500 mr-2">Variables:</span>
+                    {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Contract_Type}", "{Cancellation_Date}", "{Contract_End_Date}"].map(v => (
+                      <button
+                        key={v}
+                        onClick={() => setSettings({ ...settings, contractCancellationSubject: (settings.contractCancellationSubject || "") + " " + v })}
+                        className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
+                      >
+                        {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                      </button>
+                    ))}
+                  </div>
+                  <input
+                    type="text"
+                    value={settings.contractCancellationSubject || ""}
+                    onChange={(e) => setSettings({ ...settings, contractCancellationSubject: e.target.value })}
+                    placeholder="Contract Cancellation Confirmation - {Contract_Type}"
+                    className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                  />
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium text-gray-300 mb-2 block">Message</label>
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                    <span className="text-xs text-gray-500 mr-1">Variables:</span>
+                    {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Contract_Type}", "{Cancellation_Date}", "{Contract_End_Date}"].map(v => (
+                      <button
+                        key={v}
+                        onClick={() => setSettings({ ...settings, contractCancellationTemplate: (settings.contractCancellationTemplate || "") + v })}
+                        className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
+                      >
+                        {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                      </button>
+                    ))}
+                    <span className="text-xs text-gray-500 mx-2">|</span>
+                    <span className="text-xs text-gray-500 mr-1">Insert:</span>
+                    <button
+                      onClick={() => {
+                        if (settings.emailSignature) {
+                          setSettings({ ...settings, contractCancellationTemplate: (settings.contractCancellationTemplate || "") + settings.emailSignature })
+                        } else {
+                          notification.warning({ message: "No email signature configured", description: "Please set up your email signature first." })
+                        }
+                      }}
+                      className="px-2 py-1 bg-orange-500 text-white text-xs rounded-lg hover:bg-orange-600 flex items-center gap-1"
+                    >
+                      <FileText className="w-3 h-3" />
+                      Email Signature
+                    </button>
+                  </div>
+                  <WysiwygEditor
+                    value={settings.contractCancellationTemplate || ""}
+                    onChange={(v) => setSettings({ ...settings, contractCancellationTemplate: v })}
+                    placeholder="Dear {Member_First_Name}, we confirm the cancellation of your {Contract_Type} contract effective {Contract_End_Date}..."
+                    minHeight={120}
+                    showImages={true}
+                  />
+                </div>
+              </div>
+            </SettingsCard>
+          </div>
+        )
+
+      case "contract-conclusion-template":
+        return (
+          <div className="space-y-6">
+            <SectionHeader title="Conclusion of Contract Template" description="Email template sent to members when a new contract is concluded" />
+            <SettingsCard>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-300 mb-2 block">Subject</label>
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                    <span className="text-xs text-gray-500 mr-2">Variables:</span>
+                    {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Contract_Type}", "{Contract_Start_Date}", "{Contract_End_Date}", "{Monthly_Fee}"].map(v => (
+                      <button
+                        key={v}
+                        onClick={() => setSettings({ ...settings, contractConclusionSubject: (settings.contractConclusionSubject || "") + " " + v })}
+                        className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
+                      >
+                        {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                      </button>
+                    ))}
+                  </div>
+                  <input
+                    type="text"
+                    value={settings.contractConclusionSubject || ""}
+                    onChange={(e) => setSettings({ ...settings, contractConclusionSubject: e.target.value })}
+                    placeholder="Welcome to {Studio_Name} - Your {Contract_Type} Contract"
+                    className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                  />
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium text-gray-300 mb-2 block">Message</label>
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                    <span className="text-xs text-gray-500 mr-1">Variables:</span>
+                    {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Contract_Type}", "{Contract_Start_Date}", "{Contract_End_Date}", "{Monthly_Fee}"].map(v => (
+                      <button
+                        key={v}
+                        onClick={() => setSettings({ ...settings, contractConclusionTemplate: (settings.contractConclusionTemplate || "") + v })}
+                        className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
+                      >
+                        {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                      </button>
+                    ))}
+                    <span className="text-xs text-gray-500 mx-2">|</span>
+                    <span className="text-xs text-gray-500 mr-1">Insert:</span>
+                    <button
+                      onClick={() => {
+                        if (settings.emailSignature) {
+                          setSettings({ ...settings, contractConclusionTemplate: (settings.contractConclusionTemplate || "") + settings.emailSignature })
+                        } else {
+                          notification.warning({ message: "No email signature configured", description: "Please set up your email signature first." })
+                        }
+                      }}
+                      className="px-2 py-1 bg-orange-500 text-white text-xs rounded-lg hover:bg-orange-600 flex items-center gap-1"
+                    >
+                      <FileText className="w-3 h-3" />
+                      Email Signature
+                    </button>
+                  </div>
+                  <WysiwygEditor
+                    value={settings.contractConclusionTemplate || ""}
+                    onChange={(v) => setSettings({ ...settings, contractConclusionTemplate: v })}
+                    placeholder="Dear {Member_First_Name}, welcome to {Studio_Name}! Your {Contract_Type} contract starts on {Contract_Start_Date}..."
+                    minHeight={120}
+                    showImages={true}
+                  />
+                </div>
+              </div>
+            </SettingsCard>
+          </div>
+        )
+
       // ========================
       // FINANCE SECTIONS
       // ========================
@@ -4591,23 +4756,31 @@ const ConfigurationPage = () => {
 
                 {expandedCategories.includes(category.id) && (
                   <div className="ml-8 mt-1 space-y-0.5">
-                    {category.sections.map((section) => {
+                    {category.sections.map((section, idx) => {
                       const sectionMatches = matchesSearch(section.label)
+                      const prevGroup = idx > 0 ? category.sections[idx - 1].group : null
+                      const showGroupHeader = section.group && section.group !== prevGroup
                       
                       return (
-                        <button
-                          key={section.id}
-                          onClick={() => navigateToSection(category.id, section.id)}
-                          className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                            activeSection === section.id
-                              ? "text-orange-400 bg-orange-500/10"
-                              : sectionMatches
-                                ? "text-orange-300 bg-orange-500/10 hover:bg-orange-500/20"
-                                : "text-gray-500 hover:text-white hover:bg-[#252525]"
-                          }`}
-                        >
-                          {highlightText(section.label)}
-                        </button>
+                        <div key={section.id}>
+                          {showGroupHeader && (
+                            <div className={`px-3 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-gray-600 ${idx > 0 ? 'border-t border-[#2a2a2a] mt-1.5' : ''}`}>
+                              {section.group}
+                            </div>
+                          )}
+                          <button
+                            onClick={() => navigateToSection(category.id, section.id)}
+                            className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                              activeSection === section.id
+                                ? "text-orange-400 bg-orange-500/10"
+                                : sectionMatches
+                                  ? "text-orange-300 bg-orange-500/10 hover:bg-orange-500/20"
+                                  : "text-gray-500 hover:text-white hover:bg-[#252525]"
+                            }`}
+                          >
+                            {highlightText(section.label)}
+                          </button>
+                        </div>
                       )
                     })}
                   </div>
@@ -4673,22 +4846,30 @@ const ConfigurationPage = () => {
 
                 {expandedCategories.includes(category.id) && (
                   <div className="ml-8 mt-1 space-y-0.5">
-                    {category.sections.map((section) => {
+                    {category.sections.map((section, idx) => {
                       const sectionMatches = matchesSearch(section.label)
+                      const prevGroup = idx > 0 ? category.sections[idx - 1].group : null
+                      const showGroupHeader = section.group && section.group !== prevGroup
                       
                       return (
-                        <button
-                          key={section.id}
-                          onClick={() => navigateToSection(category.id, section.id)}
-                          className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors flex items-center justify-between ${
-                            sectionMatches
-                              ? "text-orange-300 bg-orange-500/10"
-                              : "text-gray-500 hover:text-white hover:bg-[#252525]"
-                          }`}
-                        >
-                          <span>{highlightText(section.label)}</span>
-                          <ChevronRight className="w-4 h-4" />
-                        </button>
+                        <div key={section.id}>
+                          {showGroupHeader && (
+                            <div className={`px-3 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-gray-600 ${idx > 0 ? 'border-t border-[#2a2a2a] mt-1.5' : ''}`}>
+                              {section.group}
+                            </div>
+                          )}
+                          <button
+                            onClick={() => navigateToSection(category.id, section.id)}
+                            className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors flex items-center justify-between ${
+                              sectionMatches
+                                ? "text-orange-300 bg-orange-500/10"
+                                : "text-gray-500 hover:text-white hover:bg-[#252525]"
+                            }`}
+                          >
+                            <span>{highlightText(section.label)}</span>
+                            <ChevronRight className="w-4 h-4" />
+                          </button>
+                        </div>
                       )
                     })}
                   </div>

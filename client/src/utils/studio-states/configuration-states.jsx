@@ -808,56 +808,3079 @@ export const difficultyLevelsData = [
 export const DEFAULT_CONTRACT_FORMS = [
   {
     id: 1,
-    name: "Standard Membership Agreement",
-    pages: [
-      {
-        id: 1,
-        title: "Terms & Conditions",
-        elements: [
-          { id: 1, type: "heading", content: "Membership Agreement" },
-          { id: 2, type: "paragraph", content: "This agreement is entered into between {Studio_Name} and the member." },
-        ]
-      }
+    name: "Vollständige Mitgliedschaftsvereinbarung",
+    globalHeader: {
+      enabled: true,
+      content: "FitnessPro Studio • Mitgliedschaftsvertrag • Mitglieds-Nr.: {Member ID}",
+      fontSize: 10,
+      alignment: 'center',
+      verticalAlignment: 'center',
+      bold: false,
+      italic: false,
+      showOnPages: 'all'
+    },
+    globalFooter: {
+      enabled: true,
+      content: "Seite {page} von {pages} • {Studio_Name} • {Studio_Address}",
+      fontSize: 9,
+      alignment: 'center',
+      verticalAlignment: 'center',
+      bold: false,
+      italic: true,
+      showOnPages: 'all'
+    },
+    folders: [
+      { id: 1, name: "Persönliche Daten", color: "#3B82F6", expanded: true, sortIndex: 0 },
+      { id: 2, name: "Kontaktdaten", color: "#10B981", expanded: true, sortIndex: 1 },
+      { id: 3, name: "Vertragsdaten", color: "#F59E0B", expanded: true, sortIndex: 2 },
+      { id: 4, name: "Bankdaten", color: "#8B5CF6", expanded: true, sortIndex: 3 },
+      { id: 5, name: "Dekorative Elemente", color: "#EC4899", expanded: false, sortIndex: 4 }
     ],
-    createdAt: "2024-01-15T10:00:00Z",
-  },
-  {
-    id: 2,
-    name: "Premium Membership Contract",
     pages: [
       {
         id: 1,
-        title: "Premium Terms",
+        title: "Persönliche Daten & Kontakt",
+        backgroundImage: null,
         elements: [
-          { id: 1, type: "heading", content: "Premium Membership Agreement" },
-          { id: 2, type: "paragraph", content: "Welcome to our Premium Membership program." },
+          // ==================== LOGO & HEADER ====================
+          {
+            id: 1,
+            type: 'image',
+            x: 220,
+            y: 10,
+            width: 200,
+            height: 80,
+            src: null,
+            visible: true,
+            sortIndex: 0
+          },
+          {
+            id: 2,
+            type: 'heading',
+            x: 0,
+            y: 100,
+            width: 642,
+            height: 45,
+            content: 'MITGLIEDSCHAFTSVERTRAG',
+            fontSize: 28,
+            fontFamily: 'Arial, sans-serif',
+            bold: true,
+            italic: false,
+            underline: false,
+            alignment: 'center',
+            color: '#1F2937',
+            visible: true,
+            sortIndex: 1
+          },
+          {
+            id: 3,
+            type: 'divider',
+            x: 100,
+            y: 150,
+            width: 442,
+            height: 3,
+            lineColor: '#FF843E',
+            lineStyle: 'solid',
+            visible: true,
+            sortIndex: 2,
+            folderId: 5
+          },
+          
+          // ==================== VERTRAGSINFO (SYSTEM-VARIABLEN) ====================
+          {
+            id: 4,
+            type: 'subheading',
+            x: 0,
+            y: 170,
+            width: 642,
+            height: 30,
+            content: '1. Vertragsinformationen',
+            fontSize: 18,
+            fontFamily: 'Arial, sans-serif',
+            bold: true,
+            italic: false,
+            alignment: 'left',
+            color: '#374151',
+            visible: true,
+            sortIndex: 3,
+            folderId: 3
+          },
+          // Member ID - System Variable
+          {
+            id: 5,
+            type: 'system-text',
+            x: 0,
+            y: 210,
+            width: 200,
+            height: 55,
+            variable: 'Member ID',
+            label: 'Mitgliedsnummer',
+            showTitle: true,
+            labelFontSize: 12,
+            labelFontFamily: 'Arial, sans-serif',
+            labelBold: true,
+            labelItalic: false,
+            labelUnderline: false,
+            labelColor: '#374151',
+            inputFontSize: 14,
+            inputFontFamily: 'Arial, sans-serif',
+            inputBold: false,
+            inputColor: '#1F2937',
+            required: false,
+            visible: true,
+            sortIndex: 4,
+            folderId: 3
+          },
+          // Contract Type - System Variable
+          {
+            id: 6,
+            type: 'system-text',
+            x: 220,
+            y: 210,
+            width: 200,
+            height: 55,
+            variable: 'Contract Type',
+            label: 'Vertragsart',
+            showTitle: true,
+            labelFontSize: 12,
+            labelFontFamily: 'Arial, sans-serif',
+            labelBold: true,
+            labelColor: '#374151',
+            inputFontSize: 14,
+            inputFontFamily: 'Arial, sans-serif',
+            inputColor: '#1F2937',
+            visible: true,
+            sortIndex: 5,
+            folderId: 3
+          },
+          // Contract Cost - System Variable
+          {
+            id: 7,
+            type: 'system-text',
+            x: 440,
+            y: 210,
+            width: 200,
+            height: 55,
+            variable: 'Contract Cost',
+            label: 'Monatsbeitrag',
+            showTitle: true,
+            labelFontSize: 12,
+            labelFontFamily: 'Arial, sans-serif',
+            labelBold: true,
+            labelColor: '#374151',
+            inputFontSize: 14,
+            inputFontFamily: 'Arial, sans-serif',
+            inputColor: '#10B981',
+            inputBold: true,
+            visible: true,
+            sortIndex: 6,
+            folderId: 3
+          },
+          // Contract Start Date - System Variable
+          {
+            id: 8,
+            type: 'system-text',
+            x: 0,
+            y: 280,
+            width: 200,
+            height: 55,
+            variable: 'Contract Start Date',
+            label: 'Vertragsbeginn',
+            showTitle: true,
+            labelFontSize: 12,
+            labelBold: true,
+            labelColor: '#374151',
+            inputFontSize: 14,
+            inputColor: '#1F2937',
+            visible: true,
+            sortIndex: 7,
+            folderId: 3
+          },
+          // Contract End Date - System Variable
+          {
+            id: 9,
+            type: 'system-text',
+            x: 220,
+            y: 280,
+            width: 200,
+            height: 55,
+            variable: 'Contract End Date',
+            label: 'Vertragsende',
+            showTitle: true,
+            labelFontSize: 12,
+            labelBold: true,
+            labelColor: '#374151',
+            inputFontSize: 14,
+            inputColor: '#1F2937',
+            visible: true,
+            sortIndex: 8,
+            folderId: 3
+          },
+          // Minimum Term - System Variable
+          {
+            id: 10,
+            type: 'system-text',
+            x: 440,
+            y: 280,
+            width: 200,
+            height: 55,
+            variable: 'Minimum Term',
+            label: 'Mindestlaufzeit',
+            showTitle: true,
+            labelFontSize: 12,
+            labelBold: true,
+            labelColor: '#374151',
+            inputFontSize: 14,
+            inputColor: '#1F2937',
+            visible: true,
+            sortIndex: 9,
+            folderId: 3
+          },
+          
+          // Decorative Rectangle behind section
+          {
+            id: 11,
+            type: 'rectangle',
+            x: 0,
+            y: 165,
+            width: 642,
+            height: 185,
+            backgroundColor: '#F9FAFB',
+            borderWidth: 1,
+            borderColor: '#E5E7EB',
+            borderRadius: 8,
+            visible: true,
+            sortIndex: 100, // Hintergrund (hoher sortIndex = weiter hinten)
+            folderId: 5
+          },
+
+          // ==================== PERSÖNLICHE DATEN (USER-VARIABLEN) ====================
+          {
+            id: 12,
+            type: 'subheading',
+            x: 0,
+            y: 370,
+            width: 642,
+            height: 30,
+            content: '2. Persönliche Daten des Mitglieds',
+            fontSize: 18,
+            fontFamily: 'Arial, sans-serif',
+            bold: true,
+            alignment: 'left',
+            color: '#374151',
+            visible: true,
+            sortIndex: 10,
+            folderId: 1
+          },
+          // Salutation - User Variable
+          {
+            id: 13,
+            type: 'text',
+            x: 0,
+            y: 410,
+            width: 120,
+            height: 55,
+            variable: 'Salutation',
+            label: 'Anrede',
+            showTitle: true,
+            labelFontSize: 12,
+            labelBold: true,
+            labelColor: '#374151',
+            inputFontSize: 14,
+            inputColor: '#1F2937',
+            required: true,
+            visible: true,
+            sortIndex: 11,
+            folderId: 1
+          },
+          // Member First Name - User Variable
+          {
+            id: 14,
+            type: 'text',
+            x: 140,
+            y: 410,
+            width: 240,
+            height: 55,
+            variable: 'Member First Name',
+            label: 'Vorname',
+            showTitle: true,
+            labelFontSize: 12,
+            labelBold: true,
+            labelColor: '#374151',
+            inputFontSize: 14,
+            inputColor: '#1F2937',
+            required: true,
+            visible: true,
+            sortIndex: 12,
+            folderId: 1
+          },
+          // Member Last Name - User Variable
+          {
+            id: 15,
+            type: 'text',
+            x: 400,
+            y: 410,
+            width: 240,
+            height: 55,
+            variable: 'Member Last Name',
+            label: 'Nachname',
+            showTitle: true,
+            labelFontSize: 12,
+            labelBold: true,
+            labelColor: '#374151',
+            inputFontSize: 14,
+            inputColor: '#1F2937',
+            required: true,
+            visible: true,
+            sortIndex: 13,
+            folderId: 1
+          },
+          // Date of Birth - User Variable
+          {
+            id: 16,
+            type: 'text',
+            x: 0,
+            y: 480,
+            width: 200,
+            height: 55,
+            variable: 'Date of Birth',
+            label: 'Geburtsdatum',
+            showTitle: true,
+            labelFontSize: 12,
+            labelBold: true,
+            labelColor: '#374151',
+            inputFontSize: 14,
+            inputColor: '#1F2937',
+            required: true,
+            visible: true,
+            sortIndex: 14,
+            folderId: 1
+          },
+          
+          // ==================== ADRESSE ====================
+          // Street - User Variable
+          {
+            id: 17,
+            type: 'text',
+            x: 0,
+            y: 555,
+            width: 400,
+            height: 55,
+            variable: 'Street',
+            label: 'Straße',
+            showTitle: true,
+            labelFontSize: 12,
+            labelBold: true,
+            labelColor: '#374151',
+            inputFontSize: 14,
+            inputColor: '#1F2937',
+            required: true,
+            visible: true,
+            sortIndex: 15,
+            folderId: 2
+          },
+          // House Number - User Variable
+          {
+            id: 18,
+            type: 'text',
+            x: 420,
+            y: 555,
+            width: 120,
+            height: 55,
+            variable: 'House Number',
+            label: 'Hausnummer',
+            showTitle: true,
+            labelFontSize: 12,
+            labelBold: true,
+            labelColor: '#374151',
+            inputFontSize: 14,
+            inputColor: '#1F2937',
+            required: true,
+            visible: true,
+            sortIndex: 16,
+            folderId: 2
+          },
+          // ZIP Code - User Variable
+          {
+            id: 19,
+            type: 'text',
+            x: 0,
+            y: 625,
+            width: 150,
+            height: 55,
+            variable: 'ZIP Code',
+            label: 'Postleitzahl',
+            showTitle: true,
+            labelFontSize: 12,
+            labelBold: true,
+            labelColor: '#374151',
+            inputFontSize: 14,
+            inputColor: '#1F2937',
+            required: true,
+            visible: true,
+            sortIndex: 17,
+            folderId: 2
+          },
+          // City - User Variable
+          {
+            id: 20,
+            type: 'text',
+            x: 170,
+            y: 625,
+            width: 300,
+            height: 55,
+            variable: 'City',
+            label: 'Stadt',
+            showTitle: true,
+            labelFontSize: 12,
+            labelBold: true,
+            labelColor: '#374151',
+            inputFontSize: 14,
+            inputColor: '#1F2937',
+            required: true,
+            visible: true,
+            sortIndex: 18,
+            folderId: 2
+          },
+          
+          // ==================== KONTAKTDATEN ====================
+          // Telephone number - User Variable
+          {
+            id: 21,
+            type: 'text',
+            x: 0,
+            y: 700,
+            width: 200,
+            height: 55,
+            variable: 'Telephone number',
+            label: 'Telefon (Festnetz)',
+            showTitle: true,
+            labelFontSize: 12,
+            labelBold: true,
+            labelColor: '#374151',
+            inputFontSize: 14,
+            inputColor: '#1F2937',
+            required: false,
+            visible: true,
+            sortIndex: 19,
+            folderId: 2
+          },
+          // Mobile number - User Variable
+          {
+            id: 22,
+            type: 'text',
+            x: 220,
+            y: 700,
+            width: 200,
+            height: 55,
+            variable: 'Mobile number',
+            label: 'Mobilnummer',
+            showTitle: true,
+            labelFontSize: 12,
+            labelBold: true,
+            labelColor: '#374151',
+            inputFontSize: 14,
+            inputColor: '#1F2937',
+            required: true,
+            visible: true,
+            sortIndex: 20,
+            folderId: 2
+          },
+          // Email Address - User Variable
+          {
+            id: 23,
+            type: 'text',
+            x: 0,
+            y: 770,
+            width: 420,
+            height: 55,
+            variable: 'Email Address',
+            label: 'E-Mail-Adresse',
+            showTitle: true,
+            labelFontSize: 12,
+            labelBold: true,
+            labelColor: '#374151',
+            inputFontSize: 14,
+            inputColor: '#1F2937',
+            required: true,
+            visible: true,
+            sortIndex: 21,
+            folderId: 2
+          },
+          
+          // Decorative Circle as accent
+          {
+            id: 24,
+            type: 'circle',
+            x: 600,
+            y: 850,
+            width: 40,
+            height: 40,
+            backgroundColor: '#FF843E',
+            borderWidth: 0,
+            visible: true,
+            sortIndex: 101,
+            folderId: 5
+          },
+          
+          // Info Text at bottom
+          {
+            id: 25,
+            type: 'textarea',
+            x: 0,
+            y: 850,
+            width: 580,
+            height: 80,
+            content: 'Bitte füllen Sie alle mit * gekennzeichneten Pflichtfelder vollständig aus. Ihre Daten werden gemäß unserer Datenschutzerklärung verarbeitet und nicht an Dritte weitergegeben.',
+            fontSize: 11,
+            fontFamily: 'Arial, sans-serif',
+            italic: true,
+            color: '#6B7280',
+            alignment: 'left',
+            lineHeight: 1.4,
+            visible: true,
+            sortIndex: 22
+          }
         ]
       },
       {
         id: 2,
-        title: "Signatures",
+        title: "Zahlungsinformationen & SEPA",
+        backgroundImage: null,
         elements: [
-          { id: 1, type: "field", fieldType: "signature", label: "Member Signature", required: true },
+          // ==================== SEPA HEADER ====================
+          {
+            id: 100,
+            type: 'heading',
+            x: 0,
+            y: 10,
+            width: 642,
+            height: 40,
+            content: 'SEPA-LASTSCHRIFTMANDAT',
+            fontSize: 24,
+            fontFamily: 'Arial, sans-serif',
+            bold: true,
+            alignment: 'center',
+            color: '#1F2937',
+            visible: true,
+            sortIndex: 0
+          },
+          {
+            id: 101,
+            type: 'divider',
+            x: 150,
+            y: 55,
+            width: 342,
+            height: 2,
+            lineColor: '#3B82F6',
+            lineStyle: 'solid',
+            visible: true,
+            sortIndex: 1
+          },
+          
+          // Gläubiger Info
+          {
+            id: 102,
+            type: 'subheading',
+            x: 0,
+            y: 80,
+            width: 642,
+            height: 25,
+            content: 'Gläubiger-Informationen',
+            fontSize: 16,
+            bold: true,
+            color: '#374151',
+            visible: true,
+            sortIndex: 2
+          },
+          {
+            id: 103,
+            type: 'textarea',
+            x: 0,
+            y: 110,
+            width: 642,
+            height: 80,
+            content: 'Gläubiger: FitnessPro GmbH\nGläubiger-Identifikationsnummer: DE98ZZZ09999999999\nMusterstraße 123, 10115 Berlin',
+            fontSize: 12,
+            fontFamily: 'Arial, sans-serif',
+            color: '#374151',
+            alignment: 'left',
+            lineHeight: 1.5,
+            visible: true,
+            sortIndex: 3
+          },
+          
+          // SEPA Mandate Reference - System Variable
+          {
+            id: 104,
+            type: 'system-text',
+            x: 0,
+            y: 200,
+            width: 300,
+            height: 55,
+            variable: 'SEPA mandate reference',
+            label: 'Mandatsreferenz',
+            showTitle: true,
+            labelFontSize: 12,
+            labelBold: true,
+            labelColor: '#374151',
+            inputFontSize: 14,
+            inputColor: '#1F2937',
+            visible: true,
+            sortIndex: 4,
+            folderId: 4
+          },
+          
+          // ==================== KONTOINHABER ====================
+          {
+            id: 105,
+            type: 'subheading',
+            x: 0,
+            y: 280,
+            width: 642,
+            height: 25,
+            content: 'Bankverbindung des Zahlungspflichtigen',
+            fontSize: 16,
+            bold: true,
+            color: '#374151',
+            visible: true,
+            sortIndex: 5,
+            folderId: 4
+          },
+          // Account Holder - User Variable
+          {
+            id: 106,
+            type: 'text',
+            x: 0,
+            y: 315,
+            width: 400,
+            height: 55,
+            variable: 'Member first name and last name (account holder)',
+            label: 'Kontoinhaber (Vor- und Nachname)',
+            showTitle: true,
+            labelFontSize: 12,
+            labelBold: true,
+            labelColor: '#374151',
+            inputFontSize: 14,
+            inputColor: '#1F2937',
+            required: true,
+            visible: true,
+            sortIndex: 6,
+            folderId: 4
+          },
+          // Credit Institution - User Variable
+          {
+            id: 107,
+            type: 'text',
+            x: 0,
+            y: 385,
+            width: 400,
+            height: 55,
+            variable: 'Credit institution',
+            label: 'Kreditinstitut (Name der Bank)',
+            showTitle: true,
+            labelFontSize: 12,
+            labelBold: true,
+            labelColor: '#374151',
+            inputFontSize: 14,
+            inputColor: '#1F2937',
+            required: true,
+            visible: true,
+            sortIndex: 7,
+            folderId: 4
+          },
+          // IBAN - User Variable
+          {
+            id: 108,
+            type: 'text',
+            x: 0,
+            y: 455,
+            width: 400,
+            height: 55,
+            variable: 'IBAN',
+            label: 'IBAN',
+            showTitle: true,
+            labelFontSize: 12,
+            labelBold: true,
+            labelColor: '#374151',
+            inputFontSize: 14,
+            inputFontFamily: "'Courier New', monospace",
+            inputColor: '#1F2937',
+            inputCapsLock: true,
+            required: true,
+            visible: true,
+            sortIndex: 8,
+            folderId: 4
+          },
+          // BIC - User Variable
+          {
+            id: 109,
+            type: 'text',
+            x: 420,
+            y: 455,
+            width: 220,
+            height: 55,
+            variable: 'BIC',
+            label: 'BIC/SWIFT',
+            showTitle: true,
+            labelFontSize: 12,
+            labelBold: true,
+            labelColor: '#374151',
+            inputFontSize: 14,
+            inputFontFamily: "'Courier New', monospace",
+            inputColor: '#1F2937',
+            inputCapsLock: true,
+            required: true,
+            visible: true,
+            sortIndex: 9,
+            folderId: 4
+          },
+          
+          // ==================== SEPA MANDAT TEXT ====================
+          {
+            id: 110,
+            type: 'rectangle',
+            x: 0,
+            y: 530,
+            width: 642,
+            height: 180,
+            backgroundColor: '#FEF3C7',
+            borderWidth: 2,
+            borderColor: '#F59E0B',
+            borderRadius: 8,
+            visible: true,
+            sortIndex: 100
+          },
+          {
+            id: 111,
+            type: 'textarea',
+            x: 15,
+            y: 545,
+            width: 612,
+            height: 150,
+            content: 'SEPA-Lastschriftmandat\n\nIch ermächtige die FitnessPro GmbH, Zahlungen von meinem Konto mittels Lastschrift einzuziehen. Zugleich weise ich mein Kreditinstitut an, die von der FitnessPro GmbH auf mein Konto gezogenen Lastschriften einzulösen.\n\nHinweis: Ich kann innerhalb von acht Wochen, beginnend mit dem Belastungsdatum, die Erstattung des belasteten Betrages verlangen. Es gelten dabei die mit meinem Kreditinstitut vereinbarten Bedingungen.',
+            fontSize: 11,
+            fontFamily: 'Arial, sans-serif',
+            color: '#92400E',
+            alignment: 'left',
+            lineHeight: 1.4,
+            visible: true,
+            sortIndex: 10
+          },
+          
+          // ==================== WEITERE VERTRAGSDATEN ====================
+          {
+            id: 112,
+            type: 'subheading',
+            x: 0,
+            y: 730,
+            width: 642,
+            height: 25,
+            content: 'Weitere Vertragsdetails',
+            fontSize: 16,
+            bold: true,
+            color: '#374151',
+            visible: true,
+            sortIndex: 11,
+            folderId: 3
+          },
+          // Training Start Date - System Variable
+          {
+            id: 113,
+            type: 'system-text',
+            x: 0,
+            y: 765,
+            width: 200,
+            height: 55,
+            variable: 'Training Start Date',
+            label: 'Trainingsbeginn',
+            showTitle: true,
+            labelFontSize: 12,
+            labelBold: true,
+            labelColor: '#374151',
+            inputFontSize: 14,
+            inputColor: '#1F2937',
+            visible: true,
+            sortIndex: 12,
+            folderId: 3
+          },
+          // Termination Notice Period - System Variable
+          {
+            id: 114,
+            type: 'system-text',
+            x: 220,
+            y: 765,
+            width: 200,
+            height: 55,
+            variable: 'Termination Notice Period',
+            label: 'Kündigungsfrist',
+            showTitle: true,
+            labelFontSize: 12,
+            labelBold: true,
+            labelColor: '#374151',
+            inputFontSize: 14,
+            inputColor: '#1F2937',
+            visible: true,
+            sortIndex: 13,
+            folderId: 3
+          },
+          // Contract Renewal Duration - System Variable
+          {
+            id: 115,
+            type: 'system-text',
+            x: 440,
+            y: 765,
+            width: 200,
+            height: 55,
+            variable: 'Contract Renewal Duration',
+            label: 'Verlängerungszeitraum',
+            showTitle: true,
+            labelFontSize: 12,
+            labelBold: true,
+            labelColor: '#374151',
+            inputFontSize: 14,
+            inputColor: '#1F2937',
+            visible: true,
+            sortIndex: 14,
+            folderId: 3
+          },
+          // Contribution Adjustment - System Variable
+          {
+            id: 116,
+            type: 'system-text',
+            x: 0,
+            y: 835,
+            width: 300,
+            height: 55,
+            variable: 'Contribution Adjustment',
+            label: 'Beitragsanpassung',
+            showTitle: true,
+            labelFontSize: 12,
+            labelBold: true,
+            labelColor: '#374151',
+            inputFontSize: 14,
+            inputColor: '#1F2937',
+            visible: true,
+            sortIndex: 15,
+            folderId: 3
+          }
+        ]
+      },
+      {
+        id: 3,
+        title: "AGB & Zustimmungen",
+        backgroundImage: null,
+        elements: [
+          // ==================== AGB HEADER ====================
+          {
+            id: 200,
+            type: 'heading',
+            x: 0,
+            y: 10,
+            width: 642,
+            height: 40,
+            content: 'ALLGEMEINE GESCHÄFTSBEDINGUNGEN',
+            fontSize: 22,
+            fontFamily: 'Arial, sans-serif',
+            bold: true,
+            alignment: 'center',
+            color: '#1F2937',
+            visible: true,
+            sortIndex: 0
+          },
+          {
+            id: 201,
+            type: 'divider',
+            x: 100,
+            y: 55,
+            width: 442,
+            height: 2,
+            lineColor: '#10B981',
+            lineStyle: 'solid',
+            visible: true,
+            sortIndex: 1
+          },
+          
+          // AGB Text
+          {
+            id: 202,
+            type: 'textarea',
+            x: 0,
+            y: 75,
+            width: 642,
+            height: 300,
+            content: '§1 Vertragsgegenstand\nDer Vertrag regelt die Nutzung der Fitnesseinrichtungen und Dienstleistungen des Studios.\n\n§2 Mitgliedsbeitrag\nDer monatliche Mitgliedsbeitrag ist jeweils zum 1. des Monats im Voraus fällig. Bei Lastschrifteinzug wird der Betrag automatisch abgebucht.\n\n§3 Laufzeit und Kündigung\nDie Mindestlaufzeit beträgt die im Vertrag angegebene Dauer. Nach Ablauf der Mindestlaufzeit verlängert sich der Vertrag automatisch, sofern nicht fristgerecht gekündigt wird.\n\n§4 Hausordnung\nDas Mitglied verpflichtet sich, die Hausordnung und die Anweisungen des Personals zu befolgen.\n\n§5 Haftung\nDas Studio haftet nicht für den Verlust oder die Beschädigung von eingebrachten Gegenständen, soweit dies gesetzlich zulässig ist.',
+            fontSize: 11,
+            fontFamily: 'Arial, sans-serif',
+            color: '#374151',
+            alignment: 'left',
+            lineHeight: 1.4,
+            visible: true,
+            sortIndex: 2
+          },
+          
+          // ==================== ZUSTIMMUNGEN (CHECKBOXES) ====================
+          {
+            id: 203,
+            type: 'subheading',
+            x: 0,
+            y: 390,
+            width: 642,
+            height: 25,
+            content: 'Erforderliche Zustimmungen',
+            fontSize: 16,
+            bold: true,
+            color: '#374151',
+            visible: true,
+            sortIndex: 3
+          },
+          
+          // Checkbox 1: AGB akzeptieren
+          {
+            id: 204,
+            type: 'checkbox',
+            x: 0,
+            y: 425,
+            width: 642,
+            height: 70,
+            label: 'Ich akzeptiere die Allgemeinen Geschäftsbedingungen',
+            showTitle: true,
+            checkboxTitleFontFamily: 'Arial, sans-serif',
+            checkboxTitleSize: 14,
+            titleBold: true,
+            titleColor: '#1F2937',
+            showDescription: true,
+            description: 'Mit meiner Unterschrift bestätige ich, dass ich die AGB gelesen und verstanden habe und diese vollständig akzeptiere.',
+            checkboxDescriptionFontFamily: 'Arial, sans-serif',
+            checkboxDescriptionSize: 11,
+            descriptionColor: '#6B7280',
+            required: true,
+            visible: true,
+            sortIndex: 4
+          },
+          
+          // Checkbox 2: Datenschutz
+          {
+            id: 205,
+            type: 'checkbox',
+            x: 0,
+            y: 505,
+            width: 642,
+            height: 70,
+            label: 'Ich stimme der Datenschutzerklärung zu',
+            showTitle: true,
+            checkboxTitleFontFamily: 'Arial, sans-serif',
+            checkboxTitleSize: 14,
+            titleBold: true,
+            titleColor: '#1F2937',
+            showDescription: true,
+            description: 'Ich bin damit einverstanden, dass meine personenbezogenen Daten gemäß der Datenschutzerklärung verarbeitet werden.',
+            checkboxDescriptionFontFamily: 'Arial, sans-serif',
+            checkboxDescriptionSize: 11,
+            descriptionColor: '#6B7280',
+            required: true,
+            visible: true,
+            sortIndex: 5
+          },
+          
+          // Checkbox 3: SEPA Mandat
+          {
+            id: 206,
+            type: 'checkbox',
+            x: 0,
+            y: 585,
+            width: 642,
+            height: 70,
+            label: 'Ich erteile das SEPA-Lastschriftmandat',
+            showTitle: true,
+            checkboxTitleFontFamily: 'Arial, sans-serif',
+            checkboxTitleSize: 14,
+            titleBold: true,
+            titleColor: '#1F2937',
+            showDescription: true,
+            description: 'Ich ermächtige das Studio, die fälligen Beiträge von meinem angegebenen Konto einzuziehen.',
+            checkboxDescriptionFontFamily: 'Arial, sans-serif',
+            checkboxDescriptionSize: 11,
+            descriptionColor: '#6B7280',
+            required: true,
+            visible: true,
+            sortIndex: 6
+          },
+          
+          // Checkbox 4: Newsletter (optional)
+          {
+            id: 207,
+            type: 'checkbox',
+            x: 0,
+            y: 665,
+            width: 642,
+            height: 60,
+            label: 'Ich möchte den Newsletter erhalten (optional)',
+            showTitle: true,
+            checkboxTitleFontFamily: 'Arial, sans-serif',
+            checkboxTitleSize: 14,
+            titleBold: false,
+            titleColor: '#6B7280',
+            showDescription: true,
+            description: 'Ich möchte über Neuigkeiten, Angebote und Veranstaltungen per E-Mail informiert werden.',
+            checkboxDescriptionFontFamily: 'Arial, sans-serif',
+            checkboxDescriptionSize: 11,
+            descriptionColor: '#9CA3AF',
+            required: false,
+            visible: true,
+            sortIndex: 7
+          },
+          
+          // Checkbox 5: Foto-Einwilligung (optional)
+          {
+            id: 208,
+            type: 'checkbox',
+            x: 0,
+            y: 735,
+            width: 642,
+            height: 60,
+            label: 'Einwilligung zur Bildnutzung (optional)',
+            showTitle: true,
+            checkboxTitleFontFamily: 'Arial, sans-serif',
+            checkboxTitleSize: 14,
+            titleBold: false,
+            titleColor: '#6B7280',
+            showDescription: true,
+            description: 'Ich bin damit einverstanden, dass Fotos von mir zu Marketingzwecken verwendet werden dürfen.',
+            checkboxDescriptionFontFamily: 'Arial, sans-serif',
+            checkboxDescriptionSize: 11,
+            descriptionColor: '#9CA3AF',
+            required: false,
+            visible: true,
+            sortIndex: 8
+          },
+          
+          // Decorative Arrow pointing to signatures
+          {
+            id: 209,
+            type: 'arrow',
+            x: 280,
+            y: 820,
+            width: 80,
+            height: 40,
+            backgroundColor: '#FF843E',
+            borderWidth: 0,
+            rotation: 90,
+            visible: true,
+            sortIndex: 100
+          },
+          {
+            id: 210,
+            type: 'textarea',
+            x: 0,
+            y: 870,
+            width: 642,
+            height: 30,
+            content: 'Bitte wenden Sie auf die nächste Seite für die Unterschriften →',
+            fontSize: 12,
+            fontFamily: 'Arial, sans-serif',
+            bold: true,
+            color: '#FF843E',
+            alignment: 'center',
+            visible: true,
+            sortIndex: 9
+          }
+        ]
+      },
+      {
+        id: 4,
+        title: "Unterschriften",
+        backgroundImage: null,
+        elements: [
+          // ==================== UNTERSCHRIFTEN HEADER ====================
+          {
+            id: 300,
+            type: 'heading',
+            x: 0,
+            y: 10,
+            width: 642,
+            height: 40,
+            content: 'VERTRAGSUNTERZEICHNUNG',
+            fontSize: 24,
+            fontFamily: 'Arial, sans-serif',
+            bold: true,
+            alignment: 'center',
+            color: '#1F2937',
+            visible: true,
+            sortIndex: 0
+          },
+          {
+            id: 301,
+            type: 'divider',
+            x: 150,
+            y: 55,
+            width: 342,
+            height: 3,
+            lineColor: '#FF843E',
+            lineStyle: 'solid',
+            visible: true,
+            sortIndex: 1
+          },
+          
+          // Erklärungstext
+          {
+            id: 302,
+            type: 'textarea',
+            x: 0,
+            y: 80,
+            width: 642,
+            height: 80,
+            content: 'Mit meiner Unterschrift bestätige ich, dass alle von mir gemachten Angaben wahrheitsgemäß und vollständig sind. Ich habe die Allgemeinen Geschäftsbedingungen, die Datenschutzerklärung und die Hausordnung zur Kenntnis genommen und akzeptiere diese.',
+            fontSize: 12,
+            fontFamily: 'Arial, sans-serif',
+            color: '#374151',
+            alignment: 'left',
+            lineHeight: 1.5,
+            visible: true,
+            sortIndex: 2
+          },
+          
+          // Decorative semicircle
+          {
+            id: 303,
+            type: 'semicircle',
+            x: 0,
+            y: 170,
+            width: 642,
+            height: 30,
+            backgroundColor: '#F3F4F6',
+            borderWidth: 0,
+            visible: true,
+            sortIndex: 100
+          },
+          
+          // ==================== MITGLIED UNTERSCHRIFT ====================
+          {
+            id: 304,
+            type: 'subheading',
+            x: 0,
+            y: 220,
+            width: 300,
+            height: 25,
+            content: 'Unterschrift Mitglied',
+            fontSize: 16,
+            bold: true,
+            color: '#374151',
+            visible: true,
+            sortIndex: 3
+          },
+          {
+            id: 305,
+            type: 'signature',
+            x: 0,
+            y: 255,
+            width: 300,
+            height: 120,
+            showLocationDate: true,
+            location: 'Berlin',
+            showDate: true,
+            dateFormat: 'de-DE',
+            locationFontFamily: 'Arial, sans-serif',
+            signatureFontSize: 12,
+            locationBold: false,
+            locationColor: '#374151',
+            showBelowSignature: true,
+            belowSignatureText: 'Unterschrift des Mitglieds',
+            belowTextFontFamily: 'Arial, sans-serif',
+            belowTextFontSize: 11,
+            belowTextBold: false,
+            belowTextColor: '#6B7280',
+            required: true,
+            visible: true,
+            sortIndex: 4
+          },
+          
+          // ==================== STUDIO UNTERSCHRIFT ====================
+          {
+            id: 306,
+            type: 'subheading',
+            x: 340,
+            y: 220,
+            width: 300,
+            height: 25,
+            content: 'Unterschrift Studio',
+            fontSize: 16,
+            bold: true,
+            color: '#374151',
+            visible: true,
+            sortIndex: 5
+          },
+          {
+            id: 307,
+            type: 'signature',
+            x: 340,
+            y: 255,
+            width: 300,
+            height: 120,
+            showLocationDate: true,
+            location: 'Berlin',
+            showDate: true,
+            dateFormat: 'de-DE',
+            locationFontFamily: 'Arial, sans-serif',
+            signatureFontSize: 12,
+            locationBold: false,
+            locationColor: '#374151',
+            showBelowSignature: true,
+            belowSignatureText: 'Unterschrift Studiomitarbeiter',
+            belowTextFontFamily: 'Arial, sans-serif',
+            belowTextFontSize: 11,
+            belowTextBold: false,
+            belowTextColor: '#6B7280',
+            required: true,
+            visible: true,
+            sortIndex: 6
+          },
+          
+          // Divider between signatures
+          {
+            id: 308,
+            type: 'divider',
+            x: 0,
+            y: 400,
+            width: 642,
+            height: 1,
+            lineColor: '#E5E7EB',
+            lineStyle: 'dashed',
+            visible: true,
+            sortIndex: 7
+          },
+          
+          // ==================== SEPA UNTERSCHRIFT ====================
+          {
+            id: 309,
+            type: 'subheading',
+            x: 0,
+            y: 420,
+            width: 642,
+            height: 25,
+            content: 'Unterschrift für SEPA-Lastschriftmandat',
+            fontSize: 16,
+            bold: true,
+            color: '#374151',
+            visible: true,
+            sortIndex: 8
+          },
+          {
+            id: 310,
+            type: 'textarea',
+            x: 0,
+            y: 450,
+            width: 642,
+            height: 50,
+            content: 'Falls der Kontoinhaber nicht mit dem Mitglied identisch ist, ist eine zusätzliche Unterschrift des Kontoinhabers erforderlich.',
+            fontSize: 11,
+            fontFamily: 'Arial, sans-serif',
+            italic: true,
+            color: '#6B7280',
+            alignment: 'left',
+            visible: true,
+            sortIndex: 9
+          },
+          {
+            id: 311,
+            type: 'signature',
+            x: 0,
+            y: 510,
+            width: 300,
+            height: 120,
+            showLocationDate: true,
+            location: 'Berlin',
+            showDate: true,
+            dateFormat: 'de-DE',
+            locationFontFamily: 'Arial, sans-serif',
+            signatureFontSize: 12,
+            locationBold: false,
+            locationColor: '#374151',
+            showBelowSignature: true,
+            belowSignatureText: 'Unterschrift Kontoinhaber',
+            belowTextFontFamily: 'Arial, sans-serif',
+            belowTextFontSize: 11,
+            belowTextBold: false,
+            belowTextColor: '#6B7280',
+            required: true,
+            visible: true,
+            sortIndex: 10
+          },
+          
+          // ==================== VERTRAGSKOPIE INFO ====================
+          {
+            id: 312,
+            type: 'rectangle',
+            x: 0,
+            y: 660,
+            width: 642,
+            height: 100,
+            backgroundColor: '#ECFDF5',
+            borderWidth: 2,
+            borderColor: '#10B981',
+            borderRadius: 8,
+            visible: true,
+            sortIndex: 101
+          },
+          {
+            id: 313,
+            type: 'textarea',
+            x: 15,
+            y: 675,
+            width: 612,
+            height: 70,
+            content: '✓ Vertragskopie für das Mitglied\n\nDas Mitglied erhält eine Kopie dieses Vertrags. Bitte bewahren Sie diese sorgfältig auf. Bei Fragen stehen wir Ihnen gerne zur Verfügung.',
+            fontSize: 12,
+            fontFamily: 'Arial, sans-serif',
+            color: '#065F46',
+            alignment: 'left',
+            lineHeight: 1.4,
+            visible: true,
+            sortIndex: 11
+          },
+          
+          // Decorative triangle
+          {
+            id: 314,
+            type: 'triangle',
+            x: 590,
+            y: 800,
+            width: 50,
+            height: 50,
+            backgroundColor: '#FF843E',
+            borderWidth: 0,
+            rotation: 180,
+            visible: true,
+            sortIndex: 102
+          },
+          
+          // Footer note
+          {
+            id: 315,
+            type: 'textarea',
+            x: 0,
+            y: 880,
+            width: 642,
+            height: 60,
+            content: 'FitnessPro Studio • Musterstraße 123 • 10115 Berlin\nTel: +49 30 12345678 • E-Mail: info@fitnesspro.de • Web: www.fitnesspro.de',
+            fontSize: 10,
+            fontFamily: 'Arial, sans-serif',
+            color: '#9CA3AF',
+            alignment: 'center',
+            lineHeight: 1.5,
+            visible: true,
+            sortIndex: 12
+          }
+        ]
+      }
+    ],
+    createdAt: "2024-01-15T10:00:00Z",
+    updatedAt: new Date().toISOString()
+  },
+  
+  // ============================================================================
+  // CONTRACT FORM 2: PREMIUM MEMBERSHIP (Kompakter, eleganter)
+  // ============================================================================
+  {
+    id: 2,
+    name: "Premium Mitgliedschaft Kurzvertrag",
+    globalHeader: {
+      enabled: true,
+      content: "★ PREMIUM MEMBERSHIP ★",
+      fontSize: 12,
+      alignment: 'center',
+      bold: true,
+      italic: false,
+      showOnPages: 'first'
+    },
+    globalFooter: {
+      enabled: true,
+      content: "FitnessPro Studio • Premium Services",
+      fontSize: 10,
+      alignment: 'center',
+      italic: true,
+      showOnPages: 'all'
+    },
+    folders: [
+      { id: 1, name: "Mitgliedsdaten", color: "#8B5CF6", expanded: true, sortIndex: 0 },
+      { id: 2, name: "Styling", color: "#EC4899", expanded: false, sortIndex: 1 }
+    ],
+    pages: [
+      {
+        id: 1,
+        title: "Premium Vertrag",
+        backgroundImage: null,
+        elements: [
+          // Elegant header design with shapes
+          {
+            id: 1,
+            type: 'rectangle',
+            x: 0,
+            y: 0,
+            width: 642,
+            height: 120,
+            backgroundColor: '#7C3AED',
+            borderWidth: 0,
+            borderRadius: 0,
+            visible: true,
+            sortIndex: 100,
+            folderId: 2
+          },
+          {
+            id: 2,
+            type: 'heading',
+            x: 0,
+            y: 30,
+            width: 642,
+            height: 50,
+            content: 'PREMIUM MITGLIEDSCHAFT',
+            fontSize: 32,
+            fontFamily: 'Georgia, serif',
+            bold: true,
+            alignment: 'center',
+            color: '#FFFFFF',
+            visible: true,
+            sortIndex: 0
+          },
+          {
+            id: 3,
+            type: 'subheading',
+            x: 0,
+            y: 75,
+            width: 642,
+            height: 25,
+            content: 'Exklusiver Zugang zu allen Premium-Services',
+            fontSize: 14,
+            fontFamily: 'Georgia, serif',
+            italic: true,
+            alignment: 'center',
+            color: '#E9D5FF',
+            visible: true,
+            sortIndex: 1
+          },
+          
+          // Decorative circles
+          {
+            id: 4,
+            type: 'circle',
+            x: 20,
+            y: 130,
+            width: 20,
+            height: 20,
+            backgroundColor: '#8B5CF6',
+            borderWidth: 0,
+            visible: true,
+            sortIndex: 101,
+            folderId: 2
+          },
+          {
+            id: 5,
+            type: 'circle',
+            x: 50,
+            y: 130,
+            width: 20,
+            height: 20,
+            backgroundColor: '#A78BFA',
+            borderWidth: 0,
+            visible: true,
+            sortIndex: 102,
+            folderId: 2
+          },
+          {
+            id: 6,
+            type: 'circle',
+            x: 80,
+            y: 130,
+            width: 20,
+            height: 20,
+            backgroundColor: '#C4B5FD',
+            borderWidth: 0,
+            visible: true,
+            sortIndex: 103,
+            folderId: 2
+          },
+          
+          // Member Data Section
+          {
+            id: 7,
+            type: 'system-text',
+            x: 0,
+            y: 170,
+            width: 200,
+            height: 55,
+            variable: 'Member ID',
+            label: 'Mitglieds-ID',
+            showTitle: true,
+            labelFontSize: 11,
+            labelBold: true,
+            labelColor: '#7C3AED',
+            inputFontSize: 14,
+            inputColor: '#1F2937',
+            visible: true,
+            sortIndex: 2,
+            folderId: 1
+          },
+          {
+            id: 8,
+            type: 'text',
+            x: 220,
+            y: 170,
+            width: 200,
+            height: 55,
+            variable: 'Member First Name',
+            label: 'Vorname',
+            showTitle: true,
+            labelFontSize: 11,
+            labelBold: true,
+            labelColor: '#7C3AED',
+            inputFontSize: 14,
+            inputColor: '#1F2937',
+            required: true,
+            visible: true,
+            sortIndex: 3,
+            folderId: 1
+          },
+          {
+            id: 9,
+            type: 'text',
+            x: 440,
+            y: 170,
+            width: 200,
+            height: 55,
+            variable: 'Member Last Name',
+            label: 'Nachname',
+            showTitle: true,
+            labelFontSize: 11,
+            labelBold: true,
+            labelColor: '#7C3AED',
+            inputFontSize: 14,
+            inputColor: '#1F2937',
+            required: true,
+            visible: true,
+            sortIndex: 4,
+            folderId: 1
+          },
+          
+          // Contract Info
+          {
+            id: 10,
+            type: 'divider',
+            x: 0,
+            y: 240,
+            width: 642,
+            height: 2,
+            lineColor: '#8B5CF6',
+            lineStyle: 'dashed',
+            visible: true,
+            sortIndex: 5
+          },
+          {
+            id: 11,
+            type: 'system-text',
+            x: 0,
+            y: 260,
+            width: 200,
+            height: 55,
+            variable: 'Contract Type',
+            label: 'Vertragsart',
+            showTitle: true,
+            labelFontSize: 11,
+            labelBold: true,
+            labelColor: '#7C3AED',
+            inputFontSize: 14,
+            inputBold: true,
+            inputColor: '#7C3AED',
+            visible: true,
+            sortIndex: 6,
+            folderId: 1
+          },
+          {
+            id: 12,
+            type: 'system-text',
+            x: 220,
+            y: 260,
+            width: 200,
+            height: 55,
+            variable: 'Contract Cost',
+            label: 'Monatsbeitrag',
+            showTitle: true,
+            labelFontSize: 11,
+            labelBold: true,
+            labelColor: '#7C3AED',
+            inputFontSize: 16,
+            inputBold: true,
+            inputColor: '#059669',
+            visible: true,
+            sortIndex: 7,
+            folderId: 1
+          },
+          {
+            id: 13,
+            type: 'system-text',
+            x: 440,
+            y: 260,
+            width: 200,
+            height: 55,
+            variable: 'Contract Start Date',
+            label: 'Startdatum',
+            showTitle: true,
+            labelFontSize: 11,
+            labelBold: true,
+            labelColor: '#7C3AED',
+            inputFontSize: 14,
+            inputColor: '#1F2937',
+            visible: true,
+            sortIndex: 8,
+            folderId: 1
+          },
+          
+          // Premium Benefits
+          {
+            id: 14,
+            type: 'subheading',
+            x: 0,
+            y: 340,
+            width: 642,
+            height: 25,
+            content: 'Ihre Premium-Vorteile',
+            fontSize: 16,
+            bold: true,
+            color: '#7C3AED',
+            visible: true,
+            sortIndex: 9
+          },
+          {
+            id: 15,
+            type: 'textarea',
+            x: 0,
+            y: 375,
+            width: 642,
+            height: 120,
+            content: '✓ Unbegrenzter Zugang zu allen Trainingsgeräten\n✓ Kostenlose Nutzung des Wellnessbereichs\n✓ Monatliche Personal Training Session inklusive\n✓ Zugang zur exklusiven Premium-Lounge\n✓ Priorität bei Kursbuchungen\n✓ 20% Rabatt auf alle Zusatzprodukte',
+            fontSize: 12,
+            fontFamily: 'Arial, sans-serif',
+            color: '#374151',
+            alignment: 'left',
+            lineHeight: 1.6,
+            listStyle: 'none',
+            visible: true,
+            sortIndex: 10
+          },
+          
+          // Contact Info
+          {
+            id: 16,
+            type: 'text',
+            x: 0,
+            y: 510,
+            width: 300,
+            height: 55,
+            variable: 'Email Address',
+            label: 'E-Mail',
+            showTitle: true,
+            labelFontSize: 11,
+            labelBold: true,
+            labelColor: '#7C3AED',
+            inputFontSize: 14,
+            inputColor: '#1F2937',
+            required: true,
+            visible: true,
+            sortIndex: 11,
+            folderId: 1
+          },
+          {
+            id: 17,
+            type: 'text',
+            x: 320,
+            y: 510,
+            width: 200,
+            height: 55,
+            variable: 'Mobile number',
+            label: 'Telefon',
+            showTitle: true,
+            labelFontSize: 11,
+            labelBold: true,
+            labelColor: '#7C3AED',
+            inputFontSize: 14,
+            inputColor: '#1F2937',
+            required: true,
+            visible: true,
+            sortIndex: 12,
+            folderId: 1
+          },
+          
+          // Checkbox
+          {
+            id: 18,
+            type: 'checkbox',
+            x: 0,
+            y: 590,
+            width: 642,
+            height: 60,
+            label: 'Ich akzeptiere die Premium-Mitgliedschaftsbedingungen',
+            showTitle: true,
+            checkboxTitleSize: 13,
+            titleBold: true,
+            titleColor: '#1F2937',
+            showDescription: true,
+            description: 'Inkl. AGB, Datenschutzerklärung und SEPA-Mandat',
+            checkboxDescriptionSize: 11,
+            descriptionColor: '#6B7280',
+            required: true,
+            visible: true,
+            sortIndex: 13
+          },
+          
+          // Signatures side by side
+          {
+            id: 19,
+            type: 'signature',
+            x: 0,
+            y: 680,
+            width: 300,
+            height: 100,
+            showLocationDate: true,
+            location: 'Berlin',
+            showDate: true,
+            dateFormat: 'de-DE',
+            signatureFontSize: 11,
+            locationColor: '#374151',
+            showBelowSignature: true,
+            belowSignatureText: 'Mitglied',
+            belowTextFontSize: 10,
+            belowTextColor: '#7C3AED',
+            belowTextBold: true,
+            required: true,
+            visible: true,
+            sortIndex: 14
+          },
+          {
+            id: 20,
+            type: 'signature',
+            x: 340,
+            y: 680,
+            width: 300,
+            height: 100,
+            showLocationDate: true,
+            location: 'Berlin',
+            showDate: true,
+            dateFormat: 'de-DE',
+            signatureFontSize: 11,
+            locationColor: '#374151',
+            showBelowSignature: true,
+            belowSignatureText: 'FitnessPro Studio',
+            belowTextFontSize: 10,
+            belowTextColor: '#7C3AED',
+            belowTextBold: true,
+            required: true,
+            visible: true,
+            sortIndex: 15
+          },
+          
+          // Footer decoration
+          {
+            id: 21,
+            type: 'rectangle',
+            x: 0,
+            y: 810,
+            width: 642,
+            height: 8,
+            backgroundColor: '#7C3AED',
+            borderWidth: 0,
+            visible: true,
+            sortIndex: 104,
+            folderId: 2
+          }
         ]
       }
     ],
     createdAt: "2024-02-01T14:30:00Z",
+    updatedAt: new Date().toISOString()
   },
+  
+  // ============================================================================
+  // CONTRACT FORM 3: TRIAL MEMBERSHIP (Probetraining)
+  // ============================================================================
   {
     id: 3,
-    name: "Trial Membership Form",
+    name: "Probetraining Vereinbarung",
+    globalHeader: {
+      enabled: false
+    },
+    globalFooter: {
+      enabled: true,
+      content: "Gültig für 7 Tage ab Ausstellungsdatum",
+      fontSize: 10,
+      alignment: 'center',
+      italic: true,
+      showOnPages: 'all'
+    },
+    folders: [],
     pages: [
       {
         id: 1,
-        title: "Trial Agreement",
+        title: "Probetraining",
+        backgroundImage: null,
         elements: [
-          { id: 1, type: "heading", content: "Trial Membership" },
-          { id: 2, type: "paragraph", content: "This trial membership allows you to experience our studio for a limited time." },
+          // Header with accent
+          {
+            id: 1,
+            type: 'rectangle',
+            x: 0,
+            y: 0,
+            width: 642,
+            height: 80,
+            backgroundColor: '#059669',
+            borderWidth: 0,
+            visible: true,
+            sortIndex: 100
+          },
+          {
+            id: 2,
+            type: 'heading',
+            x: 0,
+            y: 20,
+            width: 642,
+            height: 45,
+            content: '🏋️ KOSTENLOSES PROBETRAINING',
+            fontSize: 26,
+            bold: true,
+            alignment: 'center',
+            color: '#FFFFFF',
+            visible: true,
+            sortIndex: 0
+          },
+          
+          // Welcome text
+          {
+            id: 3,
+            type: 'textarea',
+            x: 0,
+            y: 100,
+            width: 642,
+            height: 60,
+            content: 'Herzlich willkommen bei FitnessPro! Wir freuen uns, dass Sie uns testen möchten. Bitte füllen Sie das folgende Formular aus, um Ihr kostenloses Probetraining zu starten.',
+            fontSize: 13,
+            color: '#374151',
+            alignment: 'center',
+            lineHeight: 1.5,
+            visible: true,
+            sortIndex: 1
+          },
+          
+          // Personal data
+          {
+            id: 4,
+            type: 'text',
+            x: 0,
+            y: 180,
+            width: 100,
+            height: 55,
+            variable: 'Salutation',
+            label: 'Anrede',
+            showTitle: true,
+            labelFontSize: 11,
+            labelBold: true,
+            labelColor: '#059669',
+            inputFontSize: 14,
+            required: true,
+            visible: true,
+            sortIndex: 2
+          },
+          {
+            id: 5,
+            type: 'text',
+            x: 120,
+            y: 180,
+            width: 250,
+            height: 55,
+            variable: 'Member First Name',
+            label: 'Vorname',
+            showTitle: true,
+            labelFontSize: 11,
+            labelBold: true,
+            labelColor: '#059669',
+            inputFontSize: 14,
+            required: true,
+            visible: true,
+            sortIndex: 3
+          },
+          {
+            id: 6,
+            type: 'text',
+            x: 390,
+            y: 180,
+            width: 250,
+            height: 55,
+            variable: 'Member Last Name',
+            label: 'Nachname',
+            showTitle: true,
+            labelFontSize: 11,
+            labelBold: true,
+            labelColor: '#059669',
+            inputFontSize: 14,
+            required: true,
+            visible: true,
+            sortIndex: 4
+          },
+          
+          // Contact
+          {
+            id: 7,
+            type: 'text',
+            x: 0,
+            y: 250,
+            width: 300,
+            height: 55,
+            variable: 'Email Address',
+            label: 'E-Mail-Adresse',
+            showTitle: true,
+            labelFontSize: 11,
+            labelBold: true,
+            labelColor: '#059669',
+            inputFontSize: 14,
+            required: true,
+            visible: true,
+            sortIndex: 5
+          },
+          {
+            id: 8,
+            type: 'text',
+            x: 320,
+            y: 250,
+            width: 200,
+            height: 55,
+            variable: 'Mobile number',
+            label: 'Telefonnummer',
+            showTitle: true,
+            labelFontSize: 11,
+            labelBold: true,
+            labelColor: '#059669',
+            inputFontSize: 14,
+            required: true,
+            visible: true,
+            sortIndex: 6
+          },
+          
+          // Date of birth
+          {
+            id: 9,
+            type: 'text',
+            x: 0,
+            y: 320,
+            width: 200,
+            height: 55,
+            variable: 'Date of Birth',
+            label: 'Geburtsdatum',
+            showTitle: true,
+            labelFontSize: 11,
+            labelBold: true,
+            labelColor: '#059669',
+            inputFontSize: 14,
+            required: true,
+            visible: true,
+            sortIndex: 7
+          },
+          
+          // Divider
+          {
+            id: 10,
+            type: 'divider',
+            x: 0,
+            y: 395,
+            width: 642,
+            height: 2,
+            lineColor: '#10B981',
+            lineStyle: 'solid',
+            visible: true,
+            sortIndex: 8
+          },
+          
+          // Health disclaimer
+          {
+            id: 11,
+            type: 'subheading',
+            x: 0,
+            y: 415,
+            width: 642,
+            height: 25,
+            content: 'Gesundheitserklärung',
+            fontSize: 16,
+            bold: true,
+            color: '#059669',
+            visible: true,
+            sortIndex: 9
+          },
+          {
+            id: 12,
+            type: 'checkbox',
+            x: 0,
+            y: 450,
+            width: 642,
+            height: 70,
+            label: 'Ich bestätige, dass ich körperlich gesund bin',
+            showTitle: true,
+            checkboxTitleSize: 13,
+            titleBold: true,
+            titleColor: '#1F2937',
+            showDescription: true,
+            description: 'Mir sind keine gesundheitlichen Einschränkungen bekannt, die gegen ein Fitnesstraining sprechen. Im Zweifel habe ich meinen Arzt konsultiert.',
+            checkboxDescriptionSize: 11,
+            descriptionColor: '#6B7280',
+            required: true,
+            visible: true,
+            sortIndex: 10
+          },
+          {
+            id: 13,
+            type: 'checkbox',
+            x: 0,
+            y: 530,
+            width: 642,
+            height: 60,
+            label: 'Ich akzeptiere die Hausordnung und Sicherheitsregeln',
+            showTitle: true,
+            checkboxTitleSize: 13,
+            titleBold: true,
+            titleColor: '#1F2937',
+            showDescription: true,
+            description: 'Ich verpflichte mich, die Anweisungen des Personals zu befolgen.',
+            checkboxDescriptionSize: 11,
+            descriptionColor: '#6B7280',
+            required: true,
+            visible: true,
+            sortIndex: 11
+          },
+          {
+            id: 14,
+            type: 'checkbox',
+            x: 0,
+            y: 600,
+            width: 642,
+            height: 50,
+            label: 'Ich möchte Informationen zu Mitgliedschaften erhalten',
+            showTitle: true,
+            checkboxTitleSize: 13,
+            titleBold: false,
+            titleColor: '#6B7280',
+            showDescription: false,
+            required: false,
+            visible: true,
+            sortIndex: 12
+          },
+          
+          // Signature
+          {
+            id: 15,
+            type: 'signature',
+            x: 0,
+            y: 680,
+            width: 320,
+            height: 100,
+            showLocationDate: true,
+            location: '',
+            showDate: true,
+            dateFormat: 'de-DE',
+            signatureFontSize: 12,
+            locationColor: '#374151',
+            showBelowSignature: true,
+            belowSignatureText: 'Unterschrift Interessent',
+            belowTextFontSize: 11,
+            belowTextColor: '#059669',
+            belowTextBold: true,
+            required: true,
+            visible: true,
+            sortIndex: 13
+          },
+          
+          // Info box
+          {
+            id: 16,
+            type: 'rectangle',
+            x: 360,
+            y: 680,
+            width: 280,
+            height: 100,
+            backgroundColor: '#D1FAE5',
+            borderWidth: 2,
+            borderColor: '#059669',
+            borderRadius: 8,
+            visible: true,
+            sortIndex: 101
+          },
+          {
+            id: 17,
+            type: 'textarea',
+            x: 375,
+            y: 695,
+            width: 250,
+            height: 70,
+            content: '📞 Fragen?\nRufen Sie uns an:\n+49 30 12345678\n\noder schreiben Sie an:\ninfo@fitnesspro.de',
+            fontSize: 11,
+            color: '#065F46',
+            alignment: 'left',
+            lineHeight: 1.3,
+            visible: true,
+            sortIndex: 14
+          },
+          
+          // Footer decoration
+          {
+            id: 18,
+            type: 'semicircle',
+            x: 271,
+            y: 820,
+            width: 100,
+            height: 50,
+            backgroundColor: '#059669',
+            borderWidth: 0,
+            rotation: 180,
+            visible: true,
+            sortIndex: 102
+          }
         ]
       }
     ],
     createdAt: "2024-03-01T08:00:00Z",
+    updatedAt: new Date().toISOString()
   },
+  
+  // ============================================================================
+  // CONTRACT FORM 4: SEPA MANDATE ONLY (Separates SEPA-Mandat)
+  // ============================================================================
+  {
+    id: 4,
+    name: "SEPA-Lastschriftmandat",
+    globalHeader: {
+      enabled: true,
+      content: "SEPA-LASTSCHRIFTMANDAT",
+      fontSize: 14,
+      alignment: 'center',
+      bold: true,
+      showOnPages: 'all'
+    },
+    globalFooter: {
+      enabled: true,
+      content: "Mandatsreferenz: {SEPA mandate reference}",
+      fontSize: 10,
+      alignment: 'left',
+      italic: true,
+      showOnPages: 'all'
+    },
+    folders: [
+      { id: 1, name: "Gläubiger", color: "#3B82F6", expanded: true, sortIndex: 0 },
+      { id: 2, name: "Zahler", color: "#10B981", expanded: true, sortIndex: 1 }
+    ],
+    pages: [
+      {
+        id: 1,
+        title: "SEPA Mandat",
+        backgroundImage: null,
+        elements: [
+          // Header
+          {
+            id: 1,
+            type: 'heading',
+            x: 0,
+            y: 10,
+            width: 642,
+            height: 40,
+            content: 'SEPA-LASTSCHRIFTMANDAT',
+            fontSize: 24,
+            bold: true,
+            alignment: 'center',
+            color: '#1E40AF',
+            visible: true,
+            sortIndex: 0
+          },
+          {
+            id: 2,
+            type: 'subheading',
+            x: 0,
+            y: 50,
+            width: 642,
+            height: 20,
+            content: 'SEPA Direct Debit Mandate',
+            fontSize: 12,
+            italic: true,
+            alignment: 'center',
+            color: '#6B7280',
+            visible: true,
+            sortIndex: 1
+          },
+          {
+            id: 3,
+            type: 'divider',
+            x: 0,
+            y: 80,
+            width: 642,
+            height: 3,
+            lineColor: '#1E40AF',
+            lineStyle: 'solid',
+            visible: true,
+            sortIndex: 2
+          },
+          
+          // Gläubiger Section
+          {
+            id: 4,
+            type: 'subheading',
+            x: 0,
+            y: 100,
+            width: 642,
+            height: 25,
+            content: 'Gläubiger / Creditor',
+            fontSize: 14,
+            bold: true,
+            color: '#1E40AF',
+            visible: true,
+            sortIndex: 3,
+            folderId: 1
+          },
+          {
+            id: 5,
+            type: 'textarea',
+            x: 0,
+            y: 130,
+            width: 320,
+            height: 100,
+            content: 'FitnessPro GmbH\nMusterstraße 123\n10115 Berlin\nDeutschland',
+            fontSize: 12,
+            color: '#374151',
+            lineHeight: 1.5,
+            visible: true,
+            sortIndex: 4,
+            folderId: 1
+          },
+          {
+            id: 6,
+            type: 'textarea',
+            x: 340,
+            y: 130,
+            width: 300,
+            height: 100,
+            content: 'Gläubiger-Identifikationsnummer:\nDE98ZZZ09999999999\n\nTel: +49 30 12345678\nE-Mail: info@fitnesspro.de',
+            fontSize: 11,
+            color: '#6B7280',
+            lineHeight: 1.5,
+            visible: true,
+            sortIndex: 5,
+            folderId: 1
+          },
+          
+          // Mandatsreferenz
+          {
+            id: 7,
+            type: 'system-text',
+            x: 0,
+            y: 245,
+            width: 300,
+            height: 55,
+            variable: 'SEPA mandate reference',
+            label: 'Mandatsreferenz / Mandate Reference',
+            showTitle: true,
+            labelFontSize: 11,
+            labelBold: true,
+            labelColor: '#1E40AF',
+            inputFontSize: 14,
+            inputFontFamily: "'Courier New', monospace",
+            inputColor: '#1F2937',
+            visible: true,
+            sortIndex: 6,
+            folderId: 1
+          },
+          
+          // Zahler Section
+          {
+            id: 8,
+            type: 'divider',
+            x: 0,
+            y: 320,
+            width: 642,
+            height: 1,
+            lineColor: '#E5E7EB',
+            lineStyle: 'dashed',
+            visible: true,
+            sortIndex: 7
+          },
+          {
+            id: 9,
+            type: 'subheading',
+            x: 0,
+            y: 340,
+            width: 642,
+            height: 25,
+            content: 'Zahlungspflichtiger / Debtor',
+            fontSize: 14,
+            bold: true,
+            color: '#059669',
+            visible: true,
+            sortIndex: 8,
+            folderId: 2
+          },
+          {
+            id: 10,
+            type: 'text',
+            x: 0,
+            y: 375,
+            width: 400,
+            height: 55,
+            variable: 'Member first name and last name (account holder)',
+            label: 'Name des Kontoinhabers / Account Holder Name',
+            showTitle: true,
+            labelFontSize: 11,
+            labelBold: true,
+            labelColor: '#059669',
+            inputFontSize: 14,
+            required: true,
+            visible: true,
+            sortIndex: 9,
+            folderId: 2
+          },
+          {
+            id: 11,
+            type: 'text',
+            x: 0,
+            y: 445,
+            width: 300,
+            height: 55,
+            variable: 'Street',
+            label: 'Straße / Street',
+            showTitle: true,
+            labelFontSize: 11,
+            labelBold: true,
+            labelColor: '#059669',
+            inputFontSize: 14,
+            required: true,
+            visible: true,
+            sortIndex: 10,
+            folderId: 2
+          },
+          {
+            id: 12,
+            type: 'text',
+            x: 320,
+            y: 445,
+            width: 100,
+            height: 55,
+            variable: 'House Number',
+            label: 'Nr.',
+            showTitle: true,
+            labelFontSize: 11,
+            labelBold: true,
+            labelColor: '#059669',
+            inputFontSize: 14,
+            required: true,
+            visible: true,
+            sortIndex: 11,
+            folderId: 2
+          },
+          {
+            id: 13,
+            type: 'text',
+            x: 440,
+            y: 445,
+            width: 100,
+            height: 55,
+            variable: 'ZIP Code',
+            label: 'PLZ',
+            showTitle: true,
+            labelFontSize: 11,
+            labelBold: true,
+            labelColor: '#059669',
+            inputFontSize: 14,
+            required: true,
+            visible: true,
+            sortIndex: 12,
+            folderId: 2
+          },
+          {
+            id: 14,
+            type: 'text',
+            x: 560,
+            y: 445,
+            width: 80,
+            height: 55,
+            variable: 'City',
+            label: 'Ort',
+            showTitle: true,
+            labelFontSize: 11,
+            labelBold: true,
+            labelColor: '#059669',
+            inputFontSize: 14,
+            required: true,
+            visible: true,
+            sortIndex: 13,
+            folderId: 2
+          },
+          
+          // Bank Details
+          {
+            id: 15,
+            type: 'text',
+            x: 0,
+            y: 515,
+            width: 400,
+            height: 55,
+            variable: 'Credit institution',
+            label: 'Kreditinstitut / Credit Institution',
+            showTitle: true,
+            labelFontSize: 11,
+            labelBold: true,
+            labelColor: '#059669',
+            inputFontSize: 14,
+            required: true,
+            visible: true,
+            sortIndex: 14,
+            folderId: 2
+          },
+          {
+            id: 16,
+            type: 'text',
+            x: 0,
+            y: 585,
+            width: 400,
+            height: 55,
+            variable: 'IBAN',
+            label: 'IBAN',
+            showTitle: true,
+            labelFontSize: 11,
+            labelBold: true,
+            labelColor: '#059669',
+            inputFontSize: 14,
+            inputFontFamily: "'Courier New', monospace",
+            inputCapsLock: true,
+            required: true,
+            visible: true,
+            sortIndex: 15,
+            folderId: 2
+          },
+          {
+            id: 17,
+            type: 'text',
+            x: 420,
+            y: 585,
+            width: 220,
+            height: 55,
+            variable: 'BIC',
+            label: 'BIC / SWIFT',
+            showTitle: true,
+            labelFontSize: 11,
+            labelBold: true,
+            labelColor: '#059669',
+            inputFontSize: 14,
+            inputFontFamily: "'Courier New', monospace",
+            inputCapsLock: true,
+            required: true,
+            visible: true,
+            sortIndex: 16,
+            folderId: 2
+          },
+          
+          // Mandate Text
+          {
+            id: 18,
+            type: 'rectangle',
+            x: 0,
+            y: 660,
+            width: 642,
+            height: 130,
+            backgroundColor: '#EFF6FF',
+            borderWidth: 1,
+            borderColor: '#3B82F6',
+            borderRadius: 6,
+            visible: true,
+            sortIndex: 100
+          },
+          {
+            id: 19,
+            type: 'textarea',
+            x: 15,
+            y: 675,
+            width: 612,
+            height: 100,
+            content: 'Ich ermächtige den oben genannten Gläubiger, Zahlungen von meinem Konto mittels Lastschrift einzuziehen. Zugleich weise ich mein Kreditinstitut an, die von diesem Gläubiger auf mein Konto gezogenen Lastschriften einzulösen.\n\nHinweis: Ich kann innerhalb von acht Wochen, beginnend mit dem Belastungsdatum, die Erstattung des belasteten Betrages verlangen.',
+            fontSize: 10,
+            color: '#1E40AF',
+            lineHeight: 1.4,
+            visible: true,
+            sortIndex: 17
+          },
+          
+          // Signature
+          {
+            id: 20,
+            type: 'signature',
+            x: 0,
+            y: 810,
+            width: 320,
+            height: 100,
+            showLocationDate: true,
+            location: '',
+            showDate: true,
+            dateFormat: 'de-DE',
+            signatureFontSize: 12,
+            showBelowSignature: true,
+            belowSignatureText: 'Unterschrift des Kontoinhabers / Signature',
+            belowTextFontSize: 10,
+            belowTextColor: '#1E40AF',
+            required: true,
+            visible: true,
+            sortIndex: 18
+          }
+        ]
+      }
+    ],
+    createdAt: "2024-04-01T12:00:00Z",
+    updatedAt: new Date().toISOString()
+  },
+  
+  // ============================================================================
+  // CONTRACT FORM 5: CORPORATE MEMBERSHIP (Firmenmitgliedschaft)
+  // ============================================================================
+  {
+    id: 5,
+    name: "Firmenmitgliedschaft Vertrag",
+    globalHeader: {
+      enabled: true,
+      content: "CORPORATE MEMBERSHIP • B2B Contract",
+      fontSize: 11,
+      alignment: 'right',
+      bold: false,
+      italic: true,
+      showOnPages: 'all'
+    },
+    globalFooter: {
+      enabled: true,
+      content: "Vertragsnr.: {Member ID} • Gültig ab: {Contract Start Date}",
+      fontSize: 10,
+      alignment: 'center',
+      showOnPages: 'all'
+    },
+    folders: [
+      { id: 1, name: "Firmendaten", color: "#F97316", expanded: true, sortIndex: 0 },
+      { id: 2, name: "Ansprechpartner", color: "#3B82F6", expanded: true, sortIndex: 1 },
+      { id: 3, name: "Konditionen", color: "#10B981", expanded: true, sortIndex: 2 }
+    ],
+    pages: [
+      {
+        id: 1,
+        title: "Firmenmitgliedschaft",
+        backgroundImage: null,
+        elements: [
+          // Corporate Header Design
+          {
+            id: 1,
+            type: 'rectangle',
+            x: 0,
+            y: 0,
+            width: 200,
+            height: 100,
+            backgroundColor: '#F97316',
+            borderWidth: 0,
+            visible: true,
+            sortIndex: 100
+          },
+          {
+            id: 2,
+            type: 'triangle',
+            x: 200,
+            y: 0,
+            width: 100,
+            height: 100,
+            backgroundColor: '#F97316',
+            borderWidth: 0,
+            rotation: 90,
+            visible: true,
+            sortIndex: 101
+          },
+          {
+            id: 3,
+            type: 'heading',
+            x: 15,
+            y: 25,
+            width: 270,
+            height: 50,
+            content: 'CORPORATE\nMEMBERSHIP',
+            fontSize: 22,
+            bold: true,
+            color: '#FFFFFF',
+            visible: true,
+            sortIndex: 0
+          },
+          {
+            id: 4,
+            type: 'image',
+            x: 450,
+            y: 10,
+            width: 180,
+            height: 80,
+            src: null,
+            visible: true,
+            sortIndex: 1
+          },
+          
+          // Contract number
+          {
+            id: 5,
+            type: 'system-text',
+            x: 0,
+            y: 120,
+            width: 200,
+            height: 50,
+            variable: 'Member ID',
+            label: 'Vertragsnummer',
+            showTitle: true,
+            labelFontSize: 10,
+            labelBold: true,
+            labelColor: '#F97316',
+            inputFontSize: 14,
+            inputBold: true,
+            inputColor: '#1F2937',
+            visible: true,
+            sortIndex: 2,
+            folderId: 1
+          },
+          {
+            id: 6,
+            type: 'system-text',
+            x: 220,
+            y: 120,
+            width: 200,
+            height: 50,
+            variable: 'Contract Start Date',
+            label: 'Vertragsbeginn',
+            showTitle: true,
+            labelFontSize: 10,
+            labelBold: true,
+            labelColor: '#F97316',
+            inputFontSize: 14,
+            inputColor: '#1F2937',
+            visible: true,
+            sortIndex: 3,
+            folderId: 3
+          },
+          {
+            id: 7,
+            type: 'system-text',
+            x: 440,
+            y: 120,
+            width: 200,
+            height: 50,
+            variable: 'Minimum Term',
+            label: 'Laufzeit',
+            showTitle: true,
+            labelFontSize: 10,
+            labelBold: true,
+            labelColor: '#F97316',
+            inputFontSize: 14,
+            inputColor: '#1F2937',
+            visible: true,
+            sortIndex: 4,
+            folderId: 3
+          },
+          
+          // Company Info Section
+          {
+            id: 8,
+            type: 'divider',
+            x: 0,
+            y: 185,
+            width: 642,
+            height: 2,
+            lineColor: '#F97316',
+            lineStyle: 'solid',
+            visible: true,
+            sortIndex: 5
+          },
+          {
+            id: 9,
+            type: 'subheading',
+            x: 0,
+            y: 200,
+            width: 300,
+            height: 25,
+            content: 'Firmendaten',
+            fontSize: 14,
+            bold: true,
+            color: '#F97316',
+            visible: true,
+            sortIndex: 6,
+            folderId: 1
+          },
+          // Using Member fields for company data
+          {
+            id: 10,
+            type: 'text',
+            x: 0,
+            y: 235,
+            width: 400,
+            height: 50,
+            variable: 'Member First Name',
+            label: 'Firmenname',
+            showTitle: true,
+            labelFontSize: 10,
+            labelBold: true,
+            labelColor: '#374151',
+            inputFontSize: 14,
+            required: true,
+            visible: true,
+            sortIndex: 7,
+            folderId: 1
+          },
+          {
+            id: 11,
+            type: 'text',
+            x: 0,
+            y: 295,
+            width: 350,
+            height: 50,
+            variable: 'Street',
+            label: 'Straße',
+            showTitle: true,
+            labelFontSize: 10,
+            labelBold: true,
+            labelColor: '#374151',
+            inputFontSize: 14,
+            required: true,
+            visible: true,
+            sortIndex: 8,
+            folderId: 1
+          },
+          {
+            id: 12,
+            type: 'text',
+            x: 370,
+            y: 295,
+            width: 80,
+            height: 50,
+            variable: 'House Number',
+            label: 'Nr.',
+            showTitle: true,
+            labelFontSize: 10,
+            labelBold: true,
+            labelColor: '#374151',
+            inputFontSize: 14,
+            required: true,
+            visible: true,
+            sortIndex: 9,
+            folderId: 1
+          },
+          {
+            id: 13,
+            type: 'text',
+            x: 470,
+            y: 295,
+            width: 80,
+            height: 50,
+            variable: 'ZIP Code',
+            label: 'PLZ',
+            showTitle: true,
+            labelFontSize: 10,
+            labelBold: true,
+            labelColor: '#374151',
+            inputFontSize: 14,
+            required: true,
+            visible: true,
+            sortIndex: 10,
+            folderId: 1
+          },
+          {
+            id: 14,
+            type: 'text',
+            x: 560,
+            y: 295,
+            width: 80,
+            height: 50,
+            variable: 'City',
+            label: 'Ort',
+            showTitle: true,
+            labelFontSize: 10,
+            labelBold: true,
+            labelColor: '#374151',
+            inputFontSize: 14,
+            required: true,
+            visible: true,
+            sortIndex: 11,
+            folderId: 1
+          },
+          
+          // Contact Person
+          {
+            id: 15,
+            type: 'subheading',
+            x: 0,
+            y: 365,
+            width: 300,
+            height: 25,
+            content: 'Ansprechpartner',
+            fontSize: 14,
+            bold: true,
+            color: '#3B82F6',
+            visible: true,
+            sortIndex: 12,
+            folderId: 2
+          },
+          {
+            id: 16,
+            type: 'text',
+            x: 0,
+            y: 400,
+            width: 80,
+            height: 50,
+            variable: 'Salutation',
+            label: 'Anrede',
+            showTitle: true,
+            labelFontSize: 10,
+            labelBold: true,
+            labelColor: '#374151',
+            inputFontSize: 14,
+            required: true,
+            visible: true,
+            sortIndex: 13,
+            folderId: 2
+          },
+          {
+            id: 17,
+            type: 'text',
+            x: 100,
+            y: 400,
+            width: 200,
+            height: 50,
+            variable: 'Member Last Name',
+            label: 'Name Ansprechpartner',
+            showTitle: true,
+            labelFontSize: 10,
+            labelBold: true,
+            labelColor: '#374151',
+            inputFontSize: 14,
+            required: true,
+            visible: true,
+            sortIndex: 14,
+            folderId: 2
+          },
+          {
+            id: 18,
+            type: 'text',
+            x: 320,
+            y: 400,
+            width: 200,
+            height: 50,
+            variable: 'Email Address',
+            label: 'E-Mail',
+            showTitle: true,
+            labelFontSize: 10,
+            labelBold: true,
+            labelColor: '#374151',
+            inputFontSize: 14,
+            required: true,
+            visible: true,
+            sortIndex: 15,
+            folderId: 2
+          },
+          {
+            id: 19,
+            type: 'text',
+            x: 540,
+            y: 400,
+            width: 100,
+            height: 50,
+            variable: 'Telephone number',
+            label: 'Telefon',
+            showTitle: true,
+            labelFontSize: 10,
+            labelBold: true,
+            labelColor: '#374151',
+            inputFontSize: 14,
+            required: true,
+            visible: true,
+            sortIndex: 16,
+            folderId: 2
+          },
+          
+          // Pricing Section
+          {
+            id: 20,
+            type: 'divider',
+            x: 0,
+            y: 470,
+            width: 642,
+            height: 2,
+            lineColor: '#10B981',
+            lineStyle: 'solid',
+            visible: true,
+            sortIndex: 17
+          },
+          {
+            id: 21,
+            type: 'subheading',
+            x: 0,
+            y: 485,
+            width: 300,
+            height: 25,
+            content: 'Vertragskonditionen',
+            fontSize: 14,
+            bold: true,
+            color: '#10B981',
+            visible: true,
+            sortIndex: 18,
+            folderId: 3
+          },
+          {
+            id: 22,
+            type: 'system-text',
+            x: 0,
+            y: 520,
+            width: 200,
+            height: 50,
+            variable: 'Contract Type',
+            label: 'Tarifmodell',
+            showTitle: true,
+            labelFontSize: 10,
+            labelBold: true,
+            labelColor: '#374151',
+            inputFontSize: 14,
+            inputBold: true,
+            inputColor: '#10B981',
+            visible: true,
+            sortIndex: 19,
+            folderId: 3
+          },
+          {
+            id: 23,
+            type: 'system-text',
+            x: 220,
+            y: 520,
+            width: 200,
+            height: 50,
+            variable: 'Contract Cost',
+            label: 'Monatsbeitrag pro Mitarbeiter',
+            showTitle: true,
+            labelFontSize: 10,
+            labelBold: true,
+            labelColor: '#374151',
+            inputFontSize: 16,
+            inputBold: true,
+            inputColor: '#10B981',
+            visible: true,
+            sortIndex: 20,
+            folderId: 3
+          },
+          {
+            id: 24,
+            type: 'system-text',
+            x: 440,
+            y: 520,
+            width: 200,
+            height: 50,
+            variable: 'Termination Notice Period',
+            label: 'Kündigungsfrist',
+            showTitle: true,
+            labelFontSize: 10,
+            labelBold: true,
+            labelColor: '#374151',
+            inputFontSize: 14,
+            inputColor: '#1F2937',
+            visible: true,
+            sortIndex: 21,
+            folderId: 3
+          },
+          
+          // Leistungen
+          {
+            id: 25,
+            type: 'textarea',
+            x: 0,
+            y: 590,
+            width: 642,
+            height: 100,
+            content: 'Inkludierte Leistungen:\n• Unbegrenzter Zugang für alle eingetragenen Mitarbeiter\n• Kostenlose Einweisung für jeden neuen Nutzer\n• Monatliche Nutzungsstatistiken\n• Dedizierter Ansprechpartner für Ihr Unternehmen\n• Flexible An-/Abmeldung von Mitarbeitern',
+            fontSize: 11,
+            color: '#374151',
+            lineHeight: 1.5,
+            visible: true,
+            sortIndex: 22
+          },
+          
+          // Checkboxes
+          {
+            id: 26,
+            type: 'checkbox',
+            x: 0,
+            y: 700,
+            width: 642,
+            height: 50,
+            label: 'Wir akzeptieren die AGB für Firmenkunden',
+            showTitle: true,
+            checkboxTitleSize: 12,
+            titleBold: true,
+            showDescription: false,
+            required: true,
+            visible: true,
+            sortIndex: 23
+          },
+          {
+            id: 27,
+            type: 'checkbox',
+            x: 0,
+            y: 755,
+            width: 642,
+            height: 50,
+            label: 'Wir erteilen das SEPA-Lastschriftmandat',
+            showTitle: true,
+            checkboxTitleSize: 12,
+            titleBold: true,
+            showDescription: false,
+            required: true,
+            visible: true,
+            sortIndex: 24
+          },
+          
+          // Signatures
+          {
+            id: 28,
+            type: 'signature',
+            x: 0,
+            y: 820,
+            width: 300,
+            height: 90,
+            showLocationDate: true,
+            showDate: true,
+            dateFormat: 'de-DE',
+            signatureFontSize: 11,
+            showBelowSignature: true,
+            belowSignatureText: 'Unterschrift Auftraggeber (Firma)',
+            belowTextFontSize: 10,
+            belowTextColor: '#F97316',
+            required: true,
+            visible: true,
+            sortIndex: 25
+          },
+          {
+            id: 29,
+            type: 'signature',
+            x: 340,
+            y: 820,
+            width: 300,
+            height: 90,
+            showLocationDate: true,
+            showDate: true,
+            dateFormat: 'de-DE',
+            signatureFontSize: 11,
+            showBelowSignature: true,
+            belowSignatureText: 'Unterschrift FitnessPro Studio',
+            belowTextFontSize: 10,
+            belowTextColor: '#F97316',
+            required: true,
+            visible: true,
+            sortIndex: 26
+          }
+        ]
+      }
+    ],
+    createdAt: "2024-05-15T09:00:00Z",
+    updatedAt: new Date().toISOString()
+  }
 ];
 
 export const DEFAULT_CONTRACT_TYPES = [
@@ -1071,9 +4094,341 @@ export const DEFAULT_INTRODUCTORY_MATERIALS = [
   {
     id: 1,
     name: "Welcome Guide",
-    pages: [{ id: 1, title: "Welcome", content: "<p>Welcome to our studio!</p>", elements: [] }]
+    pages: [
+      { 
+        id: 1, 
+        title: "Welcome to FitnessPro", 
+        content: `<h2><span style="color: #FF6B35;">Welcome to FitnessPro Studio! 🎉</span></h2>
+<p><br></p>
+<p>We're thrilled to have you join our fitness family! This guide will help you get started on your journey to a healthier, stronger you.</p>
+<p><br></p>
+<p><img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&h=300&fit=crop" alt="Gym Welcome"></p>
+<p><br></p>
+<p><strong>What to expect:</strong></p>
+<ul>
+<li>✅ State-of-the-art equipment</li>
+<li>✅ Professional trainers ready to help</li>
+<li>✅ Clean and welcoming environment</li>
+<li>✅ Personalized training programs</li>
+</ul>`
+      },
+      { 
+        id: 2, 
+        title: "Your First Visit", 
+        content: `<h2><span style="color: #FF6B35;">Your First Visit Checklist</span></h2>
+<p><br></p>
+<p>Here's everything you need to know before your first workout:</p>
+<p><br></p>
+<p><strong><span style="font-size: 18px;">📋 What to Bring:</span></strong></p>
+<ul>
+<li><strong>Comfortable workout clothes</strong></li>
+<li><strong>Clean indoor sports shoes</strong></li>
+<li><strong>Water bottle</strong></li>
+<li><strong>Small towel</strong></li>
+<li><strong>Lock for locker</strong> (or rent one at reception)</li>
+</ul>
+<p><br></p>
+<p><img src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=600&h=250&fit=crop" alt="Workout gear"></p>
+<p><br></p>
+<p><em><span style="color: #666666;">Pro tip: Arrive 15 minutes early for your first session!</span></em></p>`
+      },
+      { 
+        id: 3, 
+        title: "Meet Your Team", 
+        content: `<h2><span style="color: #FF6B35;">Your Support Team</span></h2>
+<p><br></p>
+<p>Our dedicated team is here to support your fitness journey every step of the way.</p>
+<p><br></p>
+<p><strong>🏋️ Max Schmidt</strong> - Head Trainer</p>
+<p><span style="color: #666666;">Specializes in strength training and body transformation</span></p>
+<p><br></p>
+<p><strong>💪 Lisa Müller</strong> - Fitness Coach</p>
+<p><span style="color: #666666;">Expert in group classes and motivation</span></p>
+<p><br></p>
+<p><strong>🥗 Anna Weber</strong> - Nutritionist</p>
+<p><span style="color: #666666;">Certified nutrition expert for your dietary needs</span></p>
+<p><br></p>
+<p><img src="https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=500&h=250&fit=crop" alt="Team"></p>
+<p><br></p>
+<p><strong>Don't hesitate to ask for help!</strong> Our team loves helping members reach their goals.</p>`
+      },
+      { 
+        id: 4, 
+        title: "Contact & Hours", 
+        content: `<h2><span style="color: #FF6B35;">📍 Contact & Opening Hours</span></h2>
+<p><br></p>
+<p><strong><span style="font-size: 18px;">📞 Contact Information</span></strong></p>
+<ul>
+<li><strong>Phone:</strong> +49 30 12345678</li>
+<li><strong>Email:</strong> info@fitnesspro.de</li>
+<li><strong>Address:</strong> Musterstraße 123, 10115 Berlin</li>
+</ul>
+<p><br></p>
+<p><strong><span style="font-size: 18px;">🕐 Opening Hours</span></strong></p>
+<ul>
+<li><strong>Monday - Friday:</strong> 06:00 - 22:00</li>
+<li><strong>Saturday:</strong> 08:00 - 20:00</li>
+<li><strong>Sunday:</strong> 09:00 - 18:00</li>
+</ul>
+<p><br></p>
+<p><span style="color: #4caf50;"><strong>💡 Tip:</strong> Download our app to book classes and track your progress!</span></p>`
+      }
+    ]
+  },
+  {
+    id: 2,
+    name: "Training Basics",
+    pages: [
+      { 
+        id: 1, 
+        title: "Getting Started", 
+        content: `<h2><span style="color: #2196F3;">Training Basics 💪</span></h2>
+<p><br></p>
+<p>Whether you're new to fitness or getting back into it, these fundamentals will set you up for success.</p>
+<p><br></p>
+<p><img src="https://images.unsplash.com/photo-1581009146145-b5ef050c149a?w=600&h=280&fit=crop" alt="Training"></p>
+<p><br></p>
+<p><strong><span style="font-size: 18px;">The 3 Pillars of Fitness:</span></strong></p>
+<p><br></p>
+<p>🏋️ <strong>Strength</strong> - Build muscle and increase power</p>
+<p>❤️ <strong>Cardio</strong> - Improve heart health and endurance</p>
+<p>🧘 <strong>Flexibility</strong> - Enhance mobility and prevent injury</p>`
+      },
+      { 
+        id: 2, 
+        title: "Warm-Up Guide", 
+        content: `<h2><span style="color: #2196F3;">🔥 Proper Warm-Up</span></h2>
+<p><br></p>
+<p><strong>Never skip your warm-up!</strong> It prepares your body for exercise and prevents injuries.</p>
+<p><br></p>
+<p><strong><span style="color: #f57c00;">⏱️ 5-Minute Dynamic Warm-Up:</span></strong></p>
+<ol>
+<li><strong>Jumping Jacks</strong> - 1 minute</li>
+<li><strong>Arm Circles</strong> - 30 seconds each direction</li>
+<li><strong>Leg Swings</strong> - 30 seconds each leg</li>
+<li><strong>Hip Rotations</strong> - 30 seconds</li>
+<li><strong>Light Jogging</strong> - 1 minute</li>
+<li><strong>Dynamic Stretches</strong> - 1 minute</li>
+</ol>
+<p><br></p>
+<p><img src="https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=500&h=200&fit=crop" alt="Stretching"></p>`
+      },
+      { 
+        id: 3, 
+        title: "Exercise Form", 
+        content: `<h2><span style="color: #2196F3;">✅ Proper Exercise Form</span></h2>
+<p><br></p>
+<p>Good form is <em>everything</em>. It maximizes results and prevents injuries.</p>
+<p><br></p>
+<p><strong>🦵 Squats</strong></p>
+<p><span style="color: #666666;">Keep knees aligned with toes, back straight, chest up</span></p>
+<p><br></p>
+<p><strong>🏋️ Deadlifts</strong></p>
+<p><span style="color: #666666;">Neutral spine, engage core, push through heels</span></p>
+<p><br></p>
+<p><strong>💪 Bench Press</strong></p>
+<p><span style="color: #666666;">Feet flat, shoulder blades pinched, controlled movement</span></p>
+<p><br></p>
+<p><img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=500&h=250&fit=crop" alt="Exercise"></p>
+<p><br></p>
+<p><em><span style="color: #666666;">Ask a trainer if you're unsure about any exercise!</span></em></p>`
+      },
+      { 
+        id: 4, 
+        title: "Recovery Tips", 
+        content: `<h2><span style="color: #2196F3;">😴 Recovery & Rest</span></h2>
+<p><br></p>
+<p>Your muscles grow during rest, not during workouts. Recovery is just as important as training!</p>
+<p><br></p>
+<p><img src="https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=500&h=200&fit=crop" alt="Recovery"></p>
+<p><br></p>
+<p><strong><span style="font-size: 18px;">Recovery Essentials:</span></strong></p>
+<ul>
+<li>💤 <strong>Sleep 7-9 hours</strong> per night</li>
+<li>💧 <strong>Stay hydrated</strong> - aim for 2-3L water daily</li>
+<li>🥗 <strong>Eat protein</strong> within 2 hours post-workout</li>
+<li>🧘 <strong>Stretch & foam roll</strong> on rest days</li>
+<li>📅 <strong>Take 1-2 rest days</strong> per week</li>
+</ul>
+<p><br></p>
+<p><span style="color: #2e7d32;"><strong>Remember:</strong> Overtraining leads to injury and burnout. Listen to your body!</span></p>`
+      }
+    ]
+  },
+  {
+    id: 3,
+    name: "Studio Rules",
+    pages: [
+      { 
+        id: 1, 
+        title: "General Rules", 
+        content: `<h2><span style="color: #9C27B0;">📜 Studio Rules & Etiquette</span></h2>
+<p><br></p>
+<p>To ensure everyone has a great experience, please follow these guidelines.</p>
+<p><br></p>
+<p><img src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&h=250&fit=crop" alt="Gym"></p>
+<p><br></p>
+<p><strong><span style="color: #7b1fa2;">🏆 Golden Rules:</span></strong></p>
+<ul>
+<li>Always <strong>wipe down equipment</strong> after use</li>
+<li><strong>Re-rack weights</strong> when finished</li>
+<li>Use a <strong>towel on benches</strong></li>
+<li>Respect <strong>time limits</strong> during peak hours</li>
+<li>Keep <strong>noise levels</strong> appropriate</li>
+</ul>`
+      },
+      { 
+        id: 2, 
+        title: "Equipment Usage", 
+        content: `<h2><span style="color: #9C27B0;">🏋️ Equipment Guidelines</span></h2>
+<p><br></p>
+<p><strong><span style="color: #7b1fa2;">✅ DO:</span></strong></p>
+<ul>
+<li>Ask staff if you don't know how to use equipment</li>
+<li>Use clips/collars on barbells</li>
+<li>Share equipment during busy times</li>
+<li>Report damaged equipment immediately</li>
+</ul>
+<p><br></p>
+<p><strong><span style="color: #c62828;">❌ DON'T:</span></strong></p>
+<ul>
+<li>Drop weights unnecessarily</li>
+<li>Hog multiple machines at once</li>
+<li>Leave weights on the floor</li>
+<li>Use phone calls on the workout floor</li>
+</ul>
+<p><br></p>
+<p><em><span style="color: #666666;">30-minute time limit on cardio machines during peak hours (5-8 PM)</span></em></p>`
+      },
+      { 
+        id: 3, 
+        title: "Locker Rooms", 
+        content: `<h2><span style="color: #9C27B0;">🚿 Locker Room Etiquette</span></h2>
+<p><br></p>
+<p>Keep our changing areas clean and comfortable for everyone.</p>
+<p><br></p>
+<p>🔒 <strong>Use a lock</strong> - Don't leave valuables unsecured</p>
+<p><br></p>
+<p>⏰ <strong>Be quick</strong> - Limit time during peak hours</p>
+<p><br></p>
+<p>🧹 <strong>Stay tidy</strong> - Clean up after yourself</p>
+<p><br></p>
+<p>📵 <strong>No phones</strong> - Respect others' privacy</p>
+<p><br></p>
+<p><span style="color: #e65100;"><strong>⚠️ Note:</strong> Lockers must be emptied daily. Overnight items may be removed.</span></p>`
+      }
+    ]
+  },
+  {
+    id: 4,
+    name: "Nutrition Guide",
+    pages: [
+      { 
+        id: 1, 
+        title: "Nutrition Basics", 
+        content: `<h2><span style="color: #4CAF50;">🥗 Nutrition Fundamentals</span></h2>
+<p><br></p>
+<p><strong>You can't out-train a bad diet!</strong> Nutrition is 70% of your results.</p>
+<p><br></p>
+<p><img src="https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=600&h=280&fit=crop" alt="Healthy Food"></p>
+<p><br></p>
+<p><strong><span style="font-size: 18px;">The Macronutrients:</span></strong></p>
+<p><br></p>
+<p>🥩 <strong><span style="color: #c62828;">Protein</span></strong> - Builds and repairs muscle tissue</p>
+<p><br></p>
+<p>🍞 <strong><span style="color: #f57f17;">Carbs</span></strong> - Primary energy source for workouts</p>
+<p><br></p>
+<p>🥑 <strong><span style="color: #2e7d32;">Fats</span></strong> - Essential for hormone health</p>`
+      },
+      { 
+        id: 2, 
+        title: "Pre & Post Workout", 
+        content: `<h2><span style="color: #4CAF50;">⚡ Workout Nutrition</span></h2>
+<p><br></p>
+<p><strong><span style="color: #2e7d32;">🔋 PRE-WORKOUT (1-2 hours before)</span></strong></p>
+<p>Fuel your workout with carbs + protein:</p>
+<ul>
+<li>🍌 Banana + Peanut Butter</li>
+<li>🥣 Oatmeal + Berries</li>
+<li>🍞 Toast + Eggs</li>
+</ul>
+<p><br></p>
+<p><strong><span style="color: #e65100;">🔄 POST-WORKOUT (within 30-60 min)</span></strong></p>
+<p>Recover with protein + carbs:</p>
+<ul>
+<li>🥤 Protein Shake + Banana</li>
+<li>🍗 Chicken + Rice</li>
+<li>🥚 Eggs + Sweet Potato</li>
+</ul>
+<p><br></p>
+<p><em><span style="color: #666666;">Aim for 20-40g protein post-workout for optimal recovery!</span></em></p>`
+      },
+      { 
+        id: 3, 
+        title: "Hydration", 
+        content: `<h2><span style="color: #4CAF50;">💧 Stay Hydrated!</span></h2>
+<p><br></p>
+<p>Even mild dehydration can significantly impact your performance.</p>
+<p><br></p>
+<p><strong><span style="color: #1565c0; font-size: 24px;">💧 2-3 Liters Daily</span></strong></p>
+<p><span style="color: #1976d2;">Your daily water intake goal</span></p>
+<p><br></p>
+<p><strong><span style="font-size: 18px;">Hydration Schedule:</span></strong></p>
+<ul>
+<li>🌅 <strong>Morning:</strong> 500ml upon waking</li>
+<li>🏋️ <strong>Before workout:</strong> 500ml (2 hours before)</li>
+<li>💦 <strong>During workout:</strong> 200ml every 15-20 min</li>
+<li>✅ <strong>After workout:</strong> 500ml+ to replenish</li>
+</ul>
+<p><br></p>
+<p><span style="color: #0277bd;"><strong>Pro tip:</strong> If your urine is dark yellow, you need more water!</span></p>`
+      }
+    ]
+  },
+  {
+    id: 5,
+    name: "Group Classes",
+    pages: [
+      { 
+        id: 1, 
+        title: "Available Classes", 
+        content: `<h2><span style="color: #E91E63;">🗓️ Group Fitness Classes</span></h2>
+<p><br></p>
+<p>Join our energetic group classes led by certified instructors!</p>
+<p><br></p>
+<p><img src="https://images.unsplash.com/photo-1518611012118-696072aa579a?w=600&h=250&fit=crop" alt="Group fitness"></p>
+<p><br></p>
+<p><strong><span style="font-size: 18px;">Our Classes:</span></strong></p>
+<p><br></p>
+<p>🚴 <strong>Spinning</strong> - High intensity cardio cycling</p>
+<p><br></p>
+<p>🧘 <strong>Yoga</strong> - All levels, focus on flexibility and mindfulness</p>
+<p><br></p>
+<p>💪 <strong>HIIT</strong> - High-intensity interval training for fat burning</p>
+<p><br></p>
+<p>🥊 <strong>Boxing</strong> - Cardio kickboxing and strength training</p>`
+      },
+      { 
+        id: 2, 
+        title: "How to Book", 
+        content: `<h2><span style="color: #E91E63;">📱 Booking Classes</span></h2>
+<p><br></p>
+<p>Reserving your spot is quick and easy!</p>
+<p><br></p>
+<p><strong><span style="color: #c2185b; font-size: 18px;">3 Easy Steps:</span></strong></p>
+<p><br></p>
+<p><strong>1.</strong> <strong>Open our app</strong> or visit the reception desk</p>
+<p><br></p>
+<p><strong>2.</strong> <strong>Select your class</strong> and preferred time slot</p>
+<p><br></p>
+<p><strong>3.</strong> <strong>Confirm booking</strong> - you'll receive a reminder!</p>
+<p><br></p>
+<p><span style="color: #f57f17;"><strong>⚠️ Cancellation Policy:</strong> Please cancel at least 4 hours before class to avoid penalties.</span></p>`
+      }
+    ]
   }
 ];
+
 
 export const DEFAULT_MEMBER_SETTINGS = {
   allowMemberQRCheckIn: false,
