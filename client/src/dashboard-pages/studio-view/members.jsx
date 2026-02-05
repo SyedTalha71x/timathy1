@@ -405,10 +405,10 @@ export default function Members() {
     type: "manual",
     selectedMemberId: null,
   })
-  // memberRelationsMain wird fÃ¼r EditMember Modal verwendet
+  // memberRelationsMain wird für EditMember Modal verwendet
   const [memberRelationsMain, setMemberRelationsMain] = useState(memberRelationsMainData)
 
-  // Countries hook fÃ¼r CreateTempMemberModal
+  // Countries hook für CreateTempMemberModal
   const { countries, loading: countriesLoading } = useCountries()
 
   // 
@@ -565,7 +565,7 @@ export default function Members() {
     }))
   }
 
-  // Handler fÃ¼r erfolgreiche Erstellung eines temporÃ¤ren Members (Shared Modal)
+  // Handler für erfolgreiche Erstellung eines temporären Members (Shared Modal)
   const handleTempMemberCreated = (newMemberData) => {
     const newId = Math.max(...members.map((m) => m.id), 0) + 1
     const newTempMember = {
@@ -1235,7 +1235,7 @@ export default function Members() {
     });
   };
 
-  // App Chat Ã¶ffnen (vom Message Type Modal)
+  // App Chat öffnen (vom Message Type Modal)
   const handleOpenAppChat = () => {
     if (messageTypeModal.member) {
       setChatPopup({
@@ -1245,7 +1245,7 @@ export default function Members() {
     }
   };
 
-  // Email Modal Ã¶ffnen (vom Message Type Modal)
+  // Email Modal öffnen (vom Message Type Modal)
   const handleOpenEmailModal = () => {
     if (messageTypeModal.member) {
       setSelectedMemberForEmail(messageTypeModal.member);
@@ -1259,7 +1259,7 @@ export default function Members() {
     }
   };
 
-  // Email Modal schlieÃŸen
+  // Email Modal schließen
   const handleCloseEmailModal = () => {
     setShowEmailModal(false);
     setSelectedMemberForEmail(null);
@@ -1282,7 +1282,7 @@ export default function Members() {
     toast.success("Draft saved!");
   };
 
-  // Template auswÃ¤hlen
+  // Template auswählen
   const handleTemplateSelect = (template) => {
     setSelectedEmailTemplate(template);
     setEmailData({
@@ -1293,7 +1293,7 @@ export default function Members() {
     setShowTemplateDropdown(false);
   };
 
-  // Mitglied oder Staff fÃ¼r Email suchen
+  // Mitglied oder Staff für Email suchen
   const handleSearchMemberForEmail = (query) => {
     if (!query) return [];
     const q = query.toLowerCase();
@@ -2099,7 +2099,7 @@ export default function Members() {
                                 )}
                                 {member.dateOfBirth && (
                                   <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-700/50 text-gray-300">
-                                    {calculateAgeMain(member.dateOfBirth)} yrs â€¢ {new Date(member.dateOfBirth).toLocaleDateString('de-DE')}
+                                    {calculateAgeMain(member.dateOfBirth)} yrs • {new Date(member.dateOfBirth).toLocaleDateString('de-DE')}
                                   </span>
                                 )}
                               </div>
@@ -2242,7 +2242,7 @@ export default function Members() {
                               <span className="text-gray-400">
                                 {calculateAgeMain(member.dateOfBirth)} yrs
                               </span>
-                              <span className="text-gray-600">â€¢</span>
+                              <span className="text-gray-600">•</span>
                               <span className="text-gray-500">
                                 {new Date(member.dateOfBirth).toLocaleDateString('de-DE')}
                               </span>
@@ -2413,7 +2413,7 @@ export default function Members() {
                                   <span className="text-gray-300">
                                     {calculateAgeMain(member.dateOfBirth)} years old
                                   </span>
-                                  <span className="text-gray-600">â€¢</span>
+                                  <span className="text-gray-600">•</span>
                                   <span className="text-gray-500">
                                     {new Date(member.dateOfBirth).toLocaleDateString('de-DE')}
                                   </span>

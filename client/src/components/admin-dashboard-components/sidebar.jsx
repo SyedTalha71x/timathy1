@@ -296,18 +296,10 @@ const CustomerSidebar = ({ isOpen = false, onClose, isCollapsed: externalIsColla
   // Icons matched to the main dashboard sidebar
   // ============================================
   const menuItems = [
-    { icon: CheckSquare, label: "To-Do", to: "/admin-dashboard/to-do" },
-    { icon: FaNotesMedical, label: "Notes", to: "/admin-dashboard/notes" },
     { icon: Users, label: "Studios", to: "/admin-dashboard/studios" },
     { icon: RiContractLine, label: "Contract", to: "/admin-dashboard/contract" },
     { icon: FaPersonRays, label: "Leads", to: "/admin-dashboard/leads" },
-    { icon: MdEmail, label: "Email", to: "/admin-dashboard/email", indicatorCount: 3 },
-    { icon: BadgeDollarSign, label: "Finances", to: "/admin-dashboard/finances" },
-    { icon: FaCartPlus, label: "Marketplace", to: "/admin-dashboard/marketplace" },
-    { icon: CgGym, label: "Training", to: "/admin-dashboard/training-management" },
     { icon: RiAccountPinCircleLine, label: "Demo Access", to: "/admin-dashboard/demo-access" },
-    { icon: TbBrandGoogleAnalytics, label: "Analytics", to: "/admin-dashboard/analytics" },
-    { icon: Settings, label: "Configuration", to: "/admin-dashboard/configuration" },
     {
       icon: MdOutlineSupportAgent,
       label: "Support Area",
@@ -320,6 +312,14 @@ const CustomerSidebar = ({ isOpen = false, onClose, isCollapsed: externalIsColla
         { label: "Feedback", to: "/admin-dashboard/feedback", icon: MessageSquarePlus },
       ],
     },
+    { icon: MdEmail, label: "Email", to: "/admin-dashboard/email", indicatorCount: 3 },
+    { icon: BadgeDollarSign, label: "Finances", to: "/admin-dashboard/finances" },
+    { icon: CheckSquare, label: "To-Do", to: "/admin-dashboard/to-do" },
+    { icon: FaNotesMedical, label: "Notes", to: "/admin-dashboard/notes" },
+    { icon: CgGym, label: "Training", to: "/admin-dashboard/training-management" },
+    { icon: FaCartPlus, label: "Marketplace", to: "/admin-dashboard/marketplace" },
+    { icon: TbBrandGoogleAnalytics, label: "Analytics", to: "/admin-dashboard/analytics" },
+    { icon: Settings, label: "Configuration", to: "/admin-dashboard/configuration" },
   ]
 
   // Helper function to check if any submenu item is active
@@ -547,9 +547,6 @@ const CustomerSidebar = ({ isOpen = false, onClose, isCollapsed: externalIsColla
                       </div>
                       {!isCollapsed && <span>{item.label}</span>}
                     </button>
-
-                    {/* Divider after Configuration */}
-                    {item.label === "Configuration" && <hr className="border-zinc-700 my-2" />}
                   </li>
                 )
               })}

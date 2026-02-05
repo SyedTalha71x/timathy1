@@ -1,16 +1,24 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react/prop-types */
 import { useState, useEffect } from "react"
-import { X } from "lucide-react"
+import { X, Trash2 } from "lucide-react"
 
-export function BonusTimeModal({ contract, onClose, onSubmit }) {
-  const [bonusAmount, setBonusAmount] = useState(1)
-  const [bonusUnit, setBonusUnit] = useState("days")
-  const [withExtension, setWithExtension] = useState("Without Contract extension")
-  const [reason, setReason] = useState("")
-  const [startOption, setStartOption] = useState("current_contract_period")
-  const [startDate, setStartDate] = useState("")
-  const [bonusPeriod, setBonusPeriod] = useState("")
+export function BonusTimeModal({ contract, onClose, onSubmit, onDelete }) {
+  const existingBonus = contract?.bonusTime
+  const isEditMode = !!existingBonus
+
+  const [bonusAmount, setBonusAmount] = useState(existingBonus?.bonusAmount || 1)
+  const [bonusUnit, setBonusUnit] = useState(existingBonus?.bonusUnit || "days")
+  const [withExtension, setWithExtension] = useState(
+    existingBonus
+      ? (existingBonus.withExtension ? "With Contract extension" : "Without Contract extension")
+      : "Without Contract extension"
+  )
+  const [reason, setReason] = useState(existingBonus?.reason || "")
+  const [startOption, setStartOption] = useState(existingBonus?.startOption || "current_contract_period")
+  const [startDate, setStartDate] = useState(existingBonus?.startDate || "")
+  const [bonusPeriod, setBonusPeriod] = useState(existingBonus?.bonusPeriod || "")
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   // Calculate and update bonus period whenever relevant values change
   useEffect(() => {
@@ -71,6 +79,7 @@ export function BonusTimeModal({ contract, onClose, onSubmit }) {
   const handleSubmit = (e) => {
     e.preventDefault()
     onSubmit({
+      id: existingBonus?.id || `bt-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
       contractId: contract.id,
       bonusAmount,
       bonusUnit,
@@ -78,20 +87,63 @@ export function BonusTimeModal({ contract, onClose, onSubmit }) {
       reason,
       startOption,
       startDate: startOption === "fixed_time" ? startDate : null,
+      bonusPeriod: bonusPeriod || "",
+      createdAt: existingBonus?.createdAt || new Date().toISOString().split("T")[0],
     })
+  }
+
+  const handleDelete = () => {
+    if (onDelete) {
+      onDelete()
+    }
   }
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-[#1C1C1C] rounded-2xl w-full max-w-md relative overflow-hidden">
-        <div className="p-6">
+      {/* Delete Confirmation */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[60]">
+          <div className="bg-[#1a1a1a] rounded-2xl w-full max-w-sm p-6 mx-4 shadow-xl border border-gray-800">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-red-500/20 rounded-xl flex items-center justify-center">
+                <Trash2 className="text-red-500" size={20} />
+              </div>
+              <div>
+                <h3 className="text-white text-lg font-semibold">Remove Bonus Time</h3>
+              </div>
+            </div>
+            <p className="text-gray-300 mb-6 text-sm">
+              Are you sure you want to remove the bonus time from this contract?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                className="flex-1 px-4 py-2 bg-black text-sm text-white rounded-xl border border-gray-800 hover:bg-gray-900 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                className="flex-1 px-4 py-2 bg-red-600 text-sm text-white rounded-xl hover:bg-red-700 transition-colors"
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="bg-[#1C1C1C] rounded-2xl w-full max-w-lg relative overflow-hidden">
+        <div className="p-8">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-xl text-white font-semibold">Add Bonus Time</h3>
+            <h3 className="text-xl text-white font-semibold">
+              {isEditMode ? "Edit Bonus Time" : "Add Bonus Time"}
+            </h3>
             <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
               <X className="w-5 h-5" />
             </button>
           </div>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-gray-300 text-sm mb-2">Reason for Bonus Time</label>
               <input
@@ -182,20 +234,35 @@ export function BonusTimeModal({ contract, onClose, onSubmit }) {
                 <option value="With Contract extension">With Contract extension</option>
               </select>
             </div>
-            <div className="flex justify-end gap-2 mt-6">
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 bg-black text-sm text-white rounded-xl border border-gray-800 hover:bg-gray-900 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 bg-[#F27A30] text-sm text-white rounded-xl hover:bg-[#e06b21] transition-colors"
-              >
-                Add Bonus Time
-              </button>
+            <div className="flex justify-between items-center gap-2 mt-8 pt-4 border-t border-gray-800">
+              {/* Delete button - only shown in edit mode */}
+              {isEditMode ? (
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="px-4 py-2 bg-black text-sm text-red-400 rounded-xl border border-gray-800 hover:bg-red-900/20 hover:border-red-800 transition-colors flex items-center gap-2"
+                >
+                  <Trash2 size={14} />
+                  Remove
+                </button>
+              ) : (
+                <div />
+              )}
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-4 py-2 bg-black text-sm text-white rounded-xl border border-gray-800 hover:bg-gray-900 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-[#F27A30] text-sm text-white rounded-xl hover:bg-[#e06b21] transition-colors"
+                >
+                  {isEditMode ? "Update Bonus Time" : "Add Bonus Time"}
+                </button>
+              </div>
             </div>
           </form>
         </div>

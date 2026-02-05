@@ -8,6 +8,7 @@ export function CancelContractModal({ contract, onClose, onSubmit }) {
   const [cancelData, setCancelData] = useState({
     reason: "",
     cancelDate: "",
+    cancelToDate: "",
     extraordinaryCancellation: false,
     cancellationThroughStudio: false,
     notificationRule: true,
@@ -33,6 +34,14 @@ export function CancelContractModal({ contract, onClose, onSubmit }) {
     "Other",
   ]
 
+  // Today as YYYY-MM-DD for min date validation
+  const today = new Date().toISOString().split("T")[0]
+
+  // Contract end date as YYYY-MM-DD for max date validation
+  const contractEndDateISO = contract?.endDate
+    ? new Date(contract.endDate).toISOString().split("T")[0]
+    : ""
+
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target
     setCancelData({
@@ -51,7 +60,6 @@ export function CancelContractModal({ contract, onClose, onSubmit }) {
     if (!contract?.endDate) return null
 
     const contractEndDate = new Date(contract.endDate)
-    const today = new Date()
     const oneMonthBefore = new Date(contractEndDate)
     oneMonthBefore.setMonth(oneMonthBefore.getMonth() - 1)
 
@@ -164,8 +172,15 @@ export function CancelContractModal({ contract, onClose, onSubmit }) {
               name="cancelToDate"
               value={cancelData.cancelToDate}
               onChange={handleInputChange}
+              min={today}
+              max={contractEndDateISO}
               className="w-full bg-[#141414] text-white white-calendar-icon text-sm rounded-xl px-3 py-2.5 outline-none border border-gray-800"
             />
+            {contractEndDateISO && (
+              <p className="text-xs text-gray-500">
+                Must be between today and {new Date(contractEndDateISO).toLocaleDateString("en-GB")}
+              </p>
+            )}
           </div>
 
           <div className="bg-[#141414] p-4 rounded-xl border border-gray-800">

@@ -18,6 +18,7 @@ import {
   Rect,
   Circle as SvgCircle,
   Polygon,
+  Path,
 } from '@react-pdf/renderer';
 
 // =============================================================================
@@ -49,23 +50,23 @@ const SYSTEM_VARIABLE_MAPPING = {
   'Contract Cost': 'contractCost',
   'Termination Notice Period': 'terminationNoticePeriod',
   'Contract Renewal Duration': 'renewalDuration',
-  'SEPA Reference': 'sepaReference',
+  'Contribution Adjustment': 'contributionAdjustment',
+  'SEPA mandate reference': 'sepaReference',
 };
 
 const USER_VARIABLE_MAPPING = {
   'Salutation': 'salutation',
-  'First Name': 'firstName',
-  'Last Name': 'lastName',
-  'Street': 'street',
-  'House Number': 'houseNumber',
+  'Member First Name': 'firstName',
+  'Member Last Name': 'lastName',
+  'Street & Number': 'street',
   'ZIP Code': 'zipCode',
   'City': 'city',
-  'Telephone': 'telephone',
-  'Mobile': 'mobile',
-  'Email': 'email',
+  'Telephone number': 'telephone',
+  'Mobile number': 'mobile',
+  'Email Address': 'email',
   'Date of Birth': 'dateOfBirth',
-  'Account Holder': 'accountHolder',
-  'Bank Name': 'bankName',
+  'Account Holder (Bank)': 'accountHolder',
+  'Credit institution': 'bankName',
   'IBAN': 'iban',
   'BIC': 'bic',
 };
@@ -388,8 +389,7 @@ const PDFElement = ({ element, formValues, systemValues }) => {
             <View style={isChecked ? styles.checkboxChecked : styles.checkbox}>
               {isChecked ? (
                 <Svg width={10} height={10} viewBox="0 0 24 24">
-                  <Line x1={4} y1={12} x2={10} y2={18} stroke="#ffffff" strokeWidth={3} />
-                  <Line x1={10} y1={18} x2={20} y2={6} stroke="#ffffff" strokeWidth={3} />
+                  <Path d="M4 12 L10 18 L20 6" stroke="#ffffff" strokeWidth={3} fill="none" />
                 </Svg>
               ) : null}
             </View>

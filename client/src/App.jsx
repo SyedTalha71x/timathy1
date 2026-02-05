@@ -1,13 +1,13 @@
-import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
 import Home from "./landing-page/home";
 import Footer from "./landing-page/footer";
 import Header from "./landing-page/navbar";
 import Login from './landing-page/login';
-import { useDispatch, useSelector } from 'react-redux';
+//TEMPORARY import { useDispatch, useSelector } from 'react-redux';
 // protected Routes
-import ProtectedRoutes from "./ProtectedRoutes";
+//TEMPORARY import ProtectedRoutes from "./ProtectedRoutes";
 
-import { me } from "./features/auth/authSlice";
+//TEMPORARY import { me } from "./features/auth/authSlice";
 
 // User Panel Dashboard
 import Dashboardlayout from "./layouts/studio-view-layout";
@@ -71,47 +71,42 @@ import MemberNotificationsRemainders from './dashboard-pages/member-view/nutriti
 import MemberOfflineMode from './dashboard-pages/member-view/nutrition-tracking/offline-mode'
 import MemberBarcodeEntry from './dashboard-pages/member-view/nutrition-tracking/barcode-entry'
 import MemberNutritionAnalysis from './dashboard-pages/member-view/nutrition-analysis'
-import { useEffect } from "react";
-import { fetchMyStudio } from "./features/studio/studioSlice";
-import { fetchMyServices } from "./features/services/servicesSlice";
-import { fetchMyAppointments } from "./features/appointments/AppointmentSlice";
+//TEMPORARY import { useEffect } from "react";
+//TEMPORARY import { fetchMyStudio } from "./features/studio/studioSlice";
+//TEMPORARY import { fetchMyServices } from "./features/services/servicesSlice";
+//TEMPORARY import { fetchMyAppointments } from "./features/appointments/AppointmentSlice";
 
 // import { useEffect } from "react";
 // import { startModalWatcher } from "./utils/fixModals";
 
 function App() {
   const location = useLocation();
-  const { user, loading } = useSelector((state) => state.auth)
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
+  //TEMPORARY const { user, loading } = useSelector((state) => state.auth)
+  //TEMPORARY const dispatch = useDispatch();
+  //TEMPORARY const navigate = useNavigate();
 
   const isAuthOrDashboardPage = ["/login", "/register"].includes(location.pathname) || location.pathname.startsWith("/dashboard") || location.pathname.startsWith("/admin-dashboard") || location.pathname.startsWith("/member-view");
 
 
-  useEffect(() => {
-    dispatch(me());
-    dispatch(fetchMyServices())
-    dispatch(fetchMyAppointments())
-    dispatch(fetchMyStudio())
-  }, [dispatch]);
+  //TEMPORARY useEffect(() => {
+  //  dispatch(me());
+  //  dispatch(fetchMyServices())
+  //  dispatch(fetchMyAppointments())
+  //  dispatch(fetchMyStudio())
+  //}, [dispatch]);
 
-  useEffect(() => {
-    if (!loading && user) {
-      // redirect only if on /login or /
-      if (location.pathname === "/" || location.pathname === "/login") {
-        if (user.role === 'member') navigate("/member-view/studio-menu")
-        if (user.role === 'admin') navigate("/admin-dashboard/my-area")
-        if (user.role === 'staff') navigate("/dashboard/my-area")
-      }
-    }
-  }, [user, loading, navigate, location.pathname])
+  //TEMPORARY useEffect(() => {
+  //  if (!loading && user) {
+  //    if (location.pathname === "/" || location.pathname === "/login") {
+  //      if (user.role === 'member') navigate("/member-view/studio-menu")
+  //      if (user.role === 'admin') navigate("/admin-dashboard/my-area")
+  //      if (user.role === 'staff') navigate("/dashboard/my-area")
+  //    }
+  //  }
+  //}, [user, loading, navigate, location.pathname])
 
-  // 
-  if (loading) return <div>Loading...</div>
-  // useEffect(() => {
-  //   const observer = startModalWatcher();
-  //   return () => observer.disconnect();
-  // }, []);
+  //TEMPORARY if (loading) return <div>Loading...</div>
+
   return (
     <>
       {!isAuthOrDashboardPage && <Header />}
@@ -121,11 +116,7 @@ function App() {
     
 
 
-        <Route path="/dashboard" element={
-          <ProtectedRoutes allowedRoles={['staff']}>
-            <Dashboardlayout />
-          </ProtectedRoutes>
-        }>
+        <Route path="/dashboard" element={<Dashboardlayout />}>
           <Route path="my-area" element={<MyArea />} />
           <Route path="appointments" element={<Appointments />} />
           <Route path="to-do" element={<ToDo />} />
@@ -152,11 +143,7 @@ function App() {
 
         </Route>
 
-        <Route path="/admin-dashboard" element={
-          <ProtectedRoutes allowedRoles={["admin"]}>
-            <AdminDashboardLayout />
-          </ProtectedRoutes>
-        }>
+        <Route path="/admin-dashboard" element={<AdminDashboardLayout />}>
           <Route path="to-do" element={<AdminTodo />} />
           <Route path="contract" element={<AdminContracts />} />
           <Route path="configuration" element={<AdminConfiguration />} />
@@ -179,11 +166,7 @@ function App() {
 
         </Route>
 
-        <Route path="/member-view" element={
-          <ProtectedRoutes allowedRoles={['member']}>
-            <MemberDashboardLayout />
-          </ProtectedRoutes>
-        }>
+        <Route path="/member-view" element={<MemberDashboardLayout />}>
           <Route path="appointment" element={<MemberAppointments />} />
           <Route path="communication" element={<MemberCommuncation />} />
           <Route path="studio-menu" element={<MemberStudioMenu />} />

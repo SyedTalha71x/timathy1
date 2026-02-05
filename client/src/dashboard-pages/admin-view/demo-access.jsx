@@ -1,250 +1,472 @@
 /* eslint-disable no-constant-binary-expression */
 /* eslint-disable no-unused-vars */
-import { useState, useEffect } from "react";
-import { IoIosArrowBack, IoIosSend, IoIosClock, IoIosBuild, IoIosCreate, IoIosJournal } from "react-icons/io";
-import { MdPerson, MdEmail, MdBusiness, MdPhotoCamera } from "react-icons/md";
-import { RiShieldKeyholeLine } from "react-icons/ri";
-import { FaHistory } from "react-icons/fa";
+import { useState, useEffect, useRef } from "react";
+import {
+  Search,
+  Plus,
+  X,
+  ArrowUp,
+  ArrowDown,
+  Pencil,
+  Send,
+  Power,
+  Clock,
+  Building2,
+  Mail,
+  User,
+  Shield,
+  CalendarDays,
+  LogIn,
+} from "lucide-react";
+import { IoIosJournal } from "react-icons/io";
 import toast, { Toaster } from "react-hot-toast";
-import LeadSelectionModal from "../../components/admin-dashboard-components/demo-access-components/LeadSelectionModal";
-import TemplateSelectionModal from "../../components/admin-dashboard-components/demo-access-components/TemplateSelectionModal";
-import DemoConfiguratorModal from "../../components/admin-dashboard-components/demo-access-components/DemoConfiguratorModal";
+import DemoWizardModal from "../../components/admin-dashboard-components/demo-access-components/DemoWizardModal";
 import SendEmailModal from "../../components/admin-dashboard-components/demo-access-components/SendEmailModal";
 import CustomConfirmationModal from "../../components/admin-dashboard-components/demo-access-components/CustomConfirmationModal";
 import JournalModal from "../../components/admin-dashboard-components/demo-access-components/JournalModal";
 
-// Mock data for leads and templates
-const mockLeads = [
-  { id: 1, name: "John Smith", email: "john.smith@example.com", company: "Tech Corp" },
-  { id: 2, name: "Sarah Johnson", email: "sarah.j@example.com", company: "Fitness Plus" },
-  { id: 3, name: "Mike Wilson", email: "mike.wilson@example.com", company: "Global Gym" },
-  { id: 4, name: "Emily Davis", email: "emily.davis@example.com", company: "FitLife Studios" },
-];
+import {
+  demoAccessAccounts,
+  demoTemplates,
+  demoLeads,
+  getStatusColor,
+  getStatusDot,
+  getTemplateColor,
+  formatDate,
+  getDaysRemaining,
+  getPermissionCount,
+} from "../../utils/admin-panel-states/demo-access-states";
 
-const mockTemplates = [
-  {
-    id: "basic",
-    name: "Basic Demo",
-    description: "Limited access with core features",
-    permissions: {
-      dashboard: true,
-      analytics: false,
-      billing: false,
-      settings: false,
-      reports: true
-    }
-  },
-  {
-    id: "standard",
-    name: "Standard Demo",
-    description: "Full access with some restrictions",
-    permissions: {
-      dashboard: true,
-      analytics: true,
-      billing: false,
-      settings: true,
-      reports: true
-    }
-  },
-  {
-    id: "premium",
-    name: "Premium Demo",
-    description: "Complete platform access",
-    permissions: {
-      dashboard: true,
-      analytics: true,
-      billing: true,
-      settings: true,
-      reports: true
-    }
-  }
-];
+// ============================================
+// Helper: every demo MUST have a config sub-object
+// because JournalModal reads demo.config.studioName,
+// SendEmailModal reads demo.config.email, etc.
+// ============================================
+const ensureConfig = (demo) => {
+  if (demo.config) return demo;
+  return {
+    ...demo,
+    config: {
+      studioName: demo.studioName || "",
+      studioOwner: demo.studioOwner || "",
+      studioLogo: demo.studioLogo || null,
+      demoDuration: demo.demoDuration || 7,
+      email: demo.email || "",
+      sendEmail: true,
+    },
+  };
+};
 
-// Mock journal data
-const mockJournalData = [
-  { id: 1, action: "Demo Created", timestamp: "2024-01-20 10:30:00", user: "Admin", details: "Created demo for John Smith" },
-  { id: 2, action: "Email Sent", timestamp: "2024-01-20 10:35:00", user: "System", details: "Access email sent to john.smith@example.com" },
-  { id: 3, action: "Demo Accessed", timestamp: "2024-01-20 11:15:00", user: "John Smith", details: "User logged in for the first time" },
-  { id: 4, action: "Configuration Changed", timestamp: "2024-01-20 14:20:00", user: "Admin", details: "Changed demo duration from 7 to 14 days" },
-];
+// ============================================
+// Small UI Components
+// ============================================
+const StatusBadge = ({ status }) => {
+  const colorClass = getStatusColor(status);
+  const dotClass = getStatusDot(status);
+  return (
+    <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium border ${colorClass}`}>
+      <div className={`w-1.5 h-1.5 rounded-full ${dotClass}`} />
+      <span className="capitalize">{status}</span>
+    </div>
+  );
+};
 
+const TemplateBadge = ({ template }) => {
+  const color = getTemplateColor(template?.id);
+  return (
+    <div
+      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium"
+      style={{ backgroundColor: `${color}20`, color, border: `1px solid ${color}30` }}
+    >
+      <Shield size={10} />
+      <span>{template?.name || "Unknown"}</span>
+    </div>
+  );
+};
+
+const DaysRemainingBadge = ({ expiryDate, status }) => {
+  if (status === "inactive") return <span className="text-xs text-red-400">Deactivated</span>;
+  const days = getDaysRemaining(expiryDate);
+  if (days === null) return <span className="text-xs text-gray-500">–</span>;
+  if (days <= 0) return <span className="text-xs text-red-400">Expired</span>;
+  if (days <= 3) return <span className="text-xs text-orange-400 font-medium">{days}d remaining</span>;
+  return <span className="text-xs text-gray-400">{days}d remaining</span>;
+};
+
+// ============================================
+// Demo Card
+// ============================================
+const DemoCard = ({ demo, onViewJournal, onEdit, onResendEmail, onToggleStatus }) => {
+  const cfg = demo.config || {};
+  const { enabled, total } = getPermissionCount(demo.template?.permissions);
+
+  return (
+    <div className="bg-[#2a2a2a] rounded-2xl overflow-hidden border border-[#333333] hover:border-[#444444] transition-colors">
+      <div className="h-1" style={{ backgroundColor: getTemplateColor(demo.template?.id) }} />
+      <div className="p-4 md:p-5">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-2 mb-3">
+          <div className="min-w-0 flex-1">
+            <h3 className="text-sm md:text-base font-semibold text-white truncate">{cfg.studioName}</h3>
+            <p className="text-xs text-gray-500 truncate mt-0.5">{demo.company}</p>
+          </div>
+          <StatusBadge status={demo.status} />
+        </div>
+
+        {/* Info rows */}
+        <div className="space-y-2 mb-4">
+          <div className="flex items-center gap-2 text-xs text-gray-400">
+            <User size={12} className="text-gray-500 flex-shrink-0" />
+            <span className="truncate">{cfg.studioOwner}</span>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-gray-400">
+            <Mail size={12} className="text-gray-500 flex-shrink-0" />
+            <span className="truncate">{cfg.email}</span>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-gray-400">
+            <Clock size={12} className="text-gray-500 flex-shrink-0" />
+            <span>{cfg.demoDuration} days</span>
+            <span className="text-gray-600 mx-1">·</span>
+            <DaysRemainingBadge expiryDate={demo.expiryDate} status={demo.status} />
+          </div>
+          <div className="flex items-center gap-2">
+            <TemplateBadge template={demo.template} />
+            <span className="text-[10px] text-gray-500">{enabled}/{total} features</span>
+          </div>
+        </div>
+
+        {/* Stats bar */}
+        <div className="flex items-center gap-4 py-2.5 px-3 bg-[#1A1A1A] rounded-xl mb-4 text-xs">
+          <div className="flex items-center gap-1.5">
+            <LogIn size={11} className="text-gray-500" />
+            <span className="text-gray-400">{demo.loginCount ?? 0} <span className="hidden sm:inline">logins</span></span>
+          </div>
+          <div className="w-px h-3 bg-gray-700" />
+          <div className="flex items-center gap-1.5">
+            <CalendarDays size={11} className="text-gray-500" />
+            <span className="text-gray-400">{formatDate(demo.createdAt)}</span>
+          </div>
+          {demo.lastLogin && (
+            <>
+              <div className="w-px h-3 bg-gray-700" />
+              <span className="text-[10px] text-gray-500">Last: {formatDate(demo.lastLogin)}</span>
+            </>
+          )}
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-2">
+          <button onClick={() => onViewJournal(demo)} className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2 bg-[#333333] hover:bg-[#3F3F3F] text-gray-300 rounded-xl text-xs transition-colors">
+            <IoIosJournal size={13} />
+            <span className="hidden sm:inline">Journal</span>
+          </button>
+          <button onClick={() => onEdit(demo)} className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2 bg-[#333333] hover:bg-[#3F3F3F] text-gray-300 rounded-xl text-xs transition-colors">
+            <Pencil size={12} />
+            <span className="hidden sm:inline">Edit</span>
+          </button>
+          <button onClick={() => onResendEmail(demo)} className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2 bg-[#333333] hover:bg-[#3F3F3F] text-gray-300 rounded-xl text-xs transition-colors">
+            <Send size={12} />
+            <span className="hidden sm:inline">Email</span>
+          </button>
+          <button
+            onClick={() => onToggleStatus(demo.id)}
+            className={`p-2 rounded-xl text-xs transition-colors ${demo.status === "active" ? "bg-green-500/10 hover:bg-green-500/20 text-green-400" : "bg-red-500/10 hover:bg-red-500/20 text-red-400"}`}
+          >
+            <Power size={13} />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ============================================
+// Main Page
+// ============================================
 export default function DemoCreationPage() {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [selectedLead, setSelectedLead] = useState(null);
-  const [selectedTemplate, setSelectedTemplate] = useState(null);
-  const [demoConfig, setDemoConfig] = useState({
-    studioName: "",
-    studioOwner: "",
-    studioLogo: null,
-    demoDuration: 7,
-    email: "",
-    sendEmail: true
-  });
-  const [createdDemos, setCreatedDemos] = useState([]);
-  const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
-  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
-  const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
+  // All demos – normalized to always have config
+  const [demos, setDemos] = useState(() => demoAccessAccounts.map(ensureConfig));
+
+  // Search / filter / sort
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterStatuses, setFilterStatuses] = useState([]);
+  const [filterTemplates, setFilterTemplates] = useState([]);
+  const [sortBy, setSortBy] = useState("createdAt");
+  const [sortDirection, setSortDirection] = useState("desc");
+  const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const sortDropdownRef = useRef(null);
+
+  // Creation wizard: 0=off, 1=lead, 2=template, 3=configure
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
+  const [wizardMode, setWizardMode] = useState("create"); // "create" | "edit"
+  const [editingDemo, setEditingDemo] = useState(null);
+
+  // Modal states
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
   const [isJournalModalOpen, setIsJournalModalOpen] = useState(false);
-  const [editingDemo, setEditingDemo] = useState(null);
   const [demoToResend, setDemoToResend] = useState(null);
-  const [journalData, setJournalData] = useState(mockJournalData);
   const [selectedDemoForJournal, setSelectedDemoForJournal] = useState(null);
+  const [lastCreatedDemo, setLastCreatedDemo] = useState(null);
 
-  // Initialize with empty demo config
+  // Reactivation modal
+  const [isReactivateModalOpen, setIsReactivateModalOpen] = useState(false);
+  const [reactivateDemoId, setReactivateDemoId] = useState(null);
+  const [reactivateDays, setReactivateDays] = useState(7);
+
+  // ---- Close sort dropdown on outside click ----
   useEffect(() => {
-    if (selectedLead) {
-      setDemoConfig(prev => ({
-        ...prev,
-        studioName: `${selectedLead.company} Studio` || "",
-        studioOwner: selectedLead.name || "",
-        email: selectedLead.email || ""
-      }));
-    }
-  }, [selectedLead]);
-
-  const handleCreateDemo = () => {
-    const newDemo = {
-      id: Date.now(),
-      lead: selectedLead,
-      template: selectedTemplate,
-      config: demoConfig,
-      createdAt: new Date().toISOString(),
-      status: 'active',
-      expiryDate: new Date(Date.now() + demoConfig.demoDuration * 24 * 60 * 60 * 1000).toISOString(),
-      journal: [
-        {
-          action: "Demo Created",
-          timestamp: new Date().toISOString(),
-          user: "Admin",
-          details: `Created demo for ${demoConfig.studioName}`
-        }
-      ]
+    const handler = (e) => {
+      if (sortDropdownRef.current && !sortDropdownRef.current.contains(e.target)) {
+        setShowSortDropdown(false);
+      }
     };
+    document.addEventListener("click", handler);
+    return () => document.removeEventListener("click", handler);
+  }, []);
 
-    setCreatedDemos(prev => [newDemo, ...prev]);
-    setCurrentStep(1);
-    setSelectedLead(null);
-    setSelectedTemplate(null);
-    setDemoConfig({
-      studioName: "",
-      studioOwner: "",
-      studioLogo: null,
-      demoDuration: 7,
-      email: "",
-      sendEmail: true
+  // ---- Auto-deactivate expired demos ----
+  useEffect(() => {
+    setDemos((prev) => {
+      let changed = false;
+      const updated = prev.map((demo) => {
+        if (demo.status !== "active") return demo;
+        const days = getDaysRemaining(demo.expiryDate);
+        if (days !== null && days <= 0) {
+          changed = true;
+          return {
+            ...demo,
+            status: "inactive",
+            expiryDate: null,
+            journal: [...demo.journal, {
+              action: "Demo Deactivated",
+              timestamp: new Date().toISOString(),
+              user: "System",
+              details: "Demo expired - status set to inactive",
+            }],
+          };
+        }
+        return demo;
+      });
+      return changed ? updated : prev;
     });
+  }, []);
 
-    setIsEmailModalOpen(true);
-    toast.success("Demo created successfully!");
+  // ---- Sort helpers ----
+  const sortOptions = [
+    { value: "createdAt", label: "Created" },
+    { value: "studioName", label: "Name" },
+    { value: "status", label: "Status" },
+    { value: "demoDuration", label: "Duration" },
+    { value: "loginCount", label: "Logins" },
+  ];
+  const currentSortLabel = sortOptions.find((o) => o.value === sortBy)?.label || "Sort";
+  const getSortIcon = () => (sortDirection === "asc" ? <ArrowUp size={14} /> : <ArrowDown size={14} />);
+  const handleSortOptionClick = (value) => {
+    if (value === sortBy) setSortDirection((p) => (p === "asc" ? "desc" : "asc"));
+    else { setSortBy(value); setSortDirection("asc"); }
   };
 
-  const handleUpdateDemo = (updatedConfig, updatedTemplate) => {
-    const updatedDemos = createdDemos.map(demo => {
-      if (demo.id === editingDemo.id) {
-        const updatedExpiryDate = demo.status === 'active' 
+  // ---- Filter + sort ----
+  const getFilteredDemos = () => {
+    let filtered = demos;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter((d) =>
+        (d.config?.studioName || "").toLowerCase().includes(q) ||
+        (d.config?.studioOwner || "").toLowerCase().includes(q) ||
+        (d.config?.email || "").toLowerCase().includes(q) ||
+        (d.company || "").toLowerCase().includes(q)
+      );
+    }
+    if (filterStatuses.length > 0) filtered = filtered.filter((d) => filterStatuses.includes(d.status));
+    if (filterTemplates.length > 0) filtered = filtered.filter((d) => filterTemplates.includes(d.template?.id));
+
+    return [...filtered].sort((a, b) => {
+      let aV, bV;
+      if (sortBy === "studioName") { aV = (a.config?.studioName || "").toLowerCase(); bV = (b.config?.studioName || "").toLowerCase(); }
+      else if (sortBy === "createdAt") { aV = new Date(a.createdAt || 0).getTime(); bV = new Date(b.createdAt || 0).getTime(); }
+      else { aV = a[sortBy]; bV = b[sortBy]; if (typeof aV === "string") { aV = aV.toLowerCase(); bV = (bV || "").toLowerCase(); } }
+      if (aV < bV) return sortDirection === "asc" ? -1 : 1;
+      if (aV > bV) return sortDirection === "asc" ? 1 : -1;
+      return 0;
+    });
+  };
+
+  const activeCount = demos.filter((d) => d.status === "active").length;
+  const inactiveCount = demos.filter((d) => d.status === "inactive").length;
+
+  // Toggle helper for multi-select filter arrays
+  const toggleFilter = (arr, setArr, value) => {
+    setArr((prev) => prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]);
+  };
+
+  // =============================================
+  // CREATION FLOW (via DemoWizardModal)
+  // =============================================
+  const startCreation = () => {
+    setWizardMode("create");
+    setEditingDemo(null);
+    setIsWizardOpen(true);
+  };
+
+  const handleWizardCreate = ({ lead, template, config }) => {
+    const newDemo = ensureConfig({
+      id: Date.now(),
+      lead,
+      studioName: config.studioName,
+      studioOwner: config.studioOwner,
+      email: config.email,
+      company: lead?.company || "Unknown",
+      template,
+      demoDuration: config.demoDuration,
+      loginCount: 0,
+      lastLogin: null,
+      config: { ...config, sendEmail: true },
+      createdAt: new Date().toISOString(),
+      status: "active",
+      expiryDate: new Date(Date.now() + config.demoDuration * 24 * 60 * 60 * 1000).toISOString(),
+      journal: [{
+        action: "Demo Created",
+        timestamp: new Date().toISOString(),
+        user: "Admin",
+        details: `Created demo for ${config.studioName}`,
+      }],
+    });
+
+    setDemos((prev) => [newDemo, ...prev]);
+    setLastCreatedDemo(newDemo);
+    setIsWizardOpen(false);
+    toast.success("Demo created successfully!");
+    setTimeout(() => setIsEmailModalOpen(true), 100);
+  };
+
+  // =============================================
+  // EDIT (via DemoWizardModal in edit mode)
+  // =============================================
+  const handleEditDemo = (demo) => {
+    setEditingDemo(demo);
+    setWizardMode("edit");
+    setIsWizardOpen(true);
+  };
+
+  const handleUpdateDemo = (updatedConfig) => {
+    setDemos((prev) =>
+      prev.map((demo) => {
+        if (demo.id !== editingDemo.id) return demo;
+        const newExpiry = demo.status === "active"
           ? new Date(Date.now() + updatedConfig.demoDuration * 24 * 60 * 60 * 1000).toISOString()
           : demo.expiryDate;
-        
+        const newTemplate = updatedConfig.template || demo.template;
         return {
           ...demo,
-          template: updatedTemplate || demo.template,
-          config: updatedConfig,
-          expiryDate: updatedExpiryDate,
-          journal: [
-            ...demo.journal,
-            {
-              action: "Demo Updated",
-              timestamp: new Date().toISOString(),
-              user: "Admin",
-              details: `Updated configuration for ${updatedConfig.studioName}`
-            }
-          ]
+          template: newTemplate,
+          config: { ...demo.config, ...updatedConfig, template: undefined },
+          studioName: updatedConfig.studioName,
+          studioOwner: updatedConfig.studioOwner,
+          email: updatedConfig.email,
+          demoDuration: updatedConfig.demoDuration,
+          expiryDate: newExpiry,
+          journal: [...demo.journal, {
+            action: "Demo Updated",
+            timestamp: new Date().toISOString(),
+            user: "Admin",
+            details: `Updated configuration for ${updatedConfig.studioName}`,
+          }],
         };
-      }
-      return demo;
-    });
-    
-    setCreatedDemos(updatedDemos);
+      })
+    );
     setEditingDemo(null);
-    setIsConfigModalOpen(false);
+    setIsWizardOpen(false);
     toast.success("Demo updated successfully!");
   };
 
+  // =============================================
+  // TOGGLE STATUS
+  // =============================================
   const handleToggleDemoStatus = (demoId) => {
-    const updatedDemos = createdDemos.map(demo => {
-      if (demo.id === demoId) {
-        const newStatus = demo.status === 'active' ? 'inactive' : 'active';
-        
-        return {
-          ...demo,
-          status: newStatus,
-          // Remove expiry date when set to inactive
-          expiryDate: newStatus === 'inactive' ? null : demo.expiryDate,
-          journal: [
-            ...demo.journal,
-            {
-              action: `Demo ${newStatus === 'active' ? 'Activated' : 'Deactivated'}`,
+    const demo = demos.find((d) => d.id === demoId);
+    if (!demo) return;
+
+    if (demo.status === "active") {
+      setDemos((prev) =>
+        prev.map((d) => {
+          if (d.id !== demoId) return d;
+          return {
+            ...d,
+            status: "inactive",
+            expiryDate: null,
+            journal: [...d.journal, {
+              action: "Demo Deactivated",
               timestamp: new Date().toISOString(),
               user: "Admin",
-              details: `Demo status changed to ${newStatus}`
-            }
-          ]
-        };
-      }
-      return demo;
-    });
-    
-    setCreatedDemos(updatedDemos);
-    toast.success(`Demo status updated to ${updatedDemos.find(d => d.id === demoId).status}`);
+              details: "Demo status changed to inactive",
+            }],
+          };
+        })
+      );
+      toast.success("Demo deactivated!");
+    } else {
+      setReactivateDemoId(demoId);
+      setReactivateDays(demo.config?.demoDuration || 7);
+      setIsReactivateModalOpen(true);
+    }
   };
 
+  const handleConfirmReactivate = () => {
+    if (!reactivateDemoId) return;
+    setDemos((prev) =>
+      prev.map((d) => {
+        if (d.id !== reactivateDemoId) return d;
+        return {
+          ...d,
+          status: "active",
+          demoDuration: reactivateDays,
+          config: { ...d.config, demoDuration: reactivateDays },
+          expiryDate: new Date(Date.now() + reactivateDays * 24 * 60 * 60 * 1000).toISOString(),
+          journal: [...d.journal, {
+            action: "Demo Activated",
+            timestamp: new Date().toISOString(),
+            user: "Admin",
+            details: `Demo reactivated for ${reactivateDays} days`,
+          }],
+        };
+      })
+    );
+    setIsReactivateModalOpen(false);
+    setReactivateDemoId(null);
+    toast.success("Demo reactivated!");
+  };
+
+  // =============================================
+  // EMAIL
+  // =============================================
   const handleSendEmail = (demoId, shouldSend) => {
     if (shouldSend) {
-      // Add journal entry
-      const demo = createdDemos.find(d => d.id === demoId);
-      if (demo) {
-        const updatedDemos = createdDemos.map(d => {
-          if (d.id === demoId) {
-            return {
-              ...d,
-              journal: [
-                ...d.journal,
-                {
-                  action: "Email Sent",
-                  timestamp: new Date().toISOString(),
-                  user: "System",
-                  details: `Access email sent to ${d.config.email}`
-                }
-              ]
-            };
+      setDemos((prev) =>
+        prev.map((d) =>
+          d.id !== demoId ? d : {
+            ...d,
+            journal: [...d.journal, {
+              action: "Email Sent",
+              timestamp: new Date().toISOString(),
+              user: "System",
+              details: `Access email sent to ${d.config?.email || d.email}`,
+            }],
           }
-          return d;
-        });
-        setCreatedDemos(updatedDemos);
-      }
-      toast.success("Demo access email sent successfully!");
+        )
+      );
+      toast.success("Demo access email sent!");
     } else {
-      toast.success("Demo created without email notification");
+      toast.success("Demo created without email");
     }
     setIsEmailModalOpen(false);
     setIsConfirmationModalOpen(false);
+    setLastCreatedDemo(null);
   };
 
-  const handleSkipLead = () => {
-    setSelectedLead({
-      id: 'guest',
-      name: 'Guest User',
-      email: demoConfig.email || 'guest@example.com',
-      company: 'Unknown Company'
-    });
-    setIsLeadModalOpen(false);
-    setCurrentStep(2);
-  };
-
-  const handleResendEmail = (demoId) => {
-    setDemoToResend(demoId);
+  const handleResendEmail = (demo) => {
+    setDemoToResend(demo.id);
     setIsConfirmationModalOpen(true);
   };
 
@@ -255,368 +477,184 @@ export default function DemoCreationPage() {
     }
   };
 
+  // =============================================
+  // JOURNAL
+  // =============================================
   const handleViewJournal = (demo) => {
     setSelectedDemoForJournal(demo);
     setIsJournalModalOpen(true);
   };
 
-  const canProceedToStep2 = selectedLead !== null;
-  const canProceedToStep3 = selectedTemplate !== null;
-  const canCreateDemo = demoConfig.studioName && demoConfig.studioOwner && demoConfig.email;
+  // =============================================
+  // RENDER
+  // =============================================
+  const filteredDemos = getFilteredDemos();
+  const emailModalDemo = lastCreatedDemo || demos[0] || null;
 
   return (
-    <div className="min-h-screen rounded-3xl bg-[#1C1C1C] text-white p-4 md:p-6 lg:p-8">
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 3000,
-          style: {
-            background: "#333",
-            color: "#fff",
-          },
-        }}
-      />
+    <div className="min-h-screen rounded-3xl bg-[#1C1C1C] text-white p-4 md:p-6 transition-all duration-500 ease-in-out flex-1">
+      <Toaster position="top-right" toastOptions={{ duration: 2000, style: { background: "#333", color: "#fff" } }} />
 
-      {/* Header */}
-      <div className="mb-6 md:mb-8">
-        <div className="flex items-center gap-3 md:gap-4 mb-2">
-          <h1 className="text-xl md:text-2xl font-bold oxanium_font">Demo Access</h1>
-        </div>
-      </div>
+      {/* ======== HEADER ======== */}
+      <div className="flex items-center justify-between mb-4 sm:mb-6">
+        <div className="flex items-center gap-3">
+          <h1 className="text-white oxanium_font text-xl md:text-2xl">Demo Access</h1>
 
-      {/* Progress Steps - Mobile Optimized */}
-      <div className="flex items-center justify-center mb-8 md:mb-12">
-        <div className="flex items-center w-full max-w-5xl">
-          {/* Step 1 */}
-          <div className="flex flex-col items-center flex-1">
-            <div className={`w-8 h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 rounded-full flex items-center justify-center border-2 ${
-              currentStep >= 1 ? 'bg-blue-600 border-blue-600' : 'bg-transparent border-gray-600'
-            }`}>
-              <MdPerson size={16} className={`${currentStep >= 1 ? 'text-white' : 'text-gray-400'} md:w-5 md:h-5 lg:w-6 lg:h-6`} />
-            </div>
-            <span className="text-xs md:text-sm mt-1 md:mt-2 text-gray-300 text-center">Select Lead</span>
-          </div>
-          
-          <div className={`flex-1 h-1 mx-2 ${currentStep >= 2 ? 'bg-blue-600' : 'bg-gray-600'}`}></div>
-
-          {/* Step 2 */}
-          <div className="flex flex-col items-center flex-1">
-            <div className={`w-8 h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 rounded-full flex items-center justify-center border-2 ${
-              currentStep >= 2 ? 'bg-blue-600 border-blue-600' : 'bg-transparent border-gray-600'
-            }`}>
-              <RiShieldKeyholeLine size={16} className={`${currentStep >= 2 ? 'text-white' : 'text-gray-400'} md:w-5 md:h-5 lg:w-6 lg:h-6`} />
-            </div>
-            <span className="text-xs md:text-sm mt-1 md:mt-2 text-gray-300 text-center">Choose Template</span>
-          </div>
-
-          <div className={`flex-1 h-1 mx-2 ${currentStep >= 3 ? 'bg-blue-600' : 'bg-gray-600'}`}></div>
-
-          {/* Step 3 */}
-          <div className="flex flex-col items-center flex-1">
-            <div className={`w-8 h-8 md:w-10 md:h-10 lg:w-12 lg:h-12 rounded-full flex items-center justify-center border-2 ${
-              currentStep >= 3 ? 'bg-blue-600 border-blue-600' : 'bg-transparent border-gray-600'
-            }`}>
-              <IoIosBuild size={16} className={`${currentStep >= 3 ? 'text-white' : 'text-gray-400'} md:w-5 md:h-5 lg:w-6 lg:h-6`} />
-            </div>
-            <span className="text-xs md:text-sm mt-1 md:mt-2 text-gray-300 text-center">Configure</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Step Content */}
-      <div className="max-w-7xl mx-auto">
-        {currentStep === 1 && (
-          <div className="bg-[#2A2A2A] rounded-xl p-4 md:p-6 lg:p-8 border border-gray-700">
-            <h2 className="text-lg md:text-xl font-bold mb-2">Select a Lead</h2>
-            <p className="text-gray-400 text-sm md:text-base mb-4 md:mb-6">Choose an existing lead or proceed without one</p>
-            
-            <div className="grid grid-cols-1 gap-4 md:gap-6">
-              <div 
-                onClick={() => setIsLeadModalOpen(true)}
-                className="border-2 border-dashed border-gray-600 rounded-xl p-4 md:p-6 lg:p-8 text-center hover:border-blue-500 hover:bg-blue-500/10 transition-all cursor-pointer"
-              >
-                <MdPerson size={32} className="mx-auto text-gray-400 mb-3 md:mb-4 w-8 h-8 md:w-12 md:h-12" />
-                <h3 className="text-base md:text-lg font-semibold mb-1 md:mb-2">Select from Leads</h3>
-                <p className="text-gray-400 text-xs md:text-sm">Choose from your existing lead database</p>
-              </div>
-
-              <div 
-                onClick={handleSkipLead}
-                className="border-2 border-dashed border-gray-600 rounded-xl p-4 md:p-6 lg:p-8 text-center hover:border-green-500 hover:bg-green-500/10 transition-all cursor-pointer"
-              >
-                <MdBusiness size={32} className="mx-auto text-gray-400 mb-3 md:mb-4 w-8 h-8 md:w-12 md:h-12" />
-                <h3 className="text-base md:text-lg font-semibold mb-1 md:mb-2">Proceed Without Lead</h3>
-                <p className="text-gray-400 text-xs md:text-sm">Create demo access without linking to a specific lead</p>
-              </div>
-            </div>
-
-            {selectedLead && (
-              <div className="mt-4 md:mt-6 p-3 md:p-4 bg-green-500/10 border border-green-500 rounded-lg">
-                <p className="text-green-400 text-sm md:text-base">
-                  Selected: <strong>{selectedLead.name}</strong> ({selectedLead.email})
-                </p>
+          {/* Sort button (mobile) */}
+          <div className="lg:hidden relative" ref={sortDropdownRef}>
+            <button
+              onClick={(e) => { e.stopPropagation(); setShowSortDropdown(!showSortDropdown); }}
+              className="px-3 py-2 bg-[#2F2F2F] text-gray-300 rounded-xl text-xs hover:bg-[#3F3F3F] transition-colors flex items-center gap-2"
+            >
+              {getSortIcon()}
+              <span>{currentSortLabel}</span>
+            </button>
+            {showSortDropdown && (
+              <div className="absolute left-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[180px]">
+                <div className="py-1">
+                  <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">Sort by</div>
+                  {sortOptions.map((opt) => (
+                    <button key={opt.value} onClick={(e) => { e.stopPropagation(); handleSortOptionClick(opt.value); }}
+                      className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${sortBy === opt.value ? "text-white bg-gray-800/50" : "text-gray-300"}`}>
+                      <span>{opt.label}</span>
+                      {sortBy === opt.value && <span className="text-gray-400">{sortDirection === "asc" ? <ArrowUp size={14} /> : <ArrowDown size={14} />}</span>}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
-
-            <div className="flex justify-end mt-6 md:mt-8">
-              <button
-                onClick={() => canProceedToStep2 && setCurrentStep(2)}
-                disabled={!canProceedToStep2}
-                className="bg-blue-600 text-white px-6 py-2 md:px-8 md:py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed text-sm md:text-base w-full md:w-auto"
-              >
-                Continue to Template
-              </button>
-            </div>
           </div>
-        )}
+        </div>
 
-        {currentStep === 2 && (
-          <div className="bg-[#2A2A2A] rounded-xl p-4 md:p-6 lg:p-8 border border-gray-700">
-            <h2 className="text-lg md:text-xl font-bold mb-2">Choose Template</h2>
-            <p className="text-gray-400 text-sm md:text-base mb-4 md:mb-6">Select a template with specific permissions for the demo</p>
-            
-            <div className="grid grid-cols-1 gap-3 md:gap-4 lg:grid-cols-3">
-              {mockTemplates.map(template => (
-                <div
-                  key={template.id}
-                  onClick={() => setSelectedTemplate(template)}
-                  className={`border-2 rounded-xl p-4 md:p-6 cursor-pointer transition-all ${
-                    selectedTemplate?.id === template.id 
-                      ? 'border-blue-500 bg-blue-500/10' 
-                      : 'border-gray-600 hover:border-gray-500'
-                  }`}
-                >
-                  <RiShieldKeyholeLine size={24} className="text-blue-400 mb-2 md:mb-3 w-6 h-6 md:w-8 md:h-8" />
-                  <h3 className="font-semibold text-sm md:text-base mb-1 md:mb-2">{template.name}</h3>
-                  <p className="text-xs md:text-sm text-gray-400 mb-3 md:mb-4">{template.description}</p>
-                  <div className="space-y-1 md:space-y-2">
-                    {Object.entries(template.permissions).map(([key, value]) => (
-                      <div key={key} className="flex items-center text-xs md:text-sm">
-                        <div className={`w-1.5 h-1.5 md:w-2 md:h-2 rounded-full mr-2 ${
-                          value ? 'bg-green-400' : 'bg-red-400'
-                        }`}></div>
-                        <span className="capitalize">{key}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex flex-col-reverse md:flex-row justify-between gap-3 md:gap-0 mt-6 md:mt-8">
-              <button
-                onClick={() => setCurrentStep(1)}
-                className="bg-gray-700 text-white px-4 py-2 md:px-6 md:py-3 rounded-lg font-medium hover:bg-gray-600 transition-colors text-sm md:text-base w-full md:w-auto"
-              >
-                Back
-              </button>
-              <button
-                onClick={() => canProceedToStep3 && setCurrentStep(3)}
-                disabled={!canProceedToStep3}
-                className="bg-blue-600 text-white px-6 py-2 md:px-8 md:py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed text-sm md:text-base w-full md:w-auto"
-              >
-                Continue to Configuration
-              </button>
-            </div>
+        {/* Create button (desktop) */}
+        <div className="hidden md:block relative group">
+          <button onClick={startCreation} className="flex bg-orange-500 hover:bg-orange-600 text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors">
+            <Plus size={14} className="sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Create Demo Access</span>
+          </button>
+          <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+            <span className="font-medium">Create Demo Access</span>
+            <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">C</span>
+            <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
           </div>
-        )}
-
-        {currentStep === 3 && (
-          <div className="bg-[#2A2A2A] rounded-xl p-4 md:p-6 lg:p-8 border border-gray-700">
-            <h2 className="text-lg md:text-xl font-bold mb-2">Configure Demo Details</h2>
-            <p className="text-gray-400 text-sm md:text-base mb-4 md:mb-6">Set up the demo environment and access details</p>
-            
-            <div className="grid grid-cols-1 gap-4 md:gap-6 md:grid-cols-2 mb-4 md:mb-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Studio Name
-                </label>
-                <input
-                  type="text"
-                  value={demoConfig.studioName}
-                  onChange={(e) => setDemoConfig({...demoConfig, studioName: e.target.value})}
-                  className="w-full bg-[#1A1A1A] border border-gray-700 rounded-lg px-3 py-2 md:px-4 md:py-3 text-white focus:outline-none focus:border-blue-500 text-sm md:text-base"
-                  placeholder="Enter studio name"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Studio Owner
-                </label>
-                <input
-                  type="text"
-                  value={demoConfig.studioOwner}
-                  onChange={(e) => setDemoConfig({...demoConfig, studioOwner: e.target.value})}
-                  className="w-full bg-[#1A1A1A] border border-gray-700 rounded-lg px-3 py-2 md:px-4 md:py-3 text-white focus:outline-none focus:border-blue-500 text-sm md:text-base"
-                  placeholder="Enter owner name"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Demo Duration (Days)
-                </label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    min="1"
-                    max="30"
-                    value={demoConfig.demoDuration}
-                    onChange={(e) => setDemoConfig({...demoConfig, demoDuration: parseInt(e.target.value)})}
-                    className="w-full bg-[#1A1A1A] border border-gray-700 rounded-lg px-3 py-2 md:px-4 md:py-3 text-white focus:outline-none focus:border-blue-500 text-sm md:text-base pr-10"
-                  />
-                  <IoIosClock className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 md:w-5 md:h-5" />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Access Email
-                </label>
-                <div className="relative">
-                  <input
-                    type="email"
-                    value={demoConfig.email}
-                    onChange={(e) => setDemoConfig({...demoConfig, email: e.target.value})}
-                    className="w-full bg-[#1A1A1A] border border-gray-700 rounded-lg px-3 py-2 md:px-4 md:py-3 text-white focus:outline-none focus:border-blue-500 text-sm md:text-base pr-10"
-                    placeholder="user@example.com"
-                  />
-                  <MdEmail className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 md:w-5 md:h-5" />
-                </div>
-              </div>
-            </div>
-
-            <div className="flex flex-col-reverse md:flex-row justify-between gap-3 md:gap-0">
-              <button
-                onClick={() => setCurrentStep(2)}
-                className="bg-gray-700 text-white px-4 py-2 md:px-6 md:py-3 rounded-lg font-medium hover:bg-gray-600 transition-colors text-sm  w-full md:w-auto"
-              >
-                Back
-              </button>
-              <button
-                onClick={handleCreateDemo}
-                disabled={!canCreateDemo}
-                className="bg-orange-500 text-white px-6 py-2 md:px-8 md:py-3 rounded-lg font-medium hover:bg-orange-600 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed flex items-center justify-center gap-1 md:gap-2 text-sm  w-full md:w-auto"
-              >
-                Create Demo
-              </button>
-            </div>
-          </div>
-        )}
+        </div>
       </div>
 
-      {/* Created Demos List */}
-      {createdDemos.length > 0 && (
-        <div className="mt-8 md:mt-12">
-          <h2 className="text-lg md:text-xl font-bold mb-4 md:mb-6">Created Demos</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-            {createdDemos.map(demo => (
-              <div key={demo.id} className="bg-[#2A2A2A] rounded-xl p-4 md:p-6 border border-gray-700">
-                <div className="flex justify-between items-start mb-3 md:mb-4">
-                  <h3 className="font-semibold text-base md:text-lg truncate mr-2">{demo.config.studioName}</h3>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => handleToggleDemoStatus(demo.id)}
-                      className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${
-                        demo.status === 'active' 
-                          ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30' 
-                          : 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
-                      }`}
-                    >
-                      {demo.status}
-                    </button>
-                  </div>
-                </div>
-                
-                <div className="space-y-1 md:space-y-2 text-xs md:text-sm text-gray-400 mb-3 md:mb-4">
-                  <p className="truncate">Owner: {demo.config.studioOwner}</p>
-                  <p className="truncate">Email: {demo.config.email}</p>
-                  <p className="truncate">Template: {demo.template.name}</p>
-                  <p>Duration: {demo.config.demoDuration} days</p>
-                  {demo.status === 'active' && demo.expiryDate ? (
-                    <p className="text-xs">Expires: {new Date(demo.expiryDate).toLocaleDateString()}</p>
-                  ) : (
-                    <p className="text-xs text-red-400">Inactive - No expiry date</p>
-                  )}
-                </div>
+      {/* ======== SEARCH ======== */}
+      <div className="mb-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+          <input type="text" placeholder="Search by studio name, owner, email..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2.5 pl-9 sm:pl-10 border border-[#333333] focus:border-[#3F74FF] transition-colors" />
+          {searchQuery && (
+            <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 hover:bg-gray-700 rounded-lg transition-colors">
+              <X size={14} className="text-gray-400 hover:text-white" />
+            </button>
+          )}
+        </div>
+      </div>
 
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    onClick={() => handleViewJournal(demo)}
-                    className="flex-1 bg-purple-600 text-white py-1.5 md:py-2 px-2 md:px-3 rounded-lg text-xs md:text-sm hover:bg-purple-700 transition-colors flex items-center justify-center gap-1"
-                  >
-                    {/* <IoIosJournal size={12} className="md:w-3.5 md:h-3.5" /> */}
-                    Journal
+      {/* ======== FILTERS ======== */}
+      <div className="flex flex-wrap gap-2 sm:gap-3 mb-6">
+        <button onClick={() => { setFilterStatuses([]); setFilterTemplates([]); }}
+          className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${filterStatuses.length === 0 && filterTemplates.length === 0 ? "bg-blue-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}>
+          All ({demos.length})
+        </button>
+        <button onClick={() => toggleFilter(filterStatuses, setFilterStatuses, "active")}
+          className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors flex items-center gap-2 ${filterStatuses.includes("active") ? "bg-green-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}>
+          <div className={`w-1.5 h-1.5 rounded-full ${filterStatuses.includes("active") ? "bg-white" : "bg-green-400"}`} />
+          Active ({activeCount})
+        </button>
+        <button onClick={() => toggleFilter(filterStatuses, setFilterStatuses, "inactive")}
+          className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors flex items-center gap-2 ${filterStatuses.includes("inactive") ? "bg-red-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}>
+          <div className={`w-1.5 h-1.5 rounded-full ${filterStatuses.includes("inactive") ? "bg-white" : "bg-red-400"}`} />
+          Inactive ({inactiveCount})
+        </button>
+
+        <div className="hidden sm:block w-px h-8 bg-gray-700 self-center" />
+
+        {demoTemplates.map((tmpl) => (
+          <button key={tmpl.id} onClick={() => toggleFilter(filterTemplates, setFilterTemplates, tmpl.id)}
+            className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors flex items-center gap-2 ${filterTemplates.includes(tmpl.id) ? "text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}
+            style={filterTemplates.includes(tmpl.id) ? { backgroundColor: tmpl.color } : {}}>
+            <Shield size={12} />
+            {tmpl.name.replace(" Demo", "")}
+          </button>
+        ))}
+
+        {/* Sort (desktop) */}
+        <div className="hidden lg:block ml-auto relative" ref={sortDropdownRef}>
+          <button onClick={(e) => { e.stopPropagation(); setShowSortDropdown(!showSortDropdown); }}
+            className="px-3 sm:px-4 py-2 bg-[#2F2F2F] text-gray-300 rounded-xl text-xs sm:text-sm hover:bg-[#3F3F3F] transition-colors flex items-center gap-2">
+            {getSortIcon()} <span>{currentSortLabel}</span>
+          </button>
+          {showSortDropdown && (
+            <div className="absolute top-full right-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[180px]">
+              <div className="py-1">
+                <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">Sort by</div>
+                {sortOptions.map((opt) => (
+                  <button key={opt.value} onClick={(e) => { e.stopPropagation(); handleSortOptionClick(opt.value); }}
+                    className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${sortBy === opt.value ? "text-white bg-gray-800/50" : "text-gray-300"}`}>
+                    <span>{opt.label}</span>
+                    {sortBy === opt.value && <span className="text-gray-400">{sortDirection === "asc" ? <ArrowUp size={14} /> : <ArrowDown size={14} />}</span>}
                   </button>
-                  <button
-                    onClick={() => {
-                      setEditingDemo(demo);
-                      setIsConfigModalOpen(true);
-                    }}
-                    className="flex-1 bg-blue-600 text-white py-1.5 md:py-2 px-2 md:px-3 rounded-lg text-xs md:text-sm hover:bg-blue-700 transition-colors flex items-center justify-center gap-1"
-                  >
-                    {/* <IoIosBuild size={12} className="md:w-3.5 md:h-3.5" /> */}
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleResendEmail(demo.id)}
-                    className="flex-1 bg-orange-600 text-white py-1.5 md:py-2 px-2 md:px-3 rounded-lg text-xs md:text-sm hover:bg-orange-700 transition-colors flex items-center justify-center gap-1"
-                  >
-                    {/* <IoIosSend size={12} className="md:w-3.5 md:h-3.5" /> */}
-                    Resend Email
-                  </button>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ======== DEMO GRID ======== */}
+      {filteredDemos.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 text-gray-500">
+          <Building2 size={48} className="mb-4 text-gray-600" />
+          <p className="text-base font-medium mb-1">No demo accesses found</p>
+          <p className="text-sm text-gray-600">
+            {searchQuery || filterStatuses.length > 0 || filterTemplates.length > 0 ? "Try adjusting your filters or search query" : "Create your first demo access to get started"}
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4 pb-20 md:pb-4">
+          {filteredDemos.map((demo) => (
+            <DemoCard key={demo.id} demo={demo} onViewJournal={handleViewJournal} onEdit={handleEditDemo} onResendEmail={handleResendEmail} onToggleStatus={handleToggleDemoStatus} />
+          ))}
         </div>
       )}
 
-      {/* Modals */}
-      <LeadSelectionModal
-        isOpen={isLeadModalOpen}
-        onClose={() => setIsLeadModalOpen(false)}
-        onSelectLead={setSelectedLead}
-        leads={mockLeads}
-        onSkip={handleSkipLead}
+      {/* ======== FAB (Mobile) ======== */}
+      <button onClick={startCreation} className="md:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30" aria-label="Create Demo Access">
+        <Plus size={22} />
+      </button>
+
+      {/* ======== MODALS ======== */}
+
+      {/* 1. Unified Wizard (Create + Edit) */}
+      <DemoWizardModal
+        isOpen={isWizardOpen}
+        onClose={() => { setIsWizardOpen(false); setEditingDemo(null); }}
+        mode={wizardMode}
+        leads={demoLeads}
+        templates={demoTemplates}
+        onCreate={handleWizardCreate}
+        demo={editingDemo}
+        onUpdate={handleUpdateDemo}
       />
 
-      <TemplateSelectionModal
-        isOpen={isTemplateModalOpen}
-        onClose={() => setIsTemplateModalOpen(false)}
-        onSelectTemplate={setSelectedTemplate}
-        templates={mockTemplates}
-      />
-
-      {editingDemo && (
-        <DemoConfiguratorModal
-          isOpen={isConfigModalOpen}
-          onClose={() => {
-            setIsConfigModalOpen(false);
-            setEditingDemo(null);
-          }}
-          demo={editingDemo}
-          onUpdate={handleUpdateDemo}
-          availableTemplates={mockTemplates}
-        />
-      )}
-
-      {createdDemos[0] && (
+      {/* 4. Send Email */}
+      {emailModalDemo && (
         <SendEmailModal
           isOpen={isEmailModalOpen}
-          onClose={() => setIsEmailModalOpen(false)}
-          demo={createdDemos[0]}
-          onSend={(shouldSend) => handleSendEmail(createdDemos[0].id, shouldSend)}
+          onClose={() => { setIsEmailModalOpen(false); setLastCreatedDemo(null); }}
+          demo={emailModalDemo}
+          onSend={(shouldSend) => handleSendEmail(emailModalDemo.id, shouldSend)}
         />
       )}
 
+      {/* 5. Confirm Resend */}
       <CustomConfirmationModal
         isOpen={isConfirmationModalOpen}
-        onClose={() => {
-          setIsConfirmationModalOpen(false);
-          setDemoToResend(null);
-        }}
+        onClose={() => { setIsConfirmationModalOpen(false); setDemoToResend(null); }}
         onConfirm={handleConfirmResend}
         title="Resend Email"
         message="Are you sure you want to send the email again?"
@@ -624,14 +662,66 @@ export default function DemoCreationPage() {
         confirmColor="orange"
       />
 
+      {/* 6. Journal */}
       <JournalModal
         isOpen={isJournalModalOpen}
-        onClose={() => {
-          setIsJournalModalOpen(false);
-          setSelectedDemoForJournal(null);
-        }}
+        onClose={() => { setIsJournalModalOpen(false); setSelectedDemoForJournal(null); }}
         demo={selectedDemoForJournal}
       />
+
+      {/* 7. Reactivate – ask for days */}
+      {isReactivateModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#1A1A1A] rounded-xl max-w-sm w-full border border-gray-800">
+            <div className="p-6 border-b border-gray-800 flex justify-between items-start">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center">
+                  <Power size={20} className="text-green-400" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-white">Reactivate Demo</h2>
+                  <p className="text-gray-400 text-sm mt-1">Set the new demo duration</p>
+                </div>
+              </div>
+              <button
+                onClick={() => { setIsReactivateModalOpen(false); setReactivateDemoId(null); }}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-6">
+              <label className="block text-sm font-medium text-gray-300 mb-2">Duration (Days)</label>
+              <div className="relative">
+                <input
+                  type="number"
+                  min="1"
+                  max="90"
+                  value={reactivateDays}
+                  onChange={(e) => setReactivateDays(parseInt(e.target.value) || 7)}
+                  className="w-full bg-[#2A2A2A] border border-gray-700 rounded-lg pl-10 pr-4 py-3 text-white focus:outline-none focus:border-green-500"
+                />
+                <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+              </div>
+              <p className="text-xs text-gray-500 mt-2">The demo will be active for {reactivateDays} day{reactivateDays !== 1 ? "s" : ""} starting from now.</p>
+              <div className="flex gap-3 mt-6">
+                <button
+                  onClick={() => { setIsReactivateModalOpen(false); setReactivateDemoId(null); }}
+                  className="flex-1 bg-gray-700 text-white py-3 px-4 rounded-lg hover:bg-gray-600 transition-colors font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmReactivate}
+                  className="flex-1 bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition-colors font-medium"
+                >
+                  Reactivate
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

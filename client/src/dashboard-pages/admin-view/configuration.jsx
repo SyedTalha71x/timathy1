@@ -13,9 +13,7 @@ import {
   FileText,
   PauseCircle,
   Mail,
-  Palette,
-  Sun,
-  Moon,
+
   Upload,
   ChevronRight,
   ChevronDown,
@@ -32,14 +30,12 @@ import {
   EyeOff,
   History,
   Scale,
-  BadgeDollarSign,
   UserPlus,
   Globe,
   Phone,
   AtSign,
   Lock,
   Send,
-  Clipboard,
   Server,
   Calendar,
 } from "lucide-react"
@@ -49,6 +45,7 @@ import dayjs from "dayjs"
 
 
 import defaultLogoUrl from "../../../public/gray-avatar-fotor-20250912192528.png"
+import { WysiwygEditor } from "../../components/shared/WysiwygEditor"
 
 // Import configuration defaults from admin-panel-states (Single Source of Truth)
 import {
@@ -58,47 +55,18 @@ import {
   DEFAULT_REGISTRATION_EMAIL,
   DEFAULT_CONTACT_DATA,
   DEFAULT_LEGAL_INFO,
-  DEFAULT_APPEARANCE,
-  CURRENCY_OPTIONS,
   DEFAULT_CONTRACT_PAUSE_REASONS,
   DEFAULT_LEAD_SOURCES,
   CONFIGURATION_NAV_ITEMS,
+  DEMO_MENU_ITEMS,
+  DEFAULT_DEMO_TEMPLATES,
 } from "../../utils/admin-panel-states/configuration-states"
 
 // ============================================
 // Reusable Components (matching studio design)
 // ============================================
 
-// WYSIWYG Editor Component
-const WysiwygEditor = ({ value, onChange, placeholder, minHeight = 200 }) => {
-  const editorRef = useRef(null)
-  
-  // Simple contentEditable implementation
-  const handleInput = (e) => {
-    if (onChange) {
-      onChange(e.target.innerHTML)
-    }
-  }
-
-  return (
-    <div className="relative">
-      <div
-        ref={editorRef}
-        contentEditable
-        onInput={handleInput}
-        dangerouslySetInnerHTML={{ __html: value || "" }}
-        className="w-full bg-[#141414] text-white rounded-xl px-4 py-3 text-sm outline-none border border-[#333333] focus:border-[#3F74FF] transition-colors overflow-y-auto"
-        style={{ minHeight: `${minHeight}px` }}
-        data-placeholder={placeholder}
-      />
-      {!value && (
-        <span className="absolute top-3 left-4 text-gray-500 pointer-events-none text-sm">
-          {placeholder}
-        </span>
-      )}
-    </div>
-  )
-}
+// WysiwygEditor imported from shared components (see import above)
 
 // Section Header Component
 const SectionHeader = ({ title, description, action }) => (
@@ -329,13 +297,11 @@ const InfoTooltip = ({ content, position = "left" }) => (
 // ============================================
 // Navigation Items - map iconNames from configuration-states to actual icon components
 // ============================================
-const iconMap = { User, Building2, BadgeDollarSign, Palette, RiContractLine, UserPlus, Mail, History }
+const iconMap = { User, Building2, RiContractLine, UserPlus, Mail, History, Shield }
 const navigationItems = CONFIGURATION_NAV_ITEMS.map(item => ({
   ...item,
   icon: iconMap[item.iconName] || Settings,
 }))
-
-// CURRENCY_OPTIONS is imported from admin-panel-states/configuration-states
 
 // ============================================
 // Main Configuration Page Component
@@ -388,16 +354,6 @@ const ConfigurationPage = () => {
   const [legalInfo, setLegalInfo] = useState({ ...DEFAULT_LEGAL_INFO })
 
   // ============================================
-  // Finances State (initialized from configuration-states)
-  // ============================================
-  const [currency, setCurrency] = useState(CURRENCY_OPTIONS[0]?.value || "€")
-
-  // ============================================
-  // Appearance State (initialized from configuration-states)
-  // ============================================
-  const [appearance, setAppearance] = useState({ ...DEFAULT_APPEARANCE })
-
-  // ============================================
   // Contracts State (initialized from configuration-states)
   // ============================================
   const [contractTypes, setContractTypes] = useState([])
@@ -430,6 +386,12 @@ const ConfigurationPage = () => {
     color: "#3b82f6",
     content: "",
   })
+
+  // ============================================
+  // Demo Access Templates State (from configuration-states)
+  // ============================================
+  const [demoTemplates, setDemoTemplates] = useState([...DEFAULT_DEMO_TEMPLATES])
+  const [editingTemplate, setEditingTemplate] = useState(null)
 
   // ============================================
   // Helper Functions
@@ -668,6 +630,64 @@ const ConfigurationPage = () => {
 
   const handleSaveConfiguration = () => {
     notification.success({ message: "Configuration saved successfully!" })
+  }
+
+  // ============================================
+  // Demo Template Handlers
+  // ============================================
+  const handleAddDemoTemplate = () => {
+    const newTemplate = {
+      id: Date.now(),
+      name: "",
+      description: "",
+      color: "#3b82f6",
+      permissions: Object.fromEntries(DEMO_MENU_ITEMS.map(m => [m.key, false])),
+    }
+    setDemoTemplates([...demoTemplates, newTemplate])
+    setEditingTemplate(newTemplate.id)
+  }
+
+  const handleUpdateDemoTemplate = (id, field, value) => {
+    setDemoTemplates(demoTemplates.map(t => t.id === id ? { ...t, [field]: value } : t))
+  }
+
+  const handleToggleTemplatePermission = (id, key) => {
+    setDemoTemplates(demoTemplates.map(t => {
+      if (t.id !== id) return t
+      return { ...t, permissions: { ...t.permissions, [key]: !t.permissions[key] } }
+    }))
+  }
+
+  const handleToggleAllPermissions = (id, value) => {
+    setDemoTemplates(demoTemplates.map(t => {
+      if (t.id !== id) return t
+      return { ...t, permissions: Object.fromEntries(DEMO_MENU_ITEMS.map(m => [m.key, value])) }
+    }))
+  }
+
+  const handleRemoveDemoTemplate = (id) => {
+    Modal.confirm({
+      title: "Remove Template",
+      content: "Are you sure you want to remove this template? This cannot be undone.",
+      okText: "Remove",
+      okType: "danger",
+      onOk: () => {
+        setDemoTemplates(demoTemplates.filter(t => t.id !== id))
+        if (editingTemplate === id) setEditingTemplate(null)
+      }
+    })
+  }
+
+  const handleDuplicateDemoTemplate = (template) => {
+    const duplicate = {
+      ...template,
+      id: Date.now(),
+      name: `${template.name} (Copy)`,
+      permissions: { ...template.permissions },
+    }
+    setDemoTemplates([...demoTemplates, duplicate])
+    setEditingTemplate(duplicate.id)
+    notification.success({ message: "Template duplicated" })
   }
 
   // ============================================
@@ -939,6 +959,7 @@ const ConfigurationPage = () => {
                     value={legalInfo.imprint}
                     onChange={(v) => setLegalInfo({ ...legalInfo, imprint: v })}
                     placeholder="Enter your company's imprint information..."
+                    showImages={true}
                     minHeight={150}
                   />
                 </div>
@@ -953,6 +974,7 @@ const ConfigurationPage = () => {
                     value={legalInfo.privacyPolicy}
                     onChange={(v) => setLegalInfo({ ...legalInfo, privacyPolicy: v })}
                     placeholder="Enter your privacy policy..."
+                    showImages={true}
                     minHeight={200}
                   />
                 </div>
@@ -967,203 +989,9 @@ const ConfigurationPage = () => {
                     value={legalInfo.termsAndConditions}
                     onChange={(v) => setLegalInfo({ ...legalInfo, termsAndConditions: v })}
                     placeholder="Enter your terms and conditions..."
+                    showImages={true}
                     minHeight={200}
                   />
-                </div>
-              </div>
-            </SettingsCard>
-          </div>
-        )
-
-      // ========================
-      // FINANCES SECTION
-      // ========================
-      case "currency-settings":
-        return (
-          <div className="space-y-6">
-            <SectionHeader title="Currency Settings" description="Set the default currency for your platform" />
-            
-            <SettingsCard>
-              <div className="max-w-md">
-                <SelectField
-                  label="Default Currency"
-                  value={currency}
-                  onChange={setCurrency}
-                  options={CURRENCY_OPTIONS}
-                  placeholder="Select currency"
-                />
-                <p className="text-xs text-gray-500 mt-2">
-                  This currency will be used for all pricing and financial displays across the platform.
-                </p>
-              </div>
-            </SettingsCard>
-          </div>
-        )
-
-      // ========================
-      // APPEARANCE SECTION
-      // ========================
-      case "theme-settings":
-        return (
-          <div className="space-y-6">
-            <SectionHeader title="Theme Settings" description="Customize the look and feel of your platform" />
-            
-            <SettingsCard>
-              <div className="space-y-6">
-                {/* Theme Selection */}
-                <div>
-                  <label className="text-sm font-medium text-gray-300 mb-3 block">Default Theme</label>
-                  <div className="flex flex-col sm:flex-row gap-4">
-                    <button
-                      onClick={() => setAppearance({ ...appearance, theme: "light" })}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors flex-1 sm:flex-none ${
-                        appearance.theme === "light"
-                          ? "border-orange-500 bg-orange-500/10"
-                          : "border-[#333333] hover:border-[#444444]"
-                      }`}
-                    >
-                      <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center">
-                        <Sun className="w-4 h-4 text-gray-800" />
-                      </div>
-                      <span className="text-white">Light Mode</span>
-                    </button>
-                    <button
-                      onClick={() => setAppearance({ ...appearance, theme: "dark" })}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors flex-1 sm:flex-none ${
-                        appearance.theme === "dark"
-                          ? "border-orange-500 bg-orange-500/10"
-                          : "border-[#333333] hover:border-[#444444]"
-                      }`}
-                    >
-                      <div className="w-8 h-8 rounded-lg bg-[#1C1C1C] flex items-center justify-center border border-[#333333]">
-                        <Moon className="w-4 h-4 text-white" />
-                      </div>
-                      <span className="text-white">Dark Mode</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Toggle for user theme */}
-                <Toggle
-                  label="Allow Users to Toggle Theme"
-                  checked={appearance.allowUserThemeToggle}
-                  onChange={(v) => setAppearance({ ...appearance, allowUserThemeToggle: v })}
-                  helpText="Users can switch between light and dark mode"
-                />
-
-                <div className="h-px bg-[#333333]" />
-
-                {/* Color Pickers */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
-                      Primary Color
-                      <InfoTooltip content="Used for buttons, links, and primary actions" />
-                    </label>
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="color"
-                        value={appearance.primaryColor}
-                        onChange={(e) => setAppearance({ ...appearance, primaryColor: e.target.value })}
-                        className="w-10 h-10 rounded-lg cursor-pointer bg-transparent border border-[#333333] p-1"
-                      />
-                      <input
-                        type="text"
-                        value={appearance.primaryColor}
-                        onChange={(e) => setAppearance({ ...appearance, primaryColor: e.target.value })}
-                        className="flex-1 bg-[#141414] text-white rounded-lg px-3 py-2 text-sm font-mono border border-[#333333] uppercase"
-                        maxLength={7}
-                      />
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(appearance.primaryColor)
-                          notification.success({ message: "Copied!", duration: 1.5 })
-                        }}
-                        className="p-2 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-lg transition-colors"
-                      >
-                        <Clipboard className="w-4 h-4 text-gray-400" />
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
-                      Secondary Color
-                      <InfoTooltip content="Used for accents and secondary elements" position="right" />
-                    </label>
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="color"
-                        value={appearance.secondaryColor}
-                        onChange={(e) => setAppearance({ ...appearance, secondaryColor: e.target.value })}
-                        className="w-10 h-10 rounded-lg cursor-pointer bg-transparent border border-[#333333] p-1"
-                      />
-                      <input
-                        type="text"
-                        value={appearance.secondaryColor}
-                        onChange={(e) => setAppearance({ ...appearance, secondaryColor: e.target.value })}
-                        className="flex-1 bg-[#141414] text-white rounded-lg px-3 py-2 text-sm font-mono border border-[#333333] uppercase"
-                        maxLength={7}
-                      />
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(appearance.secondaryColor)
-                          notification.success({ message: "Copied!", duration: 1.5 })
-                        }}
-                        className="p-2 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-lg transition-colors"
-                      >
-                        <Clipboard className="w-4 h-4 text-gray-400" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </SettingsCard>
-
-            {/* Theme Preview */}
-            <SettingsCard>
-              <h4 className="text-white font-medium mb-4">Theme Preview</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Light Mode Preview */}
-                <div className="p-4 rounded-xl border border-[#333333] bg-white">
-                  <h5 className="text-gray-900 font-medium mb-3">Light Mode</h5>
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    <button 
-                      className="px-4 py-2 rounded-lg text-white text-sm"
-                      style={{ backgroundColor: appearance.primaryColor }}
-                    >
-                      Primary Button
-                    </button>
-                    <button 
-                      className="px-4 py-2 rounded-lg text-white text-sm"
-                      style={{ backgroundColor: appearance.secondaryColor }}
-                    >
-                      Secondary Button
-                    </button>
-                  </div>
-                  <p className="text-gray-700 text-sm">Sample text in light mode</p>
-                  <p className="text-sm" style={{ color: appearance.primaryColor }}>Colored text using primary color</p>
-                </div>
-
-                {/* Dark Mode Preview */}
-                <div className="p-4 rounded-xl border border-[#333333] bg-[#101010]">
-                  <h5 className="text-white font-medium mb-3">Dark Mode</h5>
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    <button 
-                      className="px-4 py-2 rounded-lg text-white text-sm"
-                      style={{ backgroundColor: appearance.primaryColor }}
-                    >
-                      Primary Button
-                    </button>
-                    <button 
-                      className="px-4 py-2 rounded-lg text-white text-sm"
-                      style={{ backgroundColor: appearance.secondaryColor }}
-                    >
-                      Secondary Button
-                    </button>
-                  </div>
-                  <p className="text-white text-sm">Sample text in dark mode</p>
-                  <p className="text-sm" style={{ color: appearance.primaryColor }}>Colored text using primary color</p>
                 </div>
               </div>
             </SettingsCard>
@@ -1238,7 +1066,7 @@ const ConfigurationPage = () => {
                           />
                         </div>
                         <div className="space-y-1.5">
-                          <label className="text-sm font-medium text-gray-300">Cost ({currency})</label>
+                          <label className="text-sm font-medium text-gray-300">Cost</label>
                           <input
                             type="number"
                             value={type.cost}
@@ -1440,11 +1268,27 @@ const ConfigurationPage = () => {
                         {v.replace(/{|}/g, "").replace(/_/g, " ")}
                       </button>
                     ))}
+                    <span className="text-xs text-gray-500 mx-2">|</span>
+                    <span className="text-xs text-gray-500 mr-1">Insert:</span>
+                    <button
+                      onClick={() => {
+                        if (emailSignature) {
+                          setDemoEmail({ ...demoEmail, content: (demoEmail.content || "") + emailSignature })
+                        } else {
+                          notification.warning({ message: "No email signature configured", description: "Please set up your email signature first." })
+                        }
+                      }}
+                      className="px-2 py-1 bg-orange-500 text-white text-xs rounded-lg hover:bg-orange-600 flex items-center gap-1"
+                    >
+                      <FileText className="w-3 h-3" />
+                      Email Signature
+                    </button>
                   </div>
                   <WysiwygEditor
                     value={demoEmail.content}
                     onChange={(v) => setDemoEmail({ ...demoEmail, content: v })}
                     placeholder="Compose your demo access email content..."
+                    showImages={true}
                     minHeight={180}
                   />
                 </div>
@@ -1500,11 +1344,27 @@ const ConfigurationPage = () => {
                         {v.replace(/{|}/g, "").replace(/_/g, " ")}
                       </button>
                     ))}
+                    <span className="text-xs text-gray-500 mx-2">|</span>
+                    <span className="text-xs text-gray-500 mr-1">Insert:</span>
+                    <button
+                      onClick={() => {
+                        if (emailSignature) {
+                          setRegistrationEmail({ ...registrationEmail, content: (registrationEmail.content || "") + emailSignature })
+                        } else {
+                          notification.warning({ message: "No email signature configured", description: "Please set up your email signature first." })
+                        }
+                      }}
+                      className="px-2 py-1 bg-orange-500 text-white text-xs rounded-lg hover:bg-orange-600 flex items-center gap-1"
+                    >
+                      <FileText className="w-3 h-3" />
+                      Email Signature
+                    </button>
                   </div>
                   <WysiwygEditor
                     value={registrationEmail.content}
                     onChange={(v) => setRegistrationEmail({ ...registrationEmail, content: v })}
                     placeholder="Dear {First_Name}, welcome to {Studio_Name}!..."
+                    showImages={true}
                     minHeight={180}
                   />
                 </div>
@@ -1536,51 +1396,32 @@ const ConfigurationPage = () => {
       case "email-signature":
         return (
           <div className="space-y-6">
-            <SectionHeader title="Email Signature" description="Default signature for all outgoing emails" />
+            <SectionHeader title="Email Signature" description="Default signature appended to all outgoing emails" />
             
             <SettingsCard>
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium text-gray-300 mb-2 block">Signature Content</label>
-                  <div className="flex flex-wrap items-center gap-2 mb-2">
-                    <span className="text-xs text-gray-500">Variables:</span>
-                    {["{Studio_Name}", "{Your_Name}", "{Phone_Number}", "{Email}"].map(v => (
-                      <button
-                        key={v}
-                        onClick={() => setEmailSignature(emailSignature + v)}
-                        className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
-                      >
-                        {v.replace(/{|}/g, "").replace(/_/g, " ")}
-                      </button>
-                    ))}
-                  </div>
-                  <WysiwygEditor
-                    value={emailSignature}
-                    onChange={setEmailSignature}
-                    placeholder="Best regards,&#10;{Studio_Name} Team"
-                    minHeight={150}
-                  />
+              <div className="space-y-3">
+                <p className="text-sm text-gray-400">
+                  This signature can be inserted into your email notification templates using the orange "Email Signature" button.
+                </p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs text-gray-500 mr-1">Variables:</span>
+                  {["{Studio_Name}", "{Studio_Operator}", "{Studio_Phone}", "{Studio_Email}", "{Studio_Website}", "{Studio_Address}"].map(v => (
+                    <button
+                      key={v}
+                      onClick={() => setEmailSignature((emailSignature || "") + v)}
+                      className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
+                    >
+                      {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                    </button>
+                  ))}
                 </div>
-
-                {/* Signature Options */}
-                <div className="space-y-3 pt-4 border-t border-[#333333]">
-                  <h4 className="text-white font-medium">Signature Options</h4>
-                  <Toggle
-                    label="Automatically append signature to all outgoing emails"
-                    checked={true}
-                    onChange={() => {}}
-                  />
-                  <Toggle
-                    label="Include signature in replies and forwards"
-                    checked={false}
-                    onChange={() => {}}
-                  />
-                  <Toggle
-                    label="Use HTML signature format"
-                    checked={true}
-                    onChange={() => {}}
-                  />
-                </div>
+                <WysiwygEditor
+                  value={emailSignature}
+                  onChange={setEmailSignature}
+                  placeholder="Best regards,&#10;{Studio_Name} Team&#10;{Studio_Phone} | {Studio_Email}"
+                  showImages={true}
+                  minHeight={120}
+                />
               </div>
             </SettingsCard>
           </div>
@@ -1624,7 +1465,7 @@ const ConfigurationPage = () => {
                       type="password"
                       value={smtpConfig.smtpPass}
                       onChange={(e) => setSmtpConfig({ ...smtpConfig, smtpPass: e.target.value })}
-                      placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                      placeholder="Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢"
                       className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
                     />
                   </div>
@@ -1728,6 +1569,7 @@ const ConfigurationPage = () => {
                     value={newChangelog.content}
                     onChange={(v) => setNewChangelog({ ...newChangelog, content: v })}
                     placeholder="Describe the changes in this version..."
+                    showImages={true}
                     minHeight={120}
                   />
                 </div>
@@ -1788,6 +1630,180 @@ const ConfigurationPage = () => {
                 </div>
               )}
             </SettingsCard>
+          </div>
+        )
+
+      // ========================
+      // DEMO ACCESS SECTIONS
+      // ========================
+      case "demo-templates":
+        return (
+          <div className="space-y-6">
+            <SectionHeader
+              title="Demo Access Templates"
+              description="Create and manage permission templates for demo access"
+              action={
+                <button
+                  onClick={handleAddDemoTemplate}
+                  className="px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  New Template
+                </button>
+              }
+            />
+
+            {/* Mobile add button */}
+            <div className="md:hidden">
+              <button
+                onClick={handleAddDemoTemplate}
+                className="w-full px-4 py-2.5 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                New Template
+              </button>
+            </div>
+
+            {demoTemplates.length === 0 ? (
+              <SettingsCard>
+                <div className="text-center py-8 text-gray-400">
+                  <Shield className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>No templates yet</p>
+                  <p className="text-sm mt-1">Create your first demo access template</p>
+                </div>
+              </SettingsCard>
+            ) : (
+              <div className="space-y-4">
+                {demoTemplates.map((template) => {
+                  const isEditing = editingTemplate === template.id
+                  const enabledCount = Object.values(template.permissions).filter(Boolean).length
+                  const totalCount = DEMO_MENU_ITEMS.length
+
+                  return (
+                    <SettingsCard key={template.id}>
+                      {/* Template header */}
+                      <div className="flex items-start gap-3 mb-4">
+                        <div
+                          className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                          style={{ backgroundColor: `${template.color}20` }}
+                        >
+                          <Shield className="w-5 h-5" style={{ color: template.color }} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          {isEditing ? (
+                            <div className="space-y-3">
+                              <InputField
+                                label="Template Name"
+                                value={template.name}
+                                onChange={(v) => handleUpdateDemoTemplate(template.id, "name", v)}
+                                placeholder="e.g. Full Access, Basic View..."
+                                required
+                              />
+                              <InputField
+                                label="Description"
+                                value={template.description}
+                                onChange={(v) => handleUpdateDemoTemplate(template.id, "description", v)}
+                                placeholder="Describe what this template is for..."
+                                rows={2}
+                              />
+                              <div className="space-y-1.5">
+                                <label className="text-sm font-medium text-gray-300">Color</label>
+                                <div className="flex items-center gap-3">
+                                  <input
+                                    type="color"
+                                    value={template.color}
+                                    onChange={(e) => handleUpdateDemoTemplate(template.id, "color", e.target.value)}
+                                    className="w-10 h-10 rounded-lg cursor-pointer bg-transparent border border-[#333333] p-1"
+                                  />
+                                  <span className="text-xs text-gray-500 font-mono uppercase">{template.color}</span>
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <div className="flex items-center gap-2">
+                                <h3 className="text-white font-medium">{template.name || "Unnamed Template"}</h3>
+                                <span className="text-xs text-gray-500">{enabledCount}/{totalCount} menus</span>
+                              </div>
+                              {template.description && (
+                                <p className="text-sm text-gray-400 mt-0.5">{template.description}</p>
+                              )}
+                            </>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          <button
+                            onClick={() => setEditingTemplate(isEditing ? null : template.id)}
+                            className={`p-2 rounded-lg transition-colors ${
+                              isEditing ? "bg-orange-500/20 text-orange-400" : "text-gray-400 hover:bg-[#2F2F2F] hover:text-white"
+                            }`}
+                          >
+                            {isEditing ? <Check className="w-4 h-4" /> : <Edit className="w-4 h-4" />}
+                          </button>
+                          <button
+                            onClick={() => handleDuplicateDemoTemplate(template)}
+                            className="p-2 text-gray-400 hover:bg-[#2F2F2F] hover:text-white rounded-lg transition-colors"
+                          >
+                            <Copy className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleRemoveDemoTemplate(template.id)}
+                            className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Permissions grid */}
+                      <div>
+                        <div className="flex items-center justify-between mb-3">
+                          <label className="text-sm font-medium text-gray-300">Menu Permissions</label>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleToggleAllPermissions(template.id, true)}
+                              className="text-xs text-green-400 hover:text-green-300 transition-colors"
+                            >
+                              Enable All
+                            </button>
+                            <span className="text-gray-600">|</span>
+                            <button
+                              onClick={() => handleToggleAllPermissions(template.id, false)}
+                              className="text-xs text-red-400 hover:text-red-300 transition-colors"
+                            >
+                              Disable All
+                            </button>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                          {DEMO_MENU_ITEMS.map((menuItem) => {
+                            const isEnabled = template.permissions[menuItem.key]
+                            return (
+                              <button
+                                key={menuItem.key}
+                                onClick={() => handleToggleTemplatePermission(template.id, menuItem.key)}
+                                className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-sm transition-all text-left ${
+                                  isEnabled
+                                    ? "border-green-500/30 bg-green-500/10 text-green-400"
+                                    : "border-[#333333] bg-[#141414] text-gray-500"
+                                }`}
+                              >
+                                <div className={`w-4 h-4 rounded flex items-center justify-center flex-shrink-0 ${
+                                  isEnabled ? "bg-green-500" : "border border-gray-600"
+                                }`}>
+                                  {isEnabled && <Check className="w-3 h-3 text-white" />}
+                                </div>
+                                <span className="truncate">{menuItem.label}</span>
+                              </button>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    </SettingsCard>
+                  )
+                })}
+              </div>
+            )}
           </div>
         )
 

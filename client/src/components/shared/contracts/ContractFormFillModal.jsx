@@ -17,8 +17,11 @@ import {
   ImageIcon,
   Printer,
 } from "lucide-react"
+import { toast } from "react-hot-toast"
+import { pdf } from "@react-pdf/renderer"
 import { DEFAULT_CONTRACT_FORMS, DEFAULT_CONTRACT_TYPES, studioData } from "../../../utils/studio-states/configuration-states"
 import { SYSTEM_VARIABLES, USER_VARIABLES } from "../../studio-components/configuration-components/contract-builder-components/constants/elementConstants"
+import ContractPDFDocument from "../../studio-components/contract-components/ContractPDFDocument"
 
 // =============================================================================
 // LAYOUT CONSTANTS - EXACT MATCH WITH CONTRACT BUILDER
@@ -57,15 +60,14 @@ const USER_VARIABLE_MAPPING = {
   'Salutation': 'salutation',
   'Member First Name': 'firstName',
   'Member Last Name': 'lastName',
-  'Street': 'street',
-  'House Number': 'houseNumber',
+  'Street & Number': 'street',
   'ZIP Code': 'zipCode',
   'City': 'city',
   'Telephone number': 'telephone',
   'Mobile number': 'mobile',
   'Email Address': 'email',
   'Date of Birth': 'dateOfBirth',
-  'Member first name and last name (account holder)': 'accountHolder',
+  'Account Holder (Bank)': 'accountHolder',
   'Credit institution': 'bankName',
   'IBAN': 'iban',
   'BIC': 'bic',
@@ -710,6 +712,7 @@ export function ContractFormFillModal({
   
   const containerRef = useRef(null);
   const contractPageRef = useRef(null);
+  const sepaFallbackRef = useRef(`SEPA-${Date.now()}`);
 
   // Load contract form based on contract type
   useEffect(() => {
@@ -731,7 +734,6 @@ export function ContractFormFillModal({
       firstName: leadData.firstName || leadData.name?.split(' ')[0] || '',
       lastName: leadData.lastName || leadData.name?.split(' ').slice(1).join(' ') || '',
       street: leadData.street || '',
-      houseNumber: leadData.houseNumber || '',
       zipCode: leadData.zipCode || leadData.zip || '',
       city: leadData.city || '',
       telephone: leadData.phone || leadData.phoneNumber || '',
@@ -755,11 +757,11 @@ export function ContractFormFillModal({
     minimumTerm: contractType?.duration ? `${contractType.duration} Monate` : '',
     trainingStartDate: contractData.trainingStartDate || contractData.startDate || '',
     contractType: contractType?.name || '',
-    contractCost: contractType?.cost ? `€${contractType.cost}` : '',
+    contractCost: contractType?.cost ? `\u20AC${contractType.cost}` : '',
     terminationNoticePeriod: contractType?.terminationNotice || '4 Wochen',
     renewalDuration: contractType?.renewalDuration || '12 Monate',
     contributionAdjustment: contractType?.contributionAdjustment || 'Keine',
-    sepaReference: contractData.sepaReference || `SEPA-${Date.now()}`,
+    sepaReference: contractData.sepaReference || sepaFallbackRef.current,
   };
 
   // Handle value changes
@@ -831,32 +833,36 @@ export function ContractFormFillModal({
   };
 
   // Handle print confirmation - user wants to print
-  const handlePrintConfirm = () => {
+  const handlePrintConfirm = async () => {
     setShowPrintPrompt(false);
     
-    // Try to print the contract
-    if (contractPageRef.current) {
-      const printWindow = window.open('', '_blank');
-      if (printWindow) {
-        printWindow.document.write(`
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <title>Contract - ${formValues.firstName} ${formValues.lastName}</title>
-            <style>
-              body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
-              @media print { body { padding: 0; } }
-            </style>
-          </head>
-          <body>
-            ${contractPageRef.current.innerHTML}
-          </body>
-          </html>
-        `);
-        printWindow.document.close();
-        setTimeout(() => {
-          printWindow.print();
-        }, 500);
+    // Generate PDF using @react-pdf/renderer (same as contract-management.jsx)
+    if (contractForm) {
+      toast.loading('Preparing for print...', { id: 'pdf-print' });
+      try {
+        const pdfBlob = await pdf(
+          <ContractPDFDocument
+            contractForm={contractForm}
+            formValues={formValues}
+            systemValues={systemValues}
+          />
+        ).toBlob();
+        
+        const pdfUrl = URL.createObjectURL(pdfBlob);
+        const printWindow = window.open(pdfUrl, '_blank');
+        if (printWindow) {
+          printWindow.onload = () => {
+            setTimeout(() => {
+              printWindow.print();
+              URL.revokeObjectURL(pdfUrl);
+            }, 500);
+          };
+        }
+        toast.dismiss('pdf-print');
+      } catch (error) {
+        toast.dismiss('pdf-print');
+        toast.error('Failed to generate PDF for printing');
+        console.error(error);
       }
     }
     
@@ -901,7 +907,7 @@ export function ContractFormFillModal({
     }
   };
 
-  // Handle save as draft (Ongoing status)
+  // Handle save as draft (Pending status)
   const handleSaveAsDraft = () => {
     setShowExitPrompt(false);
     onSubmit({
@@ -912,7 +918,7 @@ export function ContractFormFillModal({
       contractFormData: contractForm, // Store the full contract form structure for PDF generation
       completedAt: null, // Not completed yet
       shouldPrint: false,
-      status: 'Ongoing', // Draft status
+      status: 'Pending', // Draft status
       isDraft: true,
     });
   };
@@ -1069,14 +1075,14 @@ export function ContractFormFillModal({
               </div>
             </div>
             <p className="text-gray-300 mb-6">
-              You have unsaved changes in this contract form. Would you like to save it as a draft (Ongoing) to continue later, or discard all changes?
+              You have unsaved changes in this contract form. Would you like to save it as a draft (Pending) to continue later, or discard all changes?
             </p>
             <div className="flex flex-col gap-2">
               <button
                 onClick={handleSaveAsDraft}
                 className="w-full px-4 py-3 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-colors"
               >
-                Save as Draft (Ongoing)
+                Save as Draft (Pending)
               </button>
               <button
                 onClick={handleDiscard}

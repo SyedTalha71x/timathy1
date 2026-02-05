@@ -6,6 +6,7 @@ import { X, FileText, Pencil, ArrowLeft, BookOpen, ChevronDown, ChevronUp, Eye }
 import { useState, useEffect } from "react"
 import { DEFAULT_CONTRACT_TYPES, DEFAULT_INTRODUCTORY_MATERIALS, DEFAULT_CONTRACT_FORMS, studioData } from "../../../utils/studio-states/configuration-states"
 import { leadsData } from "../../../utils/studio-states/leads-states"
+import { membersData } from "../../../utils/studio-states/members-states"
 import IntroMaterialEditorModal from "../../shared/IntroMaterialEditorModal"
 import { ContractFormFillModal } from "./ContractFormFillModal"
 import { toast } from "react-hot-toast"
@@ -40,8 +41,8 @@ const printStyles = `
  * - leadData: object (optional) - Pre-selected lead data for add mode
  * 
  * Mode Detection:
- * - If `contract` prop is provided → Edit Mode
- * - Otherwise → Add Mode
+ * - If `contract` prop is provided -> Edit Mode
+ * - Otherwise -> Add Mode
  */
 export function ContractModal({ onClose, onSave, contract = null, leadData = null }) {
   // Mode detection
@@ -92,7 +93,6 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
     nachname: initialLastName,
     anrede: "",
     strasse: "",
-    hausnummer: "",
     plz: "",
     ort: "",
     telefonnummer: isEditMode ? (contract?.phone || "") : (leadData?.phone || leadData?.phoneNumber || ""),
@@ -116,6 +116,7 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
   })
 
   const [searchTerm, setSearchTerm] = useState("")
+  const [filteredResults, setFilteredResults] = useState([])
   const [filteredLeads, setFilteredLeads] = useState([])
   const [showSignatureOptions, setShowSignatureOptions] = useState(false)
   const [showPrintPrompt, setShowPrintPrompt] = useState(false)
@@ -155,6 +156,15 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
         lastName = leadData.lastName || leadData.surname || ""
       }
 
+      // Map gender to salutation (Herr/Frau), skip "other"
+      let salutation = ""
+      const gender = (leadData.gender || "").toLowerCase()
+      if (gender === "male" || gender === "männlich" || gender === "m") {
+        salutation = "Herr"
+      } else if (gender === "female" || gender === "weiblich" || gender === "f") {
+        salutation = "Frau"
+      }
+
       setContractData((prev) => ({
         ...prev,
         leadId: leadData.id,
@@ -171,6 +181,8 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
         strasse: leadData.street || "",
         plz: leadData.zipCode || "",
         ort: leadData.city || "",
+        anrede: salutation,
+        mobil: leadData.mobile || "",
       }))
       setSearchTerm(leadData.name || `${firstName} ${lastName}`.trim())
     }
@@ -194,7 +206,6 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
         rateType: contract.contractType || "",
         mitgliedsnummer: contract.contractNumber || "",
         strasse: contract.address?.street || "",
-        hausnummer: contract.address?.houseNumber || "",
         plz: contract.address?.zipCode || "",
         ort: contract.address?.city || "",
       }))
@@ -277,21 +288,38 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
     }
   }, [contractStartDate, selectedContractType])
 
-  // Filter leads based on search term (only when not pre-selected)
+  // Filter leads AND members based on search term (only when not pre-selected)
   useEffect(() => {
     if (!isLeadPreSelected && !isEditMode) {
       if (searchTerm.trim() === "") {
+        setFilteredResults([])
         setFilteredLeads([])
       } else {
-        const filtered = leadsData.filter(
+        const term = searchTerm.toLowerCase()
+        
+        // Search leads
+        const matchedLeads = leadsData.filter(
           (lead) =>
-            (lead.name && lead.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-            (`${lead.firstName} ${lead.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())) ||
-            lead.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            lead.company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (lead.name && lead.name.toLowerCase().includes(term)) ||
+            (`${lead.firstName} ${lead.lastName}`.toLowerCase().includes(term)) ||
+            lead.email?.toLowerCase().includes(term) ||
+            lead.company?.toLowerCase().includes(term) ||
             lead.phoneNumber?.includes(searchTerm),
-        )
-        setFilteredLeads(filtered)
+        ).map(lead => ({ ...lead, _type: "lead" }))
+        
+        // Search members
+        const matchedMembers = membersData.filter(
+          (member) =>
+            (member.title && member.title.toLowerCase().includes(term)) ||
+            (`${member.firstName} ${member.lastName}`.toLowerCase().includes(term)) ||
+            member.email?.toLowerCase().includes(term) ||
+            member.phone?.includes(searchTerm) ||
+            member.memberNumber?.toLowerCase().includes(term),
+        ).map(member => ({ ...member, _type: "member" }))
+        
+        const combined = [...matchedLeads, ...matchedMembers]
+        setFilteredResults(combined)
+        setFilteredLeads(matchedLeads) // keep for backward compat
       }
     }
   }, [searchTerm, isLeadPreSelected, isEditMode])
@@ -319,15 +347,27 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
   }
 
   const handleLeadSelect = (lead) => {
+    const isMember = lead._type === "member"
     const firstName = lead.firstName || (lead.name ? lead.name.split(" ")[0] : "")
     const lastName = lead.lastName || (lead.name ? lead.name.split(" ").slice(1).join(" ") : "")
     
+    // Map gender to salutation (Herr/Frau), skip "other"
+    let salutation = ""
+    const gender = (lead.gender || "").toLowerCase()
+    if (gender === "male" || gender === "männlich" || gender === "m") {
+      salutation = "Herr"
+    } else if (gender === "female" || gender === "weiblich" || gender === "f") {
+      salutation = "Frau"
+    }
+
+    const fullName = lead.name || lead.title || `${firstName} ${lastName}`
+
     setContractData({
       ...contractData,
       leadId: lead.id,
       studioName: lead.company || "",
-      studioOwnerName: lead.name || `${firstName} ${lastName}`,
-      fullName: lead.name || `${firstName} ${lastName}`,
+      studioOwnerName: fullName,
+      fullName: fullName,
       email: lead.email || "",
       phone: lead.phoneNumber || lead.phone || "",
       vorname: firstName,
@@ -338,8 +378,14 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
       strasse: lead.street || "",
       plz: lead.zipCode || "",
       ort: lead.city || "",
+      anrede: salutation,
+      mobil: lead.mobile || "",
+      geburtsdatum: lead.dateOfBirth || lead.birthday || "",
+      // Track whether the selected person is a lead or member
+      selectedType: isMember ? "member" : "lead",
     })
-    setSearchTerm(lead.name || `${firstName} ${lastName}`)
+    setSearchTerm(fullName)
+    setFilteredResults([])
     setFilteredLeads([])
     setShowLeadSelection(false)
   }
@@ -353,6 +399,7 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
     if (!isLeadPreSelected && !isEditMode) {
       setShowLeadSelection(true)
       setSearchTerm("")
+      setFilteredResults([])
       setFilteredLeads([])
     }
   }
@@ -416,7 +463,7 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
       memberId: dataToSave.leadId || `M-${Date.now()}`,
       contractType: selectedContractType?.name || dataToSave.rateType,
       contractNumber: dataToSave.mitgliedsnummer || `C-${Date.now()}`,
-      status: dataToSave.status || (isEditMode ? contract.status : "Ongoing"),
+      status: dataToSave.status || (isEditMode ? contract.status : "Pending"),
       startDate: dataToSave.contractStartDate || contractStartDate,
       endDate: endDate,
       autoRenewal: selectedContractType?.autoRenewal || false,
@@ -434,7 +481,6 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
       } : null,
       address: {
         street: dataToSave.strasse,
-        houseNumber: dataToSave.hausnummer,
         zipCode: dataToSave.plz,
         city: dataToSave.ort,
       },
@@ -467,8 +513,8 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
     const sv = formData?.systemValues || {}
     
     // Determine status - use formData status if provided, otherwise default
-    // "Active" for completed contracts, "Ongoing" for drafts
-    const contractStatus = formData?.status || (formData?.completedAt ? "Active" : "Ongoing")
+    // "Active" for completed contracts, "Pending" for drafts
+    const contractStatus = formData?.status || (formData?.completedAt ? "Active" : "Pending")
     const isDraft = formData?.isDraft || false
     
     // Merge form data into local variables for contract creation
@@ -499,7 +545,6 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
       sepaMandate: contractData.sepaMandate || sv.sepaReference,
       address: {
         street: fv.street || contractData.strasse,
-        houseNumber: fv.houseNumber || contractData.hausnummer,
         zipCode: fv.zipCode || contractData.plz,
         city: fv.city || contractData.ort,
       },
@@ -529,7 +574,7 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
     
     // Show appropriate message based on status
     if (isDraft) {
-      toast.success("Contract saved as draft (Ongoing)")
+      toast.success("Contract saved as draft (Pending)")
     } else {
       toast.success(isEditMode ? "Contract updated!" : "Contract created successfully!")
     }
@@ -581,7 +626,7 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
               <div className="bg-[#141414] rounded-xl p-8 text-center">
                 <BookOpen className="w-12 h-12 mx-auto mb-3 text-gray-600" />
                 <p className="text-gray-400">No introductory materials available</p>
-                <p className="text-sm text-gray-500 mt-1">Materials can be created in Settings → Introductory Materials</p>
+                <p className="text-sm text-gray-500 mt-1">Materials can be created in Settings â†’ Introductory Materials</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2">
@@ -756,7 +801,7 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
                   className="text-gray-400 hover:text-white transition-colors p-1.5 hover:bg-gray-800 rounded-xl flex items-center gap-1"
                 >
                   <ArrowLeft size={16} />
-                  <span className="text-xs">Back to Lead Selection</span>
+                  <span className="text-xs">Back to Selection</span>
                 </button>
               )}
               <button
@@ -774,32 +819,41 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
           {showLeadSelection ? (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h3 className="text-white text-lg font-semibold mb-2">Select Lead</h3>
-                <p className="text-gray-400 text-sm">Search for an existing lead or proceed without selecting one</p>
+                <h3 className="text-white text-lg font-semibold mb-2">Select Lead or Member</h3>
+                <p className="text-gray-400 text-sm">Search for an existing lead or member, or proceed without selecting one</p>
               </div>
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs text-gray-200 block pl-1">Lead</label>
+                  <label className="text-xs text-gray-200 block pl-1">Lead / Member</label>
                   <div className="relative">
                     <input
                       type="text"
-                      placeholder="Search for lead..."
+                      placeholder="Search for lead or member..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="w-full bg-[#101010] text-sm rounded-xl px-3 py-2.5 text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-[#3F74FF] transition-shadow duration-200"
                     />
-                    {filteredLeads.length > 0 && (
+                    {filteredResults.length > 0 && (
                       <div className="absolute top-full left-0 right-0 bg-[#101010] mt-1 rounded-xl z-10 shadow-lg max-h-40 overflow-y-auto border border-gray-700">
-                        {filteredLeads.map((lead) => (
+                        {filteredResults.map((item) => (
                           <div
-                            key={lead.id}
+                            key={`${item._type}-${item.id}`}
                             className="p-3 hover:bg-[#1a1a1a] text-white cursor-pointer border-b border-gray-800 last:border-b-0"
-                            onClick={() => handleLeadSelect(lead)}
+                            onClick={() => handleLeadSelect(item)}
                           >
-                            <div className="font-medium">
-                              {lead.name || `${lead.firstName} ${lead.lastName}`}
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">
+                                {item.name || item.title || `${item.firstName} ${item.lastName}`}
+                              </span>
+                              <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
+                                item._type === "member" 
+                                  ? "bg-blue-500/20 text-blue-400" 
+                                  : "bg-orange-500/20 text-orange-400"
+                              }`}>
+                                {item._type === "member" ? "Member" : "Lead"}
+                              </span>
                             </div>
-                            <div className="text-sm text-gray-400">{lead.email}</div>
+                            <div className="text-sm text-gray-400">{item.email}</div>
                           </div>
                         ))}
                       </div>
@@ -812,7 +866,7 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
                   onClick={handleProceedWithoutLead}
                   className="text-gray-400 hover:text-white text-sm underline transition-colors"
                 >
-                  Proceed without selecting a lead
+                  Proceed without selecting a lead or member
                 </button>
               </div>
             </div>
@@ -823,8 +877,17 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
                 {/* Show selected lead info */}
                 {contractData.leadId && (
                   <div className="bg-[#101010]/60 p-4 rounded-xl border border-gray-800">
-                    <h4 className="text-white text-sm font-medium mb-2">
-                      {isLeadPreSelected ? "Lead" : "Selected Lead"}
+                    <h4 className="text-white text-sm font-medium mb-2 flex items-center gap-2">
+                      {isLeadPreSelected ? "Lead" : (contractData.selectedType === "member" ? "Selected Member" : "Selected Lead")}
+                      {!isLeadPreSelected && contractData.selectedType && (
+                        <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${
+                          contractData.selectedType === "member"
+                            ? "bg-blue-500/20 text-blue-400"
+                            : "bg-orange-500/20 text-orange-400"
+                        }`}>
+                          {contractData.selectedType === "member" ? "Member" : "Lead"}
+                        </span>
+                      )}
                     </h4>
                     <div className="text-sm text-gray-300">
                       <p>
@@ -1098,22 +1161,12 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
                         </div>
                       </div>
                       <div className="grid grid-cols-3 gap-2">
-                        <div className="col-span-2">
-                          <label className="block text-xs text-gray-600 mb-1">Street</label>
+                        <div className="col-span-3">
+                          <label className="block text-xs text-gray-600 mb-1">Street & Number</label>
                           <input
                             type="text"
                             name="strasse"
                             value={contractData.strasse}
-                            onChange={handleInputChange}
-                            className="w-full border border-gray-300 rounded p-2 text-black"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-xs text-gray-600 mb-1">House Number</label>
-                          <input
-                            type="text"
-                            name="hausnummer"
-                            value={contractData.hausnummer}
                             onChange={handleInputChange}
                             className="w-full border border-gray-300 rounded p-2 text-black"
                           />
@@ -1325,6 +1378,8 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
         contractData={{
           memberId: contractData.leadId,
           startDate: contractStartDate,
+          endDate: contractEndDate,
+          trainingStartDate: trainingStartDate,
           sepaReference: contractData.sepaMandate,
         }}
         leadData={{
@@ -1333,7 +1388,6 @@ export function ContractModal({ onClose, onSave, contract = null, leadData = nul
           email: contractData.emailAdresse,
           phone: contractData.telefonnummer,
           street: contractData.strasse,
-          houseNumber: contractData.hausnummer,
           zipCode: contractData.plz,
           city: contractData.ort,
           dateOfBirth: contractData.geburtsdatum,

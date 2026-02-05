@@ -773,7 +773,7 @@ const ConfigurationPage = () => {
         const data = await response.json()
         const formattedCountries = data.map(country => {
           const currencyCode = country.currencies ? Object.keys(country.currencies)[0] : 'USD'
-          const symbols = { USD: '$', EUR: '€', GBP: '£', JPY: '¥', CHF: 'Fr', CAD: 'C$', AUD: 'A$' }
+          const symbols = { USD: '$', EUR: 'â‚¬', GBP: 'Â£', JPY: 'Â¥', CHF: 'Fr', CAD: 'C$', AUD: 'A$' }
           return {
             code: country.cca2,
             name: country.name.common,
@@ -1902,7 +1902,7 @@ const ConfigurationPage = () => {
                     className="bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
                   />
                 </div>
-                <span className="text-gray-500 hidden sm:block">—</span>
+                <span className="text-gray-500 hidden sm:block">â€”</span>
                 <div className="flex items-center gap-3">
                   <label className="text-sm text-gray-400 w-16">End</label>
                   <input
@@ -2011,10 +2011,10 @@ const ConfigurationPage = () => {
               <div className="mt-4 p-4 bg-[#141414] rounded-xl">
                 <p className="text-sm text-gray-300 font-medium mb-2">Example with 3 total slots:</p>
                 <div className="space-y-1.5 text-xs text-gray-500">
-                  <p>• <span className="text-gray-300">EMS Strength</span> (1 slot, max 2×) – Can run twice in parallel, uses 2 slots total</p>
-                  <p>• <span className="text-gray-300">Body Check</span> (2 slots, max 1×) – Uses 2 slots, only 1 slot left for other appointments</p>
-                  <p>• <span className="text-gray-300">Trial Training</span> (3 slots, max 1×) – Uses all capacity, blocks all other bookings</p>
-                  <p>• <span className="text-gray-300">EMP Chair</span> (0 slots, max 1×) – Doesn't use any capacity, runs independently</p>
+                  <p>â€¢ <span className="text-gray-300">EMS Strength</span> (1 slot, max 2Ã—) â€“ Can run twice in parallel, uses 2 slots total</p>
+                  <p>â€¢ <span className="text-gray-300">Body Check</span> (2 slots, max 1Ã—) â€“ Uses 2 slots, only 1 slot left for other appointments</p>
+                  <p>â€¢ <span className="text-gray-300">Trial Training</span> (3 slots, max 1Ã—) â€“ Uses all capacity, blocks all other bookings</p>
+                  <p>â€¢ <span className="text-gray-300">EMP Chair</span> (0 slots, max 1Ã—) â€“ Doesn't use any capacity, runs independently</p>
                 </div>
               </div>
             </SettingsCard>
@@ -2041,7 +2041,7 @@ const ConfigurationPage = () => {
                       </div>
                       <div className="flex items-center gap-8 text-sm">
                         <span className="w-20 text-center text-gray-400">{type.slotsRequired ?? 1}</span>
-                        <span className="w-20 text-center text-gray-400">{type.maxParallel || 1}×</span>
+                        <span className="w-20 text-center text-gray-400">{type.maxParallel || 1}Ã—</span>
                       </div>
                     </div>
                   ))}
@@ -2153,7 +2153,7 @@ const ConfigurationPage = () => {
                         </span>
                         <span className="flex items-center gap-1">
                           <Users className="w-3.5 h-3.5" />
-                          {type.maxParallel || 1}× parallel
+                          {type.maxParallel || 1}Ã— parallel
                         </span>
                         <span className="flex items-center gap-1">
                           <BadgeDollarSign className="w-3.5 h-3.5" />
@@ -3151,7 +3151,7 @@ const ConfigurationPage = () => {
                             <BadgeDollarSign className="w-4 h-4" />
                             Contingent
                           </span>
-                          <span className="text-white">{type.userCapacity || '∞'} credits / {type.billingPeriod === 'monthly' ? 'month' : type.billingPeriod === 'weekly' ? 'week' : 'year'}</span>
+                          <span className="text-white">{type.userCapacity || 'âˆž'} credits / {type.billingPeriod === 'monthly' ? 'month' : type.billingPeriod === 'weekly' ? 'week' : 'year'}</span>
                         </div>
                         <div className="flex items-center justify-between text-gray-400">
                           <span className="flex items-center gap-2">
@@ -3519,7 +3519,7 @@ const ConfigurationPage = () => {
                 <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl">
                   <p className="text-blue-400 text-sm flex items-start gap-2">
                     <Info className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                    <span>Archiving only affects member chats in the Messenger. Archived chats are hidden from the main view but are not deleted – they remain accessible and can be retrieved at any time.</span>
+                    <span>Archiving only affects member chats in the Messenger. Archived chats are hidden from the main view but are not deleted â€“ they remain accessible and can be retrieved at any time.</span>
                   </p>
                 </div>
                 <NumberInput
@@ -3587,7 +3587,7 @@ const ConfigurationPage = () => {
                         type="text"
                         value={settings.birthdayEmailSubject || ""}
                         onChange={(e) => setSettings({ ...settings, birthdayEmailSubject: e.target.value })}
-                        placeholder="🎂 Happy Birthday, {Member_First_Name}!"
+                        placeholder="ðŸŽ‚ Happy Birthday, {Member_First_Name}!"
                         className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
                       />
                     </div>
@@ -3836,7 +3836,7 @@ const ConfigurationPage = () => {
                         type="text"
                         value={settings.birthdayAppTitle || ""}
                         onChange={(e) => setSettings({ ...settings, birthdayAppTitle: e.target.value })}
-                        placeholder="🎂 Happy Birthday!"
+                        placeholder="ðŸŽ‚ Happy Birthday!"
                         className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
                       />
                     </div>
@@ -4057,7 +4057,7 @@ const ConfigurationPage = () => {
                     value={settings.smtpPass}
                     onChange={(v) => setSettings({ ...settings, smtpPass: v })}
                     type="password"
-                    placeholder="••••••••"
+                    placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                   />
                 </div>
                 <div className="flex flex-wrap gap-3">
@@ -4972,8 +4972,10 @@ const ConfigurationPage = () => {
           <ContractBuilder
             contractForm={selectedContractForm}
             onUpdate={(updatedForm) => {
+              // FIX: Only update the forms list, do NOT call setSelectedContractForm here.
+              // Calling setSelectedContractForm would change the contractForm prop, causing
+              // ContractBuilder's sync effect to fire, which triggers onUpdate again → infinite loop.
               setContractForms(contractForms.map(f => f.id === selectedContractForm.id ? updatedForm : f))
-              setSelectedContractForm(updatedForm)
             }}
             onClose={() => setContractBuilderModalVisible(false)}
           />

@@ -49,6 +49,17 @@ export const initialContracts = [
     autoRenewalEndDate: null,
     changeReason: "upgrade", // Upgraded from Basic
     previousContractId: "contract-10",
+    bonusTime: {
+      id: "bt-sample-1",
+      bonusAmount: 2,
+      bonusUnit: "weeks",
+      reason: "Equipment maintenance compensation",
+      startOption: "current_contract_period",
+      startDate: null,
+      withExtension: true,
+      bonusPeriod: "01.01.2026 - 15.01.2026",
+      createdAt: "2025-01-15",
+    },
     pauseReason: null,
     cancelReason: null,
     isDigital: true,
@@ -221,6 +232,17 @@ export const initialContracts = [
     autoRenewalEndDate: "2026-11-14", // Max 12 months renewal
     changeReason: "new",
     previousContractId: null,
+    bonusTime: {
+      id: "bt-sample-2",
+      bonusAmount: 1,
+      bonusUnit: "months",
+      reason: "Pause compensation",
+      startOption: "current_contract_period",
+      startDate: null,
+      withExtension: false,
+      bonusPeriod: "14.11.2025 - 14.12.2025",
+      createdAt: "2025-01-20",
+    },
     pauseReason: "Vacation Leave",
     pauseStartDate: "2025-01-01",
     pauseEndDate: "2025-02-28",
@@ -283,7 +305,7 @@ export const initialContracts = [
     contractType: "Basic Monthly",
     startDate: getRelativeDate(7), // Starts in 1 week
     endDate: getRelativeDate(372), // 1 year from start
-    status: "Ongoing",
+    status: "Pending",
     autoRenewal: false,
     changeReason: "new",
     previousContractId: null,
@@ -555,8 +577,8 @@ export const getPausedContracts = () =>
 export const getCancelledContracts = () => 
   initialContracts.filter(c => c.status === "Cancelled")
 
-export const getOngoingContracts = () => 
-  initialContracts.filter(c => c.status === "Ongoing")
+export const getPendingContracts = () => 
+  initialContracts.filter(c => c.status === "Pending")
 
 export const getExpiringContracts = (daysAhead = 30) => {
   const futureDate = new Date()
@@ -580,20 +602,20 @@ export const getExpiredContracts = () => {
 export const getContractHistory = (contractId) => 
   contractHistory[contractId] || []
 
-// Get the "display" contract for a member (Active > Paused > Ongoing > most recent Cancelled)
+// Get the "display" contract for a member (Active > Paused > Pending > most recent Cancelled)
 export const getDisplayContractForMember = (memberId) => {
   const memberContracts = getContractsByMemberId(memberId)
   if (memberContracts.length === 0) return null
   
-  // Priority: Active > Paused > Ongoing > Cancelled (by end date)
+  // Priority: Active > Paused > Pending > Cancelled (by end date)
   const active = memberContracts.find(c => c.status === 'Active')
   if (active) return active
   
   const paused = memberContracts.find(c => c.status === 'Paused')
   if (paused) return paused
   
-  const ongoing = memberContracts.find(c => c.status === 'Ongoing')
-  if (ongoing) return ongoing
+  const pending = memberContracts.find(c => c.status === 'Pending')
+  if (pending) return pending
   
   // Return most recent cancelled
   const cancelled = memberContracts
@@ -614,7 +636,7 @@ export default {
   getActiveContracts,
   getPausedContracts,
   getCancelledContracts,
-  getOngoingContracts,
+  getPendingContracts,
   getExpiringContracts,
   getExpiredContracts,
   getContractHistory,

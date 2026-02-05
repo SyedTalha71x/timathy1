@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom"
 import { 
   X, Upload, Trash, Edit2, File, FileText, FilePlus, Eye, Download, Check, Edit, 
   Copy, User, ChevronDown, ChevronUp, RefreshCw, ArrowRightLeft, Clock, Calendar,
-  AlertTriangle, AlertCircle, Printer
+  AlertTriangle, AlertCircle, Printer, Gift
 } from "lucide-react"
 import { toast } from "react-hot-toast"
 import { pdf } from "@react-pdf/renderer"
@@ -339,21 +339,13 @@ const ContractStatusTag = ({ status, pauseReason = null, pauseStartDate = null, 
   );
 };
 
-export function ContractManagement({ contract, allContracts = [], onClose }) {
+export function ContractManagement({ contract, onClose }) {
   const navigate = useNavigate()
   
-  // Get all contracts for this member, sorted by start date (newest first)
-  const memberContracts = allContracts
-    .filter(c => c.memberId === contract.memberId)
-    .sort((a, b) => {
-      // Sort by start date (newest first)
-      return new Date(b.startDate) - new Date(a.startDate);
-    });
+  // Single contract display - no more member-level grouping
+  const displayContracts = [contract];
 
-  // If no allContracts provided, just use the single contract
-  const displayContracts = memberContracts.length > 0 ? memberContracts : [contract];
-
-  // Track which contract is expanded (default: the clicked one)
+  // Track which contract is expanded (always the single contract)
   const [expandedContractId, setExpandedContractId] = useState(contract.id)
   
   // Track which contract's additional documents are expanded
@@ -406,6 +398,41 @@ export function ContractManagement({ contract, allContracts = [], onClose }) {
   const formatDate = (dateString) => {
     if (!dateString) return "-"
     return new Date(dateString).toLocaleDateString('de-DE')
+  }
+
+  // Calculate the effective end date considering bonus time with extension
+  const getEffectiveEndDate = (contractItem) => {
+    // Check if contract was cancelled early (cancelToDate set)
+    const isCancelledEarly = !!(contractItem.cancelToDate && contractItem.status === 'Cancelled')
+
+    if (!contractItem.bonusTime?.bonusAmount) {
+      return { date: contractItem.endDate, isExtended: false, isCancelledEarly, bonusPeriod: null }
+    }
+    const start = new Date(contractItem.endDate)
+    const end = new Date(contractItem.endDate)
+    const amount = contractItem.bonusTime.bonusAmount
+    switch (contractItem.bonusTime.bonusUnit) {
+      case 'days':
+        end.setDate(end.getDate() + amount)
+        break
+      case 'weeks':
+        end.setDate(end.getDate() + amount * 7)
+        break
+      case 'months':
+        end.setMonth(end.getMonth() + amount)
+        break
+      default:
+        break
+    }
+    const bonusPeriod = `${formatDate(start.toISOString().split('T')[0])} - ${formatDate(end.toISOString().split('T')[0])}`
+    const isExtended = !!contractItem.bonusTime.withExtension
+    return { 
+      date: isExtended ? end.toISOString().split('T')[0] : contractItem.endDate, 
+      isExtended, 
+      isCancelledEarly,
+      bonusPeriod,
+      effectiveEndDate: end.toISOString().split('T')[0],
+    }
   }
 
   // Check if contract is expiring soon (within 30 days)
@@ -940,11 +967,43 @@ export function ContractManagement({ contract, allContracts = [], onClose }) {
                     Expired
                   </span>
                 )}
+                {contractItem.bonusTime && (
+                  <div className="relative group inline-flex">
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 flex items-center gap-1 cursor-pointer transition-transform duration-200 hover:scale-110">
+                      <Gift size={10} /> Bonus ({contractItem.bonusTime.bonusAmount} {contractItem.bonusTime.bonusUnit})
+                    </span>
+                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/95 text-white px-3 py-2 rounded-lg text-xs opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none max-w-[280px]">
+                      {(() => {
+                        const eff = getEffectiveEndDate(contractItem)
+                        return (
+                          <div className="flex items-start gap-2">
+                            <Gift size={10} className="text-orange-400 mt-0.5 flex-shrink-0" />
+                            <div className="min-w-0 overflow-hidden">
+                              <span className="font-medium whitespace-nowrap">{contractItem.bonusTime.bonusAmount} {contractItem.bonusTime.bonusUnit}</span>
+                              {contractItem.bonusTime.reason && <span className="text-gray-300 block truncate"> — {contractItem.bonusTime.reason}</span>}
+                              {eff.bonusPeriod && <span className="text-gray-400 block whitespace-nowrap mt-0.5">{eff.bonusPeriod}</span>}
+                              {contractItem.bonusTime.withExtension 
+                                ? <span className="text-green-400 block text-[10px] mt-0.5">+ Contract extension</span>
+                                : <span className="text-gray-500 block text-[10px] mt-0.5">Without extension</span>
+                              }
+                            </div>
+                          </div>
+                        )
+                      })()}
+                      <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/95" />
+                    </div>
+                  </div>
+                )}
               </div>
               <div className="flex items-center gap-3 text-sm text-gray-400 mt-0.5">
                 <span>{contractItem.contractType}</span>
                 <span>•</span>
-                <span>{formatDate(contractItem.startDate)} - {formatDate(contractItem.endDate)}</span>
+                <span>{formatDate(contractItem.startDate)} - {(() => {
+                  const eff = getEffectiveEndDate(contractItem)
+                  if (eff.isCancelledEarly) return <span className="text-red-400 font-medium">{formatDate(contractItem.endDate)}</span>
+                  if (eff.isExtended) return <span className="text-orange-400 font-medium">{formatDate(eff.date)}</span>
+                  return formatDate(contractItem.endDate)
+                })()}</span>
               </div>
             </div>
           </button>
@@ -1328,7 +1387,7 @@ export function ContractManagement({ contract, allContracts = [], onClose }) {
               <div>
                 <h2 className="text-lg font-semibold text-white">{contract.memberName}</h2>
                 <p className="text-xs text-gray-400">
-                  {displayContracts.length} Contract{displayContracts.length !== 1 ? 's' : ''}
+                  {contract.contractNumber ? `#${contract.contractNumber}` : contract.contractType}
                 </p>
               </div>
             </div>

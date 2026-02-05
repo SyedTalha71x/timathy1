@@ -37,6 +37,7 @@ export const ELEMENT_CATEGORIES = [
 
 export const SYSTEM_VARIABLES = [
   'Member ID',
+  'Contract Number',
   'Contract Start Date',
   'Contract End Date',
   'Minimum Term',
@@ -53,15 +54,14 @@ export const USER_VARIABLES = [
   'Salutation',
   'Member First Name',
   'Member Last Name',
-  'Street',
-  'House Number',
+  'Street & Number',
   'ZIP Code',
   'City',
   'Telephone number',
   'Mobile number',
   'Email Address',
   'Date of Birth',
-  'Member first name and last name (account holder)',
+  'Account Holder (Bank)',
   'Credit institution',
   'IBAN',
   'BIC'

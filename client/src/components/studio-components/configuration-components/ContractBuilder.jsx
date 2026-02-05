@@ -249,7 +249,7 @@ const ContractBuilder = ({ contractForm, onUpdate, onClose }) => {
     setNewPageName
   );
 
-  // useResize Hook
+  // useResize Hook - FIX: Pass canvasZoom for correct delta scaling
   const {
     isResizing,
     resizeHandle,
@@ -263,7 +263,8 @@ const ContractBuilder = ({ contractForm, onUpdate, onClose }) => {
     selectedElement,
     saveToHistory,
     folders,
-    dynamicContentArea
+    dynamicContentArea,
+    canvasZoom
   );
 
   // useDragAndDrop with dynamicContentArea
@@ -578,9 +579,12 @@ const ContractBuilder = ({ contractForm, onUpdate, onClose }) => {
     }
   }, [contractPages, folders, history.length, saveToHistory]);
 
-  // Sync with props
+  // Sync with props - ONLY on initial mount or when contractForm ID changes
+  // This prevents the infinite loop: onUpdate → parent sets new contractForm → sync fires → setContractPages → onUpdate → ...
+  const initializedFormRef = useRef(null);
   useEffect(() => {
-    if (contractForm?.pages) {
+    if (contractForm?.pages && contractForm?.id !== initializedFormRef.current) {
+      initializedFormRef.current = contractForm.id;
       setContractPages(contractForm.pages);
       const maxId = contractForm.pages.reduce((max, page) => {
         const pageMax = (page.elements || []).reduce((pageMax, el) => Math.max(pageMax, el.id || 0), 0);
@@ -590,14 +594,19 @@ const ContractBuilder = ({ contractForm, onUpdate, onClose }) => {
       const maxPageId = contractForm.pages.reduce((m, p) => Math.max(m, p.id || 0), 0);
       nextPageId.current = Math.max(nextPageId.current, maxPageId + 1);
     }
-  }, [contractForm?.pages]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contractForm?.id]);
 
-  // Update callback
+  // Update callback - notify parent of changes
+  // FIX: Use a ref for contractForm to avoid re-triggering when parent sends it back
+  const contractFormRef = useRef(contractForm);
+  useEffect(() => { contractFormRef.current = contractForm; }, [contractForm]);
+  
   useEffect(() => {
     if (!onUpdate) return;
     
     const updatedForm = {
-      ...(contractForm || {}),
+      ...(contractFormRef.current || {}),
       pages: contractPages,
       folders: folders,
       globalHeader,
@@ -605,7 +614,8 @@ const ContractBuilder = ({ contractForm, onUpdate, onClose }) => {
       name: contractName
     };
     onUpdate(updatedForm);
-  }, [contractPages, folders, contractName, globalHeader, globalFooter, contractForm, onUpdate]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [contractPages, folders, contractName, globalHeader, globalFooter]);
 
   // Keyboard Shortcuts
   useEffect(() => {
