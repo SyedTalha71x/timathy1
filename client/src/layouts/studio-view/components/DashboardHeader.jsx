@@ -4,7 +4,7 @@
 import { useState, useEffect, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import { Globe, X, Building2, History, Menu, ShoppingCart } from "lucide-react"
-import OrgaGymLogoWihoutText from '../../public/Orgagym white without text.svg'
+import OrgaGymLogoWihoutText from '../../../../public/Orgagym white without text.svg'
 
 /**
  * DashboardHeader Component
@@ -51,7 +51,7 @@ const DashboardHeader = ({
   const languageDropdownRef = useRef(null)
   const profileDropdownRef = useRef(null)
   
-  // User data (später aus Context/API)
+  // User data (spÃ¤ter aus Context/API)
   const studioName = "Studio One"
   const fullName = "Samantha Jerry"
   const role = "Trainer"
@@ -65,7 +65,7 @@ const DashboardHeader = ({
     { code: "it", name: "Italian", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Flag_of_Italy.svg/1280px-Flag_of_Italy.svg.png" },
   ]
   
-  // Activity log data (später aus API)
+  // Activity log data (spÃ¤ter aus API)
   const activityLogs = [
     { id: 1, action: "Appointment Created", description: "Created new appointment for John Doe - Personal Training", timestamp: "2024-12-15 14:30", type: "appointment" },
     { id: 2, action: "Member Updated", description: "Updated profile information for Sarah Smith", timestamp: "2024-12-15 13:15", type: "member" },
@@ -200,6 +200,7 @@ const DashboardHeader = ({
                   className={`block w-full ${isMobile ? "px-3 py-1.5" : "px-4 py-2"} text-white hover:bg-zinc-700 text-left flex items-center gap-2`}
                 >
                   <img 
+                    draggable="false"
                     src={language.flag} 
                     alt={`${language.name} flag`} 
                     className={`${isMobile ? "w-4 h-3" : "w-5 h-3"} rounded`}
@@ -222,7 +223,7 @@ const DashboardHeader = ({
           isMobile ? "" : "gap-2 p-1.5 px-2.5 rounded-xl bg-[#161616] hover:bg-[#252525] transition-colors"
         }`}
       >
-        <img src="/gray-avatar-fotor-20250912192528.png" alt="Profile" className={`rounded-${isMobile ? "md" : "lg"} ${isMobile ? "w-7 h-7" : "w-6 h-6"}`} />
+        <img draggable="false" src="/gray-avatar-fotor-20250912192528.png" alt="Profile" className={`rounded-${isMobile ? "md" : "lg"} ${isMobile ? "w-7 h-7" : "w-6 h-6"}`} />
         {!isMobile && <h2 className="font-semibold text-white text-sm leading-tight">{fullName}</h2>}
       </div>
       
@@ -310,9 +311,9 @@ const DashboardHeader = ({
       ) : (
         // Normal Sidebar Mode
         isRightSidebarOpen ? (
-          <img key="open" src='/expand-sidebar mirrored.svg' className={`${isMobile ? "h-[18px] w-[18px]" : "h-5 w-5"}`} alt="Close sidebar" />
+          <img draggable="false" key="open" src='/expand-sidebar mirrored.svg' className={`${isMobile ? "h-[18px] w-[18px]" : "h-5 w-5"}`} alt="Close sidebar" />
         ) : (
-          <img key="closed" src="/icon.svg" className={`${isMobile ? "h-[18px] w-[18px]" : "h-5 w-5"}`} alt="Open sidebar" />
+          <img draggable="false" key="closed" src="/icon.svg" className={`${isMobile ? "h-[18px] w-[18px]" : "h-5 w-5"}`} alt="Open sidebar" />
         )
       )}
     </div>
@@ -332,10 +333,10 @@ const DashboardHeader = ({
       )}
       
       {/* ===== MOBILE HEADER (lg:hidden) ===== */}
-      <div className="fixed top-0 left-0 w-full bg-[#111111] border-b border-zinc-800 p-2 flex items-center justify-between lg:hidden z-40">
+      <div className="fixed top-0 left-0 w-full bg-[#111111] border-b border-zinc-800 p-2 flex items-center justify-between lg:hidden z-40 select-none">
         <div className="flex items-center gap-2">
           <div className="bg-orange-500 p-2 rounded-md">
-            <img src={OrgaGymLogoWihoutText} className="h-6 w-6" alt="Orgagym Logo" />
+            <img draggable="false" src={OrgaGymLogoWihoutText} className="h-6 w-6" alt="Orgagym Logo" />
           </div>
           <button
             onClick={onToggleSidebar}
@@ -343,9 +344,9 @@ const DashboardHeader = ({
             aria-label="Toggle Sidebar"
           >
             {isSidebarOpen ? (
-              <img key="open" src="/icon.svg" className="h-[18px] w-[18px]" alt="Close sidebar" />
+              <img draggable="false" key="open" src="/icon.svg" className="h-[18px] w-[18px]" alt="Close sidebar" />
             ) : (
-              <img key="closed" src='/expand-sidebar mirrored.svg' className="h-[18px] w-[18px]" alt="Open sidebar" />
+              <img draggable="false" key="closed" src='/expand-sidebar mirrored.svg' className="h-[18px] w-[18px]" alt="Open sidebar" />
             )}
           </button>
         </div>
@@ -374,7 +375,7 @@ const DashboardHeader = ({
       </div>
       
       {/* ===== DESKTOP HEADER (hidden lg:flex) ===== */}
-      <div className="lg:flex hidden rounded-md justify-between bg-[#1f1e1e] z-10 py-1.5 px-2 mb-2 items-center gap-2">
+      <div className="lg:flex hidden rounded-md justify-between bg-[#1f1e1e] z-10 py-1.5 px-2 mb-2 items-center gap-2 select-none">
         {/* Left - Menu Toggle */}
         <div className="flex items-center">
           {toggleLeftSidebarCollapse && (
@@ -383,9 +384,9 @@ const DashboardHeader = ({
               className="p-1.5 px-2.5 rounded-xl bg-[#161616] hover:bg-[#252525] transition-colors cursor-pointer"
             >
               {isLeftSidebarCollapsed ? (
-                <img key="collapsed" src='/expand-sidebar mirrored.svg' className="h-5 w-5" alt="Open sidebar" />
+                <img draggable="false" key="collapsed" src='/expand-sidebar mirrored.svg' className="h-5 w-5" alt="Open sidebar" />
               ) : (
-                <img key="expanded" src="/icon.svg" className="h-5 w-5" alt="Close sidebar" />
+                <img draggable="false" key="expanded" src="/icon.svg" className="h-5 w-5" alt="Close sidebar" />
               )}
             </div>
           )}
@@ -597,7 +598,7 @@ const DashboardHeader = ({
             <p className="text-sm text-zinc-400 mb-3">Released on December 15, 2024</p>
             <div className="space-y-2">
               <div>
-                <h4 className="font-medium text-white mb-2">🎉 New Features</h4>
+                <h4 className="font-medium text-white mb-2">ðŸŽ‰ New Features</h4>
                 <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
                   <li>Enhanced member analytics dashboard</li>
                   <li>Real-time class capacity tracking</li>
@@ -606,7 +607,7 @@ const DashboardHeader = ({
                 </ul>
               </div>
               <div>
-                <h4 className="font-medium text-white mb-2">🔧 Improvements</h4>
+                <h4 className="font-medium text-white mb-2">ðŸ”§ Improvements</h4>
                 <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
                   <li>Faster loading times for member profiles</li>
                   <li>Improved search functionality</li>
@@ -614,7 +615,7 @@ const DashboardHeader = ({
                 </ul>
               </div>
               <div>
-                <h4 className="font-medium text-white mb-2">🐛 Bug Fixes</h4>
+                <h4 className="font-medium text-white mb-2">ðŸ› Bug Fixes</h4>
                 <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
                   <li>Fixed calendar sync issues</li>
                   <li>Resolved payment processing errors</li>
@@ -629,7 +630,7 @@ const DashboardHeader = ({
             <p className="text-sm text-zinc-400 mb-3">Released on November 28, 2024</p>
             <div className="space-y-2">
               <div>
-                <h4 className="font-medium text-white mb-2">🔧 Improvements</h4>
+                <h4 className="font-medium text-white mb-2">ðŸ”§ Improvements</h4>
                 <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
                   <li>Enhanced security measures</li>
                   <li>Improved data backup system</li>
@@ -637,7 +638,7 @@ const DashboardHeader = ({
                 </ul>
               </div>
               <div>
-                <h4 className="font-medium text-white mb-2">🐛 Bug Fixes</h4>
+                <h4 className="font-medium text-white mb-2">ðŸ› Bug Fixes</h4>
                 <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
                   <li>Fixed trainer schedule conflicts</li>
                   <li>Resolved email notification delays</li>
@@ -651,7 +652,7 @@ const DashboardHeader = ({
             <p className="text-sm text-zinc-400 mb-3">Released on October 15, 2024</p>
             <div className="space-y-2">
               <div>
-                <h4 className="font-medium text-white mb-2">🎉 Major Release</h4>
+                <h4 className="font-medium text-white mb-2">ðŸŽ‰ Major Release</h4>
                 <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
                   <li>Complete UI/UX redesign</li>
                   <li>New member management system</li>
@@ -661,7 +662,7 @@ const DashboardHeader = ({
                 </ul>
               </div>
               <div>
-                <h4 className="font-medium text-white mb-2">🔧 Performance</h4>
+                <h4 className="font-medium text-white mb-2">ðŸ”§ Performance</h4>
                 <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
                   <li>50% faster page load times</li>
                   <li>Improved database optimization</li>
@@ -676,7 +677,7 @@ const DashboardHeader = ({
             <p className="text-sm text-zinc-400 mb-3">Released on September 20, 2024</p>
             <div className="space-y-2">
               <div>
-                <h4 className="font-medium text-white mb-2">🐛 Critical Fixes</h4>
+                <h4 className="font-medium text-white mb-2">ðŸ› Critical Fixes</h4>
                 <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
                   <li>Fixed critical security vulnerability</li>
                   <li>Resolved data synchronization issues</li>

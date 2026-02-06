@@ -61,31 +61,31 @@ const InitialsAvatar = ({ firstName, lastName, size = 32, className = "", contex
 // ============================================
 // Widget Component Imports
 // ============================================
-import ExpiringContractsWidget from "./myarea-components/widgets/ExpiringContractsWidget"
-import UpcomingAppointmentsWidget from "./myarea-components/widgets/UpcomingAppointmentsWidget"
-import StaffCheckInWidget from "./myarea-components/widgets/StaffWidgetCheckIn"
-import WebsiteLinksWidget from "./myarea-components/widgets/WebsiteLinksWidget"
-import ToDoWidget from "./myarea-components/widgets/ToDoWidget"
-import UpcomingBirthdaysWidget from "./myarea-components/widgets/UpcomingBirthdaysWidget"
-import BulletinBoardWidget from "./myarea-components/widgets/BulletinBoardWidget"
-import NotesWidget from "./myarea-components/widgets/NotesWidget"
-import ShiftScheduleWidget from "./myarea-components/widgets/ShiftScheduleWidget"
+import ExpiringContractsWidget from "../../../components/shared/widgets/ExpiringContractsWidget"
+import UpcomingAppointmentsWidget from "../../../components/shared/widgets/UpcomingAppointmentsWidget"
+import StaffCheckInWidget from "../../../components/shared/widgets/StaffWidgetCheckIn"
+import WebsiteLinksWidget from "../../../components/shared/widgets/WebsiteLinksWidget"
+import ToDoWidget from "../../../components/shared/widgets/ToDoWidget"
+import UpcomingBirthdaysWidget from "../../../components/shared/widgets/UpcomingBirthdaysWidget"
+import BulletinBoardWidget from "../../../components/shared/widgets/BulletinBoardWidget"
+import NotesWidget from "../../../components/shared/widgets/NotesWidget"
+import ShiftScheduleWidget from "../../../components/shared/widgets/ShiftScheduleWidget"
 
 // ============================================
 // Sidebar Component Imports
 // ============================================
-import DraggableWidget from "./myarea-components/DraggableWidget"
-import ViewManagementModal from "./myarea-components/ViewManagementModal"
-import ChatPopup from "./shared/communication/ChatPopup"
+import DraggableWidget from "../../../components/shared/widgets/components/DraggableWidget"
+import ViewManagementModal from "../../../components/shared/widgets/components/ViewManagementModal"
+import ChatPopup from "../../../components/shared/communication/ChatPopup"
 
 // ============================================
 // Modal Component Imports
 // ============================================
-import AppointmentActionModal from "./studio-components/appointments-components/AppointmentActionModal"
-import EditMemberModalMain from "./studio-components/members-components/EditMemberModal"
-import EditLeadModal from "./studio-components/lead-studio-components/edit-lead-modal"
-import TrainingPlansModalMain from "./shared/training/TrainingPlanModal"
-import EditAppointmentModal from "./shared/appointments/EditAppointmentModal"
+import AppointmentActionModal from "../../../components/studio-components/appointments-components/AppointmentActionModal"
+import EditMemberModalMain from "../../../components/studio-components/members-components/EditMemberModal"
+import EditLeadModal from "../../../components/studio-components/lead-studio-components/edit-lead-modal"
+import TrainingPlansModalMain from "../../../components/shared/training/TrainingPlanModal"
+import EditAppointmentModal from "../../../components/shared/appointments/EditAppointmentModal"
 
 // ============================================
 // Data Imports
@@ -94,13 +94,13 @@ import {
   memberRelationsData,
   availableMembersLeadsNew,
   customLinksData,
-} from "../utils/studio-states/myarea-states"
+} from "../../../utils/studio-states/myarea-states"
 
 import {
   generateSidebarActivityItems,
   getTotalPendingCount,
   activityMonitorTabs,
-} from "../utils/studio-states/activity-monitor-states"
+} from "../../../utils/studio-states/activity-monitor-states"
 
 import {
   appointmentsData,
@@ -112,7 +112,7 @@ import {
   staffData,
   memberChatListNew,
   staffChatListNew,
-} from "../utils/studio-states"
+} from "../../../utils/studio-states"
 
 // ============================================
 // Constants

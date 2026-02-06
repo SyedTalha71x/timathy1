@@ -16,7 +16,7 @@ import ProductServiceModal from "../../components/studio-components/selling-comp
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { ExternalSidebarContext } from "../../layouts/studio-view-layout";
+import { ExternalSidebarContext } from "../../layouts/studio-view/studio-view-layout";
 
 // Sortable Product/Service Card Component
 const SortableItemCard = ({ item, children, isDragDisabled }) => {

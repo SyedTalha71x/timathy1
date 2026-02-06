@@ -39,7 +39,7 @@ import { TbBrandGoogleAnalytics } from "react-icons/tb"
 import { BadgeDollarSign } from "lucide-react"
 import { CgGym } from "react-icons/cg"
 
-import OrgaGymLogoWihoutText from '../../public/Orgagym white without text.svg'
+import OrgaGymLogoWihoutText from '../../../../public/Orgagym white without text.svg'
 
 // ============================================
 // Feedback Modal Component (defined outside to prevent re-creation)
@@ -325,6 +325,7 @@ const Sidebar = ({ isOpen = false, onClose, isCollapsed: externalIsCollapsed, on
       submenu: [
         { label: "Messenger", to: "/dashboard/communication", icon: TbMessage },
         { label: "Bulletin Board", to: "/dashboard/bulletin-board", icon: ClipboardList },
+        { label: "Activity Monitor", to: "/dashboard/activity-monitor", icon: CiMonitor },
       ],
     },
     {
@@ -333,7 +334,6 @@ const Sidebar = ({ isOpen = false, onClose, isCollapsed: externalIsCollapsed, on
       to: "#",
       hasSubmenu: true,
       submenu: [
-        { label: "Activity Monitor", to: "/dashboard/activity-monitor", icon: CiMonitor },
         { label: "To-Do", to: "/dashboard/to-do", icon: CheckSquare },
         { label: "Notes", to: "/dashboard/notes", icon: FaNotesMedical },
         { label: "Media Library", to: "/dashboard/media-library", icon: Image },
@@ -353,8 +353,6 @@ const Sidebar = ({ isOpen = false, onClose, isCollapsed: externalIsCollapsed, on
     { icon: FaPersonRays, label: "Leads", to: "/dashboard/leads" },
     { icon: BsPersonWorkspace, label: "Staff", to: "/dashboard/staff" },
     { icon: ShoppingCart, label: "Selling", to: "/dashboard/selling" },
-    { icon: FaCartPlus, label: "Marketplace", to: "/dashboard/market-place" },
-    { icon: BadgeDollarSign, label: "Finances", to: "/dashboard/finances" },
     {
       icon: IoFitnessOutline,
       label: "Fitness Area",
@@ -365,8 +363,10 @@ const Sidebar = ({ isOpen = false, onClose, isCollapsed: externalIsCollapsed, on
         { label: "Medical History", to: "/dashboard/assessment", icon: BsFillClipboard2HeartFill },
       ],
     },
+    { icon: BadgeDollarSign, label: "Finances", to: "/dashboard/finances" },
     { icon: TbBrandGoogleAnalytics, label: "Analytics", to: "/dashboard/analytics" },
     { icon: Settings, label: "Configuration", to: "/dashboard/configuration" },
+    { icon: FaCartPlus, label: "Marketplace", to: "/dashboard/market-place" },
     {
       icon: MdOutlineSupportAgent,
       label: "Support Area",
@@ -506,11 +506,6 @@ const Sidebar = ({ isOpen = false, onClose, isCollapsed: externalIsCollapsed, on
                           className={`cursor-pointer ${hasActiveSubmenu ? "text-white" : "text-zinc-400 group-hover:text-white"}`}
                         />
                         {item.label === "Communication" && unreadMessages > 0 && !isCommunicationOpen && (
-                          <span className="absolute -top-1 -right-2 bg-orange-600 text-white text-[10px] px-1.5 py-0.5 rounded-full z-10">
-                            {unreadMessages}
-                          </span>
-                        )}
-                        {item.label === "Productivity Area" && unreadMessages > 0 && !isProductivityHubOpen && (
                           <span className="absolute -top-1 -right-2 bg-orange-600 text-white text-[10px] px-1.5 py-0.5 rounded-full z-10">
                             {unreadMessages}
                           </span>

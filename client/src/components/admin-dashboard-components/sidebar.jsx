@@ -299,7 +299,7 @@ const CustomerSidebar = ({ isOpen = false, onClose, isCollapsed: externalIsColla
   const newFeedbackCount = DUMMY_FEEDBACK.filter((fb) => fb.status === "new").length
 
   const menuItems = [
-    { icon: Users, label: "Studios", to: "/admin-dashboard/studios" },
+    { icon: Users, label: "Customers", to: "/admin-dashboard/customers" },
     { icon: RiContractLine, label: "Contract", to: "/admin-dashboard/contract" },
     { icon: FaPersonRays, label: "Leads", to: "/admin-dashboard/leads" },
     { icon: RiAccountPinCircleLine, label: "Demo Access", to: "/admin-dashboard/demo-access" },

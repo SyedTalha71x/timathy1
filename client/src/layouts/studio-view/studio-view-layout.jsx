@@ -1,12 +1,12 @@
 import React, { useState, useCallback, createContext } from "react"
 import { Outlet, useLocation } from "react-router-dom"
-import Sidebar from "../components/sidebar"
-import DashboardHeader from "../components/DashboardHeader"
-import CentralSidebar from "../components/central-sidebar"
-import { useSidebarSystem } from "../hooks/useSidebarSystem"
+import Sidebar from "./components/sidebar"
+import DashboardHeader from "./components/DashboardHeader"
+import CentralSidebar from "./components/central-sidebar"
+import { useSidebarSystem } from "../../hooks/useSidebarSystem"
 
 // Sidebar Modals
-import { WidgetSelectionModal } from "../components/widget-selection-modal"
+import { WidgetSelectionModal } from "../../components/shared/widgets/components/widget-selection-modal"
 
 
 /**
@@ -88,9 +88,24 @@ const Dashboardlayout = () => {
 
   return (
     <ExternalSidebarContext.Provider value={{ isExternalSidebarOpen, setIsExternalSidebarOpen, toggleExternalSidebar }}>
-      {/* Global styles for widget drag & drop animations */}
+      {/* Global styles for widget drag & drop animations + selection/drag prevention */}
       <style>
         {`
+          /* Prevent text selection and icon/image dragging */
+          .dashboard-root {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+          }
+          .dashboard-root img,
+          .dashboard-root svg {
+            -webkit-user-drag: none;
+            -khtml-user-drag: none;
+            -moz-user-drag: none;
+            -o-user-drag: none;
+            user-drag: none;
+          }
           @keyframes wobble {
             0%, 100% { transform: rotate(0deg); }
             15% { transform: rotate(-1deg); }
@@ -113,7 +128,7 @@ const Dashboardlayout = () => {
         `}
       </style>
       
-      <div className="bg-[#111111] min-h-screen">
+      <div className="dashboard-root bg-[#111111] min-h-screen">
         <div className="flex flex-col md:flex-row h-full">
           {/* Sidebar - Navigation only */}
           <Sidebar 
