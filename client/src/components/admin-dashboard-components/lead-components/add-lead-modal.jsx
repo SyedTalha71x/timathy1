@@ -65,6 +65,7 @@ const AddLeadModal = ({
     city: "",
     country: "",
     details: "",
+    numberOfMembers: "",
 
   }
   
@@ -281,6 +282,7 @@ const AddLeadModal = ({
       city: "",
       country: "",
       details: "",
+    numberOfMembers: "",
     })
     setLocalNotes([])
     setActiveTab("details")
@@ -329,6 +331,7 @@ const AddLeadModal = ({
       city: "",
       country: "",
       details: "",
+    numberOfMembers: "",
 
     })
     setLocalNotes([])
@@ -418,6 +421,21 @@ const AddLeadModal = ({
                       className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
                       placeholder="https://..."
                     />
+                  </div>
+
+                  <div>
+                    <label className="text-sm text-gray-200 block mb-2">Number of Members</label>
+                    <select
+                      value={formData.numberOfMembers}
+                      onChange={(e) => updateFormData("numberOfMembers", e.target.value)}
+                      className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                    >
+                      <option value="">Select Number of Members</option>
+                      <option value="1-50">1-50 Members</option>
+                      <option value="51-200">51-200 Members</option>
+                      <option value="201-500">201-500 Members</option>
+                      <option value="500+">More than 500 Members</option>
+                    </select>
                   </div>
                 </div>
 

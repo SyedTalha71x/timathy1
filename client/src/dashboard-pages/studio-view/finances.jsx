@@ -1,8 +1,7 @@
 /* eslint-disable no-unused-vars */
 
 import { useState, useEffect, useMemo, useRef } from "react"
-import { Download, Calendar, ChevronDown, RefreshCw, Info, X, FileText, Eye, EyeOff, Trash2, Search, Play, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react"
-import * as XLSX from 'xlsx'
+import { Calendar, ChevronDown, RefreshCw, Info, X, FileText, Eye, EyeOff, Trash2, Search, Play, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react"
 import CheckFundsModal from "../../components/studio-components/finance-components/check-funds-modal"
 import SepaXmlModal from "../../components/studio-components/finance-components/sepa-xml-modal"
 import { financialData } from "../../utils/studio-states/finance-states"
@@ -10,7 +9,7 @@ import { useNavigate } from "react-router-dom"
 
 import { IoIosMenu } from "react-icons/io"
 
-import ExportConfirmationModal from "../../components/studio-components/finance-components/export-confirmation-modal"
+
 import PaymentRunsModal from "../../components/studio-components/finance-components/payment-runs-modal"
 import ServicesModal from "../../components/studio-components/finance-components/service-modal"
 import CustomDateModal from "../../components/studio-components/finance-components/custom-date-modal"
@@ -68,7 +67,7 @@ export default function FinancesPage() {
   const [selectedMemberName, setSelectedMemberName] = useState("")
   const [customDateModalOpen, setCustomDateModalOpen] = useState(false)
   const [customDateRange, setCustomDateRange] = useState(null)
-  const [exportConfirmationOpen, setExportConfirmationOpen] = useState(false)
+
   const [successModalOpen, setSuccessModalOpen] = useState(false)
   const [successMessage, setSuccessMessage] = useState("")
   const [sortBy, setSortBy] = useState("date")
@@ -156,14 +155,6 @@ export default function FinancesPage() {
   const handleCustomPeriodClick = () => { const today = new Date().toISOString().split("T")[0]; setInlineCustomDates((prev) => ({ startDate: prev.startDate || today, endDate: prev.endDate || today })); setIsCustomPeriodExpanded(true) }
   const handleSelectPeriod = (period) => { setSelectedPeriod(period); setCustomDateRange(null); setIsCustomPeriodExpanded(false); setPeriodDropdownOpen(false) }
   const handleDeletePaymentRun = (runId) => { setPaymentRuns((prev) => prev.filter((run) => run.id !== runId)) }
-
-  const exportToExcel = () => {
-    const excelData = sortedTransactions.map((transaction) => ({ "Member Name": transaction.memberName, "Amount": transaction.amount, "Services": transaction.services.map((service) => `${service.name}: $${service.cost.toFixed(2)}`).join(" | "), "Status": transaction.status, "IBAN": transaction.iban || "DE89370400440532013000", "Mandate Number": transaction.mandateNumber || `MNDT-${transaction.id.toString().padStart(6, '0')}`, "Date": formatDate(transaction.date), "Type": transaction.type }))
-    const workbook = XLSX.utils.book_new(); const worksheet = XLSX.utils.json_to_sheet(excelData);
-    worksheet['!cols'] = [{ wch: 20 }, { wch: 12 }, { wch: 40 }, { wch: 18 }, { wch: 25 }, { wch: 18 }, { wch: 15 }, { wch: 15 }];
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Transactions");
-    XLSX.writeFile(workbook, `financial_data_${selectedPeriod.replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.xlsx`)
-  }
 
   // Updated to accept paymentRunData from SepaXmlModal
   const handleGenerateXml = (selectedTransactions, period, shouldDownload = true, paymentRunData = null) => {
@@ -295,8 +286,6 @@ export default function FinancesPage() {
                 </div>
               )}
             </div>
-            <button onClick={() => setExportConfirmationOpen(true)} className="md:hidden bg-gray-600 text-white p-2 rounded-xl transition-colors hover:bg-gray-700" title="Export Excel"><Download className="w-4 h-4" /></button>
-            <button onClick={() => setExportConfirmationOpen(true)} className="hidden md:flex bg-gray-600 text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 text-xs sm:text-sm transition-colors hover:bg-gray-700"><Download className="w-4 h-4" /><span className="hidden lg:inline">Export Excel</span></button>
             <button onClick={() => setSepaModalOpen(true)} className="hidden md:flex bg-[#3F74FF] hover:bg-[#3F74FF]/90 text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 text-xs sm:text-sm transition-colors"><Play className="w-4 h-4" /><span className="hidden lg:inline">Run Payment</span></button>
             {hasCheckingTransactionsAnyPeriod && (<button onClick={() => setCheckFundsModalOpen(true)} className="hidden md:flex bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 text-xs sm:text-sm transition-colors"><RefreshCw className="w-4 h-4" /><span className="hidden lg:inline">Check Funds</span></button>)}
           </div>
@@ -383,7 +372,6 @@ export default function FinancesPage() {
 
         {sortedTransactions.length === 0 && (<div className="bg-[#141414] p-4 md:p-6 rounded-xl text-center mt-3 md:mt-4"><p className="text-gray-400 text-sm md:text-base">No transactions found matching your criteria.</p></div>)}
 
-        <ExportConfirmationModal isOpen={exportConfirmationOpen} onClose={() => setExportConfirmationOpen(false)} onConfirm={exportToExcel} selectedPeriod={selectedPeriod} recordCount={sortedTransactions.length} />
         <SepaXmlModal isOpen={sepaModalOpen} onClose={() => setSepaModalOpen(false)} selectedPeriod={selectedPeriod} transactions={currentPeriodData.transactions} onGenerateXml={handleGenerateXml} financialData={financialState} currentUser="John Smith" creditorInfo={defaultCreditorInfo} />
         <PaymentRunsModal isOpen={paymentRunsModalOpen} onClose={() => setPaymentRunsModalOpen(false)} paymentRuns={paymentRuns} onDeletePaymentRun={handleDeletePaymentRun} />
         <CheckFundsModal isOpen={checkFundsModalOpen} onClose={() => setCheckFundsModalOpen(false)} transactions={currentPeriodData.transactions} onUpdateStatuses={handleUpdateStatuses} financialState={financialState} />

@@ -2,14 +2,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { Toaster } from 'react-hot-toast';
-import { IoIosMenu } from 'react-icons/io';
 import { FaInfoCircle, FaThumbtack, FaPlus } from 'react-icons/fa';
 import { ChevronDown, Search, ArrowUpDown, ArrowUp, ArrowDown, Info, ExternalLink } from 'lucide-react';
 
-import WebsiteLinkModal from '../../components/admin-dashboard-components/myarea-components/website-link-modal';
-import WidgetSelectionModal from '../../components/admin-dashboard-components/myarea-components/widgets';
-import ConfirmationModal from '../../components/admin-dashboard-components/myarea-components/confirmation-modal';
-import Sidebar from '../../components/admin-dashboard-components/central-sidebar';
 import ProductModal from '../../components/admin-dashboard-components/marketplace-components/ProductModal';
 import DeleteConfirmationModal from '../../components/admin-dashboard-components/marketplace-components/DeleteConfirmationModal';
 import ProductInfoModal from '../../components/admin-dashboard-components/marketplace-components/ProductInfoModal';
@@ -17,11 +12,6 @@ import { getTranslation, emptyTranslations } from '../../components/admin-dashbo
 
 import {
   initialProducts,
-  initialSidebarWidgets,
-  initialTodos,
-  memberTypes,
-  initialCustomLinks,
-  initialExpiringContracts,
 } from "../../utils/admin-panel-states/marketplace-states";
 
 // ─── Admin Product Card ──────────────────────────────────────────────────────
@@ -125,7 +115,6 @@ const AdminProductCard = ({ product, onEdit, onDelete, onTogglePin, onToggleStat
     </div>
   );
 };
-
 
 // ─── Main Marketplace Component ──────────────────────────────────────────────
 const Marketplace = () => {
@@ -273,20 +262,6 @@ const Marketplace = () => {
   const activeCount = products.filter(p => p.isActive).length;
   const inactiveCount = products.filter(p => !p.isActive).length;
   const pinnedCount = products.filter(p => p.isPinned).length;
-
-  // ─── Sidebar state ──────────────────────────────────────────────────────────
-  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
-  const [isEditing, setIsEditing] = useState(false)
-  const [selectedMemberType, setSelectedMemberType] = useState("Studios Acquired")
-  const [isRightWidgetModalOpen, setIsRightWidgetModalOpen] = useState(false)
-  const [confirmationModal, setConfirmationModal] = useState({ isOpen: false, linkId: null })
-  const [editingLink, setEditingLink] = useState(null)
-  const [openDropdownIndex, setOpenDropdownIndex] = useState(null)
-  const [sidebarWidgets, setSidebarWidgets] = useState(initialSidebarWidgets)
-  const [todos, setTodos] = useState(initialTodos)
-  const [customLinks, setCustomLinks] = useState(initialCustomLinks)
-  const [expiringContracts, setExpiringContracts] = useState(initialExpiringContracts)
-
   // ─── Modal handlers ─────────────────────────────────────────────────────────
 
   const openAddModal = () => {
@@ -429,37 +404,6 @@ const Marketplace = () => {
     }
   };
 
-  // ─── Sidebar functions ──────────────────────────────────────────────────────
-
-  const updateCustomLink = (id, field, value) => {
-    setCustomLinks((currentLinks) => currentLinks.map((link) => (link.id === id ? { ...link, [field]: value } : link)))
-  }
-
-  const removeCustomLink = (id) => {
-    setConfirmationModal({ isOpen: true, linkId: id })
-  }
-
-  const handleAddSidebarWidget = (widgetType) => {
-    const newWidget = { id: `sidebar-widget${Date.now()}`, type: widgetType, position: sidebarWidgets.length }
-    setSidebarWidgets((currentWidgets) => [...currentWidgets, newWidget])
-    setIsRightWidgetModalOpen(false)
-    toast.success(`${widgetType} widget has been added to sidebar Successfully`)
-  }
-
-  const confirmRemoveLink = () => {
-    if (confirmationModal.linkId) {
-      setCustomLinks((currentLinks) => currentLinks.filter((link) => link.id !== confirmationModal.linkId))
-      toast.success("Website link removed successfully")
-    }
-    setConfirmationModal({ isOpen: false, linkId: null })
-  }
-
-  const getSidebarWidgetStatus = (widgetType) => {
-    const existsInSidebar = sidebarWidgets.some((widget) => widget.type === widgetType)
-    if (existsInSidebar) return { canAdd: false, location: "sidebar" }
-    return { canAdd: true, location: null }
-  }
-
   // ─── Sort Dropdown Component ────────────────────────────────────────────────
   const SortDropdown = ({ className = "" }) => (
     <div className={`relative ${className}`} ref={sortDropdownRef}>
@@ -502,7 +446,7 @@ const Marketplace = () => {
       <div className={`
         min-h-screen rounded-3xl bg-[#1C1C1C] text-white lg:p-3 md:p-3 sm:p-2 p-1
         transition-all duration-500 ease-in-out flex-1
-        ${isRightSidebarOpen ? 'lg:mr-86 mr-0' : 'mr-0'}
+        
       `}>
         <div className="md:p-6 p-3">
           {/* Header */}
@@ -517,7 +461,6 @@ const Marketplace = () => {
                 <FaPlus size={14} />
                 <span className="hidden sm:inline">Add Product</span>
               </button>
-              <img onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)} className="h-5 w-5 cursor-pointer" src="/icon.svg" alt="" />
             </div>
           </div>
 
@@ -644,38 +587,6 @@ const Marketplace = () => {
 
       <DeleteConfirmationModal isOpen={isDeleteModalOpen} onClose={closeDeleteModal} onConfirm={confirmDelete} productToDelete={productToDelete} />
       <ProductInfoModal isOpen={isInfoModalOpen} onClose={closeInfoModal} productForInfo={productForInfo} onEditClick={openEditModal} />
-
-      {/* Sidebar */}
-      <Sidebar
-        isOpen={isRightSidebarOpen}
-        onClose={() => setIsRightSidebarOpen(false)}
-        widgets={sidebarWidgets}
-        setWidgets={setSidebarWidgets}
-        isEditing={isEditing}
-        todos={todos}
-        customLinks={customLinks}
-        setCustomLinks={setCustomLinks}
-        expiringContracts={expiringContracts}
-        selectedMemberType={selectedMemberType}
-        setSelectedMemberType={setSelectedMemberType}
-        memberTypes={memberTypes}
-        onAddWidget={() => setIsRightWidgetModalOpen(true)}
-        updateCustomLink={updateCustomLink}
-        removeCustomLink={removeCustomLink}
-        editingLink={editingLink}
-        setEditingLink={setEditingLink}
-        openDropdownIndex={openDropdownIndex}
-        setOpenDropdownIndex={setOpenDropdownIndex}
-        onToggleEditing={() => { setIsEditing(!isEditing); }}
-        setTodos={setTodos}
-      />
-
-      <ConfirmationModal isOpen={confirmationModal.isOpen} onClose={() => setConfirmationModal({ isOpen: false, linkId: null })} onConfirm={confirmRemoveLink} title="Delete Website Link" message="Are you sure you want to delete this website link? This action cannot be undone." />
-      <WidgetSelectionModal isOpen={isRightWidgetModalOpen} onClose={() => setIsRightWidgetModalOpen(false)} onSelectWidget={handleAddSidebarWidget} getWidgetStatus={getSidebarWidgetStatus} widgetArea="sidebar" />
-
-      {editingLink && (
-        <WebsiteLinkModal link={editingLink} onClose={() => setEditingLink(null)} updateCustomLink={updateCustomLink} setCustomLinks={setCustomLinks} />
-      )}
     </>
   );
 };

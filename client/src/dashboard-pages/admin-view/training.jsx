@@ -20,13 +20,8 @@ import {
   Dumbbell,
   Settings,
 } from "lucide-react"
-import { IoIosMenu } from "react-icons/io";
 import toast from "react-hot-toast";
 
-import WebsiteLinkModal from "../../components/admin-dashboard-components/myarea-components/website-link-modal";
-import WidgetSelectionModal from "../../components/admin-dashboard-components/myarea-components/widgets";
-import ConfirmationModal from "../../components/admin-dashboard-components/myarea-components/confirmation-modal";
-import Sidebar from "../../components/admin-dashboard-components/central-sidebar";
 import ManageOptionsModal from "../../components/admin-dashboard-components/training-components/ManageOptionsModal";
 import ExerciseFormModal from "../../components/admin-dashboard-components/training-components/ExerciseFormModal";
 import ViewExerciseModal from "../../components/admin-dashboard-components/training-components/ViewExerciseModal";
@@ -38,11 +33,6 @@ import {
   initialMuscleOptions,
   initialEquipmentOptions,
   difficultyOptions,
-  initialSidebarWidgets,
-  initialTodos,
-  memberTypes,
-  initialCustomLinks,
-  initialExpiringContracts,
 } from "../../utils/admin-panel-states/training-states";
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -85,21 +75,6 @@ export default function AdminTrainingManagement() {
   const [isMuted, setIsMuted] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
-
-  // ─── Sidebar related state ──────────────────────────────────────────────────
-  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
-  const [isEditing, setIsEditing] = useState(false)
-  const [selectedMemberType, setSelectedMemberType] = useState("Studios Acquired")
-  const [isRightWidgetModalOpen, setIsRightWidgetModalOpen] = useState(false)
-  const [confirmationModal, setConfirmationModal] = useState({ isOpen: false, linkId: null })
-  const [editingLink, setEditingLink] = useState(null)
-  const [openDropdownIndex, setOpenDropdownIndex] = useState(null)
-  const [sidebarWidgets, setSidebarWidgets] = useState(initialSidebarWidgets)
-  const [todos, setTodos] = useState(initialTodos)
-  const [customLinks, setCustomLinks] = useState(initialCustomLinks)
-  const [expiringContracts, setExpiringContracts] = useState(initialExpiringContracts)
-  // ─── end sidebar state ──────────────────────────────────────────────────────
-
   // ─── Display helpers ────────────────────────────────────────────────────────
 
   const getMuscleDisplayName = (muscleId, lang = "en") => {
@@ -398,60 +373,19 @@ export default function AdminTrainingManagement() {
     setEditingEquipmentValue("")
   }
 
-  // ─── Sidebar functions (unchanged) ──────────────────────────────────────────
-
-  const updateCustomLink = (id, field, value) => {
-    setCustomLinks((currentLinks) => currentLinks.map((link) => (link.id === id ? { ...link, [field]: value } : link)))
-  }
-
-  const removeCustomLink = (id) => {
-    setConfirmationModal({ isOpen: true, linkId: id })
-  }
-
-  const handleAddSidebarWidget = (widgetType) => {
-    const newWidget = { id: `sidebar-widget${Date.now()}`, type: widgetType, position: sidebarWidgets.length }
-    setSidebarWidgets((currentWidgets) => [...currentWidgets, newWidget])
-    setIsRightWidgetModalOpen(false)
-    toast.success(`${widgetType} widget has been added to sidebar Successfully`)
-  }
-
-  const confirmRemoveLink = () => {
-    if (confirmationModal.linkId) {
-      setCustomLinks((currentLinks) => currentLinks.filter((link) => link.id !== confirmationModal.linkId))
-      toast.success("Website link removed successfully")
-    }
-    setConfirmationModal({ isOpen: false, linkId: null })
-  }
-
-  const getSidebarWidgetStatus = (widgetType) => {
-    const existsInSidebar = sidebarWidgets.some((widget) => widget.type === widgetType)
-    if (existsInSidebar) return { canAdd: false, location: "sidebar" }
-    return { canAdd: true, location: null }
-  }
-
-  const toggleRightSidebar = () => {
-    setIsRightSidebarOpen(!isRightSidebarOpen)
-  }
-
   // ─── Render ─────────────────────────────────────────────────────────────────
 
   return (
     <div className={`
       min-h-screen rounded-3xl bg-[#1C1C1C] text-white md:p-6 p-3
       transition-all duration-500 ease-in-out flex-1
-      ${isRightSidebarOpen ? 'lg:mr-86 mr-0' : 'mr-0'}
+      
     `}>
       <div className="">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4">
           <div className="flex justify-between items-center gap-2 w-full md:w-auto">
             <h1 className="text-white text-xl md:text-2xl font-bold mb-2">Training Exercises</h1>
-            <img
-              onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
-              className="h-5 w-5 mr-5 lg:hidden md:hidden block cursor-pointer"
-              src="/icon.svg"
-              alt=""
-            />
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -468,12 +402,6 @@ export default function AdminTrainingManagement() {
               <Plus size={18} />
               Upload Exercise
             </button>
-            <img
-              onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
-              className="h-5 w-5 mr-5 lg:block md:block hidden cursor-pointer"
-              src="/icon.svg"
-              alt=""
-            />
           </div>
         </div>
 
@@ -698,56 +626,6 @@ export default function AdminTrainingManagement() {
         onClose={() => { setIsDeleteModalOpen(false); setVideoToDelete(null) }}
         onConfirmDelete={handleDelete}
       />
-
-      {/* Sidebar related modals */}
-      <Sidebar
-        isOpen={isRightSidebarOpen}
-        onClose={() => setIsRightSidebarOpen(false)}
-        widgets={sidebarWidgets}
-        setWidgets={setSidebarWidgets}
-        isEditing={isEditing}
-        todos={todos}
-        customLinks={customLinks}
-        setCustomLinks={setCustomLinks}
-        expiringContracts={expiringContracts}
-        selectedMemberType={selectedMemberType}
-        setSelectedMemberType={setSelectedMemberType}
-        memberTypes={memberTypes}
-        onAddWidget={() => setIsRightWidgetModalOpen(true)}
-        updateCustomLink={updateCustomLink}
-        removeCustomLink={removeCustomLink}
-        editingLink={editingLink}
-        setEditingLink={setEditingLink}
-        openDropdownIndex={openDropdownIndex}
-        setOpenDropdownIndex={setOpenDropdownIndex}
-        onToggleEditing={() => { setIsEditing(!isEditing) }}
-        setTodos={setTodos}
-      />
-
-      <ConfirmationModal
-        isOpen={confirmationModal.isOpen}
-        onClose={() => setConfirmationModal({ isOpen: false, linkId: null })}
-        onConfirm={confirmRemoveLink}
-        title="Delete Website Link"
-        message="Are you sure you want to delete this website link? This action cannot be undone."
-      />
-
-      <WidgetSelectionModal
-        isOpen={isRightWidgetModalOpen}
-        onClose={() => setIsRightWidgetModalOpen(false)}
-        onSelectWidget={handleAddSidebarWidget}
-        getWidgetStatus={getSidebarWidgetStatus}
-        widgetArea="sidebar"
-      />
-
-      {editingLink && (
-        <WebsiteLinkModal
-          link={editingLink}
-          onClose={() => setEditingLink(null)}
-          updateCustomLink={updateCustomLink}
-          setCustomLinks={setCustomLinks}
-        />
-      )}
     </div>
   )
 }

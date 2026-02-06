@@ -1,1070 +1,424 @@
 /* eslint-disable no-unused-vars */
-import { useState, useEffect } from "react"
-import { Download, Calendar, ChevronDown, RefreshCw, Filter, Info, FileText } from "lucide-react"
-import toast from "react-hot-toast"
-import { IoIosMenu } from "react-icons/io"
+import { useState, useEffect, useMemo, useRef } from "react"
+import { Calendar, ChevronDown, RefreshCw, Info, X, FileText, Eye, EyeOff, Search, Play, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react"
 
 import { financialData } from "../../utils/admin-panel-states/finance-states"
-import Sidebar from "../../components/admin-dashboard-components/central-sidebar"
 
-import CheckFundsModal from "../../components/admin-dashboard-components/studios-modal/check-funds-modal"
-import SepaXmlModal from "../../components/admin-dashboard-components/studios-modal/sepa-xml-modal"
-import ServicesModal from "../../components/admin-dashboard-components/finance-components/services-modal"
-import DocumentsModal from "../../components/admin-dashboard-components/finance-components/documents-modal"
-import DocumentViewerModal from "../../components/admin-dashboard-components/finance-components/document-viewer-modal"
-import WebsiteLinkModal from "../../components/admin-dashboard-components/myarea-components/website-link-modal"
-import WidgetSelectionModal from "../../components/admin-dashboard-components/myarea-components/widgets"
-import ConfirmationModal from "../../components/admin-dashboard-components/myarea-components/confirmation-modal"
-import ExportConfirmationModal from "../../components/admin-dashboard-components/finance-components/export-confirmation-modal"
+import CheckFundsModal from "../../components/admin-dashboard-components/finance-components/check-funds-modal"
+import SepaXmlModal from "../../components/admin-dashboard-components/finance-components/sepa-xml-modal"
+import ServicesModal from "../../components/admin-dashboard-components/finance-components/service-modal"
+import PaymentRunsModal from "../../components/admin-dashboard-components/finance-components/payment-runs-modal"
+import SepaXmlSuccessModal from "../../components/admin-dashboard-components/finance-components/sepa-xml-success-modal"
+import SuccessModal from "../../components/admin-dashboard-components/finance-components/check-funds-success-modal"
+
+// Default creditor info - configure for your organization
+const defaultCreditorInfo = {
+  name: "Studio Management Company",
+  bankName: "Chase Bank",
+  iban: "DE89370400440532013000",
+  bic: "CHASUS33",
+  creditorId: "US98ZZZ09999999999"
+}
+
+// Masked IBAN Component
+const MaskedIban = ({ iban, className = "" }) => {
+  const [isRevealed, setIsRevealed] = useState(false);
+  if (!iban) return <span className="text-gray-500">-</span>;
+  const maskIban = (ibanStr) => {
+    if (ibanStr.length <= 8) return ibanStr;
+    const start = ibanStr.slice(0, 4);
+    const end = ibanStr.slice(-4);
+    const middleLength = ibanStr.length - 8;
+    const masked = '*'.repeat(Math.min(middleLength, 8));
+    return `${start}${masked}${end}`;
+  };
+  const displayValue = isRevealed ? iban : maskIban(iban);
+  return (
+    <div className={`flex items-center gap-1 ${className}`}>
+      <span className="font-mono text-xs whitespace-nowrap">{displayValue}</span>
+      <button onClick={(e) => { e.stopPropagation(); setIsRevealed(!isRevealed); }} className="p-0.5 text-gray-400 hover:text-white transition-colors flex-shrink-0" title={isRevealed ? "Hide IBAN" : "Show full IBAN"}>
+        {isRevealed ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+      </button>
+    </div>
+  );
+};
 
 export default function FinancesPage() {
   const [selectedPeriod, setSelectedPeriod] = useState("This Month")
   const [periodDropdownOpen, setPeriodDropdownOpen] = useState(false)
-  const [statusFilterOpen, setStatusFilterOpen] = useState(false)
+  const [isCustomPeriodExpanded, setIsCustomPeriodExpanded] = useState(false)
+  const [inlineCustomDates, setInlineCustomDates] = useState({ startDate: "", endDate: "" })
+  const periodDropdownRef = useRef(null)
   const [searchTerm, setSearchTerm] = useState("")
-  const [selectedStatus, setSelectedStatus] = useState("All")
+  const [selectedStatuses, setSelectedStatuses] = useState([])
   const [filteredTransactions, setFilteredTransactions] = useState(financialData[selectedPeriod]?.transactions || [])
-  const [currentPage, setCurrentPage] = useState(1)
   const [sepaModalOpen, setSepaModalOpen] = useState(false)
   const [financialState, setFinancialState] = useState(financialData)
   const [checkFundsModalOpen, setCheckFundsModalOpen] = useState(false)
-  const [editingAmount, setEditingAmount] = useState(null)
-  const [editAmount, setEditAmount] = useState("")
   const [servicesModalOpen, setServicesModalOpen] = useState(false)
   const [selectedServices, setSelectedServices] = useState([])
   const [selectedStudioName, setSelectedStudioName] = useState("")
-  const [documentsModalOpen, setDocumentsModalOpen] = useState(false)
-  const [documentViewerOpen, setDocumentViewerOpen] = useState(false)
-  const [selectedDocument, setSelectedDocument] = useState(null)
+  const [customDateRange, setCustomDateRange] = useState(null)
+  const [successModalOpen, setSuccessModalOpen] = useState(false)
+  const [successMessage, setSuccessMessage] = useState("")
+  const [sortBy, setSortBy] = useState("date")
+  const [sortDirection, setSortDirection] = useState("desc")
+  const [sepaSuccessModalOpen, setSepaSuccessModalOpen] = useState(false)
+  const [generatedFileInfo, setGeneratedFileInfo] = useState({ fileName: '', transactionCount: 0, totalAmount: 0 })
+  const [shouldAutoDownload, setShouldAutoDownload] = useState(true)
 
-  const [customPeriodStart, setCustomPeriodStart] = useState("")
-  const [customPeriodEnd, setCustomPeriodEnd] = useState("")
-  const [showCustomPeriodInput, setShowCustomPeriodInput] = useState(false)
+  // Payment Runs state
+  const [paymentRunsModalOpen, setPaymentRunsModalOpen] = useState(false)
+  const [paymentRuns, setPaymentRuns] = useState([])
 
-  const [exportConfirmationOpen, setExportConfirmationOpen] = useState(false)
+  const [columnWidths, setColumnWidths] = useState({ studio: 80, accountHolder: 90, iban: 70, mandate: 90, date: 70, type: 50, amount: 45, services: 30, status: 70 })
+  const resizingRef = useRef(null)
 
+  const handleColumnResize = (columnId, newWidth) => { setColumnWidths(prev => ({ ...prev, [columnId]: Math.max(50, newWidth) })) }
+  const handleResizeMouseDown = (e, columnId) => {
+    e.preventDefault(); e.stopPropagation();
+    const startX = e.clientX; const startWidth = columnWidths[columnId];
+    const handleMouseMove = (moveEvent) => { const diff = moveEvent.clientX - startX; handleColumnResize(columnId, startWidth + diff) };
+    const handleMouseUp = () => { document.removeEventListener('mousemove', handleMouseMove); document.removeEventListener('mouseup', handleMouseUp); resizingRef.current = null };
+    resizingRef.current = columnId;
+    document.addEventListener('mousemove', handleMouseMove); document.addEventListener('mouseup', handleMouseUp)
+  }
 
-  const periodOptions = [
-    "Overall",
-    "This Month",
-    "Last Month",
-    "Last 3 Months",
-    "Last 6 Months",
-    "This Year",
-    "Custom Period",
+  const statusOptions = [
+    { id: "Successful", label: "Successful", color: "#10b981" },
+    { id: "Pending", label: "Pending", color: "#f59e0b" },
+    { id: "Failed", label: "Failed", color: "#ef4444" },
+    { id: "Check incoming funds", label: "Check incoming funds", color: "#3b82f6" },
   ]
 
-  const [sepaDocuments, setSepaDocuments] = useState([
-    {
-      id: "doc-001",
-      filename: "SEPA_Payment_2023-05-15.xml",
-      createdAt: "2023-05-15T10:30:00Z",
-      size: 2048,
-      transactionCount: 3,
-      content: `<?xml version="1.0" encoding="UTF-8"?>
-<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03">
-  <CstmrCdtTrfInitn>
-    <GrpHdr>
-      <MsgId>MSG-001-20230515</MsgId>
-      <CreDtTm>2023-05-15T10:30:00</CreDtTm>
-      <NbOfTxs>3</NbOfTxs>
-      <CtrlSum>500.00</CtrlSum>
-    </GrpHdr>
-    <PmtInf>
-      <PmtInfId>PMT-001</PmtInfId>
-      <PmtMtd>TRF</PmtMtd>
-      <ReqdExctnDt>2023-05-16</ReqdExctnDt>
-      <Dbtr>
-        <Nm>Studio Management Company</Nm>
-      </Dbtr>
-    </PmtInf>
-  </CstmrCdtTrfInitn>
-</Document>`,
-    },
-    {
-      id: "doc-002",
-      filename: "SEPA_Payment_2023-05-10.xml",
-      createdAt: "2023-05-10T14:15:00Z",
-      size: 1536,
-      transactionCount: 2,
-      content: `<?xml version="1.0" encoding="UTF-8"?>
-<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03">
-  <CstmrCdtTrfInitn>
-    <GrpHdr>
-      <MsgId>MSG-002-20230510</MsgId>
-      <CreDtTm>2023-05-10T14:15:00</CreDtTm>
-      <NbOfTxs>2</NbOfTxs>
-      <CtrlSum>350.00</CtrlSum>
-    </GrpHdr>
-    <PmtInf>
-      <PmtInfId>PMT-002</PmtInfId>
-      <PmtMtd>TRF</PmtMtd>
-      <ReqdExctnDt>2023-05-11</ReqdExctnDt>
-      <Dbtr>
-        <Nm>Studio Management Company</Nm>
-      </Dbtr>
-    </PmtInf>
-  </CstmrCdtTrfInitn>
-</Document>`,
-    },
-  ])
-  const [customPeriodModalOpen, setCustomPeriodModalOpen] = useState(false)
-
-  // Remove pagination - show all transactions
-  const statusOptions = ["All", "Successful", "Pending", "Failed", "Check incoming funds"]
-
-  // Calculate financial summary data
-  const calculateFinancialSummary = () => {
-    if (selectedPeriod === "Overall") {
-      const allTransactions = Object.values(financialState).flatMap((period) => period.transactions || [])
-
-      const successful = allTransactions
-        .filter((tx) => tx.status === "Successful")
-        .reduce((sum, tx) => sum + tx.amount, 0)
-
-      const pending = allTransactions
-        .filter((tx) => tx.status === "Pending" || tx.status === "Check incoming funds")
-        .reduce((sum, tx) => sum + tx.amount, 0)
-
-      const failed = allTransactions.filter((tx) => tx.status === "Failed").reduce((sum, tx) => sum + tx.amount, 0)
-
-      return {
-        totalRevenue: successful + pending + failed,
-        successfulPayments: successful,
-        pendingPayments: pending,
-        failedPayments: failed,
-        transactions: allTransactions,
-      }
-    } else if (selectedPeriod === "Custom Period" && customPeriodStart && customPeriodEnd) {
-      const startDate = new Date(customPeriodStart)
-      const endDate = new Date(customPeriodEnd)
-
-      const customTransactions = Object.values(financialState)
-        .flatMap((period) => period.transactions || [])
-        .filter((transaction) => {
-          const transactionDate = new Date(transaction.date)
-          return transactionDate >= startDate && transactionDate <= endDate
-        })
-
-      const successful = customTransactions
-        .filter((tx) => tx.status === "Successful")
-        .reduce((sum, tx) => sum + tx.amount, 0)
-
-      const pending = customTransactions
-        .filter((tx) => tx.status === "Pending" || tx.status === "Check incoming funds")
-        .reduce((sum, tx) => sum + tx.amount, 0)
-
-      const failed = customTransactions.filter((tx) => tx.status === "Failed").reduce((sum, tx) => sum + tx.amount, 0)
-
-      return {
-        totalRevenue: successful + pending + failed,
-        successfulPayments: successful,
-        pendingPayments: pending,
-        failedPayments: failed,
-        transactions: customTransactions,
-      }
-    } else {
-      // Safely access the period data with fallback
-      const periodData = financialState[selectedPeriod] || {
-        totalRevenue: 0,
-        successfulPayments: 0,
-        pendingPayments: 0,
-        failedPayments: 0,
-        transactions: [],
-      }
-
-      return periodData
-    }
-  }
-  const financialSummary = calculateFinancialSummary()
-
-  //sidebar related logic and states
-  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
-  const [isEditing, setIsEditing] = useState(false)
-  const [selectedMemberType, setSelectedMemberType] = useState("Studios Acquired")
-  const [isRightWidgetModalOpen, setIsRightWidgetModalOpen] = useState(false)
-  const [confirmationModal, setConfirmationModal] = useState({ isOpen: false, linkId: null })
-  const [editingLink, setEditingLink] = useState(null)
-  const [openDropdownIndex, setOpenDropdownIndex] = useState(null)
-
-  const [sidebarWidgets, setSidebarWidgets] = useState([
-    { id: "sidebar-chart", type: "chart", position: 0 },
-    { id: "sidebar-todo", type: "todo", position: 1 },
-    { id: "sidebar-websiteLink", type: "websiteLink", position: 2 },
-    { id: "sidebar-expiringContracts", type: "expiringContracts", position: 3 },
-    { id: "sidebar-notes", type: "notes", position: 4 },
-  ])
-
-  const [todos, setTodos] = useState([
-    {
-      id: 1,
-      title: "Review Design",
-      description: "Review the new dashboard design",
-      assignee: "Jack",
-      dueDate: "2024-12-15",
-      dueTime: "14:30",
-    },
-    {
-      id: 2,
-      title: "Team Meeting",
-      description: "Weekly team sync",
-      assignee: "Jack",
-      dueDate: "2024-12-16",
-      dueTime: "10:00",
-    },
-  ])
-
-  const memberTypes = {
-    "Studios Acquired": {
-      data: [
-        [30, 45, 60, 75, 90, 105, 120, 135, 150],
-        [25, 40, 55, 70, 85, 100, 115, 130, 145],
-      ],
-      growth: "12%",
-      title: "Studios Acquired",
-    },
-    Finance: {
-      data: [
-        [50000, 60000, 75000, 85000, 95000, 110000, 125000, 140000, 160000],
-        [45000, 55000, 70000, 80000, 90000, 105000, 120000, 135000, 155000],
-      ],
-      growth: "8%",
-      title: "Finance Statistics",
-    },
-    Leads: {
-      data: [
-        [120, 150, 180, 210, 240, 270, 300, 330, 360],
-        [100, 130, 160, 190, 220, 250, 280, 310, 340],
-      ],
-      growth: "15%",
-      title: "Leads Statistics",
-    },
-    Franchises: {
-      data: [
-        [120, 150, 180, 210, 240, 270, 300, 330, 360],
-        [100, 130, 160, 190, 220, 250, 280, 310, 340],
-      ],
-      growth: "10%",
-      title: "Franchises Acquired",
-    },
-  }
-
-  const [customLinks, setCustomLinks] = useState([
-    {
-      id: "link1",
-      url: "https://fitness-web-kappa.vercel.app/",
-      title: "Timathy Fitness Town",
-    },
-    { id: "link2", url: "https://oxygengym.pk/", title: "Oxygen Gyms" },
-    { id: "link3", url: "https://fitness-web-kappa.vercel.app/", title: "Timathy V1" },
-  ])
-
-  const [expiringContracts, setExpiringContracts] = useState([
-    {
-      id: 1,
-      title: "Oxygen Gym Membership",
-      expiryDate: "June 30, 2025",
-      status: "Expiring Soon",
-    },
-    {
-      id: 2,
-      title: "Timathy Fitness Equipment Lease",
-      expiryDate: "July 15, 2025",
-      status: "Expiring Soon",
-    },
-    {
-      id: 3,
-      title: "Studio Space Rental",
-      expiryDate: "August 5, 2025",
-      status: "Expiring Soon",
-    },
-    {
-      id: 4,
-      title: "Insurance Policy",
-      expiryDate: "September 10, 2025",
-      status: "Expiring Soon",
-    },
-    {
-      id: 5,
-      title: "Software License",
-      expiryDate: "October 20, 2025",
-      status: "Expiring Soon",
-    },
-  ])
-
-  // -------------- end of sidebar logic
+  const handleSort = (column) => { if (sortBy === column) { setSortDirection(sortDirection === "asc" ? "desc" : "asc") } else { setSortBy(column); setSortDirection("asc") } }
+  const getSortIcon = (column) => { if (sortBy !== column) return <ArrowUpDown size={14} className="text-gray-500" />; return sortDirection === "asc" ? <ArrowUp size={14} className="text-white" /> : <ArrowDown size={14} className="text-white" /> }
 
   useEffect(() => {
-    let transactions = []
-
-    if (selectedPeriod === "Overall") {
-      transactions = Object.values(financialState).flatMap((period) => period.transactions || [])
-    } else if (selectedPeriod === "Custom Period" && customPeriodStart && customPeriodEnd) {
-      const startDate = new Date(customPeriodStart)
-      const endDate = new Date(customPeriodEnd)
-
-      transactions = Object.values(financialState)
-        .flatMap((period) => period.transactions || [])
-        .filter((transaction) => {
-          const transactionDate = new Date(transaction.date)
-          return transactionDate >= startDate && transactionDate <= endDate
-        })
-    } else {
-      transactions = financialState[selectedPeriod]?.transactions || []
+    let currentTransactions = financialState[selectedPeriod]?.transactions || []
+    if (customDateRange && selectedPeriod.startsWith("Custom")) {
+      const allTransactions = Object.values(financialState).flatMap((period) => period.transactions || [])
+      currentTransactions = allTransactions.filter((transaction) => {
+        const transactionDate = new Date(transaction.date); const startDate = new Date(customDateRange.start); const endDate = new Date(customDateRange.end);
+        return transactionDate >= startDate && transactionDate <= endDate
+      })
     }
-
-    const filtered = transactions.filter((transaction) => {
+    const filtered = currentTransactions.filter((transaction) => {
+      const searchLower = searchTerm.toLowerCase()
       const matchesSearch =
-        transaction.studioName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        transaction.studioOwner.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        transaction.status.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        transaction.type.toLowerCase().includes(searchTerm.toLowerCase())
-
-      const matchesStatus = selectedStatus === "All" || transaction.status === selectedStatus
-
+        (transaction.studioName && transaction.studioName.toLowerCase().includes(searchLower)) ||
+        (transaction.studioOwner && transaction.studioOwner.toLowerCase().includes(searchLower)) ||
+        (transaction.iban && transaction.iban.toLowerCase().includes(searchLower)) ||
+        (transaction.mandateNumber && transaction.mandateNumber.toLowerCase().includes(searchLower))
+      const matchesStatus = selectedStatuses.length === 0 || selectedStatuses.includes(transaction.status)
       return matchesSearch && matchesStatus
     })
-
     setFilteredTransactions(filtered)
-    setCurrentPage(1)
-  }, [searchTerm, selectedPeriod, selectedStatus, customPeriodStart, customPeriodEnd, financialState])
+  }, [searchTerm, selectedPeriod, selectedStatuses, customDateRange, financialState])
 
-  // Remove pagination logic since we're showing all transactions
-  const displayedTransactions = filteredTransactions
+  useEffect(() => {
+    const handleClickOutside = (event) => { if (window.innerWidth < 768) return; if (periodDropdownRef.current && !periodDropdownRef.current.contains(event.target)) { setPeriodDropdownOpen(false); setIsCustomPeriodExpanded(false) } };
+    document.addEventListener("mousedown", handleClickOutside); document.addEventListener("touchstart", handleClickOutside);
+    return () => { document.removeEventListener("mousedown", handleClickOutside); document.removeEventListener("touchstart", handleClickOutside) }
+  }, [])
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(amount)
-  }
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    })
-  }
-
-  const handleEditAmount = (transactionId, currentAmount) => {
-    setEditingAmount(transactionId)
-    setEditAmount(currentAmount.toString())
-  }
-
-  const handleSaveAmount = (transactionId) => {
-    const newAmount = Number.parseFloat(editAmount)
-    if (!isNaN(newAmount) && newAmount > 0) {
-      const updatedFinancialState = { ...financialState }
-      if (!updatedFinancialState[selectedPeriod] || !updatedFinancialState[selectedPeriod].transactions) {
-        // No period bucket to update; safely exit without throwing
-        setEditingAmount(null)
-        setEditAmount("")
-        return
+  const sortedTransactions = useMemo(() => {
+    const sorted = [...filteredTransactions].sort((a, b) => {
+      let comparison = 0;
+      switch (sortBy) {
+        case "studio": comparison = (a.studioName || "").localeCompare(b.studioName || ""); break;
+        case "accountHolder": comparison = (a.studioOwner || "").localeCompare(b.studioOwner || ""); break;
+        case "date": comparison = new Date(a.date) - new Date(b.date); break;
+        case "type": comparison = a.type.localeCompare(b.type); break;
+        case "amount": comparison = a.amount - b.amount; break;
+        case "status": comparison = a.status.localeCompare(b.status); break;
+        case "iban": comparison = (a.iban || "").localeCompare(b.iban || ""); break;
+        case "mandate": comparison = (a.mandateNumber || "").localeCompare(b.mandateNumber || ""); break;
+        default: comparison = 0
       }
-      const periodData = { ...updatedFinancialState[selectedPeriod] }
+      return sortDirection === "asc" ? comparison : -comparison
+    });
+    return sorted
+  }, [filteredTransactions, sortBy, sortDirection])
 
-      periodData.transactions = periodData.transactions.map((tx) =>
-        tx.id === transactionId ? { ...tx, amount: newAmount } : tx,
-      )
+  const formatCurrency = (amount) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(amount)
+  const formatDate = (dateString) => { const date = new Date(dateString); return date.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) }
+  const formatDateForDisplay = (dateString) => { const date = new Date(dateString); return `${String(date.getDate()).padStart(2, '0')}.${String(date.getMonth() + 1).padStart(2, '0')}.${date.getFullYear()}` }
 
-      const successful = periodData.transactions
-        .filter((tx) => tx.status === "Successful")
-        .reduce((sum, tx) => sum + tx.amount, 0)
+  const handleShowServices = (services, studioName) => { setSelectedServices(services); setSelectedStudioName(studioName); setServicesModalOpen(true) }
+  const handleApplyInlineCustomPeriod = () => { if (inlineCustomDates.startDate && inlineCustomDates.endDate) { setSelectedPeriod(`Custom: ${formatDateForDisplay(inlineCustomDates.startDate)} - ${formatDateForDisplay(inlineCustomDates.endDate)}`); setCustomDateRange({ start: inlineCustomDates.startDate, end: inlineCustomDates.endDate }); setPeriodDropdownOpen(false); setIsCustomPeriodExpanded(false) } }
+  const handleCustomPeriodClick = () => { const today = new Date().toISOString().split("T")[0]; setInlineCustomDates((prev) => ({ startDate: prev.startDate || today, endDate: prev.endDate || today })); setIsCustomPeriodExpanded(true) }
+  const handleSelectPeriod = (period) => { setSelectedPeriod(period); setCustomDateRange(null); setIsCustomPeriodExpanded(false); setPeriodDropdownOpen(false) }
+  const handleDeletePaymentRun = (runId) => { setPaymentRuns((prev) => prev.filter((run) => run.id !== runId)) }
 
-      const pending = periodData.transactions
-        .filter((tx) => tx.status === "Pending" || tx.status === "Check incoming funds")
-        .reduce((sum, tx) => sum + tx.amount, 0)
-
-      const failed = periodData.transactions
-        .filter((tx) => tx.status === "Failed")
-        .reduce((sum, tx) => sum + tx.amount, 0)
-
-      periodData.successfulPayments = successful
-      periodData.pendingPayments = pending
-      periodData.failedPayments = failed
-      periodData.totalRevenue = successful + pending + failed
-
-      updatedFinancialState[selectedPeriod] = periodData
-      setFinancialState(updatedFinancialState)
-    }
-
-    setEditingAmount(null)
-    setEditAmount("")
-  }
-
-  const handleCancelEdit = () => {
-    setEditingAmount(null)
-    setEditAmount("")
-  }
-
-  const handleShowServices = (services, studioName) => {
-    setSelectedServices(services)
-    setSelectedStudioName(studioName)
-    setServicesModalOpen(true)
-  }
-
-  const generateSepaXmlContent = (transactions) => {
-    const totalAmount = transactions.reduce((sum, tx) => sum + tx.amount, 0)
-    const timestamp = new Date().toISOString()
-    const msgId = `MSG-${Date.now()}`
-
-    return `<?xml version="1.0" encoding="UTF-8"?>
-<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.001.001.03">
-  <CstmrCdtTrfInitn>
-    <GrpHdr>
-      <MsgId>${msgId}</MsgId>
-      <CreDtTm>${timestamp}</CreDtTm>
-      <NbOfTxs>${transactions.length}</NbOfTxs>
-      <CtrlSum>${totalAmount.toFixed(2)}</CtrlSum>
-    </GrpHdr>
-    <PmtInf>
-      <PmtInfId>PMT-${Date.now()}</PmtInfId>
-      <PmtMtd>TRF</PmtMtd>
-      <ReqdExctnDt>${new Date(Date.now() + 86400000).toISOString().split("T")[0]}</ReqdExctnDt>
-      <Dbtr>
-        <Nm>Studio Management Company</Nm>
-      </Dbtr>
-      ${transactions
-        .map(
-          (tx) => `
-      <CdtTrfTxInf>
-        <PmtId>
-          <InstrId>${tx.id}</InstrId>
-        </PmtId>
-        <Amt>
-          <InstdAmt Ccy="USD">${tx.amount.toFixed(2)}</InstdAmt>
-        </Amt>
-        <Cdtr>
-          <Nm>${tx.studioName}</Nm>
-        </Cdtr>
-        <RmtInf>
-          <Ustrd>${tx.type} - ${tx.studioOwner}</Ustrd>
-        </RmtInf>
-      </CdtTrfTxInf>`,
-        )
-        .join("")}
-    </PmtInf>
-  </CstmrCdtTrfInitn>
-</Document>`
-  }
-
-  const handleGenerateXml = (selectedTransactions) => {
-    const xmlContent = generateSepaXmlContent(selectedTransactions)
-    const newDocument = {
-      id: `doc-${Date.now()}`,
-      filename: `SEPA_Payment_${new Date().toISOString().split("T")[0]}_${Date.now()}.xml`,
-      createdAt: new Date().toISOString(),
-      size: new Blob([xmlContent]).size,
-      transactionCount: selectedTransactions.length,
-      content: xmlContent,
-    }
-
-    setSepaDocuments((prev) => [newDocument, ...prev])
-
+  const handleGenerateXml = (selectedTransactions, period, shouldDownload = true, paymentRunData = null) => {
     const updatedFinancialState = { ...financialState }
-    if (!updatedFinancialState[selectedPeriod] || !updatedFinancialState[selectedPeriod].transactions) {
-      // Nothing to mutate within a specific period bucket; skip recalculation safely
-      const element = document.createElement("a")
-      const file = new Blob([xmlContent], { type: "application/xml" })
-      element.href = URL.createObjectURL(file)
-      element.download = newDocument.filename
-      document.body.appendChild(element)
-      element.click()
-      document.body.removeChild(element)
-      toast.success("SEPA XML file generated and saved successfully!")
-      return
-    }
-    const periodData = { ...updatedFinancialState[selectedPeriod] }
+    const selectedIds = selectedTransactions.map(tx => tx.id)
+    const selectedAmounts = {}; selectedTransactions.forEach(tx => { selectedAmounts[tx.id] = tx.amount });
 
-    periodData.transactions = periodData.transactions.map((tx) => {
-      const selected = selectedTransactions.find((s) => s.id === tx.id)
-      if (selected) {
-        return {
-          ...tx,
-          status: "Check incoming funds",
-          amount: selected.amount,
-        }
+    Object.keys(updatedFinancialState).forEach(periodKey => {
+      if (!updatedFinancialState[periodKey]?.transactions) return;
+      const periodData = { ...updatedFinancialState[periodKey] }; let hasChanges = false;
+      periodData.transactions = periodData.transactions.map((tx) => { if (selectedIds.includes(tx.id)) { hasChanges = true; return { ...tx, status: "Check incoming funds", amount: selectedAmounts[tx.id] || tx.amount } } return tx });
+      if (hasChanges) {
+        const successful = periodData.transactions.filter((tx) => tx.status === "Successful").reduce((sum, tx) => sum + tx.amount, 0)
+        const pending = periodData.transactions.filter((tx) => tx.status === "Pending").reduce((sum, tx) => sum + tx.amount, 0)
+        const checkingFunds = periodData.transactions.filter((tx) => tx.status === "Check incoming funds").reduce((sum, tx) => sum + tx.amount, 0)
+        const failed = periodData.transactions.filter((tx) => tx.status === "Failed").reduce((sum, tx) => sum + tx.amount, 0)
+        periodData.successfulPayments = successful; periodData.pendingPayments = pending; periodData.checkingFunds = checkingFunds; periodData.failedPayments = failed;
+        updatedFinancialState[periodKey] = periodData
       }
-      return tx
     })
-
-    const successful = periodData.transactions
-      .filter((tx) => tx.status === "Successful")
-      .reduce((sum, tx) => sum + tx.amount, 0)
-
-    const pending = periodData.transactions
-      .filter((tx) => tx.status === "Pending" || tx.status === "Check incoming funds")
-      .reduce((sum, tx) => sum + tx.amount, 0)
-
-    const failed = periodData.transactions
-      .filter((tx) => tx.status === "Failed")
-      .reduce((sum, tx) => sum + tx.amount, 0)
-
-    periodData.successfulPayments = successful
-    periodData.pendingPayments = pending
-    periodData.failedPayments = failed
-
-    updatedFinancialState[selectedPeriod] = periodData
     setFinancialState(updatedFinancialState)
 
-    const element = document.createElement("a")
-    const file = new Blob([xmlContent], { type: "application/xml" })
-    element.href = URL.createObjectURL(file)
-    element.download = newDocument.filename
-    document.body.appendChild(element)
-    element.click()
-    document.body.removeChild(element)
+    const totalAmount = selectedTransactions.reduce((sum, tx) => sum + tx.amount, 0)
+    const fileName = `sepa_payment_${period.replace(/\s+/g, "_")}_${new Date().toISOString().split('T')[0]}.xml`
 
-    toast.success("SEPA XML file generated and saved successfully!")
+    if (paymentRunData) {
+      setPaymentRuns(prev => [paymentRunData, ...prev])
+    }
+
+    setShouldAutoDownload(shouldDownload)
+    setGeneratedFileInfo({ fileName, transactionCount: selectedTransactions.length, totalAmount })
+    setSepaSuccessModalOpen(true)
   }
 
   const handleUpdateStatuses = (updatedTransactions) => {
     const updatedFinancialState = { ...financialState }
-
-    // Update transactions across all periods
-    Object.keys(updatedFinancialState).forEach(period => {
-      if (updatedFinancialState[period] && updatedFinancialState[period].transactions) {
-        const periodData = { ...updatedFinancialState[period] }
-
-        periodData.transactions = periodData.transactions.map((tx) => {
-          const updated = updatedTransactions.find((u) => u.id === tx.id)
-          if (updated) {
-            return {
-              ...tx,
-              status: updated.status,
-            }
-          }
-          return tx
-        })
-
-        // Recalculate financial summary for this period
-        const successful = periodData.transactions
-          .filter((tx) => tx.status === "Successful")
-          .reduce((sum, tx) => sum + tx.amount, 0)
-
-        const pending = periodData.transactions
-          .filter((tx) => tx.status === "Pending" || tx.status === "Check incoming funds")
-          .reduce((sum, tx) => sum + tx.amount, 0)
-
-        const failed = periodData.transactions
-          .filter((tx) => tx.status === "Failed")
-          .reduce((sum, tx) => sum + tx.amount, 0)
-
-        periodData.successfulPayments = successful
-        periodData.pendingPayments = pending
-        periodData.failedPayments = failed
-        periodData.totalRevenue = successful + pending + failed
-
-        updatedFinancialState[period] = periodData
+    const updatedMap = {}; updatedTransactions.forEach(tx => { updatedMap[tx.id] = tx.status });
+    Object.keys(updatedFinancialState).forEach(periodKey => {
+      if (!updatedFinancialState[periodKey]?.transactions) return;
+      const periodData = { ...updatedFinancialState[periodKey] }; let hasChanges = false;
+      periodData.transactions = periodData.transactions.map((tx) => { if (updatedMap[tx.id]) { hasChanges = true; return { ...tx, status: updatedMap[tx.id] } } return tx });
+      if (hasChanges) {
+        const successful = periodData.transactions.filter((tx) => tx.status === "Successful").reduce((sum, tx) => sum + tx.amount, 0)
+        const pending = periodData.transactions.filter((tx) => tx.status === "Pending").reduce((sum, tx) => sum + tx.amount, 0)
+        const checkingFunds = periodData.transactions.filter((tx) => tx.status === "Check incoming funds").reduce((sum, tx) => sum + tx.amount, 0)
+        const failed = periodData.transactions.filter((tx) => tx.status === "Failed").reduce((sum, tx) => sum + tx.amount, 0)
+        periodData.successfulPayments = successful; periodData.pendingPayments = pending; periodData.checkingFunds = checkingFunds; periodData.failedPayments = failed;
+        updatedFinancialState[periodKey] = periodData
       }
     })
-
-    setFinancialState(updatedFinancialState)
-    toast.success("Transaction statuses updated successfully!")
+    setFinancialState(updatedFinancialState); setSuccessMessage("Transaction statuses updated successfully!"); setSuccessModalOpen(true)
   }
 
-  const handleDeleteDocument = (documentId) => {
-    if (confirm("Are you sure you want to delete this document?")) {
-      setSepaDocuments((prev) => prev.filter((doc) => doc.id !== documentId))
-    }
-  }
-
-  const handleViewDocument = (document) => {
-    setSelectedDocument(document)
-    setDocumentViewerOpen(true)
-  }
-
-  const exportToCSV = () => {
-    const headers = ["Member Name", "Date", "Type", "Amount", "Status", "Services"]
-    const csvData = filteredTransactions.map((transaction) => [
-      transaction.memberName,
-      formatDate(transaction.date),
-      transaction.type,
-      transaction.amount,
-      transaction.status,
-      transaction.services.map((service) => `${service.name}: $${service.cost}`).join("; "),
-    ])
-
-    const csvContent = [headers.join(","), ...csvData.map((row) => row.map((field) => `"${field}"`).join(","))].join(
-      "\n",
-    )
-
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" })
-    const link = document.createElement("a")
-    const url = URL.createObjectURL(blob)
-    link.setAttribute("href", url)
-    link.setAttribute(
-      "download",
-      `financial_data_${selectedPeriod.replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.csv`,
-    )
-    link.style.visibility = "hidden"
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  }
-
-  // FIX: Check for "Check incoming funds" status in the current financial state across all periods
-  const hasCheckingTransactions =
-    Object.values(financialState).some(period =>
-      period?.transactions?.some(tx => tx.status === "Check incoming funds")
-    )
+  const hasCheckingTransactionsAnyPeriod = useMemo(() => Object.values(financialState).some(periodData => periodData?.transactions?.some((tx) => tx.status === "Check incoming funds")), [financialState])
 
   const getStatusColorClass = (status) => {
     switch (status) {
-      case "Successful":
-        return "bg-green-800/60 text-green-400"
-      case "Pending":
-        return "bg-yellow-800/60 text-yellow-400"
-      case "Check incoming funds":
-        return "bg-blue-800/60 text-blue-400"
-      case "Failed":
-        return "bg-red-800/60 text-red-400"
-      default:
-        return "bg-gray-800/60 text-gray-400"
+      case "Successful": return "bg-[#10b981] text-white";
+      case "Pending": return "bg-[#f59e0b] text-white";
+      case "Check incoming funds": return "bg-[#3b82f6] text-white";
+      case "Failed": return "bg-[#ef4444] text-white";
+      default: return "bg-gray-500 text-white"
     }
   }
 
-  const getStatusColorClassModified = (status) => {
-    switch (status) {
-      case "Successful":
-        return "bg-green-800/70"
-      case "Pending":
-        return "bg-yellow-800/70"
-      case "Check incoming funds":
-        return "bg-blue-800/70"
-      case "Failed":
-        return "bg-red-800/70"
-      default:
-        return "bg-gray-800/70"
+  const getCurrentPeriodData = () => {
+    const defaultData = { totalRevenue: 0, successfulPayments: 0, pendingPayments: 0, checkingFunds: 0, failedPayments: 0, transactions: [] }
+    if (customDateRange && selectedPeriod.startsWith("Custom")) {
+      const allTransactions = Object.values(financialState).flatMap((period) => period?.transactions || [])
+      const customTransactions = allTransactions.filter((transaction) => { const transactionDate = new Date(transaction.date); const startDate = new Date(customDateRange.start); const endDate = new Date(customDateRange.end); return transactionDate >= startDate && transactionDate <= endDate })
+      const successful = customTransactions.filter((tx) => tx.status === "Successful").reduce((sum, tx) => sum + tx.amount, 0)
+      const pending = customTransactions.filter((tx) => tx.status === "Pending").reduce((sum, tx) => sum + tx.amount, 0)
+      const checkingFunds = customTransactions.filter((tx) => tx.status === "Check incoming funds").reduce((sum, tx) => sum + tx.amount, 0)
+      const failed = customTransactions.filter((tx) => tx.status === "Failed").reduce((sum, tx) => sum + tx.amount, 0)
+      return { totalRevenue: successful + pending + checkingFunds + failed, successfulPayments: successful, pendingPayments: pending, checkingFunds: checkingFunds, failedPayments: failed, transactions: customTransactions }
     }
-  }
-
-  const handlePeriodSelect = (period) => {
-    if (period === "Custom Period") {
-      setCustomPeriodModalOpen(true)
-      setPeriodDropdownOpen(false)
-    } else {
-      setSelectedPeriod(period)
-      setShowCustomPeriodInput(false)
-      setPeriodDropdownOpen(false)
+    const periodData = financialState[selectedPeriod] || defaultData
+    if (periodData.transactions) {
+      const checkingFunds = periodData.transactions.filter((tx) => tx.status === "Check incoming funds").reduce((sum, tx) => sum + tx.amount, 0)
+      const pending = periodData.transactions.filter((tx) => tx.status === "Pending").reduce((sum, tx) => sum + tx.amount, 0)
+      return { ...periodData, pendingPayments: pending, checkingFunds: checkingFunds }
     }
+    return periodData
   }
 
-  const handleApplyCustomPeriod = () => {
-    if (customPeriodStart && customPeriodEnd) {
-      setSelectedPeriod("Custom Period")
-      setCustomPeriodModalOpen(false)
-    } else {
-      alert("Please select both start and end dates")
-    }
-  }
-
-  // continue sidebar logic
-  const updateCustomLink = (id, field, value) => {
-    setCustomLinks((currentLinks) => currentLinks.map((link) => (link.id === id ? { ...link, [field]: value } : link)))
-  }
-
-  const removeCustomLink = (id) => {
-    setConfirmationModal({ isOpen: true, linkId: id })
-  }
-
-  const handleAddSidebarWidget = (widgetType) => {
-    const newWidget = {
-      id: `sidebar-widget${Date.now()}`,
-      type: widgetType,
-      position: sidebarWidgets.length,
-    }
-    setSidebarWidgets((currentWidgets) => [...currentWidgets, newWidget])
-    setIsRightWidgetModalOpen(false)
-    toast.success(`${widgetType} widget has been added to sidebar Successfully`)
-  }
-
-  const confirmRemoveLink = () => {
-    if (confirmationModal.linkId) {
-      setCustomLinks((currentLinks) => currentLinks.filter((link) => link.id !== confirmationModal.linkId))
-      toast.success("Website link removed successfully")
-    }
-    setConfirmationModal({ isOpen: false, linkId: null })
-  }
-
-  const getSidebarWidgetStatus = (widgetType) => {
-    // Check if widget exists in sidebar widgets
-    const existsInSidebar = sidebarWidgets.some((widget) => widget.type === widgetType)
-
-    if (existsInSidebar) {
-      return { canAdd: false, location: "sidebar" }
-    }
-
-    return { canAdd: true, location: null }
-  }
-
-  const toggleRightSidebar = () => {
-    setIsRightSidebarOpen(!isRightSidebarOpen)
-  }
+  const currentPeriodData = getCurrentPeriodData()
+  const toggleStatusFilter = (statusId) => { setSelectedStatuses(prev => prev.includes(statusId) ? prev.filter(s => s !== statusId) : [...prev, statusId]) }
 
   return (
-    <div
-      className={`
-      min-h-screen rounded-3xl bg-[#1C1C1C] text-white md:p-6 p-3
-      transition-all duration-500 ease-in-out flex-1
-      ${isRightSidebarOpen ? "lg:mr-86 mr-0" : "mr-0"}
-    `}
-    >
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <div className="flex items-center gap-2 justify-between w-full md:w-auto">
-          <div className="flex  items-center gap-3">
-            <h1 className="text-white oxanium_font text-xl md:text-2xl">Finances</h1>
-            <button
-              onClick={() => setDocumentsModalOpen(true)}
-              className="bg-[#2F2F2F] text-white p-2 rounded-xl border border-gray-800 hover:bg-[#2F2F2F]/90 transition-colors relative"
-              title="View SEPA XML Documents"
-            >
-              <FileText className="w-5 h-5" />
-              {sepaDocuments.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-[#3F74FF] text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  {sepaDocuments.length}
-                </span>
-              )}
-            </button>
-          </div>
-          {/* <div
-            onClick={toggleRightSidebar}
-            className="cursor-pointer lg:hidden md:hidden block text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md "
-          >
-            <IoIosMenu size={26} />
-          </div> */}
-          <img
-              onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
-              className="h-5 w-5 mr-5 lg:hidden md:hidden block  cursor-pointer"
-              src="/icon.svg"
-              alt=""
-            />
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-          {/* Period selector */}
-          <div className="relative w-full sm:w-auto">
-            <button
-              onClick={() => setPeriodDropdownOpen(!periodDropdownOpen)}
-              className="bg-black text-white px-4 py-2 rounded-xl border border-gray-800 flex items-center justify-between gap-2 w-full sm:w-auto min-w=[180px] min-w-[180px]"
-            >
-              <Calendar className="w-4 h-4" />
-              <span className="text-sm">{selectedPeriod}</span>
-              <ChevronDown className="w-4 h-4" />
-            </button>
-
-            {periodDropdownOpen && (
-              <div className="absolute z-10 mt-2 w-full bg-[#2F2F2F]/90 backdrop-blur-2xl rounded-xl border border-gray-800 shadow-lg max-h-80 overflow-y-auto">
-                {periodOptions.map((period) => (
-                  <div key={period}>
-                    <button
-                      className={`w-full px-4 py-2 text-sm text-gray-300 hover:bg-black text-left flex items-center justify-between ${selectedPeriod === period ? "bg-black/50" : ""}`}
-                      onClick={() => handlePeriodSelect(period)}
-                    >
-                      <span>{period}</span>
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="flex gap-2 items-center w-full sm:w-auto">
-            <button
-              onClick={() => setExportConfirmationOpen(true)}
-              className={`bg-gray-600 cursor-pointer text-white px-4 py-2 rounded-xl flex items-center justify-center gap-2 text-sm transition-colors ${isRightSidebarOpen ? 'px-3' : 'px-4'
-                }`}
-            >
-              <Download className="w-4 h-4" />
-              <span className={isRightSidebarOpen ? 'hidden xl:inline' : ''}>Export Excel</span>
-            </button>
-            <button
-              onClick={() => setSepaModalOpen(true)}
-              className="bg-[#3F74FF] text-white px-4 py-1.5 rounded-xl flex items-center justify-center gap-2 text-sm hover:bg-[#3F74FF]/90 transition-colors w-full sm:w-auto"
-            >
-              <Download className="w-4 h-4" />
-              <span> Run Payment</span>
-            </button>
-            {/* FIX: This button will now show when there are transactions with "Check incoming funds" status */}
-            {hasCheckingTransactions && (
-              <button
-                onClick={() => setCheckFundsModalOpen(true)}
-                className="bg-[#2F2F2F] text-white px-4 py-1.5 rounded-xl flex items-center justify-center gap-2 text-sm hover:bg-[#2F2F2F]/90 transition-colors w-full sm:w-auto"
-              >
-                <RefreshCw className="w-4 h-4" />
-                <span>Check Incoming Funds</span>
-              </button>
-            )}
-           
-            <img
-              onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
-              className="h-5 w-5 mr-5 lg:block md:block hidden  cursor-pointer"
-              src="/icon.svg"
-              alt=""
-            />
-
-
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div className="bg-[#141414] p-4 rounded-xl">
-          <h3 className="text-gray-400 text-sm mb-1">Total Revenue</h3>
-          <p className="text-white text-xl font-semibold">{formatCurrency(financialSummary.totalRevenue)}</p>
-        </div>
-        <div className="bg-[#141414] p-4 rounded-xl">
-          <h3 className="text-gray-400 text-sm mb-1">Successful Payments</h3>
-          <p className="text-green-500 text-xl font-semibold">{formatCurrency(financialSummary.successfulPayments)}</p>
-        </div>
-        <div className="bg-[#141414] p-4 rounded-xl">
-          <h3 className="text-gray-400 text-sm mb-1">Pending Payments</h3>
-          <p className="text-yellow-500 text-xl font-semibold">{formatCurrency(financialSummary.pendingPayments)}</p>
-        </div>
-        <div className="bg-[#141414] p-4 rounded-xl">
-          <h3 className="text-gray-400 text-sm mb-1">Failed Payments</h3>
-          <p className="text-red-500 text-xl font-semibold">{formatCurrency(financialSummary.failedPayments)}</p>
-        </div>
-      </div>
-
-      <div className="flex flex-col sm:flex-row gap-4 mb-4">
-        <div className="flex-grow">
-          <input
-            type="text"
-            placeholder="Search transactions..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="bg-black text-white px-4 py-2.5 rounded-xl border border-gray-800 w-full focus:outline-none focus:ring-1 focus:ring-[#3F74FF] text-sm"
-          />
-        </div>
-
-        {/* Status filter */}
-        <div className="relative">
-          <button
-            onClick={() => setStatusFilterOpen(!statusFilterOpen)}
-            className="bg-black text-white px-4 py-2.5 rounded-xl border border-gray-800 flex items-center justify-between gap-2 min-w-[180px] w-full sm:w-auto"
-          >
-            <Filter className="w-4 h-4" />
-            <span className="text-sm">Status: {selectedStatus}</span>
-            <ChevronDown className="w-4 h-4" />
+    <div className="min-h-screen rounded-3xl bg-[#1C1C1C] text-white md:p-6 p-3 transition-all duration-500 ease-in-out flex-1">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4 sm:mb-6">
+        <div className="flex items-center gap-3">
+          <h1 className="text-xl sm:text-2xl text-white font-bold">Finances</h1>
+          {/* Payment Runs Button */}
+          <button onClick={() => setPaymentRunsModalOpen(true)} className="bg-black text-white p-2 rounded-xl border border-gray-800 hover:bg-[#2F2F2F]/90 transition-colors relative" title="View Payment Run History">
+            <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
+            {paymentRuns.length > 0 && (<span className="absolute -top-2 -right-2 bg-gray-600 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">{paymentRuns.length}</span>)}
           </button>
-          {statusFilterOpen && (
-            <div className="absolute right-0 z-10 mt-2 w-full bg-[#2F2F2F]/90 backdrop-blur-2xl rounded-xl border border-gray-800 shadow-lg">
-              {statusOptions.map((status) => (
-                <button
-                  key={status}
-                  className={`w-full px-4 py-2 text-sm text-left flex items-center space-x-2 hover:bg-black ${selectedStatus === status ? "bg-black/50" : ""}`}
-                  onClick={() => {
-                    setSelectedStatus(status)
-                    setStatusFilterOpen(false)
-                  }}
-                >
-                  {status !== "All" && (
-                    <span className={`inline-block w-3 h-3 rounded-full ${getStatusColorClassModified(status)}`}></span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="relative" ref={periodDropdownRef}>
+            <button onClick={() => setPeriodDropdownOpen(!periodDropdownOpen)} className="bg-[#141414] text-white px-3 sm:px-4 py-2 rounded-xl border border-[#333333] hover:border-[#3F74FF] flex items-center gap-2 text-xs sm:text-sm transition-colors">
+              <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
+              <span className={`hidden sm:inline ${selectedPeriod.startsWith("Custom:") ? '' : 'truncate max-w-[120px]'}`}>{selectedPeriod}</span>
+              <ChevronDown className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${periodDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {periodDropdownOpen && (
+              <div className="hidden md:block absolute right-0 z-40 mt-2 min-w-[320px] bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg overflow-hidden top-full">
+                <div className="py-1">
+                  <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">Select Period</div>
+                  {Object.keys(financialState).map((period) => (<button key={period} className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-800 transition-colors ${selectedPeriod === period && !selectedPeriod.startsWith("Custom:") ? 'text-white bg-gray-800/50' : 'text-gray-300'}`} onClick={() => handleSelectPeriod(period)}>{period}</button>))}
+                </div>
+                <div className="border-t border-gray-700">
+                  <button className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-800 transition-colors flex items-center gap-2 ${isCustomPeriodExpanded || selectedPeriod.startsWith("Custom:") ? 'text-white bg-gray-800/50' : 'text-gray-300'}`} onClick={handleCustomPeriodClick}><Calendar className="w-4 h-4" />Custom Period</button>
+                  {isCustomPeriodExpanded && (
+                    <div className="px-4 py-3 bg-[#141414] border-t border-gray-700">
+                      <div className="flex flex-col gap-3">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div><label className="block text-xs text-gray-500 mb-1">Start Date</label><input type="date" value={inlineCustomDates.startDate} onChange={(e) => setInlineCustomDates((prev) => ({ ...prev, startDate: e.target.value }))} className="w-full bg-[#1C1C1C] text-white px-3 py-2 rounded-lg border border-gray-700 text-sm focus:border-[#3F74FF] focus:outline-none white-calendar-icon" /></div>
+                          <div><label className="block text-xs text-gray-500 mb-1">End Date</label><input type="date" value={inlineCustomDates.endDate} onChange={(e) => setInlineCustomDates((prev) => ({ ...prev, endDate: e.target.value }))} className="w-full bg-[#1C1C1C] text-white px-3 py-2 rounded-lg border border-gray-700 text-sm focus:border-[#3F74FF] focus:outline-none white-calendar-icon" /></div>
+                        </div>
+                        <button onClick={handleApplyInlineCustomPeriod} disabled={!inlineCustomDates.startDate || !inlineCustomDates.endDate} className="w-full py-2 bg-[#3F74FF] text-white rounded-lg text-sm hover:bg-[#3F74FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">Apply</button>
+                      </div>
+                    </div>
                   )}
-                  <span className="text-gray-100">{status}</span>
-                </button>
-              ))}
-            </div>
-          )}
+                </div>
+              </div>
+            )}
+          </div>
+          <button onClick={() => setSepaModalOpen(true)} className="hidden md:flex bg-[#3F74FF] hover:bg-[#3F74FF]/90 text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 text-xs sm:text-sm transition-colors"><Play className="w-4 h-4" /><span className="hidden lg:inline">Run Payment</span></button>
+          {hasCheckingTransactionsAnyPeriod && (<button onClick={() => setCheckFundsModalOpen(true)} className="hidden md:flex bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 text-xs sm:text-sm transition-colors"><RefreshCw className="w-4 h-4" /><span className="hidden lg:inline">Check Funds</span></button>)}
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm text-left text-gray-300">
-          <thead className="text-xs text-gray-400 uppercase bg-[#141414]">
-            <tr>
-              <th scope="col" className="px-4 py-3 rounded-tl-xl">
-                Studio
-              </th>
-              <th scope="col" className="px-4 py-3">
-                Studio Owner
-              </th>
-              <th scope="col" className="px-4 py-3">
-                Date
-              </th>
-              <th scope="col" className="px-4 py-3">
-                Type
-              </th>
-              <th scope="col" className="px-4 py-3">
-                Amount
-              </th>
-              <th scope="col" className="px-4 py-3">
-                Services
-              </th>
-              <th scope="col" className="px-4 py-3 rounded-tr-xl">
-                Status
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {displayedTransactions.map((transaction, index) => (
-              <tr
-                key={transaction.id}
-                className={`border-b border-gray-800 ${index === displayedTransactions.length - 1 ? "rounded-b-xl" : ""
-                  }`}
-              >
-                <td className="px-4 py-3 font-medium">{transaction.studioName}</td>
-                <td className="px-4 py-3">{transaction.studioOwner}</td>
-                <td className="px-4 py-3">{formatDate(transaction.date)}</td>
-                <td className="px-4 py-3">{transaction.type}</td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    {editingAmount === transaction.id ? (
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="number"
-                          value={editAmount}
-                          onChange={(e) => setEditAmount(e.target.value)}
-                          className="bg-black text-white px-2 py-1 rounded border border-gray-700 w-20"
-                          step="0.01"
-                          min="0"
-                        />
-                        <button
-                          onClick={() => handleSaveAmount(transaction.id)}
-                          className="text-green-500 hover:text-green-400 text-xs"
-                        >
-                          Save
-                        </button>
-                        <button onClick={handleCancelEdit} className="text-red-500 hover:text-red-400 text-xs">
-                          Cancel
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <span>{formatCurrency(transaction.amount)}</span>
-                        <button
-                          onClick={() => handleEditAmount(transaction.id, transaction.amount)}
-                          className="text-gray-400 hover:text-white"
-                        >
-                          {/* edit icon intentionally omitted */}
-                        </button>
-                      </div>
-                    )}
+      {/* Mobile Period Dropdown */}
+      {periodDropdownOpen && (
+        <div className="md:hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={(e) => { if (e.target === e.currentTarget) { setPeriodDropdownOpen(false); setIsCustomPeriodExpanded(false) } }}>
+          <div data-mobile-period-modal className="bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg w-[90%] max-w-[340px] max-h-[80vh] overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700"><span className="text-white font-medium">Select Period</span><button type="button" onClick={() => { setPeriodDropdownOpen(false); setIsCustomPeriodExpanded(false) }} className="text-gray-400 hover:text-white p-1 touch-manipulation"><X className="w-5 h-5" /></button></div>
+            <div className="py-1 max-h-[40vh] overflow-y-auto">{Object.keys(financialState).map((period) => (<button type="button" key={period} className={`w-full text-left px-4 py-3 text-sm hover:bg-gray-800 active:bg-gray-700 transition-colors touch-manipulation ${selectedPeriod === period && !selectedPeriod.startsWith("Custom:") ? 'text-white bg-[#3F74FF]' : 'text-gray-300'}`} onClick={() => { setSelectedPeriod(period); setCustomDateRange(null); setIsCustomPeriodExpanded(false); setPeriodDropdownOpen(false) }}>{period}</button>))}</div>
+            <div className="border-t border-gray-700">
+              <button type="button" className={`w-full text-left px-4 py-3 text-sm hover:bg-gray-800 active:bg-gray-700 transition-colors flex items-center gap-2 touch-manipulation ${isCustomPeriodExpanded || selectedPeriod.startsWith("Custom:") ? 'text-white bg-[#3F74FF]' : 'text-gray-300'}`} onClick={() => { const today = new Date().toISOString().split("T")[0]; setInlineCustomDates((prev) => ({ startDate: prev.startDate || today, endDate: prev.endDate || today })); setIsCustomPeriodExpanded(!isCustomPeriodExpanded) }}><Calendar className="w-4 h-4" />Custom Period</button>
+              {isCustomPeriodExpanded && (
+                <div className="px-4 py-3 bg-[#141414] border-t border-gray-700">
+                  <div className="flex flex-col gap-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div><label className="block text-xs text-gray-500 mb-1">Start Date</label><input type="date" value={inlineCustomDates.startDate} onChange={(e) => setInlineCustomDates((prev) => ({ ...prev, startDate: e.target.value }))} className="w-full bg-[#1C1C1C] text-white px-3 py-2 rounded-lg border border-gray-700 text-sm focus:border-[#3F74FF] focus:outline-none white-calendar-icon touch-manipulation" /></div>
+                      <div><label className="block text-xs text-gray-500 mb-1">End Date</label><input type="date" value={inlineCustomDates.endDate} onChange={(e) => setInlineCustomDates((prev) => ({ ...prev, endDate: e.target.value }))} className="w-full bg-[#1C1C1C] text-white px-3 py-2 rounded-lg border border-gray-700 text-sm focus:border-[#3F74FF] focus:outline-none white-calendar-icon touch-manipulation" /></div>
+                    </div>
+                    <button type="button" onClick={() => { if (inlineCustomDates.startDate && inlineCustomDates.endDate) { setCustomDateRange({ start: inlineCustomDates.startDate, end: inlineCustomDates.endDate }); setSelectedPeriod(`Custom: ${formatDateForDisplay(inlineCustomDates.startDate)} - ${formatDateForDisplay(inlineCustomDates.endDate)}`); setIsCustomPeriodExpanded(false); setPeriodDropdownOpen(false) } }} disabled={!inlineCustomDates.startDate || !inlineCustomDates.endDate} className="w-full py-2.5 bg-[#3F74FF] text-white rounded-lg text-sm hover:bg-[#3F74FF]/90 active:bg-[#3F74FF]/70 transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation">Apply</button>
                   </div>
-                </td>
-                <td className="px-4 py-3">
-                  <button
-                    onClick={() => handleShowServices(transaction.services, transaction.studioName)}
-                    className="text-blue-400 hover:text-blue-300"
-                  >
-                    <Info className="w-4 h-4" />
-                  </button>
-                </td>
-                <td className="px-4 py-3">
-                  <span
-                    className={`px-2 py-1 rounded-lg text-xs font-medium ${getStatusColorClass(transaction.status)}`}
-                  >
-                    {transaction.status}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {displayedTransactions.length === 0 && (
-        <div className="bg-[#141414] p-8 rounded-xl text-center mt-4">
-          <FileText className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-          <p className="text-gray-400 text-lg mb-1">No transactions found</p>
-          <p className="text-gray-500 text-sm">
-            {searchTerm || selectedStatus !== "All" || (selectedPeriod !== "This Month" && selectedPeriod !== "Overall")
-              ? "Try adjusting your filters or search terms"
-              : selectedPeriod === "Custom Period"
-                ? "No transactions found for the selected date range"
-                : "There are no transactions available"}
-          </p>
-        </div>
-      )}
-
-      {/* REMOVED: Pagination section completely deleted */}
-
-      {/* Custom Period Modal */}
-      {customPeriodModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-[#2F2F2F] rounded-xl p-6 w-full max-w-md mx-4">
-            <h3 className="text-white text-lg font-semibold mb-4">Select Custom Period</h3>
-
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm text-gray-400 block mb-2">Start Date</label>
-                <input
-                  type="date"
-                  value={customPeriodStart}
-                  onChange={(e) => setCustomPeriodStart(e.target.value)}
-                  className="bg-[#1C1C1C] text-white px-3 py-2 rounded border border-gray-700 w-full"
-                />
-              </div>
-
-              <div>
-                <label className="text-sm text-gray-400 block mb-2">End Date</label>
-                <input
-                  type="date"
-                  value={customPeriodEnd}
-                  onChange={(e) => setCustomPeriodEnd(e.target.value)}
-                  className="bg-[#1C1C1C] text-white px-3 py-2 rounded border border-gray-700 w-full"
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={handleApplyCustomPeriod}
-                disabled={!customPeriodStart || !customPeriodEnd}
-                className="bg-[#3F74FF] text-white px-4 py-2 rounded flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Apply Period
-              </button>
-              <button
-                onClick={() => {
-                  setCustomPeriodModalOpen(false)
-                  setCustomPeriodStart("")
-                  setCustomPeriodEnd("")
-                }}
-                className="bg-gray-600 text-white px-4 py-2 rounded flex-1"
-              >
-                Cancel
-              </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
       )}
 
-      <ExportConfirmationModal
-        isOpen={exportConfirmationOpen}
-        onClose={() => setExportConfirmationOpen(false)}
-        onConfirm={exportToCSV}
-      />
+      {/* Search */}
+      <div className="mb-4 sm:mb-6 relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+        <input type="text" placeholder="Search by studio, account holder, IBAN, or mandate..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-[#333333] focus:border-[#3F74FF] transition-colors" />
+      </div>
 
+      {/* Stats Grid */}
+      <div className="grid gap-3 sm:gap-4 mb-4 sm:mb-6 grid-cols-2 lg:grid-cols-5">
+        <div className="bg-[#141414] p-3 sm:p-4 rounded-xl"><h3 className="text-gray-400 text-xs sm:text-sm mb-1">Total Revenue</h3><p className="text-white text-base sm:text-xl font-semibold">{formatCurrency(currentPeriodData.totalRevenue)}</p></div>
+        <div className="bg-[#141414] p-3 sm:p-4 rounded-xl"><h3 className="text-gray-400 text-xs sm:text-sm mb-1">Successful</h3><p className="text-green-500 text-base sm:text-xl font-semibold">{formatCurrency(currentPeriodData.successfulPayments)}</p></div>
+        <div className="bg-[#141414] p-3 sm:p-4 rounded-xl"><h3 className="text-gray-400 text-xs sm:text-sm mb-1">Pending</h3><p className="text-yellow-500 text-base sm:text-xl font-semibold">{formatCurrency(currentPeriodData.pendingPayments)}</p></div>
+        <div className="bg-[#141414] p-3 sm:p-4 rounded-xl"><h3 className="text-gray-400 text-xs sm:text-sm mb-1">Check Funds</h3><p className="text-blue-500 text-base sm:text-xl font-semibold">{formatCurrency(currentPeriodData.checkingFunds || 0)}</p></div>
+        <div className="bg-[#141414] p-3 sm:p-4 rounded-xl"><h3 className="text-gray-400 text-xs sm:text-sm mb-1">Failed</h3><p className="text-red-500 text-base sm:text-xl font-semibold">{formatCurrency(currentPeriodData.failedPayments)}</p></div>
+      </div>
+
+      {/* Status Filter Pills */}
+      <div className="flex flex-wrap gap-2 sm:gap-3 mb-4 items-center">
+        {statusOptions.map(status => (<button key={status.id} onClick={() => toggleStatusFilter(status.id)} className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-1.5 ${selectedStatuses.includes(status.id) ? "text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`} style={{ backgroundColor: selectedStatuses.includes(status.id) ? status.color : undefined }}><span className="w-2 h-2 rounded-full" style={{ backgroundColor: selectedStatuses.includes(status.id) ? 'white' : status.color }} />{status.label}</button>))}
+        {selectedStatuses.length > 0 && (<button onClick={() => setSelectedStatuses([])} className="px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F] flex items-center gap-1.5"><X size={12} />Clear All</button>)}
+      </div>
+
+      {/* Table */}
+      <div className="overflow-x-auto">
+        <div style={{ minWidth: '700px' }}>
+          <table className="text-sm text-left text-gray-300 border-collapse w-full">
+            <thead className="text-xs text-gray-400 uppercase bg-[#141414]">
+              <tr>
+                <th scope="col" className="px-1.5 md:px-3 py-2 rounded-tl-xl hover:bg-[#1C1C1C] transition-colors relative" style={{ width: `${columnWidths.studio}px`, minWidth: '60px' }}>
+                  <div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("studio")}><span className="hidden md:inline">Studio Name</span><span className="md:hidden">Studio</span>{getSortIcon("studio")}</div>
+                  <div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'studio')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" /></div>
+                </th>
+                <th scope="col" className="px-1.5 md:px-3 py-2 hover:bg-[#1C1C1C] transition-colors relative" style={{ width: `${columnWidths.accountHolder}px`, minWidth: '60px' }}>
+                  <div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("accountHolder")}><span className="hidden md:inline">Account Holder</span><span className="md:hidden">Holder</span>{getSortIcon("accountHolder")}</div>
+                  <div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'accountHolder')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" /></div>
+                </th>
+                <th scope="col" className="px-1.5 md:px-3 py-2 hover:bg-[#1C1C1C] transition-colors relative" style={{ width: `${columnWidths.amount}px`, minWidth: '40px' }}>
+                  <div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("amount")}><span className="hidden md:inline">Amount</span><span className="md:hidden">Amt</span>{getSortIcon("amount")}</div>
+                  <div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'amount')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" /></div>
+                </th>
+                <th scope="col" className="px-1.5 md:px-2 py-2 relative" style={{ width: `${columnWidths.services}px`, minWidth: '25px' }}>
+                  <span className="hidden md:inline">Services</span><span className="md:hidden">Svc</span>
+                  <div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'services')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" /></div>
+                </th>
+                <th scope="col" className="px-1.5 md:px-3 py-2 cursor-pointer hover:bg-[#1C1C1C] transition-colors relative" style={{ width: `${columnWidths.status}px`, minWidth: '40px' }} onClick={() => handleSort("status")}>
+                  <div className="flex items-center gap-1"><span className="hidden md:inline">Status</span><span className="md:hidden">St.</span>{getSortIcon("status")}</div>
+                  <div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'status')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" /></div>
+                </th>
+                <th scope="col" className="px-1.5 md:px-3 py-2 hover:bg-[#1C1C1C] transition-colors relative" style={{ width: `${columnWidths.iban}px`, minWidth: '60px' }}>
+                  <div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("iban")}>IBAN {getSortIcon("iban")}</div>
+                  <div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'iban')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" /></div>
+                </th>
+                <th scope="col" className="px-1.5 md:px-3 py-2 hover:bg-[#1C1C1C] transition-colors relative" style={{ width: `${columnWidths.mandate}px`, minWidth: '50px' }}>
+                  <div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("mandate")}><span className="hidden md:inline">Mandate Number</span><span className="md:hidden">Mandate</span>{getSortIcon("mandate")}</div>
+                  <div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'mandate')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" /></div>
+                </th>
+                <th scope="col" className="px-1.5 md:px-3 py-2 hover:bg-[#1C1C1C] transition-colors relative" style={{ width: `${columnWidths.date}px`, minWidth: '50px' }}>
+                  <div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("date")}>Date {getSortIcon("date")}</div>
+                  <div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'date')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" /></div>
+                </th>
+                <th scope="col" className="px-1.5 md:px-3 py-2 rounded-tr-xl hover:bg-[#1C1C1C] transition-colors relative" style={{ width: `${columnWidths.type}px`, minWidth: '40px' }}>
+                  <div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("type")}>Type {getSortIcon("type")}</div>
+                  <div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'type')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" /></div>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {sortedTransactions.map((transaction, index) => (
+                <tr key={transaction.id} className={`border-b border-gray-800 ${index === sortedTransactions.length - 1 ? "rounded-b-xl" : ""}`}>
+                  <td className="px-1.5 md:px-3 py-2 text-xs truncate">{transaction.studioName}</td>
+                  <td className="px-1.5 md:px-3 py-2 text-xs truncate">{transaction.studioOwner}</td>
+                  <td className="px-1.5 md:px-3 py-2 text-xs">{formatCurrency(transaction.amount)}</td>
+                  <td className="px-1.5 md:px-2 py-2"><button onClick={() => handleShowServices(transaction.services, transaction.studioName)} className="text-blue-400 hover:text-blue-300"><Info className="w-3.5 h-3.5" /></button></td>
+                  <td className="px-1.5 md:px-3 py-2"><span className={`md:hidden px-1.5 py-0.5 rounded text-xs font-medium ${getStatusColorClass(transaction.status)}`}>{transaction.status === "Successful" ? "S" : transaction.status === "Pending" ? "P" : transaction.status === "Failed" ? "F" : "C"}</span><span className={`hidden md:inline px-2 py-1 rounded-lg text-xs font-medium ${getStatusColorClass(transaction.status)}`}>{transaction.status}</span></td>
+                  <td className="px-1.5 md:px-3 py-2 text-xs"><MaskedIban iban={transaction.iban || "DE89370400440532013000"} /></td>
+                  <td className="px-1.5 md:px-3 py-2 text-xs truncate">{transaction.mandateNumber || `MNDT-${transaction.id.toString().padStart(6, '0')}`}</td>
+                  <td className="px-1.5 md:px-3 py-2 text-xs">{formatDate(transaction.date)}</td>
+                  <td className="px-1.5 md:px-3 py-2 text-xs truncate">{transaction.type}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {sortedTransactions.length === 0 && (<div className="bg-[#141414] p-4 md:p-6 rounded-xl text-center mt-3 md:mt-4"><p className="text-gray-400 text-sm md:text-base">No transactions found matching your criteria.</p></div>)}
+
+      {/* Modals */}
       <SepaXmlModal
         isOpen={sepaModalOpen}
         onClose={() => setSepaModalOpen(false)}
         selectedPeriod={selectedPeriod}
-        transactions={
-          selectedPeriod === "Overall"
-            ? Object.values(financialState).flatMap((period) => period.transactions || [])
-            : selectedPeriod === "Custom Period"
-              ? filteredTransactions
-              : financialState[selectedPeriod]?.transactions || []
-        }
+        transactions={currentPeriodData.transactions}
         onGenerateXml={handleGenerateXml}
+        financialData={financialState}
+        currentUser="Admin"
+        creditorInfo={defaultCreditorInfo}
       />
 
-      {/* FIXED: CheckFundsModal now uses financialState instead of financialData */}
+      <PaymentRunsModal
+        isOpen={paymentRunsModalOpen}
+        onClose={() => setPaymentRunsModalOpen(false)}
+        paymentRuns={paymentRuns}
+        onDeletePaymentRun={handleDeletePaymentRun}
+      />
+
       <CheckFundsModal
         isOpen={checkFundsModalOpen}
         onClose={() => setCheckFundsModalOpen(false)}
-        transactions={
-          selectedPeriod === "Overall"
-            ? Object.values(financialState).flatMap((period) => period.transactions || [])
-            : selectedPeriod === "Custom Period"
-              ? filteredTransactions
-              : financialState[selectedPeriod]?.transactions || []
-        }
+        transactions={currentPeriodData.transactions}
         onUpdateStatuses={handleUpdateStatuses}
+        financialState={financialState}
       />
 
       <ServicesModal
@@ -1074,70 +428,28 @@ export default function FinancesPage() {
         studioName={selectedStudioName}
       />
 
-      <DocumentsModal
-        isOpen={documentsModalOpen}
-        onClose={() => setDocumentsModalOpen(false)}
-        documents={sepaDocuments}
-        onDeleteDocument={handleDeleteDocument}
-        onViewDocument={handleViewDocument}
+      <SepaXmlSuccessModal
+        isOpen={sepaSuccessModalOpen}
+        onClose={() => setSepaSuccessModalOpen(false)}
+        fileName={generatedFileInfo.fileName}
+        transactionCount={generatedFileInfo.transactionCount}
+        totalAmount={generatedFileInfo.totalAmount}
+        shouldAutoDownload={shouldAutoDownload}
       />
 
-      <DocumentViewerModal
-        isOpen={documentViewerOpen}
-        onClose={() => setDocumentViewerOpen(false)}
-        document={selectedDocument}
+      <SuccessModal
+        isOpen={successModalOpen}
+        onClose={() => setSuccessModalOpen(false)}
+        title="Success"
+        message={successMessage}
+        buttonText="Continue"
       />
 
-      {/* sidebar related modals */}
-
-      <Sidebar
-        isOpen={isRightSidebarOpen}
-        onClose={() => setIsRightSidebarOpen(false)}
-        widgets={sidebarWidgets}
-        setWidgets={setSidebarWidgets}
-        isEditing={isEditing}
-        todos={todos}
-        customLinks={customLinks}
-        setCustomLinks={setCustomLinks}
-        expiringContracts={expiringContracts}
-        selectedMemberType={selectedMemberType}
-        setSelectedMemberType={setSelectedMemberType}
-        memberTypes={memberTypes}
-        onAddWidget={() => setIsRightWidgetModalOpen(true)}
-        updateCustomLink={updateCustomLink}
-        removeCustomLink={removeCustomLink}
-        editingLink={editingLink}
-        setEditingLink={setEditingLink}
-        openDropdownIndex={openDropdownIndex}
-        setOpenDropdownIndex={setOpenDropdownIndex}
-        onToggleEditing={() => { setIsEditing(!isEditing); }} // Add this line
-        setTodos={setTodos}
-      />
-
-      <ConfirmationModal
-        isOpen={confirmationModal.isOpen}
-        onClose={() => setConfirmationModal({ isOpen: false, linkId: null })}
-        onConfirm={confirmRemoveLink}
-        title="Delete Website Link"
-        message="Are you sure you want to delete this website link? This action cannot be undone."
-      />
-
-      <WidgetSelectionModal
-        isOpen={isRightWidgetModalOpen}
-        onClose={() => setIsRightWidgetModalOpen(false)}
-        onSelectWidget={handleAddSidebarWidget}
-        getWidgetStatus={getSidebarWidgetStatus}
-        widgetArea="sidebar"
-      />
-
-      {editingLink && (
-        <WebsiteLinkModal
-          link={editingLink}
-          onClose={() => setEditingLink(null)}
-          updateCustomLink={updateCustomLink}
-          setCustomLinks={setCustomLinks}
-        />
-      )}
+      {/* Floating Action Buttons - Mobile */}
+      <div className="md:hidden fixed bottom-4 right-4 flex flex-col gap-3 z-30">
+        {hasCheckingTransactionsAnyPeriod && (<button onClick={() => setCheckFundsModalOpen(true)} className="bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white p-4 rounded-xl shadow-lg transition-all active:scale-95" aria-label="Check Incoming Funds"><RefreshCw size={22} /></button>)}
+        <button onClick={() => setSepaModalOpen(true)} className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95" aria-label="Run Payment"><Play size={22} /></button>
+      </div>
     </div>
   )
 }

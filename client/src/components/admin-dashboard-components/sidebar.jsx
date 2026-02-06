@@ -29,6 +29,7 @@ import {
 } from "lucide-react"
 
 import OrgaGymLogoWihoutText from '../../../public/Orgagym white without text.svg'
+import { DUMMY_FEEDBACK } from "../../utils/admin-panel-states/feedback-states"
 
 // ============================================
 // Feedback Modal Component (same as main sidebar)
@@ -295,6 +296,8 @@ const CustomerSidebar = ({ isOpen = false, onClose, isCollapsed: externalIsColla
   // Menu Items Configuration
   // Icons matched to the main dashboard sidebar
   // ============================================
+  const newFeedbackCount = DUMMY_FEEDBACK.filter((fb) => fb.status === "new").length
+
   const menuItems = [
     { icon: Users, label: "Studios", to: "/admin-dashboard/studios" },
     { icon: RiContractLine, label: "Contract", to: "/admin-dashboard/contract" },
@@ -305,11 +308,11 @@ const CustomerSidebar = ({ isOpen = false, onClose, isCollapsed: externalIsColla
       label: "Support Area",
       to: "#",
       hasSubmenu: true,
-      hasNotification: true,
-      notificationCount: 3,
+      hasNotification: newFeedbackCount > 0,
+      notificationCount: newFeedbackCount,
       submenu: [
-        { label: "Tickets", to: "/admin-dashboard/tickets", icon: MdOutlineLocalActivity, hasNotification: true, notificationCount: 3 },
-        { label: "Feedback", to: "/admin-dashboard/feedback", icon: MessageSquarePlus },
+        { label: "Tickets", to: "/admin-dashboard/tickets", icon: MdOutlineLocalActivity },
+        { label: "Feedback", to: "/admin-dashboard/feedback", icon: MessageSquarePlus, hasNotification: newFeedbackCount > 0, notificationCount: newFeedbackCount },
       ],
     },
     { icon: MdEmail, label: "Email", to: "/admin-dashboard/email", indicatorCount: 3 },
@@ -487,7 +490,7 @@ const CustomerSidebar = ({ isOpen = false, onClose, isCollapsed: externalIsColla
                                         className={`cursor-pointer transition-colors ${isActive ? "text-white" : "text-zinc-400 group-hover:text-white"}`}
                                       />
                                       
-                                      {subItem.label === "Tickets" && subItem.notificationCount > 0 && (
+                                      {subItem.notificationCount > 0 && (
                                         <span className="absolute -top-1 left-10 bg-orange-600 text-white text-[10px] px-1.5 py-0.5 rounded-full z-10">
                                           {subItem.notificationCount}
                                         </span>
@@ -502,7 +505,7 @@ const CustomerSidebar = ({ isOpen = false, onClose, isCollapsed: externalIsColla
                                         size={18}
                                         className={`cursor-pointer ${isActive ? "text-white" : "text-zinc-500 group-hover:text-zinc-300"}`}
                                       />
-                                      {subItem.label === "Tickets" && subItem.notificationCount > 0 && (
+                                      {subItem.notificationCount > 0 && (
                                         <span className="absolute -top-1 -right-2 bg-orange-600 text-white text-[8px] px-1 py-0.5 rounded-full z-10 min-w-[14px] text-center">
                                           {subItem.notificationCount}
                                         </span>

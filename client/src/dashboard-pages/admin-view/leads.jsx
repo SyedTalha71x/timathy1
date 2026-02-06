@@ -108,6 +108,11 @@ export default function LeadManagement() {
 
   const [memberRelationsLead, setMemberRelationsLead] = useState({})
 
+  // Demo access confirmation (when dragging to trial column)
+  const [showDemoAccessConfirm, setShowDemoAccessConfirm] = useState(false)
+  const [pendingDemoLead, setPendingDemoLead] = useState(null)
+  const [pendingDemoMoveData, setPendingDemoMoveData] = useState(null)
+
 
   // ============================================
   // @dnd-kit State and Logic
@@ -233,8 +238,20 @@ export default function LeadManagement() {
     moveLeadToColumn(draggedLead, sourceColumnId, targetColumnId, overId)
   }
 
-  // Move lead to a new column
+  // Move lead to a new column (with trial column interception)
   const moveLeadToColumn = (lead, sourceColumnId, targetColumnId, overId = null) => {
+    // Intercept moves to the trial/demo-access column â†’ ask user
+    if (targetColumnId === "trial" && sourceColumnId !== "trial") {
+      setPendingDemoLead(lead)
+      setPendingDemoMoveData({ sourceColumnId, targetColumnId, overId })
+      setShowDemoAccessConfirm(true)
+      return
+    }
+    executeLeadMove(lead, sourceColumnId, targetColumnId, overId)
+  }
+
+  // Actual move logic (no interception)
+  const executeLeadMove = (lead, sourceColumnId, targetColumnId, overId = null) => {
     const targetColumnLeads = leads.filter((l) => l.columnId === targetColumnId)
     
     let insertIndex = targetColumnLeads.length
@@ -264,6 +281,42 @@ export default function LeadManagement() {
     
     const targetColumn = columns.find((c) => c.id === targetColumnId)
     toast.success(`Lead moved to ${targetColumn?.title || targetColumnId}`)
+  }
+
+  // Demo access confirmation handlers (drag to trial column)
+  const handleDemoConfirmCreate = () => {
+    if (pendingDemoLead && pendingDemoMoveData) {
+      executeLeadMove(pendingDemoLead, pendingDemoMoveData.sourceColumnId, "trial", pendingDemoMoveData.overId)
+      // Navigate to demo access page with lead pre-selected
+      navigate('/admin-dashboard/demo-access', {
+        state: {
+          preSelectedLead: {
+            id: pendingDemoLead.id,
+            name: `${pendingDemoLead.firstName} ${pendingDemoLead.surname}`.trim(),
+            email: pendingDemoLead.email,
+            company: pendingDemoLead.studioName || pendingDemoLead.company || '',
+          }
+        }
+      })
+    }
+    setShowDemoAccessConfirm(false)
+    setPendingDemoLead(null)
+    setPendingDemoMoveData(null)
+  }
+
+  const handleDemoConfirmNoCreate = () => {
+    if (pendingDemoLead && pendingDemoMoveData) {
+      executeLeadMove(pendingDemoLead, pendingDemoMoveData.sourceColumnId, "trial", pendingDemoMoveData.overId)
+    }
+    setShowDemoAccessConfirm(false)
+    setPendingDemoLead(null)
+    setPendingDemoMoveData(null)
+  }
+
+  const handleDemoConfirmCancel = () => {
+    setShowDemoAccessConfirm(false)
+    setPendingDemoLead(null)
+    setPendingDemoMoveData(null)
   }
 
   // Update localStorage helper
@@ -357,7 +410,7 @@ export default function LeadManagement() {
   useEffect(() => {
     if (location.state?.filterLeadId) {
       const lead = leads.find(l => l.id === location.state.filterLeadId)
-      const leadName = location.state.filterLeadName || (lead ? `${lead.firstName} ${lead.lastName}` : 'Lead')
+      const leadName = location.state.filterLeadName || (lead ? (lead.studioName || `${lead.firstName} ${lead.lastName}`) : 'Lead')
       
       setLeadFilters([{
         leadId: location.state.filterLeadId,
@@ -381,14 +434,16 @@ export default function LeadManagement() {
         isEditColumnModalOpen ||
         isDeleteConfirmationModalOpen ||
         isLeadSpecialNoteModalOpen ||
-        showHistoryModalLead;
+        showHistoryModalLead ||
+        showDemoAccessConfirm;
       
       const hasVisibleModal = document.querySelector('[class*="fixed"][class*="inset-0"][class*="z-50"]') ||
                               document.querySelector('[class*="fixed"][class*="inset-0"][class*="z-40"]');
       
       if (e.key === 'Escape') {
         e.preventDefault();
-        if (isViewDetailsModalOpen) setIsViewDetailsModalOpen(false);
+        if (showDemoAccessConfirm) handleDemoConfirmCancel();
+        else if (isViewDetailsModalOpen) setIsViewDetailsModalOpen(false);
         else if (isEditModalOpenLead) setIsEditModalOpenLead(false);
         else if (isModalOpen) setIsModalOpen(false);
         else if (isDeleteConfirmationModalOpen) { setIsDeleteConfirmationModalOpen(false); setLeadToDelete(null); }
@@ -415,6 +470,7 @@ export default function LeadManagement() {
     isDeleteConfirmationModalOpen,
     isLeadSpecialNoteModalOpen,
     showHistoryModalLead,
+    showDemoAccessConfirm,
   ]);
 
   // Enforce compact view on mobile
@@ -438,7 +494,7 @@ export default function LeadManagement() {
   }
 
   const handleAddTrialTraining = (lead) => {
-    // Move lead to demo access column directly
+    // Move lead to demo access column if not already there
     if (lead.columnId !== "trial") {
       const newLeads = leads.map((l) => {
         if (l.id === lead.id) {
@@ -448,10 +504,18 @@ export default function LeadManagement() {
       })
       setLeads(newLeads)
       updateLocalStorage(newLeads)
-      toast.success(`${lead.firstName} moved to Demo Access`)
-    } else {
-      toast.success("Lead is already in Demo Access")
     }
+    // Navigate to demo access page with lead pre-selected and wizard open
+    navigate('/admin-dashboard/demo-access', {
+      state: {
+        preSelectedLead: {
+          id: lead.id,
+          name: `${lead.firstName} ${lead.surname}`.trim(),
+          email: lead.email,
+          company: lead.studioName || lead.company || '',
+        }
+      }
+    })
   }
 
 
@@ -550,6 +614,7 @@ export default function LeadManagement() {
       country: data.country || "",
       leadSource: data.source || "",
       details: data.details || "",
+      numberOfMembers: data.numberOfMembers || "",
       trialPeriod: data.trialPeriod,
       hasDemoAccess: data.hasDemoAccess,
       avatar: data.avatar,
@@ -602,6 +667,7 @@ export default function LeadManagement() {
             country: data.country || lead.country || "",
             leadSource: data.source || lead.leadSource || "",
             details: data.details || lead.details || "",
+            numberOfMembers: data.numberOfMembers || lead.numberOfMembers || "",
             trialPeriod: data.trialPeriod,
             hasDemoAccess: pendingMove && pendingMove.leadId === lead.id ? false : data.hasDemoAccess,
             avatar: data.avatar,
@@ -665,8 +731,11 @@ export default function LeadManagement() {
       if (isAlreadyFiltered) return false;
       
       const fullName = `${lead.firstName} ${lead.surname}`.toLowerCase();
-      return fullName.includes(searchQuery.toLowerCase()) ||
-        lead.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      const studio = (lead.studioName || '').toLowerCase();
+      const query = searchQuery.toLowerCase();
+      return studio.includes(query) ||
+        fullName.includes(query) ||
+        lead.email?.toLowerCase().includes(query) ||
         lead.phoneNumber?.includes(searchQuery) ||
         lead.telephoneNumber?.includes(searchQuery);
     }).slice(0, 6);
@@ -675,7 +744,7 @@ export default function LeadManagement() {
   const handleSelectLead = (lead) => {
     setLeadFilters([...leadFilters, {
       leadId: lead.id,
-      leadName: `${lead.firstName} ${lead.surname}`.trim()
+      leadName: lead.studioName || `${lead.firstName} ${lead.surname}`.trim()
     }]);
     setSearchQuery("");
     setShowSearchDropdown(false);
@@ -989,6 +1058,7 @@ export default function LeadManagement() {
                   color={column.color}
                   leads={columnLeads}
                   onViewDetails={handleViewLeadDetails}
+                  onAddTrial={handleAddTrialTraining}
                   onEditLead={handleEditLead}
                   onDeleteLead={handleDeleteLead}
                   isEditable={!column.isFixed}
@@ -1123,6 +1193,52 @@ export default function LeadManagement() {
           </>
         ) : ''}
       />
+
+      {/* Demo Access Confirmation Modal (shown when dragging lead to trial column) */}
+      {showDemoAccessConfirm && pendingDemoLead && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#1A1A1A] rounded-xl max-w-md w-full border border-gray-800">
+            <div className="p-6 border-b border-gray-800 flex justify-between items-start">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center">
+                  <ClipboardList size={20} className="text-blue-400" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-white">Create Demo Access?</h2>
+                  <p className="text-gray-400 text-sm mt-1">
+                    {pendingDemoLead.studioName || `${pendingDemoLead.firstName} ${pendingDemoLead.surname}`}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={handleDemoConfirmCancel}
+                className="text-gray-400 hover:text-white transition-colors p-1"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-6">
+              <p className="text-gray-300 text-sm mb-6">
+                Would you like to create a demo access for this lead? You will be redirected to configure the demo setup.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleDemoConfirmNoCreate}
+                  className="flex-1 bg-gray-700 text-white py-3 px-4 rounded-lg hover:bg-gray-600 transition-colors font-medium text-sm"
+                >
+                  No, just move
+                </button>
+                <button
+                  onClick={handleDemoConfirmCreate}
+                  className="flex-1 bg-orange-500 text-white py-3 px-4 rounded-lg hover:bg-orange-600 transition-colors font-medium text-sm"
+                >
+                  Yes, create demo
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Floating Action Button - Mobile Only */}
       <button

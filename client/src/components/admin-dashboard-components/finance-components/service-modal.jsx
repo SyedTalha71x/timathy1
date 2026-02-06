@@ -1,7 +1,7 @@
 import { X } from "lucide-react"
 
 /* eslint-disable react/prop-types */
-const ServicesModal = ({ isOpen, onClose, services, studioName }) => {
+const ServicesModal = ({ isOpen, onClose, services, memberName }) => {
     if (!isOpen) return null
   
     const totalCost = services.reduce((sum, service) => sum + service.cost, 0)
@@ -17,8 +17,8 @@ const ServicesModal = ({ isOpen, onClose, services, studioName }) => {
           </div>
           <div className="p-3 md:p-4 overflow-y-auto flex-grow">
             <div className="mb-3 md:mb-4">
-              <h3 className="text-white font-medium mb-2 text-sm md:text-base">{studioName}</h3>
-              <p className="text-gray-400 text-xs md:text-sm">Service breakdown for this studio</p>
+              <h3 className="text-white font-medium mb-2 text-sm md:text-base">{memberName}</h3>
+              <p className="text-gray-400 text-xs md:text-sm">Service breakdown for this member</p>
             </div>
             <div className="space-y-2 md:space-y-3">
               {services.map((service, index) => (

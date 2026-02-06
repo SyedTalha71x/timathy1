@@ -13,6 +13,8 @@ export const financialData = {
         amount: 150,
         status: "Successful",
         type: "Monthly Payment",
+        iban: "DE89370400440532013000",
+        mandateNumber: "MNDT-000001",
         services: [
           { name: "Studio Rental", cost: 100, description: "Monthly studio space rental" },
           { name: "Equipment Usage", cost: 30, description: "Professional equipment access" },
@@ -27,6 +29,8 @@ export const financialData = {
         amount: 200,
         status: "Successful",
         type: "Monthly Payment",
+        iban: "DE75512108001245126199",
+        mandateNumber: "MNDT-000002",
         services: [
           { name: "Premium Studio", cost: 150, description: "Large studio with premium equipment" },
           { name: "Storage", cost: 25, description: "Additional storage space" },
@@ -41,6 +45,8 @@ export const financialData = {
         amount: 150,
         status: "Failed",
         type: "Monthly Payment",
+        iban: "DE02120300000000202051",
+        mandateNumber: "MNDT-000003",
         services: [
           { name: "Studio Rental", cost: 120, description: "Standard studio space" },
           { name: "Cleaning Service", cost: 30, description: "Weekly cleaning service" },
@@ -54,6 +60,8 @@ export const financialData = {
         amount: 300,
         status: "Pending",
         type: "Monthly Payment",
+        iban: "DE27100777770209299700",
+        mandateNumber: "MNDT-000004",
         services: [
           { name: "Premium Studio", cost: 200, description: "Large studio with premium equipment" },
           { name: "Equipment Rental", cost: 50, description: "Specialized equipment rental" },
@@ -68,6 +76,8 @@ export const financialData = {
         amount: 150,
         status: "Successful",
         type: "Monthly Payment",
+        iban: "DE98370205000009025820",
+        mandateNumber: "MNDT-000005",
         services: [
           { name: "Studio Rental", cost: 100, description: "Monthly studio space rental" },
           { name: "Equipment Usage", cost: 30, description: "Professional equipment access" },
@@ -90,6 +100,8 @@ export const financialData = {
         amount: 150,
         status: "Successful",
         type: "Monthly Payment",
+        iban: "DE89370400440532013000",
+        mandateNumber: "MNDT-000001",
         services: [
           { name: "Studio Rental", cost: 100, description: "Monthly studio space rental" },
           { name: "Equipment Usage", cost: 30, description: "Professional equipment access" },
@@ -104,6 +116,8 @@ export const financialData = {
         amount: 200,
         status: "Successful",
         type: "Monthly Payment",
+        iban: "DE75512108001245126199",
+        mandateNumber: "MNDT-000002",
         services: [
           { name: "Premium Studio", cost: 150, description: "Large studio with premium equipment" },
           { name: "Storage", cost: 25, description: "Additional storage space" },
@@ -118,6 +132,8 @@ export const financialData = {
         amount: 150,
         status: "Successful",
         type: "Monthly Payment",
+        iban: "DE02120300000000202051",
+        mandateNumber: "MNDT-000003",
         services: [
           { name: "Studio Rental", cost: 120, description: "Standard studio space" },
           { name: "Cleaning Service", cost: 30, description: "Weekly cleaning service" },
@@ -139,6 +155,8 @@ export const financialData = {
         amount: 150,
         status: "Successful",
         type: "Monthly Payment",
+        iban: "DE89370400440532013000",
+        mandateNumber: "MNDT-000001",
         services: [
           { name: "Studio Rental", cost: 100, description: "Monthly studio space rental" },
           { name: "Equipment Usage", cost: 30, description: "Professional equipment access" },
@@ -153,6 +171,8 @@ export const financialData = {
         amount: 200,
         status: "Failed",
         type: "Monthly Payment",
+        iban: "DE75512108001245126199",
+        mandateNumber: "MNDT-000002",
         services: [
           { name: "Premium Studio", cost: 150, description: "Large studio with premium equipment" },
           { name: "Storage", cost: 25, description: "Additional storage space" },
@@ -167,6 +187,8 @@ export const financialData = {
         amount: 150,
         status: "Pending",
         type: "Monthly Payment",
+        iban: "DE02120300000000202051",
+        mandateNumber: "MNDT-000003",
         services: [
           { name: "Studio Rental", cost: 120, description: "Standard studio space" },
           { name: "Cleaning Service", cost: 30, description: "Weekly cleaning service" },
@@ -188,6 +210,8 @@ export const financialData = {
         amount: 150,
         status: "Successful",
         type: "Monthly Payment",
+        iban: "DE89370400440532013000",
+        mandateNumber: "MNDT-000001",
         services: [
           { name: "Studio Rental", cost: 100, description: "Monthly studio space rental" },
           { name: "Equipment Usage", cost: 30, description: "Professional equipment access" },
@@ -202,6 +226,8 @@ export const financialData = {
         amount: 200,
         status: "Successful",
         type: "Monthly Payment",
+        iban: "DE75512108001245126199",
+        mandateNumber: "MNDT-000002",
         services: [
           { name: "Premium Studio", cost: 150, description: "Large studio with premium equipment" },
           { name: "Storage", cost: 25, description: "Additional storage space" },
@@ -216,6 +242,8 @@ export const financialData = {
         amount: 150,
         status: "Failed",
         type: "Monthly Payment",
+        iban: "DE02120300000000202051",
+        mandateNumber: "MNDT-000003",
         services: [
           { name: "Studio Rental", cost: 120, description: "Standard studio space" },
           { name: "Cleaning Service", cost: 30, description: "Weekly cleaning service" },
@@ -225,7 +253,7 @@ export const financialData = {
   },
   "This Year": {
     totalRevenue: 141600,
-    pendingPayments: 14400, 
+    pendingPayments: 14400,
     failedPayments: 7200,
     successfulPayments: 120000,
     transactions: [
@@ -237,6 +265,8 @@ export const financialData = {
         amount: 150,
         status: "Successful",
         type: "Monthly Payment",
+        iban: "DE89370400440532013000",
+        mandateNumber: "MNDT-000001",
         services: [
           { name: "Studio Rental", cost: 100, description: "Monthly studio space rental" },
           { name: "Equipment Usage", cost: 30, description: "Professional equipment access" },
@@ -251,6 +281,8 @@ export const financialData = {
         amount: 200,
         status: "Successful",
         type: "Monthly Payment",
+        iban: "DE75512108001245126199",
+        mandateNumber: "MNDT-000002",
         services: [
           { name: "Premium Studio", cost: 150, description: "Large studio with premium equipment" },
           { name: "Storage", cost: 25, description: "Additional storage space" },
@@ -265,6 +297,8 @@ export const financialData = {
         amount: 150,
         status: "Pending",
         type: "Monthly Payment",
+        iban: "DE02120300000000202051",
+        mandateNumber: "MNDT-000003",
         services: [
           { name: "Studio Rental", cost: 120, description: "Standard studio space" },
           { name: "Cleaning Service", cost: 30, description: "Weekly cleaning service" },

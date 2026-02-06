@@ -208,6 +208,11 @@ const ViewLeadDetailsModal = ({
                     </div>
                   </div>
                 )}
+
+                <div>
+                  <p className="text-sm text-gray-400">Number of Members</p>
+                  <p>{leadData.numberOfMembers || "-"}</p>
+                </div>
               </div>
 
               {/* Operator Information */}

@@ -46,7 +46,6 @@
   import DefaultStudioImage from "../../../public/gray-avatar-fotor-20250912192528.png"
   import toast, { Toaster } from "react-hot-toast"
   import { RiContractFill } from "react-icons/ri"
-  import { IoIosMenu } from "react-icons/io"
 
   import FranchiseModal from "../../components/admin-dashboard-components/studios-modal/franchise-modal"
   import AssignStudioModal from "../../components/admin-dashboard-components/studios-modal/assign-studios-modal"
@@ -63,10 +62,6 @@
   import MemberDetailsModal from "../../components/admin-dashboard-components/studios-modal/members-component/members-detail"
   import ContractDetailsModal from "../../components/admin-dashboard-components/studios-modal/contract-components/contract-details"
   import StudioHistoryModalMain from "../../components/admin-dashboard-components/studios-modal/studio-history"
-  import WebsiteLinkModal from "../../components/admin-dashboard-components/myarea-components/website-link-modal"
-  import WidgetSelectionModal from "../../components/admin-dashboard-components/myarea-components/widgets"
-  import ConfirmationModal from "../../components/admin-dashboard-components/myarea-components/confirmation-modal"
-  import Sidebar from "../../components/admin-dashboard-components/central-sidebar"
   import StudioMembersModal from "../../components/admin-dashboard-components/studios-modal/members-component/MemberOverviewModal"
   import StudioStaffModal from "../../components/admin-dashboard-components/studios-modal/staff-components/StaffOverviewModal"
   import MemberHistoryModalMain from "../../components/admin-dashboard-components/studios-modal/members-component/member-history-modal"
@@ -298,7 +293,6 @@
       additionalDocs: [],
     })
 
-
     const [franchiseForm, setFranchiseForm] = useState({
       name: "",
       email: "",
@@ -328,14 +322,12 @@
     const [studioStaffs, setStudioStaffs] = useState(studioStaffData)
     const [studioContracts, setStudioContracts] = useState(studioContractsData)
 
-
     // for studio history itself
     const [showHistory, setShowHistory] = useState(false)
     const [historyTabMain, setHistoryTabMain] = useState("general")
 
     const [memberSearchQuery, setMemberSearchQuery] = useState("")
     const [staffSearchQuery, setStaffSearchQuery] = useState("")
-
 
     // for members
     const [showHistoryModal, setShowHistoryModal] = useState(false)
@@ -420,7 +412,6 @@
       }
     ])
 
-
     const [isNotifyMemberOpenMain, setIsNotifyMemberOpenMain] = useState(false)
     const [notifyActionMain, setNotifyActionMain] = useState("")
     const [memberContingent, setMemberContingent] = useState({
@@ -477,7 +468,6 @@
       return periods
     }
 
-
     // for staff 
     const [showStaffHistoryModal, setShowStaffHistoryModal] = useState(false)
     const [staffHistory, setstaffHistory] = useState(studiostaffHistoryNew)
@@ -485,9 +475,7 @@
     const [showDocumentModalStaff, setShowDocumentModalStaff] = useState(false)
     const [showAppointmentModalStaff, setShowAppointmentModalStaff] = useState(false)
 
-
     const [selectedAppointmentDataStaff, setSelectedAppointmentDataStaff] = useState(null)
-
 
     // for contracts 
 
@@ -582,127 +570,6 @@
 
       toast.success("Lead added successfully!")
     }
-
-
-
-
-
-
-    //sidebar related logic and states
-    const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
-    const [isEditing, setIsEditing] = useState(false)
-    const [selectedMemberType, setSelectedMemberType] = useState("Studios Acquired")
-    const [isRightWidgetModalOpen, setIsRightWidgetModalOpen] = useState(false)
-    const [confirmationModal, setConfirmationModal] = useState({ isOpen: false, linkId: null })
-    const [editingLink, setEditingLink] = useState(null)
-    const [openDropdownIndex, setOpenDropdownIndex] = useState(null)
-
-    const [sidebarWidgets, setSidebarWidgets] = useState([
-      { id: "sidebar-chart", type: "chart", position: 0 },
-      { id: "sidebar-todo", type: "todo", position: 1 },
-      { id: "sidebar-websiteLink", type: "websiteLink", position: 2 },
-      { id: "sidebar-expiringContracts", type: "expiringContracts", position: 3 },
-      { id: "sidebar-notes", type: "notes", position: 4 },
-    ])
-
-    const [todos, setTodos] = useState([
-      {
-        id: 1,
-        title: "Review Design",
-        description: "Review the new dashboard design",
-        assignee: "Jack",
-        dueDate: "2024-12-15",
-        dueTime: "14:30",
-      },
-      {
-        id: 2,
-        title: "Team Meeting",
-        description: "Weekly team sync",
-        assignee: "Jack",
-        dueDate: "2024-12-16",
-        dueTime: "10:00",
-      },
-    ])
-
-    const memberTypes = {
-      "Studios Acquired": {
-        data: [
-          [30, 45, 60, 75, 90, 105, 120, 135, 150],
-          [25, 40, 55, 70, 85, 100, 115, 130, 145],
-        ],
-        growth: "12%",
-        title: "Studios Acquired",
-      },
-      Finance: {
-        data: [
-          [50000, 60000, 75000, 85000, 95000, 110000, 125000, 140000, 160000],
-          [45000, 55000, 70000, 80000, 90000, 105000, 120000, 135000, 155000],
-        ],
-        growth: "8%",
-        title: "Finance Statistics",
-      },
-      Leads: {
-        data: [
-          [120, 150, 180, 210, 240, 270, 300, 330, 360],
-          [100, 130, 160, 190, 220, 250, 280, 310, 340],
-        ],
-        growth: "15%",
-        title: "Leads Statistics",
-      },
-      Franchises: {
-        data: [
-          [120, 150, 180, 210, 240, 270, 300, 330, 360],
-          [100, 130, 160, 190, 220, 250, 280, 310, 340],
-        ],
-        growth: "10%",
-        title: "Franchises Acquired",
-      },
-    }
-
-    const [customLinks, setCustomLinks] = useState([
-      {
-        id: "link1",
-        url: "https://fitness-web-kappa.vercel.app/",
-        title: "Timathy Fitness Town",
-      },
-      { id: "link2", url: "https://oxygengym.pk/", title: "Oxygen Gyms" },
-      { id: "link3", url: "https://fitness-web-kappa.vercel.app/", title: "Timathy V1" },
-    ])
-
-    const [expiringContracts, setExpiringContracts] = useState([
-      {
-        id: 1,
-        title: "Oxygen Gym Membership",
-        expiryDate: "June 30, 2025",
-        status: "Expiring Soon",
-      },
-      {
-        id: 2,
-        title: "Timathy Fitness Equipment Lease",
-        expiryDate: "July 15, 2025",
-        status: "Expiring Soon",
-      },
-      {
-        id: 3,
-        title: "Studio Space Rental",
-        expiryDate: "August 5, 2025",
-        status: "Expiring Soon",
-      },
-      {
-        id: 4,
-        title: "Insurance Policy",
-        expiryDate: "September 10, 2025",
-        status: "Expiring Soon",
-      },
-      {
-        id: 5,
-        title: "Software License",
-        expiryDate: "October 20, 2025",
-        status: "Expiring Soon",
-      },
-    ])
-
-    // -------------- end of sidebar logic
 
     const handleCloseModal = () => {
       setIsEditFranchiseModalOpen(false)
@@ -1078,7 +945,6 @@
       setIsEditOptionsModalOpen(false)
     }
 
-
     const handleEditFranchise = (franchise) => {
       setSelectedFranchise(franchise)
       setIsEditFranchiseModalOpen(true)
@@ -1224,49 +1090,6 @@
       )
     }
 
-    // continue sidebar logic
-    const updateCustomLink = (id, field, value) => {
-      setCustomLinks((currentLinks) => currentLinks.map((link) => (link.id === id ? { ...link, [field]: value } : link)))
-    }
-
-    const removeCustomLink = (id) => {
-      setConfirmationModal({ isOpen: true, linkId: id })
-    }
-
-    const handleAddSidebarWidget = (widgetType) => {
-      const newWidget = {
-        id: `sidebar-widget${Date.now()}`,
-        type: widgetType,
-        position: sidebarWidgets.length,
-      }
-      setSidebarWidgets((currentWidgets) => [...currentWidgets, newWidget])
-      setIsRightWidgetModalOpen(false)
-      toast.success(`${widgetType} widget has been added to sidebar Successfully`)
-    }
-
-    const confirmRemoveLink = () => {
-      if (confirmationModal.linkId) {
-        setCustomLinks((currentLinks) => currentLinks.filter((link) => link.id !== confirmationModal.linkId))
-        toast.success("Website link removed successfully")
-      }
-      setConfirmationModal({ isOpen: false, linkId: null })
-    }
-
-    const getSidebarWidgetStatus = (widgetType) => {
-      // Check if widget exists in sidebar widgets
-      const existsInSidebar = sidebarWidgets.some((widget) => widget.type === widgetType)
-
-      if (existsInSidebar) {
-        return { canAdd: false, location: "sidebar" }
-      }
-
-      return { canAdd: true, location: null }
-    }
-
-    const toggleRightSidebar = () => {
-      setIsRightSidebarOpen(!isRightSidebarOpen)
-    }
-
     // new state and functions for member
 
     const handleHistoryFromOverview = (member) => {
@@ -1308,7 +1131,6 @@
     const handleDeleteAppointmentMain = (id) => {
       setAppointmentToDelete(id)
     }
-
 
     const handleCreateNewAppointmentMain = () => {
       setShowCreateAppointmentModalMain(true)
@@ -1387,7 +1209,6 @@
         })
       }
     }
-
 
     // functions and other things for staff
     const handleAppointmentChangeStaff = (changes) => {
@@ -1555,8 +1376,6 @@
       toast.success("Training plan removed successfully!")
     }
 
-
-
     return (
       <>
         <Toaster
@@ -1574,7 +1393,6 @@
           className={`
         min-h-screen rounded-3xl relative bg-[#1C1C1C] text-white 
         transition-all duration-500 ease-in-out flex-1
-        ${isRightSidebarOpen ? "lg:mr-86 mr-0" : "mr-0"}
       `}
         >
           <div className="flex-1 min-w-0 p-4 pb-36 text-white">
@@ -1585,18 +1403,6 @@
                     {viewMode === "studios" ? "Studios" : "Franchises"}
                   </h1>
                 </div>
-                {/* <div
-                  onClick={toggleRightSidebar}
-                  className="cursor-pointer lg:hidden md:hidden block  text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md "
-                >
-                  <IoIosMenu size={26} />
-                </div> */}
-                <img
-                  onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
-                  className="h-5 w-5 lg:hidden md:hidden block   cursor-pointer"
-                  src="/icon.svg"
-                  alt=""
-                />
               </div>
 
               <div className="flex md:items-center items-start  md:flex-row flex-col gap-3 w-full sm:w-auto">
@@ -1657,18 +1463,6 @@
                     </div>
                   )}
                 </div>
-                {/* <div
-                  onClick={toggleRightSidebar}
-                  className="cursor-pointer lg:block md:block hidden  text-white hover:bg-gray-200 hover:text-black duration-300 transition-all rounded-md "
-                >
-                  <IoIosMenu size={26} />
-                </div> */}
-                <img
-                  onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
-                  className="h-5 w-5 mr-5  lg:block md:block hidden   cursor-pointer"
-                  src="/icon.svg"
-                  alt=""
-                />
               </div>
             </div>
             <div className="flex flex-col space-y-4 mb-6">
@@ -2290,8 +2084,6 @@
         />
         {/* end --------- */}
 
-
-
         {/* Staff related modals */}
         {/* start  */}
         <StudioStaffModal
@@ -2455,13 +2247,6 @@
 
         {/* end ----- */}
 
-
-
-
-
-
-
-
         {/* contract related modal */}
         {/* start */}
         <ContractsModal
@@ -2492,7 +2277,6 @@
           />
         )}
         {/* end ----- */}
-
 
         {/* lead related modals  */}
         {/* Leads Modal */}
@@ -2546,7 +2330,6 @@
           availableMembersLeads={availableMembersLeadsMain}
           initialTab="details"
         />
-
 
         {/* Main Studio related Modals */}
         {/* start  */}
@@ -2625,7 +2408,6 @@
           toast={toast}
         />
 
-
         <StudioFinancesModal
           isOpen={isFinancesModalOpen}
           onClose={() => setisFinancesModalOpen(false)}
@@ -2643,57 +2425,6 @@
           onAdminConfig={handleAdminConfig}
         />
 
-        {/* sidebar related modals  */}
-        <Sidebar
-          isOpen={isRightSidebarOpen}
-          onClose={() => setIsRightSidebarOpen(false)}
-          widgets={sidebarWidgets}
-          setWidgets={setSidebarWidgets}
-          isEditing={isEditing}
-          todos={todos}
-          customLinks={customLinks}
-          setCustomLinks={setCustomLinks}
-          expiringContracts={expiringContracts}
-          selectedMemberType={selectedMemberType}
-          setSelectedMemberType={setSelectedMemberType}
-          memberTypes={memberTypes}
-          onAddWidget={() => setIsRightWidgetModalOpen(true)}
-          updateCustomLink={updateCustomLink}
-          removeCustomLink={removeCustomLink}
-          editingLink={editingLink}
-          setEditingLink={setEditingLink}
-          openDropdownIndex={openDropdownIndex}
-          setOpenDropdownIndex={setOpenDropdownIndex}
-          onToggleEditing={() => {
-            setIsEditing(!isEditing)
-          }} // Add this line
-          setTodos={setTodos}
-        />
-
-        <ConfirmationModal
-          isOpen={confirmationModal.isOpen}
-          onClose={() => setConfirmationModal({ isOpen: false, linkId: null })}
-          onConfirm={confirmRemoveLink}
-          title="Delete Website Link"
-          message="Are you sure you want to delete this website link? This action cannot be undone."
-        />
-
-        <WidgetSelectionModal
-          isOpen={isRightWidgetModalOpen}
-          onClose={() => setIsRightWidgetModalOpen(false)}
-          onSelectWidget={handleAddSidebarWidget}
-          getWidgetStatus={getSidebarWidgetStatus}
-          widgetArea="sidebar"
-        />
-
-        {editingLink && (
-          <WebsiteLinkModal
-            link={editingLink}
-            onClose={() => setEditingLink(null)}
-            updateCustomLink={updateCustomLink}
-            setCustomLinks={setCustomLinks}
-          />
-        )}
       </>
     )
   }

@@ -194,12 +194,12 @@ const ConfigStep = ({ config, onChange, selectedLead, selectedTemplate }) => (
     <div className="flex flex-wrap items-center gap-2 py-2.5 px-3 bg-[#222222] rounded-xl text-xs text-gray-400">
       <span>
         Lead:{" "}
-        <span className="text-white">{selectedLead?.id === "guest" ? "No lead" : (selectedLead?.name || "—")}</span>
+        <span className="text-white">{selectedLead?.id === "guest" ? "No lead" : (selectedLead?.name || "â€”")}</span>
       </span>
       <div className="w-px h-3 bg-gray-700" />
       <span>
         Template:{" "}
-        <span className="text-white">{selectedTemplate?.name || "—"}</span>
+        <span className="text-white">{selectedTemplate?.name || "â€”"}</span>
       </span>
     </div>
 
@@ -373,7 +373,7 @@ const EditView = ({ config, onChange, templates, selectedTemplateId, onSelectTem
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-white">{tmpl.name}</p>
                 <p className="text-xs text-gray-500">
-                  {tmpl.description} · {permCount}/{totalPerm} features
+                  {tmpl.description} Â· {permCount}/{totalPerm} features
                 </p>
               </div>
               <div
@@ -405,6 +405,8 @@ const DemoWizardModal = ({
   // Edit mode
   demo,
   onUpdate,
+  // Pre-selected lead (e.g. navigated from Leads page)
+  initialLead = null,
 }) => {
   const [step, setStep] = useState(1);
   const [selectedLead, setSelectedLead] = useState(null);
@@ -433,13 +435,28 @@ const DemoWizardModal = ({
         email: demo.config?.email || "",
       });
       setEditTemplateId(demo.template?.id || "");
+    } else if (initialLead) {
+      // Pre-selected lead from navigation — skip lead selection step
+      setSelectedLead(initialLead);
+      const nameParts = (initialLead.name || "").trim().split(/\s+/);
+      const firstName = nameParts[0] || "";
+      const lastName = nameParts.slice(1).join(" ") || "";
+      setConfig({
+        studioName: initialLead.company ? `${initialLead.company} Studio` : "",
+        studioOwnerFirstName: firstName,
+        studioOwnerLastName: lastName,
+        demoDuration: 7,
+        email: initialLead.email || "",
+      });
+      setSelectedTemplate(null);
+      setStep(2); // Skip to template selection
     } else {
       setStep(1);
       setSelectedLead(null);
       setSelectedTemplate(null);
       setConfig({ studioName: "", studioOwnerFirstName: "", studioOwnerLastName: "", demoDuration: 7, email: "" });
     }
-  }, [isOpen, mode, demo]);
+  }, [isOpen, mode, demo, initialLead]);
 
   if (!isOpen) return null;
 

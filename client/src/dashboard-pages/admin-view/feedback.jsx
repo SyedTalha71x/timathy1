@@ -7,8 +7,6 @@ import {
   ChevronDown,
   ChevronUp,
   Star,
-  Lightbulb,
-  Bug,
   MessageCircle,
   Calendar,
   Building2,
@@ -18,134 +16,18 @@ import {
   CheckCircle2,
   AlertCircle,
   Eye,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react"
 
-// ============================================
-// Feedback Status & Type Configs
-// ============================================
-const FEEDBACK_TYPES = {
-  suggestion: { label: "Suggestion", icon: Lightbulb, color: "text-yellow-400", bg: "bg-yellow-500/10 border-yellow-500/30" },
-  bug: { label: "Bug Report", icon: Bug, color: "text-red-400", bg: "bg-red-500/10 border-red-500/30" },
-  praise: { label: "Praise", icon: Star, color: "text-orange-400", bg: "bg-orange-500/10 border-orange-500/30" },
-  other: { label: "Other", icon: MessageCircle, color: "text-blue-400", bg: "bg-blue-500/10 border-blue-500/30" },
-}
-
-const FEEDBACK_STATUSES = {
-  new: { label: "New", color: "bg-blue-500", textColor: "text-blue-400" },
-  in_review: { label: "In Review", color: "bg-yellow-500", textColor: "text-yellow-400" },
-  resolved: { label: "Resolved", color: "bg-green-500", textColor: "text-green-400" },
-  dismissed: { label: "Dismissed", color: "bg-gray-500", textColor: "text-gray-400" },
-}
-
-// ============================================
-// Dummy Feedback Data
-// ============================================
-const DUMMY_FEEDBACK = [
-  {
-    id: 1,
-    type: "bug",
-    subject: "Calendar sync not working properly",
-    message: "When I try to sync the calendar with Google Calendar, it shows duplicate entries for recurring appointments. This started happening after the last update. Multiple trainers have reported this issue.",
-    rating: 2,
-    status: "in_review",
-    studioName: "FitZone Premium",
-    studioId: "studio_001",
-    submittedBy: "Max Müller",
-    role: "Studio Owner",
-    createdAt: "2025-02-01T14:30:00Z",
-  },
-  {
-    id: 2,
-    type: "suggestion",
-    subject: "Add bulk member import via CSV",
-    message: "It would be very helpful to have a CSV import feature for adding multiple members at once. We are onboarding 50+ members from an old system and adding them one by one is very time-consuming.",
-    rating: 4,
-    status: "new",
-    studioName: "Iron Paradise Gym",
-    studioId: "studio_002",
-    submittedBy: "Laura Schmidt",
-    role: "Manager",
-    createdAt: "2025-02-02T09:15:00Z",
-  },
-  {
-    id: 3,
-    type: "praise",
-    subject: "Love the new dashboard design!",
-    message: "Just wanted to say the new dashboard redesign looks amazing! Our staff finds it much easier to navigate now. The dark theme is also very easy on the eyes during late shifts. Great work!",
-    rating: 5,
-    status: "resolved",
-    studioName: "PowerHouse Fitness",
-    studioId: "studio_003",
-    submittedBy: "Thomas Weber",
-    role: "Studio Owner",
-    createdAt: "2025-01-28T16:45:00Z",
-  },
-  {
-    id: 4,
-    type: "bug",
-    subject: "Contract PDF generation fails",
-    message: "When generating a contract PDF with special characters (ä, ö, ü) in the member name, the PDF generation fails with an error. We need this fixed urgently as many of our members have umlauts in their names.",
-    rating: 1,
-    status: "new",
-    studioName: "FitZone Premium",
-    studioId: "studio_001",
-    submittedBy: "Max Müller",
-    role: "Studio Owner",
-    createdAt: "2025-02-03T08:00:00Z",
-  },
-  {
-    id: 5,
-    type: "suggestion",
-    subject: "Automated birthday emails for members",
-    message: "Would be nice if the system could automatically send birthday greetings to members. Maybe with a customizable email template per studio.",
-    rating: 3,
-    status: "in_review",
-    studioName: "Flex & Fit Studio",
-    studioId: "studio_004",
-    submittedBy: "Anna Becker",
-    role: "Manager",
-    createdAt: "2025-01-30T11:20:00Z",
-  },
-  {
-    id: 6,
-    type: "other",
-    subject: "Question about API access",
-    message: "Is there an API available for integrating OrgaGym with our existing booking system? We use a custom-built website and would like to sync member bookings.",
-    rating: 0,
-    status: "resolved",
-    studioName: "Urban Athletics",
-    studioId: "studio_005",
-    submittedBy: "Kai Fischer",
-    role: "Studio Owner",
-    createdAt: "2025-01-25T13:00:00Z",
-  },
-  {
-    id: 7,
-    type: "praise",
-    subject: "Check-in feature is fantastic",
-    message: "The QR code check-in feature has been a game changer for us. Members love it and it saves our front desk staff so much time. The analytics on check-in times are also really useful for planning.",
-    rating: 5,
-    status: "resolved",
-    studioName: "Iron Paradise Gym",
-    studioId: "studio_002",
-    submittedBy: "Laura Schmidt",
-    role: "Manager",
-    createdAt: "2025-01-20T10:30:00Z",
-  },
-  {
-    id: 8,
-    type: "bug",
-    subject: "Lead card drag and drop glitch on mobile",
-    message: "On iPad, dragging lead cards between columns sometimes drops them in the wrong column. It seems to happen more often when scrolling horizontally at the same time.",
-    rating: 3,
-    status: "new",
-    studioName: "Flex & Fit Studio",
-    studioId: "studio_004",
-    submittedBy: "Anna Becker",
-    role: "Manager",
-    createdAt: "2025-02-02T17:45:00Z",
-  },
-]
+import {
+  FEEDBACK_TYPES,
+  FEEDBACK_STATUSES,
+  DUMMY_FEEDBACK,
+  formatFeedbackDate,
+  formatFeedbackTime,
+  formatFeedbackDateTime,
+} from "../../utils/admin-panel-states/feedback-states"
 
 // ============================================
 // Detail Modal Component
@@ -156,17 +38,6 @@ const FeedbackDetailModal = ({ feedback, onClose, onStatusChange }) => {
   const typeConfig = FEEDBACK_TYPES[feedback.type]
   const TypeIcon = typeConfig.icon
   const statusConfig = FEEDBACK_STATUSES[feedback.status]
-
-  const formatDate = (dateStr) => {
-    const date = new Date(dateStr)
-    return date.toLocaleDateString("de-DE", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    })
-  }
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[1001] p-4">
@@ -182,7 +53,7 @@ const FeedbackDetailModal = ({ feedback, onClose, onStatusChange }) => {
               <div className="flex items-center gap-2 mt-1 flex-wrap">
                 <span className={`text-xs font-medium ${typeConfig.color}`}>{typeConfig.label}</span>
                 <span className="text-gray-600">•</span>
-                <span className="text-xs text-gray-400">{formatDate(feedback.createdAt)}</span>
+                <span className="text-xs text-gray-400">{formatFeedbackDateTime(feedback.createdAt)}</span>
               </div>
             </div>
           </div>
@@ -270,25 +141,30 @@ const FeedbackDetailModal = ({ feedback, onClose, onStatusChange }) => {
 const Feedback = () => {
   const [feedbackList, setFeedbackList] = useState(DUMMY_FEEDBACK)
   const [searchQuery, setSearchQuery] = useState("")
-  const [filterType, setFilterType] = useState("all")
-  const [filterStatus, setFilterStatus] = useState("all")
-  const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const [filterTypes, setFilterTypes] = useState([])
+  const [filterStatuses, setFilterStatuses] = useState([])
+  const [filtersExpanded, setFiltersExpanded] = useState(false)
   const [selectedFeedback, setSelectedFeedback] = useState(null)
   const [sortBy, setSortBy] = useState("newest")
-  const filterRef = useRef(null)
+  const [showSortDropdown, setShowSortDropdown] = useState(false)
+  const sortDropdownRef = useRef(null)
 
-  // Close filter dropdown on outside click
+  // Expand filters on desktop, keep collapsed on mobile
+  useEffect(() => {
+    const isDesktop = window.innerWidth >= 768
+    setFiltersExpanded(isDesktop)
+  }, [])
+
+  // Close sort dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (filterRef.current && !filterRef.current.contains(event.target)) {
-        setIsFilterOpen(false)
+      if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target)) {
+        setShowSortDropdown(false)
       }
     }
-    if (isFilterOpen) {
-      document.addEventListener("mousedown", handleClickOutside)
-      return () => document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [isFilterOpen])
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
 
   // Filter & sort
   const filteredFeedback = feedbackList
@@ -298,8 +174,8 @@ const Feedback = () => {
         fb.studioName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         fb.submittedBy.toLowerCase().includes(searchQuery.toLowerCase()) ||
         fb.message.toLowerCase().includes(searchQuery.toLowerCase())
-      const matchesType = filterType === "all" || fb.type === filterType
-      const matchesStatus = filterStatus === "all" || fb.status === filterStatus
+      const matchesType = filterTypes.length === 0 || filterTypes.includes(fb.type)
+      const matchesStatus = filterStatuses.length === 0 || filterStatuses.includes(fb.status)
       return matchesSearch && matchesType && matchesStatus
     })
     .sort((a, b) => {
@@ -316,23 +192,6 @@ const Feedback = () => {
     setSelectedFeedback((prev) => (prev?.id === feedbackId ? { ...prev, status: newStatus } : prev))
   }
 
-  const formatDate = (dateStr) => {
-    const date = new Date(dateStr)
-    return date.toLocaleDateString("de-DE", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    })
-  }
-
-  const formatTime = (dateStr) => {
-    const date = new Date(dateStr)
-    return date.toLocaleTimeString("de-DE", {
-      hour: "2-digit",
-      minute: "2-digit",
-    })
-  }
-
   // Stats
   const stats = {
     total: feedbackList.length,
@@ -341,10 +200,30 @@ const Feedback = () => {
     resolved: feedbackList.filter((fb) => fb.status === "resolved").length,
   }
 
-  const activeFilterCount = [filterType !== "all", filterStatus !== "all"].filter(Boolean).length
+  const activeFilterCount = filterTypes.length + filterStatuses.length
+
+  // Toggle helpers for multi-select
+  const toggleStatus = (key) => {
+    setFilterStatuses((prev) =>
+      prev.includes(key) ? prev.filter((s) => s !== key) : [...prev, key]
+    )
+  }
+
+  const toggleType = (key) => {
+    setFilterTypes((prev) =>
+      prev.includes(key) ? prev.filter((t) => t !== key) : [...prev, key]
+    )
+  }
+
+  const sortOptions = [
+    { value: "newest", label: "Newest first" },
+    { value: "oldest", label: "Oldest first" },
+    { value: "rating", label: "Highest rating" },
+  ]
+  const currentSortLabel = sortOptions.find(opt => opt.value === sortBy)?.label || "Newest first"
 
   return (
-    <div className="p-4 md:p-6 max-w-7xl mx-auto">
+    <div className="min-h-screen rounded-3xl p-4 md:p-6 bg-[#1C1C1C] transition-all duration-300 ease-in-out flex-1">
       {/* Page Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-white">Feedback</h1>
@@ -359,7 +238,7 @@ const Feedback = () => {
         </div>
         <div className="bg-[#1C1C1C] rounded-xl p-4">
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+            <div className="w-2 h-2 rounded-full bg-orange-500"></div>
             <p className="text-gray-400 text-xs uppercase tracking-wider">New</p>
           </div>
           <p className="text-2xl font-bold text-white mt-1">{stats.new}</p>
@@ -380,120 +259,148 @@ const Feedback = () => {
         </div>
       </div>
 
-      {/* Search & Filter Bar */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-6">
-        {/* Search */}
-        <div className="relative flex-1">
+      {/* Search Bar */}
+      <div className="mb-4 sm:mb-6">
+        <div className="relative">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by subject, studio, or person..."
-            className="w-full bg-[#1C1C1C] border border-gray-800 rounded-xl pl-10 pr-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
+            className="w-full bg-[#141414] border border-[#333333] rounded-xl pl-10 pr-4 py-2.5 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-orange-500 transition-colors"
           />
         </div>
+      </div>
 
-        {/* Filter Button */}
-        <div className="relative" ref={filterRef}>
+      {/* Filters Section - Collapsible */}
+      <div className="mb-4 sm:mb-6">
+        {/* Filters Header Row - Always visible */}
+        <div className="flex items-center justify-between mb-2">
+          {/* Filters Toggle - Clickable to expand/collapse */}
           <button
-            onClick={() => setIsFilterOpen(!isFilterOpen)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium border transition-colors ${
-              activeFilterCount > 0
-                ? "bg-orange-500/10 border-orange-500/30 text-orange-400"
-                : "bg-[#1C1C1C] border-gray-800 text-gray-300 hover:border-gray-600"
-            }`}
+            onClick={() => setFiltersExpanded(!filtersExpanded)}
+            className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
           >
-            <Filter size={16} />
-            Filter
-            {activeFilterCount > 0 && (
-              <span className="bg-orange-500 text-white text-xs px-1.5 py-0.5 rounded-full">{activeFilterCount}</span>
+            <Filter size={14} />
+            <span className="text-xs sm:text-sm font-medium">Filters</span>
+            <ChevronDown 
+              size={14} 
+              className={`transition-transform duration-200 ${filtersExpanded ? 'rotate-180' : ''}`} 
+            />
+            {/* Show active filter count when collapsed */}
+            {!filtersExpanded && activeFilterCount > 0 && (
+              <span className="bg-orange-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">
+                {activeFilterCount}
+              </span>
             )}
           </button>
 
-          {isFilterOpen && (
-            <div className="absolute right-0 top-full mt-2 bg-[#1C1C1C] border border-gray-800 rounded-xl shadow-lg z-50 w-64 p-4 space-y-4">
-              {/* Type Filter */}
-              <div>
-                <label className="text-xs text-gray-500 uppercase tracking-wider block mb-2">Type</label>
-                <div className="flex flex-wrap gap-1.5">
-                  <button
-                    onClick={() => setFilterType("all")}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
-                      filterType === "all" ? "bg-orange-500 text-white" : "bg-[#141414] text-gray-400 hover:text-white"
-                    }`}
-                  >
-                    All
-                  </button>
-                  {Object.entries(FEEDBACK_TYPES).map(([key, config]) => (
-                    <button
-                      key={key}
-                      onClick={() => setFilterType(key)}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
-                        filterType === key ? "bg-orange-500 text-white" : "bg-[#141414] text-gray-400 hover:text-white"
-                      }`}
-                    >
-                      {config.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Status Filter */}
-              <div>
-                <label className="text-xs text-gray-500 uppercase tracking-wider block mb-2">Status</label>
-                <div className="flex flex-wrap gap-1.5">
-                  <button
-                    onClick={() => setFilterStatus("all")}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
-                      filterStatus === "all" ? "bg-orange-500 text-white" : "bg-[#141414] text-gray-400 hover:text-white"
-                    }`}
-                  >
-                    All
-                  </button>
-                  {Object.entries(FEEDBACK_STATUSES).map(([key, config]) => (
-                    <button
-                      key={key}
-                      onClick={() => setFilterStatus(key)}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors ${
-                        filterStatus === key ? "bg-orange-500 text-white" : "bg-[#141414] text-gray-400 hover:text-white"
-                      }`}
-                    >
-                      {config.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Sort */}
-              <div>
-                <label className="text-xs text-gray-500 uppercase tracking-wider block mb-2">Sort by</label>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="w-full bg-[#141414] border border-gray-700 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-orange-500"
-                >
-                  <option value="newest">Newest first</option>
-                  <option value="oldest">Oldest first</option>
-                  <option value="rating">Highest rating</option>
-                </select>
-              </div>
-
-              {/* Reset */}
-              {activeFilterCount > 0 && (
-                <button
-                  onClick={() => {
-                    setFilterType("all")
-                    setFilterStatus("all")
-                    setSortBy("newest")
-                  }}
-                  className="text-xs text-orange-400 hover:text-orange-300 transition-colors"
-                >
-                  Reset all filters
-                </button>
+          {/* Sort Controls - Always visible */}
+          <div className="relative" ref={sortDropdownRef}>
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                setShowSortDropdown(!showSortDropdown)
+              }}
+              className="px-3 sm:px-4 py-1.5 bg-[#2F2F2F] text-gray-300 rounded-xl text-xs sm:text-sm hover:bg-[#3F3F3F] transition-colors flex items-center gap-2"
+            >
+              {sortBy === "newest" || sortBy === "oldest" ? (
+                sortBy === "newest" ? <ArrowDown size={14} className="text-white" /> : <ArrowUp size={14} className="text-white" />
+              ) : (
+                <ArrowDown size={14} className="text-white" />
               )}
-            </div>
-          )}
+              <span>{currentSortLabel}</span>
+            </button>
+
+            {/* Sort Dropdown */}
+            {showSortDropdown && (
+              <div className="absolute top-full right-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[180px]">
+                <div className="py-1">
+                  <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">
+                    Sort by
+                  </div>
+                  {sortOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setSortBy(option.value)
+                        setShowSortDropdown(false)
+                      }}
+                      className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${
+                        sortBy === option.value
+                          ? "text-white bg-gray-800/50"
+                          : "text-gray-300"
+                      }`}
+                    >
+                      <span>{option.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Filter Pills - Collapsible */}
+        <div className={`overflow-hidden transition-all duration-300 ${filtersExpanded ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
+          <div className="flex flex-wrap gap-1.5 sm:gap-3">
+            {/* Status: All */}
+            <button
+              onClick={() => setFilterStatuses([])}
+              className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${
+                filterStatuses.length === 0
+                  ? "bg-orange-500 text-white"
+                  : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+              }`}
+            >
+              All ({feedbackList.length})
+            </button>
+            {/* Status Filter Pills */}
+            {Object.entries(FEEDBACK_STATUSES).map(([key, config]) => (
+              <button
+                key={key}
+                onClick={() => toggleStatus(key)}
+                className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${
+                  filterStatuses.includes(key)
+                    ? "bg-orange-500 text-white"
+                    : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                }`}
+              >
+                {config.label} ({feedbackList.filter((fb) => fb.status === key).length})
+              </button>
+            ))}
+
+            {/* Divider */}
+            <div className="h-6 w-px bg-gray-700 mx-1 hidden sm:block self-center"></div>
+
+            {/* Type: All */}
+            <button
+              onClick={() => setFilterTypes([])}
+              className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${
+                filterTypes.length === 0
+                  ? "bg-orange-500 text-white"
+                  : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+              }`}
+            >
+              All Types
+            </button>
+            {/* Type Filter Pills */}
+            {Object.entries(FEEDBACK_TYPES).map(([key, config]) => (
+              <button
+                key={key}
+                onClick={() => toggleType(key)}
+                className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors flex items-center gap-1.5 ${
+                  filterTypes.includes(key)
+                    ? "bg-orange-500 text-white"
+                    : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                }`}
+              >
+                {config.label} ({feedbackList.filter((fb) => fb.type === key).length})
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -552,11 +459,11 @@ const Feedback = () => {
                       </div>
                       <div className="flex items-center gap-1.5 text-xs text-gray-500">
                         <Calendar size={12} />
-                        <span>{formatDate(fb.createdAt)}</span>
+                        <span>{formatFeedbackDate(fb.createdAt)}</span>
                       </div>
                       <div className="flex items-center gap-1.5 text-xs text-gray-500">
                         <Clock size={12} />
-                        <span>{formatTime(fb.createdAt)}</span>
+                        <span>{formatFeedbackTime(fb.createdAt)}</span>
                       </div>
                       {fb.rating > 0 && (
                         <div className="flex items-center gap-0.5">

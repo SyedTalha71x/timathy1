@@ -1,6 +1,7 @@
 /* eslint-disable no-constant-binary-expression */
 /* eslint-disable no-unused-vars */
 import { useState, useEffect, useRef } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Search,
   Plus,
@@ -23,7 +24,6 @@ import { IoIosJournal } from "react-icons/io";
 import toast, { Toaster } from "react-hot-toast";
 import DemoWizardModal from "../../components/admin-dashboard-components/demo-access-components/DemoWizardModal";
 import SendEmailModal from "../../components/admin-dashboard-components/demo-access-components/SendEmailModal";
-import CustomConfirmationModal from "../../components/admin-dashboard-components/demo-access-components/CustomConfirmationModal";
 import JournalModal from "../../components/admin-dashboard-components/demo-access-components/JournalModal";
 
 import {
@@ -89,7 +89,7 @@ const TemplateBadge = ({ template }) => {
 const DaysRemainingBadge = ({ expiryDate, status }) => {
   if (status === "inactive") return <span className="text-xs text-red-400">Deactivated</span>;
   const days = getDaysRemaining(expiryDate);
-  if (days === null) return <span className="text-xs text-gray-500">—</span>;
+  if (days === null) return <span className="text-xs text-gray-500">—</span>;
   if (days <= 0) return <span className="text-xs text-red-400">Expired</span>;
   if (days <= 3) return <span className="text-xs text-orange-400 font-medium">{days}d remaining</span>;
   return <span className="text-xs text-gray-400">{days}d remaining</span>;
@@ -101,7 +101,7 @@ const DaysRemainingBadge = ({ expiryDate, status }) => {
 const DemoCard = ({ demo, onViewJournal, onEdit, onResendEmail, onToggleStatus, onDelete }) => {
   const cfg = demo.config || {};
   const { enabled, total } = getPermissionCount(demo.template?.permissions);
-  const ownerFullName = [cfg.studioOwnerFirstName, cfg.studioOwnerLastName].filter(Boolean).join(" ") || "—";
+  const ownerFullName = [cfg.studioOwnerFirstName, cfg.studioOwnerLastName].filter(Boolean).join(" ") || "—";
 
   return (
     <div className="bg-[#2a2a2a] rounded-2xl overflow-hidden border border-[#333333] hover:border-[#444444] transition-colors">
@@ -193,11 +193,17 @@ const DemoCard = ({ demo, onViewJournal, onEdit, onResendEmail, onToggleStatus, 
 // Main Page
 // ============================================
 export default function DemoCreationPage() {
-  // All demos — normalized to always have config
+  // All demos — normalized to always have config
   const [demos, setDemos] = useState(() => demoAccessAccounts.map(ensureConfig));
 
   // Search / filter / sort
   const [searchQuery, setSearchQuery] = useState("");
+
+  const locationState = useLocation();
+  const navigateDemo = useNavigate();
+
+  // Pre-selected lead from navigation (e.g. from Leads page)
+  const [initialLeadForWizard, setInitialLeadForWizard] = useState(null);
   const [filterStatuses, setFilterStatuses] = useState([]);
   const [filterTemplates, setFilterTemplates] = useState([]);
   const [sortBy, setSortBy] = useState("createdAt");
@@ -212,7 +218,7 @@ export default function DemoCreationPage() {
 
   // Modal states
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
-  const [isConfirmationModalOpen, setIsConfirmationModalOpen] = useState(false);
+  const [emailModalMode, setEmailModalMode] = useState("create"); // "create" | "resend"
   const [isJournalModalOpen, setIsJournalModalOpen] = useState(false);
   const [demoToResend, setDemoToResend] = useState(null);
   const [selectedDemoForJournal, setSelectedDemoForJournal] = useState(null);
@@ -226,6 +232,18 @@ export default function DemoCreationPage() {
   // Delete modal
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [demoToDelete, setDemoToDelete] = useState(null);
+
+  // ---- Handle pre-selected lead from navigation (e.g. from Leads page) ----
+  useEffect(() => {
+    if (locationState.state?.preSelectedLead) {
+      setInitialLeadForWizard(locationState.state.preSelectedLead);
+      setWizardMode("create");
+      setEditingDemo(null);
+      setIsWizardOpen(true);
+      // Clear the navigation state so it doesn't re-trigger
+      navigateDemo(locationState.pathname, { replace: true, state: {} });
+    }
+  }, [locationState.state]);
 
   // ---- Close sort dropdown on outside click ----
   useEffect(() => {
@@ -353,6 +371,7 @@ export default function DemoCreationPage() {
     setLastCreatedDemo(newDemo);
     setIsWizardOpen(false);
     toast.success("Demo created successfully!");
+    setEmailModalMode("create");
     setTimeout(() => setIsEmailModalOpen(true), 100);
   };
 
@@ -456,8 +475,11 @@ export default function DemoCreationPage() {
   // =============================================
   // EMAIL
   // =============================================
-  const handleSendEmail = (demoId, shouldSend) => {
+  const handleSendEmail = (demoId, shouldSend, emailInfo) => {
     if (shouldSend) {
+      const langLabel = emailInfo?.language
+        ? { de: "Deutsch", en: "English", fr: "Français", es: "Español", it: "Italiano" }[emailInfo.language] || emailInfo.language
+        : "";
       setDemos((prev) =>
         prev.map((d) =>
           d.id !== demoId ? d : {
@@ -466,30 +488,26 @@ export default function DemoCreationPage() {
               action: "Email Sent",
               timestamp: new Date().toISOString(),
               user: "System",
-              details: `Access email sent to ${d.config?.email || d.email}`,
+              details: `Access email sent to ${d.config?.email || d.email}${langLabel ? ` (${langLabel})` : ""}`,
             }],
           }
         )
       );
       toast.success("Demo access email sent!");
     } else {
-      toast.success("Demo created without email");
+      if (emailModalMode === "create") {
+        toast.success("Demo created without email");
+      }
     }
     setIsEmailModalOpen(false);
-    setIsConfirmationModalOpen(false);
     setLastCreatedDemo(null);
+    setDemoToResend(null);
   };
 
   const handleResendEmail = (demo) => {
-    setDemoToResend(demo.id);
-    setIsConfirmationModalOpen(true);
-  };
-
-  const handleConfirmResend = () => {
-    if (demoToResend) {
-      handleSendEmail(demoToResend, true);
-      setDemoToResend(null);
-    }
+    setDemoToResend(demo);
+    setEmailModalMode("resend");
+    setIsEmailModalOpen(true);
   };
 
   // =============================================
@@ -520,7 +538,7 @@ export default function DemoCreationPage() {
   // RENDER
   // =============================================
   const filteredDemos = getFilteredDemos();
-  const emailModalDemo = lastCreatedDemo || demos[0] || null;
+  const emailModalDemo = demoToResend || lastCreatedDemo || null;
 
   return (
     <div className="min-h-screen rounded-3xl bg-[#1C1C1C] text-white p-4 md:p-6 transition-all duration-500 ease-in-out flex-1">
@@ -663,35 +681,26 @@ export default function DemoCreationPage() {
       {/* 1. Unified Wizard (Create + Edit) */}
       <DemoWizardModal
         isOpen={isWizardOpen}
-        onClose={() => { setIsWizardOpen(false); setEditingDemo(null); }}
+        onClose={() => { setIsWizardOpen(false); setEditingDemo(null); setInitialLeadForWizard(null); }}
         mode={wizardMode}
         leads={demoLeads}
         templates={demoTemplates}
         onCreate={handleWizardCreate}
         demo={editingDemo}
         onUpdate={handleUpdateDemo}
+        initialLead={initialLeadForWizard}
       />
 
-      {/* 4. Send Email */}
+      {/* 4. Send Email (Create + Resend) */}
       {emailModalDemo && (
         <SendEmailModal
           isOpen={isEmailModalOpen}
-          onClose={() => { setIsEmailModalOpen(false); setLastCreatedDemo(null); }}
+          onClose={() => { setIsEmailModalOpen(false); setLastCreatedDemo(null); setDemoToResend(null); }}
           demo={emailModalDemo}
-          onSend={(shouldSend) => handleSendEmail(emailModalDemo.id, shouldSend)}
+          mode={emailModalMode}
+          onSend={(shouldSend, emailInfo) => handleSendEmail(emailModalDemo.id, shouldSend, emailInfo)}
         />
       )}
-
-      {/* 5. Confirm Resend */}
-      <CustomConfirmationModal
-        isOpen={isConfirmationModalOpen}
-        onClose={() => { setIsConfirmationModalOpen(false); setDemoToResend(null); }}
-        onConfirm={handleConfirmResend}
-        title="Resend Email"
-        message="Are you sure you want to send the email again?"
-        confirmText="Yes, Send Email"
-        confirmColor="orange"
-      />
 
       {/* 6. Journal */}
       <JournalModal
@@ -700,7 +709,7 @@ export default function DemoCreationPage() {
         demo={selectedDemoForJournal}
       />
 
-      {/* 7. Reactivate — ask for days */}
+      {/* 7. Reactivate — ask for days */}
       {isReactivateModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-[#1A1A1A] rounded-xl max-w-sm w-full border border-gray-800">
