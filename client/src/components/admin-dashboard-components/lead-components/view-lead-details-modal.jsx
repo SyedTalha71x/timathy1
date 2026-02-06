@@ -212,18 +212,18 @@ const ViewLeadDetailsModal = ({
 
               {/* Operator Information */}
               <div className="space-y-4 pt-4 border-t border-gray-700">
-                <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Studio Operator</div>
+                <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Studio Owner</div>
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-400">Studio Operator First Name</p>
+                    <p className="text-sm text-gray-400">Studio Owner First Name</p>
                     <div className="flex items-center gap-3">
                       <p>{leadData.firstName || "-"}</p>
                       <CopyButton value={leadData.firstName} copied={copiedFirstName} onCopy={() => handleCopy(leadData.firstName, setCopiedFirstName)} />
                     </div>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-400">Studio Operator Last Name</p>
+                    <p className="text-sm text-gray-400">Studio Owner Last Name</p>
                     <div className="flex items-center gap-3">
                       <p>{leadData.surname || "-"}</p>
                       <CopyButton value={leadData.surname} copied={copiedLastName} onCopy={() => handleCopy(leadData.surname, setCopiedLastName)} />

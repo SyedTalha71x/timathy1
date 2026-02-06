@@ -46,6 +46,7 @@ import dayjs from "dayjs"
 
 import defaultLogoUrl from "../../../public/gray-avatar-fotor-20250912192528.png"
 import { WysiwygEditor } from "../../components/shared/WysiwygEditor"
+import LanguageTabs, { emptyTranslations } from "../../components/admin-dashboard-components/shared/LanguageTabs"
 
 // Import configuration defaults from admin-panel-states (Single Source of Truth)
 import {
@@ -60,6 +61,7 @@ import {
   CONFIGURATION_NAV_ITEMS,
   DEMO_MENU_ITEMS,
   DEFAULT_DEMO_TEMPLATES,
+  DEFAULT_CHANGELOG,
 } from "../../utils/admin-panel-states/configuration-states"
 
 // ============================================
@@ -352,6 +354,7 @@ const ConfigurationPage = () => {
   const [contactData, setContactData] = useState({ ...DEFAULT_CONTACT_DATA })
 
   const [legalInfo, setLegalInfo] = useState({ ...DEFAULT_LEGAL_INFO })
+  const [legalLang, setLegalLang] = useState("de")
 
   // ============================================
   // Contracts State (initialized from configuration-states)
@@ -369,22 +372,30 @@ const ConfigurationPage = () => {
   // Communication State (initialized from configuration-states)
   // ============================================
   const [demoEmail, setDemoEmail] = useState({ ...DEFAULT_DEMO_EMAIL })
+  const [demoEmailLang, setDemoEmailLang] = useState("de")
 
   const [registrationEmail, setRegistrationEmail] = useState({ ...DEFAULT_REGISTRATION_EMAIL })
+  const [registrationEmailLang, setRegistrationEmailLang] = useState("de")
 
-  const [emailSignature, setEmailSignature] = useState(DEFAULT_COMMUNICATION_SETTINGS.emailSignature || "")
+  const [emailSignature, setEmailSignature] = useState(
+    typeof DEFAULT_COMMUNICATION_SETTINGS.emailSignature === "object"
+      ? { ...DEFAULT_COMMUNICATION_SETTINGS.emailSignature }
+      : emptyTranslations()
+  )
+  const [emailSignatureLang, setEmailSignatureLang] = useState("de")
 
   const [smtpConfig, setSmtpConfig] = useState({ ...DEFAULT_SMTP_CONFIG })
 
   // ============================================
   // Changelog State
   // ============================================
-  const [changelog, setChangelog] = useState([])
+  const [changelog, setChangelog] = useState([...DEFAULT_CHANGELOG])
+  const [changelogLang, setChangelogLang] = useState("de")
   const [newChangelog, setNewChangelog] = useState({
     version: "",
     date: "",
     color: "#3b82f6",
-    content: "",
+    content: { en: "", de: "", fr: "", it: "", es: "" },
   })
 
   // ============================================
@@ -392,6 +403,7 @@ const ConfigurationPage = () => {
   // ============================================
   const [demoTemplates, setDemoTemplates] = useState([...DEFAULT_DEMO_TEMPLATES])
   const [editingTemplate, setEditingTemplate] = useState(null)
+  const [expandedTemplatePerms, setExpandedTemplatePerms] = useState([])
 
   // ============================================
   // Helper Functions
@@ -615,12 +627,13 @@ const ConfigurationPage = () => {
   }
 
   const addChangelogEntry = () => {
-    if (!newChangelog.version || !newChangelog.date || !newChangelog.content) {
-      notification.warning({ message: "Please fill in version, date, and content" })
+    const hasContent = Object.values(newChangelog.content).some(v => v?.trim())
+    if (!newChangelog.version || !newChangelog.date || !hasContent) {
+      notification.warning({ message: "Please fill in version, date, and content in at least one language" })
       return
     }
-    setChangelog([{ ...newChangelog, id: Date.now() }, ...changelog])
-    setNewChangelog({ version: "", date: "", color: newChangelog.color, content: "" })
+    setChangelog([{ ...newChangelog, content: { ...newChangelog.content }, id: Date.now() }, ...changelog])
+    setNewChangelog({ version: "", date: "", color: newChangelog.color, content: { en: "", de: "", fr: "", it: "", es: "" } })
     notification.success({ message: "Changelog entry added" })
   }
 
@@ -949,15 +962,24 @@ const ConfigurationPage = () => {
       case "legal-info":
         return (
           <div className="space-y-6">
-            <SectionHeader title="Legal Information" description="Imprint, privacy policy, and terms of service" />
+            <SectionHeader title="Legal Information" description="Imprint, privacy policy, and terms of service in multiple languages" />
             
+            <div className="mb-4">
+              <LanguageTabs
+                selectedLang={legalLang}
+                onSelect={setLegalLang}
+                translations={legalInfo.imprint}
+              />
+            </div>
+
             <SettingsCard>
               <div className="space-y-6">
                 <div>
                   <label className="text-sm font-medium text-gray-300 mb-2 block">Imprint</label>
                   <WysiwygEditor
-                    value={legalInfo.imprint}
-                    onChange={(v) => setLegalInfo({ ...legalInfo, imprint: v })}
+                    key={`imprint-${legalLang}`}
+                    value={legalInfo.imprint?.[legalLang] || ""}
+                    onChange={(v) => setLegalInfo({ ...legalInfo, imprint: { ...legalInfo.imprint, [legalLang]: v } })}
                     placeholder="Enter your company's imprint information..."
                     showImages={true}
                     minHeight={150}
@@ -971,8 +993,9 @@ const ConfigurationPage = () => {
                 <div>
                   <label className="text-sm font-medium text-gray-300 mb-2 block">Privacy Policy</label>
                   <WysiwygEditor
-                    value={legalInfo.privacyPolicy}
-                    onChange={(v) => setLegalInfo({ ...legalInfo, privacyPolicy: v })}
+                    key={`privacy-${legalLang}`}
+                    value={legalInfo.privacyPolicy?.[legalLang] || ""}
+                    onChange={(v) => setLegalInfo({ ...legalInfo, privacyPolicy: { ...legalInfo.privacyPolicy, [legalLang]: v } })}
                     placeholder="Enter your privacy policy..."
                     showImages={true}
                     minHeight={200}
@@ -986,8 +1009,9 @@ const ConfigurationPage = () => {
                 <div>
                   <label className="text-sm font-medium text-gray-300 mb-2 block">Terms and Conditions</label>
                   <WysiwygEditor
-                    value={legalInfo.termsAndConditions}
-                    onChange={(v) => setLegalInfo({ ...legalInfo, termsAndConditions: v })}
+                    key={`terms-${legalLang}`}
+                    value={legalInfo.termsAndConditions?.[legalLang] || ""}
+                    onChange={(v) => setLegalInfo({ ...legalInfo, termsAndConditions: { ...legalInfo.termsAndConditions, [legalLang]: v } })}
                     placeholder="Enter your terms and conditions..."
                     showImages={true}
                     minHeight={200}
@@ -1244,25 +1268,33 @@ const ConfigurationPage = () => {
       case "demo-email":
         return (
           <div className="space-y-6">
-            <SectionHeader title="Demo Access Email" description="Email sent when granting demo access" />
+            <SectionHeader title="Demo Access Email" description="Email sent when granting demo access (multi-language)" />
             
+            <div className="mb-4">
+              <LanguageTabs
+                selectedLang={demoEmailLang}
+                onSelect={setDemoEmailLang}
+                translations={demoEmail.subject}
+              />
+            </div>
+
             <SettingsCard>
               <div className="space-y-4">
                 <InputField
                   label="Email Subject"
-                  value={demoEmail.subject}
-                  onChange={(v) => setDemoEmail({ ...demoEmail, subject: v })}
-                  placeholder="Your Demo Access for {Studio_Name}"
+                  value={demoEmail.subject?.[demoEmailLang] || ""}
+                  onChange={(v) => setDemoEmail({ ...demoEmail, subject: { ...demoEmail.subject, [demoEmailLang]: v } })}
+                  placeholder="Your Demo Access"
                 />
 
                 <div>
                   <label className="text-sm font-medium text-gray-300 mb-2 block">Email Content</label>
                   <div className="flex flex-wrap items-center gap-2 mb-2">
                     <span className="text-xs text-gray-500">Variables:</span>
-                    {["{Link}", "{Studio_Name}", "{Recipient_Name}", "{Expiry_Date}"].map(v => (
+                    {["{Access_Link}", "{Studio_Name}", "{Studio_Owner_First_Name}", "{Studio_Owner_Last_Name}", "{Email_For_Access}", "{Expiry_Date}"].map(v => (
                       <button
                         key={v}
-                        onClick={() => setDemoEmail({ ...demoEmail, content: demoEmail.content + v })}
+                        onClick={() => setDemoEmail({ ...demoEmail, content: { ...demoEmail.content, [demoEmailLang]: (demoEmail.content?.[demoEmailLang] || "") + v } })}
                         className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
                       >
                         {v.replace(/{|}/g, "").replace(/_/g, " ")}
@@ -1272,8 +1304,9 @@ const ConfigurationPage = () => {
                     <span className="text-xs text-gray-500 mr-1">Insert:</span>
                     <button
                       onClick={() => {
-                        if (emailSignature) {
-                          setDemoEmail({ ...demoEmail, content: (demoEmail.content || "") + emailSignature })
+                        const sig = typeof emailSignature === "object" ? (emailSignature[demoEmailLang] || emailSignature.en || "") : emailSignature
+                        if (sig) {
+                          setDemoEmail({ ...demoEmail, content: { ...demoEmail.content, [demoEmailLang]: (demoEmail.content?.[demoEmailLang] || "") + sig } })
                         } else {
                           notification.warning({ message: "No email signature configured", description: "Please set up your email signature first." })
                         }
@@ -1285,8 +1318,9 @@ const ConfigurationPage = () => {
                     </button>
                   </div>
                   <WysiwygEditor
-                    value={demoEmail.content}
-                    onChange={(v) => setDemoEmail({ ...demoEmail, content: v })}
+                    key={`demo-email-${demoEmailLang}`}
+                    value={demoEmail.content?.[demoEmailLang] || ""}
+                    onChange={(v) => setDemoEmail({ ...demoEmail, content: { ...demoEmail.content, [demoEmailLang]: v } })}
                     placeholder="Compose your demo access email content..."
                     showImages={true}
                     minHeight={180}
@@ -1303,15 +1337,6 @@ const ConfigurationPage = () => {
                   helpText="Number of days until the demo access link expires"
                 />
 
-                <div className="flex flex-wrap gap-3">
-                  <button className="px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors">
-                    Save Template
-                  </button>
-                  <button className="px-4 py-2 bg-[#2F2F2F] text-white text-sm rounded-xl hover:bg-[#3F3F3F] transition-colors flex items-center gap-2">
-                    <Send className="w-4 h-4" />
-                    Send Test Email
-                  </button>
-                </div>
               </div>
             </SettingsCard>
           </div>
@@ -1320,25 +1345,33 @@ const ConfigurationPage = () => {
       case "registration-email":
         return (
           <div className="space-y-6">
-            <SectionHeader title="Registration Email" description="Email sent when a new member registers" />
+            <SectionHeader title="Registration Email" description="Email sent when a new member registers (multi-language)" />
             
+            <div className="mb-4">
+              <LanguageTabs
+                selectedLang={registrationEmailLang}
+                onSelect={setRegistrationEmailLang}
+                translations={registrationEmail.subject}
+              />
+            </div>
+
             <SettingsCard>
               <div className="space-y-4">
                 <InputField
                   label="Email Subject"
-                  value={registrationEmail.subject}
-                  onChange={(v) => setRegistrationEmail({ ...registrationEmail, subject: v })}
-                  placeholder="Welcome to {Studio_Name}!"
+                  value={registrationEmail.subject?.[registrationEmailLang] || ""}
+                  onChange={(v) => setRegistrationEmail({ ...registrationEmail, subject: { ...registrationEmail.subject, [registrationEmailLang]: v } })}
+                  placeholder="Welcome – Complete Your Registration"
                 />
 
                 <div>
                   <label className="text-sm font-medium text-gray-300 mb-2 block">Email Content</label>
                   <div className="flex flex-wrap items-center gap-2 mb-2">
                     <span className="text-xs text-gray-500">Variables:</span>
-                    {["{Studio_Name}", "{First_Name}", "{Last_Name}", "{Registration_Link}"].map(v => (
+                    {["{Studio_Name}", "{Studio_Owner_First_Name}", "{Studio_Owner_Last_Name}", "{Email_For_Registration}", "{Registration_Link}", "{Expiry_Date}"].map(v => (
                       <button
                         key={v}
-                        onClick={() => setRegistrationEmail({ ...registrationEmail, content: registrationEmail.content + v })}
+                        onClick={() => setRegistrationEmail({ ...registrationEmail, content: { ...registrationEmail.content, [registrationEmailLang]: (registrationEmail.content?.[registrationEmailLang] || "") + v } })}
                         className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
                       >
                         {v.replace(/{|}/g, "").replace(/_/g, " ")}
@@ -1348,8 +1381,9 @@ const ConfigurationPage = () => {
                     <span className="text-xs text-gray-500 mr-1">Insert:</span>
                     <button
                       onClick={() => {
-                        if (emailSignature) {
-                          setRegistrationEmail({ ...registrationEmail, content: (registrationEmail.content || "") + emailSignature })
+                        const sig = typeof emailSignature === "object" ? (emailSignature[registrationEmailLang] || emailSignature.en || "") : emailSignature
+                        if (sig) {
+                          setRegistrationEmail({ ...registrationEmail, content: { ...registrationEmail.content, [registrationEmailLang]: (registrationEmail.content?.[registrationEmailLang] || "") + sig } })
                         } else {
                           notification.warning({ message: "No email signature configured", description: "Please set up your email signature first." })
                         }
@@ -1361,9 +1395,10 @@ const ConfigurationPage = () => {
                     </button>
                   </div>
                   <WysiwygEditor
-                    value={registrationEmail.content}
-                    onChange={(v) => setRegistrationEmail({ ...registrationEmail, content: v })}
-                    placeholder="Dear {First_Name}, welcome to {Studio_Name}!..."
+                    key={`reg-email-${registrationEmailLang}`}
+                    value={registrationEmail.content?.[registrationEmailLang] || ""}
+                    onChange={(v) => setRegistrationEmail({ ...registrationEmail, content: { ...registrationEmail.content, [registrationEmailLang]: v } })}
+                    placeholder="Dear {Studio_Owner_First_Name}, welcome to {Studio_Name}!..."
                     showImages={true}
                     minHeight={180}
                   />
@@ -1379,15 +1414,6 @@ const ConfigurationPage = () => {
                   helpText="Number of hours until the registration link expires (1-168 hours / 7 days)"
                 />
 
-                <div className="flex flex-wrap gap-3">
-                  <button className="px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors">
-                    Save Template
-                  </button>
-                  <button className="px-4 py-2 bg-[#2F2F2F] text-white text-sm rounded-xl hover:bg-[#3F3F3F] transition-colors flex items-center gap-2">
-                    <Send className="w-4 h-4" />
-                    Send Test Email
-                  </button>
-                </div>
               </div>
             </SettingsCard>
           </div>
@@ -1396,28 +1422,25 @@ const ConfigurationPage = () => {
       case "email-signature":
         return (
           <div className="space-y-6">
-            <SectionHeader title="Email Signature" description="Default signature appended to all outgoing emails" />
+            <SectionHeader title="Email Signature" description="Default signature appended to all outgoing emails (multi-language)" />
             
+            <div className="mb-4">
+              <LanguageTabs
+                selectedLang={emailSignatureLang}
+                onSelect={setEmailSignatureLang}
+                translations={emailSignature}
+              />
+            </div>
+
             <SettingsCard>
               <div className="space-y-3">
                 <p className="text-sm text-gray-400">
                   This signature can be inserted into your email notification templates using the orange "Email Signature" button.
                 </p>
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-xs text-gray-500 mr-1">Variables:</span>
-                  {["{Studio_Name}", "{Studio_Operator}", "{Studio_Phone}", "{Studio_Email}", "{Studio_Website}", "{Studio_Address}"].map(v => (
-                    <button
-                      key={v}
-                      onClick={() => setEmailSignature((emailSignature || "") + v)}
-                      className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
-                    >
-                      {v.replace(/{|}/g, "").replace(/_/g, " ")}
-                    </button>
-                  ))}
-                </div>
                 <WysiwygEditor
-                  value={emailSignature}
-                  onChange={setEmailSignature}
+                  key={`signature-${emailSignatureLang}`}
+                  value={emailSignature[emailSignatureLang] || ""}
+                  onChange={(v) => setEmailSignature(prev => ({ ...prev, [emailSignatureLang]: v }))}
                   placeholder="Best regards,&#10;{Studio_Name} Team&#10;{Studio_Phone} | {Studio_Email}"
                   showImages={true}
                   minHeight={120}
@@ -1465,7 +1488,7 @@ const ConfigurationPage = () => {
                       type="password"
                       value={smtpConfig.smtpPass}
                       onChange={(e) => setSmtpConfig({ ...smtpConfig, smtpPass: e.target.value })}
-                      placeholder="Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢Ã¢â‚¬Â¢"
+                      placeholder="ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢"
                       className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
                     />
                   </div>
@@ -1565,9 +1588,17 @@ const ConfigurationPage = () => {
 
                 <div>
                   <label className="text-sm font-medium text-gray-300 mb-2 block">Details</label>
+                  <div className="mb-2">
+                    <LanguageTabs
+                      selectedLang={changelogLang}
+                      onSelect={setChangelogLang}
+                      translations={newChangelog.content}
+                    />
+                  </div>
                   <WysiwygEditor
-                    value={newChangelog.content}
-                    onChange={(v) => setNewChangelog({ ...newChangelog, content: v })}
+                    key={`changelog-new-${changelogLang}`}
+                    value={newChangelog.content?.[changelogLang] || ""}
+                    onChange={(v) => setNewChangelog({ ...newChangelog, content: { ...newChangelog.content, [changelogLang]: v } })}
                     placeholder="Describe the changes in this version..."
                     showImages={true}
                     minHeight={120}
@@ -1576,9 +1607,9 @@ const ConfigurationPage = () => {
 
                 <button
                   onClick={addChangelogEntry}
-                  disabled={!newChangelog.version || !newChangelog.date || !newChangelog.content}
+                  disabled={!newChangelog.version || !newChangelog.date || !Object.values(newChangelog.content).some(v => v?.trim())}
                   className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                    newChangelog.version && newChangelog.date && newChangelog.content
+                    newChangelog.version && newChangelog.date && Object.values(newChangelog.content).some(v => v?.trim())
                       ? "bg-orange-500 text-white hover:bg-orange-600"
                       : "bg-[#333333] text-gray-500 cursor-not-allowed"
                   }`}
@@ -1615,7 +1646,7 @@ const ConfigurationPage = () => {
                           </div>
                           <div
                             className="text-gray-300 text-sm leading-relaxed"
-                            dangerouslySetInnerHTML={{ __html: entry.content }}
+                            dangerouslySetInnerHTML={{ __html: typeof entry.content === "object" ? (entry.content[changelogLang] || entry.content.en || Object.values(entry.content).find(v => v?.trim()) || "") : entry.content }}
                           />
                         </div>
                         <button
@@ -1673,132 +1704,146 @@ const ConfigurationPage = () => {
                 </div>
               </SettingsCard>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {demoTemplates.map((template) => {
                   const isEditing = editingTemplate === template.id
+                  const isExpanded = expandedTemplatePerms.includes(template.id)
                   const enabledCount = Object.values(template.permissions).filter(Boolean).length
                   const totalCount = DEMO_MENU_ITEMS.length
 
                   return (
-                    <SettingsCard key={template.id}>
-                      {/* Template header */}
-                      <div className="flex items-start gap-3 mb-4">
+                    <SettingsCard key={template.id} className="!p-4">
+                      {/* Compact header row */}
+                      <div className="flex items-center gap-3">
                         <div
-                          className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                          className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
                           style={{ backgroundColor: `${template.color}20` }}
                         >
-                          <Shield className="w-5 h-5" style={{ color: template.color }} />
+                          <Shield className="w-4 h-4" style={{ color: template.color }} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          {isEditing ? (
-                            <div className="space-y-3">
-                              <InputField
-                                label="Template Name"
-                                value={template.name}
-                                onChange={(v) => handleUpdateDemoTemplate(template.id, "name", v)}
-                                placeholder="e.g. Full Access, Basic View..."
-                                required
-                              />
-                              <InputField
-                                label="Description"
-                                value={template.description}
-                                onChange={(v) => handleUpdateDemoTemplate(template.id, "description", v)}
-                                placeholder="Describe what this template is for..."
-                                rows={2}
-                              />
-                              <div className="space-y-1.5">
-                                <label className="text-sm font-medium text-gray-300">Color</label>
-                                <div className="flex items-center gap-3">
-                                  <input
-                                    type="color"
-                                    value={template.color}
-                                    onChange={(e) => handleUpdateDemoTemplate(template.id, "color", e.target.value)}
-                                    className="w-10 h-10 rounded-lg cursor-pointer bg-transparent border border-[#333333] p-1"
-                                  />
-                                  <span className="text-xs text-gray-500 font-mono uppercase">{template.color}</span>
-                                </div>
-                              </div>
-                            </div>
-                          ) : (
-                            <>
-                              <div className="flex items-center gap-2">
-                                <h3 className="text-white font-medium">{template.name || "Unnamed Template"}</h3>
-                                <span className="text-xs text-gray-500">{enabledCount}/{totalCount} menus</span>
-                              </div>
-                              {template.description && (
-                                <p className="text-sm text-gray-400 mt-0.5">{template.description}</p>
-                              )}
-                            </>
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-white font-medium text-sm truncate">{template.name || "Unnamed Template"}</h3>
+                            <span className="text-xs px-1.5 py-0.5 rounded-md bg-[#2F2F2F] text-gray-400 flex-shrink-0">{enabledCount}/{totalCount}</span>
+                          </div>
+                          {template.description && !isEditing && (
+                            <p className="text-xs text-gray-500 truncate mt-0.5">{template.description}</p>
                           )}
                         </div>
-                        <div className="flex items-center gap-1 flex-shrink-0">
+                        <div className="flex items-center gap-0.5 flex-shrink-0">
+                          <button
+                            onClick={() => setExpandedTemplatePerms(prev => 
+                              prev.includes(template.id) ? prev.filter(id => id !== template.id) : [...prev, template.id]
+                            )}
+                            className={`p-1.5 rounded-lg transition-colors ${
+                              isExpanded ? "text-orange-400 bg-orange-500/10" : "text-gray-500 hover:text-white hover:bg-[#2F2F2F]"
+                            }`}
+                            title="Toggle permissions"
+                          >
+                            <ChevronDown className={`w-4 h-4 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                          </button>
                           <button
                             onClick={() => setEditingTemplate(isEditing ? null : template.id)}
-                            className={`p-2 rounded-lg transition-colors ${
-                              isEditing ? "bg-orange-500/20 text-orange-400" : "text-gray-400 hover:bg-[#2F2F2F] hover:text-white"
+                            className={`p-1.5 rounded-lg transition-colors ${
+                              isEditing ? "bg-orange-500/20 text-orange-400" : "text-gray-500 hover:bg-[#2F2F2F] hover:text-white"
                             }`}
                           >
                             {isEditing ? <Check className="w-4 h-4" /> : <Edit className="w-4 h-4" />}
                           </button>
                           <button
                             onClick={() => handleDuplicateDemoTemplate(template)}
-                            className="p-2 text-gray-400 hover:bg-[#2F2F2F] hover:text-white rounded-lg transition-colors"
+                            className="p-1.5 text-gray-500 hover:bg-[#2F2F2F] hover:text-white rounded-lg transition-colors"
                           >
                             <Copy className="w-4 h-4" />
                           </button>
                           <button
                             onClick={() => handleRemoveDemoTemplate(template.id)}
-                            className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                            className="p-1.5 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
                       </div>
 
-                      {/* Permissions grid */}
-                      <div>
-                        <div className="flex items-center justify-between mb-3">
-                          <label className="text-sm font-medium text-gray-300">Menu Permissions</label>
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => handleToggleAllPermissions(template.id, true)}
-                              className="text-xs text-green-400 hover:text-green-300 transition-colors"
-                            >
-                              Enable All
-                            </button>
-                            <span className="text-gray-600">|</span>
-                            <button
-                              onClick={() => handleToggleAllPermissions(template.id, false)}
-                              className="text-xs text-red-400 hover:text-red-300 transition-colors"
-                            >
-                              Disable All
-                            </button>
+                      {/* Edit fields (shown when editing) */}
+                      {isEditing && (
+                        <div className="mt-3 pt-3 border-t border-[#2F2F2F] space-y-3">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <InputField
+                              label="Template Name"
+                              value={template.name}
+                              onChange={(v) => handleUpdateDemoTemplate(template.id, "name", v)}
+                              placeholder="e.g. Full Access, Basic View..."
+                              required
+                            />
+                            <InputField
+                              label="Description"
+                              value={template.description}
+                              onChange={(v) => handleUpdateDemoTemplate(template.id, "description", v)}
+                              placeholder="Describe what this template is for..."
+                            />
+                          </div>
+                          <div className="space-y-1.5">
+                            <label className="text-sm font-medium text-gray-300">Color</label>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="color"
+                                value={template.color}
+                                onChange={(e) => handleUpdateDemoTemplate(template.id, "color", e.target.value)}
+                                className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border border-[#333333] p-0.5"
+                              />
+                              <span className="text-xs text-gray-500 font-mono uppercase">{template.color}</span>
+                            </div>
                           </div>
                         </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-                          {DEMO_MENU_ITEMS.map((menuItem) => {
-                            const isEnabled = template.permissions[menuItem.key]
-                            return (
+                      )}
+
+                      {/* Collapsible permissions */}
+                      {isExpanded && (
+                        <div className="mt-3 pt-3 border-t border-[#2F2F2F]">
+                          <div className="flex items-center justify-between mb-2">
+                            <label className="text-xs font-medium text-gray-400">Menu Permissions</label>
+                            <div className="flex items-center gap-2">
                               <button
-                                key={menuItem.key}
-                                onClick={() => handleToggleTemplatePermission(template.id, menuItem.key)}
-                                className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-sm transition-all text-left ${
-                                  isEnabled
-                                    ? "border-green-500/30 bg-green-500/10 text-green-400"
-                                    : "border-[#333333] bg-[#141414] text-gray-500"
-                                }`}
+                                onClick={() => handleToggleAllPermissions(template.id, true)}
+                                className="text-xs text-green-400 hover:text-green-300 transition-colors"
                               >
-                                <div className={`w-4 h-4 rounded flex items-center justify-center flex-shrink-0 ${
-                                  isEnabled ? "bg-green-500" : "border border-gray-600"
-                                }`}>
-                                  {isEnabled && <Check className="w-3 h-3 text-white" />}
-                                </div>
-                                <span className="truncate">{menuItem.label}</span>
+                                Enable All
                               </button>
-                            )
-                          })}
+                              <span className="text-gray-600">|</span>
+                              <button
+                                onClick={() => handleToggleAllPermissions(template.id, false)}
+                                className="text-xs text-red-400 hover:text-red-300 transition-colors"
+                              >
+                                Disable All
+                              </button>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-1.5">
+                            {DEMO_MENU_ITEMS.map((menuItem) => {
+                              const isEnabled = template.permissions[menuItem.key]
+                              return (
+                                <button
+                                  key={menuItem.key}
+                                  onClick={() => handleToggleTemplatePermission(template.id, menuItem.key)}
+                                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs transition-all text-left ${
+                                    isEnabled
+                                      ? "border-green-500/30 bg-green-500/10 text-green-400"
+                                      : "border-[#333333] bg-[#141414] text-gray-500"
+                                  }`}
+                                >
+                                  <div className={`w-3.5 h-3.5 rounded flex items-center justify-center flex-shrink-0 ${
+                                    isEnabled ? "bg-green-500" : "border border-gray-600"
+                                  }`}>
+                                    {isEnabled && <Check className="w-2.5 h-2.5 text-white" />}
+                                  </div>
+                                  <span className="truncate">{menuItem.label}</span>
+                                </button>
+                              )
+                            })}
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </SettingsCard>
                   )
                 })}

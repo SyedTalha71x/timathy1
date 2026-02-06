@@ -448,14 +448,14 @@ const EditLeadModal = ({
                   </div>
                 </div>
 
-                {/* Studio Operator Information */}
+                {/* Studio Owner Information */}
                 <div className="space-y-4 pt-4 border-t border-gray-700">
-                  <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Studio Operator</div>
+                  <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Studio Owner</div>
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm text-gray-200 block mb-2">
-                        Studio Operator First Name<span className="text-red-500 ml-1">*</span>
+                        Studio Owner First Name<span className="text-red-500 ml-1">*</span>
                       </label>
                       <input
                         type="text"
@@ -467,7 +467,7 @@ const EditLeadModal = ({
                     </div>
                     <div>
                       <label className="text-sm text-gray-200 block mb-2">
-                        Studio Operator Last Name<span className="text-red-500 ml-1">*</span>
+                        Studio Owner Last Name<span className="text-red-500 ml-1">*</span>
                       </label>
                       <input
                         type="text"

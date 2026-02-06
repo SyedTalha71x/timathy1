@@ -29,7 +29,8 @@ export const demoAccessAccounts = [
     loginCount: 23,
     config: {
       studioName: "FitZone Premium",
-      studioOwner: "John Smith",
+      studioOwnerFirstName: "John",
+      studioOwnerLastName: "Smith",
       studioLogo: null,
       demoDuration: 14,
       email: "john.smith@fitzone.com",
@@ -54,7 +55,8 @@ export const demoAccessAccounts = [
     loginCount: 12,
     config: {
       studioName: "PowerGym Studio",
-      studioOwner: "Sarah Johnson",
+      studioOwnerFirstName: "Sarah",
+      studioOwnerLastName: "Johnson",
       studioLogo: null,
       demoDuration: 7,
       email: "sarah.j@powergym.de",
@@ -77,7 +79,8 @@ export const demoAccessAccounts = [
     loginCount: 5,
     config: {
       studioName: "BodyFit Lounge",
-      studioOwner: "Mike Wilson",
+      studioOwnerFirstName: "Mike",
+      studioOwnerLastName: "Wilson",
       studioLogo: null,
       demoDuration: 7,
       email: "mike.wilson@bodyfit.com",
@@ -100,7 +103,8 @@ export const demoAccessAccounts = [
     loginCount: 8,
     config: {
       studioName: "CrossFit Arena",
-      studioOwner: "Emily Davis",
+      studioOwnerFirstName: "Emily",
+      studioOwnerLastName: "Davis",
       studioLogo: null,
       demoDuration: 30,
       email: "emily.davis@crossfitarena.com",
@@ -124,7 +128,8 @@ export const demoAccessAccounts = [
     loginCount: 15,
     config: {
       studioName: "Flex & Flow Yoga",
-      studioOwner: "Anna Müller",
+      studioOwnerFirstName: "Anna",
+      studioOwnerLastName: "Müller",
       studioLogo: null,
       demoDuration: 7,
       email: "anna.mueller@flexflow.de",
@@ -148,7 +153,8 @@ export const demoAccessAccounts = [
     loginCount: 0,
     config: {
       studioName: "Iron Paradise",
-      studioOwner: "Thomas Becker",
+      studioOwnerFirstName: "Thomas",
+      studioOwnerLastName: "Becker",
       studioLogo: null,
       demoDuration: 14,
       email: "t.becker@ironparadise.de",
@@ -171,7 +177,8 @@ export const demoAccessAccounts = [
     loginCount: 18,
     config: {
       studioName: "Vitality Hub",
-      studioOwner: "Laura Fischer",
+      studioOwnerFirstName: "Laura",
+      studioOwnerLastName: "Fischer",
       studioLogo: null,
       demoDuration: 14,
       email: "laura@vitalityhub.com",
@@ -226,12 +233,12 @@ export const getTemplateColor = (templateId) => {
 };
 
 export const formatDate = (dateString) => {
-  if (!dateString) return "–";
+  if (!dateString) return "—";
   return new Date(dateString).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
 };
 
 export const formatDateTime = (dateString) => {
-  if (!dateString) return "–";
+  if (!dateString) return "—";
   return new Date(dateString).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
 };
 

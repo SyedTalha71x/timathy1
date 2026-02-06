@@ -10,6 +10,7 @@ import {
   Pencil,
   Send,
   Power,
+  Trash2,
   Clock,
   Building2,
   Mail,
@@ -48,7 +49,8 @@ const ensureConfig = (demo) => {
     ...demo,
     config: {
       studioName: demo.studioName || "",
-      studioOwner: demo.studioOwner || "",
+      studioOwnerFirstName: demo.studioOwnerFirstName || "",
+      studioOwnerLastName: demo.studioOwnerLastName || "",
       studioLogo: demo.studioLogo || null,
       demoDuration: demo.demoDuration || 7,
       email: demo.email || "",
@@ -87,7 +89,7 @@ const TemplateBadge = ({ template }) => {
 const DaysRemainingBadge = ({ expiryDate, status }) => {
   if (status === "inactive") return <span className="text-xs text-red-400">Deactivated</span>;
   const days = getDaysRemaining(expiryDate);
-  if (days === null) return <span className="text-xs text-gray-500">–</span>;
+  if (days === null) return <span className="text-xs text-gray-500">—</span>;
   if (days <= 0) return <span className="text-xs text-red-400">Expired</span>;
   if (days <= 3) return <span className="text-xs text-orange-400 font-medium">{days}d remaining</span>;
   return <span className="text-xs text-gray-400">{days}d remaining</span>;
@@ -96,9 +98,10 @@ const DaysRemainingBadge = ({ expiryDate, status }) => {
 // ============================================
 // Demo Card
 // ============================================
-const DemoCard = ({ demo, onViewJournal, onEdit, onResendEmail, onToggleStatus }) => {
+const DemoCard = ({ demo, onViewJournal, onEdit, onResendEmail, onToggleStatus, onDelete }) => {
   const cfg = demo.config || {};
   const { enabled, total } = getPermissionCount(demo.template?.permissions);
+  const ownerFullName = [cfg.studioOwnerFirstName, cfg.studioOwnerLastName].filter(Boolean).join(" ") || "—";
 
   return (
     <div className="bg-[#2a2a2a] rounded-2xl overflow-hidden border border-[#333333] hover:border-[#444444] transition-colors">
@@ -117,7 +120,7 @@ const DemoCard = ({ demo, onViewJournal, onEdit, onResendEmail, onToggleStatus }
         <div className="space-y-2 mb-4">
           <div className="flex items-center gap-2 text-xs text-gray-400">
             <User size={12} className="text-gray-500 flex-shrink-0" />
-            <span className="truncate">{cfg.studioOwner}</span>
+            <span className="truncate">{ownerFullName}</span>
           </div>
           <div className="flex items-center gap-2 text-xs text-gray-400">
             <Mail size={12} className="text-gray-500 flex-shrink-0" />
@@ -174,6 +177,12 @@ const DemoCard = ({ demo, onViewJournal, onEdit, onResendEmail, onToggleStatus }
           >
             <Power size={13} />
           </button>
+          <button
+            onClick={() => onDelete(demo)}
+            className="p-2 rounded-xl text-xs transition-colors bg-red-500/10 hover:bg-red-500/20 text-red-400"
+          >
+            <Trash2 size={13} />
+          </button>
         </div>
       </div>
     </div>
@@ -184,7 +193,7 @@ const DemoCard = ({ demo, onViewJournal, onEdit, onResendEmail, onToggleStatus }
 // Main Page
 // ============================================
 export default function DemoCreationPage() {
-  // All demos – normalized to always have config
+  // All demos — normalized to always have config
   const [demos, setDemos] = useState(() => demoAccessAccounts.map(ensureConfig));
 
   // Search / filter / sort
@@ -213,6 +222,10 @@ export default function DemoCreationPage() {
   const [isReactivateModalOpen, setIsReactivateModalOpen] = useState(false);
   const [reactivateDemoId, setReactivateDemoId] = useState(null);
   const [reactivateDays, setReactivateDays] = useState(7);
+
+  // Delete modal
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [demoToDelete, setDemoToDelete] = useState(null);
 
   // ---- Close sort dropdown on outside click ----
   useEffect(() => {
@@ -274,7 +287,8 @@ export default function DemoCreationPage() {
       const q = searchQuery.toLowerCase();
       filtered = filtered.filter((d) =>
         (d.config?.studioName || "").toLowerCase().includes(q) ||
-        (d.config?.studioOwner || "").toLowerCase().includes(q) ||
+        (d.config?.studioOwnerFirstName || "").toLowerCase().includes(q) ||
+        (d.config?.studioOwnerLastName || "").toLowerCase().includes(q) ||
         (d.config?.email || "").toLowerCase().includes(q) ||
         (d.company || "").toLowerCase().includes(q)
       );
@@ -315,7 +329,8 @@ export default function DemoCreationPage() {
       id: Date.now(),
       lead,
       studioName: config.studioName,
-      studioOwner: config.studioOwner,
+      studioOwnerFirstName: config.studioOwnerFirstName,
+      studioOwnerLastName: config.studioOwnerLastName,
       email: config.email,
       company: lead?.company || "Unknown",
       template,
@@ -363,8 +378,8 @@ export default function DemoCreationPage() {
           template: newTemplate,
           config: { ...demo.config, ...updatedConfig, template: undefined },
           studioName: updatedConfig.studioName,
-          studioOwner: updatedConfig.studioOwner,
-          email: updatedConfig.email,
+          studioOwnerFirstName: updatedConfig.studioOwnerFirstName,
+          studioOwnerLastName: updatedConfig.studioOwnerLastName,
           demoDuration: updatedConfig.demoDuration,
           expiryDate: newExpiry,
           journal: [...demo.journal, {
@@ -483,6 +498,22 @@ export default function DemoCreationPage() {
   const handleViewJournal = (demo) => {
     setSelectedDemoForJournal(demo);
     setIsJournalModalOpen(true);
+  };
+
+  // =============================================
+  // DELETE
+  // =============================================
+  const handleDeleteDemo = (demo) => {
+    setDemoToDelete(demo);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!demoToDelete) return;
+    setDemos((prev) => prev.filter((d) => d.id !== demoToDelete.id));
+    setIsDeleteModalOpen(false);
+    setDemoToDelete(null);
+    toast.success("Demo deleted successfully!");
   };
 
   // =============================================
@@ -617,7 +648,7 @@ export default function DemoCreationPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4 pb-20 md:pb-4">
           {filteredDemos.map((demo) => (
-            <DemoCard key={demo.id} demo={demo} onViewJournal={handleViewJournal} onEdit={handleEditDemo} onResendEmail={handleResendEmail} onToggleStatus={handleToggleDemoStatus} />
+            <DemoCard key={demo.id} demo={demo} onViewJournal={handleViewJournal} onEdit={handleEditDemo} onResendEmail={handleResendEmail} onToggleStatus={handleToggleDemoStatus} onDelete={handleDeleteDemo} />
           ))}
         </div>
       )}
@@ -669,7 +700,7 @@ export default function DemoCreationPage() {
         demo={selectedDemoForJournal}
       />
 
-      {/* 7. Reactivate – ask for days */}
+      {/* 7. Reactivate — ask for days */}
       {isReactivateModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-[#1A1A1A] rounded-xl max-w-sm w-full border border-gray-800">
@@ -716,6 +747,53 @@ export default function DemoCreationPage() {
                   className="flex-1 bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 transition-colors font-medium"
                 >
                   Reactivate
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 8. Delete Confirmation */}
+      {isDeleteModalOpen && demoToDelete && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#1A1A1A] rounded-xl max-w-sm w-full border border-gray-800">
+            <div className="p-6 border-b border-gray-800 flex justify-between items-start">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-red-500/20 rounded-full flex items-center justify-center">
+                  <Trash2 size={20} className="text-red-400" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-white">Delete Demo</h2>
+                  <p className="text-gray-400 text-sm mt-1">This action cannot be undone</p>
+                </div>
+              </div>
+              <button
+                onClick={() => { setIsDeleteModalOpen(false); setDemoToDelete(null); }}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-6">
+              <p className="text-sm text-gray-300 mb-1">
+                Are you sure you want to permanently delete the demo for
+              </p>
+              <p className="text-sm font-semibold text-white mb-4">
+                {demoToDelete.config?.studioName || "this studio"}?
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => { setIsDeleteModalOpen(false); setDemoToDelete(null); }}
+                  className="flex-1 bg-gray-700 text-white py-3 px-4 rounded-lg hover:bg-gray-600 transition-colors font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmDelete}
+                  className="flex-1 bg-red-600 text-white py-3 px-4 rounded-lg hover:bg-red-700 transition-colors font-medium"
+                >
+                  Delete
                 </button>
               </div>
             </div>

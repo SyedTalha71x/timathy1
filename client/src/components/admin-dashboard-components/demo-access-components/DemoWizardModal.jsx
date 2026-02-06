@@ -204,7 +204,7 @@ const ConfigStep = ({ config, onChange, selectedLead, selectedTemplate }) => (
     </div>
 
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div>
+      <div className="sm:col-span-2">
         <label className="block text-xs font-medium text-gray-400 mb-1.5">Studio Name</label>
         <div className="relative">
           <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
@@ -218,15 +218,28 @@ const ConfigStep = ({ config, onChange, selectedLead, selectedTemplate }) => (
         </div>
       </div>
       <div>
-        <label className="block text-xs font-medium text-gray-400 mb-1.5">Studio Owner</label>
+        <label className="block text-xs font-medium text-gray-400 mb-1.5">Studio Owner First Name</label>
         <div className="relative">
           <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
           <input
             type="text"
-            value={config.studioOwner}
-            onChange={(e) => onChange({ ...config, studioOwner: e.target.value })}
+            value={config.studioOwnerFirstName}
+            onChange={(e) => onChange({ ...config, studioOwnerFirstName: e.target.value })}
             className="w-full bg-[#2A2A2A] border border-gray-700 rounded-xl pl-9 pr-3 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
-            placeholder="Enter owner name"
+            placeholder="First name"
+          />
+        </div>
+      </div>
+      <div>
+        <label className="block text-xs font-medium text-gray-400 mb-1.5">Studio Owner Last Name</label>
+        <div className="relative">
+          <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
+          <input
+            type="text"
+            value={config.studioOwnerLastName}
+            onChange={(e) => onChange({ ...config, studioOwnerLastName: e.target.value })}
+            className="w-full bg-[#2A2A2A] border border-gray-700 rounded-xl pl-9 pr-3 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
+            placeholder="Last name"
           />
         </div>
       </div>
@@ -267,7 +280,7 @@ const ConfigStep = ({ config, onChange, selectedLead, selectedTemplate }) => (
 const EditView = ({ config, onChange, templates, selectedTemplateId, onSelectTemplate }) => (
   <div className="flex-1 overflow-y-auto custom-scrollbar px-6 py-4 space-y-5">
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div>
+      <div className="sm:col-span-2">
         <label className="block text-xs font-medium text-gray-400 mb-1.5">Studio Name</label>
         <div className="relative">
           <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
@@ -280,13 +293,25 @@ const EditView = ({ config, onChange, templates, selectedTemplateId, onSelectTem
         </div>
       </div>
       <div>
-        <label className="block text-xs font-medium text-gray-400 mb-1.5">Studio Owner</label>
+        <label className="block text-xs font-medium text-gray-400 mb-1.5">Studio Owner First Name</label>
         <div className="relative">
           <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
           <input
             type="text"
-            value={config.studioOwner}
-            onChange={(e) => onChange({ ...config, studioOwner: e.target.value })}
+            value={config.studioOwnerFirstName}
+            onChange={(e) => onChange({ ...config, studioOwnerFirstName: e.target.value })}
+            className="w-full bg-[#2A2A2A] border border-gray-700 rounded-xl pl-9 pr-3 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
+          />
+        </div>
+      </div>
+      <div>
+        <label className="block text-xs font-medium text-gray-400 mb-1.5">Studio Owner Last Name</label>
+        <div className="relative">
+          <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
+          <input
+            type="text"
+            value={config.studioOwnerLastName}
+            onChange={(e) => onChange({ ...config, studioOwnerLastName: e.target.value })}
             className="w-full bg-[#2A2A2A] border border-gray-700 rounded-xl pl-9 pr-3 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
           />
         </div>
@@ -312,10 +337,11 @@ const EditView = ({ config, onChange, templates, selectedTemplateId, onSelectTem
           <input
             type="email"
             value={config.email}
-            onChange={(e) => onChange({ ...config, email: e.target.value })}
-            className="w-full bg-[#2A2A2A] border border-gray-700 rounded-xl pl-9 pr-3 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500"
+            disabled
+            className="w-full bg-[#222222] border border-gray-700 rounded-xl pl-9 pr-3 py-2.5 text-sm text-gray-500 cursor-not-allowed focus:outline-none"
           />
         </div>
+        <p className="text-[10px] text-gray-600 mt-1">Email address cannot be changed after creation</p>
       </div>
     </div>
 
@@ -385,7 +411,8 @@ const DemoWizardModal = ({
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [config, setConfig] = useState({
     studioName: "",
-    studioOwner: "",
+    studioOwnerFirstName: "",
+    studioOwnerLastName: "",
     demoDuration: 7,
     email: "",
   });
@@ -400,7 +427,8 @@ const DemoWizardModal = ({
     if (mode === "edit" && demo) {
       setConfig({
         studioName: demo.config?.studioName || "",
-        studioOwner: demo.config?.studioOwner || "",
+        studioOwnerFirstName: demo.config?.studioOwnerFirstName || "",
+        studioOwnerLastName: demo.config?.studioOwnerLastName || "",
         demoDuration: demo.config?.demoDuration || 7,
         email: demo.config?.email || "",
       });
@@ -409,7 +437,7 @@ const DemoWizardModal = ({
       setStep(1);
       setSelectedLead(null);
       setSelectedTemplate(null);
-      setConfig({ studioName: "", studioOwner: "", demoDuration: 7, email: "" });
+      setConfig({ studioName: "", studioOwnerFirstName: "", studioOwnerLastName: "", demoDuration: 7, email: "" });
     }
   }, [isOpen, mode, demo]);
 
@@ -421,10 +449,14 @@ const DemoWizardModal = ({
   // --- Lead handlers ---
   const handleSelectLead = (lead) => {
     setSelectedLead(lead);
+    const nameParts = (lead.name || "").trim().split(/\s+/);
+    const firstName = nameParts[0] || "";
+    const lastName = nameParts.slice(1).join(" ") || "";
     setConfig((prev) => ({
       ...prev,
       studioName: `${lead.company} Studio`,
-      studioOwner: lead.name || "",
+      studioOwnerFirstName: firstName,
+      studioOwnerLastName: lastName,
       email: lead.email || "",
     }));
   };
@@ -435,7 +467,8 @@ const DemoWizardModal = ({
     setConfig((prev) => ({
       ...prev,
       studioName: "",
-      studioOwner: "",
+      studioOwnerFirstName: "",
+      studioOwnerLastName: "",
       email: "",
     }));
   };
@@ -444,7 +477,7 @@ const DemoWizardModal = ({
   const canGoNext = () => {
     if (step === 1) return selectedLead !== null;
     if (step === 2) return selectedTemplate !== null;
-    if (step === 3) return config.studioName && config.studioOwner && config.email;
+    if (step === 3) return config.studioName && config.studioOwnerFirstName && config.studioOwnerLastName && config.email;
     return false;
   };
 
@@ -478,7 +511,7 @@ const DemoWizardModal = ({
     }
   };
 
-  const canSubmitEdit = config.studioName && config.studioOwner && config.email && editTemplateId;
+  const canSubmitEdit = config.studioName && config.studioOwnerFirstName && config.studioOwnerLastName && config.email && editTemplateId;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
