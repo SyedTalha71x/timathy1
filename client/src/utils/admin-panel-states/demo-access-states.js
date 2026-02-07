@@ -1,4 +1,4 @@
-// Demo Access States - Dummy Data
+// Access States - Dummy Data
 // Location: client/src/utils/admin-panel-states/demo-access-states.js
 
 import { DEFAULT_DEMO_TEMPLATES, DEMO_MENU_ITEMS } from "./configuration-states";
@@ -10,8 +10,8 @@ export const demoTemplates = DEFAULT_DEMO_TEMPLATES;
 export { DEMO_MENU_ITEMS } from "./configuration-states";
 
 // ============================================
-// Demo Access Accounts
-// IMPORTANT: every demo MUST have a `config` sub-object because
+// Access Accounts
+// IMPORTANT: every account MUST have a `config` sub-object because
 // JournalModal reads demo.config.studioName,
 // SendEmailModal reads demo.config.email / demo.config.studioName,
 // DemoConfiguratorModal reads demo.config.* for its form fields.
@@ -37,10 +37,10 @@ export const demoAccessAccounts = [
       sendEmail: true,
     },
     journal: [
-      { action: "Demo Created", timestamp: "2025-01-15T10:30:00.000Z", user: "Admin", details: "Created premium demo for FitZone Premium" },
+      { action: "Access Created", timestamp: "2025-01-15T10:30:00.000Z", user: "Admin", details: "Created premium access for FitZone Premium" },
       { action: "Email Sent", timestamp: "2025-01-15T10:35:00.000Z", user: "System", details: "Access email sent to john.smith@fitzone.com" },
-      { action: "Demo Accessed", timestamp: "2025-01-15T11:15:00.000Z", user: "John Smith", details: "User logged in for the first time" },
-      { action: "Configuration Changed", timestamp: "2025-01-20T14:20:00.000Z", user: "Admin", details: "Changed demo duration from 7 to 14 days" },
+      { action: "First Login", timestamp: "2025-01-15T11:15:00.000Z", user: "John Smith", details: "User logged in for the first time" },
+      { action: "Configuration Changed", timestamp: "2025-01-20T14:20:00.000Z", user: "Admin", details: "Changed access duration from 7 to 14 days" },
     ],
   },
   {
@@ -63,7 +63,7 @@ export const demoAccessAccounts = [
       sendEmail: true,
     },
     journal: [
-      { action: "Demo Created", timestamp: "2025-01-22T09:00:00.000Z", user: "Admin", details: "Created standard demo for PowerGym Studio" },
+      { action: "Access Created", timestamp: "2025-01-22T09:00:00.000Z", user: "Admin", details: "Created standard access for PowerGym Studio" },
       { action: "Email Sent", timestamp: "2025-01-22T09:05:00.000Z", user: "System", details: "Access email sent to sarah.j@powergym.de" },
     ],
   },
@@ -87,8 +87,8 @@ export const demoAccessAccounts = [
       sendEmail: true,
     },
     journal: [
-      { action: "Demo Created", timestamp: "2025-01-05T14:00:00.000Z", user: "Admin", details: "Created basic demo for BodyFit Lounge" },
-      { action: "Demo Deactivated", timestamp: "2025-01-12T10:00:00.000Z", user: "Admin", details: "Demo status changed to inactive" },
+      { action: "Access Created", timestamp: "2025-01-05T14:00:00.000Z", user: "Admin", details: "Created basic access for BodyFit Lounge" },
+      { action: "Access Deactivated", timestamp: "2025-01-12T10:00:00.000Z", user: "Admin", details: "Access status changed to inactive" },
     ],
   },
   {
@@ -111,9 +111,9 @@ export const demoAccessAccounts = [
       sendEmail: true,
     },
     journal: [
-      { action: "Demo Created", timestamp: "2025-01-25T08:00:00.000Z", user: "Admin", details: "Created premium demo for CrossFit Arena" },
+      { action: "Access Created", timestamp: "2025-01-25T08:00:00.000Z", user: "Admin", details: "Created premium access for CrossFit Arena" },
       { action: "Email Sent", timestamp: "2025-01-25T08:05:00.000Z", user: "System", details: "Access email sent to emily.davis@crossfitarena.com" },
-      { action: "Demo Accessed", timestamp: "2025-01-25T10:30:00.000Z", user: "Emily Davis", details: "User logged in for the first time" },
+      { action: "First Login", timestamp: "2025-01-25T10:30:00.000Z", user: "Emily Davis", details: "User logged in for the first time" },
     ],
   },
   {
@@ -136,9 +136,9 @@ export const demoAccessAccounts = [
       sendEmail: true,
     },
     journal: [
-      { action: "Demo Created", timestamp: "2024-12-20T12:00:00.000Z", user: "Admin", details: "Created standard demo for Flex & Flow Yoga" },
+      { action: "Access Created", timestamp: "2024-12-20T12:00:00.000Z", user: "Admin", details: "Created standard access for Flex & Flow Yoga" },
       { action: "Email Sent", timestamp: "2024-12-20T12:05:00.000Z", user: "System", details: "Access email sent to anna.mueller@flexflow.de" },
-      { action: "Demo Deactivated", timestamp: "2024-12-27T12:00:00.000Z", user: "System", details: "Demo expired after 7 days - status set to inactive" },
+      { action: "Access Deactivated", timestamp: "2024-12-27T12:00:00.000Z", user: "System", details: "Access expired after 7 days - status set to inactive" },
     ],
   },
   {
@@ -161,7 +161,7 @@ export const demoAccessAccounts = [
       sendEmail: true,
     },
     journal: [
-      { action: "Demo Created", timestamp: "2025-01-27T16:00:00.000Z", user: "Admin", details: "Created basic demo for Iron Paradise" },
+      { action: "Access Created", timestamp: "2025-01-27T16:00:00.000Z", user: "Admin", details: "Created basic access for Iron Paradise" },
       { action: "Email Sent", timestamp: "2025-01-27T16:05:00.000Z", user: "System", details: "Access email sent to t.becker@ironparadise.de" },
     ],
   },
@@ -185,14 +185,14 @@ export const demoAccessAccounts = [
       sendEmail: true,
     },
     journal: [
-      { action: "Demo Created", timestamp: "2025-01-10T11:00:00.000Z", user: "Admin", details: "Created premium demo for Vitality Hub" },
-      { action: "Demo Deactivated", timestamp: "2025-01-20T10:00:00.000Z", user: "Admin", details: "Demo manually deactivated - client decided not to proceed" },
+      { action: "Access Created", timestamp: "2025-01-10T11:00:00.000Z", user: "Admin", details: "Created premium access for Vitality Hub" },
+      { action: "Access Deactivated", timestamp: "2025-01-20T10:00:00.000Z", user: "Admin", details: "Access manually deactivated - client decided not to proceed" },
     ],
   },
 ];
 
 // ============================================
-// Leads available for demo linking
+// Leads available for access linking
 // ============================================
 export const demoLeads = [
   { id: 1, name: "John Smith", email: "john.smith@example.com", company: "Tech Corp" },

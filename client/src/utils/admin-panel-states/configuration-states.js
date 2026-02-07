@@ -25,21 +25,21 @@ export const DEFAULT_SMTP_CONFIG = {
   senderName: "",
 };
 
-// Demo Email Defaults (multi-language)
+// Access Email Defaults (multi-language)
 export const DEFAULT_DEMO_EMAIL = {
   subject: {
-    en: "Your Demo Access",
-    de: "Ihr Demo-Zugang",
-    fr: "Votre acc\u00E8s d\u00E9mo",
-    it: "Il tuo accesso demo",
-    es: "Tu acceso de demostraci\u00F3n",
+    en: "Your Access Details",
+    de: "Ihre Zugangsdaten",
+    fr: "Vos identifiants d'acc\u00E8s",
+    it: "I tuoi dati di accesso",
+    es: "Tus datos de acceso",
   },
   content: {
-    en: '<h2 style="color:#f97316;">Welcome to {Studio_Name}! \u{1F389}</h2><p>Dear {Studio_Owner_First_Name} {Studio_Owner_Last_Name},</p><p>Thank you for your interest in our platform. We are excited to provide you with <strong>exclusive demo access</strong> so you can explore all features firsthand.</p><h3>Your Access Details</h3><table style="border-collapse:collapse;width:100%;margin:16px 0;"><tr style="background:#1f1f1f;"><td style="padding:10px;border:1px solid #333;color:#999;width:40%;">Email for Access</td><td style="padding:10px;border:1px solid #333;color:#fff;"><strong>{Email_For_Access}</strong></td></tr><tr><td style="padding:10px;border:1px solid #333;color:#999;">Access Link</td><td style="padding:10px;border:1px solid #333;"><a href="{Access_Link}" style="color:#f97316;text-decoration:none;font-weight:bold;">Click here to access the demo \u2192</a></td></tr><tr style="background:#1f1f1f;"><td style="padding:10px;border:1px solid #333;color:#999;">Valid Until</td><td style="padding:10px;border:1px solid #333;color:#ef4444;"><strong>{Expiry_Date}</strong></td></tr></table><h3>What you can do</h3><ul><li>\u{1F4CA} Explore <strong>analytics dashboards</strong> and reporting tools</li><li>\u{1F465} Test <strong>member management</strong> features</li><li>\u{1F4C5} Try out <strong>appointment scheduling</strong> and calendar views</li><li>\u{1F4AC} Experience the built-in <strong>messenger</strong> system</li></ul><p>If you have any questions during your trial, don\u2019t hesitate to reach out.</p><p><em>We look forward to hearing your feedback!</em></p>',
-    de: '<h2 style="color:#f97316;">Willkommen bei {Studio_Name}! \u{1F389}</h2><p>Sehr geehrte/r {Studio_Owner_First_Name} {Studio_Owner_Last_Name},</p><p>Vielen Dank f\u00FCr Ihr Interesse an unserer Plattform. Wir freuen uns, Ihnen einen <strong>exklusiven Demo-Zugang</strong> bereitstellen zu k\u00F6nnen.</p><h3>Ihre Zugangsdaten</h3><table style="border-collapse:collapse;width:100%;margin:16px 0;"><tr style="background:#1f1f1f;"><td style="padding:10px;border:1px solid #333;color:#999;width:40%;">E-Mail f\u00FCr Zugang</td><td style="padding:10px;border:1px solid #333;color:#fff;"><strong>{Email_For_Access}</strong></td></tr><tr><td style="padding:10px;border:1px solid #333;color:#999;">Zugangslink</td><td style="padding:10px;border:1px solid #333;"><a href="{Access_Link}" style="color:#f97316;text-decoration:none;font-weight:bold;">Hier klicken f\u00FCr den Demo-Zugang \u2192</a></td></tr><tr style="background:#1f1f1f;"><td style="padding:10px;border:1px solid #333;color:#999;">G\u00FCltig bis</td><td style="padding:10px;border:1px solid #333;color:#ef4444;"><strong>{Expiry_Date}</strong></td></tr></table><h3>Das k\u00F6nnen Sie tun</h3><ul><li>\u{1F4CA} <strong>Analyse-Dashboards</strong> und Reporting-Tools erkunden</li><li>\u{1F465} <strong>Mitgliederverwaltung</strong> testen</li><li>\u{1F4C5} <strong>Terminplanung</strong> und Kalenderansichten ausprobieren</li><li>\u{1F4AC} Das integrierte <strong>Messenger</strong>-System erleben</li></ul><p>Falls Sie Fragen haben, z\u00F6gern Sie nicht, uns zu kontaktieren.</p><p><em>Wir freuen uns auf Ihr Feedback!</em></p>',
-    fr: '<h2 style="color:#f97316;">Bienvenue chez {Studio_Name} ! \u{1F389}</h2><p>Cher/Ch\u00E8re {Studio_Owner_First_Name} {Studio_Owner_Last_Name},</p><p>Merci de l\u2019int\u00E9r\u00EAt que vous portez \u00E0 notre plateforme. Nous sommes ravis de vous offrir un <strong>acc\u00E8s d\u00E9mo exclusif</strong>.</p><h3>Vos identifiants</h3><table style="border-collapse:collapse;width:100%;margin:16px 0;"><tr style="background:#1f1f1f;"><td style="padding:10px;border:1px solid #333;color:#999;width:40%;">E-mail d\u2019acc\u00E8s</td><td style="padding:10px;border:1px solid #333;color:#fff;"><strong>{Email_For_Access}</strong></td></tr><tr><td style="padding:10px;border:1px solid #333;color:#999;">Lien d\u2019acc\u00E8s</td><td style="padding:10px;border:1px solid #333;"><a href="{Access_Link}" style="color:#f97316;text-decoration:none;font-weight:bold;">Cliquez ici \u2192</a></td></tr><tr style="background:#1f1f1f;"><td style="padding:10px;border:1px solid #333;color:#999;">Valide jusqu\u2019au</td><td style="padding:10px;border:1px solid #333;color:#ef4444;"><strong>{Expiry_Date}</strong></td></tr></table><ul><li>\u{1F4CA} Explorer les <strong>tableaux de bord</strong></li><li>\u{1F465} Tester la <strong>gestion des membres</strong></li><li>\u{1F4C5} Essayer la <strong>planification</strong></li><li>\u{1F4AC} D\u00E9couvrir la <strong>messagerie</strong></li></ul><p><em>Nous attendons vos retours !</em></p>',
-    it: '<h2 style="color:#f97316;">Benvenuto/a su {Studio_Name}! \u{1F389}</h2><p>Gentile {Studio_Owner_First_Name} {Studio_Owner_Last_Name},</p><p>Grazie per il tuo interesse. Siamo lieti di fornirti un <strong>accesso demo esclusivo</strong>.</p><h3>I tuoi dati di accesso</h3><table style="border-collapse:collapse;width:100%;margin:16px 0;"><tr style="background:#1f1f1f;"><td style="padding:10px;border:1px solid #333;color:#999;width:40%;">Email per l\u2019accesso</td><td style="padding:10px;border:1px solid #333;color:#fff;"><strong>{Email_For_Access}</strong></td></tr><tr><td style="padding:10px;border:1px solid #333;color:#999;">Link di accesso</td><td style="padding:10px;border:1px solid #333;"><a href="{Access_Link}" style="color:#f97316;text-decoration:none;font-weight:bold;">Clicca qui \u2192</a></td></tr><tr style="background:#1f1f1f;"><td style="padding:10px;border:1px solid #333;color:#999;">Valido fino al</td><td style="padding:10px;border:1px solid #333;color:#ef4444;"><strong>{Expiry_Date}</strong></td></tr></table><ul><li>\u{1F4CA} Esplorare le <strong>dashboard</strong></li><li>\u{1F465} Testare la <strong>gestione membri</strong></li><li>\u{1F4C5} Provare la <strong>pianificazione</strong></li><li>\u{1F4AC} Sperimentare la <strong>messaggistica</strong></li></ul><p><em>Non vediamo l\u2019ora del tuo feedback!</em></p>',
-    es: '<h2 style="color:#f97316;">\u00A1Bienvenido/a a {Studio_Name}! \u{1F389}</h2><p>Estimado/a {Studio_Owner_First_Name} {Studio_Owner_Last_Name},</p><p>Gracias por tu inter\u00E9s. Nos complace ofrecerte un <strong>acceso demo exclusivo</strong>.</p><h3>Tus datos de acceso</h3><table style="border-collapse:collapse;width:100%;margin:16px 0;"><tr style="background:#1f1f1f;"><td style="padding:10px;border:1px solid #333;color:#999;width:40%;">Email de acceso</td><td style="padding:10px;border:1px solid #333;color:#fff;"><strong>{Email_For_Access}</strong></td></tr><tr><td style="padding:10px;border:1px solid #333;color:#999;">Enlace de acceso</td><td style="padding:10px;border:1px solid #333;"><a href="{Access_Link}" style="color:#f97316;text-decoration:none;font-weight:bold;">Haz clic aqu\u00ED \u2192</a></td></tr><tr style="background:#1f1f1f;"><td style="padding:10px;border:1px solid #333;color:#999;">V\u00E1lido hasta</td><td style="padding:10px;border:1px solid #333;color:#ef4444;"><strong>{Expiry_Date}</strong></td></tr></table><ul><li>\u{1F4CA} Explorar los <strong>paneles de an\u00E1lisis</strong></li><li>\u{1F465} Probar la <strong>gesti\u00F3n de miembros</strong></li><li>\u{1F4C5} Probar la <strong>programaci\u00F3n</strong></li><li>\u{1F4AC} Experimentar la <strong>mensajer\u00EDa</strong></li></ul><p><em>\u00A1Esperamos tus comentarios!</em></p>',
+    en: '<h2 style="color:#f97316;">Welcome to {Studio_Name}! \u{1F389}</h2><p>Dear {Studio_Owner_First_Name} {Studio_Owner_Last_Name},</p><p>Thank you for your interest in our platform. We are excited to provide you with <strong>exclusive access</strong> so you can explore all features firsthand.</p><h3>Your Access Details</h3><table style="border-collapse:collapse;width:100%;margin:16px 0;"><tr style="background:#1f1f1f;"><td style="padding:10px;border:1px solid #333;color:#999;width:40%;">Email for Access</td><td style="padding:10px;border:1px solid #333;color:#fff;"><strong>{Email_For_Access}</strong></td></tr><tr><td style="padding:10px;border:1px solid #333;color:#999;">Access Link</td><td style="padding:10px;border:1px solid #333;"><a href="{Access_Link}" style="color:#f97316;text-decoration:none;font-weight:bold;">Click here to access the platform \u2192</a></td></tr><tr style="background:#1f1f1f;"><td style="padding:10px;border:1px solid #333;color:#999;">Valid Until</td><td style="padding:10px;border:1px solid #333;color:#ef4444;"><strong>{Expiry_Date}</strong></td></tr></table><h3>What you can do</h3><ul><li>\u{1F4CA} Explore <strong>analytics dashboards</strong> and reporting tools</li><li>\u{1F465} Test <strong>member management</strong> features</li><li>\u{1F4C5} Try out <strong>appointment scheduling</strong> and calendar views</li><li>\u{1F4AC} Experience the built-in <strong>messenger</strong> system</li></ul><p>If you have any questions during your trial, don\u2019t hesitate to reach out.</p><p><em>We look forward to hearing your feedback!</em></p>',
+    de: '<h2 style="color:#f97316;">Willkommen bei {Studio_Name}! \u{1F389}</h2><p>Sehr geehrte/r {Studio_Owner_First_Name} {Studio_Owner_Last_Name},</p><p>Vielen Dank f\u00FCr Ihr Interesse an unserer Plattform. Wir freuen uns, Ihnen einen <strong>exklusiven Zugang</strong> bereitstellen zu k\u00F6nnen.</p><h3>Ihre Zugangsdaten</h3><table style="border-collapse:collapse;width:100%;margin:16px 0;"><tr style="background:#1f1f1f;"><td style="padding:10px;border:1px solid #333;color:#999;width:40%;">E-Mail f\u00FCr Zugang</td><td style="padding:10px;border:1px solid #333;color:#fff;"><strong>{Email_For_Access}</strong></td></tr><tr><td style="padding:10px;border:1px solid #333;color:#999;">Zugangslink</td><td style="padding:10px;border:1px solid #333;"><a href="{Access_Link}" style="color:#f97316;text-decoration:none;font-weight:bold;">Hier klicken f\u00FCr den Zugang \u2192</a></td></tr><tr style="background:#1f1f1f;"><td style="padding:10px;border:1px solid #333;color:#999;">G\u00FCltig bis</td><td style="padding:10px;border:1px solid #333;color:#ef4444;"><strong>{Expiry_Date}</strong></td></tr></table><h3>Das k\u00F6nnen Sie tun</h3><ul><li>\u{1F4CA} <strong>Analyse-Dashboards</strong> und Reporting-Tools erkunden</li><li>\u{1F465} <strong>Mitgliederverwaltung</strong> testen</li><li>\u{1F4C5} <strong>Terminplanung</strong> und Kalenderansichten ausprobieren</li><li>\u{1F4AC} Das integrierte <strong>Messenger</strong>-System erleben</li></ul><p>Falls Sie Fragen haben, z\u00F6gern Sie nicht, uns zu kontaktieren.</p><p><em>Wir freuen uns auf Ihr Feedback!</em></p>',
+    fr: '<h2 style="color:#f97316;">Bienvenue chez {Studio_Name} ! \u{1F389}</h2><p>Cher/Ch\u00E8re {Studio_Owner_First_Name} {Studio_Owner_Last_Name},</p><p>Merci de l\u2019int\u00E9r\u00EAt que vous portez \u00E0 notre plateforme. Nous sommes ravis de vous offrir un <strong>acc\u00E8s exclusif</strong>.</p><h3>Vos identifiants</h3><table style="border-collapse:collapse;width:100%;margin:16px 0;"><tr style="background:#1f1f1f;"><td style="padding:10px;border:1px solid #333;color:#999;width:40%;">E-mail d\u2019acc\u00E8s</td><td style="padding:10px;border:1px solid #333;color:#fff;"><strong>{Email_For_Access}</strong></td></tr><tr><td style="padding:10px;border:1px solid #333;color:#999;">Lien d\u2019acc\u00E8s</td><td style="padding:10px;border:1px solid #333;"><a href="{Access_Link}" style="color:#f97316;text-decoration:none;font-weight:bold;">Cliquez ici \u2192</a></td></tr><tr style="background:#1f1f1f;"><td style="padding:10px;border:1px solid #333;color:#999;">Valide jusqu\u2019au</td><td style="padding:10px;border:1px solid #333;color:#ef4444;"><strong>{Expiry_Date}</strong></td></tr></table><ul><li>\u{1F4CA} Explorer les <strong>tableaux de bord</strong></li><li>\u{1F465} Tester la <strong>gestion des membres</strong></li><li>\u{1F4C5} Essayer la <strong>planification</strong></li><li>\u{1F4AC} D\u00E9couvrir la <strong>messagerie</strong></li></ul><p><em>Nous attendons vos retours !</em></p>',
+    it: '<h2 style="color:#f97316;">Benvenuto/a su {Studio_Name}! \u{1F389}</h2><p>Gentile {Studio_Owner_First_Name} {Studio_Owner_Last_Name},</p><p>Grazie per il tuo interesse. Siamo lieti di fornirti un <strong>accesso esclusivo</strong>.</p><h3>I tuoi dati di accesso</h3><table style="border-collapse:collapse;width:100%;margin:16px 0;"><tr style="background:#1f1f1f;"><td style="padding:10px;border:1px solid #333;color:#999;width:40%;">Email per l\u2019accesso</td><td style="padding:10px;border:1px solid #333;color:#fff;"><strong>{Email_For_Access}</strong></td></tr><tr><td style="padding:10px;border:1px solid #333;color:#999;">Link di accesso</td><td style="padding:10px;border:1px solid #333;"><a href="{Access_Link}" style="color:#f97316;text-decoration:none;font-weight:bold;">Clicca qui \u2192</a></td></tr><tr style="background:#1f1f1f;"><td style="padding:10px;border:1px solid #333;color:#999;">Valido fino al</td><td style="padding:10px;border:1px solid #333;color:#ef4444;"><strong>{Expiry_Date}</strong></td></tr></table><ul><li>\u{1F4CA} Esplorare le <strong>dashboard</strong></li><li>\u{1F465} Testare la <strong>gestione membri</strong></li><li>\u{1F4C5} Provare la <strong>pianificazione</strong></li><li>\u{1F4AC} Sperimentare la <strong>messaggistica</strong></li></ul><p><em>Non vediamo l\u2019ora del tuo feedback!</em></p>',
+    es: '<h2 style="color:#f97316;">\u00A1Bienvenido/a a {Studio_Name}! \u{1F389}</h2><p>Estimado/a {Studio_Owner_First_Name} {Studio_Owner_Last_Name},</p><p>Gracias por tu inter\u00E9s. Nos complace ofrecerte un <strong>acceso exclusivo</strong>.</p><h3>Tus datos de acceso</h3><table style="border-collapse:collapse;width:100%;margin:16px 0;"><tr style="background:#1f1f1f;"><td style="padding:10px;border:1px solid #333;color:#999;width:40%;">Email de acceso</td><td style="padding:10px;border:1px solid #333;color:#fff;"><strong>{Email_For_Access}</strong></td></tr><tr><td style="padding:10px;border:1px solid #333;color:#999;">Enlace de acceso</td><td style="padding:10px;border:1px solid #333;"><a href="{Access_Link}" style="color:#f97316;text-decoration:none;font-weight:bold;">Haz clic aqu\u00ED \u2192</a></td></tr><tr style="background:#1f1f1f;"><td style="padding:10px;border:1px solid #333;color:#999;">V\u00E1lido hasta</td><td style="padding:10px;border:1px solid #333;color:#ef4444;"><strong>{Expiry_Date}</strong></td></tr></table><ul><li>\u{1F4CA} Explorar los <strong>paneles de an\u00E1lisis</strong></li><li>\u{1F465} Probar la <strong>gesti\u00F3n de miembros</strong></li><li>\u{1F4C5} Probar la <strong>programaci\u00F3n</strong></li><li>\u{1F4AC} Experimentar la <strong>mensajer\u00EDa</strong></li></ul><p><em>\u00A1Esperamos tus comentarios!</em></p>',
   },
   expiryDays: 7,
 };
@@ -162,7 +162,7 @@ export const CONFIGURATION_NAV_ITEMS = [
     label: "Communication",
     iconName: "Mail",
     sections: [
-      { id: "demo-email", label: "Demo Access Email" },
+      { id: "demo-email", label: "Access Email" },
       { id: "registration-email", label: "Registration Email" },
       { id: "email-signature", label: "Email Signature" },
       { id: "smtp-setup", label: "SMTP Setup" },
@@ -175,15 +175,15 @@ export const CONFIGURATION_NAV_ITEMS = [
     sections: [{ id: "version-history", label: "Version History" }],
   },
   {
-    id: "demo-access",
-    label: "Demo Access",
+    id: "access",
+    label: "Access",
     iconName: "Shield",
     sections: [{ id: "demo-templates", label: "Templates" }],
   },
 ];
 
 // ============================================
-// Demo Access - Menu Items & Default Templates
+// Access - Menu Items & Default Templates
 // ============================================
 export const DEMO_MENU_ITEMS = [
   { key: "my-area", label: "My Area" },
@@ -213,7 +213,7 @@ export const DEMO_MENU_ITEMS = [
 export const DEFAULT_DEMO_TEMPLATES = [
   {
     id: "basic",
-    name: "Basic Demo",
+    name: "Basic",
     description: "Limited access with core features",
     color: "#10b981",
     permissions: Object.fromEntries(
@@ -225,7 +225,7 @@ export const DEFAULT_DEMO_TEMPLATES = [
   },
   {
     id: "standard",
-    name: "Standard Demo",
+    name: "Standard",
     description: "Full access with some restrictions",
     color: "#3b82f6",
     permissions: Object.fromEntries(
@@ -237,7 +237,7 @@ export const DEFAULT_DEMO_TEMPLATES = [
   },
   {
     id: "premium",
-    name: "Premium Demo",
+    name: "Premium",
     description: "Complete platform access",
     color: "#f59e0b",
     permissions: Object.fromEntries(DEMO_MENU_ITEMS.map((m) => [m.key, true])),

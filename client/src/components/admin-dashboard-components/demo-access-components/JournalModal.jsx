@@ -14,7 +14,7 @@ const JournalModal = ({ isOpen, onClose, demo }) => {
               <IoIosJournal size={24} className="text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white">Demo Activity Journal</h2>
+              <h2 className="text-xl font-bold text-white">Activity Journal</h2>
               <p className="text-gray-400 text-sm mt-1">{demo.config.studioName}</p>
             </div>
           </div>

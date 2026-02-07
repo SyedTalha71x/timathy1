@@ -399,7 +399,7 @@ const ConfigurationPage = () => {
   })
 
   // ============================================
-  // Demo Access Templates State (from configuration-states)
+  // Access Templates State (from configuration-states)
   // ============================================
   const [demoTemplates, setDemoTemplates] = useState([...DEFAULT_DEMO_TEMPLATES])
   const [editingTemplate, setEditingTemplate] = useState(null)
@@ -646,7 +646,7 @@ const ConfigurationPage = () => {
   }
 
   // ============================================
-  // Demo Template Handlers
+  // Access Template Handlers
   // ============================================
   const handleAddDemoTemplate = () => {
     const newTemplate = {
@@ -1268,7 +1268,7 @@ const ConfigurationPage = () => {
       case "demo-email":
         return (
           <div className="space-y-6">
-            <SectionHeader title="Demo Access Email" description="Email sent when granting demo access (multi-language)" />
+            <SectionHeader title="Access Email" description="Email sent when granting access (multi-language)" />
             
             <div className="mb-4">
               <LanguageTabs
@@ -1284,7 +1284,7 @@ const ConfigurationPage = () => {
                   label="Email Subject"
                   value={demoEmail.subject?.[demoEmailLang] || ""}
                   onChange={(v) => setDemoEmail({ ...demoEmail, subject: { ...demoEmail.subject, [demoEmailLang]: v } })}
-                  placeholder="Your Demo Access"
+                  placeholder="Your Access Details"
                 />
 
                 <div>
@@ -1328,13 +1328,13 @@ const ConfigurationPage = () => {
                 </div>
 
                 <NumberInput
-                  label="Demo Link Expiry"
+                  label="Access Link Expiry"
                   value={demoEmail.expiryDays}
                   onChange={(v) => setDemoEmail({ ...demoEmail, expiryDays: v })}
                   min={1}
                   max={30}
                   suffix="days"
-                  helpText="Number of days until the demo access link expires"
+                  helpText="Number of days until the access link expires"
                 />
 
               </div>
@@ -1361,7 +1361,7 @@ const ConfigurationPage = () => {
                   label="Email Subject"
                   value={registrationEmail.subject?.[registrationEmailLang] || ""}
                   onChange={(v) => setRegistrationEmail({ ...registrationEmail, subject: { ...registrationEmail.subject, [registrationEmailLang]: v } })}
-                  placeholder="Welcome – Complete Your Registration"
+                  placeholder="Welcome â€“ Complete Your Registration"
                 />
 
                 <div>
@@ -1488,7 +1488,7 @@ const ConfigurationPage = () => {
                       type="password"
                       value={smtpConfig.smtpPass}
                       onChange={(e) => setSmtpConfig({ ...smtpConfig, smtpPass: e.target.value })}
-                      placeholder="ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¢"
+                      placeholder="ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â¢"
                       className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
                     />
                   </div>
@@ -1665,14 +1665,14 @@ const ConfigurationPage = () => {
         )
 
       // ========================
-      // DEMO ACCESS SECTIONS
+      // ACCESS TEMPLATES SECTIONS
       // ========================
       case "demo-templates":
         return (
           <div className="space-y-6">
             <SectionHeader
-              title="Demo Access Templates"
-              description="Create and manage permission templates for demo access"
+              title="Access Templates"
+              description="Create and manage permission templates for user access"
               action={
                 <button
                   onClick={handleAddDemoTemplate}
@@ -1700,7 +1700,7 @@ const ConfigurationPage = () => {
                 <div className="text-center py-8 text-gray-400">
                   <Shield className="w-12 h-12 mx-auto mb-3 opacity-50" />
                   <p>No templates yet</p>
-                  <p className="text-sm mt-1">Create your first demo access template</p>
+                  <p className="text-sm mt-1">Create your first access template</p>
                 </div>
               </SettingsCard>
             ) : (

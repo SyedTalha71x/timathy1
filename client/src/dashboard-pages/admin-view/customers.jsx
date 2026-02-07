@@ -23,6 +23,7 @@
     Filter,
     BadgeDollarSign,
     FileText,
+    Shield,
   } from "lucide-react"
   import { BsPersonWorkspace } from "react-icons/bs";
   import { HiOutlineUsers } from "react-icons/hi2";
@@ -47,7 +48,7 @@
     studioStaffData,
     studiostaffHistoryNew,
     studioStatsData,
-  } from "../../utils/admin-panel-states/states"
+  } from "../../utils/admin-panel-states/customers-states"
 
   import DefaultStudioImage from "../../../public/gray-avatar-fotor-20250912192528.png"
   import toast, { Toaster } from "react-hot-toast"
@@ -87,7 +88,22 @@
   import { AddLeadModal } from "../../components/admin-dashboard-components/studios-modal/lead-components/add-lead-modal";
   import { ViewLeadModal } from "../../components/admin-dashboard-components/studios-modal/lead-components/view-lead-details";
   import { EditLeadModal } from "../../components/admin-dashboard-components/studios-modal/lead-components/edit-lead-modal";
-  import { availableMembersLeadsMain, memberRelationsMainData } from "../../utils/studio-states";
+  import { availableMembersLeadsMain, memberRelationsMainData } from "../../utils/studio-states"
+  import {
+    DEFAULT_EDIT_FORM,
+    DEFAULT_FRANCHISE_FORM,
+    DEFAULT_MEMBER_EDIT_FORM,
+    DEFAULT_TEMP_MEMBER_FORM,
+    DEFAULT_NEW_RELATION,
+    AVAILABLE_TRAINING_PLANS,
+    DEFAULT_MEMBER_CONTINGENT,
+    DEFAULT_BILLING_PERIOD,
+    STUDIO_SORT_OPTIONS,
+    FRANCHISE_SORT_OPTIONS,
+    DEFAULT_LEAD_SOURCES,
+    RELATION_OPTIONS,
+    ACCESS_ROLE_COLORS,
+  } from "../../utils/admin-panel-states/customers-states";
   import EditStudioOptionsModal from "../../components/admin-dashboard-components/studios-modal/edit-studio-options-modal";
   import { useNavigate } from "react-router-dom";
   import CreateTempMemberModal from "../../components/admin-dashboard-components/studios-modal/members-component/create-temporary-member-modal";
@@ -95,7 +111,7 @@
   import { LeadSpecialNoteIcon } from "../../components/admin-dashboard-components/shared/special-note/shared-special-note-icon";
   import StudioDocumentManagementModal from "../../components/admin-dashboard-components/shared/StudioDocumentManagementModal";
 
-  // â”€â”€â”€ Reusable StatusTag (matching members.jsx) â”€â”€â”€
+  // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Reusable StatusTag (matching members.jsx) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
   const StatusTag = ({ isActive, isArchived, compact = false }) => {
     const getColor = () => {
       if (isArchived) return 'bg-red-600';
@@ -121,6 +137,44 @@
     );
   };
 
+  // Initials Avatar Component - matching members.jsx pattern
+  const InitialsAvatar = ({ name, size = "md", variant = "orange", className = "" }) => {
+    const getInitials = () => {
+      if (!name) return "?"
+      const words = name.trim().split(/\s+/)
+      if (words.length >= 2) return `${words[0].charAt(0)}${words[1].charAt(0)}`.toUpperCase()
+      return words[0].charAt(0).toUpperCase()
+    }
+
+    const sizeClasses = {
+      sm: "w-9 h-9 text-sm",
+      md: "w-11 h-11 text-base",
+      lg: "w-12 h-12 text-lg",
+    }
+
+    const variantClasses = {
+      orange: "bg-orange-500",
+      blue: "bg-blue-600",
+    }
+
+    return (
+      <div
+        className={`${variantClasses[variant] || variantClasses.orange} rounded-xl flex items-center justify-center text-white font-semibold flex-shrink-0 ${sizeClasses[size]} ${className}`}
+        style={{ fontFamily: 'ui-sans-serif, system-ui, sans-serif' }}
+      >
+        {getInitials()}
+      </div>
+    )
+  };
+
+  // Helper: check if entity has a real custom image (not empty, not default placeholder)
+  const hasCustomImage = (imageUrl) => {
+    if (!imageUrl) return false
+    if (imageUrl === DefaultStudioImage) return false
+    if (imageUrl.includes("gray-avatar")) return false
+    return true
+  }
+
   export default function Studios() {
     const navigate = useNavigate();
 
@@ -132,11 +186,19 @@
     const [unassignedStudioSearchQuery, setUnassignedStudioSearchQuery] = useState("")
     const [filterStatus, setFilterStatus] = useState("all")
 
-    // â”€â”€â”€ View controls (matching members.jsx) â”€â”€â”€
+    // ——— Chip-based search filters (matching members.jsx) ———
+    const [studioFilters, setStudioFilters] = useState([])
+    // [{ itemId: number, itemName: string }, ...]
+    const [franchiseFilters, setFranchiseFilters] = useState([])
+    const [showSearchDropdown, setShowSearchDropdown] = useState(false)
+    const searchDropdownRef = useRef(null)
+    const searchInputRef = useRef(null)
+
+    // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ View controls (matching members.jsx) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     const [viewMode, setViewMode] = useState("studios")
     const [expandedMobileRowId, setExpandedMobileRowId] = useState(null)
 
-    // â”€â”€â”€ Sort controls (matching members.jsx) â”€â”€â”€
+    // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Sort controls (matching members.jsx) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     const [sortBy, setSortBy] = useState("alphabetical")
     const [sortDirection, setSortDirection] = useState("asc")
     const [showSortDropdown, setShowSortDropdown] = useState(false)
@@ -144,7 +206,7 @@
     const sortDropdownRef = useRef(null)
     const mobileSortDropdownRef = useRef(null)
 
-    // â”€â”€â”€ Filter controls (matching members.jsx) â”€â”€â”€
+    // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Filter controls (matching members.jsx) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     const [filtersExpanded, setFiltersExpanded] = useState(false)
 
     const [isCreateFranchiseModalOpen, setIsCreateFranchiseModalOpen] = useState(false)
@@ -169,9 +231,7 @@
 
     const [isEditMemberModalOpen, setIsEditMemberModalOpen] = useState(false)
     const [selectedMemberForEdit, setSelectedMemberForEdit] = useState(null)
-    const [memberEditForm, setMemberEditForm] = useState({
-      name: "", email: "", phone: "", membershipType: "", joinDate: "", status: "active",
-    })
+    const [memberEditForm, setMemberEditForm] = useState({ ...DEFAULT_MEMBER_EDIT_FORM })
 
     const [isEditOptionsModalOpen, setIsEditOptionsModalOpen] = useState(false)
 
@@ -185,42 +245,9 @@
     const [financesPeriod, setFinancesPeriod] = useState("month")
     const [showPassword, setShowPassword] = useState({})
 
-    const [editForm, setEditForm] = useState({
-      name: "", email: "", phone: "", street: "", zipCode: "", city: "", country: "", website: "", about: "",
-      note: "", noteStartDate: "", noteEndDate: "", noteImportance: "unimportant", ownerName: "",
-      openingHours: { monday: "", tuesday: "", wednesday: "", thursday: "", friday: "", saturday: "", sunday: "" },
-      closingDays: "", openingHoursList: [], closingDaysList: [], logoUrl: "", logoFile: null,
-      maxCapacity: 10, appointmentTypes: [],
-      trialTraining: { name: "Trial Training", duration: 60, capacity: 1, color: "#1890ff" },
-      contractTypes: [],
-      contractSections: [
-        { title: "Personal Information", content: "", editable: false, requiresAgreement: true },
-        { title: "Contract Terms", content: "", editable: false, requiresAgreement: true },
-      ],
-      contractPauseReasons: [{ name: "Vacation", maxDays: 30 }, { name: "Medical", maxDays: 90 }],
-      noticePeriod: 30, extensionPeriod: 12, allowMemberSelfCancellation: false,
-      autoArchiveDuration: 30, emailNotifications: true, chatNotifications: true,
-      studioChatNotifications: true, memberChatNotifications: true,
-      emailSignature: "Best regards,\n{Studio_Name} Team",
-      appointmentNotifications: [
-        { type: "booking", title: "Appointment Confirmation", message: "Hello {Member_Name}, your {Appointment_Type} has been booked for {Booked_Time}.", sendVia: ["email", "platform"], enabled: true },
-        { type: "cancellation", title: "Appointment Cancellation", message: "Hello {Member_Name}, your {Appointment_Type} scheduled for {Booked_Time} has been cancelled.", sendVia: ["email", "platform"], enabled: true },
-        { type: "rescheduled", title: "Appointment Rescheduled", message: "Hello {Member_Name}, your {Appointment_Type} has been rescheduled to {Booked_Time}.", sendVia: ["email", "platform"], enabled: true },
-      ],
-      broadcastMessages: [],
-      emailConfig: { smtpServer: "", smtpPort: 587, emailAddress: "", password: "", useSSL: false, senderName: "", smtpUser: "", smtpPass: "" },
-      birthdayMessages: { enabled: false, subject: "Happy Birthday from {Studio_Name}", message: "Dear {Member_Name},\nWishing you a wonderful birthday!", sendVia: ["email"], sendTime: "09:00" },
-      appearance: { theme: "dark", primaryColor: "#FF843E", secondaryColor: "#1890ff", allowUserThemeToggle: true },
-      roles: [], permissionTemplates: [], leadSources: [], tags: [],
-      currency: "EUR", vatRates: [{ name: "Standard", rate: 19 }, { name: "Reduced", rate: 7 }],
-      additionalContractDocuments: [], additionalDocs: [],
-    })
+    const [editForm, setEditForm] = useState({ ...DEFAULT_EDIT_FORM })
 
-    const [franchiseForm, setFranchiseForm] = useState({
-      name: "", email: "", phone: "", street: "", zipCode: "", city: "", website: "", about: "",
-      ownerFirstName: "", ownerLastName: "", country: "", specialNote: "", noteImportance: "unimportant",
-      noteStartDate: "", noteEndDate: "", loginEmail: "", loginPassword: "", confirmPassword: "", logo: null,
-    })
+    const [franchiseForm, setFranchiseForm] = useState({ ...DEFAULT_FRANCHISE_FORM })
 
     const [franchises, setFranchises] = useState(FranchiseData)
     const [studioStats, setStudioStats] = useState(studioStatsData)
@@ -250,29 +277,17 @@
     const [isCreateTempMemberModalOpen, setIsCreateTempMemberModalOpen] = useState(false)
     const [tempMemberModalTab, setTempMemberModalTab] = useState("details")
     const [editingRelationsMain, setEditingRelationsMain] = useState(false)
-    const [newRelationMain, setNewRelationMain] = useState({ name: "", relation: "", category: "family", type: "manual", selectedMemberId: null })
+    const [newRelationMain, setNewRelationMain] = useState({ ...DEFAULT_NEW_RELATION })
 
-    const [tempMemberForm, setTempMemberForm] = useState({
-      img: "", firstName: "", lastName: "", email: "", phone: "", gender: "", country: "", street: "",
-      zipCode: "", city: "", dateOfBirth: "", about: "", note: "", noteImportance: "unimportant",
-      noteStartDate: "", noteEndDate: "", autoArchivePeriod: 4,
-      relations: { family: [], friendship: [], relationship: [], work: [], other: [] },
-    })
+    const [tempMemberForm, setTempMemberForm] = useState({ ...DEFAULT_TEMP_MEMBER_FORM })
 
     const [showTrainingPlansModalMain, setShowTrainingPlansModalMain] = useState(false)
     const [memberTrainingPlansMain, setMemberTrainingPlansMain] = useState({})
-    const [availableTrainingPlansMain, setAvailableTrainingPlansMain] = useState([
-      { id: 1, name: "Beginner Strength Program", description: "8-week beginner strength training program", duration: "8 weeks", difficulty: "Beginner", assignedDate: "2024-01-15" },
-      { id: 2, name: "Advanced HIIT Program", description: "High-intensity interval training for advanced users", duration: "6 weeks", difficulty: "Advanced", assignedDate: "2024-01-20" },
-      { id: 3, name: "Cardio Endurance Plan", description: "12-week cardiovascular endurance program", duration: "12 weeks", difficulty: "Intermediate", assignedDate: "2024-02-01" },
-    ])
+    const [availableTrainingPlansMain, setAvailableTrainingPlansMain] = useState([...AVAILABLE_TRAINING_PLANS])
 
     const [isNotifyMemberOpenMain, setIsNotifyMemberOpenMain] = useState(false)
     const [notifyActionMain, setNotifyActionMain] = useState("")
-    const [memberContingent, setMemberContingent] = useState({
-      1: { current: { used: 2, total: 7 }, future: { "05.14.25 - 05.18.2025": { used: 0, total: 8 }, "06.14.25 - 06.18.2025": { used: 0, total: 8 } } },
-      2: { current: { used: 1, total: 8 }, future: { "05.14.25 - 05.18.2025": { used: 0, total: 8 }, "06.14.25 - 06.18.2025": { used: 0, total: 8 } } },
-    })
+    const [memberContingent, setMemberContingent] = useState({ ...DEFAULT_MEMBER_CONTINGENT })
 
     const calculateAge = (dateOfBirth) => {
       if (!dateOfBirth) return 'Unknown';
@@ -285,7 +300,7 @@
 
     const [showContingentModalMain, setShowContingentModalMain] = useState(false)
     const [tempContingentMain, setTempContingentMain] = useState({ used: 0, total: 0 })
-    const [currentBillingPeriodMain, setCurrentBillingPeriodMain] = useState("04.14.25 - 04.18.2025")
+    const [currentBillingPeriodMain, setCurrentBillingPeriodMain] = useState(DEFAULT_BILLING_PERIOD)
     const [selectedBillingPeriodMain, setSelectedBillingPeriodMain] = useState("current")
     const [showAddBillingPeriodModalMain, setShowAddBillingPeriodModalMain] = useState(false)
     const [newBillingPeriodMain, setNewBillingPeriodMain] = useState("")
@@ -316,18 +331,19 @@
     const [selectedLead, setSelectedLead] = useState(null)
     const [leadRelations, setLeadRelations] = useState(studioLeadsRelatonData)
     const [isAddLeadModalOpen, setIsAddLeadModalOpen] = useState(false)
-    const [leadSources, setLeadSources] = useState(["Website","Referral","Social Media","Walk-in","Phone Call","Email","Event","Other"])
+    const [leadSources, setLeadSources] = useState([...DEFAULT_LEAD_SOURCES])
 
-    // â”€â”€â”€ Sort options (matching members.jsx pattern) â”€â”€â”€
-    const studioSortOptions = [{ value: "alphabetical", label: "Name" }, { value: "memberCount", label: "Members" }, { value: "staffCount", label: "Staff" }, { value: "contractCount", label: "Contracts" }, { value: "leadCount", label: "Leads" }]
-    const franchiseSortOptions = [{ value: "alphabetical", label: "Name" }, { value: "studioCount", label: "Studios" }]
-    const currentSortOptions = viewMode === "studios" ? studioSortOptions : franchiseSortOptions
+    // Access role mapping for studios (from Access Templates)
+    const getStudioAccessRole = (studio) => studio.accessRole || ["Premium", "Standard", "Basic"][studio.id % 3]
+
+    // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Sort options (matching members.jsx pattern) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    const currentSortOptions = viewMode === "studios" ? STUDIO_SORT_OPTIONS : FRANCHISE_SORT_OPTIONS
     const currentSortLabel = currentSortOptions.find((opt) => opt.value === sortBy)?.label || "Name"
     const getSortIcon = () => sortDirection === "asc" ? <ArrowUp size={14} className="text-white" /> : <ArrowDown size={14} className="text-white" />
     const handleSortOptionClick = (newSortBy) => { if (sortBy === newSortBy) { setSortDirection(sortDirection === "asc" ? "desc" : "asc") } else { setSortBy(newSortBy); setSortDirection("asc") } }
     const handleMobileSortOptionClick = (newSortBy) => { handleSortOptionClick(newSortBy); setShowMobileSortDropdown(false) }
 
-    // â”€â”€â”€ All handlers (preserved from original) â”€â”€â”€
+    // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ All handlers (preserved from original) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
     const handleOpenLeadsModal = (studio) => { setSelectedStudioForModal(studio); setIsLeadsModalOpen(true) }
     const getFilteredLeads = () => { if (!selectedStudioForModal || !studioLeads[selectedStudioForModal.id]) return []; return studioLeads[selectedStudioForModal.id].filter((lead) => `${lead.firstName} ${lead.surname}`.toLowerCase().includes(leadSearchQuery.toLowerCase()) || lead.email.toLowerCase().includes(leadSearchQuery.toLowerCase()) || lead.phoneNumber.includes(leadSearchQuery) || lead.about?.toLowerCase().includes(leadSearchQuery.toLowerCase())) }
     const handleViewLead = (lead) => { setSelectedLead(lead); setIsViewLeadModalOpen(true) }
@@ -348,6 +364,7 @@
       const handleClickOutside = (event) => {
         if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target)) setShowSortDropdown(false)
         if (mobileSortDropdownRef.current && !mobileSortDropdownRef.current.contains(event.target)) setShowMobileSortDropdown(false)
+        if (searchDropdownRef.current && !searchDropdownRef.current.contains(event.target)) setShowSearchDropdown(false)
       }
       document.addEventListener("mousedown", handleClickOutside)
       return () => document.removeEventListener("mousedown", handleClickOutside)
@@ -356,6 +373,45 @@
     useEffect(() => { if (!showSortDropdown && !showMobileSortDropdown) return; const h = () => { setShowSortDropdown(false); setShowMobileSortDropdown(false) }; window.addEventListener('scroll', h, { capture: true, passive: true }); return () => window.removeEventListener('scroll', h, { capture: true, passive: true }) }, [showSortDropdown, showMobileSortDropdown])
     useEffect(() => { if (!expandedMobileRowId) return; const h = () => setExpandedMobileRowId(null); window.addEventListener('scroll', h, { capture: true, passive: true }); return () => window.removeEventListener('scroll', h, { capture: true, passive: true }) }, [expandedMobileRowId])
     useEffect(() => { const h = () => setFiltersExpanded(window.innerWidth >= 768); h(); window.addEventListener('resize', h); return () => window.removeEventListener('resize', h) }, [])
+
+    // ——— Chip-based search: suggestions, select, remove, keyboard (matching members.jsx) ———
+    const getSearchSuggestions = () => {
+      const query = viewMode === "studios" ? searchQuery : franchiseSearchQuery
+      if (!query.trim()) return []
+      const q = query.toLowerCase()
+      if (viewMode === "studios") {
+        return studios.filter((s) => {
+          if (studioFilters.some(f => f.itemId === s.id)) return false
+          return s.name.toLowerCase().includes(q) || s.ownerName?.toLowerCase().includes(q) || s.email?.toLowerCase().includes(q) || s.city?.toLowerCase().includes(q) || String(s.studioNumber).includes(q)
+        }).slice(0, 6)
+      } else {
+        return franchises.filter((f) => {
+          if (franchiseFilters.some(ff => ff.itemId === f.id)) return false
+          return f.name.toLowerCase().includes(q) || `${f.ownerFirstName} ${f.ownerLastName}`.toLowerCase().includes(q) || f.email?.toLowerCase().includes(q) || f.city?.toLowerCase().includes(q)
+        }).slice(0, 6)
+      }
+    }
+
+    const handleSelectSearchItem = (item) => {
+      if (viewMode === "studios") { setStudioFilters([...studioFilters, { itemId: item.id, itemName: item.name }]); setSearchQuery("") }
+      else { setFranchiseFilters([...franchiseFilters, { itemId: item.id, itemName: item.name }]); setFranchiseSearchQuery("") }
+      setShowSearchDropdown(false)
+      searchInputRef.current?.focus()
+    }
+
+    const handleRemoveSearchFilter = (itemId) => {
+      if (viewMode === "studios") setStudioFilters(studioFilters.filter(f => f.itemId !== itemId))
+      else setFranchiseFilters(franchiseFilters.filter(f => f.itemId !== itemId))
+    }
+
+    const handleSearchKeyDown = (e) => {
+      const currentFilters = viewMode === "studios" ? studioFilters : franchiseFilters
+      const currentQuery = viewMode === "studios" ? searchQuery : franchiseSearchQuery
+      if (e.key === 'Backspace' && !currentQuery && currentFilters.length > 0) {
+        if (viewMode === "studios") setStudioFilters(studioFilters.slice(0, -1))
+        else setFranchiseFilters(franchiseFilters.slice(0, -1))
+      } else if (e.key === 'Escape') { setShowSearchDropdown(false) }
+    }
 
     const handleInputChange = (e) => { const { name, value } = e.target; setEditForm((prev) => ({ ...prev, [name]: value })) }
     const handleFranchiseInputChange = (e) => { const { name, value } = e.target; setFranchiseForm((prev) => ({ ...prev, [name]: value })) }
@@ -371,7 +427,7 @@
         setFranchises([...franchises, { id: Math.max(...franchises.map((f) => f.id), 0) + 1, ...franchiseForm, createdDate: new Date().toISOString().split("T")[0], studioCount: 0 }])
         setIsCreateFranchiseModalOpen(false); toast.success("Franchise created successfully")
       }
-      setFranchiseForm({ name: "", email: "", phone: "", street: "", zipCode: "", city: "", website: "", about: "", ownerFirstName: "", ownerLastName: "", country: "", specialNote: "", noteImportance: "unimportant", noteStartDate: "", noteEndDate: "", loginEmail: "", loginPassword: "", confirmPassword: "", logo: null })
+      setFranchiseForm({ ...DEFAULT_FRANCHISE_FORM })
     }
 
     const handleMemberEditSubmit = (e, formData) => {
@@ -388,7 +444,13 @@
     const isContractExpiringSoon = (contractEnd) => { if (!contractEnd) return false; const today = new Date(); const endDate = new Date(contractEnd); const oneMonth = new Date(); oneMonth.setMonth(today.getMonth() + 1); return endDate <= oneMonth && endDate >= today }
 
     const filteredAndSortedStudios = () => {
-      let filtered = studios.filter((s) => s.name.toLowerCase().includes(searchQuery.toLowerCase()))
+      // If chip filters are active, show only those studios
+      if (studioFilters.length > 0) {
+        const filterIds = studioFilters.map(f => f.itemId)
+        return studios.filter((s) => filterIds.includes(s.id))
+      }
+      // No live filtering while typing - list only changes when chips are selected
+      let filtered = [...studios]
       if (filterStatus === "active") filtered = filtered.filter((s) => s.isActive)
       else if (filterStatus === "archived") filtered = filtered.filter((s) => !s.isActive)
       filtered.sort((a, b) => { let c = 0; if (sortBy === "alphabetical") c = a.name.localeCompare(b.name); else if (sortBy === "memberCount") c = (studioStats[a.id]?.members || 0) - (studioStats[b.id]?.members || 0); else if (sortBy === "staffCount") c = (studioStats[a.id]?.trainers || 0) - (studioStats[b.id]?.trainers || 0); else if (sortBy === "contractCount") c = (studioStats[a.id]?.contracts || 0) - (studioStats[b.id]?.contracts || 0); else if (sortBy === "leadCount") c = (studioLeads[a.id]?.length || 0) - (studioLeads[b.id]?.length || 0); return sortDirection === "asc" ? c : -c })
@@ -396,7 +458,13 @@
     }
 
     const filteredAndSortedFranchises = () => {
-      let filtered = franchises.filter((f) => f.name.toLowerCase().includes(franchiseSearchQuery.toLowerCase()))
+      // If chip filters are active, show only those franchises
+      if (franchiseFilters.length > 0) {
+        const filterIds = franchiseFilters.map(f => f.itemId)
+        return franchises.filter((f) => filterIds.includes(f.id))
+      }
+      // No live filtering while typing
+      let filtered = [...franchises]
       if (filterStatus === "active") filtered = filtered.filter((f) => !f.isArchived)
       else if (filterStatus === "archived") filtered = filtered.filter((f) => f.isArchived)
       filtered.sort((a, b) => { let c = 0; if (sortBy === "alphabetical") c = a.name.localeCompare(b.name); else if (sortBy === "studioCount") c = getStudiosByFranchise(a.id).length - getStudiosByFranchise(b.id).length; return sortDirection === "asc" ? c : -c })
@@ -460,28 +528,28 @@
       e.preventDefault(); if (!selectedStudioForModal) return
       const newTempMember = { id: Math.max(0, ...(studioMembers[selectedStudioForModal.id] || []).map(m => m.id)) + 1, firstName: tempMemberForm.firstName, lastName: tempMemberForm.lastName, email: tempMemberForm.email, phone: tempMemberForm.phone, gender: tempMemberForm.gender, country: tempMemberForm.country, street: tempMemberForm.street, zipCode: tempMemberForm.zipCode, city: tempMemberForm.city, dateOfBirth: tempMemberForm.dateOfBirth, about: tempMemberForm.about, joinDate: new Date().toISOString().split('T')[0], status: "active", isTemporary: true, note: tempMemberForm.note, noteImportance: tempMemberForm.noteImportance, noteStartDate: tempMemberForm.noteStartDate, noteEndDate: tempMemberForm.noteEndDate, autoArchiveDate: tempMemberForm.autoArchivePeriod ? new Date(Date.now() + tempMemberForm.autoArchivePeriod * 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] : null }
       setStudioMembers(prev => ({ ...prev, [selectedStudioForModal.id]: [...(prev[selectedStudioForModal.id] || []), newTempMember] }))
-      setTempMemberForm({ img: "", firstName: "", lastName: "", email: "", phone: "", gender: "", country: "", street: "", zipCode: "", city: "", dateOfBirth: "", about: "", note: "", noteImportance: "unimportant", noteStartDate: "", noteEndDate: "", autoArchivePeriod: 4, relations: { family: [], friendship: [], relationship: [], work: [], other: [] } })
+      setTempMemberForm({ ...DEFAULT_TEMP_MEMBER_FORM })
       setTempMemberModalTab("details"); setIsCreateTempMemberModalOpen(false); toast.success("Temporary member created successfully!")
     }
 
     const handleTempMemberInputChange = (e) => { const { name, value } = e.target; setTempMemberForm(prev => ({ ...prev, [name]: value })) }
     const handleImgUpload = (e) => { const file = e.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = (ev) => { setTempMemberForm(prev => ({ ...prev, img: ev.target.result })) }; reader.readAsDataURL(file) } }
-    const relationOptionsMain = { family: ["Parent","Child","Sibling","Spouse","Grandparent","Grandchild","Cousin","Aunt/Uncle","Nephew/Niece"], friendship: ["Friend","Close Friend","Best Friend","Acquaintance"], relationship: ["Partner","FiancÃ©(e)","Girlfriend/Boyfriend","Ex-partner"], work: ["Colleague","Boss","Employee","Business Partner","Client"], other: ["Neighbor","Mentor","Teammate","Classmate","Other"] }
+    const relationOptionsMain = RELATION_OPTIONS
     const handleTrainingPlanFromOverview = (member) => { setSelectedMemberForEdit(member); setShowTrainingPlansModalMain(true) }
     const handleAssignPlanMain = (memberId, planId) => { const plan = availableTrainingPlansMain.find(p => p.id === parseInt(planId)); if (!plan) return; setMemberTrainingPlansMain(prev => ({ ...prev, [memberId]: [...(prev[memberId] || []), { ...plan, assignedDate: new Date().toISOString().split('T')[0] }] })); toast.success("Training plan assigned successfully!"); setShowTrainingPlansModalMain(false) }
     const handleRemovePlanMain = (memberId, planId) => { setMemberTrainingPlansMain(prev => ({ ...prev, [memberId]: (prev[memberId] || []).filter(p => p.id !== planId) })); toast.success("Training plan removed successfully!") }
 
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
     // RENDER
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â
     return (
       <>
         <Toaster position="top-right" toastOptions={{ duration: 2000, style: { background: "#333", color: "#fff" } }} />
 
-        <div className="flex flex-col lg:flex-row rounded-3xl bg-[#1C1C1C] transition-all duration-500 text-white relative">
+        <div className="flex flex-col lg:flex-row rounded-3xl bg-[#1C1C1C] transition-all duration-500 text-white relative select-none" onDragStart={(e) => e.preventDefault()}>
           <div className="flex-1 min-w-0 md:p-6 p-4 pb-36">
 
-            {/* â”€â”€â”€ Header (matching members.jsx) â”€â”€â”€ */}
+            {/* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Header (matching members.jsx) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */}
             <div className="flex sm:items-center justify-between mb-6 sm:mb-8 gap-4">
               <div className="flex items-center gap-3">
                 <h1 className="text-white oxanium_font text-xl md:text-2xl">
@@ -519,23 +587,106 @@
               </div>
             </div>
 
-            {/* â”€â”€â”€ Search Bar â”€â”€â”€ */}
-            <div className="mb-4">
+            {/* ——— Search Bar with Inline Filter Chips (matching members.jsx) ——— */}
+            <div className="mb-4" ref={searchDropdownRef}>
               <div className="flex gap-3">
                 <div className="relative flex-1">
-                  <div className="bg-[#141414] rounded-xl px-3 py-2 min-h-[42px] flex items-center gap-1.5 border border-[#333333] focus-within:border-[#3F74FF] transition-colors">
+                  <div
+                    className="bg-[#141414] rounded-xl px-3 py-2 min-h-[42px] flex flex-wrap items-center gap-1.5 border border-[#333333] focus-within:border-[#3F74FF] transition-colors cursor-text"
+                    onClick={() => searchInputRef.current?.focus()}
+                  >
                     <Search className="text-gray-400 flex-shrink-0" size={16} />
-                    <input type="text" placeholder={`Search ${viewMode === "studios" ? "studios" : "franchises"}...`} value={viewMode === "studios" ? searchQuery : franchiseSearchQuery} onChange={(e) => { if (viewMode === "studios") setSearchQuery(e.target.value); else setFranchiseSearchQuery(e.target.value) }} className="flex-1 min-w-[100px] bg-transparent outline-none text-sm text-white placeholder-gray-500" />
+
+                    {/* Filter Chips */}
+                    {(viewMode === "studios" ? studioFilters : franchiseFilters).map((filter) => (
+                      <div
+                        key={filter.itemId}
+                        className="flex items-center gap-1.5 bg-[#3F74FF]/20 border border-[#3F74FF]/40 rounded-lg px-2 py-1 text-sm"
+                      >
+                        <div className={`w-5 h-5 rounded flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0 ${viewMode === "studios" ? "bg-orange-500" : "bg-blue-600"}`}>
+                          {filter.itemName.split(' ')[0]?.charAt(0)}{filter.itemName.split(' ')[1]?.charAt(0) || ''}
+                        </div>
+                        <span className="text-white text-xs whitespace-nowrap">{filter.itemName}</span>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleRemoveSearchFilter(filter.itemId) }}
+                          className="p-0.5 hover:bg-[#3F74FF]/30 rounded transition-colors"
+                        >
+                          <X size={12} className="text-gray-400 hover:text-white" />
+                        </button>
+                      </div>
+                    ))}
+
+                    {/* Search Input */}
+                    <input
+                      ref={searchInputRef}
+                      type="text"
+                      placeholder={(viewMode === "studios" ? studioFilters : franchiseFilters).length > 0 ? "Add more..." : `Search ${viewMode === "studios" ? "studios" : "franchises"}...`}
+                      value={viewMode === "studios" ? searchQuery : franchiseSearchQuery}
+                      onChange={(e) => {
+                        if (viewMode === "studios") setSearchQuery(e.target.value)
+                        else setFranchiseSearchQuery(e.target.value)
+                        setShowSearchDropdown(true)
+                      }}
+                      onFocus={() => (viewMode === "studios" ? searchQuery : franchiseSearchQuery) && setShowSearchDropdown(true)}
+                      onKeyDown={handleSearchKeyDown}
+                      className="flex-1 min-w-[100px] bg-transparent outline-none text-sm text-white placeholder-gray-500"
+                    />
+
+                    {/* Clear All Button */}
+                    {(viewMode === "studios" ? studioFilters : franchiseFilters).length > 0 && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          if (viewMode === "studios") setStudioFilters([])
+                          else setFranchiseFilters([])
+                        }}
+                        className="p-1 hover:bg-gray-700 rounded-lg transition-colors flex-shrink-0"
+                        title="Clear all filters"
+                      >
+                        <X size={14} className="text-gray-400 hover:text-white" />
+                      </button>
+                    )}
                   </div>
+
+                  {/* Autocomplete Dropdown */}
+                  {showSearchDropdown && (viewMode === "studios" ? searchQuery : franchiseSearchQuery).trim() && getSearchSuggestions().length > 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a1a] border border-[#333333] rounded-xl shadow-lg z-50 overflow-hidden">
+                      {getSearchSuggestions().map((item) => (
+                        <button
+                          key={item.id}
+                          onClick={() => handleSelectSearchItem(item)}
+                          className="w-full px-3 py-2.5 flex items-center gap-3 hover:bg-[#252525] transition-colors text-left"
+                        >
+                          <InitialsAvatar name={item.name || `${item.ownerFirstName} ${item.ownerLastName}`} size="sm" variant={viewMode === "studios" ? "orange" : "blue"} className="!w-8 !h-8 !text-xs" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm text-white truncate">{item.name}</p>
+                            <p className="text-xs text-gray-500 truncate">
+                              {viewMode === "studios"
+                                ? `${item.city || ""}${item.ownerName ? ` · ${item.ownerName}` : ""}`
+                                : `${item.city || ""}${item.ownerFirstName ? ` · ${item.ownerFirstName} ${item.ownerLastName}` : ""}`
+                              }
+                            </p>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* No results message */}
+                  {showSearchDropdown && (viewMode === "studios" ? searchQuery : franchiseSearchQuery).trim() && getSearchSuggestions().length === 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a1a] border border-[#333333] rounded-xl shadow-lg z-50 p-3">
+                      <p className="text-sm text-gray-500 text-center">No {viewMode === "studios" ? "studios" : "franchises"} found</p>
+                    </div>
+                  )}
                 </div>
                 <div className="flex bg-black rounded-xl border border-[#333333] p-1">
-                  <button onClick={() => { setViewMode("studios"); setFilterStatus("all"); setSortBy("alphabetical") }} className={`px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 ${viewMode === "studios" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"}`}><Building size={16} /><span className="hidden sm:inline">Studios</span></button>
-                  <button onClick={() => { setViewMode("franchise"); setFilterStatus("all"); setSortBy("alphabetical") }} className={`px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 ${viewMode === "franchise" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"}`}><Network size={16} /><span className="hidden sm:inline">Franchise</span></button>
+                  <button onClick={() => { setViewMode("studios"); setFilterStatus("all"); setSortBy("alphabetical"); setSearchQuery(""); setFranchiseSearchQuery(""); setShowSearchDropdown(false) }} className={`px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 ${viewMode === "studios" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"}`}><Building size={16} /><span className="hidden sm:inline">Studios</span></button>
+                  <button onClick={() => { setViewMode("franchise"); setFilterStatus("all"); setSortBy("alphabetical"); setSearchQuery(""); setFranchiseSearchQuery(""); setShowSearchDropdown(false) }} className={`px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 ${viewMode === "franchise" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white"}`}><Network size={16} /><span className="hidden sm:inline">Franchise</span></button>
                 </div>
               </div>
             </div>
 
-            {/* â”€â”€â”€ Filters (matching members.jsx) â”€â”€â”€ */}
+            {/* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Filters (matching members.jsx) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */}
             <div className="mb-4 sm:mb-6">
               <div className="flex items-center justify-between mb-2">
                 <button onClick={() => setFiltersExpanded(!filtersExpanded)} className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors">
@@ -577,18 +728,19 @@
               </div>
             </div>
 
-            {/* â”€â”€â”€ Content â”€â”€â”€ */}
+            {/* Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ Content Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ */}
             <div className="open_sans_font">
               {viewMode === "studios" ? (
-                  /* â•â•â• STUDIOS LIST VIEW â•â•â• */
+                  /* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â STUDIOS LIST VIEW Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
                   <div className="bg-[#141414] rounded-xl overflow-hidden">
                     <div className="hidden lg:grid lg:grid-cols-12 gap-3 px-4 bg-[#0f0f0f] border-b border-gray-800 text-xs text-gray-500 font-medium py-3">
                       <div className="col-span-3">Studio Name</div>
                       <div className="col-span-1">No.</div>
-                      <div className="col-span-1">Owner</div>
+                      <div className="col-span-2">Owner</div>
                       <div className="col-span-1">Status</div>
-                      <div className="col-span-3">Stats</div>
-                      <div className="col-span-3 text-right">Actions</div>
+                      <div className="col-span-1">Access Role</div>
+                      <div className="col-span-2">Stats</div>
+                      <div className="col-span-2 text-right">Actions</div>
                     </div>
                     {filteredAndSortedStudios().length > 0 ? filteredAndSortedStudios().map((studio, i) => {
                       const total = filteredAndSortedStudios().length
@@ -603,7 +755,11 @@
                                 size="md"
                                 position="relative"
                               />
-                              <img src={studio.image || DefaultStudioImage} className="h-12 w-12 rounded-lg flex-shrink-0 object-cover" alt="" />
+                              {hasCustomImage(studio.image) ? (
+                                <img src={studio.image} className="h-12 w-12 rounded-xl flex-shrink-0 object-cover pointer-events-none" alt="" draggable={false} />
+                              ) : (
+                                <InitialsAvatar name={studio.name} size="lg" variant="orange" />
+                              )}
                               <div className="min-w-0 flex-1">
                                 <span className="text-white font-medium text-base truncate block">{studio.name}</span>
                                 <div className="flex items-center gap-1 mt-0.5"><MapPin size={12} className="text-gray-500 flex-shrink-0" /><span className="text-sm text-gray-500 truncate">{studio.city}, {studio.zipCode}</span></div>
@@ -612,22 +768,29 @@
                             <div className="col-span-1 flex items-center">
                               <span className="text-white text-sm font-mono">{String(studio.studioNumber || studio.id).padStart(5, '0')}</span>
                             </div>
-                            <div className="col-span-1">
+                            <div className="col-span-2">
                               <span className="text-sm text-gray-400 truncate block">{studio.ownerName || '-'}</span>
                             </div>
                             <div className="col-span-1"><StatusTag isActive={studio.isActive} /></div>
-                            <div className="col-span-3 flex items-center gap-1.5">
-                              <button onClick={() => handleOpenMembersModal(studio)} className="text-sm text-white hover:text-gray-300 inline-flex items-center gap-1"><HiOutlineUsers size={14} />{studioStats[studio.id]?.members || 0}</button>
-                              <div className="w-px h-4 bg-gray-700/50" />
-                              <button onClick={() => handleOpenStaffsModal(studio)} className="text-sm text-white hover:text-gray-300 inline-flex items-center gap-1"><BsPersonWorkspace size={14} />{studioStats[studio.id]?.trainers || 0}</button>
-                              <div className="w-px h-4 bg-gray-700/50" />
-                              <button onClick={() => handleOpenContractsModal(studio)} className="text-sm text-white hover:text-gray-300 inline-flex items-center gap-1"><RiContractLine size={14} />{studioStats[studio.id]?.contracts || 0}</button>
-                              <div className="w-px h-4 bg-gray-700/50" />
-                              <button onClick={() => handleOpenLeadsModal(studio)} className="text-sm text-white hover:text-gray-300 inline-flex items-center gap-1"><FaPersonRays size={14} />{studioLeads[studio.id]?.length || 0}</button>
-                              <div className="w-px h-4 bg-gray-700/50" />
-                              <button onClick={() => { setSelectedStudioForModal(studio); setisFinancesModalOpen(true) }} className="text-sm text-white hover:text-gray-300 inline-flex items-center gap-1"><BadgeDollarSign size={14} /></button>
+                            <div className="col-span-1">
+                              {(() => { const role = getStudioAccessRole(studio); const colors = ACCESS_ROLE_COLORS[role] || ACCESS_ROLE_COLORS.Basic; return (
+                                <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium border ${colors}`}>
+                                  <Shield size={11} className="flex-shrink-0" />{role}
+                                </span>
+                              ) })()}
                             </div>
-                            <div className="col-span-3 flex items-center justify-end gap-0.5">
+                            <div className="col-span-2 flex items-center gap-1.5">
+                              <button onClick={() => handleOpenMembersModal(studio)} className="text-sm text-white hover:text-gray-300 inline-flex items-center gap-1 hover:scale-110 transition-transform"><HiOutlineUsers size={14} />{studioStats[studio.id]?.members || 0}</button>
+                              <div className="w-px h-4 bg-gray-700/50" />
+                              <button onClick={() => handleOpenStaffsModal(studio)} className="text-sm text-white hover:text-gray-300 inline-flex items-center gap-1 hover:scale-110 transition-transform"><BsPersonWorkspace size={14} />{studioStats[studio.id]?.trainers || 0}</button>
+                              <div className="w-px h-4 bg-gray-700/50" />
+                              <button onClick={() => handleOpenContractsModal(studio)} className="text-sm text-white hover:text-gray-300 inline-flex items-center gap-1 hover:scale-110 transition-transform"><RiContractLine size={14} />{studioStats[studio.id]?.contracts || 0}</button>
+                              <div className="w-px h-4 bg-gray-700/50" />
+                              <button onClick={() => handleOpenLeadsModal(studio)} className="text-sm text-white hover:text-gray-300 inline-flex items-center gap-1 hover:scale-110 transition-transform"><FaPersonRays size={14} />{studioLeads[studio.id]?.length || 0}</button>
+                              <div className="w-px h-4 bg-gray-700/50" />
+                              <button onClick={() => { setSelectedStudioForModal(studio); setisFinancesModalOpen(true) }} className="text-sm text-white hover:text-gray-300 inline-flex items-center gap-1 hover:scale-110 transition-transform"><BadgeDollarSign size={14} /></button>
+                            </div>
+                            <div className="col-span-2 flex items-center justify-end gap-0.5">
                               <button onClick={() => { setSelectedStudioForModal(studio); setIsStudioDocumentModalOpen(true) }} className="p-2 text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-colors" title="Documents"><FileText size={18} /></button>
                               <button onClick={() => { setSelectedStudio(studio); setShowHistory(true) }} className="p-2 text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-colors" title="History"><HistoryIcon size={18} /></button>
                               <div className="w-px h-5 bg-gray-700/50 mx-1" />
@@ -645,13 +808,17 @@
                                   size="sm"
                                   position="relative"
                                 />
-                                <img src={studio.image || DefaultStudioImage} className="w-11 h-11 rounded-lg object-cover flex-shrink-0" alt="" />
+                                {hasCustomImage(studio.image) ? (
+                                  <img src={studio.image} className="w-11 h-11 rounded-xl object-cover flex-shrink-0 pointer-events-none" alt="" draggable={false} />
+                                ) : (
+                                  <InitialsAvatar name={studio.name} size="md" variant="orange" />
+                                )}
                                 <div className="flex-1 min-w-0">
                                   <div className="flex items-center gap-2">
                                     <span className="text-white font-medium text-base truncate">{studio.name}</span>
                                     <span className="text-gray-500 text-xs font-mono flex-shrink-0">#{String(studio.studioNumber || studio.id).padStart(5, '0')}</span>
                                   </div>
-                                  <div className="flex items-center gap-2 mt-0.5 flex-wrap"><StatusTag isActive={studio.isActive} compact={true} /><span className="text-xs text-gray-500">{studio.city}</span></div>
+                                  <div className="flex items-center gap-2 mt-0.5 flex-wrap"><StatusTag isActive={studio.isActive} compact={true} />{(() => { const role = getStudioAccessRole(studio); const colors = ACCESS_ROLE_COLORS[role] || ACCESS_ROLE_COLORS.Basic; return (<span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium border ${colors}`}><Shield size={9} />{role}</span>) })()}<span className="text-xs text-gray-500">{studio.city}</span></div>
                                 </div>
                                 <ChevronDown size={18} className={`text-gray-500 transition-transform duration-200 flex-shrink-0 ${expandedMobileRowId === studio.id ? 'rotate-180' : ''}`} />
                               </div>
@@ -660,13 +827,13 @@
                               <div className="px-3 pb-3 pt-1">
                                 <div className="bg-[#0f0f0f] rounded-xl p-2">
                                   <div className="grid grid-cols-4 gap-1 mb-1">
-                                    <button onClick={(e) => { e.stopPropagation(); handleOpenMembersModal(studio) }} className="flex flex-col items-center gap-1 p-2 text-white hover:text-gray-300 hover:bg-white/5 rounded-lg transition-colors"><HiOutlineUsers size={18} /><span className="text-[10px]">{studioStats[studio.id]?.members || 0} Members</span></button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleOpenStaffsModal(studio) }} className="flex flex-col items-center gap-1 p-2 text-white hover:text-gray-300 hover:bg-white/5 rounded-lg transition-colors"><BsPersonWorkspace size={18} /><span className="text-[10px]">{studioStats[studio.id]?.trainers || 0} Staff</span></button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleOpenContractsModal(studio) }} className="flex flex-col items-center gap-1 p-2 text-white hover:text-gray-300 hover:bg-white/5 rounded-lg transition-colors"><RiContractLine size={18} /><span className="text-[10px]">{studioStats[studio.id]?.contracts || 0} Contracts</span></button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleOpenLeadsModal(studio) }} className="flex flex-col items-center gap-1 p-2 text-white hover:text-gray-300 hover:bg-white/5 rounded-lg transition-colors"><FaPersonRays size={18} /><span className="text-[10px]">{studioLeads[studio.id]?.length || 0} Leads</span></button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleOpenMembersModal(studio) }} className="flex flex-col items-center gap-1 p-2 text-white hover:text-gray-300 hover:bg-white/5 rounded-lg transition-all hover:scale-105"><HiOutlineUsers size={18} /><span className="text-[10px]">{studioStats[studio.id]?.members || 0} Members</span></button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleOpenStaffsModal(studio) }} className="flex flex-col items-center gap-1 p-2 text-white hover:text-gray-300 hover:bg-white/5 rounded-lg transition-all hover:scale-105"><BsPersonWorkspace size={18} /><span className="text-[10px]">{studioStats[studio.id]?.trainers || 0} Staff</span></button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleOpenContractsModal(studio) }} className="flex flex-col items-center gap-1 p-2 text-white hover:text-gray-300 hover:bg-white/5 rounded-lg transition-all hover:scale-105"><RiContractLine size={18} /><span className="text-[10px]">{studioStats[studio.id]?.contracts || 0} Contracts</span></button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleOpenLeadsModal(studio) }} className="flex flex-col items-center gap-1 p-2 text-white hover:text-gray-300 hover:bg-white/5 rounded-lg transition-all hover:scale-105"><FaPersonRays size={18} /><span className="text-[10px]">{studioLeads[studio.id]?.length || 0} Leads</span></button>
                                   </div>
                                   <div className="grid grid-cols-5 gap-1">
-                                    <button onClick={(e) => { e.stopPropagation(); setSelectedStudioForModal(studio); setisFinancesModalOpen(true) }} className="flex flex-col items-center gap-1 p-2 text-white hover:text-gray-300 hover:bg-white/5 rounded-lg transition-colors"><BadgeDollarSign size={18} /><span className="text-[10px]">Finances</span></button>
+                                    <button onClick={(e) => { e.stopPropagation(); setSelectedStudioForModal(studio); setisFinancesModalOpen(true) }} className="flex flex-col items-center gap-1 p-2 text-white hover:text-gray-300 hover:bg-white/5 rounded-lg transition-all hover:scale-105"><BadgeDollarSign size={18} /><span className="text-[10px]">Finances</span></button>
                                     <button onClick={(e) => { e.stopPropagation(); setSelectedStudioForModal(studio); setIsStudioDocumentModalOpen(true) }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"><FileText size={18} /><span className="text-[10px]">Docs</span></button>
                                     <button onClick={(e) => { e.stopPropagation(); setSelectedStudio(studio); setShowHistory(true) }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"><HistoryIcon size={18} /><span className="text-[10px]">History</span></button>
                                     <button onClick={(e) => { e.stopPropagation(); handleViewDetails(studio) }} className="flex flex-col items-center gap-1 p-2 text-blue-400 hover:text-blue-300 hover:bg-white/5 rounded-lg transition-colors"><Eye size={18} /><span className="text-[10px]">Details</span></button>
@@ -683,7 +850,7 @@
                     )}
                   </div>
               ) : (
-                /* â•â•â• FRANCHISES VIEW â•â•â• */
+                /* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â FRANCHISES VIEW Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */
                   <div className="bg-[#141414] rounded-xl overflow-hidden">
                     <div className={`hidden lg:grid lg:grid-cols-12 gap-3 px-4 bg-[#0f0f0f] border-b border-gray-800 text-xs text-gray-500 font-medium py-3`}>
                       <div className="col-span-3">Franchise</div>
@@ -705,9 +872,13 @@
                                 size="md"
                                 position="relative"
                               />
-                              <div className={`h-12 w-12 rounded-lg flex-shrink-0 bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center overflow-hidden`}>
-                                {franchise.img ? <img src={franchise.img} alt="" className="w-full h-full object-cover" /> : <Building2 size={20} className="text-white" />}
-                              </div>
+                              {hasCustomImage(franchise.img) ? (
+                                <div className="h-12 w-12 rounded-xl flex-shrink-0 overflow-hidden">
+                                  <img src={franchise.img} alt="" className="w-full h-full object-cover pointer-events-none" draggable={false} />
+                                </div>
+                              ) : (
+                                <InitialsAvatar name={franchise.name} size="lg" variant="blue" />
+                              )}
                               <div className="min-w-0 flex-1">
                                 <span className={`text-white font-medium text-base truncate block`}>{franchise.name}</span>
                                 <div className="flex items-center gap-1 mt-0.5"><MapPin size={12} className="text-gray-500 flex-shrink-0" /><span className={`text-sm text-gray-500 truncate`}>{franchise.city}, {franchise.zipCode}</span></div>
@@ -734,9 +905,13 @@
                                   size="sm"
                                   position="relative"
                                 />
-                                <div className={`h-11 w-11 rounded-lg flex-shrink-0 bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center overflow-hidden`}>
-                                  {franchise.img ? <img src={franchise.img} alt="" className="w-full h-full object-cover" /> : <Building2 size={16} className="text-white" />}
-                                </div>
+                                {hasCustomImage(franchise.img) ? (
+                                  <div className="h-11 w-11 rounded-xl flex-shrink-0 overflow-hidden">
+                                    <img src={franchise.img} alt="" className="w-full h-full object-cover pointer-events-none" draggable={false} />
+                                  </div>
+                                ) : (
+                                  <InitialsAvatar name={franchise.name} size="md" variant="blue" />
+                                )}
                                 <div className="flex-1 min-w-0">
                                   <span className={`text-white font-medium text-base truncate block`}>{franchise.name}</span>
                                   <div className="flex items-center gap-2 mt-0.5 flex-wrap"><StatusTag isActive={!franchise.isArchived} isArchived={franchise.isArchived} compact={true} /><span className="text-xs text-gray-500">{franchise.city}</span></div>
@@ -778,11 +953,11 @@
           <button onClick={() => setIsCreateFranchiseModalOpen(true)} className="lg:hidden fixed bottom-4 right-4 bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30" aria-label="Create Franchise"><Plus size={22} /></button>
         )}
 
-        {/* â•â•â• MODALS (all preserved) â•â•â• */}
+        {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â MODALS (all preserved) Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
         <StudioMembersModal isOpen={isMembersModalOpen} studio={selectedStudioForModal} studioMembers={studioMembers} memberSearchQuery={memberSearchQuery} setMemberSearchQuery={setMemberSearchQuery} getFilteredMembers={getFilteredMembers} onClose={() => { setIsMembersModalOpen(false); setSelectedStudioForModal(null); setMemberSearchQuery("") }} onViewMember={handleViewMemberDetails} onEditMember={handleEditMember} handleHistoryFromOverview={handleHistoryFromOverview} handleDocumentFromOverview={handleDocumentFromOverview} handleCalendarFromOverview={handleCalendarFromOverview} onCreateTempMember={() => setIsCreateTempMemberModalOpen(true)} handleTrainingPlanFromOverview={handleTrainingPlanFromOverview} />
         <EditMemberModal isOpen={isEditMemberModalOpen} onClose={() => setIsEditMemberModalOpen(false)} selectedMember={selectedMemberForEdit} onSave={handleMemberEditSubmit} memberRelations={memberRelations} availableMembersLeads={availableMembersLeadsMain} onArchiveMember={() => toast.success("Member archived successfully")} onUnarchiveMember={() => toast.success("Member unarchived successfully")} />
         {showTrainingPlansModalMain && selectedMemberForEdit && <TrainingPlansModal isOpen={showTrainingPlansModalMain} onClose={() => { setShowTrainingPlansModalMain(false); setSelectedMemberForEdit(null) }} selectedMemberMain={selectedMemberForEdit} memberTrainingPlansMain={memberTrainingPlansMain[selectedMemberForEdit.id] || []} availableTrainingPlansMain={availableTrainingPlansMain} onAssignPlanMain={handleAssignPlanMain} onRemovePlanMain={handleRemovePlanMain} />}
-        <CreateTempMemberModal show={isCreateTempMemberModalOpen} onClose={() => { setIsCreateTempMemberModalOpen(false); setTempMemberForm({ img: "", firstName: "", lastName: "", email: "", phone: "", gender: "", country: "", street: "", zipCode: "", city: "", dateOfBirth: "", about: "", note: "", noteImportance: "unimportant", noteStartDate: "", noteEndDate: "", autoArchivePeriod: 4, relations: { family: [], friendship: [], relationship: [], work: [], other: [] } }); setTempMemberModalTab("details") }} tempMemberForm={tempMemberForm} setTempMemberForm={setTempMemberForm} tempMemberModalTab={tempMemberModalTab} setTempMemberModalTab={setTempMemberModalTab} handleCreateTempMember={handleCreateTempMember} handleTempMemberInputChange={handleTempMemberInputChange} handleImgUpload={handleImgUpload} editingRelationsMain={editingRelationsMain} setEditingRelationsMain={setEditingRelationsMain} newRelationMain={newRelationMain} setNewRelationMain={setNewRelationMain} availableMembersLeadsMain={availableMembersLeadsMain} relationOptionsMain={relationOptionsMain} />
+        <CreateTempMemberModal show={isCreateTempMemberModalOpen} onClose={() => { setIsCreateTempMemberModalOpen(false); setTempMemberForm({ ...DEFAULT_TEMP_MEMBER_FORM }); setTempMemberModalTab("details") }} tempMemberForm={tempMemberForm} setTempMemberForm={setTempMemberForm} tempMemberModalTab={tempMemberModalTab} setTempMemberModalTab={setTempMemberModalTab} handleCreateTempMember={handleCreateTempMember} handleTempMemberInputChange={handleTempMemberInputChange} handleImgUpload={handleImgUpload} editingRelationsMain={editingRelationsMain} setEditingRelationsMain={setEditingRelationsMain} newRelationMain={newRelationMain} setNewRelationMain={setNewRelationMain} availableMembersLeadsMain={availableMembersLeadsMain} relationOptionsMain={relationOptionsMain} />
         <MemberDetailsModal isOpen={isMemberDetailsModalOpen} onClose={() => setIsMemberDetailsModalOpen(false)} member={selectedItemForDetails} calculateAge={calculateAge} isContractExpiringSoon={isContractExpiringSoon} memberRelations={memberRelations[selectedItemForDetails?.id]} />
         <MemberHistoryModalMain isOpen={showHistoryModal} onClose={() => { setShowHistoryModal(false); setSelectedMemberForEdit(null) }} selectedMember={selectedMemberForEdit} memberHistory={memberHistory} historyTabMain={historyTabMain} setHistoryTabMain={setHistoryTabMain} />
         <MemberDocumentModal member={selectedMemberForEdit} isOpen={showDocumentModal} onClose={() => { setShowDocumentModal(false); setSelectedMemberForEdit(null) }} />

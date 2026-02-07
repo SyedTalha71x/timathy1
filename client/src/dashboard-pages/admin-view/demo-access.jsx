@@ -39,7 +39,7 @@ import {
 } from "../../utils/admin-panel-states/demo-access-states";
 
 // ============================================
-// Helper: every demo MUST have a config sub-object
+// Helper: every account MUST have a config sub-object
 // because JournalModal reads demo.config.studioName,
 // SendEmailModal reads demo.config.email, etc.
 // ============================================
@@ -270,10 +270,10 @@ export default function DemoCreationPage() {
             status: "inactive",
             expiryDate: null,
             journal: [...demo.journal, {
-              action: "Demo Deactivated",
+              action: "Access Deactivated",
               timestamp: new Date().toISOString(),
               user: "System",
-              details: "Demo expired - status set to inactive",
+              details: "Access expired - status set to inactive",
             }],
           };
         }
@@ -360,17 +360,17 @@ export default function DemoCreationPage() {
       status: "active",
       expiryDate: new Date(Date.now() + config.demoDuration * 24 * 60 * 60 * 1000).toISOString(),
       journal: [{
-        action: "Demo Created",
+        action: "Access Created",
         timestamp: new Date().toISOString(),
         user: "Admin",
-        details: `Created demo for ${config.studioName}`,
+        details: `Created access for ${config.studioName}`,
       }],
     });
 
     setDemos((prev) => [newDemo, ...prev]);
     setLastCreatedDemo(newDemo);
     setIsWizardOpen(false);
-    toast.success("Demo created successfully!");
+    toast.success("Access created successfully!");
     setEmailModalMode("create");
     setTimeout(() => setIsEmailModalOpen(true), 100);
   };
@@ -402,7 +402,7 @@ export default function DemoCreationPage() {
           demoDuration: updatedConfig.demoDuration,
           expiryDate: newExpiry,
           journal: [...demo.journal, {
-            action: "Demo Updated",
+            action: "Access Updated",
             timestamp: new Date().toISOString(),
             user: "Admin",
             details: `Updated configuration for ${updatedConfig.studioName}`,
@@ -412,7 +412,7 @@ export default function DemoCreationPage() {
     );
     setEditingDemo(null);
     setIsWizardOpen(false);
-    toast.success("Demo updated successfully!");
+    toast.success("Access updated successfully!");
   };
 
   // =============================================
@@ -431,15 +431,15 @@ export default function DemoCreationPage() {
             status: "inactive",
             expiryDate: null,
             journal: [...d.journal, {
-              action: "Demo Deactivated",
+              action: "Access Deactivated",
               timestamp: new Date().toISOString(),
               user: "Admin",
-              details: "Demo status changed to inactive",
+              details: "Access status changed to inactive",
             }],
           };
         })
       );
-      toast.success("Demo deactivated!");
+      toast.success("Access deactivated!");
     } else {
       setReactivateDemoId(demoId);
       setReactivateDays(demo.config?.demoDuration || 7);
@@ -459,17 +459,17 @@ export default function DemoCreationPage() {
           config: { ...d.config, demoDuration: reactivateDays },
           expiryDate: new Date(Date.now() + reactivateDays * 24 * 60 * 60 * 1000).toISOString(),
           journal: [...d.journal, {
-            action: "Demo Activated",
+            action: "Access Activated",
             timestamp: new Date().toISOString(),
             user: "Admin",
-            details: `Demo reactivated for ${reactivateDays} days`,
+            details: `Access reactivated for ${reactivateDays} days`,
           }],
         };
       })
     );
     setIsReactivateModalOpen(false);
     setReactivateDemoId(null);
-    toast.success("Demo reactivated!");
+    toast.success("Access reactivated!");
   };
 
   // =============================================
@@ -493,10 +493,10 @@ export default function DemoCreationPage() {
           }
         )
       );
-      toast.success("Demo access email sent!");
+      toast.success("Access email sent!");
     } else {
       if (emailModalMode === "create") {
-        toast.success("Demo created without email");
+        toast.success("Access created without email");
       }
     }
     setIsEmailModalOpen(false);
@@ -531,7 +531,7 @@ export default function DemoCreationPage() {
     setDemos((prev) => prev.filter((d) => d.id !== demoToDelete.id));
     setIsDeleteModalOpen(false);
     setDemoToDelete(null);
-    toast.success("Demo deleted successfully!");
+    toast.success("Access deleted successfully!");
   };
 
   // =============================================
@@ -547,7 +547,7 @@ export default function DemoCreationPage() {
       {/* ======== HEADER ======== */}
       <div className="flex items-center justify-between mb-4 sm:mb-6">
         <div className="flex items-center gap-3">
-          <h1 className="text-white oxanium_font text-xl md:text-2xl">Demo Access</h1>
+          <h1 className="text-white oxanium_font text-xl md:text-2xl">Access Management</h1>
 
           {/* Sort button (mobile) */}
           <div className="lg:hidden relative" ref={sortDropdownRef}>
@@ -579,10 +579,10 @@ export default function DemoCreationPage() {
         <div className="hidden md:block relative group">
           <button onClick={startCreation} className="flex bg-orange-500 hover:bg-orange-600 text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors">
             <Plus size={14} className="sm:w-4 sm:h-4" />
-            <span className="hidden sm:inline">Create Demo Access</span>
+            <span className="hidden sm:inline">Create Access</span>
           </button>
           <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
-            <span className="font-medium">Create Demo Access</span>
+            <span className="font-medium">Create Access</span>
             <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">C</span>
             <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
           </div>
@@ -627,7 +627,7 @@ export default function DemoCreationPage() {
             className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors flex items-center gap-2 ${filterTemplates.includes(tmpl.id) ? "text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}
             style={filterTemplates.includes(tmpl.id) ? { backgroundColor: tmpl.color } : {}}>
             <Shield size={12} />
-            {tmpl.name.replace(" Demo", "")}
+            {tmpl.name}
           </button>
         ))}
 
@@ -658,9 +658,9 @@ export default function DemoCreationPage() {
       {filteredDemos.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-gray-500">
           <Building2 size={48} className="mb-4 text-gray-600" />
-          <p className="text-base font-medium mb-1">No demo accesses found</p>
+          <p className="text-base font-medium mb-1">No accesses found</p>
           <p className="text-sm text-gray-600">
-            {searchQuery || filterStatuses.length > 0 || filterTemplates.length > 0 ? "Try adjusting your filters or search query" : "Create your first demo access to get started"}
+            {searchQuery || filterStatuses.length > 0 || filterTemplates.length > 0 ? "Try adjusting your filters or search query" : "Create your first access to get started"}
           </p>
         </div>
       ) : (
@@ -672,7 +672,7 @@ export default function DemoCreationPage() {
       )}
 
       {/* ======== FAB (Mobile) ======== */}
-      <button onClick={startCreation} className="md:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30" aria-label="Create Demo Access">
+      <button onClick={startCreation} className="md:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30" aria-label="Create Access">
         <Plus size={22} />
       </button>
 
@@ -719,8 +719,8 @@ export default function DemoCreationPage() {
                   <Power size={20} className="text-green-400" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-white">Reactivate Demo</h2>
-                  <p className="text-gray-400 text-sm mt-1">Set the new demo duration</p>
+                  <h2 className="text-xl font-bold text-white">Reactivate Access</h2>
+                  <p className="text-gray-400 text-sm mt-1">Set the new access duration</p>
                 </div>
               </div>
               <button
@@ -743,7 +743,7 @@ export default function DemoCreationPage() {
                 />
                 <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
               </div>
-              <p className="text-xs text-gray-500 mt-2">The demo will be active for {reactivateDays} day{reactivateDays !== 1 ? "s" : ""} starting from now.</p>
+              <p className="text-xs text-gray-500 mt-2">The access will be active for {reactivateDays} day{reactivateDays !== 1 ? "s" : ""} starting from now.</p>
               <div className="flex gap-3 mt-6">
                 <button
                   onClick={() => { setIsReactivateModalOpen(false); setReactivateDemoId(null); }}
@@ -773,7 +773,7 @@ export default function DemoCreationPage() {
                   <Trash2 size={20} className="text-red-400" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-white">Delete Demo</h2>
+                  <h2 className="text-xl font-bold text-white">Delete Access</h2>
                   <p className="text-gray-400 text-sm mt-1">This action cannot be undone</p>
                 </div>
               </div>
@@ -786,7 +786,7 @@ export default function DemoCreationPage() {
             </div>
             <div className="p-6">
               <p className="text-sm text-gray-300 mb-1">
-                Are you sure you want to permanently delete the demo for
+                Are you sure you want to permanently delete the access for
               </p>
               <p className="text-sm font-semibold text-white mb-4">
                 {demoToDelete.config?.studioName || "this studio"}?

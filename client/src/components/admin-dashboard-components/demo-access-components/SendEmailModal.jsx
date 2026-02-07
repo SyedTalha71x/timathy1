@@ -4,18 +4,18 @@ import { useState, useMemo } from "react";
 import { IoIosSend, IoIosClose } from "react-icons/io";
 
 // ============================================
-// Default Demo Access Email Templates
+// Default Access Email Templates
 // ============================================
 const DEFAULT_EMAIL_TEMPLATES = {
   de: {
     label: "Deutsch",
     flag: "🇩🇪",
-    subject: "Dein Demo-Zugang für {studioName}",
+    subject: "Dein Zugang für {studioName}",
     body: `Hallo {firstName},
 
-willkommen bei {studioName}! Dein Demo-Zugang wurde erfolgreich eingerichtet.
+willkommen bei {studioName}! Dein Zugang wurde erfolgreich eingerichtet.
 
-Bitte klicke auf den folgenden Link, um dein Passwort festzulegen und auf die Demo-Umgebung zuzugreifen:
+Bitte klicke auf den folgenden Link, um dein Passwort festzulegen und auf die Umgebung zuzugreifen:
 
 {accessLink}
 
@@ -31,12 +31,12 @@ Das {studioName} Team`,
   en: {
     label: "English",
     flag: "🇬🇧",
-    subject: "Your Demo Access for {studioName}",
+    subject: "Your Access for {studioName}",
     body: `Hello {firstName},
 
-welcome to {studioName}! Your demo access has been successfully set up.
+welcome to {studioName}! Your access has been successfully set up.
 
-Please click the following link to set your password and access the demo environment:
+Please click the following link to set your password and access the environment:
 
 {accessLink}
 
@@ -52,12 +52,12 @@ The {studioName} Team`,
   fr: {
     label: "Français",
     flag: "🇫🇷",
-    subject: "Votre accès démo pour {studioName}",
+    subject: "Votre accès pour {studioName}",
     body: `Bonjour {firstName},
 
-bienvenue chez {studioName} ! Votre accès démo a été configuré avec succès.
+bienvenue chez {studioName} ! Votre accès a été configuré avec succès.
 
-Veuillez cliquer sur le lien suivant pour définir votre mot de passe et accéder à l'environnement de démonstration :
+Veuillez cliquer sur le lien suivant pour définir votre mot de passe et accéder à l'environnement :
 
 {accessLink}
 
@@ -73,12 +73,12 @@ L'équipe {studioName}`,
   es: {
     label: "Español",
     flag: "🇪🇸",
-    subject: "Tu acceso demo para {studioName}",
+    subject: "Tu acceso para {studioName}",
     body: `Hola {firstName},
 
-¡bienvenido/a a {studioName}! Tu acceso demo ha sido configurado exitosamente.
+¡bienvenido/a a {studioName}! Tu acceso ha sido configurado exitosamente.
 
-Por favor, haz clic en el siguiente enlace para establecer tu contraseña y acceder al entorno de demostración:
+Por favor, haz clic en el siguiente enlace para establecer tu contraseña y acceder al entorno:
 
 {accessLink}
 
@@ -94,12 +94,12 @@ El equipo de {studioName}`,
   it: {
     label: "Italiano",
     flag: "🇮🇹",
-    subject: "Il tuo accesso demo per {studioName}",
+    subject: "Il tuo accesso per {studioName}",
     body: `Ciao {firstName},
 
-benvenuto/a su {studioName}! Il tuo accesso demo è stato configurato con successo.
+benvenuto/a su {studioName}! Il tuo accesso è stato configurato con successo.
 
-Clicca sul seguente link per impostare la tua password e accedere all'ambiente demo:
+Clicca sul seguente link per impostare la tua password e accedere all'ambiente:
 
 {accessLink}
 
@@ -195,12 +195,12 @@ const SendEmailModal = ({
             </div>
             <div>
               <h2 className="text-lg font-bold text-white">
-                {isResend ? "Resend Demo Access Email?" : "Send Demo Access Email?"}
+                {isResend ? "Resend Access Email?" : "Send Access Email?"}
               </h2>
               <p className="text-gray-400 text-sm mt-0.5">
                 {isResend
                   ? "Send the access details to the user again"
-                  : "Notify the user about their demo access"}
+                  : "Notify the user about their access"}
               </p>
             </div>
           </div>
@@ -248,15 +248,14 @@ const SendEmailModal = ({
                 <>
                   The access details will be resent to{" "}
                   <strong className="text-blue-300">{demo?.config?.email}</strong>{" "}
-                  for the demo environment{" "}
+                  for{" "}
                   <strong className="text-blue-300">{demo?.config?.studioName}</strong>.
                 </>
               ) : (
                 <>
                   An email will be sent to{" "}
                   <strong className="text-blue-300">{demo?.config?.email}</strong>{" "}
-                  with instructions to set up their password and access the demo
-                  environment for{" "}
+                  with instructions to set up their password and access{" "}
                   <strong className="text-blue-300">{demo?.config?.studioName}</strong>.
                 </>
               )}

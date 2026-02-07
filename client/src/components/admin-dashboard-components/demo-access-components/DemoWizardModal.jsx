@@ -78,7 +78,7 @@ const LeadStep = ({ leads, selectedLead, onSelect, onSkip }) => {
           </div>
           <div className="flex-1">
             <p className="text-sm font-medium text-gray-300">Continue without a lead</p>
-            <p className="text-xs text-gray-500">Create demo with manual details</p>
+            <p className="text-xs text-gray-500">Create access with manual details</p>
           </div>
         </button>
 
@@ -244,7 +244,7 @@ const ConfigStep = ({ config, onChange, selectedLead, selectedTemplate }) => (
         </div>
       </div>
       <div>
-        <label className="block text-xs font-medium text-gray-400 mb-1.5">Demo Duration (Days)</label>
+        <label className="block text-xs font-medium text-gray-400 mb-1.5">Access Duration (Days)</label>
         <div className="relative">
           <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
           <input
@@ -317,7 +317,7 @@ const EditView = ({ config, onChange, templates, selectedTemplateId, onSelectTem
         </div>
       </div>
       <div>
-        <label className="block text-xs font-medium text-gray-400 mb-1.5">Demo Duration (Days)</label>
+        <label className="block text-xs font-medium text-gray-400 mb-1.5">Access Duration (Days)</label>
         <div className="relative">
           <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" size={14} />
           <input
@@ -537,7 +537,7 @@ const DemoWizardModal = ({
         <div className="px-6 py-4 border-b border-gray-800 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3">
             <h2 className="text-base font-semibold text-white">
-              {isCreate ? "New Demo Access" : "Edit Demo"}
+              {isCreate ? "New Access" : "Edit Access"}
             </h2>
             {isCreate && (
               <>
@@ -626,7 +626,7 @@ const DemoWizardModal = ({
                   disabled={!canGoNext()}
                   className="px-5 py-2 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-700 disabled:text-gray-500 text-white text-sm rounded-xl transition-colors flex items-center gap-1.5"
                 >
-                  <Plus size={14} /> Create Demo
+                  <Plus size={14} /> Create Access
                 </button>
               )}
             </>
@@ -643,7 +643,7 @@ const DemoWizardModal = ({
                 disabled={!canSubmitEdit}
                 className="px-5 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 disabled:text-gray-500 text-white text-sm rounded-xl transition-colors"
               >
-                Update Demo
+                Update Access
               </button>
             </>
           )}
