@@ -105,6 +105,7 @@
     ACCESS_ROLE_COLORS,
   } from "../../utils/admin-panel-states/customers-states";
   import EditStudioOptionsModal from "../../components/admin-dashboard-components/studios-modal/edit-studio-options-modal";
+  import EditAdminConfigModal from "../../components/admin-dashboard-components/studios-modal/EditAdminConfigModal";
   import { useNavigate } from "react-router-dom";
   import CreateTempMemberModal from "../../components/admin-dashboard-components/studios-modal/members-component/create-temporary-member-modal";
   import TrainingPlansModal from "../../components/admin-dashboard-components/studios-modal/members-component/training-plan-modal";
@@ -234,6 +235,8 @@
     const [memberEditForm, setMemberEditForm] = useState({ ...DEFAULT_MEMBER_EDIT_FORM })
 
     const [isEditOptionsModalOpen, setIsEditOptionsModalOpen] = useState(false)
+    const [isAdminConfigModalOpen, setIsAdminConfigModalOpen] = useState(false)
+    const [adminConfigInitialTab, setAdminConfigInitialTab] = useState("details")
 
     const [isMemberDetailsModalOpen, setIsMemberDetailsModalOpen] = useState(false)
     const [isStaffDetailsModalOpen, setIsStaffDetailsModalOpen] = useState(false)
@@ -352,7 +355,7 @@
     const handleAddLead = () => { setIsAddLeadModalOpen(true) }
     const handleSaveLead = (newLeadData) => { if (!selectedStudioForModal) return; setStudioLeads(prev => ({ ...prev, [selectedStudioForModal.id]: [...(prev[selectedStudioForModal.id] || []), { ...newLeadData, trialPeriod: newLeadData.hasTrialTraining ? "Trial Period" : "", avatar: "", source: newLeadData.source || "hardcoded" }] })); toast.success("Lead added successfully!") }
     const handleCloseModal = () => { setIsEditFranchiseModalOpen(false); setIsCreateFranchiseModalOpen(false) }
-    const handleAssignStudioCloseModal = () => { setIsAssignStudioModalOpen(false) }
+    const handleAssignStudioCloseModal = () => { setIsAssignStudioModalOpen(false); setSelectedFranchiseForAssignment(null) }
     const handleStudioManagementCloseModal = () => { setIsStudioManagementModalOpen(false); setSelectedFranchiseForManagement(null) }
     const togglePasswordVisibility = (franchiseId) => { setShowPassword((prev) => ({ ...prev, [franchiseId]: !prev[franchiseId] })) }
 
@@ -417,14 +420,13 @@
     const handleFranchiseInputChange = (e) => { const { name, value } = e.target; setFranchiseForm((prev) => ({ ...prev, [name]: value })) }
     const handleLogoUpload = (e) => { const file = e.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = (e) => { setFranchiseForm((prev) => ({ ...prev, logo: e.target.result })) }; reader.readAsDataURL(file) } }
 
-    const handleFranchiseSubmit = (e) => {
-      e.preventDefault()
-      if (franchiseForm.loginPassword !== franchiseForm.confirmPassword) { toast.error("Passwords do not match"); return }
+    const handleFranchiseSubmit = (formData) => {
+      if (formData.loginPassword !== formData.confirmPassword) { toast.error("Passwords do not match"); return }
       if (selectedFranchise) {
-        setFranchises(franchises.map((f) => f.id === selectedFranchise.id ? { ...f, ...franchiseForm } : f))
+        setFranchises(franchises.map((f) => f.id === selectedFranchise.id ? { ...f, ...formData } : f))
         setIsEditFranchiseModalOpen(false); setSelectedFranchise(null); toast.success("Franchise updated successfully")
       } else {
-        setFranchises([...franchises, { id: Math.max(...franchises.map((f) => f.id), 0) + 1, ...franchiseForm, createdDate: new Date().toISOString().split("T")[0], studioCount: 0 }])
+        setFranchises([...franchises, { id: Math.max(...franchises.map((f) => f.id), 0) + 1, ...formData, createdDate: new Date().toISOString().split("T")[0], studioCount: 0 }])
         setIsCreateFranchiseModalOpen(false); toast.success("Franchise created successfully")
       }
       setFranchiseForm({ ...DEFAULT_FRANCHISE_FORM })
@@ -476,6 +478,9 @@
     const getFilteredUnassignedStudios = () => getUnassignedStudios().filter((s) => s.name.toLowerCase().includes(unassignedStudioSearchQuery.toLowerCase()))
 
     const handleEditStudio = (studio) => { setSelectedStudio(studio); setIsEditOptionsModalOpen(true) }
+    const handleAdminConfig = (studio) => { setIsEditOptionsModalOpen(false); setSelectedStudio(studio); setAdminConfigInitialTab("details"); setIsAdminConfigModalOpen(true) }
+    const handleEditSpecialNote = (studio) => { setSelectedStudio(studio); setAdminConfigInitialTab("note"); setIsAdminConfigModalOpen(true) }
+    const handleSaveAdminConfig = (updatedStudio) => { setStudios(prev => prev.map(s => s.id === updatedStudio.id ? { ...s, ...updatedStudio } : s)) }
     const handleStudioConfig = (studio) => { navigate(`/admin-dashboard/edit-studio-configuration/${studio.id}`); setIsEditOptionsModalOpen(false) }
     const handleEditFranchise = (franchise) => { setSelectedFranchise(franchise); setIsEditFranchiseModalOpen(true) }
     const handleViewDetails = (studio) => { setSelectedStudio(studio); setIsViewDetailsModalOpen(true) }
@@ -486,7 +491,7 @@
     const handleAssignStudio = (franchiseId, studioId) => {
       setStudios(studios.map((s) => s.id === studioId ? { ...s, franchiseId } : s))
       setFranchises(franchises.map((f) => f.id === franchiseId ? { ...f, studioCount: f.studioCount + 1 } : f))
-      setIsAssignStudioModalOpen(false); toast.success("Studio assigned to franchise successfully")
+      toast.success("Studio assigned to franchise successfully")
     }
 
     const handleUnassignStudio = (studioId) => {
@@ -580,9 +585,9 @@
 
               <div className="flex items-center gap-2">
                 {viewMode === "studios" ? (
-                  <button onClick={() => setIsAssignStudioModalOpen(true)} className="hidden lg:flex bg-[#FF843E] hover:bg-[#FF843E]/90 text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors"><Network size={14} /><span className="hidden sm:inline">Assign to Franchise</span></button>
+                  <button onClick={() => { setSelectedFranchiseForAssignment(null); setIsAssignStudioModalOpen(true) }} className="hidden lg:flex bg-orange-500 hover:bg-orange-600 text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors"><Network size={14} /><span className="hidden sm:inline">Assign to Franchise</span></button>
                 ) : (
-                  <button onClick={() => setIsCreateFranchiseModalOpen(true)} className="hidden lg:flex bg-blue-600 hover:bg-blue-700 text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors"><Plus size={14} /><span className="hidden sm:inline">Create Franchise</span></button>
+                  <button onClick={() => setIsCreateFranchiseModalOpen(true)} className="hidden lg:flex bg-orange-500 hover:bg-orange-600 text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors"><Plus size={14} /><span className="hidden sm:inline">Create Franchise</span></button>
                 )}
               </div>
             </div>
@@ -751,7 +756,7 @@
                             <div className="col-span-3 flex items-center gap-3 min-w-0 relative">
                               <LeadSpecialNoteIcon
                                 lead={studio}
-                                onEditLead={handleEditStudio}
+                                onEditLead={handleEditSpecialNote}
                                 size="md"
                                 position="relative"
                               />
@@ -804,7 +809,7 @@
                               <div className="flex items-center gap-3">
                                 <LeadSpecialNoteIcon
                                   lead={studio}
-                                  onEditLead={handleEditStudio}
+                                  onEditLead={handleEditSpecialNote}
                                   size="sm"
                                   position="relative"
                                 />
@@ -889,8 +894,6 @@
                             <div className="col-span-1"><button onClick={() => handleOpenStudioManagement(franchise)} className={`text-sm text-blue-400 hover:text-blue-300 inline-flex items-center gap-1`}><Building size={14} />{getStudiosByFranchise(franchise.id).length}</button></div>
                             <div className="col-span-2"><span className={`text-sm text-gray-500 truncate block`}>{franchise.loginEmail}</span></div>
                             <div className="col-span-3 flex items-center justify-end gap-0.5">
-                              <button onClick={() => handleOpenStudioManagement(franchise)} className={`p-2 text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-colors`} title="Studios"><Building size={18} /></button>
-                              <div className={`w-px h-5 bg-gray-700/50 mx-1`} />
                               <button onClick={() => handleViewFranchiseDetails(franchise)} className={`p-2 text-blue-400 hover:text-blue-300 hover:bg-white/5 rounded-lg transition-colors`} title="Details"><Eye size={18} /></button>
                               <button onClick={() => handleEditFranchise(franchise)} className={`p-2 text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors`} title="Edit"><Pencil size={18} /></button>
                             </div>
@@ -926,8 +929,7 @@
                                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-700/50 text-gray-300">Owner: {franchise.ownerFirstName} {franchise.ownerLastName}</span>
                                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-700/50 text-gray-300">{getStudiosByFranchise(franchise.id).length} Studios</span>
                                   </div>
-                                  <div className="grid grid-cols-3 gap-1">
-                                    <button onClick={(e) => { e.stopPropagation(); handleOpenStudioManagement(franchise) }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"><Building size={18} /><span className="text-[10px]">Studios</span></button>
+                                  <div className="grid grid-cols-2 gap-1">
                                     <button onClick={(e) => { e.stopPropagation(); handleViewFranchiseDetails(franchise) }} className="flex flex-col items-center gap-1 p-2 text-blue-400 hover:text-blue-300 hover:bg-white/5 rounded-lg transition-colors"><Eye size={18} /><span className="text-[10px]">Details</span></button>
                                     <button onClick={(e) => { e.stopPropagation(); handleEditFranchise(franchise) }} className="flex flex-col items-center gap-1 p-2 text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors"><Pencil size={18} /><span className="text-[10px]">Edit</span></button>
                                   </div>
@@ -938,7 +940,7 @@
                         </div>
                       )
                     }) : (
-                      <div className="text-center py-8"><Building2 size={48} className="mx-auto mb-4 text-gray-600" /><p className="text-gray-400">No franchises found.</p><button onClick={() => setIsCreateFranchiseModalOpen(true)} className="mt-4 bg-[#3F74FF] hover:bg-[#3F74FF]/90 px-4 py-2 rounded-xl text-sm">Create Your First Franchise</button></div>
+                      <div className="text-center py-8"><Building2 size={48} className="mx-auto mb-4 text-gray-600" /><p className="text-gray-400">No franchises found.</p><button onClick={() => setIsCreateFranchiseModalOpen(true)} className="mt-4 bg-orange-500 hover:bg-orange-600 px-4 py-2 rounded-xl text-sm">Create Your First Franchise</button></div>
                     )}
                   </div>
               )}
@@ -948,9 +950,9 @@
 
         {/* Floating Action Button - Mobile */}
         {viewMode === "studios" ? (
-          <button onClick={() => setIsAssignStudioModalOpen(true)} className="lg:hidden fixed bottom-4 right-4 bg-[#FF843E] hover:bg-[#FF843E]/90 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30" aria-label="Assign to Franchise"><Network size={22} /></button>
+          <button onClick={() => { setSelectedFranchiseForAssignment(null); setIsAssignStudioModalOpen(true) }} className="lg:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30" aria-label="Assign to Franchise"><Network size={22} /></button>
         ) : (
-          <button onClick={() => setIsCreateFranchiseModalOpen(true)} className="lg:hidden fixed bottom-4 right-4 bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30" aria-label="Create Franchise"><Plus size={22} /></button>
+          <button onClick={() => setIsCreateFranchiseModalOpen(true)} className="lg:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30" aria-label="Create Franchise"><Plus size={22} /></button>
         )}
 
         {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â MODALS (all preserved) Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
@@ -979,11 +981,11 @@
         <AddLeadModal isVisible={isAddLeadModalOpen} onClose={() => setIsAddLeadModalOpen(false)} onSave={handleSaveLead} leadSources={leadSources} />
         <ViewLeadModal isVisible={isViewLeadModalOpen} onClose={() => { setIsViewLeadModalOpen(false); setSelectedLead(null) }} leadData={selectedLead} onEditLead={handleEditLead} leadRelations={leadRelations} />
         <EditLeadModal isVisible={isEditLeadModalOpen} onClose={() => { setIsEditLeadModalOpen(false); setSelectedLead(null) }} onSave={handleSaveEditedLead} leadData={selectedLead} leadSources={leadSources} leadRelations={leadRelations} setLeadRelations={setLeadRelations} availableMembersLeads={availableMembersLeadsMain} initialTab="details" />
-        <StudioDetailsModal isOpen={isViewDetailsModalOpen} onClose={() => setIsViewDetailsModalOpen(false)} studio={selectedStudio} franchises={franchises} studioStats={studioStats} DefaultStudioImage={DefaultStudioImage} isContractExpiringSoon={isContractExpiringSoon} onEditStudio={handleEditStudio} onGoToContract={handleGoToContract} onViewFranchiseDetails={handleViewFranchiseDetails} />
+        <StudioDetailsModal isOpen={isViewDetailsModalOpen} onClose={() => setIsViewDetailsModalOpen(false)} studio={selectedStudio} franchises={franchises} studioStats={studioStats} DefaultStudioImage={DefaultStudioImage} isContractExpiringSoon={isContractExpiringSoon} onEditStudio={handleEditStudio} onViewFranchiseDetails={handleViewFranchiseDetails} />
         <StudioHistoryModalMain show={showHistory} studio={selectedStudio} studioHistoryMain={studioHistoryMainData} historyTabMain={historyTabMain} setHistoryTabMain={setHistoryTabMain} onClose={() => { setShowHistory(false); setSelectedStudio(null) }} />
-        <FranchiseModal isCreateModalOpen={isCreateFranchiseModalOpen} isEditModalOpen={isEditFranchiseModalOpen} onClose={handleCloseModal} franchiseForm={franchiseForm} onInputChange={handleFranchiseInputChange} onSubmit={handleFranchiseSubmit} onLogoUpload={handleLogoUpload} onArchive={handleArchiveFranchise} selectedFranchise={selectedFranchise} />
+        <FranchiseModal isCreateModalOpen={isCreateFranchiseModalOpen} isEditModalOpen={isEditFranchiseModalOpen} onClose={handleCloseModal} franchiseForm={franchiseForm} onInputChange={handleFranchiseInputChange} onSave={handleFranchiseSubmit} onLogoUpload={handleLogoUpload} onArchive={handleArchiveFranchise} selectedFranchise={selectedFranchise} />
         <FranchiseDetailsModal isOpen={isFranchiseDetailsModalOpen} onClose={() => setIsFranchiseDetailsModalOpen(false)} franchise={selectedFranchise} onEditFranchise={handleEditFranchise} assignedStudios={selectedFranchise ? getStudiosByFranchise(selectedFranchise.id) : []} onArchiveFranchise={handleArchiveFranchise} />
-        <AssignStudioModal isOpen={isAssignStudioModalOpen} onClose={handleAssignStudioCloseModal} franchises={franchises} selectedFranchiseForAssignment={selectedFranchiseForAssignment} onFranchiseSelect={setSelectedFranchiseForAssignment} unassignedStudios={getFilteredUnassignedStudios()} onAssignStudio={handleAssignStudio} toast={toast} searchQuery={unassignedStudioSearchQuery} onSearchChange={setUnassignedStudioSearchQuery} />
+        <AssignStudioModal isOpen={isAssignStudioModalOpen} onClose={handleAssignStudioCloseModal} franchises={franchises} selectedFranchiseForAssignment={selectedFranchiseForAssignment} onFranchiseSelect={setSelectedFranchiseForAssignment} unassignedStudios={getUnassignedStudios()} onAssignStudio={handleAssignStudio} toast={toast} />
         <StudioManagementModal isOpen={isStudioManagementModalOpen} onClose={handleStudioManagementCloseModal} franchise={selectedFranchiseForManagement} assignedStudios={selectedFranchiseForManagement ? getStudiosByFranchise(selectedFranchiseForManagement.id) : []} unassignedStudios={getUnassignedStudios()} onAssignStudio={handleAssignStudio} onUnassignStudio={handleUnassignStudio} onEditStudio={handleEditStudio} toast={toast} />
         <StudioFinancesModal isOpen={isFinancesModalOpen} onClose={() => setisFinancesModalOpen(false)} studio={selectedStudioForModal} studioFinances={studioFinanceData} financesPeriod={financesPeriod} onPeriodChange={setFinancesPeriod} />
 
@@ -998,7 +1000,8 @@
             setStudios(prev => prev.map(s => s.id === studioId ? { ...s, documents } : s))
           }}
         />
-        <EditStudioOptionsModal isOpen={isEditOptionsModalOpen} onClose={() => setIsEditOptionsModalOpen(false)} studio={selectedStudio} onStudioConfig={handleStudioConfig} />
+        <EditStudioOptionsModal isOpen={isEditOptionsModalOpen} onClose={() => setIsEditOptionsModalOpen(false)} studio={selectedStudio} onAdminConfig={handleAdminConfig} onStudioConfig={handleStudioConfig} />
+        <EditAdminConfigModal isOpen={isAdminConfigModalOpen} onClose={() => setIsAdminConfigModalOpen(false)} studio={selectedStudio} onSave={handleSaveAdminConfig} initialTab={adminConfigInitialTab} />
       </>
     )
   }

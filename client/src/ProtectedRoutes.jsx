@@ -14,7 +14,7 @@ const ProtectedRoutes = ({ children, allowedRoles }) => {
     if (allowedRoles && !allowedRoles.includes(currentUser.role)) {
         switch (currentUser.role) {
             case "admin":
-                return <Navigate to="/admin-dashboard/studios" replace />;
+                return <Navigate to="/admin-dashboard/customers" replace />;
             case "member":
                 return <Navigate to="/member-view/studio-menu" replace />;
             case "staff":

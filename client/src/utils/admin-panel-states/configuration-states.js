@@ -122,15 +122,38 @@ export const getLeadSourceColor = (name, sources = DEFAULT_LEAD_SOURCES) => {
   return source ? source.color : "#6B7280";
 };
 
+// ============================================
+// Accounts Defaults
+// ============================================
+export const DEFAULT_ACCOUNTS = [
+  {
+    id: 1,
+    firstName: "Max",
+    lastName: "Mustermann",
+    email: "admin@company.com",
+    password: "",
+    isPrimary: true,
+    createdAt: "2024-01-15",
+  },
+  {
+    id: 2,
+    firstName: "Lisa",
+    lastName: "Schmidt",
+    email: "lisa.schmidt@company.com",
+    password: "",
+    isPrimary: false,
+    createdAt: "2024-08-20",
+  },
+];
+
 // Navigation Items Configuration for the Configuration Page
 export const CONFIGURATION_NAV_ITEMS = [
   {
     id: "account",
-    label: "Account",
+    label: "Accounts",
     iconName: "User",
     sections: [
-      { id: "account-details", label: "Personal Details" },
-      { id: "account-access", label: "Access Data" },
+      { id: "accounts", label: "Manage Accounts" },
     ],
   },
   {

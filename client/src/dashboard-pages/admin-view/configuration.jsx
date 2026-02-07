@@ -62,6 +62,7 @@ import {
   DEMO_MENU_ITEMS,
   DEFAULT_DEMO_TEMPLATES,
   DEFAULT_CHANGELOG,
+  DEFAULT_ACCOUNTS,
 } from "../../utils/admin-panel-states/configuration-states"
 
 // ============================================
@@ -314,7 +315,7 @@ const ConfigurationPage = () => {
 
   // Navigation State
   const [activeCategory, setActiveCategory] = useState("account")
-  const [activeSection, setActiveSection] = useState("account-details")
+  const [activeSection, setActiveSection] = useState("accounts")
   const [searchQuery, setSearchQuery] = useState("")
   const [mobileShowContent, setMobileShowContent] = useState(false)
   const [expandedCategories, setExpandedCategories] = useState(["account"])
@@ -326,7 +327,7 @@ const ConfigurationPage = () => {
     
     if (tabParam === "account-management") {
       setActiveCategory("account")
-      setActiveSection("account-details")
+      setActiveSection("accounts")
       setMobileShowContent(true)
       setExpandedCategories(prev => 
         prev.includes("account") ? prev : [...prev, "account"]
@@ -335,18 +336,20 @@ const ConfigurationPage = () => {
   }, [location.search])
 
   // ============================================
-  // Account State
+  // Accounts State
   // ============================================
+  const [accounts, setAccounts] = useState([...DEFAULT_ACCOUNTS])
+  const [editingAccountId, setEditingAccountId] = useState(null)
+  const [addingAccount, setAddingAccount] = useState(false)
+  const [newAccount, setNewAccount] = useState({ firstName: "", lastName: "", email: "", password: "" })
   const [logo, setLogo] = useState([])
   const [logoUrl, setLogoUrl] = useState("")
-  const [accountEmail, setAccountEmail] = useState("")
-  const [currentPassword, setCurrentPassword] = useState("")
+  // Password change state (for inline editing)
+  const [changingPasswordId, setChangingPasswordId] = useState(null)
   const [newPassword, setNewPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [hasExistingPassword, setHasExistingPassword] = useState(false)
 
   // ============================================
   // Platform State (initialized from configuration-states)
@@ -449,7 +452,6 @@ const ConfigurationPage = () => {
   }
 
   const isPasswordFormValid = () => {
-    if (hasExistingPassword && !currentPassword) return false
     if (!newPassword || newPassword.length < 8) return false
     if (newPassword !== confirmPassword) return false
     return true
@@ -538,16 +540,59 @@ const ConfigurationPage = () => {
     }
   }
 
-  const handleChangePassword = () => {
+  const handleChangePassword = (accountId) => {
     if (!isPasswordFormValid()) {
       notification.error({ message: "Please fill in all password fields correctly" })
       return
     }
-
     notification.success({ message: "Password changed successfully" })
-    setCurrentPassword("")
     setNewPassword("")
     setConfirmPassword("")
+    setChangingPasswordId(null)
+    setShowNewPassword(false)
+    setShowConfirmPassword(false)
+  }
+
+  const handleAddAccount = () => {
+    if (!newAccount.firstName.trim() || !newAccount.email.trim()) {
+      notification.error({ message: "Please fill in name and email" })
+      return
+    }
+    setAccounts([...accounts, {
+      id: Date.now(),
+      firstName: newAccount.firstName.trim(),
+      lastName: newAccount.lastName.trim(),
+      email: newAccount.email.trim(),
+      password: "",
+      isPrimary: false,
+      createdAt: new Date().toISOString().split("T")[0],
+    }])
+    setNewAccount({ firstName: "", lastName: "", email: "", password: "" })
+    setAddingAccount(false)
+    notification.success({ message: "Account created successfully" })
+  }
+
+  const handleUpdateAccount = (id, field, value) => {
+    setAccounts(accounts.map(a => a.id === id ? { ...a, [field]: value } : a))
+  }
+
+  const handleRemoveAccount = (id) => {
+    const account = accounts.find(a => a.id === id)
+    if (account?.isPrimary) {
+      notification.error({ message: "Primary admin account cannot be removed" })
+      return
+    }
+    Modal.confirm({
+      title: "Remove Account",
+      content: `Are you sure you want to remove ${account?.firstName} ${account?.lastName}? This cannot be undone.`,
+      okText: "Remove",
+      okType: "danger",
+      onOk: () => {
+        setAccounts(accounts.filter(a => a.id !== id))
+        if (editingAccountId === id) setEditingAccountId(null)
+        notification.success({ message: "Account removed" })
+      },
+    })
   }
 
   const handleAddContractType = () => {
@@ -709,13 +754,13 @@ const ConfigurationPage = () => {
   const renderSectionContent = () => {
     switch (activeSection) {
       // ========================
-      // ACCOUNT SECTIONS
+      // ACCOUNTS SECTION
       // ========================
-      case "account-details":
+      case "accounts":
         return (
           <div className="space-y-6">
-            <SectionHeader title="Personal Details" description="Manage your account information and profile picture" />
-            
+            <SectionHeader title="Accounts" description="Manage admin accounts for your platform" />
+
             {/* Logo Upload */}
             <SettingsCard>
               <div className="flex flex-col sm:flex-row items-center gap-6">
@@ -728,8 +773,8 @@ const ConfigurationPage = () => {
                   />
                 </div>
                 <div className="flex-1 text-center sm:text-left">
-                  <h3 className="text-white font-medium mb-2">Profile Picture</h3>
-                  <p className="text-sm text-gray-400 mb-4">Upload your profile picture or studio logo</p>
+                  <h3 className="text-white font-medium mb-2">Platform Logo</h3>
+                  <p className="text-sm text-gray-400 mb-4">Upload your company or studio logo</p>
                   <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
                     <label className="px-4 py-2 bg-[#2F2F2F] text-white text-sm rounded-xl hover:bg-[#3F3F3F] cursor-pointer transition-colors flex items-center gap-2">
                       <Upload className="w-4 h-4" />
@@ -749,131 +794,355 @@ const ConfigurationPage = () => {
               </div>
             </SettingsCard>
 
-            {/* Account Email */}
-            <SettingsCard>
-              <h3 className="text-white font-medium mb-4">Account Email</h3>
-              <div className="max-w-md">
-                <InputField
-                  label="Email Address"
-                  value={accountEmail}
-                  onChange={setAccountEmail}
-                  placeholder="admin@company.com"
-                  type="email"
-                  icon={AtSign}
-                />
-              </div>
-            </SettingsCard>
-          </div>
-        )
+            {/* Primary Admin */}
+            {accounts.filter(a => a.isPrimary).map((account) => {
+              const isEditing = editingAccountId === account.id
+              const isChangingPw = changingPasswordId === account.id
+              return (
+                <SettingsCard key={account.id}>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center flex-shrink-0">
+                        <Shield className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-white font-medium">Primary Admin</h3>
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/15 text-orange-400 font-medium">Cannot be removed</span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setEditingAccountId(isEditing ? null : account.id)}
+                      className={`p-2 rounded-lg transition-colors ${isEditing ? "bg-orange-500/20 text-orange-400" : "text-gray-500 hover:bg-[#2F2F2F] hover:text-white"}`}
+                    >
+                      {isEditing ? <Check className="w-4 h-4" /> : <Edit className="w-4 h-4" />}
+                    </button>
+                  </div>
 
-      case "account-access":
-        return (
-          <div className="space-y-6">
-            <SectionHeader title="Access Data" description="Change your password and security settings" />
-            
-            <SettingsCard>
-              <h3 className="text-white font-medium mb-4">Change Password</h3>
-              <div className="max-w-md space-y-4">
-                {/* Current Password */}
-                {hasExistingPassword && (
-                  <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-gray-300">Current Password</label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                      <input
-                        type={showCurrentPassword ? "text" : "password"}
-                        value={currentPassword}
-                        onChange={(e) => setCurrentPassword(e.target.value)}
-                        placeholder="Enter current password"
-                        className="w-full bg-[#141414] text-white rounded-xl pl-10 pr-12 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                  {isEditing ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <InputField
+                        label="First Name"
+                        value={account.firstName}
+                        onChange={(v) => handleUpdateAccount(account.id, "firstName", v)}
+                        placeholder="First name"
+                        icon={User}
                       />
+                      <InputField
+                        label="Last Name"
+                        value={account.lastName}
+                        onChange={(v) => handleUpdateAccount(account.id, "lastName", v)}
+                        placeholder="Last name"
+                        icon={User}
+                      />
+                      <div className="sm:col-span-2">
+                        <InputField
+                          label="Email"
+                          value={account.email}
+                          onChange={(v) => handleUpdateAccount(account.id, "email", v)}
+                          placeholder="admin@company.com"
+                          type="email"
+                          icon={AtSign}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <div>
+                        <span className="text-xs text-gray-500 uppercase tracking-wider">Name</span>
+                        <p className="text-white text-sm mt-1">{account.firstName} {account.lastName}</p>
+                      </div>
+                      <div>
+                        <span className="text-xs text-gray-500 uppercase tracking-wider">Email</span>
+                        <p className="text-white text-sm mt-1">{account.email}</p>
+                      </div>
+                      <div>
+                        <span className="text-xs text-gray-500 uppercase tracking-wider">Created</span>
+                        <p className="text-white text-sm mt-1">{account.createdAt ? dayjs(account.createdAt).format("MMM D, YYYY") : "—"}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Password Change */}
+                  <div className="mt-4 pt-4 border-t border-[#2F2F2F]">
+                    {isChangingPw ? (
+                      <div className="max-w-md space-y-3">
+                        <h4 className="text-sm font-medium text-gray-300">Change Password</h4>
+                        <div className="space-y-1.5">
+                          <label className="text-sm font-medium text-gray-300">New Password</label>
+                          <div className="relative">
+                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                            <input
+                              type={showNewPassword ? "text" : "password"}
+                              value={newPassword}
+                              onChange={(e) => setNewPassword(e.target.value)}
+                              placeholder="Enter new password"
+                              className="w-full bg-[#141414] text-white rounded-xl pl-10 pr-12 py-2.5 text-sm outline-none border border-[#333333] focus:border-orange-500/50"
+                            />
+                            <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
+                              {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                          </div>
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-sm font-medium text-gray-300">Confirm Password</label>
+                          <div className="relative">
+                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                            <input
+                              type={showConfirmPassword ? "text" : "password"}
+                              value={confirmPassword}
+                              onChange={(e) => setConfirmPassword(e.target.value)}
+                              placeholder="Confirm new password"
+                              className="w-full bg-[#141414] text-white rounded-xl pl-10 pr-12 py-2.5 text-sm outline-none border border-[#333333] focus:border-orange-500/50"
+                            />
+                            <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
+                              {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                          </div>
+                        </div>
+                        {newPassword && (
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-xs text-gray-400">
+                              <span>Strength:</span>
+                              <span>{getPasswordStrength(newPassword)}</span>
+                            </div>
+                            <div className="w-full bg-gray-700 rounded-full h-1.5">
+                              <div className={`h-1.5 rounded-full transition-all ${getPasswordStrengthColor(newPassword)}`} style={{ width: `${getPasswordStrengthPercent(newPassword)}%` }} />
+                            </div>
+                          </div>
+                        )}
+                        {confirmPassword && newPassword !== confirmPassword && (
+                          <p className="text-xs text-red-400">Passwords do not match</p>
+                        )}
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleChangePassword(account.id)}
+                            disabled={!isPasswordFormValid()}
+                            className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${isPasswordFormValid() ? "bg-orange-500 text-white hover:bg-orange-600" : "bg-[#333333] text-gray-500 cursor-not-allowed"}`}
+                          >
+                            Save Password
+                          </button>
+                          <button
+                            onClick={() => { setChangingPasswordId(null); setNewPassword(""); setConfirmPassword(""); setShowNewPassword(false); setShowConfirmPassword(false) }}
+                            className="px-4 py-2 text-gray-400 text-sm hover:text-white transition-colors"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
                       <button
-                        type="button"
-                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                        onClick={() => setChangingPasswordId(account.id)}
+                        className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors"
                       >
-                        {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        <Lock className="w-4 h-4" />
+                        Change Password
                       </button>
-                    </div>
+                    )}
                   </div>
-                )}
+                </SettingsCard>
+              )
+            })}
 
-                {/* New Password */}
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-gray-300">New Password</label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                    <input
-                      type={showNewPassword ? "text" : "password"}
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="Enter new password"
-                      className="w-full bg-[#141414] text-white rounded-xl pl-10 pr-12 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowNewPassword(!showNewPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
-                    >
-                      {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
+            {/* Team Accounts */}
+            <SettingsCard>
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-white font-medium">Team Accounts</h3>
+                  <p className="text-xs text-gray-500 mt-0.5">{accounts.filter(a => !a.isPrimary).length} additional account{accounts.filter(a => !a.isPrimary).length !== 1 ? "s" : ""}</p>
                 </div>
+                <button
+                  onClick={() => setAddingAccount(true)}
+                  className="px-3 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Account
+                </button>
+              </div>
 
-                {/* Confirm Password */}
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-gray-300">Confirm New Password</label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                    <input
-                      type={showConfirmPassword ? "text" : "password"}
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="Confirm new password"
-                      className="w-full bg-[#141414] text-white rounded-xl pl-10 pr-12 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+              {/* Add Account Form */}
+              {addingAccount && (
+                <div className="p-4 mb-4 bg-[#141414] rounded-xl border border-orange-500/20 space-y-3">
+                  <h4 className="text-sm font-medium text-white">New Account</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <InputField
+                      label="First Name"
+                      value={newAccount.firstName}
+                      onChange={(v) => setNewAccount({ ...newAccount, firstName: v })}
+                      placeholder="First name"
+                      required
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
-                    >
-                      {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Password Strength Indicator */}
-                {newPassword && (
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-xs text-gray-400">
-                      <span>Password Strength:</span>
-                      <span>{getPasswordStrength(newPassword)}</span>
-                    </div>
-                    <div className="w-full bg-gray-700 rounded-full h-1.5">
-                      <div
-                        className={`h-1.5 rounded-full transition-all ${getPasswordStrengthColor(newPassword)}`}
-                        style={{ width: `${getPasswordStrengthPercent(newPassword)}%` }}
+                    <InputField
+                      label="Last Name"
+                      value={newAccount.lastName}
+                      onChange={(v) => setNewAccount({ ...newAccount, lastName: v })}
+                      placeholder="Last name"
+                    />
+                    <div className="sm:col-span-2">
+                      <InputField
+                        label="Email"
+                        value={newAccount.email}
+                        onChange={(v) => setNewAccount({ ...newAccount, email: v })}
+                        placeholder="email@company.com"
+                        type="email"
+                        icon={AtSign}
+                        required
                       />
                     </div>
                   </div>
-                )}
+                  <div className="flex items-center gap-2 pt-1">
+                    <button
+                      onClick={handleAddAccount}
+                      disabled={!newAccount.firstName.trim() || !newAccount.email.trim()}
+                      className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+                        newAccount.firstName.trim() && newAccount.email.trim()
+                          ? "bg-orange-500 text-white hover:bg-orange-600"
+                          : "bg-[#333333] text-gray-500 cursor-not-allowed"
+                      }`}
+                    >
+                      Create Account
+                    </button>
+                    <button
+                      onClick={() => { setAddingAccount(false); setNewAccount({ firstName: "", lastName: "", email: "", password: "" }) }}
+                      className="px-4 py-2 text-gray-400 text-sm hover:text-white transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
 
-                {/* Password mismatch warning */}
-                {confirmPassword && newPassword !== confirmPassword && (
-                  <p className="text-xs text-red-400">Passwords do not match</p>
-                )}
+              {/* Account List */}
+              <div className="space-y-2">
+                {accounts.filter(a => !a.isPrimary).length === 0 && !addingAccount ? (
+                  <div className="text-center py-8 text-gray-400">
+                    <User className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                    <p className="text-sm">No team accounts yet</p>
+                    <p className="text-xs text-gray-500 mt-1">Add accounts so other team members can log in</p>
+                  </div>
+                ) : (
+                  accounts.filter(a => !a.isPrimary).map((account) => {
+                    const isEditing = editingAccountId === account.id
+                    const isChangingPw = changingPasswordId === account.id
+                    return (
+                      <div key={account.id} className="p-3 bg-[#141414] rounded-xl">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-gray-600 to-gray-700 flex items-center justify-center flex-shrink-0">
+                            <span className="text-white font-bold text-xs">{(account.firstName?.[0] || "").toUpperCase()}{(account.lastName?.[0] || "").toUpperCase()}</span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            {isEditing ? (
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                <input
+                                  type="text"
+                                  value={account.firstName}
+                                  onChange={(e) => handleUpdateAccount(account.id, "firstName", e.target.value)}
+                                  placeholder="First name"
+                                  className="bg-[#1C1C1C] text-white rounded-lg px-3 py-1.5 text-sm outline-none border border-[#333333] focus:border-orange-500/50"
+                                />
+                                <input
+                                  type="text"
+                                  value={account.lastName}
+                                  onChange={(e) => handleUpdateAccount(account.id, "lastName", e.target.value)}
+                                  placeholder="Last name"
+                                  className="bg-[#1C1C1C] text-white rounded-lg px-3 py-1.5 text-sm outline-none border border-[#333333] focus:border-orange-500/50"
+                                />
+                                <input
+                                  type="email"
+                                  value={account.email}
+                                  onChange={(e) => handleUpdateAccount(account.id, "email", e.target.value)}
+                                  placeholder="Email"
+                                  className="bg-[#1C1C1C] text-white rounded-lg px-3 py-1.5 text-sm outline-none border border-[#333333] focus:border-orange-500/50"
+                                />
+                              </div>
+                            ) : (
+                              <>
+                                <p className="text-white text-sm font-medium truncate">{account.firstName} {account.lastName}</p>
+                                <p className="text-xs text-gray-500 truncate">{account.email}</p>
+                              </>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1 flex-shrink-0">
+                            <button
+                              onClick={() => { setChangingPasswordId(isChangingPw ? null : account.id); if (!isChangingPw) { setNewPassword(""); setConfirmPassword("") } }}
+                              className={`p-1.5 rounded-lg transition-colors ${isChangingPw ? "text-orange-400 bg-orange-500/10" : "text-gray-500 hover:text-white hover:bg-[#2F2F2F]"}`}
+                              title="Change password"
+                            >
+                              <Lock className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => setEditingAccountId(isEditing ? null : account.id)}
+                              className={`p-1.5 rounded-lg transition-colors ${isEditing ? "bg-orange-500/20 text-orange-400" : "text-gray-500 hover:bg-[#2F2F2F] hover:text-white"}`}
+                            >
+                              {isEditing ? <Check className="w-3.5 h-3.5" /> : <Edit className="w-3.5 h-3.5" />}
+                            </button>
+                            <button
+                              onClick={() => handleRemoveAccount(account.id)}
+                              className="p-1.5 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
 
-                <button
-                  onClick={handleChangePassword}
-                  disabled={!isPasswordFormValid()}
-                  className={`px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                    isPasswordFormValid()
-                      ? "bg-orange-500 text-white hover:bg-orange-600"
-                      : "bg-[#333333] text-gray-500 cursor-not-allowed"
-                  }`}
-                >
-                  Change Password
-                </button>
+                        {/* Inline Password Change */}
+                        {isChangingPw && (
+                          <div className="mt-3 pt-3 border-t border-[#2F2F2F] space-y-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-lg">
+                              <div className="space-y-1.5">
+                                <label className="text-xs font-medium text-gray-400">New Password</label>
+                                <div className="relative">
+                                  <input
+                                    type={showNewPassword ? "text" : "password"}
+                                    value={newPassword}
+                                    onChange={(e) => setNewPassword(e.target.value)}
+                                    placeholder="Min. 8 characters"
+                                    className="w-full bg-[#1C1C1C] text-white rounded-lg px-3 pr-9 py-1.5 text-sm outline-none border border-[#333333] focus:border-orange-500/50"
+                                  />
+                                  <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white">
+                                    {showNewPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                                  </button>
+                                </div>
+                              </div>
+                              <div className="space-y-1.5">
+                                <label className="text-xs font-medium text-gray-400">Confirm</label>
+                                <div className="relative">
+                                  <input
+                                    type={showConfirmPassword ? "text" : "password"}
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    placeholder="Repeat password"
+                                    className="w-full bg-[#1C1C1C] text-white rounded-lg px-3 pr-9 py-1.5 text-sm outline-none border border-[#333333] focus:border-orange-500/50"
+                                  />
+                                  <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white">
+                                    {showConfirmPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                            {confirmPassword && newPassword !== confirmPassword && (
+                              <p className="text-xs text-red-400">Passwords do not match</p>
+                            )}
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => handleChangePassword(account.id)}
+                                disabled={!isPasswordFormValid()}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${isPasswordFormValid() ? "bg-orange-500 text-white hover:bg-orange-600" : "bg-[#333333] text-gray-500 cursor-not-allowed"}`}
+                              >
+                                Save
+                              </button>
+                              <button
+                                onClick={() => { setChangingPasswordId(null); setNewPassword(""); setConfirmPassword("") }}
+                                className="px-3 py-1.5 text-gray-400 text-xs hover:text-white transition-colors"
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })
+                )}
               </div>
             </SettingsCard>
 
@@ -883,19 +1152,19 @@ const ConfigurationPage = () => {
               <ul className="text-sm text-gray-400 space-y-2">
                 <li className="flex items-start gap-2">
                   <Check className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
-                  Use at least 8 characters
+                  Use at least 8 characters for passwords
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
-                  Include uppercase and lowercase letters
-                </li>
-                <li className="flex items-start gap-2">
-                  <Check className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
-                  Include numbers and special characters
+                  Include uppercase, lowercase, numbers and special characters
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
                   Don't reuse passwords from other accounts
+                </li>
+                <li className="flex items-start gap-2">
+                  <Check className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
+                  Each team member should have their own account
                 </li>
               </ul>
             </SettingsCard>

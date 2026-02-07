@@ -27,7 +27,7 @@ export default function EditStudioPage() {
       {/* Back navigation */}
       <div className="flex items-center gap-3 p-4 border-b border-[#333333] flex-shrink-0">
         <button
-          onClick={() => navigate("/admin-dashboard/studios")}
+          onClick={() => navigate("/admin-dashboard/customers")}
           className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm"
         >
           <ChevronLeft className="w-4 h-4" />

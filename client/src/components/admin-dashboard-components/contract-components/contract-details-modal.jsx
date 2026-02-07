@@ -17,7 +17,7 @@ export function ContractDetailsModal({ contract, onClose, onPause, onCancel }) {
   }
 
   const redirectToStudio = () => {
-    window.location.href = "/admin-dashboard/studios"
+    window.location.href = "/admin-dashboard/customers"
   }
 
   return (

@@ -98,7 +98,7 @@ function App() {
   //  if (!loading && user) {
   //    if (location.pathname === "/" || location.pathname === "/login") {
   //      if (user.role === 'member') navigate("/member-view/studio-menu")
-  //      if (user.role === 'admin') navigate("/admin-dashboard/my-area")
+  //      if (user.role === 'admin') navigate("/admin-dashboard/customers")
   //      if (user.role === 'staff') navigate("/dashboard/my-area")
   //    }
   //  }
