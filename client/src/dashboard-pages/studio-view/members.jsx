@@ -49,10 +49,10 @@ import AppointmentModalMain from "../../components/shared/appointments/ShowAppoi
 import DocumentManagementModal from "../../components/shared/DocumentManagementModal"
 import AssessmentFormModal from "../../components/shared/medical-history/medical-history-form-modal"
 import AssessmentSelectionModal from "../../components/shared/medical-history/medical-history-selection-modal"
-import { appointmentsMainData, appointmentTypeMainData, availableMembersLeadsMain, freeAppointmentsMainData, memberHistoryMainData, memberRelationsMainData, membersData, relationOptionsMain, staffData, communicationSettingsData } from "../../utils/studio-states"
+import { staffData, communicationSettingsData, relationOptionsMain, availableMembersLeadsMain } from "../../utils/studio-states"
 import CreateAppointmentModal from "../../components/shared/appointments/CreateAppointmentModal"
 import EditAppointmentModalMain from "../../components/shared/appointments/EditAppointmentModal"
-
+import { useStudioMembers } from "../../hooks/useStudioMembers"
 
 // sidebar related import
 import { trainingVideosData } from "../../utils/studio-states/training-states"
@@ -119,16 +119,28 @@ const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) =>
     </div>
   )
 };
-
-export default function Members() {
-
+export default function Members({ studioId: studioIdProp = null, mode = "studio", studioName: studioNameProp = null }) {
   const trainingVideos = trainingVideosData
   const navigate = useNavigate()
   const location = useLocation()
-  
-  // Helper function for contract redirect
+
+const isAdminMode = mode === "admin" && studioIdProp !== null
+
+// ============================================
+// Load members data via shared hook
+// ============================================
+const { data: membersHookData, isLoading: membersLoading, error: membersError } = useStudioMembers({
+  studioId: studioIdProp,
+  mode,
+})
+
+// Helper function for contract redirect
   const redirectToContract = (memberId) => {
-    navigate(`/dashboard/contracts?member=${memberId}`)
+    if (isAdminMode) {
+      navigate(`/admin-dashboard/customers`)
+    } else {
+      navigate(`/dashboard/contracts?member=${memberId}`)
+    }
   }
   
   // Member filters - array of filtered members (can be multiple)
@@ -406,7 +418,7 @@ export default function Members() {
     selectedMemberId: null,
   })
   // memberRelationsMain wird für EditMember Modal verwendet
-  const [memberRelationsMain, setMemberRelationsMain] = useState(memberRelationsMainData)
+ const [memberRelationsMain, setMemberRelationsMain] = useState([])
 
   // Countries hook für CreateTempMemberModal
   const { countries, loading: countriesLoading } = useCountries()
@@ -438,14 +450,14 @@ export default function Members() {
     if (!relations) return 0
     return Object.values(relations).reduce((total, categoryRelations) => total + categoryRelations.length, 0)
   }
-  const [members, setMembers] = useState(membersData)
+  const [members, setMembers] = useState([])
+
 
   //  all
-  const [appointmentsMain, setAppointmentsMain] = useState(appointmentsMainData)
-  const [appointmentTypesMain, setAppointmentTypesMain] = useState(appointmentTypeMainData)
-  const [freeAppointmentsMain, setFreeAppointmentsMain] = useState(freeAppointmentsMainData)
-
-  const [memberHistoryMain, setMemberHistoryMain] = useState(memberHistoryMainData)
+const [appointmentsMain, setAppointmentsMain] = useState([])
+const [appointmentTypesMain, setAppointmentTypesMain] = useState([])
+const [freeAppointmentsMain, setFreeAppointmentsMain] = useState([])
+const [memberHistoryMain, setMemberHistoryMain] = useState({})
 
   const getActiveFiltersText = () => {
     const statusText = filterOptions.find(opt => opt.id === filterStatus)?.label.split(' (')[0] || 'All Members';
@@ -454,6 +466,22 @@ export default function Members() {
     return `${statusText} & ${typeText}`;
   };
 
+
+useEffect(() => {
+  if (membersHookData) {
+    setMembers(membersHookData.members)
+    setAppointmentsMain(membersHookData.appointments)
+    setAppointmentTypesMain(membersHookData.appointmentTypes)
+    setFreeAppointmentsMain(membersHookData.freeAppointments)
+    setMemberHistoryMain(membersHookData.memberHistory)
+    setMemberRelationsMain(membersHookData.memberRelations)
+    
+    // Admin immer List View
+    if (isAdminMode) {
+      setViewMode('list')
+    }
+  }
+}, [membersHookData])
 
   useEffect(() => {
     if (selectedMemberMain) {
@@ -918,8 +946,8 @@ export default function Members() {
       
       switch (sortBy) {
           case 'name':
-            comparison = a.title.localeCompare(b.title);
-            break;
+  comparison = (a.title || '').localeCompare(b.title || '');
+  break;
           case 'status':
             const getStatusPriority = (member) => {
               if (member.isArchived) return 3
@@ -1392,14 +1420,27 @@ export default function Members() {
     toast.success("Relation deleted successfully")
   }
 
-  // 
+const AdminBanner = () => {
+  if (!isAdminMode) return null
+  return (
+    <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-xl p-3 mb-4 flex items-center gap-3">
+      <div className="bg-blue-500/20 p-2 rounded-lg">
+        <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <div>
+        <p className="text-sm font-medium text-blue-300">Admin Mode — {studioNameProp || `Studio #${studioIdProp}`}</p>
+        <p className="text-xs text-gray-400">Viewing members for this studio. Changes are saved per-studio.</p>
+      </div>
+    </div>
+  )
+}
+
   const getMemberAppointmentsMain = (memberId) => {
     return appointmentsMain.filter((app) => app.memberId === memberId)
   }
 
-
-
- 
   return (
     <>
       <style>
@@ -1435,12 +1476,29 @@ export default function Members() {
           },
         }}
       />
-      <div
-        className="flex flex-col lg:flex-row rounded-3xl bg-[#1C1C1C] transition-all duration-500 text-white relative"
-      >
+      <div className="flex flex-col lg:flex-row rounded-3xl bg-[#1C1C1C] transition-all duration-500 text-white relative">
         <div className="flex-1 min-w-0 md:p-6 p-4 pb-36">
-          {/* Header */}
-          <div className="flex sm:items-center justify-between mb-6 sm:mb-8 gap-4">
+          <AdminBanner />
+
+          {/* Loading State */}
+          {membersLoading && (
+            <div className="flex items-center justify-center py-20">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+            </div>
+          )}
+
+          {/* Error State */}
+          {membersError && (
+            <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-4">
+              <p className="text-red-400 text-sm">Failed to load members: {membersError}</p>
+            </div>
+          )}
+
+          {/* Main Content - nur wenn geladen */}
+          {!membersLoading && !membersError && (
+            <>
+              {/* Header */}
+              <div className="flex sm:items-center justify-between mb-6 sm:mb-8 gap-4">
             <div className="flex items-center gap-3">
               <h1 className="text-white oxanium_font text-xl md:text-2xl">Members</h1>
               
@@ -1493,8 +1551,9 @@ export default function Members() {
                 )}
               </div>
               
-              {/* View Toggle - Desktop only */}
-              <div className="hidden lg:flex items-center gap-2 bg-black rounded-xl p-1">
+            {/* View Toggle - Desktop only */}
+{!isAdminMode && (
+<div className="hidden lg:flex items-center gap-2 bg-black rounded-xl p-1">
                 <div className="relative group">
                   <button
                     onClick={() => setViewMode('grid')}
@@ -1556,6 +1615,7 @@ export default function Members() {
                         <div className={`w-1.5 h-1.5 rounded-full ${isCompactView ? 'bg-current' : 'bg-gray-500'}`}></div>
                       </div>
                     </div>
+                    
                   </button>
                   
                   {/* Tooltip */}
@@ -1564,7 +1624,8 @@ export default function Members() {
                     <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
                   </div>
                 </div>
-              </div>
+            </div>
+            )}
             </div>
 
             <div className="flex items-center gap-2">
@@ -1990,13 +2051,15 @@ export default function Members() {
                           >
                             <FileText size={isCompactView ? 16 : 18} />
                           </button>
-                          <button
-                            onClick={() => handleChatClick(member)}
-                            className={`${isCompactView ? 'p-1.5' : 'p-2'} text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-colors`}
-                            title="Chat"
-                          >
-                            <MessageCircle size={isCompactView ? 16 : 18} />
-                          </button>
+                         {!isAdminMode && (
+  <button
+    onClick={() => handleChatClick(member)}
+    className={`${isCompactView ? 'p-1.5' : 'p-2'} text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-colors`}
+    title="Chat"
+  >
+    <MessageCircle size={isCompactView ? 16 : 18} />
+  </button>
+)}
                           <div className={`w-px ${isCompactView ? 'h-4' : 'h-5'} bg-gray-700/50 mx-1`} />
                           <button
                             onClick={() => handleViewDetails(member)}
@@ -2134,13 +2197,15 @@ export default function Members() {
                                 </button>
                               </div>
                               <div className="grid grid-cols-4 gap-1 mt-1">
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); handleChatClick(member); }}
-                                  className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-                                >
-                                  <MessageCircle size={18} />
-                                  <span className="text-[10px]">Chat</span>
-                                </button>
+                                {!isAdminMode && (
+  <button
+    onClick={(e) => { e.stopPropagation(); handleChatClick(member); }}
+    className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+  >
+    <MessageCircle size={18} />
+    <span className="text-[10px]">Chat</span>
+  </button>
+)}
                                 <button
                                   onClick={(e) => { e.stopPropagation(); handleRelationClick(member); }}
                                   className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
@@ -2303,13 +2368,15 @@ export default function Members() {
                             </div>
                             {/* Second row - 4 icons */}
                             <div className="grid grid-cols-4 gap-1">
-                              <button
-                                onClick={() => handleChatClick(member)}
-                                className="p-1.5 text-gray-400 hover:text-white rounded-lg transition-colors flex items-center justify-center"
-                                title="Chat"
-                              >
-                                <MessageCircle size={14} />
-                              </button>
+                            {!isAdminMode && (
+  <button
+    onClick={() => handleChatClick(member)}
+    className="p-1.5 text-gray-400 hover:text-white rounded-lg transition-colors flex items-center justify-center"
+    title="Chat"
+  >
+    <MessageCircle size={14} />
+  </button>
+)}
                               <button
                                 onClick={() => handleViewDetails(member)}
                                 className="p-1.5 text-blue-400 hover:text-blue-300 rounded-lg transition-colors flex items-center justify-center"
@@ -2484,13 +2551,15 @@ export default function Members() {
                               >
                                 <FileText size={16} />
                               </button>
-                              <button
-                                onClick={() => handleChatClick(member)}
-                                className="p-2 text-gray-400 hover:text-white rounded-lg transition-colors flex items-center justify-center"
-                                title="Start Chat"
-                              >
-                                <MessageCircle size={16} />
-                              </button>
+                             {!isAdminMode && (
+  <button
+    onClick={() => handleChatClick(member)}
+    className="p-2 text-gray-400 hover:text-white rounded-lg transition-colors flex items-center justify-center"
+    title="Start Chat"
+  >
+    <MessageCircle size={16} />
+  </button>
+)}
                             </div>
 
                             {/* Second row - Text buttons */}
@@ -2532,7 +2601,8 @@ export default function Members() {
           </div>
 
          
-
+            </>
+          )}
           <CreateTempMemberModal
             show={showCreateTempMemberModal}
             onClose={() => setShowCreateTempMemberModal(false)}

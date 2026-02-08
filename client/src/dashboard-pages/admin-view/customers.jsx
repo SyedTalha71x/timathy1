@@ -219,7 +219,6 @@
     const [selectedFranchiseForAssignment, setSelectedFranchiseForAssignment] = useState(null)
     const [selectedFranchiseForManagement, setSelectedFranchiseForManagement] = useState(null)
 
-    const [isMembersModalOpen, setIsMembersModalOpen] = useState(false)
     const [isStaffsModalOpen, setIsStaffsModalOpen] = useState(false)
     const [isContractsModalOpen, setIsContractsModalOpen] = useState(false)
     const [selectedStudioForModal, setSelectedStudioForModal] = useState(null)
@@ -261,7 +260,6 @@
 
     const [showHistory, setShowHistory] = useState(false)
     const [historyTabMain, setHistoryTabMain] = useState("general")
-    const [memberSearchQuery, setMemberSearchQuery] = useState("")
     const [staffSearchQuery, setStaffSearchQuery] = useState("")
 
     const [showHistoryModal, setShowHistoryModal] = useState(false)
@@ -432,12 +430,11 @@
       setFranchiseForm({ ...DEFAULT_FRANCHISE_FORM })
     }
 
-    const handleMemberEditSubmit = (e, formData) => {
-      e.preventDefault()
-      if (isMembersModalOpen) { setStudioMembers((prev) => ({ ...prev, [selectedStudioForModal.id]: prev[selectedStudioForModal.id].map((m) => m.id === selectedMemberForEdit.id ? { ...m, ...formData } : m) })) }
-      else if (isStaffsModalOpen) { setStudioStaffs((prev) => ({ ...prev, [selectedStudioForModal.id]: prev[selectedStudioForModal.id].map((s) => s.id === selectedMemberForEdit.id ? { ...s, ...formData, role: formData.membershipType } : s) })) }
-      setIsEditMemberModalOpen(false); setSelectedMemberForEdit(null); toast.success("Details updated successfully")
-    }
+   const handleMemberEditSubmit = (e, formData) => {
+  e.preventDefault()
+  if (isStaffsModalOpen) { setStudioStaffs((prev) => ({ ...prev, [selectedStudioForModal.id]: prev[selectedStudioForModal.id].map((s) => s.id === selectedMemberForEdit.id ? { ...s, ...formData, role: formData.membershipType } : s) })) }
+  setIsEditMemberModalOpen(false); setSelectedMemberForEdit(null); toast.success("Details updated successfully")
+}
 
     const handleViewMemberDetails = (member) => { setSelectedItemForDetails(member); setIsMemberDetailsModalOpen(true) }
     const handleViewStaffDetails = (staff) => { setSelectedItemForDetails(staff); setIsStaffDetailsModalOpen(true) }
@@ -502,16 +499,13 @@
     }
 
     const handleOpenStudioManagement = (franchise) => { setSelectedFranchiseForManagement(franchise); setIsStudioManagementModalOpen(true) }
-    const handleOpenMembersModal = (studio) => { setSelectedStudioForModal(studio); setIsMembersModalOpen(true) }
+    const handleOpenMembersModal = (studio) => { navigate(`/admin-dashboard/studio-members/${studio.id}`) }
     const handleOpenStaffsModal = (studio) => { setSelectedStudioForModal(studio); setIsStaffsModalOpen(true) }
     const handleOpenContractsModal = (studio) => { setSelectedStudioForModal(studio); setIsContractsModalOpen(true) }
     const handleEditMember = (member) => { setSelectedMemberForEdit(member); setIsEditMemberModalOpen(true) }
     const handleDownloadFile = (fileName) => { toast.success(`Downloading ${fileName}`) }
     const handleFileUpload = (contractId, files) => { if (files && files.length > 0) { const newFiles = Array.from(files).map((f) => f.name); setStudioContracts((prev) => ({ ...prev, [selectedStudioForModal.id]: prev[selectedStudioForModal.id].map((c) => c.id === contractId ? { ...c, files: [...c.files, ...newFiles] } : c) })); toast.success(`${newFiles.length} file(s) uploaded successfully`) } }
-
-    const getFilteredMembers = () => { if (!selectedStudioForModal || !studioMembers[selectedStudioForModal.id]) return []; return studioMembers[selectedStudioForModal.id].filter((m) => `${m.firstName} ${m.lastName}`.toLowerCase().includes(memberSearchQuery.toLowerCase()) || m.email.toLowerCase().includes(memberSearchQuery.toLowerCase()) || m.phone.includes(memberSearchQuery)) }
     const getFilteredStaff = () => { if (!selectedStudioForModal || !studioStaffs[selectedStudioForModal.id]) return []; return studioStaffs[selectedStudioForModal.id].filter((s) => `${s.firstName} ${s.lastName}`.toLowerCase().includes(staffSearchQuery.toLowerCase()) || s.email.toLowerCase().includes(staffSearchQuery.toLowerCase()) || s.phone.includes(staffSearchQuery) || s.role.toLowerCase().includes(staffSearchQuery.toLowerCase())) }
-
     const handleHistoryFromOverview = (member) => { setSelectedMemberForEdit(member); setShowHistoryModal(true) }
     const handleDocumentFromOverview = (member) => { setSelectedMemberForEdit(member); setShowDocumentModal(true) }
     const handleCalendarFromOverview = (member) => { setSelectedMemberForEdit(member); setShowAppointmentModalMain(true) }
@@ -956,7 +950,6 @@
         )}
 
         {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â MODALS (all preserved) Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
-        <StudioMembersModal isOpen={isMembersModalOpen} studio={selectedStudioForModal} studioMembers={studioMembers} memberSearchQuery={memberSearchQuery} setMemberSearchQuery={setMemberSearchQuery} getFilteredMembers={getFilteredMembers} onClose={() => { setIsMembersModalOpen(false); setSelectedStudioForModal(null); setMemberSearchQuery("") }} onViewMember={handleViewMemberDetails} onEditMember={handleEditMember} handleHistoryFromOverview={handleHistoryFromOverview} handleDocumentFromOverview={handleDocumentFromOverview} handleCalendarFromOverview={handleCalendarFromOverview} onCreateTempMember={() => setIsCreateTempMemberModalOpen(true)} handleTrainingPlanFromOverview={handleTrainingPlanFromOverview} />
         <EditMemberModal isOpen={isEditMemberModalOpen} onClose={() => setIsEditMemberModalOpen(false)} selectedMember={selectedMemberForEdit} onSave={handleMemberEditSubmit} memberRelations={memberRelations} availableMembersLeads={availableMembersLeadsMain} onArchiveMember={() => toast.success("Member archived successfully")} onUnarchiveMember={() => toast.success("Member unarchived successfully")} />
         {showTrainingPlansModalMain && selectedMemberForEdit && <TrainingPlansModal isOpen={showTrainingPlansModalMain} onClose={() => { setShowTrainingPlansModalMain(false); setSelectedMemberForEdit(null) }} selectedMemberMain={selectedMemberForEdit} memberTrainingPlansMain={memberTrainingPlansMain[selectedMemberForEdit.id] || []} availableTrainingPlansMain={availableTrainingPlansMain} onAssignPlanMain={handleAssignPlanMain} onRemovePlanMain={handleRemovePlanMain} />}
         <CreateTempMemberModal show={isCreateTempMemberModalOpen} onClose={() => { setIsCreateTempMemberModalOpen(false); setTempMemberForm({ ...DEFAULT_TEMP_MEMBER_FORM }); setTempMemberModalTab("details") }} tempMemberForm={tempMemberForm} setTempMemberForm={setTempMemberForm} tempMemberModalTab={tempMemberModalTab} setTempMemberModalTab={setTempMemberModalTab} handleCreateTempMember={handleCreateTempMember} handleTempMemberInputChange={handleTempMemberInputChange} handleImgUpload={handleImgUpload} editingRelationsMain={editingRelationsMain} setEditingRelationsMain={setEditingRelationsMain} newRelationMain={newRelationMain} setNewRelationMain={setNewRelationMain} availableMembersLeadsMain={availableMembersLeadsMain} relationOptionsMain={relationOptionsMain} />

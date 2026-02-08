@@ -51,6 +51,7 @@ import AdminEmailManagement from './dashboard-pages/admin-view/email'
 import AdminNotes from './dashboard-pages/admin-view/notes'
 import AdminDemoAccess from './dashboard-pages/admin-view/demo-access'
 import AdminFeedback from './dashboard-pages/admin-view/feedback'
+import EditStudioMembersPage from './dashboard-pages/admin-view/edit-studio-members-page'
 
 
 // Member Dashboard  
@@ -159,7 +160,7 @@ function App() {
           <Route path="feedback" element={<AdminFeedback />} />
 
           <Route path="edit-studio-configuration/:studioId" element={<EditStudioPage />} />
-
+          <Route path="studio-members/:studioId" element={<EditStudioMembersPage />} />
 
 
         </Route>
