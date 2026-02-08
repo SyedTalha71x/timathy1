@@ -51,7 +51,8 @@ import AdminEmailManagement from './dashboard-pages/admin-view/email'
 import AdminNotes from './dashboard-pages/admin-view/notes'
 import AdminDemoAccess from './dashboard-pages/admin-view/demo-access'
 import AdminFeedback from './dashboard-pages/admin-view/feedback'
-import EditStudioMembersPage from './dashboard-pages/admin-view/edit-studio-members-page'
+import EditStudioMembersPage from './dashboard-pages/admin-view/customers-sub-pages/edit-studio-members-page'
+import EditStudioStaffPage from './dashboard-pages/admin-view/customers-sub-pages/edit-studio-staff-page'
 
 
 // Member Dashboard  
@@ -62,7 +63,7 @@ import MemberStudioMenu from './dashboard-pages/member-view/studio-menu'
 import MemberSettings from './dashboard-pages/member-view/configuration'
 import MemberViewProfile from './dashboard-pages/member-view/edit-profile'
 import MemberTraining from './dashboard-pages/member-view/training'
-import EditStudioPage from "./dashboard-pages/admin-view/edit-studio-page";
+import EditStudioPage from "./dashboard-pages/admin-view/customers-sub-pages/edit-studio-page";
 import MemberFoodLogs from './dashboard-pages/member-view/nutrition-tracking/food-log'
 import MemberNutritionBreakDown from './dashboard-pages/member-view/nutrition-tracking/nutrition-breakdown'
 import MemberDailySummary from './dashboard-pages/member-view/nutrition-tracking/daily-summary'
@@ -159,8 +160,10 @@ function App() {
           <Route path="demo-access" element={<AdminDemoAccess />} />
           <Route path="feedback" element={<AdminFeedback />} />
 
-          <Route path="edit-studio-configuration/:studioId" element={<EditStudioPage />} />
-          <Route path="studio-members/:studioId" element={<EditStudioMembersPage />} />
+         <Route path="edit-studio-configuration/:studioId" element={<EditStudioPage />} />
+<Route path="studio-members/:studioId" element={<EditStudioMembersPage />} />
+<Route path="studio-staff/:studioId" element={<EditStudioStaffPage />} />
+
 
 
         </Route>

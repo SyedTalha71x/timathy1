@@ -31,7 +31,8 @@ import EditStaffModal from "../../components/studio-components/staff-components/
 import StaffPlanningModal from "../../components/studio-components/staff-components/staff-planning-modal"
 import VacationCalendarModal from "../../components/studio-components/staff-components/vacation-calendar-modal"
 import StaffHistoryModal from "../../components/studio-components/staff-components/staff-history-modal"
-import { StaffColorIndicator, staffMemberDataNew, membersData, communicationSettingsData } from "../../utils/studio-states"
+import { StaffColorIndicator, communicationSettingsData } from "../../utils/studio-states"
+import { useStudioStaff } from "../../hooks/useStudioStaff"
 import { trainingVideosData } from "../../utils/studio-states/training-states"
 import { TbPlusMinus } from "react-icons/tb";
 
@@ -108,10 +109,18 @@ const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) =>
   )
 };
 
-export default function StaffManagement() {
+export default function StaffManagement({ studioId: studioIdProp = null, mode = "studio", studioName: studioNameProp = null }) {
   const navigate = useNavigate();
   const location = useLocation();
-  
+  const isAdminMode = mode === "admin" && studioIdProp !== null
+
+// ============================================
+// Load staff data via shared hook
+// ============================================
+const { data: staffHookData, isLoading: staffLoading, error: staffError } = useStudioStaff({
+  studioId: studioIdProp,
+  mode,
+})
   const [isShowDetails, setIsShowDetails] = useState(false)
   const [selectedStaff, setSelectedStaff] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -201,8 +210,19 @@ export default function StaffManagement() {
   const sortDropdownRef = useRef(null)
   const mobileSortDropdownRef = useRef(null)
 
+useEffect(() => {
+  if (staffHookData) {
+    setStaffMembers(staffHookData.staff)
+    
+    // Admin immer List View
+    if (isAdminMode) {
+      setViewMode('list')
+    }
+  }
+}, [staffHookData])
+
   const trainingVideos = trainingVideosData
-  const [staffMembers, setStaffMembers] = useState(staffMemberDataNew)
+const [staffMembers, setStaffMembers] = useState([])
 
   // Sort options
   const sortOptions = [
@@ -702,7 +722,7 @@ export default function StaffManagement() {
     }));
     
     // Search in members
-    const memberResults = membersData.filter(m => 
+    const memberResults = (staffHookData?.members || []).filter(m =>
       m.firstName?.toLowerCase().includes(q) ||
       m.lastName?.toLowerCase().includes(q) ||
       m.email?.toLowerCase().includes(q) ||
@@ -717,8 +737,26 @@ export default function StaffManagement() {
       type: 'member'
     }));
     
-    return [...staffResults, ...memberResults].slice(0, 10);
+return [...staffResults, ...memberResults].slice(0, 10);
   };
+
+const AdminBanner = () => {
+  if (!isAdminMode) return null
+  return (
+    <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-xl p-3 mb-4 flex items-center gap-3">
+      <div className="bg-blue-500/20 p-2 rounded-lg">
+        <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <div>
+        <p className="text-sm font-medium text-blue-300">Admin Mode — {studioNameProp || `Studio #${studioIdProp}`}</p>
+        <p className="text-xs text-gray-400">Viewing staff for this studio. Changes are saved per-studio.</p>
+      </div>
+    </div>
+  )
+}
+
 
   // Select email recipient
   const handleSelectEmailRecipient = (staff) => {
@@ -777,7 +815,26 @@ export default function StaffManagement() {
           className="flex flex-col lg:flex-row rounded-3xl bg-[#1C1C1C] transition-all duration-500 text-white relative"
         >
           <div className="flex-1 min-w-0 md:p-6 p-4 pb-36">
-            {/* Header */}
+            <AdminBanner />
+
+            {/* Loading State */}
+            {staffLoading && (
+              <div className="flex items-center justify-center py-20">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500" />
+              </div>
+            )}
+
+            {/* Error State */}
+            {staffError && (
+              <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-4">
+                <p className="text-red-400 text-sm">Failed to load staff: {staffError}</p>
+              </div>
+            )}
+
+            {/* Main Content - nur wenn geladen */}
+            {!staffLoading && !staffError && (
+              <>
+              {/* Header */}
             <div className="flex sm:items-center justify-between mb-6 sm:mb-8 gap-4">
               <div className="flex items-center gap-3">
                 <h1 className="text-white oxanium_font text-xl md:text-2xl">Staff</h1>
@@ -831,7 +888,8 @@ export default function StaffManagement() {
                   )}
                 </div>
                 
-                {/* View Toggle - Desktop only */}
+               {/* View Toggle - Desktop only */}
+                {!isAdminMode && (
                 <div className="hidden lg:flex items-center gap-2 bg-black rounded-xl p-1">
                   <div className="relative group">
                     <button
@@ -899,6 +957,7 @@ export default function StaffManagement() {
                     </div>
                   </div>
                 </div>
+                )}
               </div>
 
               <div className="flex items-center gap-2">
@@ -1245,14 +1304,14 @@ export default function StaffManagement() {
                           {/* Username */}
                           <div className="col-span-2">
                             <span className={`${isCompactView ? 'text-xs' : 'text-sm'} text-gray-400 truncate block`}>
-                              {staff.username || "Ã¢â‚¬â€"}
+                              {staff.username || "—"}
                             </span>
                           </div>
                           
                           {/* About */}
                           <div className="col-span-2">
                             <span className={`${isCompactView ? 'text-xs' : 'text-sm'} text-gray-400 line-clamp-2`}>
-                              {staff.description || staff.about || "ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â"}
+                              {staff.description || staff.about || "—"}
                             </span>
                           </div>
                           
@@ -1265,13 +1324,15 @@ export default function StaffManagement() {
                             >
                               <History size={isCompactView ? 16 : 18} />
                             </button>
-                            <button
-                              onClick={() => handleChatClick(staff)}
-                              className={`${isCompactView ? 'p-1.5' : 'p-2'} text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-colors`}
-                              title="Chat"
-                            >
-                              <MessageCircle size={isCompactView ? 16 : 18} />
-                            </button>
+                            {!isAdminMode && (
+  <button
+    onClick={() => handleChatClick(staff)}
+    className={`${isCompactView ? 'p-1.5' : 'p-2'} text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-colors`}
+    title="Chat"
+  >
+    <MessageCircle size={isCompactView ? 16 : 18} />
+  </button>
+)}
                             <button
                               onClick={() => handleVacationContingentClick(staff)}
                               className={`${isCompactView ? 'p-1.5' : 'p-2'} text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-colors`}
@@ -1370,13 +1431,15 @@ export default function StaffManagement() {
                                     <History size={18} />
                                     <span className="text-[10px]">History</span>
                                   </button>
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); handleChatClick(staff); }}
-                                    className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-                                  >
-                                    <MessageCircle size={18} />
-                                    <span className="text-[10px]">Chat</span>
-                                  </button>
+                               {!isAdminMode && (
+  <button
+    onClick={(e) => { e.stopPropagation(); handleChatClick(staff); }}
+    className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+  >
+    <MessageCircle size={18} />
+    <span className="text-[10px]">Chat</span>
+  </button>
+)}
                                   <button
                                     onClick={(e) => { e.stopPropagation(); handleVacationContingentClick(staff); }}
                                     className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
@@ -1477,13 +1540,15 @@ export default function StaffManagement() {
                                 >
                                   <History size={14} />
                                 </button>
-                                <button
-                                  onClick={() => handleChatClick(staff)}
-                                  className="p-1.5 text-gray-400 hover:text-white rounded-lg transition-colors flex items-center justify-center"
-                                  title="Chat"
-                                >
-                                  <MessageCircle size={14} />
-                                </button>
+                               {!isAdminMode && (
+  <button
+    onClick={() => handleChatClick(staff)}
+    className="p-1.5 text-gray-400 hover:text-white rounded-lg transition-colors flex items-center justify-center"
+    title="Chat"
+  >
+    <MessageCircle size={14} />
+  </button>
+)}
                                 <button
                                   onClick={() => handleVacationContingentClick(staff)}
                                   className="p-1.5 text-gray-400 hover:text-white rounded-lg transition-colors flex items-center justify-center"
@@ -1596,13 +1661,15 @@ export default function StaffManagement() {
                               >
                                 <History size={18} />
                               </button>
-                              <button
-                                onClick={() => handleChatClick(staff)}
-                                className="p-2.5 text-gray-400 hover:text-white bg-[#0f0f0f] hover:bg-[#1a1a1a] rounded-xl transition-colors"
-                                title="Chat"
-                              >
-                                <MessageCircle size={18} />
-                              </button>
+                         {!isAdminMode && (
+  <button
+    onClick={() => handleChatClick(staff)}
+    className="p-2 text-gray-400 hover:text-white rounded-lg transition-colors flex items-center justify-center"
+    title="Start Chat"
+  >
+    <MessageCircle size={18} />
+  </button>
+)}
                               <button
                                 onClick={() => handleVacationContingentClick(staff)}
                                 className="p-2.5 text-gray-400 hover:text-white bg-[#0f0f0f] hover:bg-[#1a1a1a] rounded-xl transition-colors"
@@ -1636,13 +1703,15 @@ export default function StaffManagement() {
                         </div>
                       ))
                     ) : (
-                      <div className="text-center py-8 col-span-full">
+                       <div className="text-center py-8 col-span-full">
                         <p className="text-gray-400 text-sm">No staff members found.</p>
-                      </div>
+                       </div>
                     )}
                   </div>
                 )}
             </div>
+            </>
+            )}
           </div>
         </div>
 

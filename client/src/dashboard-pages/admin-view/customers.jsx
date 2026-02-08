@@ -45,8 +45,6 @@
     studioLeadsRelatonData,
     studiomemberHistoryNew,
     studioMembersData,
-    studioStaffData,
-    studiostaffHistoryNew,
     studioStatsData,
   } from "../../utils/admin-panel-states/customers-states"
 
@@ -59,27 +57,11 @@
   import StudioManagementModal from "../../components/admin-dashboard-components/studios-modal/studio-management-modal"
   import FranchiseDetailsModal from "../../components/admin-dashboard-components/studios-modal/franchise-details-modal"
 
-  import EditMemberModal from "../../components/admin-dashboard-components/studios-modal/members-component/edit-member-modal"
-  import EditStaffModal from "../../components/admin-dashboard-components/studios-modal/staff-components/edit-staff-modal"
   import StudioDetailsModal from "../../components/admin-dashboard-components/studios-modal/studios-detail-modal"
 
   import ContractsModal from "../../components/admin-dashboard-components/studios-modal/contract-components/contract-modal"
-  import AddStaffModal from "../../components/admin-dashboard-components/studios-modal/staff-components/add-staff-modal"
-  import { ViewStaffModal } from "../../components/admin-dashboard-components/studios-modal/staff-components/view-staff-details"
-  import MemberDetailsModal from "../../components/admin-dashboard-components/studios-modal/members-component/members-detail"
   import ContractDetailsModal from "../../components/admin-dashboard-components/studios-modal/contract-components/contract-details"
   import StudioHistoryModalMain from "../../components/admin-dashboard-components/studios-modal/studio-history"
-  import StudioMembersModal from "../../components/admin-dashboard-components/studios-modal/members-component/MemberOverviewModal"
-  import StudioStaffModal from "../../components/admin-dashboard-components/studios-modal/staff-components/StaffOverviewModal"
-  import MemberHistoryModalMain from "../../components/admin-dashboard-components/studios-modal/members-component/member-history-modal"
-  import { MemberDocumentModal } from "../../components/admin-dashboard-components/studios-modal/members-component/members-document-modal"
-  import AppointmentModalMain from "../../components/admin-dashboard-components/studios-modal/members-component/appointment-modal"
-  import EditAppointmentModalMain from "../../components/admin-dashboard-components/studios-modal/members-component/edit-appointment-modal"
-  import CreateAppointmentModal from "../../components/admin-dashboard-components/studios-modal/members-component/add-appointment-modal"
-  import ContingentModalMain from "../../components/admin-dashboard-components/studios-modal/members-component/show-contigent-modal"
-  import AddBillingPeriodModalMain from "../../components/admin-dashboard-components/studios-modal/members-component/add-biling-period-modal"
-  import StaffHistoryModalMain from "../../components/admin-dashboard-components/studios-modal/staff-components/staff-history-modal"
-  import { StaffDocumentModal } from "../../components/admin-dashboard-components/studios-modal/staff-components/staff-document-modal"
 
   import { ContractHistoryModal } from "../../components/admin-dashboard-components/studios-modal/contract-components/contract-history-modal"
   import StudioFinancesModal from "../../components/admin-dashboard-components/studios-modal/finances-components/finances-modal";
@@ -107,8 +89,6 @@
   import EditStudioOptionsModal from "../../components/admin-dashboard-components/studios-modal/edit-studio-options-modal";
   import EditAdminConfigModal from "../../components/admin-dashboard-components/studios-modal/EditAdminConfigModal";
   import { useNavigate } from "react-router-dom";
-  import CreateTempMemberModal from "../../components/admin-dashboard-components/studios-modal/members-component/create-temporary-member-modal";
-  import TrainingPlansModal from "../../components/admin-dashboard-components/studios-modal/members-component/training-plan-modal";
   import { LeadSpecialNoteIcon } from "../../components/admin-dashboard-components/shared/special-note/shared-special-note-icon";
   import StudioDocumentManagementModal from "../../components/admin-dashboard-components/shared/StudioDocumentManagementModal";
 
@@ -219,17 +199,13 @@
     const [selectedFranchiseForAssignment, setSelectedFranchiseForAssignment] = useState(null)
     const [selectedFranchiseForManagement, setSelectedFranchiseForManagement] = useState(null)
 
-    const [isStaffsModalOpen, setIsStaffsModalOpen] = useState(false)
     const [isContractsModalOpen, setIsContractsModalOpen] = useState(false)
     const [selectedStudioForModal, setSelectedStudioForModal] = useState(null)
 
     const [isFinancesModalOpen, setisFinancesModalOpen] = useState(false)
     const [isStudioDocumentModalOpen, setIsStudioDocumentModalOpen] = useState(false)
 
-    const [isEditStaffModalOpen, setisEditStaffModalOpen] = useState(false)
-    const [selectedStaffForEdit, setselectedStaffForEdit] = useState(null)
 
-    const [isEditMemberModalOpen, setIsEditMemberModalOpen] = useState(false)
     const [selectedMemberForEdit, setSelectedMemberForEdit] = useState(null)
     const [memberEditForm, setMemberEditForm] = useState({ ...DEFAULT_MEMBER_EDIT_FORM })
 
@@ -238,11 +214,9 @@
     const [adminConfigInitialTab, setAdminConfigInitialTab] = useState("details")
 
     const [isMemberDetailsModalOpen, setIsMemberDetailsModalOpen] = useState(false)
-    const [isStaffDetailsModalOpen, setIsStaffDetailsModalOpen] = useState(false)
     const [isContractDetailsModalOpen, setIsContractDetailsModalOpen] = useState(false)
     const [selectedItemForDetails, setSelectedItemForDetails] = useState(null)
 
-    const [isAddStaffModalOpen, setIsAddStaffModalOpen] = useState(false)
 
     const [financesPeriod, setFinancesPeriod] = useState("month")
     const [showPassword, setShowPassword] = useState({})
@@ -254,13 +228,11 @@
     const [franchises, setFranchises] = useState(FranchiseData)
     const [studioStats, setStudioStats] = useState(studioStatsData)
     const [studioMembers, setStudioMembers] = useState(studioMembersData)
-    const [studioStaffs, setStudioStaffs] = useState(studioStaffData)
     const [studioContracts, setStudioContracts] = useState(studioContractsData)
     const [studios, setStudios] = useState(studioDataNew)
 
     const [showHistory, setShowHistory] = useState(false)
     const [historyTabMain, setHistoryTabMain] = useState("general")
-    const [staffSearchQuery, setStaffSearchQuery] = useState("")
 
     const [showHistoryModal, setShowHistoryModal] = useState(false)
     const [memberHistory, setMemberHistory] = useState(studiomemberHistoryNew)
@@ -313,12 +285,6 @@
       return periods
     }
 
-    const [showStaffHistoryModal, setShowStaffHistoryModal] = useState(false)
-    const [staffHistory, setstaffHistory] = useState(studiostaffHistoryNew)
-    const [historyTabStaff, setHistoryTabStaff] = useState("general")
-    const [showDocumentModalStaff, setShowDocumentModalStaff] = useState(false)
-    const [showAppointmentModalStaff, setShowAppointmentModalStaff] = useState(false)
-    const [selectedAppointmentDataStaff, setSelectedAppointmentDataStaff] = useState(null)
 
     const [contractHistory, setcontractHistory] = useState(studioContractHistoryData)
     const [isContractHistoryModalOpen, setIsContractHistoryModalOpen] = useState(false)
@@ -432,12 +398,10 @@
 
    const handleMemberEditSubmit = (e, formData) => {
   e.preventDefault()
-  if (isStaffsModalOpen) { setStudioStaffs((prev) => ({ ...prev, [selectedStudioForModal.id]: prev[selectedStudioForModal.id].map((s) => s.id === selectedMemberForEdit.id ? { ...s, ...formData, role: formData.membershipType } : s) })) }
   setIsEditMemberModalOpen(false); setSelectedMemberForEdit(null); toast.success("Details updated successfully")
 }
 
     const handleViewMemberDetails = (member) => { setSelectedItemForDetails(member); setIsMemberDetailsModalOpen(true) }
-    const handleViewStaffDetails = (staff) => { setSelectedItemForDetails(staff); setIsStaffDetailsModalOpen(true) }
     const handleViewContractDetails = (contract) => { setSelectedItemForDetails(contract); setIsContractDetailsModalOpen(true) }
 
     const isContractExpiringSoon = (contractEnd) => { if (!contractEnd) return false; const today = new Date(); const endDate = new Date(contractEnd); const oneMonth = new Date(); oneMonth.setMonth(today.getMonth() + 1); return endDate <= oneMonth && endDate >= today }
@@ -500,12 +464,11 @@
 
     const handleOpenStudioManagement = (franchise) => { setSelectedFranchiseForManagement(franchise); setIsStudioManagementModalOpen(true) }
     const handleOpenMembersModal = (studio) => { navigate(`/admin-dashboard/studio-members/${studio.id}`) }
-    const handleOpenStaffsModal = (studio) => { setSelectedStudioForModal(studio); setIsStaffsModalOpen(true) }
+    const handleOpenStaffsModal = (studio) => { navigate(`/admin-dashboard/studio-staff/${studio.id}`) }
     const handleOpenContractsModal = (studio) => { setSelectedStudioForModal(studio); setIsContractsModalOpen(true) }
-    const handleEditMember = (member) => { setSelectedMemberForEdit(member); setIsEditMemberModalOpen(true) }
+
     const handleDownloadFile = (fileName) => { toast.success(`Downloading ${fileName}`) }
     const handleFileUpload = (contractId, files) => { if (files && files.length > 0) { const newFiles = Array.from(files).map((f) => f.name); setStudioContracts((prev) => ({ ...prev, [selectedStudioForModal.id]: prev[selectedStudioForModal.id].map((c) => c.id === contractId ? { ...c, files: [...c.files, ...newFiles] } : c) })); toast.success(`${newFiles.length} file(s) uploaded successfully`) } }
-    const getFilteredStaff = () => { if (!selectedStudioForModal || !studioStaffs[selectedStudioForModal.id]) return []; return studioStaffs[selectedStudioForModal.id].filter((s) => `${s.firstName} ${s.lastName}`.toLowerCase().includes(staffSearchQuery.toLowerCase()) || s.email.toLowerCase().includes(staffSearchQuery.toLowerCase()) || s.phone.includes(staffSearchQuery) || s.role.toLowerCase().includes(staffSearchQuery.toLowerCase())) }
     const handleHistoryFromOverview = (member) => { setSelectedMemberForEdit(member); setShowHistoryModal(true) }
     const handleDocumentFromOverview = (member) => { setSelectedMemberForEdit(member); setShowDocumentModal(true) }
     const handleCalendarFromOverview = (member) => { setSelectedMemberForEdit(member); setShowAppointmentModalMain(true) }
@@ -519,8 +482,6 @@
     const handleAddBillingPeriodMain = () => { if (newBillingPeriodMain.trim() && selectedMemberForEdit) { const u = { ...memberContingent }; if (!u[selectedMemberForEdit.id].future) u[selectedMemberForEdit.id].future = {}; u[selectedMemberForEdit.id].future[newBillingPeriodMain] = { used: 0, total: 0 }; setMemberContingent(u); setNewBillingPeriodMain(""); setShowAddBillingPeriodModalMain(false); toast.success("New billing period added successfully") } }
     const handleAddAppointmentSubmit = (data) => { setAppointmentsMain([...appointmentsMain, { id: Math.max(0, ...appointmentsMain.map((a) => a.id)) + 1, ...data, memberId: selectedMemberForEdit?.id }]); setShowCreateAppointmentModalMain(false) }
     const handleAppointmentChange = (changes) => { if (selectedAppointmentDataMain) setSelectedAppointmentDataMain({ ...selectedAppointmentDataMain, ...changes }) }
-    const handleStaffHistoryFromOverview = (staff) => { setselectedStaffForEdit(staff); setShowStaffHistoryModal(true) }
-    const handleStaffDocumentFromOverview = (staff) => { setselectedStaffForEdit(staff); setShowDocumentModalStaff(true) }
     const handleViewContractHistory = (contract) => { setSelectedContractForHistory(contract); setIsContractHistoryModalOpen(true) }
 
     const handleCreateTempMember = (e) => {
@@ -950,23 +911,6 @@
         )}
 
         {/* Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â MODALS (all preserved) Ã¢â€¢ÂÃ¢â€¢ÂÃ¢â€¢Â */}
-        <EditMemberModal isOpen={isEditMemberModalOpen} onClose={() => setIsEditMemberModalOpen(false)} selectedMember={selectedMemberForEdit} onSave={handleMemberEditSubmit} memberRelations={memberRelations} availableMembersLeads={availableMembersLeadsMain} onArchiveMember={() => toast.success("Member archived successfully")} onUnarchiveMember={() => toast.success("Member unarchived successfully")} />
-        {showTrainingPlansModalMain && selectedMemberForEdit && <TrainingPlansModal isOpen={showTrainingPlansModalMain} onClose={() => { setShowTrainingPlansModalMain(false); setSelectedMemberForEdit(null) }} selectedMemberMain={selectedMemberForEdit} memberTrainingPlansMain={memberTrainingPlansMain[selectedMemberForEdit.id] || []} availableTrainingPlansMain={availableTrainingPlansMain} onAssignPlanMain={handleAssignPlanMain} onRemovePlanMain={handleRemovePlanMain} />}
-        <CreateTempMemberModal show={isCreateTempMemberModalOpen} onClose={() => { setIsCreateTempMemberModalOpen(false); setTempMemberForm({ ...DEFAULT_TEMP_MEMBER_FORM }); setTempMemberModalTab("details") }} tempMemberForm={tempMemberForm} setTempMemberForm={setTempMemberForm} tempMemberModalTab={tempMemberModalTab} setTempMemberModalTab={setTempMemberModalTab} handleCreateTempMember={handleCreateTempMember} handleTempMemberInputChange={handleTempMemberInputChange} handleImgUpload={handleImgUpload} editingRelationsMain={editingRelationsMain} setEditingRelationsMain={setEditingRelationsMain} newRelationMain={newRelationMain} setNewRelationMain={setNewRelationMain} availableMembersLeadsMain={availableMembersLeadsMain} relationOptionsMain={relationOptionsMain} />
-        <MemberDetailsModal isOpen={isMemberDetailsModalOpen} onClose={() => setIsMemberDetailsModalOpen(false)} member={selectedItemForDetails} calculateAge={calculateAge} isContractExpiringSoon={isContractExpiringSoon} memberRelations={memberRelations[selectedItemForDetails?.id]} />
-        <MemberHistoryModalMain isOpen={showHistoryModal} onClose={() => { setShowHistoryModal(false); setSelectedMemberForEdit(null) }} selectedMember={selectedMemberForEdit} memberHistory={memberHistory} historyTabMain={historyTabMain} setHistoryTabMain={setHistoryTabMain} />
-        <MemberDocumentModal member={selectedMemberForEdit} isOpen={showDocumentModal} onClose={() => { setShowDocumentModal(false); setSelectedMemberForEdit(null) }} />
-        <AppointmentModalMain isOpen={showAppointmentModalMain} onClose={() => { setShowAppointmentModalMain(false); setSelectedMemberForEdit(null) }} selectedMemberMain={selectedMemberForEdit} getMemberAppointmentsMain={getMemberAppointmentsMain} appointmentTypesMain={appointmentTypesMain} handleEditAppointmentMain={handleEditAppointmentMain} handleDeleteAppointmentMain={handleDeleteAppointmentMain} memberContingent={memberContingent} currentBillingPeriodMain={currentBillingPeriodMain} handleManageContingentMain={handleManageContingentMain} handleCreateNewAppointmentMain={handleCreateNewAppointmentMain} />
-        {showCreateAppointmentModalMain && <CreateAppointmentModal isOpen={showCreateAppointmentModalMain} onClose={() => setShowCreateAppointmentModalMain(false)} appointmentTypesMain={appointmentTypesMain} onSubmit={handleAddAppointmentSubmit} setIsNotifyMemberOpenMain={setIsNotifyMemberOpenMain} setNotifyActionMain={setNotifyActionMain} freeAppointmentsMain={freeAppointmentsMain} />}
-        {showSelectedAppointmentModalMain && selectedAppointmentDataMain && <EditAppointmentModalMain selectedAppointmentMain={selectedAppointmentDataMain} setSelectedAppointmentMain={setSelectedAppointmentDataMain} appointmentTypesMain={appointmentTypesMain} freeAppointmentsMain={freeAppointmentsMain} handleAppointmentChange={handleAppointmentChange} appointmentsMain={appointmentsMain} setAppointmentsMain={setAppointmentsMain} setIsNotifyMemberOpenMain={setIsNotifyMemberOpenMain} setNotifyActionMain={setNotifyActionMain} onDelete={handleDeleteAppointmentMain} />}
-        <ContingentModalMain showContingentModalMain={showContingentModalMain} setShowContingentModalMain={setShowContingentModalMain} selectedMemberForAppointmentsMain={selectedMemberForEdit} getBillingPeriodsMain={getBillingPeriodsMain} selectedBillingPeriodMain={selectedBillingPeriodMain} handleBillingPeriodChange={handleBillingPeriodChange} setShowAddBillingPeriodModalMain={setShowAddBillingPeriodModalMain} currentBillingPeriodMain={currentBillingPeriodMain} tempContingentMain={tempContingentMain} setTempContingentMain={setTempContingentMain} handleSaveContingentMain={handleSaveContingentMain} />
-        <AddBillingPeriodModalMain open={showAddBillingPeriodModalMain} newBillingPeriodMain={newBillingPeriodMain} setNewBillingPeriodMain={setNewBillingPeriodMain} onClose={() => setShowAddBillingPeriodModalMain(false)} onAdd={handleAddBillingPeriodMain} />
-        <StudioStaffModal isOpen={isStaffsModalOpen} studio={selectedStudioForModal} studioStaffs={studioStaffs} staffSearchQuery={staffSearchQuery} setStaffSearchQuery={setStaffSearchQuery} getFilteredStaff={getFilteredStaff} onClose={() => { setIsStaffsModalOpen(false); setSelectedStudioForModal(null); setStaffSearchQuery("") }} onAddStaff={() => setIsAddStaffModalOpen(true)} onViewStaff={handleViewStaffDetails} onEditStaff={(staff) => { setselectedStaffForEdit(staff); setisEditStaffModalOpen(true) }} handleHistoryFromOverview={handleStaffHistoryFromOverview} handleDocumentFromOverview={handleStaffDocumentFromOverview} />
-        <EditStaffModal isOpen={isEditStaffModalOpen} onClose={() => { setisEditStaffModalOpen(false); setselectedStaffForEdit(null) }} onSave={(updatedStaff) => { setStudioStaffs((prev) => ({ ...prev, [selectedStudioForModal.id]: prev[selectedStudioForModal.id].map((s) => s.id === updatedStaff.id ? updatedStaff : s) })); setisEditStaffModalOpen(false); toast.success("Staff member updated successfully") }} staff={selectedStaffForEdit} handleRemovalStaff={(staff) => { setStudioStaffs((prev) => ({ ...prev, [selectedStudioForModal.id]: prev[selectedStudioForModal.id].filter((s) => s.id !== staff.id) })); setisEditStaffModalOpen(false); toast.success("Staff member removed successfully") }} />
-        {isStaffDetailsModalOpen && selectedItemForDetails && <ViewStaffModal isVisible={isStaffDetailsModalOpen} onClose={() => setIsStaffDetailsModalOpen(false)} staffData={selectedItemForDetails} />}
-        {isAddStaffModalOpen && <AddStaffModal isOpen={isAddStaffModalOpen} onClose={() => setIsAddStaffModalOpen(false)} onSave={(newStaff) => { setStudioStaffs((prev) => ({ ...prev, [selectedStudioForModal.id]: [...(prev[selectedStudioForModal.id] || []), newStaff] })); setIsAddStaffModalOpen(false); toast.success("Staff member added successfully") }} />}
-        <StaffHistoryModalMain isOpen={showStaffHistoryModal} onClose={() => { setShowStaffHistoryModal(false); setselectedStaffForEdit(null) }} selectedStaff={selectedStaffForEdit} staffHistory={staffHistory} historyTabMain={historyTabStaff} setHistoryTabMain={setHistoryTabStaff} />
-        <StaffDocumentModal staff={selectedStaffForEdit} isOpen={showDocumentModalStaff} onClose={() => { setShowDocumentModalStaff(false); setselectedStaffForEdit(null) }} />
         <ContractsModal isOpen={isContractsModalOpen} onClose={() => setIsContractsModalOpen(false)} selectedStudio={selectedStudioForModal} studioContracts={studioContracts} handleFileUpload={handleFileUpload} handleDownloadFile={handleDownloadFile} onViewDetails={handleViewContractDetails} handleViewContractHistory={handleViewContractHistory} />
         <ContractDetailsModal isOpen={isContractDetailsModalOpen} onClose={() => setIsContractDetailsModalOpen(false)} contract={selectedItemForDetails} />
         {isContractHistoryModalOpen && selectedContractForHistory && <ContractHistoryModal contract={selectedContractForHistory} history={contractHistory[selectedStudioForModal?.id] || []} onClose={() => { setIsContractHistoryModalOpen(false); setSelectedContractForHistory(null) }} />}

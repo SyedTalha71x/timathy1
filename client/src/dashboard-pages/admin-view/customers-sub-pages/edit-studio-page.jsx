@@ -1,20 +1,20 @@
 import { useParams, useNavigate } from "react-router-dom"
 import { ChevronLeft } from "lucide-react"
-import Members from "../studio-view/members"
+import ConfigurationPage from "../../studio-view/configuration"
 
 // Temporary: lookup studio name from static data
 // Replace with API call when backend is ready
-import { studioDataNew } from "../../utils/admin-panel-states/states"
+import { studioDataNew } from "../../../utils/admin-panel-states/states"
 
 /**
- * Admin wrapper for viewing/managing a studio's members.
+ * Admin wrapper for editing a studio's configuration.
  *
- * Route: /admin-dashboard/studio-members/:studioId
+ * Route: /admin-dashboard/edit-studio-configuration/:studioId
  *
- * Renders the shared Members page in "admin" mode,
- * passing the studioId so it loads studio-specific member data.
+ * Renders the shared ConfigurationPage in "admin" mode,
+ * which hides the Profile section and shows the admin banner.
  */
-export default function EditStudioMembersPage() {
+export default function EditStudioPage() {
   const { studioId } = useParams()
   const navigate = useNavigate()
 
@@ -35,13 +35,13 @@ export default function EditStudioMembersPage() {
         </button>
         <span className="text-gray-600">|</span>
         <span className="text-gray-300 text-sm font-medium">
-          {studioName} — Members
+          {studioName} — Studio Configuration
         </span>
       </div>
 
-      {/* Shared Members page in admin mode */}
+      {/* Shared ConfigurationPage in admin mode */}
       <div className="flex-1 min-h-0">
-        <Members
+        <ConfigurationPage
           studioId={Number(studioId)}
           mode="admin"
           studioName={studioName}
