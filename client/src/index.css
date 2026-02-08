@@ -1,2 +1,61 @@
 @import "tailwindcss";
 
+/* ============================================
+   THEME TOKENS (Tailwind v4)
+   
+   Generates Tailwind classes automatically:
+   bg-primary, bg-surface-base, text-content-primary, etc.
+   ============================================ */
+
+@theme {
+  /* ---- Default Font (body / all elements) ---- */
+  --font-sans: "Open Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Oxanium", ui-sans-serif, system-ui, sans-serif;
+
+  /* ---- Primary Color (user-configurable) ---- */
+  --color-primary: #f97316;
+  --color-primary-hover: #ea580c;
+
+  /* ---- Secondary Color (neutral gray) ---- */
+  --color-secondary: #9ca3af;
+  --color-secondary-hover: #ffffff;
+
+  /* ---- Accent Colors ---- */
+  --color-accent-blue: #1890ff;
+  --color-accent-green: #16a34a;
+  --color-accent-red: #dc2626;
+  --color-accent-yellow: #ca8a04;
+
+  /* ---- Surface / Background Colors ---- */
+  --color-surface-base:         #1c1c1c;  /* Page background */
+  --color-surface-card:         #141414;  /* Cards, tables, panels */
+  --color-surface-dark:         #0f0f0f;  /* Dark panels inside cards */
+  --color-surface-hover:        #1a1a1a;  /* Hover states */
+  --color-surface-button:       #2f2f2f;  /* Inactive buttons/pills */
+  --color-surface-button-hover: #3f3f3f;  /* Button hover */
+
+  /* ---- Text / Content Colors ---- */
+  --color-content-primary:   #ffffff;  /* Headings, names, important text */
+  --color-content-secondary: #d1d5db;  /* Readable info, descriptions */
+  --color-content-muted:     #9ca3af;  /* Labels, meta info */
+  --color-content-faint:     #6b7280;  /* Dates, hints, placeholders */
+
+  /* ---- Border Colors ---- */
+  --color-border:        #333333;      /* Input borders, dropdowns */
+  --color-border-subtle: #374151;      /* Dividers, separators */
+}
+
+/* ============================================
+   THEME UTILITIES
+   ============================================ */
+
+/* Icon filter for white SVG icons loaded via <img> tags.
+   Dark mode (default): no filter (icons stay white).
+   Light mode: set --icon-filter: brightness(0) to turn icons black. */
+:root {
+  --icon-filter: none;
+}
+
+.theme-icon {
+  filter: var(--icon-filter);
+}

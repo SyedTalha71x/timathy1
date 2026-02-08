@@ -128,7 +128,7 @@ const Dashboardlayout = () => {
         `}
       </style>
       
-      <div className="dashboard-root bg-[#111111] min-h-screen">
+      <div className="dashboard-root bg-surface-dark min-h-screen">
         <div className="flex flex-col md:flex-row h-full">
           {/* Sidebar - Navigation only */}
           <Sidebar 
@@ -248,14 +248,14 @@ const Dashboardlayout = () => {
           )}
           
           {taskToDelete && (
-            <div className="fixed inset-0 text-white bg-black/50 flex items-center justify-center z-50">
-              <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
+            <div className="fixed inset-0 text-content-primary bg-black/50 flex items-center justify-center z-50">
+              <div className="bg-surface-card rounded-xl p-6 max-w-md mx-4">
                 <h3 className="text-lg font-semibold mb-4">Delete Task</h3>
-                <p className="text-gray-300 mb-6">Are you sure you want to delete this task?</p>
+                <p className="text-content-secondary mb-6">Are you sure you want to delete this task?</p>
                 <div className="flex gap-3 justify-end">
                   <button 
                     onClick={() => setTaskToDelete(null)} 
-                    className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#2F2F2F]/90"
+                    className="px-4 py-2 bg-surface-button text-content-primary rounded-xl hover:bg-surface-button/90"
                   >
                     Cancel
                   </button>
@@ -271,20 +271,20 @@ const Dashboardlayout = () => {
           )}
           
           {taskToCancel && (
-            <div className="fixed inset-0 bg-black/50 text-white flex items-center justify-center z-50">
-              <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4">
+            <div className="fixed inset-0 bg-black/50 text-content-primary flex items-center justify-center z-50">
+              <div className="bg-surface-card rounded-xl p-6 max-w-md mx-4">
                 <h3 className="text-lg font-semibold mb-4">Cancel Task</h3>
-                <p className="text-gray-300 mb-6">Are you sure you want to cancel this task?</p>
+                <p className="text-content-secondary mb-6">Are you sure you want to cancel this task?</p>
                 <div className="flex gap-3 justify-end">
                   <button 
                     onClick={() => setTaskToCancel(null)} 
-                    className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#2F2F2F]/90"
+                    className="px-4 py-2 bg-surface-button text-content-primary rounded-xl hover:bg-surface-button/90"
                   >
                     No
                   </button>
                   <button 
                     onClick={() => handleCancelTaskWrapper(taskToCancel)} 
-                    className="px-4 py-2 bg-orange-600 text-white rounded-xl hover:bg-orange-700"
+                    className="px-4 py-2 bg-primary-hover text-white rounded-xl hover:bg-primary-hover"
                   >
                     Cancel Task
                   </button>

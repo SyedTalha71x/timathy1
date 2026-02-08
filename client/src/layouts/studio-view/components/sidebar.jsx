@@ -70,8 +70,8 @@ const FeedbackModal = ({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="bg-[#1a1a1a] rounded-2xl w-full max-w-md overflow-hidden border border-zinc-700 p-8 text-center">
-          <div className="w-16 h-16 bg-orange-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <CheckCircle size={32} className="text-orange-500" />
+          <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <CheckCircle size={32} className="text-primary" />
           </div>
           <h2 className="text-xl font-semibold text-white mb-2">Thank You!</h2>
           <p className="text-zinc-400">
@@ -95,8 +95,8 @@ const FeedbackModal = ({
         {/* Header */}
         <div className="flex items-center justify-between p-4 sm:p-5 border-b border-zinc-700">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-orange-500/20 rounded-xl flex items-center justify-center">
-              <MessageSquarePlus size={20} className="text-orange-500" />
+            <div className="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center">
+              <MessageSquarePlus size={20} className="text-primary" />
             </div>
             <div>
               <h2 className="text-lg font-semibold text-white">Send Feedback</h2>
@@ -125,11 +125,11 @@ const FeedbackModal = ({
                     onClick={() => onFeedbackDataChange({ ...feedbackData, type: type.id })}
                     className={`p-3 rounded-xl border transition-all text-center ${
                       feedbackData.type === type.id
-                        ? 'border-orange-500 bg-orange-500/10 text-white'
+                        ? 'border-primary bg-primary/10 text-white'
                         : 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600'
                     }`}
                   >
-                    <IconComponent size={20} className={`mx-auto mb-1 ${feedbackData.type === type.id ? 'text-orange-500' : ''}`} />
+                    <IconComponent size={20} className={`mx-auto mb-1 ${feedbackData.type === type.id ? 'text-primary' : ''}`} />
                     <span className="text-xs">{type.label}</span>
                   </button>
                 )
@@ -146,7 +146,7 @@ const FeedbackModal = ({
               onChange={(e) => onFeedbackDataChange({ ...feedbackData, subject: e.target.value })}
               onKeyDown={(e) => e.stopPropagation()}
               placeholder="Brief summary of your feedback"
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-white text-sm sm:text-base placeholder-zinc-500 focus:outline-none focus:border-orange-500 transition-colors"
+              className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-white text-sm sm:text-base placeholder-zinc-500 focus:outline-none focus:border-primary transition-colors"
             />
           </div>
           
@@ -159,7 +159,7 @@ const FeedbackModal = ({
               onKeyDown={(e) => e.stopPropagation()}
               placeholder="Tell us more about your feedback..."
               rows={4}
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-white text-sm sm:text-base placeholder-zinc-500 focus:outline-none focus:border-orange-500 transition-colors resize-none"
+              className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-white text-sm sm:text-base placeholder-zinc-500 focus:outline-none focus:border-primary transition-colors resize-none"
             />
           </div>
           
@@ -177,7 +177,7 @@ const FeedbackModal = ({
                 >
                   <Star 
                     size={24} 
-                    className={feedbackData.rating >= star ? 'text-orange-500 fill-orange-500' : 'text-zinc-600'} 
+                    className={feedbackData.rating >= star ? 'text-primary fill-primary' : 'text-zinc-600'} 
                   />
                 </button>
               ))}
@@ -204,7 +204,7 @@ const FeedbackModal = ({
           <button
             onClick={onSubmit}
             disabled={!feedbackData.subject.trim() || !feedbackData.message.trim()}
-            className="flex-1 px-4 py-2.5 sm:py-3 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+            className="flex-1 px-4 py-2.5 sm:py-3 bg-primary text-white rounded-xl hover:bg-primary-hover transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
           >
             Send Feedback
           </button>
@@ -470,11 +470,11 @@ const Sidebar = ({ isOpen = false, onClose, isCollapsed: externalIsCollapsed, on
         <div className="hidden lg:block">
           <div className="flex justify-center items-center w-full">
             {isCollapsed ? (
-              <div className="w-full bg-orange-500 flex items-center justify-center p-2">
+              <div className="w-full bg-primary flex items-center justify-center p-2">
                 <img src={OrgaGymLogoWihoutText} className="h-auto w-auto max-w-[70%] select-none pointer-events-none" alt="Orgagym Logo" draggable="false" />
               </div>
             ) : (
-              <div className="w-full bg-orange-500 flex items-center justify-center p-2.5">
+              <div className="w-full bg-primary flex items-center justify-center p-2.5">
                 <img src="/Orgagym white.svg" className="h-16 w-auto max-w-full select-none pointer-events-none" alt="Orgagym Logo" draggable="false" />
               </div>
             )}
@@ -496,7 +496,7 @@ const Sidebar = ({ isOpen = false, onClose, isCollapsed: externalIsCollapsed, on
                         isCollapsed ? "justify-center" : "text-left"
                       } group transition-all duration-300 ${
                         hasActiveSubmenu
-                          ? `text-white border-l-2 border-orange-500 ${isCollapsed ? "pl-[14px]" : "pl-3"}`
+                          ? `text-white border-l-2 border-primary ${isCollapsed ? "pl-[14px]" : "pl-3"}`
                           : `text-zinc-200 hover:text-white hover:border-l-2 hover:border-white ${isCollapsed ? "hover:pl-[14px]" : "hover:pl-3"}`
                       }`}
                     >
@@ -506,12 +506,12 @@ const Sidebar = ({ isOpen = false, onClose, isCollapsed: externalIsCollapsed, on
                           className={`cursor-pointer ${hasActiveSubmenu ? "text-white" : "text-zinc-400 group-hover:text-white"}`}
                         />
                         {item.label === "Communication" && unreadMessages > 0 && !isCommunicationOpen && (
-                          <span className="absolute -top-1 -right-2 bg-orange-600 text-white text-[10px] px-1.5 py-0.5 rounded-full z-10">
+                          <span className="absolute -top-1 -right-2 bg-primary-hover text-white text-[10px] px-1.5 py-0.5 rounded-full z-10">
                             {unreadMessages}
                           </span>
                         )}
                         {item.label === "Support Area" && item.notificationCount > 0 && !isSupportAreaOpen && (
-                          <span className="absolute -top-1 -right-2 bg-orange-600 text-white text-[10px] px-1.5 py-0.5 rounded-full z-10">
+                          <span className="absolute -top-1 -right-2 bg-primary-hover text-white text-[10px] px-1.5 py-0.5 rounded-full z-10">
                             {item.notificationCount}
                           </span>
                         )}
@@ -558,7 +558,7 @@ const Sidebar = ({ isOpen = false, onClose, isCollapsed: externalIsCollapsed, on
                                     ? "justify-center px-2 py-1.5" 
                                     : "text-left px-4 py-2"
                                 } ${isActive 
-                                  ? `text-white ${isCollapsed && "border-l-2 border-orange-500 pl-[6px]"}` 
+                                  ? `text-white ${isCollapsed && "border-l-2 border-primary pl-[6px]"}` 
                                   : `text-zinc-200 hover:text-white ${isCollapsed && "hover:border-l-2 hover:border-white hover:pl-[6px]"}`
                                 }`}
                               >
@@ -566,8 +566,8 @@ const Sidebar = ({ isOpen = false, onClose, isCollapsed: externalIsCollapsed, on
                                 {!isCollapsed && (
                                   <div className="relative flex items-center gap-3">
                                     <div className="relative w-4 h-5 flex items-center">
-                                      <div className={`absolute left-0 top-1/2 w-4 h-px ${isActive ? "bg-orange-500" : "bg-zinc-600 group-hover:bg-zinc-400"} transition-colors`}></div>
-                                      <div className={`absolute -left-[3px] top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full ${isActive ? "bg-orange-500" : "bg-zinc-600 group-hover:bg-zinc-400"} transition-colors`}></div>
+                                      <div className={`absolute left-0 top-1/2 w-4 h-px ${isActive ? "bg-primary" : "bg-zinc-600 group-hover:bg-zinc-400"} transition-colors`}></div>
+                                      <div className={`absolute -left-[3px] top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full ${isActive ? "bg-primary" : "bg-zinc-600 group-hover:bg-zinc-400"} transition-colors`}></div>
                                     </div>
                                     
                                     <subItem.icon
@@ -576,17 +576,17 @@ const Sidebar = ({ isOpen = false, onClose, isCollapsed: externalIsCollapsed, on
                                     />
                                     
                                     {subItem.label === "Messenger" && unreadMessages > 0 && (
-                                      <span className="absolute -top-1 left-10 bg-orange-600 text-white text-[10px] px-1.5 py-0.5 rounded-full z-10">
+                                      <span className="absolute -top-1 left-10 bg-primary-hover text-white text-[10px] px-1.5 py-0.5 rounded-full z-10">
                                         {unreadMessages}
                                       </span>
                                     )}
                                     {subItem.label === "Activity Monitor" && unreadMessages > 0 && (
-                                      <span className="absolute -top-1 left-10 bg-orange-600 text-white text-[10px] px-1.5 py-0.5 rounded-full z-10">
+                                      <span className="absolute -top-1 left-10 bg-primary-hover text-white text-[10px] px-1.5 py-0.5 rounded-full z-10">
                                         {unreadMessages}
                                       </span>
                                     )}
                                     {subItem.label === "Tickets" && subItem.notificationCount > 0 && (
-                                      <span className="absolute -top-1 left-10 bg-orange-600 text-white text-[10px] px-1.5 py-0.5 rounded-full z-10">
+                                      <span className="absolute -top-1 left-10 bg-primary-hover text-white text-[10px] px-1.5 py-0.5 rounded-full z-10">
                                         {subItem.notificationCount}
                                       </span>
                                     )}
@@ -601,17 +601,17 @@ const Sidebar = ({ isOpen = false, onClose, isCollapsed: externalIsCollapsed, on
                                       className={`cursor-pointer ${isActive ? "text-white" : "text-zinc-500 group-hover:text-zinc-300"}`}
                                     />
                                     {subItem.label === "Messenger" && unreadMessages > 0 && (
-                                      <span className="absolute -top-1 -right-2 bg-orange-600 text-white text-[8px] px-1 py-0.5 rounded-full z-10 min-w-[14px] text-center">
+                                      <span className="absolute -top-1 -right-2 bg-primary-hover text-white text-[8px] px-1 py-0.5 rounded-full z-10 min-w-[14px] text-center">
                                         {unreadMessages}
                                       </span>
                                     )}
                                     {subItem.label === "Activity Monitor" && unreadMessages > 0 && (
-                                      <span className="absolute -top-1 -right-2 bg-orange-600 text-white text-[8px] px-1 py-0.5 rounded-full z-10 min-w-[14px] text-center">
+                                      <span className="absolute -top-1 -right-2 bg-primary-hover text-white text-[8px] px-1 py-0.5 rounded-full z-10 min-w-[14px] text-center">
                                         {unreadMessages}
                                       </span>
                                     )}
                                     {subItem.label === "Tickets" && subItem.notificationCount > 0 && (
-                                      <span className="absolute -top-1 -right-2 bg-orange-600 text-white text-[8px] px-1 py-0.5 rounded-full z-10 min-w-[14px] text-center">
+                                      <span className="absolute -top-1 -right-2 bg-primary-hover text-white text-[8px] px-1 py-0.5 rounded-full z-10 min-w-[14px] text-center">
                                         {subItem.notificationCount}
                                       </span>
                                     )}
@@ -637,7 +637,7 @@ const Sidebar = ({ isOpen = false, onClose, isCollapsed: externalIsCollapsed, on
                       isCollapsed ? "justify-center" : "text-left"
                     } group transition-all duration-300 ${
                       location.pathname === item.to
-                        ? `text-white border-l-2 border-orange-500 ${isCollapsed ? "pl-[14px]" : "pl-3"}`
+                        ? `text-white border-l-2 border-primary ${isCollapsed ? "pl-[14px]" : "pl-3"}`
                         : `text-zinc-200 hover:text-white hover:border-l-2 hover:border-white ${isCollapsed ? "hover:pl-[14px]" : "hover:pl-3"}`
                     }`}
                   >

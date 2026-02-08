@@ -1,0 +1,28 @@
+/* ============================================
+   ANIMATIONS & INTERACTIONS
+   ============================================ */
+
+@keyframes wobble {
+  0%   { transform: rotate(0deg); }
+  25%  { transform: rotate(1deg); }
+  75%  { transform: rotate(-1deg); }
+  100% { transform: rotate(0deg); }
+}
+
+.animate-wobble {
+  animation: wobble 0.5s ease-in-out infinite;
+}
+
+.dragging {
+  opacity: 0.5;
+  border: 2px dashed #fff;
+}
+
+.drag-over {
+  border: 2px dashed #888;
+}
+
+.draggable-item:not(.edit-mode-active) {
+  -webkit-user-drag: none;
+  user-drag: none;
+}
