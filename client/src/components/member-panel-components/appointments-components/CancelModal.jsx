@@ -18,10 +18,17 @@ const CancelModal = ({ show, onClose, onConfirm, appointmentToCancel }) => {
         </p>
 
         <div className="bg-gray-700 rounded-lg p-4 mb-6">
-          <p className="text-white font-medium text-sm sm:text-base">{appointmentToCancel?.service}</p>
+          <p className="text-white font-medium text-sm sm:text-base">{appointmentToCancel?.service?.name}</p>
           <p className="text-gray-400 text-xs sm:text-sm">
-            {appointmentToCancel?.date} at {appointmentToCancel?.time}
+            {new Date(appointmentToCancel?.date).toLocaleDateString("en-US", {
+              month: "short",
+              day: "2-digit",
+              year: "numeric",
+            }).replace(",", "")}
+            {" at "}
+            {appointmentToCancel?.timeSlot?.start} - {appointmentToCancel?.timeSlot?.end}
           </p>
+
         </div>
 
         <div className="flex gap-3">

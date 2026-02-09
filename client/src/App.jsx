@@ -38,7 +38,8 @@ import Tickets from "./dashboard-pages/studio-view/tickets";
 
 // Admin Dashboard
 import AdminDashboardLayout from './layouts/admin-view-layout'
-import Customers from "./dashboard-pages/admin-view/customers";
+import AdminMyArea from './dashboard-pages/admin-view/my-area'
+import Studios from "./dashboard-pages/admin-view/studios";
 import AdminLeads from './dashboard-pages/admin-view/leads'
 import AdminTodo from './dashboard-pages/admin-view/todo'
 import AdminConfiguration from './dashboard-pages/admin-view/configuration'
@@ -159,7 +160,7 @@ function App() {
             <AdminDashboardLayout />
           // </ProtectedRoutes>
         }>
-          <Route path="my-area" element={<AdminMyArea />} />
+          {/* <Route path="my-area" element={<AdminMyArea />} /> */}
           <Route path="to-do" element={<AdminTodo />} />
           <Route path="contract" element={<AdminContracts />} />
           <Route path="configuration" element={<AdminConfiguration />} />
