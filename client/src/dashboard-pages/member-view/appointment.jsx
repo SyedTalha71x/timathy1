@@ -285,7 +285,10 @@ const Appointments = () => {
   const filteredAppointments = appointmentsArray.filter((appointment) => {
     if (appointmentView === "upcoming") return appointment.status === "confirmed";
     if (appointmentView === "pending") return appointment.status === "pending";
-    if (appointmentView === "past") return appointment.status === "completed";
+    if (appointmentView === "past") {
+      return ["completed", "canceled"].includes(appointment.status);
+    }
+
     return true;
   });
 
