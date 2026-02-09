@@ -103,7 +103,7 @@ const cancelAppointment = async (req, res, next) => {
 
         const appointment = await AppointmentModel.findOne({
             _id: id,
-            user: userId, // make sure it belongs to the logged-in user
+            member: userId, // make sure it belongs to the logged-in user
         });
 
         if (!appointment) {
