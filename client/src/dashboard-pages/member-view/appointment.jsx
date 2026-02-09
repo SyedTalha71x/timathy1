@@ -5,7 +5,7 @@ import RequestModal from "../../components/member-panel-components/appointments-
 import CancelModal from "../../components/member-panel-components/appointments-components/CancelModal"
 import { timeSlots } from "../../utils/member-panel-states/appointments-states"
 import { useDispatch, useSelector } from "react-redux"
-import { createMyAppointment, fetchMyAppointments } from "../../features/appointments/AppointmentSlice"
+import { cancelAppointment, createMyAppointment, fetchMyAppointments } from "../../features/appointments/AppointmentSlice"
 import { useNavigate } from 'react-router-dom'
 
 const Appointments = () => {
@@ -160,10 +160,21 @@ const Appointments = () => {
     setShowCancelModal(true)
   }
 
+
   const confirmCancelBooking = () => {
-    setShowCancelModal(false)
-    setAppointmentToCancel(null)
+    if (!appointmentToCancel?._id) return
+
+    dispatch(cancelAppointment(appointmentToCancel._id))
+      .unwrap()
+      .then(() => {
+        setShowCancelModal(false)
+        setAppointmentToCancel(null)
+      })
+      .catch((err) => {
+        console.error(err)
+      })
   }
+
 
   const handleCancelRequest = (appointment) => {
     setAppointmentToCancel(appointment)
@@ -232,7 +243,7 @@ const Appointments = () => {
         setSelectedTimeSlot(null)
         alert("Appointment Booked Successfully")
         dispatch(fetchMyAppointments())
-        navigate( '/member-view/studio-menu')
+        navigate('/member-view/studio-menu')
       })
       .catch((err) => {
         alert(err)
@@ -795,9 +806,12 @@ const Appointments = () => {
 
       <CancelModal
         show={showCancelModal}
-        onClose={() => setShowCancelModal(false)}
-        onConfirm={confirmCancelBooking}
         appointmentToCancel={appointmentToCancel}
+        onClose={() => {
+          setShowCancelModal(false)
+          setAppointmentToCancel(null)
+        }}
+        onConfirm={confirmCancelBooking}
       />
     </div>
   )

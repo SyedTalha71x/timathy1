@@ -91,4 +91,47 @@ const getMyAppointment = async (req, res, next) => {
 }
 
 
-module.exports = { createAppointment, getMyAppointment }
+const cancelAppointment = async (req, res, next) => {
+    try {
+        const userId = req.user?._id;
+        const { id } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            throw new NotFoundError("Invalid Appointment ID");
+        }
+
+        const appointment = await AppointmentModel.findOne({
+            _id: id,
+            user: userId, // make sure it belongs to the logged-in user
+        });
+
+        if (!appointment) {
+            throw new NotFoundError("Appointment not found");
+        }
+
+        if (appointment.status === "canceled") {
+            return res.status(400).json({
+                message: "Appointment is already canceled",
+            });
+        }
+
+        if (appointment.status === "completed") {
+            return res.status(400).json({
+                message: "Completed appointments cannot be canceled",
+            });
+        }
+
+        appointment.status = "canceled";
+        appointment.view = "past";
+        await appointment.save();
+
+        return res.status(200).json({
+            message: "Appointment successfully canceled",
+            appointment,
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+module.exports = { createAppointment, getMyAppointment, cancelAppointment }
