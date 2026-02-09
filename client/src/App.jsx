@@ -38,8 +38,8 @@ import Tickets from "./dashboard-pages/studio-view/tickets";
 
 // Admin Dashboard
 import AdminDashboardLayout from './layouts/admin-view-layout'
-import AdminMyArea from './dashboard-pages/admin-view/my-area'
-import Studios from "./dashboard-pages/admin-view/studios";
+// import AdminMyArea from './dashboard-pages/admin-view/my-area'
+import Customers from "./dashboard-pages/admin-view/customers";
 import AdminLeads from './dashboard-pages/admin-view/leads'
 import AdminTodo from './dashboard-pages/admin-view/todo'
 import AdminConfiguration from './dashboard-pages/admin-view/configuration'
