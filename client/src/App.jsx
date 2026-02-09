@@ -159,7 +159,7 @@ function App() {
             <AdminDashboardLayout />
           // </ProtectedRoutes>
         }>
-          <Route path="my-area" element={<AdminMyArea />} />
+          {/* <Route path="my-area" element={<AdminMyArea />} /> */}
           <Route path="to-do" element={<AdminTodo />} />
           <Route path="contract" element={<AdminContracts />} />
           <Route path="configuration" element={<AdminConfiguration />} />
