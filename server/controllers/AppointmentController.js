@@ -1,3 +1,4 @@
+const mongoose = require('mongoose')
 const AppointmentModel = require('../models/AppointmentModel');
 const { MemberModel } = require('../models/Discriminators');
 const StudioModel = require('../models/StudioModel');
