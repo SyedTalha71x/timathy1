@@ -19,16 +19,9 @@ import {
     RefreshCw
 } from "lucide-react"
 import toast from "react-hot-toast"
-import { IoIosMenu } from "react-icons/io"
 
 import AdminTicketView from "../../components/admin-dashboard-components/tickets-component/admin-ticket-view-modal"
-import WebsiteLinkModal from "../../components/admin-dashboard-components/myarea-components/website-link-modal"
-import WidgetSelectionModal from "../../components/admin-dashboard-components/myarea-components/widgets"
-import ConfirmationModal from "../../components/admin-dashboard-components/myarea-components/confirmation-modal"
-import Sidebar from "../../components/admin-dashboard-components/central-sidebar"
 import { adminTickets } from "../../utils/admin-panel-states/tickets-states"
-
-
 
 const AdminTicketsSystem = () => {
     const [tickets, setTickets] = useState(adminTickets)
@@ -41,125 +34,6 @@ const AdminTicketsSystem = () => {
 
     const statusOptions = ["All", "Open", "In Progress", "Pending Customer", "Resolved", "Closed"]
     const priorityOptions = ["All", "High", "Medium", "Low"]
-
-
-
-    //sidebar related logic and states 
-    const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false)
-    const [isEditing, setIsEditing] = useState(false)
-    const [selectedMemberType, setSelectedMemberType] = useState("Studios Acquired")
-    const [isRightWidgetModalOpen, setIsRightWidgetModalOpen] = useState(false)
-    const [confirmationModal, setConfirmationModal] = useState({ isOpen: false, linkId: null })
-    const [editingLink, setEditingLink] = useState(null)
-    const [openDropdownIndex, setOpenDropdownIndex] = useState(null)
-
-    const [sidebarWidgets, setSidebarWidgets] = useState([
-        { id: "sidebar-chart", type: "chart", position: 0 },
-        { id: "sidebar-todo", type: "todo", position: 1 },
-        { id: "sidebar-websiteLink", type: "websiteLink", position: 2 },
-        { id: "sidebar-expiringContracts", type: "expiringContracts", position: 3 },
-        { id: "sidebar-notes", type: "notes", position: 4 },
-    ])
-
-    const [todos, setTodos] = useState([
-        {
-            id: 1,
-            title: "Review Design",
-            description: "Review the new dashboard design",
-            assignee: "Jack",
-            dueDate: "2024-12-15",
-            dueTime: "14:30",
-        },
-        {
-            id: 2,
-            title: "Team Meeting",
-            description: "Weekly team sync",
-            assignee: "Jack",
-            dueDate: "2024-12-16",
-            dueTime: "10:00",
-        },
-    ])
-
-    const memberTypes = {
-        "Studios Acquired": {
-            data: [
-                [30, 45, 60, 75, 90, 105, 120, 135, 150],
-                [25, 40, 55, 70, 85, 100, 115, 130, 145],
-            ],
-            growth: "12%",
-            title: "Studios Acquired",
-        },
-        Finance: {
-            data: [
-                [50000, 60000, 75000, 85000, 95000, 110000, 125000, 140000, 160000],
-                [45000, 55000, 70000, 80000, 90000, 105000, 120000, 135000, 155000],
-            ],
-            growth: "8%",
-            title: "Finance Statistics",
-        },
-        Leads: {
-            data: [
-                [120, 150, 180, 210, 240, 270, 300, 330, 360],
-                [100, 130, 160, 190, 220, 250, 280, 310, 340],
-            ],
-            growth: "15%",
-            title: "Leads Statistics",
-        },
-        Franchises: {
-            data: [
-                [120, 150, 180, 210, 240, 270, 300, 330, 360],
-                [100, 130, 160, 190, 220, 250, 280, 310, 340],
-            ],
-            growth: "10%",
-            title: "Franchises Acquired",
-        },
-    }
-
-    const [customLinks, setCustomLinks] = useState([
-        {
-            id: "link1",
-            url: "https://fitness-web-kappa.vercel.app/",
-            title: "Timathy Fitness Town",
-        },
-        { id: "link2", url: "https://oxygengym.pk/", title: "Oxygen Gyms" },
-        { id: "link3", url: "https://fitness-web-kappa.vercel.app/", title: "Timathy V1" },
-    ])
-
-    const [expiringContracts, setExpiringContracts] = useState([
-        {
-            id: 1,
-            title: "Oxygen Gym Membership",
-            expiryDate: "June 30, 2025",
-            status: "Expiring Soon",
-        },
-        {
-            id: 2,
-            title: "Timathy Fitness Equipment Lease",
-            expiryDate: "July 15, 2025",
-            status: "Expiring Soon",
-        },
-        {
-            id: 3,
-            title: "Studio Space Rental",
-            expiryDate: "August 5, 2025",
-            status: "Expiring Soon",
-        },
-        {
-            id: 4,
-            title: "Insurance Policy",
-            expiryDate: "September 10, 2025",
-            status: "Expiring Soon",
-        },
-        {
-            id: 5,
-            title: "Software License",
-            expiryDate: "October 20, 2025",
-            status: "Expiring Soon",
-        },
-    ])
-
-    // -------------- end of sidebar logic
-
 
     const filteredTickets = tickets.filter(ticket => {
         const matchesSearch = ticket.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -208,7 +82,6 @@ const AdminTicketsSystem = () => {
         setStatusFilter(["All"])
         setPriorityFilter(["All"])
     }
-
 
     const handleTicketClick = (ticket) => {
         setSelectedTicket(ticket)
@@ -305,73 +178,16 @@ const AdminTicketsSystem = () => {
             default: return <AlertCircle size={14} className="text-gray-400" />
         }
     }
-
-
-
-    // continue sidebar logic
-    const updateCustomLink = (id, field, value) => {
-        setCustomLinks((currentLinks) => currentLinks.map((link) => (link.id === id ? { ...link, [field]: value } : link)))
-    }
-
-    const removeCustomLink = (id) => {
-        setConfirmationModal({ isOpen: true, linkId: id })
-    }
-
-    const handleAddSidebarWidget = (widgetType) => {
-        const newWidget = {
-            id: `sidebar-widget${Date.now()}`,
-            type: widgetType,
-            position: sidebarWidgets.length,
-        }
-        setSidebarWidgets((currentWidgets) => [...currentWidgets, newWidget])
-        setIsRightWidgetModalOpen(false)
-        toast.success(`${widgetType} widget has been added to sidebar Successfully`)
-    }
-
-    const confirmRemoveLink = () => {
-        if (confirmationModal.linkId) {
-            setCustomLinks((currentLinks) => currentLinks.filter((link) => link.id !== confirmationModal.linkId))
-            toast.success("Website link removed successfully")
-        }
-        setConfirmationModal({ isOpen: false, linkId: null })
-    }
-
-    const getSidebarWidgetStatus = (widgetType) => {
-        // Check if widget exists in sidebar widgets
-        const existsInSidebar = sidebarWidgets.some((widget) => widget.type === widgetType)
-
-        if (existsInSidebar) {
-            return { canAdd: false, location: "sidebar" }
-        }
-
-        return { canAdd: true, location: null }
-    }
-
-    const toggleRightSidebar = () => {
-        setIsRightSidebarOpen(!isRightSidebarOpen)
-    }
-
-
     return (
         <div className={`
             min-h-screen rounded-3xl bg-[#1C1C1C] text-white md:p-6 p-3
             transition-all duration-500 ease-in-out flex-1
-            ${isRightSidebarOpen
-                ? 'lg:mr-86 mr-0'
-                : 'mr-0'
-            }
+            
           `}>
             <div className="">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div className="flex justify-between items-center w-full">
                         <h1 className="text-2xl font-bold text-white">Tickets </h1>
-
-                        <img
-                            onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
-                            className="h-5 w-5 mr-5  lg:hidden md:hidden block   cursor-pointer"
-                            src="/icon.svg"
-                            alt=""
-                        />
                     </div>
 
                     <div className="flex items-center gap-3">
@@ -383,13 +199,6 @@ const AdminTicketsSystem = () => {
                             <RefreshCw size={16} />
                             Refresh
                         </button>
-
-                        <img
-                            onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
-                            className="h-5 w-5 mr-5   lg:block md:block hidden  cursor-pointer"
-                            src="/icon.svg"
-                            alt=""
-                        />
                     </div>
                 </div>
             </div>
@@ -546,64 +355,11 @@ const AdminTicketsSystem = () => {
                 </div>
             </div>
 
-
-
             {selectedTicket && (
                 <AdminTicketView
                     ticket={selectedTicket}
                     onClose={handleCloseTicketView}
                     onUpdateTicket={handleUpdateTicket}
-                />
-            )}
-
-            {/* sidebar related modals */}
-
-            <Sidebar
-                isOpen={isRightSidebarOpen}
-                onClose={() => setIsRightSidebarOpen(false)}
-                widgets={sidebarWidgets}
-                setWidgets={setSidebarWidgets}
-                isEditing={isEditing}
-                todos={todos}
-                customLinks={customLinks}
-                setCustomLinks={setCustomLinks}
-                expiringContracts={expiringContracts}
-                selectedMemberType={selectedMemberType}
-                setSelectedMemberType={setSelectedMemberType}
-                memberTypes={memberTypes}
-                onAddWidget={() => setIsRightWidgetModalOpen(true)}
-                updateCustomLink={updateCustomLink}
-                removeCustomLink={removeCustomLink}
-                editingLink={editingLink}
-                setEditingLink={setEditingLink}
-                openDropdownIndex={openDropdownIndex}
-                setOpenDropdownIndex={setOpenDropdownIndex}
-                onToggleEditing={() => { setIsEditing(!isEditing); }} // Add this line
-                setTodos={setTodos}
-            />
-
-            <ConfirmationModal
-                isOpen={confirmationModal.isOpen}
-                onClose={() => setConfirmationModal({ isOpen: false, linkId: null })}
-                onConfirm={confirmRemoveLink}
-                title="Delete Website Link"
-                message="Are you sure you want to delete this website link? This action cannot be undone."
-            />
-
-            <WidgetSelectionModal
-                isOpen={isRightWidgetModalOpen}
-                onClose={() => setIsRightWidgetModalOpen(false)}
-                onSelectWidget={handleAddSidebarWidget}
-                getWidgetStatus={getSidebarWidgetStatus}
-                widgetArea="sidebar"
-            />
-
-            {editingLink && (
-                <WebsiteLinkModal
-                    link={editingLink}
-                    onClose={() => setEditingLink(null)}
-                    updateCustomLink={updateCustomLink}
-                    setCustomLinks={setCustomLinks}
                 />
             )}
         </div>

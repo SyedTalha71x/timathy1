@@ -8,7 +8,7 @@ import {
   CONTENT_HEIGHT_PX
 } from '../utils/layoutUtils';
 
-// Minimale Abstände für Kopf-/Fußzeile vom Blattrand
+// Minimale AbstÃ¤nde fÃ¼r Kopf-/FuÃŸzeile vom Blattrand
 const HEADER_TOP_MARGIN = 20; // 20px vom oberen Blattrand
 const FOOTER_BOTTOM_MARGIN = 20; // 20px vom unteren Blattrand
 const HEADER_FOOTER_HORIZONTAL_PADDING = 20; // 20px links/rechts Padding
@@ -50,9 +50,12 @@ const CanvasArea = ({
   };
 
   // Measure actual rendered header height
+  // FIX: Removed contractPages from deps - element changes should NOT trigger re-measurement
+  // Header height only depends on globalHeader content, not on element positions
   useEffect(() => {
     if (headerRef.current && shouldShowHeader()) {
       const measureHeight = () => {
+        if (!headerRef.current) return;
         const height = headerRef.current.offsetHeight;
         if (height !== measuredHeaderHeight && height > 0) {
           setMeasuredHeaderHeight(height);
@@ -65,12 +68,15 @@ const CanvasArea = ({
     } else if (!shouldShowHeader() && measuredHeaderHeight !== 0) {
       setMeasuredHeaderHeight(0);
     }
-  }, [globalHeader, currentPage, contractPages, measuredHeaderHeight, setMeasuredHeaderHeight]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [globalHeader, currentPage, measuredHeaderHeight]);
 
   // Measure actual rendered footer height
+  // FIX: Same - removed contractPages from deps
   useEffect(() => {
     if (footerRef.current && shouldShowFooter()) {
       const measureHeight = () => {
+        if (!footerRef.current) return;
         const height = footerRef.current.offsetHeight;
         if (height !== measuredFooterHeight && height > 0) {
           setMeasuredFooterHeight(height);
@@ -83,7 +89,8 @@ const CanvasArea = ({
     } else if (!shouldShowFooter() && measuredFooterHeight !== 0) {
       setMeasuredFooterHeight(0);
     }
-  }, [globalFooter, currentPage, contractPages, measuredFooterHeight, setMeasuredFooterHeight]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [globalFooter, currentPage, measuredFooterHeight]);
 
   // Check if header/footer should be shown on current page
   const shouldShowHeader = () => {

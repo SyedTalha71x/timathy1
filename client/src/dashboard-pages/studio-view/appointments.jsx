@@ -30,7 +30,7 @@ import MiniCalendar from "../../components/studio-components/appointments-compon
 import BlockAppointmentModal from "../../components/studio-components/appointments-components/block-appointment-modal"
 import Calendar from "../../components/studio-components/appointments-components/calendar"
 import AppointmentActionModal from "../../components/studio-components/appointments-components/AppointmentActionModal"
-import UpcomingAppointmentsWidget from "../../components/myarea-components/widgets/UpcomingAppointmentsWidget"
+import UpcomingAppointmentsWidget from "../../components/shared/widgets/UpcomingAppointmentsWidget"
 
 import EditAppointmentModal from "../../components/shared/appointments/EditAppointmentModal"
 import { createPortal } from "react-dom"

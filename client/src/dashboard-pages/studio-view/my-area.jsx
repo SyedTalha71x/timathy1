@@ -11,21 +11,21 @@ import { Toaster, toast } from "react-hot-toast"
 // ============================================
 // Component Imports
 // ============================================
-import ViewManagementModal from "../../components/myarea-components/ViewManagementModal"
-import DraggableWidget from "../../components/myarea-components/DraggableWidget"
-import { WidgetSelectionModal } from "../../components/widget-selection-modal"
+import ViewManagementModal from "../../components/shared/widgets/components/ViewManagementModal"
+import DraggableWidget from "../../components/shared/widgets/components/DraggableWidget"
+import { WidgetSelectionModal } from "../../components/shared/widgets/components/widget-selection-modal"
 
 // Widget Imports
-import AnalyticsChartWidget from "../../components/myarea-components/widgets/AnalyticsChartWidget"
-import UpcomingAppointmentsWidget from "../../components/myarea-components/widgets/UpcomingAppointmentsWidget"
-import StaffCheckInWidget from "../../components/myarea-components/widgets/StaffWidgetCheckIn"
-import WebsiteLinksWidget from "../../components/myarea-components/widgets/WebsiteLinksWidget"
-import ToDoWidget from "../../components/myarea-components/widgets/ToDoWidget"
-import UpcomingBirthdaysWidget from "../../components/myarea-components/widgets/UpcomingBirthdaysWidget"
-import BulletinBoardWidget from "../../components/myarea-components/widgets/BulletinBoardWidget"
-import NotesWidget from "../../components/myarea-components/widgets/NotesWidget"
-import ShiftScheduleWidget from "../../components/myarea-components/widgets/ShiftScheduleWidget"
-import ExpiringContractsWidget from "../../components/myarea-components/widgets/ExpiringContractsWidget"
+import AnalyticsChartWidget from "../../components/shared/widgets/AnalyticsChartWidget"
+import UpcomingAppointmentsWidget from "../../components/shared/widgets/UpcomingAppointmentsWidget"
+import StaffCheckInWidget from "../../components/shared/widgets/StaffWidgetCheckIn"
+import WebsiteLinksWidget from "../../components/shared/widgets/WebsiteLinksWidget"
+import ToDoWidget from "../../components/shared/widgets/ToDoWidget"
+import UpcomingBirthdaysWidget from "../../components/shared/widgets/UpcomingBirthdaysWidget"
+import BulletinBoardWidget from "../../components/shared/widgets/BulletinBoardWidget"
+import NotesWidget from "../../components/shared/widgets/NotesWidget"
+import ShiftScheduleWidget from "../../components/shared/widgets/ShiftScheduleWidget"
+import ExpiringContractsWidget from "../../components/shared/widgets/ExpiringContractsWidget"
 
 // Modal Imports
 import AppointmentActionModal from "../../components/studio-components/appointments-components/AppointmentActionModal"

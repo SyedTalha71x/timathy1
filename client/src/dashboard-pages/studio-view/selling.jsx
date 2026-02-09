@@ -16,7 +16,7 @@ import ProductServiceModal from "../../components/studio-components/selling-comp
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { ExternalSidebarContext } from "../../layouts/studio-view-layout";
+import { ExternalSidebarContext } from "../../layouts/studio-view/studio-view-layout";
 
 // Sortable Product/Service Card Component
 const SortableItemCard = ({ item, children, isDragDisabled }) => {
@@ -110,6 +110,7 @@ const Selling = () => {
     link: "",
     vatRate: 19,
     vatSelectable: false,
+    contingentCredits: "",
   })
 
   const [selectedImage, setSelectedImage] = useState(null)
@@ -329,8 +330,9 @@ const Selling = () => {
       paymentOption: "",
       brandName: "",
       link: "",
-      vatRate: 19,
+      vatRate: activeTab === "services" ? 7 : 19,
       vatSelectable: false,
+      contingentCredits: "",
     })
     setSelectedImage(null)
     setCurrentProduct(null)
@@ -348,6 +350,7 @@ const Selling = () => {
       link: item.link || "",
       vatRate: Number(item.vatRate) || 19,
       vatSelectable: item.vatSelectable || false,
+      contingentCredits: item.contingentCredits !== undefined ? item.contingentCredits.toString() : "",
     })
     setSelectedImage(null)
     setCurrentProduct(item)
@@ -359,7 +362,7 @@ const Selling = () => {
     setIsModalOpen(false)
   }
 
-  // Handler für erfolgreiche Erstellung eines temporären Members (Shared Modal)
+  // Handler fÃ¼r erfolgreiche Erstellung eines temporÃ¤ren Members (Shared Modal)
   const handleTempMemberCreated = (newMemberData) => {
     const newMember = {
       id: Date.now(),
@@ -420,6 +423,7 @@ const Selling = () => {
         link: formData.link,
         vatRate: Number(formData.vatRate) || 19,
         vatSelectable: formData.vatSelectable,
+        contingentCredits: isService && formData.contingentCredits !== "" ? Number(formData.contingentCredits) : undefined,
       }
       if (isService) {
         setServices([newItem, ...services])
@@ -441,6 +445,7 @@ const Selling = () => {
               link: formData.link,
               vatRate: Number(formData.vatRate) || 19,
               vatSelectable: formData.vatSelectable,
+              contingentCredits: isService && formData.contingentCredits !== "" ? Number(formData.contingentCredits) : undefined,
             }
           }
           return item
@@ -586,6 +591,7 @@ const Selling = () => {
         articalNo: item.articalNo,
         brandName: item.brandName,
         vatRate: item.vatRate || 19,
+        contingentCredits: item.contingentCredits || undefined,
       })),
       totalAmount: total,
       subtotal: subtotal,
@@ -1022,6 +1028,17 @@ Payment: ${sale.paymentMethod}
                             {activeTab === "products" && (
                               <p className="text-slate-400 mt-1 open_sans_font truncate text-xs h-4">
                                 {item.articalNo ? `Art. No: ${item.articalNo}` : <span className="text-transparent">-</span>}
+                              </p>
+                            )}
+
+                            {/* Row 2 for services: Contingent Credits */}
+                            {activeTab === "services" && (
+                              <p className="text-slate-400 mt-1 open_sans_font truncate text-xs h-4">
+                                {item.contingentCredits ? (
+                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-blue-500/15 text-blue-400 rounded text-[11px]">
+                                    +{item.contingentCredits} Credit{item.contingentCredits !== 1 ? 's' : ''}
+                                  </span>
+                                ) : <span className="text-transparent">-</span>}
                               </p>
                             )}
                           </div>

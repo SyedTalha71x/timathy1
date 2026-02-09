@@ -262,6 +262,7 @@ const ProductServiceModal = ({
 
               {/* Conditional Fields */}
               {activeTab === "services" ? (
+                <>
                 <div className="grid grid-cols-2 gap-4">
                   {/* Price */}
                   <div>
@@ -293,6 +294,27 @@ const ProductServiceModal = ({
                     </select>
                   </div>
                 </div>
+
+                {/* Contingent Credits */}
+                <div>
+                  <label className="text-sm text-gray-200 block mb-2">Contingent Credits (Optional)</label>
+                  <div className="flex items-center rounded-xl bg-[#101010] border border-transparent focus-within:border-[#3F74FF] transition-colors">
+                    <span className="px-3 text-blue-400 text-sm">+</span>
+                    <input
+                      type="number"
+                      name="contingentCredits"
+                      value={formData.contingentCredits}
+                      onChange={handleInputChangeMain}
+                      placeholder="0"
+                      min="0"
+                      className="w-full bg-transparent text-sm py-3 pr-4 text-white placeholder-gray-500 outline-none"
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1.5">
+                    Number of credits added to the member's contingent when this service is sold. Leave empty for no credit top-up.
+                  </p>
+                </div>
+                </>
               ) : (
                 <>
                   {/* Product Fields */}
@@ -300,7 +322,7 @@ const ProductServiceModal = ({
                     <div>
                       <label className="text-sm text-gray-200 block mb-2">Price *</label>
                       <div className="flex items-center rounded-xl bg-[#101010] border border-transparent focus-within:border-[#3F74FF] transition-colors">
-                        <span className="px-3 text-white text-sm">€</span>
+                        <span className="px-3 text-white text-sm">â‚¬</span>
                         <input
                           type="text"
                           name="price"

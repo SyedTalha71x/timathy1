@@ -3,6 +3,24 @@
 // ============================================================================
 // Alle Contract-bezogenen Daten
 // Member IDs entsprechen members-states.jsx
+// 
+// AUTO-RENEWAL SYSTEM:
+// Contract-Type Felder (in configuration-states.jsx):
+// - autoRenewal: boolean - Ob der Vertrag automatisch erneuert wird
+// - renewalIndefinite: boolean - Ob unbegrenzte Erneuerung (true = kein Expiring)
+// - renewalPeriod: number|null - Verlängerungsdauer in Monaten (null bei indefinite)
+//
+// Contract Felder (hier):
+// - autoRenewal: boolean - Vom Contract-Type übernommen
+// - renewalIndefinite: boolean - Vom Contract-Type übernommen
+// - autoRenewalEndDate: string|null - Berechnetes maximales Enddatum
+//   - null = unbegrenzte Auto-Erneuerung (kein "Expiring")
+//   - "YYYY-MM-DD" = begrenzte Auto-Erneuerung (zeigt "Expiring" wenn Datum nähert)
+//
+// BEISPIEL CONTRACT TYPES:
+// - Basic/Standard Monthly: autoRenewal=true, renewalIndefinite=true (unbegrenzt)
+// - Annual Premium: autoRenewal=true, renewalIndefinite=false, renewalPeriod=12
+// - Flex 10er Card: autoRenewal=false (keine Auto-Erneuerung)
 // ============================================================================
 
 // Helper function to get date relative to today
@@ -22,13 +40,26 @@ export const initialContracts = [
     contractNumber: "2024-001",
     memberId: 1, // John Doe
     memberName: "John Doe",
-    contractType: "Premium",
+    contractType: "Premium Unlimited",
     startDate: "2024-01-01",
     endDate: "2025-12-31",
     status: "Active",
     autoRenewal: true,
+    renewalIndefinite: true, // Premium = unlimited renewal
+    autoRenewalEndDate: null,
     changeReason: "upgrade", // Upgraded from Basic
     previousContractId: "contract-10",
+    bonusTime: {
+      id: "bt-sample-1",
+      bonusAmount: 2,
+      bonusUnit: "weeks",
+      reason: "Equipment maintenance compensation",
+      startOption: "current_contract_period",
+      startDate: null,
+      withExtension: true,
+      bonusPeriod: "01.01.2026 - 15.01.2026",
+      createdAt: "2025-01-15",
+    },
     pauseReason: null,
     cancelReason: null,
     isDigital: true,
@@ -42,11 +73,13 @@ export const initialContracts = [
     contractNumber: "2024-003",
     memberId: 3, // Michael Johnson
     memberName: "Michael Johnson",
-    contractType: "Premium",
+    contractType: "Premium Unlimited",
     startDate: "2024-03-01",
     endDate: "2026-02-28",
     status: "Active",
     autoRenewal: true,
+    renewalIndefinite: true, // Premium = unlimited renewal
+    autoRenewalEndDate: null,
     changeReason: "upgrade",
     previousContractId: "contract-11",
     pauseReason: null,
@@ -62,7 +95,7 @@ export const initialContracts = [
     contractNumber: "2024-004",
     memberId: 4, // Sarah Williams
     memberName: "Sarah Williams",
-    contractType: "Premium Plus",
+    contractType: "Annual Premium",
     startDate: "2024-06-01",
     endDate: "2025-05-31",
     status: "Active",
@@ -82,11 +115,13 @@ export const initialContracts = [
     contractNumber: "2024-005",
     memberId: 5, // David Brown
     memberName: "David Brown",
-    contractType: "Basic",
+    contractType: "Basic Monthly",
     startDate: "2024-09-01",
     endDate: "2025-08-31",
     status: "Active",
     autoRenewal: true,
+    renewalIndefinite: false, // Basic with limited renewal
+    autoRenewalEndDate: "2026-08-31", // Max 12 months renewal
     changeReason: "renewal",
     previousContractId: "contract-14",
     pauseReason: null,
@@ -102,7 +137,7 @@ export const initialContracts = [
     contractNumber: "2024-006",
     memberId: 6, // Emily Davis
     memberName: "Emily Davis",
-    contractType: "Basic",
+    contractType: "Basic Monthly",
     startDate: "2024-06-01",
     endDate: "2025-05-31",
     status: "Active",
@@ -124,7 +159,7 @@ export const initialContracts = [
     contractNumber: "2024-008",
     memberId: 8, // Lisa Garcia
     memberName: "Lisa Garcia",
-    contractType: "Premium",
+    contractType: "Premium Unlimited",
     startDate: "2024-02-01",
     endDate: getRelativeDate(2), // Expires in 2 days!
     status: "Active",
@@ -144,11 +179,13 @@ export const initialContracts = [
     contractNumber: "2024-009",
     memberId: 9, // Thomas Anderson
     memberName: "Thomas Anderson",
-    contractType: "Basic",
+    contractType: "Basic Monthly",
     startDate: "2024-03-15",
     endDate: getRelativeDate(5), // Expires in 5 days!
     status: "Active",
     autoRenewal: true,
+    renewalIndefinite: false, // Limited renewal
+    autoRenewalEndDate: getRelativeDate(5), // Auto-renewal limit reached - will show expiring!
     changeReason: "new",
     previousContractId: null,
     pauseReason: null,
@@ -164,7 +201,7 @@ export const initialContracts = [
     contractNumber: "2024-010",
     memberId: 10, // Jennifer Martinez
     memberName: "Jennifer Martinez",
-    contractType: "Premium",
+    contractType: "Premium Unlimited",
     startDate: "2024-01-01",
     endDate: getRelativeDate(14), // Expires in 2 weeks!
     status: "Active",
@@ -186,13 +223,26 @@ export const initialContracts = [
     contractNumber: "2023-002",
     memberId: 2, // Jane Smith
     memberName: "Jane Smith",
-    contractType: "Basic",
+    contractType: "Basic Monthly",
     startDate: "2023-11-15",
     endDate: "2025-11-14",
     status: "Paused",
     autoRenewal: true,
+    renewalIndefinite: false, // Limited renewal
+    autoRenewalEndDate: "2026-11-14", // Max 12 months renewal
     changeReason: "new",
     previousContractId: null,
+    bonusTime: {
+      id: "bt-sample-2",
+      bonusAmount: 1,
+      bonusUnit: "months",
+      reason: "Pause compensation",
+      startOption: "current_contract_period",
+      startDate: null,
+      withExtension: false,
+      bonusPeriod: "14.11.2025 - 14.12.2025",
+      createdAt: "2025-01-20",
+    },
     pauseReason: "Vacation Leave",
     pauseStartDate: "2025-01-01",
     pauseEndDate: "2025-02-28",
@@ -210,7 +260,7 @@ export const initialContracts = [
     contractNumber: "2022-001",
     memberId: 1, // John Doe (previous contract)
     memberName: "John Doe",
-    contractType: "Basic",
+    contractType: "Basic Monthly",
     startDate: "2022-03-01",
     endDate: "2023-12-31",
     status: "Cancelled",
@@ -230,7 +280,7 @@ export const initialContracts = [
     contractNumber: "2022-003",
     memberId: 3, // Michael Johnson (previous contract)
     memberName: "Michael Johnson",
-    contractType: "Bronze",
+    contractType: "Flex 10er Card",
     startDate: "2022-06-15",
     endDate: "2024-02-28",
     status: "Cancelled",
@@ -252,10 +302,10 @@ export const initialContracts = [
     contractNumber: "2025-007",
     memberId: 7, // Robert Miller
     memberName: "Robert Miller",
-    contractType: "Basic",
+    contractType: "Basic Monthly",
     startDate: getRelativeDate(7), // Starts in 1 week
     endDate: getRelativeDate(372), // 1 year from start
-    status: "Ongoing",
+    status: "Pending",
     autoRenewal: false,
     changeReason: "new",
     previousContractId: null,
@@ -275,7 +325,7 @@ export const initialContracts = [
     contractNumber: "2022-004",
     memberId: 4, // Sarah Williams (old contract)
     memberName: "Sarah Williams",
-    contractType: "Basic",
+    contractType: "Basic Monthly",
     startDate: "2022-01-10",
     endDate: "2024-01-09",
     status: "Cancelled",
@@ -295,7 +345,7 @@ export const initialContracts = [
     contractNumber: "2023-005",
     memberId: 5, // David Brown (old contract)
     memberName: "David Brown",
-    contractType: "Bronze",
+    contractType: "Flex 10er Card",
     startDate: "2023-01-01",
     endDate: "2024-06-30",
     status: "Cancelled",
@@ -448,39 +498,18 @@ export const sampleLeads = [
   },
 ]
 
+// DEPRECATED: Use DEFAULT_CONTRACT_TYPES from configuration-states.jsx instead
+// This array is kept for backwards compatibility but should not be used for new code
+// Import from: import { DEFAULT_CONTRACT_TYPES } from './configuration-states'
 export const contractTypes = [
-  {
-    id: "basic",
-    name: "Basic",
-    duration: "12 months",
-    cost: "€29.99",
-    billingPeriod: "Monthly",
-    features: ["Gym access", "Locker room", "Basic equipment"],
-  },
-  {
-    id: "premium",
-    name: "Premium",
-    duration: "12 months",
-    cost: "€49.99",
-    billingPeriod: "Monthly",
-    features: ["All Basic features", "Group classes", "Sauna access", "Personal trainer consultation"],
-  },
-  {
-    id: "premium-plus",
-    name: "Premium Plus",
-    duration: "12 months",
-    cost: "€79.99",
-    billingPeriod: "Monthly",
-    features: ["All Premium features", "Unlimited personal training", "Nutrition planning", "Priority booking"],
-  },
-  {
-    id: "bronze",
-    name: "Bronze",
-    duration: "6 months",
-    cost: "€19.99",
-    billingPeriod: "Monthly",
-    features: ["Gym access", "Limited hours (6am-4pm)"],
-  },
+  // Contract types are now defined in configuration-states.jsx
+  // See DEFAULT_CONTRACT_TYPES for the current list:
+  // - Basic Monthly
+  // - Standard Monthly  
+  // - Premium Unlimited
+  // - Flex 10er Card
+  // - Annual Premium
+  // - Trial Week
 ]
 
 export const mediaTemplates = [
@@ -548,8 +577,8 @@ export const getPausedContracts = () =>
 export const getCancelledContracts = () => 
   initialContracts.filter(c => c.status === "Cancelled")
 
-export const getOngoingContracts = () => 
-  initialContracts.filter(c => c.status === "Ongoing")
+export const getPendingContracts = () => 
+  initialContracts.filter(c => c.status === "Pending")
 
 export const getExpiringContracts = (daysAhead = 30) => {
   const futureDate = new Date()
@@ -573,20 +602,20 @@ export const getExpiredContracts = () => {
 export const getContractHistory = (contractId) => 
   contractHistory[contractId] || []
 
-// Get the "display" contract for a member (Active > Paused > Ongoing > most recent Cancelled)
+// Get the "display" contract for a member (Active > Paused > Pending > most recent Cancelled)
 export const getDisplayContractForMember = (memberId) => {
   const memberContracts = getContractsByMemberId(memberId)
   if (memberContracts.length === 0) return null
   
-  // Priority: Active > Paused > Ongoing > Cancelled (by end date)
+  // Priority: Active > Paused > Pending > Cancelled (by end date)
   const active = memberContracts.find(c => c.status === 'Active')
   if (active) return active
   
   const paused = memberContracts.find(c => c.status === 'Paused')
   if (paused) return paused
   
-  const ongoing = memberContracts.find(c => c.status === 'Ongoing')
-  if (ongoing) return ongoing
+  const pending = memberContracts.find(c => c.status === 'Pending')
+  if (pending) return pending
   
   // Return most recent cancelled
   const cancelled = memberContracts
@@ -607,7 +636,7 @@ export default {
   getActiveContracts,
   getPausedContracts,
   getCancelledContracts,
-  getOngoingContracts,
+  getPendingContracts,
   getExpiringContracts,
   getExpiredContracts,
   getContractHistory,

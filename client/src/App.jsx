@@ -10,8 +10,8 @@ import Login from './landing-page/login';
 
 // import { me } from "./features/auth/authSlice";
 
-// User Panel Dashboard
-import Dashboardlayout from "./layouts/studio-view-layout";
+// Studio-View Dashboard
+import Dashboardlayout from "./layouts/studio-view/studio-view-layout";
 import MyArea from './dashboard-pages/studio-view/my-area'
 import Appointments from "./dashboard-pages/studio-view/appointments";
 import ToDo from './dashboard-pages/studio-view/todo'
@@ -38,8 +38,7 @@ import Tickets from "./dashboard-pages/studio-view/tickets";
 
 // Admin Dashboard
 import AdminDashboardLayout from './layouts/admin-view-layout'
-import AdminMyArea from './dashboard-pages/admin-view/my-area'
-import Studios from "./dashboard-pages/admin-view/studios";
+import Customers from "./dashboard-pages/admin-view/customers";
 import AdminLeads from './dashboard-pages/admin-view/leads'
 import AdminTodo from './dashboard-pages/admin-view/todo'
 import AdminConfiguration from './dashboard-pages/admin-view/configuration'
@@ -52,6 +51,9 @@ import AdminMarketPlace from './dashboard-pages/admin-view/marketplace'
 import AdminEmailManagement from './dashboard-pages/admin-view/email'
 import AdminNotes from './dashboard-pages/admin-view/notes'
 import AdminDemoAccess from './dashboard-pages/admin-view/demo-access'
+import AdminFeedback from './dashboard-pages/admin-view/feedback'
+import EditStudioMembersPage from './dashboard-pages/admin-view/customers-sub-pages/edit-studio-members-page'
+import EditStudioStaffPage from './dashboard-pages/admin-view/customers-sub-pages/edit-studio-staff-page'
 
 
 // Member Dashboard  
@@ -62,8 +64,7 @@ import MemberStudioMenu from './dashboard-pages/member-view/studio-menu'
 import MemberSettings from './dashboard-pages/member-view/configuration'
 import MemberViewProfile from './dashboard-pages/member-view/edit-profile'
 import MemberTraining from './dashboard-pages/member-view/training'
-import EditAdminPage from "./dashboard-pages/admin-view/edit-admin-page";
-import EditStudioPage from "./dashboard-pages/admin-view/edit-studio-page";
+import EditStudioPage from "./dashboard-pages/admin-view/customers-sub-pages/edit-studio-page";
 import MemberFoodLogs from './dashboard-pages/member-view/nutrition-tracking/food-log'
 import MemberNutritionBreakDown from './dashboard-pages/member-view/nutrition-tracking/nutrition-breakdown'
 import MemberDailySummary from './dashboard-pages/member-view/nutrition-tracking/daily-summary'
@@ -164,7 +165,7 @@ function App() {
           <Route path="configuration" element={<AdminConfiguration />} />
           <Route path="leads" element={<AdminLeads />} />
           <Route path="finances" element={<AdminFinance />} />
-          <Route path="studios" element={<Studios />} />
+          <Route path="customers" element={<Customers />} />
           <Route path="training-management" element={<AdminTrainingManagement />} />
           <Route path="tickets" element={<AdminTicketsSystem />} />
           <Route path="analytics" element={<AdminAnalytics />} />
@@ -172,9 +173,11 @@ function App() {
           <Route path="email" element={<AdminEmailManagement />} />
           <Route path="notes" element={<AdminNotes />} />
           <Route path="demo-access" element={<AdminDemoAccess />} />
+          <Route path="feedback" element={<AdminFeedback />} />
 
-          <Route path="edit-studio-configuration/:studioId" element={<EditStudioPage />} />
-          <Route path="edit-admin-configuration/:studioId" element={<EditAdminPage />} />
+         <Route path="edit-studio-configuration/:studioId" element={<EditStudioPage />} />
+<Route path="studio-members/:studioId" element={<EditStudioMembersPage />} />
+<Route path="studio-staff/:studioId" element={<EditStudioStaffPage />} />
 
 
 

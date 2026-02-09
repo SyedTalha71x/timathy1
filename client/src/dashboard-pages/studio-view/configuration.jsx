@@ -42,6 +42,7 @@ import {
   User,
   Eye,
   EyeOff,
+  AlertTriangle,
 } from "lucide-react"
 import { BsPersonWorkspace } from "react-icons/bs"
 import { RiContractLine } from "react-icons/ri"
@@ -55,7 +56,7 @@ import { RoleItem } from "../../components/studio-components/configuration-compo
 import { StaffAssignmentModal } from "../../components/studio-components/configuration-components/StaffAssignmentModal"
 import ImageSourceModal from "../../components/shared/image-handler/ImageSourceModal"
 import ImageCropModal from "../../components/shared/image-handler/ImageCropModal"
-import IntroMaterialEditorModal from "../../components/studio-components/configuration-components/IntroMaterialEditorModal"
+import IntroMaterialEditorModal from "../../components/shared/IntroMaterialEditorModal"
 import MediaLibraryPickerModal from "../../components/shared/image-handler/MediaLibraryPickerModal"
 import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'
 
@@ -105,13 +106,19 @@ import {
 } from "../../utils/studio-states/configuration-states"
 
 // ============================================
+// Shared Hook for data abstraction (Admin + Studio Panel)
+// ============================================
+import { useStudioConfiguration } from "../../hooks/useStudioConfiguration"
+
+// ============================================
 // Navigation Items Configuration
 // ============================================
-const navigationItems = [
+const ALL_NAVIGATION_ITEMS = [
   {
     id: "profile",
     label: "Profile",
     icon: User,
+    adminVisible: false, // Profile is user-specific, hidden in admin mode
     sections: [
       { id: "profile-details", label: "Personal Details" },
       { id: "profile-access", label: "Access Data" },
@@ -121,6 +128,7 @@ const navigationItems = [
     id: "studio",
     label: "Studio",
     icon: Building2,
+    adminVisible: true,
     sections: [
       { id: "studio-info", label: "Studio Information" },
       { id: "opening-hours", label: "Opening Hours" },
@@ -131,6 +139,7 @@ const navigationItems = [
     id: "appointments",
     label: "Appointments",
     icon: Calendar,
+    adminVisible: true,
     sections: [
       { id: "calendar-settings", label: "Calendar Settings" },
       { id: "capacity", label: "Capacity Settings" },
@@ -143,6 +152,7 @@ const navigationItems = [
     id: "staff",
     label: "Staff",
     icon: BsPersonWorkspace,
+    adminVisible: true,
     sections: [
       { id: "staff-defaults", label: "Default Settings" },
       { id: "staff-roles", label: "Roles & Permissions" },
@@ -152,6 +162,7 @@ const navigationItems = [
     id: "members",
     label: "Members & Leads",
     icon: Users,
+    adminVisible: true,
     sections: [
       { id: "qr-checkin", label: "QR Code Check-In" },
       { id: "lead-sources", label: "Lead Sources" },
@@ -162,6 +173,7 @@ const navigationItems = [
     id: "contracts",
     label: "Contracts",
     icon: RiContractLine,
+    adminVisible: true,
     sections: [
       { id: "contract-general", label: "General Settings" },
       { id: "contract-forms", label: "Contract Forms" },
@@ -173,19 +185,23 @@ const navigationItems = [
     id: "communication",
     label: "Communication",
     icon: MessageCircle,
+    adminVisible: true,
     sections: [
-      { id: "comm-general", label: "General Settings" },
-      { id: "email-notifications", label: "Email Notifications" },
-      { id: "app-notifications", label: "App Notifications" },
-      { id: "smtp-setup", label: "SMTP Setup" },
-      { id: "email-signature", label: "Email Signature" },
-      { id: "e-invoice-template", label: "E-Invoice Template" },
+      { id: "comm-general", label: "General Settings", group: "General" },
+      { id: "smtp-setup", label: "SMTP Setup", group: "General" },
+      { id: "email-signature", label: "Email Signature", group: "General" },
+      { id: "email-notifications", label: "Email Notifications", group: "Notifications" },
+      { id: "app-notifications", label: "App Notifications", group: "Notifications" },
+      { id: "e-invoice-template", label: "E-Invoice", group: "Email Templates" },
+      { id: "contract-cancellation-template", label: "Contract Cancellation", group: "Email Templates" },
+      { id: "contract-conclusion-template", label: "Conclusion of Contract", group: "Email Templates" },
     ],
   },
   {
     id: "finances",
     label: "Finances",
     icon: BadgeDollarSign,
+    adminVisible: true,
     sections: [
       { id: "vat-rates", label: "VAT Rates" },
       { id: "payment-settings", label: "Payment Settings" },
@@ -195,6 +211,7 @@ const navigationItems = [
     id: "appearance",
     label: "Appearance",
     icon: Palette,
+    adminVisible: true,
     sections: [
       { id: "theme", label: "Theme Settings" },
     ],
@@ -203,6 +220,7 @@ const navigationItems = [
     id: "import",
     label: "Data Import",
     icon: Download,
+    adminVisible: true,
     sections: [
       { id: "import-data", label: "Import Data" },
     ],
@@ -454,18 +472,60 @@ const InfoTooltip = ({ content, position = "left" }) => (
 )
 
 // ============================================
-// Main Configuration Page Component
+// Admin Banner Component
 // ============================================
-const ConfigurationPage = () => {
+const AdminBanner = ({ studioName }) => (
+  <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl px-4 py-3 flex items-center gap-3">
+    <AlertTriangle className="w-5 h-5 text-orange-400 flex-shrink-0" />
+    <div>
+      <p className="text-sm font-medium text-orange-300">
+        Admin Mode — Editing: {studioName || "Studio"}
+      </p>
+      <p className="text-xs text-orange-400/70 mt-0.5">
+        Changes will apply to this studio&apos;s configuration
+      </p>
+    </div>
+  </div>
+)
+
+// ============================================
+// Main Configuration Page Component
+// 
+// Props (for shared usage between Admin and Studio Panel):
+//   studioId   - (number|null) null = own studio, number = specific studio (admin)
+//   mode       - ("studio"|"admin") Controls which sections are visible
+//   studioName - (string|null) Studio name to show in admin banner
+// ============================================
+const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", studioName: studioNameProp = null }) => {
   // URL Search Params
   const [searchParams] = useSearchParams()
+
+  // ============================================
+  // Load configuration via shared hook
+  // ============================================
+  const { config, updateConfig, isLoading, error } = useStudioConfiguration({
+    studioId: studioIdProp,
+    mode,
+  })
+
+  // ============================================
+  // Filter navigation items based on mode
+  // (e.g., hide "Profile" section in admin mode)
+  // ============================================
+  const navigationItems = ALL_NAVIGATION_ITEMS.filter((item) => {
+    if (mode === "admin" && item.adminVisible === false) return false
+    return true
+  })
   
-  // Navigation State
-  const [activeCategory, setActiveCategory] = useState("profile")
-  const [activeSection, setActiveSection] = useState("profile-details")
+  // Navigation State - default to first available section
+  const defaultCategory = navigationItems[0]?.id || "studio"
+  const defaultSection = navigationItems[0]?.sections[0]?.id || "studio-info"
+
+  const [activeCategory, setActiveCategory] = useState(defaultCategory)
+  const [activeSection, setActiveSection] = useState(defaultSection)
   const [searchQuery, setSearchQuery] = useState("")
   const [mobileShowContent, setMobileShowContent] = useState(false)
-  const [expandedCategories, setExpandedCategories] = useState(["profile"])
+  const [expandedCategories, setExpandedCategories] = useState([defaultCategory])
 
   // Handle URL section parameter on mount
   useEffect(() => {
@@ -525,54 +585,54 @@ const ConfigurationPage = () => {
   }
 
   // ============================================
-  // All State Variables - USING IMPORTED DEFAULTS
+  // All State Variables - initialized empty, populated from hook config
   // ============================================
   
-  // Basic studio information - FROM studioData
-  const [studioName, setStudioName] = useState(studioData.name)
-  const [studioId] = useState(studioData.studioId)
-  const [studioOperator, setStudioOperator] = useState(studioData.operator)
-  const [studioOperatorEmail, setStudioOperatorEmail] = useState(studioData.operatorEmail)
-  const [studioOperatorPhone, setStudioOperatorPhone] = useState(studioData.operatorPhone)
-  const [studioOperatorMobile, setStudioOperatorMobile] = useState(studioData.operatorMobile)
-  const [studioStreet, setStudioStreet] = useState(studioData.street)
-  const [studioZipCode, setStudioZipCode] = useState(studioData.zipCode)
-  const [studioCity, setStudioCity] = useState(studioData.city)
-  const [studioCountry, setStudioCountry] = useState(studioData.country)
-  const [studioPhoneNo, setStudioPhoneNo] = useState(studioData.phone)
-  const [studioMobileNo, setStudioMobileNo] = useState(studioData.mobile)
-  const [studioEmail, setStudioEmail] = useState(studioData.email)
-  const [studioWebsite, setStudioWebsite] = useState(studioData.website)
-  const [currency, setCurrency] = useState(studioData.currency)
+  // Basic studio information
+  const [studioName, setStudioName] = useState("")
+  const [studioId] = useState("")
+  const [studioOperator, setStudioOperator] = useState("")
+  const [studioOperatorEmail, setStudioOperatorEmail] = useState("")
+  const [studioOperatorPhone, setStudioOperatorPhone] = useState("")
+  const [studioOperatorMobile, setStudioOperatorMobile] = useState("")
+  const [studioStreet, setStudioStreet] = useState("")
+  const [studioZipCode, setStudioZipCode] = useState("")
+  const [studioCity, setStudioCity] = useState("")
+  const [studioCountry, setStudioCountry] = useState("")
+  const [studioPhoneNo, setStudioPhoneNo] = useState("")
+  const [studioMobileNo, setStudioMobileNo] = useState("")
+  const [studioEmail, setStudioEmail] = useState("")
+  const [studioWebsite, setStudioWebsite] = useState("")
+  const [currency, setCurrency] = useState("")
   const [logo, setLogo] = useState([])
   const [logoUrl, setLogoUrl] = useState("")
 
-  // Opening hours and closing days - FROM studioData
-  const [openingHours, setOpeningHours] = useState(studioData.openingHours)
-  const [closingDays, setClosingDays] = useState(studioData.closingDays || [])
+  // Opening hours and closing days
+  const [openingHours, setOpeningHours] = useState([])
+  const [closingDays, setClosingDays] = useState([])
   const [publicHolidays, setPublicHolidays] = useState([])
   const [isLoadingHolidays, setIsLoadingHolidays] = useState(false)
 
-  // Staff & Roles - FROM DEFAULT_STAFF_ROLES
-  const [roles, setRoles] = useState(DEFAULT_STAFF_ROLES)
-  const [defaultVacationDays, setDefaultVacationDays] = useState(DEFAULT_VACATION_DAYS)
-  const [defaultStaffRole, setDefaultStaffRole] = useState(DEFAULT_STAFF_ROLE_ID)
-  const [defaultStaffCountry, setDefaultStaffCountry] = useState(DEFAULT_STAFF_COUNTRY)
+  // Staff & Roles
+  const [roles, setRoles] = useState([])
+  const [defaultVacationDays, setDefaultVacationDays] = useState(0)
+  const [defaultStaffRole, setDefaultStaffRole] = useState("")
+  const [defaultStaffCountry, setDefaultStaffCountry] = useState("")
   const [permissionModalVisible, setPermissionModalVisible] = useState(false)
   const [selectedRoleIndex, setSelectedRoleIndex] = useState(null)
   const [staffAssignmentModalVisible, setStaffAssignmentModalVisible] = useState(false)
   const [selectedRoleForAssignment, setSelectedRoleForAssignment] = useState(null)
-  const [allStaff, setAllStaff] = useState(DEFAULT_STAFF_MEMBERS)
+  const [allStaff, setAllStaff] = useState([])
 
-  // Appointments - FROM DEFAULT_APPOINTMENT_TYPES
-  const [appointmentTypes, setAppointmentTypes] = useState(DEFAULT_APPOINTMENT_TYPES)
-  const [appointmentCategories, setAppointmentCategories] = useState(DEFAULT_APPOINTMENT_CATEGORIES)
-  const [studioCapacity, setStudioCapacity] = useState(DEFAULT_STUDIO_CAPACITY)
-  const [trialTraining, setTrialTraining] = useState(DEFAULT_TRIAL_TRAINING)
+  // Appointments
+  const [appointmentTypes, setAppointmentTypes] = useState([])
+  const [appointmentCategories, setAppointmentCategories] = useState([])
+  const [studioCapacity, setStudioCapacity] = useState(10)
+  const [trialTraining, setTrialTraining] = useState({})
   const [editingCategory, setEditingCategory] = useState({ index: null, value: "" })
   
   // Calendar Settings
-  const [calendarSettings, setCalendarSettings] = useState(DEFAULT_CALENDAR_SETTINGS)
+  const [calendarSettings, setCalendarSettings] = useState({})
   
   // Appointment Type Modal States
   const [showAppointmentTypeModal, setShowAppointmentTypeModal] = useState(false)
@@ -596,11 +656,11 @@ const ConfigurationPage = () => {
   const [tempImage, setTempImage] = useState(null)
   const appointmentImageInputRef = useRef(null)
 
-  // Members - FROM DEFAULT_MEMBER_SETTINGS and DEFAULT_LEAD_SOURCES
-  const [allowMemberQRCheckIn, setAllowMemberQRCheckIn] = useState(DEFAULT_MEMBER_SETTINGS.allowMemberQRCheckIn)
-  const [memberQRCodeUrl, setMemberQRCodeUrl] = useState(DEFAULT_MEMBER_SETTINGS.memberQRCodeUrl)
-  const [leadSources, setLeadSources] = useState(DEFAULT_LEAD_SOURCES)
-  const [introductoryMaterials, setIntroductoryMaterials] = useState(DEFAULT_INTRODUCTORY_MATERIALS)
+  // Members
+  const [allowMemberQRCheckIn, setAllowMemberQRCheckIn] = useState(false)
+  const [memberQRCodeUrl, setMemberQRCodeUrl] = useState("")
+  const [leadSources, setLeadSources] = useState([])
+  const [introductoryMaterials, setIntroductoryMaterials] = useState([])
   const [introMaterialEditorVisible, setIntroMaterialEditorVisible] = useState(false)
   const [editingIntroMaterial, setEditingIntroMaterial] = useState(null)
   const [editingIntroMaterialIndex, setEditingIntroMaterialIndex] = useState(null)
@@ -615,41 +675,41 @@ const ConfigurationPage = () => {
   const [editingContractType, setEditingContractType] = useState(null)
   const [editingContractTypeIndex, setEditingContractTypeIndex] = useState(null)
 
-  // Contracts - FROM DEFAULT_CONTRACT_SETTINGS and DEFAULT_CONTRACT_TYPES
-  const [allowMemberSelfCancellation, setAllowMemberSelfCancellation] = useState(DEFAULT_CONTRACT_SETTINGS.allowMemberSelfCancellation)
-  const [noticePeriod, setNoticePeriod] = useState(DEFAULT_CONTRACT_SETTINGS.noticePeriod)
-  const [extensionPeriod, setExtensionPeriod] = useState(DEFAULT_CONTRACT_SETTINGS.extensionPeriod)
-  const [defaultBillingPeriod, setDefaultBillingPeriod] = useState(DEFAULT_CONTRACT_SETTINGS.defaultBillingPeriod)
-  const [defaultAutoRenewal, setDefaultAutoRenewal] = useState(DEFAULT_CONTRACT_SETTINGS.defaultAutoRenewal)
-  const [defaultRenewalIndefinite, setDefaultRenewalIndefinite] = useState(DEFAULT_CONTRACT_SETTINGS.defaultRenewalIndefinite)
-  const [defaultRenewalPeriod, setDefaultRenewalPeriod] = useState(DEFAULT_CONTRACT_SETTINGS.defaultRenewalPeriod)
-  const [defaultAppointmentLimit, setDefaultAppointmentLimit] = useState(DEFAULT_CONTRACT_SETTINGS.defaultAppointmentLimit)
-  const [contractTypes, setContractTypes] = useState(DEFAULT_CONTRACT_TYPES)
-  const [contractForms, setContractForms] = useState(DEFAULT_CONTRACT_FORMS)
+  // Contracts
+  const [allowMemberSelfCancellation, setAllowMemberSelfCancellation] = useState(false)
+  const [noticePeriod, setNoticePeriod] = useState(30)
+  const [extensionPeriod, setExtensionPeriod] = useState(12)
+  const [defaultBillingPeriod, setDefaultBillingPeriod] = useState("")
+  const [defaultAutoRenewal, setDefaultAutoRenewal] = useState(false)
+  const [defaultRenewalIndefinite, setDefaultRenewalIndefinite] = useState(false)
+  const [defaultRenewalPeriod, setDefaultRenewalPeriod] = useState(0)
+  const [defaultAppointmentLimit, setDefaultAppointmentLimit] = useState(0)
+  const [contractTypes, setContractTypes] = useState([])
+  const [contractForms, setContractForms] = useState([])
   const [selectedContractForm, setSelectedContractForm] = useState(null)
   const [contractBuilderModalVisible, setContractBuilderModalVisible] = useState(false)
   const [newContractFormName, setNewContractFormName] = useState("")
   const [showCreateFormModal, setShowCreateFormModal] = useState(false)
-  const [contractPauseReasons, setContractPauseReasons] = useState(DEFAULT_CONTRACT_PAUSE_REASONS)
+  const [contractPauseReasons, setContractPauseReasons] = useState([])
 
-  // Communication Settings - FROM DEFAULT_COMMUNICATION_SETTINGS
-  const [settings, setSettings] = useState(DEFAULT_COMMUNICATION_SETTINGS)
-  const [appointmentNotificationTypes, setAppointmentNotificationTypes] = useState(DEFAULT_APPOINTMENT_NOTIFICATION_TYPES)
+  // Communication Settings
+  const [settings, setSettings] = useState({})
+  const [appointmentNotificationTypes, setAppointmentNotificationTypes] = useState([])
 
-  // Finances - FROM DEFAULT_VAT_RATES and studioData
-  const [vatRates, setVatRates] = useState(DEFAULT_VAT_RATES)
-  const [vatNumber, setVatNumber] = useState(studioData.taxId)
-  const [bankName, setBankName] = useState(studioData.bankAccount.bankName)
-  const [creditorId, setCreditorId] = useState(studioData.bankAccount.creditorId)
-  const [creditorName, setCreditorName] = useState(studioData.bankAccount.creditorName)
-  const [iban, setIban] = useState(studioData.bankAccount.iban)
-  const [bic, setBic] = useState(studioData.bankAccount.bic)
+  // Finances
+  const [vatRates, setVatRates] = useState([])
+  const [vatNumber, setVatNumber] = useState("")
+  const [bankName, setBankName] = useState("")
+  const [creditorId, setCreditorId] = useState("")
+  const [creditorName, setCreditorName] = useState("")
+  const [iban, setIban] = useState("")
+  const [bic, setBic] = useState("")
 
-  // Appearance - FROM DEFAULT_APPEARANCE_SETTINGS
-  const [appearance, setAppearance] = useState(DEFAULT_APPEARANCE_SETTINGS)
+  // Appearance
+  const [appearance, setAppearance] = useState({})
 
-  // Countries - FROM COUNTRIES
-  const [countries, setCountries] = useState(COUNTRIES)
+  // Countries
+  const [countries, setCountries] = useState([])
 
   // Refs for textareas (for variable insertion)
   const birthdayTextareaRef = useRef(null)
@@ -659,6 +719,84 @@ const ConfigurationPage = () => {
   const reminderTextareaRef = useRef(null)
   const registrationTextareaRef = useRef(null)
   const qrCodeRef = useRef(null)
+
+  // ============================================
+  // Populate state from hook config when it loads
+  // This replaces the old direct imports as initial values
+  // ============================================
+  useEffect(() => {
+    if (!config) return
+
+    // Studio info
+    setStudioName(config.studio.name)
+    setStudioOperator(config.studio.operator)
+    setStudioOperatorEmail(config.studio.operatorEmail)
+    setStudioOperatorPhone(config.studio.operatorPhone)
+    setStudioOperatorMobile(config.studio.operatorMobile)
+    setStudioStreet(config.studio.street)
+    setStudioZipCode(config.studio.zipCode)
+    setStudioCity(config.studio.city)
+    setStudioCountry(config.studio.country)
+    setStudioPhoneNo(config.studio.phone)
+    setStudioMobileNo(config.studio.mobile)
+    setStudioEmail(config.studio.email)
+    setStudioWebsite(config.studio.website)
+    setCurrency(config.studio.currency)
+    setOpeningHours(config.studio.openingHours)
+    setClosingDays(config.studio.closingDays)
+
+    // Staff
+    setRoles(config.staff.roles)
+    setDefaultVacationDays(config.staff.defaultVacationDays)
+    setDefaultStaffRole(config.staff.defaultStaffRole)
+    setDefaultStaffCountry(config.staff.defaultStaffCountry)
+    setAllStaff(config.staff.allStaff)
+
+    // Appointments
+    setAppointmentTypes(config.appointments.types)
+    setAppointmentCategories(config.appointments.categories)
+    setStudioCapacity(config.appointments.capacity)
+    setTrialTraining(config.appointments.trialTraining)
+    setCalendarSettings(config.appointments.calendarSettings)
+
+    // Members & Leads
+    setAllowMemberQRCheckIn(config.members.allowMemberQRCheckIn)
+    setMemberQRCodeUrl(config.members.memberQRCodeUrl)
+    setLeadSources(config.members.leadSources)
+    setIntroductoryMaterials(config.members.introductoryMaterials)
+
+    // Contracts
+    setAllowMemberSelfCancellation(config.contracts.settings.allowMemberSelfCancellation)
+    setNoticePeriod(config.contracts.settings.noticePeriod)
+    setExtensionPeriod(config.contracts.settings.extensionPeriod)
+    setDefaultBillingPeriod(config.contracts.settings.defaultBillingPeriod)
+    setDefaultAutoRenewal(config.contracts.settings.defaultAutoRenewal)
+    setDefaultRenewalIndefinite(config.contracts.settings.defaultRenewalIndefinite)
+    setDefaultRenewalPeriod(config.contracts.settings.defaultRenewalPeriod)
+    setDefaultAppointmentLimit(config.contracts.settings.defaultAppointmentLimit)
+    setContractTypes(config.contracts.types)
+    setContractForms(config.contracts.forms)
+    setContractPauseReasons(config.contracts.pauseReasons)
+
+    // Communication
+    setSettings(config.communication.settings)
+    setAppointmentNotificationTypes(config.communication.notificationTypes)
+
+    // Finances
+    setVatRates(config.finances.vatRates)
+    setVatNumber(config.finances.vatNumber)
+    setBankName(config.finances.bankName)
+    setCreditorId(config.finances.creditorId)
+    setCreditorName(config.finances.creditorName)
+    setIban(config.finances.iban)
+    setBic(config.finances.bic)
+
+    // Appearance
+    setAppearance(config.appearance)
+
+    // Countries
+    setCountries(config.countries)
+  }, [config])
 
   // Create branded QR image with studio name
   const createBrandedQRImage = (callback) => {
@@ -2669,19 +2807,40 @@ const ConfigurationPage = () => {
                         </button>
                       </div>
                       
-                      {/* Page previews */}
-                      <div className="flex gap-1 overflow-x-auto pb-1">
-                        {material.pages.slice(0, 5).map((page, pageIndex) => (
+                      {/* Page previews with content thumbnails */}
+                      <div className="flex gap-1.5 overflow-x-auto pb-1">
+                        {material.pages.slice(0, 4).map((page, pageIndex) => (
                           <div 
                             key={page.id} 
-                            className="w-12 h-16 bg-[#141414] border border-[#333333] rounded flex-shrink-0 flex items-center justify-center text-xs text-gray-500"
+                            className="w-14 h-[72px] bg-white border border-[#333333] rounded-lg flex-shrink-0 overflow-hidden relative"
                           >
-                            {pageIndex + 1}
+                            {/* Scaled content preview */}
+                            <div 
+                              className="w-full h-full overflow-hidden pointer-events-none"
+                              style={{ 
+                                transform: 'scale(0.12)', 
+                                transformOrigin: 'top left', 
+                                width: '833%', 
+                                height: '833%',
+                                fontSize: '11px',
+                                padding: '4px',
+                                color: '#000',
+                                lineHeight: '1.3',
+                                fontFamily: 'Arial, sans-serif'
+                              }}
+                              dangerouslySetInnerHTML={{ 
+                                __html: page.content || `<p style="color:#ccc;text-align:center;padding-top:40px;">Page ${pageIndex + 1}</p>` 
+                              }}
+                            />
+                            {/* Page number badge */}
+                            <div className="absolute bottom-0.5 right-0.5 bg-black/60 text-white text-[8px] px-1 rounded">
+                              {pageIndex + 1}
+                            </div>
                           </div>
                         ))}
-                        {material.pages.length > 5 && (
-                          <div className="w-12 h-16 bg-[#141414] border border-[#333333] rounded flex-shrink-0 flex items-center justify-center text-xs text-gray-500">
-                            +{material.pages.length - 5}
+                        {material.pages.length > 4 && (
+                          <div className="w-14 h-[72px] bg-[#141414] border border-[#333333] rounded-lg flex-shrink-0 flex items-center justify-center text-xs text-gray-400 font-medium">
+                            +{material.pages.length - 4}
                           </div>
                         )}
                       </div>
@@ -3524,7 +3683,7 @@ const ConfigurationPage = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-white font-medium">Birthday Email</h3>
-                    <p className="text-sm text-gray-400">Send birthday greetings via email</p>
+                    <p className="text-sm text-gray-400">Automatically sends birthday greetings via email when enabled</p>
                   </div>
                   <Toggle
                     checked={settings.birthdayEmailEnabled}
@@ -3773,7 +3932,7 @@ const ConfigurationPage = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-white font-medium">Birthday Push Notification</h3>
-                    <p className="text-sm text-gray-400">Send birthday greetings via app push notification</p>
+                    <p className="text-sm text-gray-400">Automatically sends birthday greetings via app push notification when enabled</p>
                   </div>
                   <Toggle
                     checked={settings.birthdayAppEnabled}
@@ -4188,6 +4347,148 @@ const ConfigurationPage = () => {
           </div>
         )
 
+      case "contract-cancellation-template":
+        return (
+          <div className="space-y-6">
+            <SectionHeader title="Contract Cancellation Template" description="Email template sent to members when their contract is cancelled" />
+            <SettingsCard>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-300 mb-2 block">Subject</label>
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                    <span className="text-xs text-gray-500 mr-2">Variables:</span>
+                    {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Contract_Type}", "{Cancellation_Date}", "{Contract_End_Date}"].map(v => (
+                      <button
+                        key={v}
+                        onClick={() => setSettings({ ...settings, contractCancellationSubject: (settings.contractCancellationSubject || "") + " " + v })}
+                        className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
+                      >
+                        {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                      </button>
+                    ))}
+                  </div>
+                  <input
+                    type="text"
+                    value={settings.contractCancellationSubject || ""}
+                    onChange={(e) => setSettings({ ...settings, contractCancellationSubject: e.target.value })}
+                    placeholder="Contract Cancellation Confirmation - {Contract_Type}"
+                    className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                  />
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium text-gray-300 mb-2 block">Message</label>
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                    <span className="text-xs text-gray-500 mr-1">Variables:</span>
+                    {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Contract_Type}", "{Cancellation_Date}", "{Contract_End_Date}"].map(v => (
+                      <button
+                        key={v}
+                        onClick={() => setSettings({ ...settings, contractCancellationTemplate: (settings.contractCancellationTemplate || "") + v })}
+                        className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
+                      >
+                        {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                      </button>
+                    ))}
+                    <span className="text-xs text-gray-500 mx-2">|</span>
+                    <span className="text-xs text-gray-500 mr-1">Insert:</span>
+                    <button
+                      onClick={() => {
+                        if (settings.emailSignature) {
+                          setSettings({ ...settings, contractCancellationTemplate: (settings.contractCancellationTemplate || "") + settings.emailSignature })
+                        } else {
+                          notification.warning({ message: "No email signature configured", description: "Please set up your email signature first." })
+                        }
+                      }}
+                      className="px-2 py-1 bg-orange-500 text-white text-xs rounded-lg hover:bg-orange-600 flex items-center gap-1"
+                    >
+                      <FileText className="w-3 h-3" />
+                      Email Signature
+                    </button>
+                  </div>
+                  <WysiwygEditor
+                    value={settings.contractCancellationTemplate || ""}
+                    onChange={(v) => setSettings({ ...settings, contractCancellationTemplate: v })}
+                    placeholder="Dear {Member_First_Name}, we confirm the cancellation of your {Contract_Type} contract effective {Contract_End_Date}..."
+                    minHeight={120}
+                    showImages={true}
+                  />
+                </div>
+              </div>
+            </SettingsCard>
+          </div>
+        )
+
+      case "contract-conclusion-template":
+        return (
+          <div className="space-y-6">
+            <SectionHeader title="Conclusion of Contract Template" description="Email template sent to members when a new contract is concluded" />
+            <SettingsCard>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-300 mb-2 block">Subject</label>
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                    <span className="text-xs text-gray-500 mr-2">Variables:</span>
+                    {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Contract_Type}", "{Contract_Start_Date}", "{Contract_End_Date}", "{Monthly_Fee}"].map(v => (
+                      <button
+                        key={v}
+                        onClick={() => setSettings({ ...settings, contractConclusionSubject: (settings.contractConclusionSubject || "") + " " + v })}
+                        className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
+                      >
+                        {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                      </button>
+                    ))}
+                  </div>
+                  <input
+                    type="text"
+                    value={settings.contractConclusionSubject || ""}
+                    onChange={(e) => setSettings({ ...settings, contractConclusionSubject: e.target.value })}
+                    placeholder="Welcome to {Studio_Name} - Your {Contract_Type} Contract"
+                    className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                  />
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium text-gray-300 mb-2 block">Message</label>
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                    <span className="text-xs text-gray-500 mr-1">Variables:</span>
+                    {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Contract_Type}", "{Contract_Start_Date}", "{Contract_End_Date}", "{Monthly_Fee}"].map(v => (
+                      <button
+                        key={v}
+                        onClick={() => setSettings({ ...settings, contractConclusionTemplate: (settings.contractConclusionTemplate || "") + v })}
+                        className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
+                      >
+                        {v.replace(/{|}/g, "").replace(/_/g, " ")}
+                      </button>
+                    ))}
+                    <span className="text-xs text-gray-500 mx-2">|</span>
+                    <span className="text-xs text-gray-500 mr-1">Insert:</span>
+                    <button
+                      onClick={() => {
+                        if (settings.emailSignature) {
+                          setSettings({ ...settings, contractConclusionTemplate: (settings.contractConclusionTemplate || "") + settings.emailSignature })
+                        } else {
+                          notification.warning({ message: "No email signature configured", description: "Please set up your email signature first." })
+                        }
+                      }}
+                      className="px-2 py-1 bg-orange-500 text-white text-xs rounded-lg hover:bg-orange-600 flex items-center gap-1"
+                    >
+                      <FileText className="w-3 h-3" />
+                      Email Signature
+                    </button>
+                  </div>
+                  <WysiwygEditor
+                    value={settings.contractConclusionTemplate || ""}
+                    onChange={(v) => setSettings({ ...settings, contractConclusionTemplate: v })}
+                    placeholder="Dear {Member_First_Name}, welcome to {Studio_Name}! Your {Contract_Type} contract starts on {Contract_Start_Date}..."
+                    minHeight={120}
+                    showImages={true}
+                  />
+                </div>
+              </div>
+            </SettingsCard>
+          </div>
+        )
+
       // ========================
       // FINANCE SECTIONS
       // ========================
@@ -4524,12 +4825,45 @@ const ConfigurationPage = () => {
   }
 
   // ============================================
+  // Loading & Error States
+  // ============================================
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-full bg-[#1C1C1C] text-white rounded-3xl">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-400">Loading configuration...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-full bg-[#1C1C1C] text-white rounded-3xl">
+        <div className="text-center">
+          <AlertTriangle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+          <p className="text-red-400 mb-2">Failed to load configuration</p>
+          <p className="text-gray-500 text-sm">{error}</p>
+        </div>
+      </div>
+    )
+  }
+
+  // ============================================
   // Main Render
   // ============================================
   return (
     <div className="flex flex-col lg:flex-row h-full bg-[#1C1C1C] text-white overflow-hidden rounded-3xl">
       {/* Sidebar Navigation - Desktop */}
       <div className="hidden lg:flex lg:w-72 flex-shrink-0 border-r border-[#333333] bg-[#181818] flex-col min-h-0">
+        {/* Admin Banner */}
+        {mode === "admin" && (
+          <div className="p-3 border-b border-[#333333] flex-shrink-0">
+            <AdminBanner studioName={studioNameProp || studioName} />
+          </div>
+        )}
+
         {/* Search */}
         <div className="p-4 border-b border-[#333333] flex-shrink-0">
           <div className="relative">
@@ -4591,23 +4925,31 @@ const ConfigurationPage = () => {
 
                 {expandedCategories.includes(category.id) && (
                   <div className="ml-8 mt-1 space-y-0.5">
-                    {category.sections.map((section) => {
+                    {category.sections.map((section, idx) => {
                       const sectionMatches = matchesSearch(section.label)
+                      const prevGroup = idx > 0 ? category.sections[idx - 1].group : null
+                      const showGroupHeader = section.group && section.group !== prevGroup
                       
                       return (
-                        <button
-                          key={section.id}
-                          onClick={() => navigateToSection(category.id, section.id)}
-                          className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                            activeSection === section.id
-                              ? "text-orange-400 bg-orange-500/10"
-                              : sectionMatches
-                                ? "text-orange-300 bg-orange-500/10 hover:bg-orange-500/20"
-                                : "text-gray-500 hover:text-white hover:bg-[#252525]"
-                          }`}
-                        >
-                          {highlightText(section.label)}
-                        </button>
+                        <div key={section.id}>
+                          {showGroupHeader && (
+                            <div className={`px-3 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-gray-600 ${idx > 0 ? 'border-t border-[#2a2a2a] mt-1.5' : ''}`}>
+                              {section.group}
+                            </div>
+                          )}
+                          <button
+                            onClick={() => navigateToSection(category.id, section.id)}
+                            className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                              activeSection === section.id
+                                ? "text-orange-400 bg-orange-500/10"
+                                : sectionMatches
+                                  ? "text-orange-300 bg-orange-500/10 hover:bg-orange-500/20"
+                                  : "text-gray-500 hover:text-white hover:bg-[#252525]"
+                            }`}
+                          >
+                            {highlightText(section.label)}
+                          </button>
+                        </div>
                       )
                     })}
                   </div>
@@ -4624,6 +4966,13 @@ const ConfigurationPage = () => {
         <div className="flex items-center justify-between p-4 border-b border-[#333333] flex-shrink-0">
           <h1 className="text-xl font-bold">Configuration</h1>
         </div>
+
+        {/* Admin Banner for Mobile */}
+        {mode === "admin" && (
+          <div className="px-3 pt-3">
+            <AdminBanner studioName={studioNameProp || studioName} />
+          </div>
+        )}
 
         {/* Mobile Search */}
         <div className="p-3 border-b border-[#333333]">
@@ -4673,22 +5022,30 @@ const ConfigurationPage = () => {
 
                 {expandedCategories.includes(category.id) && (
                   <div className="ml-8 mt-1 space-y-0.5">
-                    {category.sections.map((section) => {
+                    {category.sections.map((section, idx) => {
                       const sectionMatches = matchesSearch(section.label)
+                      const prevGroup = idx > 0 ? category.sections[idx - 1].group : null
+                      const showGroupHeader = section.group && section.group !== prevGroup
                       
                       return (
-                        <button
-                          key={section.id}
-                          onClick={() => navigateToSection(category.id, section.id)}
-                          className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors flex items-center justify-between ${
-                            sectionMatches
-                              ? "text-orange-300 bg-orange-500/10"
-                              : "text-gray-500 hover:text-white hover:bg-[#252525]"
-                          }`}
-                        >
-                          <span>{highlightText(section.label)}</span>
-                          <ChevronRight className="w-4 h-4" />
-                        </button>
+                        <div key={section.id}>
+                          {showGroupHeader && (
+                            <div className={`px-3 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-gray-600 ${idx > 0 ? 'border-t border-[#2a2a2a] mt-1.5' : ''}`}>
+                              {section.group}
+                            </div>
+                          )}
+                          <button
+                            onClick={() => navigateToSection(category.id, section.id)}
+                            className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors flex items-center justify-between ${
+                              sectionMatches
+                                ? "text-orange-300 bg-orange-500/10"
+                                : "text-gray-500 hover:text-white hover:bg-[#252525]"
+                            }`}
+                          >
+                            <span>{highlightText(section.label)}</span>
+                            <ChevronRight className="w-4 h-4" />
+                          </button>
+                        </div>
                       )
                     })}
                   </div>
@@ -4791,8 +5148,10 @@ const ConfigurationPage = () => {
           <ContractBuilder
             contractForm={selectedContractForm}
             onUpdate={(updatedForm) => {
+              // FIX: Only update the forms list, do NOT call setSelectedContractForm here.
+              // Calling setSelectedContractForm would change the contractForm prop, causing
+              // ContractBuilder's sync effect to fire, which triggers onUpdate again → infinite loop.
               setContractForms(contractForms.map(f => f.id === selectedContractForm.id ? updatedForm : f))
-              setSelectedContractForm(updatedForm)
             }}
             onClose={() => setContractBuilderModalVisible(false)}
           />

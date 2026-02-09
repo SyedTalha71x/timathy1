@@ -31,7 +31,8 @@ import EditStaffModal from "../../components/studio-components/staff-components/
 import StaffPlanningModal from "../../components/studio-components/staff-components/staff-planning-modal"
 import VacationCalendarModal from "../../components/studio-components/staff-components/vacation-calendar-modal"
 import StaffHistoryModal from "../../components/studio-components/staff-components/staff-history-modal"
-import { StaffColorIndicator, staffMemberDataNew, membersData, communicationSettingsData } from "../../utils/studio-states"
+import { StaffColorIndicator, communicationSettingsData } from "../../utils/studio-states"
+import { useStudioStaff } from "../../hooks/useStudioStaff"
 import { trainingVideosData } from "../../utils/studio-states/training-states"
 import { TbPlusMinus } from "react-icons/tb";
 
@@ -100,7 +101,7 @@ const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) =>
 
   return (
     <div 
-      className={`bg-blue-600 rounded-xl flex items-center justify-center text-white font-semibold flex-shrink-0 ${sizeClasses[size]} ${className}`}
+      className={`bg-secondary rounded-xl flex items-center justify-center text-white font-semibold flex-shrink-0 ${sizeClasses[size]} ${className}`}
       style={{ fontFamily: 'ui-sans-serif, system-ui, sans-serif' }}
     >
       {getInitials()}
@@ -108,10 +109,18 @@ const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) =>
   )
 };
 
-export default function StaffManagement() {
+export default function StaffManagement({ studioId: studioIdProp = null, mode = "studio", studioName: studioNameProp = null }) {
   const navigate = useNavigate();
   const location = useLocation();
-  
+  const isAdminMode = mode === "admin" && studioIdProp !== null
+
+// ============================================
+// Load staff data via shared hook
+// ============================================
+const { data: staffHookData, isLoading: staffLoading, error: staffError } = useStudioStaff({
+  studioId: studioIdProp,
+  mode,
+})
   const [isShowDetails, setIsShowDetails] = useState(false)
   const [selectedStaff, setSelectedStaff] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -201,8 +210,19 @@ export default function StaffManagement() {
   const sortDropdownRef = useRef(null)
   const mobileSortDropdownRef = useRef(null)
 
+useEffect(() => {
+  if (staffHookData) {
+    setStaffMembers(staffHookData.staff)
+    
+    // Admin immer List View
+    if (isAdminMode) {
+      setViewMode('list')
+    }
+  }
+}, [staffHookData])
+
   const trainingVideos = trainingVideosData
-  const [staffMembers, setStaffMembers] = useState(staffMemberDataNew)
+const [staffMembers, setStaffMembers] = useState([])
 
   // Sort options
   const sortOptions = [
@@ -702,7 +722,7 @@ export default function StaffManagement() {
     }));
     
     // Search in members
-    const memberResults = membersData.filter(m => 
+    const memberResults = (staffHookData?.members || []).filter(m =>
       m.firstName?.toLowerCase().includes(q) ||
       m.lastName?.toLowerCase().includes(q) ||
       m.email?.toLowerCase().includes(q) ||
@@ -717,8 +737,26 @@ export default function StaffManagement() {
       type: 'member'
     }));
     
-    return [...staffResults, ...memberResults].slice(0, 10);
+return [...staffResults, ...memberResults].slice(0, 10);
   };
+
+const AdminBanner = () => {
+  if (!isAdminMode) return null
+  return (
+    <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 rounded-xl p-3 mb-4 flex items-center gap-3">
+      <div className="bg-blue-500/20 p-2 rounded-lg">
+        <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <div>
+        <p className="text-sm font-medium text-blue-300">Admin Mode — {studioNameProp || `Studio #${studioIdProp}`}</p>
+        <p className="text-xs text-content-muted">Viewing staff for this studio. Changes are saved per-studio.</p>
+      </div>
+    </div>
+  )
+}
+
 
   // Select email recipient
   const handleSelectEmailRecipient = (staff) => {
@@ -774,13 +812,32 @@ export default function StaffManagement() {
         />
 
         <div
-          className="flex flex-col lg:flex-row rounded-3xl bg-[#1C1C1C] transition-all duration-500 text-white relative"
+          className="flex flex-col lg:flex-row rounded-3xl bg-surface-base transition-all duration-500 text-content-primary relative"
         >
           <div className="flex-1 min-w-0 md:p-6 p-4 pb-36">
-            {/* Header */}
+            <AdminBanner />
+
+            {/* Loading State */}
+            {staffLoading && (
+              <div className="flex items-center justify-center py-20">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+              </div>
+            )}
+
+            {/* Error State */}
+            {staffError && (
+              <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-4">
+                <p className="text-red-400 text-sm">Failed to load staff: {staffError}</p>
+              </div>
+            )}
+
+            {/* Main Content - nur wenn geladen */}
+            {!staffLoading && !staffError && (
+              <>
+              {/* Header */}
             <div className="flex sm:items-center justify-between mb-6 sm:mb-8 gap-4">
               <div className="flex items-center gap-3">
-                <h1 className="text-white oxanium_font text-xl md:text-2xl">Staff</h1>
+                <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">Staff</h1>
                 
                 {/* Sort Button - Mobile: next to title */}
                 <div className="lg:hidden relative" ref={mobileSortDropdownRef}>
@@ -789,7 +846,7 @@ export default function StaffManagement() {
                       e.stopPropagation();
                       setShowMobileSortDropdown(!showMobileSortDropdown);
                     }}
-                    className="px-3 py-2 bg-[#2F2F2F] text-gray-300 rounded-xl text-xs hover:bg-[#3F3F3F] transition-colors flex items-center gap-2"
+                    className="px-3 py-2 bg-surface-button text-content-secondary rounded-xl text-xs hover:bg-surface-button-hover transition-colors flex items-center gap-2"
                   >
                     {getSortIcon()}
                     <span>{currentSortLabel}</span>
@@ -797,9 +854,9 @@ export default function StaffManagement() {
 
                   {/* Sort Dropdown - Mobile */}
                   {showMobileSortDropdown && (
-                    <div className="absolute left-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[180px]">
+                    <div className="absolute left-0 mt-1 bg-surface-hover border border-border-subtle rounded-lg shadow-lg z-50 min-w-[180px]">
                       <div className="py-1">
-                        <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">
+                        <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border-subtle">
                           Sort by
                         </div>
                         {sortOptions.map((option) => (
@@ -809,15 +866,15 @@ export default function StaffManagement() {
                               e.stopPropagation();
                               handleMobileSortOptionClick(option.value);
                             }}
-                            className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${
+                            className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover transition-colors flex items-center justify-between ${
                               sortBy === option.value 
-                                ? 'text-white bg-gray-800/50' 
-                                : 'text-gray-300'
+                                ? 'text-content-primary bg-surface-hover' 
+                                : 'text-content-secondary'
                             }`}
                           >
                             <span>{option.label}</span>
                             {sortBy === option.value && (
-                              <span className="text-gray-400">
+                              <span className="text-content-muted">
                                 {sortDirection === 'asc' 
                                   ? <ArrowUp size={14} /> 
                                   : <ArrowDown size={14} />
@@ -831,22 +888,23 @@ export default function StaffManagement() {
                   )}
                 </div>
                 
-                {/* View Toggle - Desktop only */}
-                <div className="hidden lg:flex items-center gap-2 bg-black rounded-xl p-1">
+               {/* View Toggle - Desktop only */}
+                {!isAdminMode && (
+                <div className="hidden lg:flex items-center gap-2 bg-surface-dark rounded-xl p-1">
                   <div className="relative group">
                     <button
                       onClick={() => setViewMode('grid')}
                       className={`p-2 rounded-lg transition-colors ${
                         viewMode === 'grid'
-                          ? 'bg-orange-600 text-white'
-                          : 'text-gray-400 hover:text-white'
+                          ? 'bg-primary text-white'
+                          : 'text-secondary hover:text-secondary-hover'
                       }`}
                     >
                       <Grid3X3 size={16} />
                     </button>
                     
                     {/* Tooltip */}
-                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
                       <span className="font-medium">Grid View</span>
                       <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">V</span>
                       <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
@@ -858,15 +916,15 @@ export default function StaffManagement() {
                       onClick={() => setViewMode('list')}
                       className={`p-2 rounded-lg transition-colors ${
                         viewMode === 'list'
-                          ? 'bg-orange-600 text-white'
-                          : 'text-gray-400 hover:text-white'
+                          ? 'bg-primary text-white'
+                          : 'text-secondary hover:text-secondary-hover'
                       }`}
                     >
                       <List size={16} />
                     </button>
                     
                     {/* Tooltip */}
-                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
                       <span className="font-medium">List View</span>
                       <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">V</span>
                       <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
@@ -874,11 +932,11 @@ export default function StaffManagement() {
                   </div>
 
                   {/* Compact/Detailed Toggle */}
-                  <div className="h-6 w-px bg-gray-700 mx-1"></div>
+                  <div className="h-6 w-px bg-border-subtle mx-1"></div>
                   <div className="relative group">
                     <button
                       onClick={() => setIsCompactView(!isCompactView)}
-                      className={`p-2 rounded-lg transition-colors flex items-center gap-1 ${isCompactView ? "text-orange-500" : "text-orange-500"}`}
+                      className={`p-2 rounded-lg transition-colors flex items-center gap-1 ${isCompactView ? "text-primary" : "text-primary"}`}
                     >
                       <div className="flex flex-col gap-0.5">
                         <div className="flex gap-0.5">
@@ -893,12 +951,13 @@ export default function StaffManagement() {
                     </button>
                     
                     {/* Tooltip */}
-                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
                       <span className="font-medium">{isCompactView ? "Compact View" : "Detailed View"}</span>
                       <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
                     </div>
                   </div>
                 </div>
+                )}
               </div>
 
               <div className="flex items-center gap-2">
@@ -907,14 +966,14 @@ export default function StaffManagement() {
                   <div className="relative group">
                     <button
                       onClick={() => setIsPlanningModalOpen(true)}
-                      className="bg-black py-2 px-4 text-sm rounded-xl flex items-center gap-2 hover:bg-[#1a1a1a] transition-colors"
+                      className="bg-surface-dark py-2 px-4 text-sm rounded-xl flex items-center gap-2 hover:bg-surface-hover transition-colors"
                     >
                       <Users className="h-4 w-4" />
                       <span>Staff Planning</span>
                     </button>
                     
                     {/* Tooltip */}
-                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
                       <span className="font-medium">Staff Planning</span>
                       <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">P</span>
                       <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
@@ -924,14 +983,14 @@ export default function StaffManagement() {
                   <div className="relative group">
                     <button
                       onClick={() => setIsVacationRequestModalOpen(true)}
-                      className="bg-black py-2 px-4 text-sm rounded-xl flex items-center gap-2 hover:bg-[#1a1a1a] transition-colors"
+                      className="bg-surface-dark py-2 px-4 text-sm rounded-xl flex items-center gap-2 hover:bg-surface-hover transition-colors"
                     >
                       <Calendar className="h-4 w-4" />
                       <span>Vacation Calendar</span>
                     </button>
                     
                     {/* Tooltip */}
-                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
                       <span className="font-medium">Vacation Calendar</span>
                       <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">K</span>
                       <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
@@ -941,14 +1000,14 @@ export default function StaffManagement() {
                   <div className="relative group">
                     <button
                       onClick={() => setIsModalOpen(true)}
-                      className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-xl text-sm flex items-center gap-2 transition-colors"
+                      className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-xl text-sm flex items-center gap-2 transition-colors"
                     >
                       <Plus size={14} />
                       <span>Create Staff</span>
                     </button>
                     
                     {/* Tooltip */}
-                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                    <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
                       <span className="font-medium">Create Staff Member</span>
                       <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">C</span>
                       <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
@@ -962,14 +1021,14 @@ export default function StaffManagement() {
             <div className="lg:hidden flex gap-2 mb-4">
               <button
                 onClick={() => setIsPlanningModalOpen(true)}
-                className="flex-1 bg-black py-2.5 px-3 text-sm rounded-xl flex items-center justify-center gap-2"
+                className="flex-1 bg-surface-dark py-2.5 px-3 text-sm rounded-xl flex items-center justify-center gap-2"
               >
                 <Users className="h-4 w-4" />
                 <span>Planning</span>
               </button>
               <button
                 onClick={() => setIsVacationRequestModalOpen(true)}
-                className="flex-1 bg-black py-2.5 px-3 text-sm rounded-xl flex items-center justify-center gap-2"
+                className="flex-1 bg-surface-dark py-2.5 px-3 text-sm rounded-xl flex items-center justify-center gap-2"
               >
                 <Calendar className="h-4 w-4" />
                 <span>Vacation</span>
@@ -980,29 +1039,29 @@ export default function StaffManagement() {
             <div className="mb-4" ref={searchDropdownRef}>
               <div className="relative">
                 <div 
-                  className="bg-[#141414] rounded-xl px-3 py-2 min-h-[42px] flex flex-wrap items-center gap-1.5 border border-[#333333] focus-within:border-orange-500 transition-colors cursor-text"
+                  className="bg-surface-card rounded-xl px-3 py-2 min-h-[42px] flex flex-wrap items-center gap-1.5 border border-border focus-within:border-primary transition-colors cursor-text"
                   onClick={() => searchInputRef.current?.focus()}
                 >
-                  <Search className="text-gray-400 flex-shrink-0" size={16} />
+                  <Search className="text-content-muted flex-shrink-0" size={16} />
                   
                   {/* Filter Chips */}
                   {staffFilters.map((filter) => (
                     <div 
                       key={filter.staffId}
-                      className="flex items-center gap-1.5 bg-blue-500/20 border border-blue-500/40 rounded-lg px-2 py-1 text-sm"
+                      className="flex items-center gap-1.5 bg-primary/20 border border-primary/40 rounded-lg px-2 py-1 text-sm"
                     >
-                      <div className="w-5 h-5 rounded bg-blue-600 flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0">
+                      <div className="w-5 h-5 rounded bg-primary flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0">
                         {filter.staffName.split(' ')[0]?.charAt(0)}{filter.staffName.split(' ')[1]?.charAt(0) || ''}
                       </div>
-                      <span className="text-white text-xs whitespace-nowrap">{filter.staffName}</span>
+                      <span className="text-content-primary text-xs whitespace-nowrap">{filter.staffName}</span>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           handleRemoveFilter(filter.staffId);
                         }}
-                        className="p-0.5 hover:bg-blue-500/30 rounded transition-colors"
+                        className="p-0.5 hover:bg-primary/30 rounded transition-colors"
                       >
-                        <X size={12} className="text-gray-400 hover:text-white" />
+                        <X size={12} className="text-secondary hover:text-secondary-hover" />
                       </button>
                     </div>
                   ))}
@@ -1019,7 +1078,7 @@ export default function StaffManagement() {
                     }}
                     onFocus={() => searchQuery && setShowSearchDropdown(true)}
                     onKeyDown={handleSearchKeyDown}
-                    className="flex-1 min-w-[100px] bg-transparent outline-none text-sm text-white placeholder-gray-500"
+                    className="flex-1 min-w-[100px] bg-transparent outline-none text-sm text-content-primary placeholder-content-faint"
                   />
                   
                   {/* Clear All Button */}
@@ -1029,22 +1088,22 @@ export default function StaffManagement() {
                         e.stopPropagation();
                         setStaffFilters([]);
                       }}
-                      className="p-1 hover:bg-gray-700 rounded-lg transition-colors flex-shrink-0"
+                      className="p-1 hover:bg-surface-button rounded-lg transition-colors flex-shrink-0"
                       title="Clear all filters"
                     >
-                      <X size={14} className="text-gray-400 hover:text-white" />
+                      <X size={14} className="text-secondary hover:text-secondary-hover" />
                     </button>
                   )}
                 </div>
                 
                 {/* Autocomplete Dropdown */}
                 {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length > 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a1a] border border-[#333333] rounded-xl shadow-lg z-50 overflow-hidden">
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-surface-hover border border-border rounded-xl shadow-lg z-50 overflow-hidden">
                     {getSearchSuggestions().map((staff) => (
                       <button
                         key={staff.id}
                         onClick={() => handleSelectStaff(staff)}
-                        className="w-full px-3 py-2.5 flex items-center gap-3 hover:bg-[#252525] transition-colors text-left"
+                        className="w-full px-3 py-2.5 flex items-center gap-3 hover:bg-surface-hover transition-colors text-left"
                       >
                         {staff.img ? (
                           <img 
@@ -1053,13 +1112,13 @@ export default function StaffManagement() {
                             className="w-8 h-8 rounded-lg object-cover"
                           />
                         ) : (
-                          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white text-xs font-semibold">
+                          <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-white text-xs font-semibold">
                             {staff.firstName?.charAt(0)}{staff.lastName?.charAt(0)}
                           </div>
                         )}
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm text-white truncate">{staff.firstName} {staff.lastName}</p>
-                          <p className="text-xs text-gray-500 truncate">{staff.role}</p>
+                          <p className="text-sm text-content-primary truncate">{staff.firstName} {staff.lastName}</p>
+                          <p className="text-xs text-content-faint truncate">{staff.role}</p>
                         </div>
                       </button>
                     ))}
@@ -1068,8 +1127,8 @@ export default function StaffManagement() {
                 
                 {/* No results message */}
                 {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length === 0 && (
-                  <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a1a] border border-[#333333] rounded-xl shadow-lg z-50 p-3">
-                    <p className="text-sm text-gray-500 text-center">No staff found</p>
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-surface-hover border border-border rounded-xl shadow-lg z-50 p-3">
+                    <p className="text-sm text-content-faint text-center">No staff found</p>
                   </div>
                 )}
               </div>
@@ -1081,7 +1140,7 @@ export default function StaffManagement() {
               <div className="flex items-center justify-between mb-2">
                 <button
                   onClick={() => setFiltersExpanded(!filtersExpanded)}
-                  className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+                  className="flex items-center gap-2 text-secondary hover:text-secondary-hover transition-colors"
                 >
                   <Filter size={14} />
                   <span className="text-xs sm:text-sm font-medium">Filters</span>
@@ -1090,7 +1149,7 @@ export default function StaffManagement() {
                     className={`transition-transform duration-200 ${filtersExpanded ? 'rotate-180' : ''}`} 
                   />
                   {!filtersExpanded && (filterRole !== 'all') && (
-                    <span className="bg-blue-600 text-white text-[10px] px-1.5 py-0.5 rounded-full">
+                    <span className="bg-white/20 text-white text-[10px] px-1.5 py-0.5 rounded-full">
                       {filterRole !== 'all' ? 1 : 0}
                     </span>
                   )}
@@ -1103,16 +1162,16 @@ export default function StaffManagement() {
                       e.stopPropagation();
                       setShowSortDropdown(!showSortDropdown);
                     }}
-                    className="px-3 sm:px-4 py-1.5 bg-[#2F2F2F] text-gray-300 rounded-xl text-xs sm:text-sm hover:bg-[#3F3F3F] transition-colors flex items-center gap-2"
+                    className="px-3 sm:px-4 py-1.5 bg-surface-button text-content-secondary rounded-xl text-xs sm:text-sm hover:bg-surface-button-hover transition-colors flex items-center gap-2"
                   >
                     {getSortIcon()}
                     <span>{currentSortLabel}</span>
                   </button>
 
                   {showSortDropdown && (
-                    <div className="absolute top-full right-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[180px]">
+                    <div className="absolute top-full right-0 mt-1 bg-surface-hover border border-border-subtle rounded-lg shadow-lg z-50 min-w-[180px]">
                       <div className="py-1">
-                        <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">
+                        <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border-subtle">
                           Sort by
                         </div>
                         {sortOptions.map((option) => (
@@ -1122,15 +1181,15 @@ export default function StaffManagement() {
                               e.stopPropagation();
                               handleSortOptionClick(option.value);
                             }}
-                            className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${
+                            className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover transition-colors flex items-center justify-between ${
                               sortBy === option.value 
-                                ? 'text-white bg-gray-800/50' 
-                                : 'text-gray-300'
+                                ? 'text-content-primary bg-surface-hover' 
+                                : 'text-content-secondary'
                             }`}
                           >
                             <span>{option.label}</span>
                             {sortBy === option.value && (
-                              <span className="text-gray-400">
+                              <span className="text-content-muted">
                                 {sortDirection === 'asc' 
                                   ? <ArrowUp size={14} /> 
                                   : <ArrowDown size={14} />
@@ -1153,8 +1212,8 @@ export default function StaffManagement() {
                     onClick={() => setFilterRole('all')}
                     className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${
                       filterRole === 'all'
-                        ? "bg-blue-600 text-white"
-                        : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                        ? "bg-primary text-white"
+                        : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
                     }`}
                   >
                     All Roles ({staffMembers.length})
@@ -1165,8 +1224,8 @@ export default function StaffManagement() {
                       onClick={() => setFilterRole(role)}
                       className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${
                         filterRole === role
-                          ? "bg-blue-600 text-white"
-                          : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                          ? "bg-primary text-white"
+                          : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
                       }`}
                     >
                       {role}
@@ -1180,9 +1239,9 @@ export default function StaffManagement() {
             <div className="open_sans_font">
               {viewMode === "list" ? (
                 // LIST VIEW
-                <div className="bg-[#141414] rounded-xl overflow-hidden">
+                <div className="bg-surface-card rounded-xl overflow-hidden">
                   {/* Table Header - Desktop only */}
-                  <div className={`hidden lg:grid lg:grid-cols-12 gap-3 px-4 bg-[#0f0f0f] border-b border-gray-800 text-xs text-gray-500 font-medium ${isCompactView ? 'py-2' : 'py-3'}`}>
+                  <div className={`hidden lg:grid lg:grid-cols-12 gap-3 px-4 bg-surface-dark border-b border-border-subtle text-xs text-content-faint font-medium ${isCompactView ? 'py-2' : 'py-3'}`}>
                     <div className="col-span-3">Staff</div>
                     <div className="col-span-2">Role</div>
                     <div className="col-span-2">Username</div>
@@ -1194,8 +1253,8 @@ export default function StaffManagement() {
                     filteredAndSortedStaff().map((staff, index) => (
                       <div 
                         key={staff.id}
-                        className={`group hover:bg-[#1a1a1a] transition-colors ${
-                          index !== filteredAndSortedStaff().length - 1 ? 'border-b border-gray-800/50' : ''
+                        className={`group hover:bg-surface-hover transition-colors ${
+                          index !== filteredAndSortedStaff().length - 1 ? 'border-b border-border-subtle' : ''
                         }`}
                       >
                         {/* Desktop Table Row */}
@@ -1226,12 +1285,12 @@ export default function StaffManagement() {
                             </div>
                             <div className="min-w-0 flex-1">
                               <div className="flex items-center gap-2">
-                                <span className={`text-white font-medium ${isCompactView ? 'text-sm' : 'text-base'} truncate`}>
+                                <span className={`text-content-primary font-medium ${isCompactView ? 'text-sm' : 'text-base'} truncate`}>
                                   {staff.firstName} {staff.lastName}
                                 </span>
                                 <StaffColorIndicator color={staff.color} />
                               </div>
-                              <span className={`${isCompactView ? 'text-xs' : 'text-sm'} text-gray-500 truncate block`}>
+                              <span className={`${isCompactView ? 'text-xs' : 'text-sm'} text-content-faint truncate block`}>
                                 {staff.email}
                               </span>
                             </div>
@@ -1244,15 +1303,15 @@ export default function StaffManagement() {
                           
                           {/* Username */}
                           <div className="col-span-2">
-                            <span className={`${isCompactView ? 'text-xs' : 'text-sm'} text-gray-400 truncate block`}>
-                              {staff.username || "Ã¢â‚¬â€"}
+                            <span className={`${isCompactView ? 'text-xs' : 'text-sm'} text-content-muted truncate block`}>
+                              {staff.username || "—"}
                             </span>
                           </div>
                           
                           {/* About */}
                           <div className="col-span-2">
-                            <span className={`${isCompactView ? 'text-xs' : 'text-sm'} text-gray-400 line-clamp-2`}>
-                              {staff.description || staff.about || "ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â"}
+                            <span className={`${isCompactView ? 'text-xs' : 'text-sm'} text-content-muted line-clamp-2`}>
+                              {staff.description || staff.about || "—"}
                             </span>
                           </div>
                           
@@ -1260,43 +1319,45 @@ export default function StaffManagement() {
                           <div className="col-span-3 flex items-center justify-end gap-0.5">
                             <button
                               onClick={() => handleHistoryClick(staff)}
-                              className={`${isCompactView ? 'p-1.5' : 'p-2'} text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-colors`}
+                              className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`}
                               title="History"
                             >
                               <History size={isCompactView ? 16 : 18} />
                             </button>
-                            <button
-                              onClick={() => handleChatClick(staff)}
-                              className={`${isCompactView ? 'p-1.5' : 'p-2'} text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-colors`}
-                              title="Chat"
-                            >
-                              <MessageCircle size={isCompactView ? 16 : 18} />
-                            </button>
+                            {!isAdminMode && (
+  <button
+    onClick={() => handleChatClick(staff)}
+    className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`}
+    title="Chat"
+  >
+    <MessageCircle size={isCompactView ? 16 : 18} />
+  </button>
+)}
                             <button
                               onClick={() => handleVacationContingentClick(staff)}
-                              className={`${isCompactView ? 'p-1.5' : 'p-2'} text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-colors`}
+                              className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`}
                               title="Vacation Contingent"
                             >
                               <TbPlusMinus size={isCompactView ? 16 : 18} />
                             </button>
                             <button
                               onClick={() => handleDocumentClick(staff)}
-                              className={`${isCompactView ? 'p-1.5' : 'p-2'} text-gray-500 hover:text-white hover:bg-white/5 rounded-lg transition-colors`}
+                              className={`${isCompactView ? 'p-1.5' : 'p-2'} text-content-faint hover:text-content-primary hover:bg-white/5 rounded-lg transition-colors`}
                               title="Documents"
                             >
                               <FileText size={isCompactView ? 16 : 18} />
                             </button>
                             <button
                               onClick={() => handleViewDetails(staff)}
-                              className={`${isCompactView ? 'p-1.5' : 'p-2'} text-blue-400 hover:text-blue-300 hover:bg-white/5 rounded-lg transition-colors`}
+                              className={`${isCompactView ? 'p-1.5' : 'p-2'} text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors`}
                               title="View Details"
                             >
                               <Eye size={isCompactView ? 16 : 18} />
                             </button>
-                            <div className={`w-px ${isCompactView ? 'h-4' : 'h-5'} bg-gray-700/50 mx-1`} />
+                            <div className={`w-px ${isCompactView ? 'h-4' : 'h-5'} bg-border-subtle/50 mx-1`} />
                             <button
                               onClick={() => handleEdit(staff)}
-                              className={`${isCompactView ? 'p-1.5' : 'p-2'} text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors`}
+                              className={`${isCompactView ? 'p-1.5' : 'p-2'} text-primary hover:text-primary-hover hover:bg-white/5 rounded-lg transition-colors`}
                               title="Edit"
                             >
                               <Pencil size={isCompactView ? 16 : 18} />
@@ -1307,7 +1368,7 @@ export default function StaffManagement() {
                         {/* Mobile Row */}
                         <div className="lg:hidden">
                           <div 
-                            className={`px-3 ${isCompactView ? 'py-2.5' : 'py-3'} cursor-pointer active:bg-[#252525] transition-colors`}
+                            className={`px-3 ${isCompactView ? 'py-2.5' : 'py-3'} cursor-pointer active:bg-surface-hover transition-colors`}
                             onClick={() => setExpandedMobileRowId(expandedMobileRowId === staff.id ? null : staff.id)}
                           >
                             <div className="flex items-center gap-3">
@@ -1335,7 +1396,7 @@ export default function StaffManagement() {
                               </div>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">
-                                  <span className={`text-white font-medium ${isCompactView ? 'text-sm' : 'text-base'} truncate`}>
+                                  <span className={`text-content-primary font-medium ${isCompactView ? 'text-sm' : 'text-base'} truncate`}>
                                     {staff.firstName} {staff.lastName}
                                   </span>
                                   <StaffColorIndicator color={staff.color} />
@@ -1348,7 +1409,7 @@ export default function StaffManagement() {
                               <div className="flex-shrink-0 p-1">
                                 <ChevronDown 
                                   size={18} 
-                                  className={`text-gray-500 transition-transform duration-200 ${expandedMobileRowId === staff.id ? 'rotate-180' : ''}`} 
+                                  className={`text-content-faint transition-transform duration-200 ${expandedMobileRowId === staff.id ? 'rotate-180' : ''}`} 
                                 />
                               </div>
                             </div>
@@ -1361,32 +1422,34 @@ export default function StaffManagement() {
                             }`}
                           >
                             <div className="px-3 pb-3 pt-1">
-                              <div className="bg-[#0f0f0f] rounded-xl p-2">
+                              <div className="bg-surface-dark rounded-xl p-2">
                                 <div className="grid grid-cols-4 gap-1">
                                   <button
                                     onClick={(e) => { e.stopPropagation(); handleHistoryClick(staff); }}
-                                    className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                                    className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
                                   >
                                     <History size={18} />
                                     <span className="text-[10px]">History</span>
                                   </button>
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); handleChatClick(staff); }}
-                                    className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-                                  >
-                                    <MessageCircle size={18} />
-                                    <span className="text-[10px]">Chat</span>
-                                  </button>
+                               {!isAdminMode && (
+  <button
+    onClick={(e) => { e.stopPropagation(); handleChatClick(staff); }}
+    className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
+  >
+    <MessageCircle size={18} />
+    <span className="text-[10px]">Chat</span>
+  </button>
+)}
                                   <button
                                     onClick={(e) => { e.stopPropagation(); handleVacationContingentClick(staff); }}
-                                    className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                                    className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
                                   >
                                     <TbPlusMinus size={18} />
                                     <span className="text-[10px]">Vacation</span>
                                   </button>
                                   <button
                                     onClick={(e) => { e.stopPropagation(); handleDocumentClick(staff); }}
-                                    className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                                    className="flex flex-col items-center gap-1 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
                                   >
                                     <FileText size={18} />
                                     <span className="text-[10px]">Docs</span>
@@ -1395,14 +1458,14 @@ export default function StaffManagement() {
                                 <div className="grid grid-cols-2 gap-1 mt-1">
                                   <button
                                     onClick={(e) => { e.stopPropagation(); handleViewDetails(staff); }}
-                                    className="flex items-center justify-center gap-2 p-2 text-blue-400 hover:text-blue-300 hover:bg-white/5 rounded-lg transition-colors"
+                                    className="flex items-center justify-center gap-2 p-2 text-secondary hover:text-secondary-hover hover:bg-white/5 rounded-lg transition-colors"
                                   >
                                     <Eye size={18} />
                                     <span className="text-xs">View Details</span>
                                   </button>
                                   <button
                                     onClick={(e) => { e.stopPropagation(); handleEdit(staff); }}
-                                    className="flex items-center justify-center gap-2 p-2 text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors"
+                                    className="flex items-center justify-center gap-2 p-2 text-primary hover:text-primary-hover hover:bg-white/5 rounded-lg transition-colors"
                                   >
                                     <Pencil size={18} />
                                     <span className="text-xs">Edit Staff</span>
@@ -1416,7 +1479,7 @@ export default function StaffManagement() {
                     ))
                   ) : (
                     <div className="text-center py-8">
-                      <p className="text-gray-400 text-sm">No staff members found.</p>
+                      <p className="text-content-muted text-sm">No staff members found.</p>
                     </div>
                   )}
                 </div>
@@ -1428,7 +1491,7 @@ export default function StaffManagement() {
                       filteredAndSortedStaff().map((staff) => (
                         <div 
                           key={staff.id}
-                          className="bg-[#141414] rounded-xl hover:bg-[#1a1a1a] transition-colors group relative overflow-hidden"
+                          className="bg-surface-card rounded-xl hover:bg-surface-hover transition-colors group relative overflow-hidden"
                         >
                           <div className="p-3 pt-4">
                             {/* Avatar & Name */}
@@ -1448,14 +1511,14 @@ export default function StaffManagement() {
                                 />
                               )}
                               <div className="text-center w-full min-w-0">
-                                <p className="text-white font-medium text-sm leading-tight truncate">
+                                <p className="text-content-primary font-medium text-sm leading-tight truncate">
                                   {staff.firstName}
                                 </p>
-                                <p className="text-gray-500 text-xs truncate">
+                                <p className="text-content-faint text-xs truncate">
                                   {staff.lastName}
                                 </p>
                                 {staff.username && (
-                                  <p className="text-gray-600 text-xs truncate">
+                                  <p className="text-content-faint text-xs truncate">
                                     {staff.username}
                                   </p>
                                 )}
@@ -1468,32 +1531,34 @@ export default function StaffManagement() {
                             </div>
 
                             {/* Action buttons */}
-                            <div className="space-y-1 bg-[#0a0a0a] rounded-lg p-1.5">
+                            <div className="space-y-1 bg-surface-dark rounded-lg p-1.5">
                               <div className="grid grid-cols-4 gap-1">
                                 <button
                                   onClick={() => handleHistoryClick(staff)}
-                                  className="p-1.5 text-gray-400 hover:text-white rounded-lg transition-colors flex items-center justify-center"
+                                  className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
                                   title="History"
                                 >
                                   <History size={14} />
                                 </button>
-                                <button
-                                  onClick={() => handleChatClick(staff)}
-                                  className="p-1.5 text-gray-400 hover:text-white rounded-lg transition-colors flex items-center justify-center"
-                                  title="Chat"
-                                >
-                                  <MessageCircle size={14} />
-                                </button>
+                               {!isAdminMode && (
+  <button
+    onClick={() => handleChatClick(staff)}
+    className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
+    title="Chat"
+  >
+    <MessageCircle size={14} />
+  </button>
+)}
                                 <button
                                   onClick={() => handleVacationContingentClick(staff)}
-                                  className="p-1.5 text-gray-400 hover:text-white rounded-lg transition-colors flex items-center justify-center"
+                                  className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
                                   title="Vacation"
                                 >
                                   <TbPlusMinus size={14} />
                                 </button>
                                 <button
                                   onClick={() => handleDocumentClick(staff)}
-                                  className="p-1.5 text-gray-400 hover:text-white rounded-lg transition-colors flex items-center justify-center"
+                                  className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
                                   title="Documents"
                                 >
                                   <FileText size={14} />
@@ -1502,14 +1567,14 @@ export default function StaffManagement() {
                               <div className="grid grid-cols-2 gap-1">
                                 <button
                                   onClick={() => handleViewDetails(staff)}
-                                  className="p-1.5 text-blue-400 hover:text-blue-300 rounded-lg transition-colors flex items-center justify-center gap-1"
+                                  className="p-1.5 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center gap-1"
                                   title="View Details"
                                 >
                                   <Eye size={14} />
                                 </button>
                                 <button
                                   onClick={() => handleEdit(staff)}
-                                  className="p-1.5 text-orange-400 hover:text-orange-300 rounded-lg transition-colors flex items-center justify-center gap-1"
+                                  className="p-1.5 text-primary hover:text-primary-hover rounded-lg transition-colors flex items-center justify-center gap-1"
                                   title="Edit"
                                 >
                                   <Pencil size={14} />
@@ -1521,7 +1586,7 @@ export default function StaffManagement() {
                       ))
                     ) : (
                       <div className="text-center py-8 col-span-full">
-                        <p className="text-gray-400 text-sm">No staff members found.</p>
+                        <p className="text-content-muted text-sm">No staff members found.</p>
                       </div>
                     )}
                   </div>
@@ -1532,7 +1597,7 @@ export default function StaffManagement() {
                       filteredAndSortedStaff().map((staff) => (
                         <div
                           key={staff.id}
-                          className="bg-[#161616] rounded-xl relative p-4"
+                          className="bg-surface-card rounded-xl relative p-4"
                         >
                           <div className="flex flex-col">
                             <div className="flex flex-col items-center mb-4">
@@ -1560,7 +1625,7 @@ export default function StaffManagement() {
                               </div>
                               <div className="flex flex-col items-center">
                                 <div className="flex items-center gap-2">
-                                  <h3 className="text-white font-medium text-lg">
+                                  <h3 className="text-content-primary font-medium text-lg">
                                     {staff.firstName} {staff.lastName}
                                   </h3>
                                   <StaffColorIndicator color={staff.color} />
@@ -1570,11 +1635,11 @@ export default function StaffManagement() {
                                   <RoleTag role={staff.role} />
                                 </div>
 
-                                <p className="text-gray-400 text-sm mt-2 text-center">
+                                <p className="text-content-muted text-sm mt-2 text-center">
                                   {staff.email}
                                 </p>
                                 {staff.username && (
-                                  <p className="text-gray-500 text-xs mt-1 text-center">
+                                  <p className="text-content-faint text-xs mt-1 text-center">
                                     {staff.username}
                                   </p>
                                 )}
@@ -1582,7 +1647,7 @@ export default function StaffManagement() {
                             </div>
 
                             {(staff.description || staff.about) && (
-                              <p className="text-gray-400 text-sm text-center mb-4 line-clamp-2">
+                              <p className="text-content-muted text-sm text-center mb-4 line-clamp-2">
                                 {staff.description || staff.about}
                               </p>
                             )}
@@ -1591,42 +1656,44 @@ export default function StaffManagement() {
                             <div className="flex flex-wrap gap-2 justify-center">
                               <button
                                 onClick={() => handleHistoryClick(staff)}
-                                className="p-2.5 text-gray-400 hover:text-white bg-[#0f0f0f] hover:bg-[#1a1a1a] rounded-xl transition-colors"
+                                className="p-2.5 text-secondary hover:text-secondary-hover bg-surface-dark hover:bg-surface-hover rounded-xl transition-colors"
                                 title="History"
                               >
                                 <History size={18} />
                               </button>
-                              <button
-                                onClick={() => handleChatClick(staff)}
-                                className="p-2.5 text-gray-400 hover:text-white bg-[#0f0f0f] hover:bg-[#1a1a1a] rounded-xl transition-colors"
-                                title="Chat"
-                              >
-                                <MessageCircle size={18} />
-                              </button>
+                         {!isAdminMode && (
+  <button
+    onClick={() => handleChatClick(staff)}
+    className="p-2 text-secondary hover:text-secondary-hover rounded-lg transition-colors flex items-center justify-center"
+    title="Start Chat"
+  >
+    <MessageCircle size={18} />
+  </button>
+)}
                               <button
                                 onClick={() => handleVacationContingentClick(staff)}
-                                className="p-2.5 text-gray-400 hover:text-white bg-[#0f0f0f] hover:bg-[#1a1a1a] rounded-xl transition-colors"
+                                className="p-2.5 text-secondary hover:text-secondary-hover bg-surface-dark hover:bg-surface-hover rounded-xl transition-colors"
                                 title="Vacation Contingent"
                               >
                                 <TbPlusMinus size={18} />
                               </button>
                               <button
                                 onClick={() => handleDocumentClick(staff)}
-                                className="p-2.5 text-gray-400 hover:text-white bg-[#0f0f0f] hover:bg-[#1a1a1a] rounded-xl transition-colors"
+                                className="p-2.5 text-secondary hover:text-secondary-hover bg-surface-dark hover:bg-surface-hover rounded-xl transition-colors"
                                 title="Documents"
                               >
                                 <FileText size={18} />
                               </button>
                               <button
                                 onClick={() => handleViewDetails(staff)}
-                                className="p-2.5 text-blue-400 hover:text-blue-300 bg-[#0f0f0f] hover:bg-[#1a1a1a] rounded-xl transition-colors"
+                                className="p-2.5 text-secondary hover:text-secondary-hover bg-surface-dark hover:bg-surface-hover rounded-xl transition-colors"
                                 title="View Details"
                               >
                                 <Eye size={18} />
                               </button>
                               <button
                                 onClick={() => handleEdit(staff)}
-                                className="p-2.5 text-orange-400 hover:text-orange-300 bg-[#0f0f0f] hover:bg-[#1a1a1a] rounded-xl transition-colors"
+                                className="p-2.5 text-primary hover:text-primary-hover bg-surface-dark hover:bg-surface-hover rounded-xl transition-colors"
                                 title="Edit"
                               >
                                 <Pencil size={18} />
@@ -1636,13 +1703,15 @@ export default function StaffManagement() {
                         </div>
                       ))
                     ) : (
-                      <div className="text-center py-8 col-span-full">
-                        <p className="text-gray-400 text-sm">No staff members found.</p>
-                      </div>
+                       <div className="text-center py-8 col-span-full">
+                        <p className="text-content-muted text-sm">No staff members found.</p>
+                       </div>
                     )}
                   </div>
                 )}
             </div>
+            </>
+            )}
           </div>
         </div>
 
@@ -1668,15 +1737,15 @@ export default function StaffManagement() {
 
         {isRemoveModalOpen && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1001]">
-            <div className="bg-[#181818] rounded-xl p-6 max-w-md mx-4 text-white">
+            <div className="bg-surface-card rounded-xl p-6 max-w-md mx-4 text-content-primary">
               <h3 className="text-lg font-semibold mb-4">Delete Staff</h3>
-              <p className="text-gray-300 mb-6">
+              <p className="text-content-secondary mb-6">
                 Are you sure you want to delete {staffToRemove?.firstName} {staffToRemove?.lastName}? This action cannot be undone.
               </p>
               <div className="flex gap-3 justify-end">
                 <button
                   onClick={() => setIsRemoveModalOpen(false)}
-                  className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#3F3F3F]"
+                  className="px-4 py-2 bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover"
                 >
                   Cancel
                 </button>
@@ -1849,7 +1918,7 @@ export default function StaffManagement() {
         {/* Floating Action Button - Mobile Only */}
         <button
           onClick={() => setIsModalOpen(true)}
-          className="md:hidden fixed bottom-4 right-4 bg-orange-600 hover:bg-orange-700 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
+          className="md:hidden fixed bottom-4 right-4 bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
           aria-label="Create Staff"
         >
           <Plus size={22} />

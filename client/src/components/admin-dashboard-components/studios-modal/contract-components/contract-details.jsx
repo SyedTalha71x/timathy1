@@ -18,7 +18,7 @@ const ContractDetailsModal = ({ isOpen, onClose, contract, onPause, onCancel }) 
   }
 
   const redirectToStudio = () => {
-    window.location.href = "/admin-dashboard/studios"
+    window.location.href = "/admin-dashboard/customers"
   }
 
   return (

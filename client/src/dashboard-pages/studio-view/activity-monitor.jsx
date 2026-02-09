@@ -6,6 +6,7 @@ import {
   CheckCircle,
   XCircle,
   Eye,
+  ExternalLink,
   Check,
   X,
   Search,
@@ -35,6 +36,7 @@ import {
   Building,
 } from "lucide-react"
 import toast, { Toaster } from "react-hot-toast"
+import { useNavigate } from "react-router-dom"
 
 // Communication imports
 import ChatPopup from "../../components/shared/communication/ChatPopup"
@@ -502,6 +504,8 @@ const statusFilters = {
 }
 
 export default function ActivityMonitor() {
+  const navigate = useNavigate()
+  
   // Tab & Filter States
   const [activeTab, setActiveTab] = useState("appointments")
   const [searchQuery, setSearchQuery] = useState("")
@@ -1059,7 +1063,7 @@ export default function ActivityMonitor() {
                 `}
               >
                 <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0 flex-1">
+                  <div className="min-w-0 flex-1 min-h-[68px]">
                     <p className={`text-xs ${isActive ? 'text-white/80' : 'text-gray-400'} truncate`}>
                       {tab.label}
                     </p>
@@ -1966,12 +1970,12 @@ export default function ActivityMonitor() {
                       </button>
                       <button
                         onClick={() => {
-                          setSelectedItem(contract)
-                          setIsDetailModalOpen(true)
+                          navigate('/dashboard/contract', { state: { filterMemberId: contract.memberId, filterMemberName: `${contract.memberFirstName} ${contract.memberLastName}` } })
                         }}
                         className="p-2.5 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-xl transition-colors"
+                        title="View Contract"
                       >
-                        <Eye size={16} />
+                        <ExternalLink size={16} />
                       </button>
                     </div>
                   </div>
@@ -2016,12 +2020,12 @@ export default function ActivityMonitor() {
                       </button>
                       <button
                         onClick={() => {
-                          setSelectedItem(contract)
-                          setIsDetailModalOpen(true)
+                          navigate('/dashboard/contract', { state: { filterMemberId: contract.memberId, filterMemberName: `${contract.memberFirstName} ${contract.memberLastName}` } })
                         }}
                         className="p-2.5 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-xl transition-colors"
+                        title="View Contract"
                       >
-                        <Eye size={16} />
+                        <ExternalLink size={16} />
                       </button>
                     </div>
                   </div>
@@ -2038,8 +2042,8 @@ export default function ActivityMonitor() {
                     key={email.id}
                     className="bg-[#161616] rounded-2xl p-4 md:p-5 hover:bg-[#1A1A1A] transition-colors"
                   >
-                    {/* Grid Layout - Fixed alignment with items-start */}
-                    <div className="hidden md:grid md:grid-cols-[280px_1fr_80px_1fr] gap-4 items-start">
+                    {/* Grid Layout */}
+                    <div className="hidden md:grid md:grid-cols-[280px_1fr_80px_1fr] gap-4 items-center">
                       {/* Col 1: Recipient Info */}
                       <div className="flex items-center gap-4">
                         <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-white flex-shrink-0 ${
@@ -2058,19 +2062,19 @@ export default function ActivityMonitor() {
                         </div>
                       </div>
                       
-                      {/* Col 2: Subject & Error - aligned to top */}
-                      <div className="min-w-0 pt-1">
+                      {/* Col 2: Subject & Error */}
+                      <div className="min-w-0">
                         <p className="text-gray-300 text-sm truncate">{email.subject}</p>
                         <p className="text-red-400 text-xs mt-1">{email.errorMessage}</p>
                       </div>
                       
-                      {/* Col 3: Retry Count - aligned to center of first row */}
-                      <div className="text-center pt-2">
+                      {/* Col 3: Retry Count */}
+                      <div className="text-center">
                         <span className="text-xs text-gray-500">{email.retryCount}x tried</span>
                       </div>
                       
-                      {/* Col 4: Actions - aligned to center of first row */}
-                      <div className="flex items-start justify-end pt-0.5">
+                      {/* Col 4: Actions */}
+                      <div className="flex items-center justify-end">
                         <button
                           onClick={() => handleRetryEmail(email.id)}
                           className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-white text-sm font-medium transition-colors ${

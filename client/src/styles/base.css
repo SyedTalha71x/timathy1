@@ -1,0 +1,216 @@
+/* ============================================
+   BASE STYLES
+   Theme mode variables + Resets + Body defaults.
+   ============================================ */
+
+/* ============================================
+   GOOGLE FONTS (must be before all rules)
+   ============================================ */
+@import url("https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Oxanium:wght@200..800&display=swap");
+
+/* ============================================
+   DARK / LIGHT MODE VARIABLES
+   
+   These power all var(--theme-*) references
+   in ant-overrides.css, fullcalendar.css, etc.
+   Switch by setting data-theme="light" on <html>.
+   ============================================ */
+
+:root,
+[data-theme="dark"] {
+  --theme-surface-base: #1c1c1c;
+  --theme-surface-card: #141414;
+  --theme-surface-input: #101010;
+  --theme-surface-overlay: #181818;
+  --theme-surface-header: #202020;
+  --theme-surface-selected: #1f1f1f;
+  --theme-surface-raised: #1e1e1e;
+  --theme-surface-button: #333333;
+  --theme-surface-button-hover: #444444;
+  --theme-surface-button-active: #555555;
+
+  --theme-text: #ffffff;
+  --theme-text-secondary: #9ca3af;
+  --theme-text-muted: #888888;
+  --theme-text-dim: rgba(255, 255, 255, 0.7);
+  --theme-text-placeholder: rgba(255, 255, 255, 0.3);
+  --theme-text-placeholder-light: rgba(255, 255, 255, 0.6);
+
+  --theme-border: #303030;
+  --theme-border-medium: #333333;
+  --theme-border-light: #444444;
+
+  --theme-scrollbar-thumb: #333333;
+  --theme-scrollbar-track: #1c1c1c;
+  --theme-scrollbar-thumb-hover: #444444;
+
+  --theme-shadow-overlay: rgba(0, 0, 0, 0.5);
+  --theme-highlight-today: rgba(255, 255, 255, 0.05);
+
+  --theme-color-scheme: dark;
+  --theme-calendar-icon-filter: invert(1);
+}
+
+[data-theme="light"] {
+  --theme-surface-base: #f5f5f5;
+  --theme-surface-card: #ffffff;
+  --theme-surface-input: #ffffff;
+  --theme-surface-overlay: #f9fafb;
+  --theme-surface-header: #f3f4f6;
+  --theme-surface-selected: #e5e7eb;
+  --theme-surface-raised: #f9fafb;
+  --theme-surface-button: #e5e7eb;
+  --theme-surface-button-hover: #d1d5db;
+  --theme-surface-button-active: #9ca3af;
+
+  --theme-text: #111827;
+  --theme-text-secondary: #4b5563;
+  --theme-text-muted: #6b7280;
+  --theme-text-dim: rgba(0, 0, 0, 0.6);
+  --theme-text-placeholder: rgba(0, 0, 0, 0.3);
+  --theme-text-placeholder-light: rgba(0, 0, 0, 0.5);
+
+  --theme-border: #e5e7eb;
+  --theme-border-medium: #d1d5db;
+  --theme-border-light: #9ca3af;
+
+  --theme-scrollbar-thumb: #c4c4c4;
+  --theme-scrollbar-track: #f0f0f0;
+  --theme-scrollbar-thumb-hover: #a0a0a0;
+
+  --theme-shadow-overlay: rgba(0, 0, 0, 0.2);
+  --theme-highlight-today: rgba(0, 0, 0, 0.03);
+
+  --theme-color-scheme: light;
+  --theme-calendar-icon-filter: none;
+}
+
+
+/* ============================================
+   RESETS
+   ============================================ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  background-color: var(--theme-surface-base, #1c1c1c);
+  color: var(--theme-text, #ffffff);
+}
+
+
+/* ============================================
+   NATIVE DATE & TIME INPUTS
+   ============================================ */
+input[type="date"],
+input[type="time"] {
+  color-scheme: var(--theme-color-scheme, dark);
+  color: var(--theme-text, #ffffff);
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: var(--theme-calendar-icon-filter, invert(1));
+  cursor: pointer;
+}
+
+.white-calendar-icon::-webkit-calendar-picker-indicator {
+  filter: var(--theme-calendar-icon-filter, invert(1));
+}
+
+
+/* ============================================
+   EMOJI PICKER
+   ============================================ */
+.emoji-picker-react {
+  max-height: 350px !important;
+  overflow-y: auto !important;
+}
+
+@media (max-width: 640px) {
+  .emoji-picker-react {
+    width: 100% !important;
+    max-width: 100vw !important;
+  }
+
+  .emoji-picker-react .emoji-scroll-wrapper {
+    overscroll-behavior: contain !important;
+  }
+
+  .emoji-picker-react .emoji-categories {
+    padding: 0 8px !important;
+  }
+}
+
+body.emoji-picker-open {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+}
+
+
+/* ============================================
+   MISC UTILITIES
+   ============================================ */
+.search-input-animation {
+  transition: width 0.3s ease, opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.tooltip {
+  position: relative;
+}
+
+.tooltip:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--theme-surface-button, #333);
+  color: var(--theme-text, white);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 100;
+}
+
+.sidebar-container {
+  margin-left: 16px;
+}
+
+@media (min-width: 768px) {
+  .sidebar-container {
+    margin-left: 20px;
+  }
+}
+
+.prose {
+  color: var(--theme-text, white);
+}
+
+.prose strong {
+  font-weight: bold;
+}
+
+.prose em {
+  font-style: italic;
+}
+
+.prose u {
+  text-decoration: underline;
+}
+
+.prose-invert {
+  color: var(--theme-text, white);
+}

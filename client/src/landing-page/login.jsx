@@ -36,7 +36,7 @@ const LOGIN_TYPES = {
     color: "#FF3F3F",
     hoverColor: "hover:bg-red-700",
     bgColor: "bg-[#FF3F3F]",
-    redirectPath: "/admin-dashboard/my-area",
+    redirectPath: "/admin-dashboard/customers",
     fields: ["email", "password"],
   },
   member: {

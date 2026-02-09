@@ -25,47 +25,166 @@ import {
   Gift,
   ArrowRightLeft,
   X,
+  CalendarClock,
 } from "lucide-react"
 import { toast, Toaster } from "react-hot-toast"
 import { useNavigate, useLocation } from "react-router-dom"
 
-import { AddContractModal } from "../../components/shared/contracts/add-contract-modal"
+import { ContractModal } from "../../components/shared/contracts/contract-modal"
 import { PauseContractModal } from "../../components/studio-components/contract-components/pause-contract-modal"
 import { CancelContractModal } from "../../components/studio-components/contract-components/cancel-contract-modal"
-import { EditContractModal } from "../../components/studio-components/contract-components/edit-contract-modal"
 import { ContractManagement } from "../../components/studio-components/contract-components/contract-management"
 import { BonusTimeModal } from "../../components/studio-components/contract-components/bonus-time-modal"
 import { RenewContractModal } from "../../components/studio-components/contract-components/renew-contract-modal"
 import { ChangeContractModal } from "../../components/studio-components/contract-components/change-contract-modal"
 import { ContractHistoryModal } from "../../components/studio-components/contract-components/contract-history-modal"
 import { DeleteContractModal } from "../../components/studio-components/contract-components/delete-contract-modal"
+import { ContractFormFillModal } from "../../components/shared/contracts/ContractFormFillModal"
 import { contractHistory, initialContracts, sampleLeads } from "../../utils/studio-states/contract-states"
+import { DEFAULT_CONTRACT_TYPES } from "../../utils/studio-states/configuration-states"
+import { leadsData } from "../../utils/studio-states/leads-states"
+import { membersData } from "../../utils/studio-states"
 
 // Status Tag Component - matches members.jsx
-const StatusTag = ({ status, compact = false }) => {
+const StatusTag = ({ 
+  status, 
+  compact = false, 
+  pauseReason = null, 
+  pauseStartDate = null, 
+  pauseEndDate = null,
+  cancelReason = null,
+  cancelDate = null,
+  scheduledStartDate = null 
+}) => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'Active': return 'bg-green-600';
-      case 'Ongoing': return 'bg-gray-600';
+      case 'Pending': return 'bg-gray-600';
       case 'Paused': return 'bg-yellow-600';
       case 'Cancelled': return 'bg-red-600';
+      case 'Scheduled': return 'bg-gray-600';
       default: return 'bg-gray-600';
     }
   };
 
   const bgColor = getStatusColor(status);
+  const hasTooltip = status === 'Paused' || status === 'Cancelled' || status === 'Scheduled';
+  const hasHoverEffect = status === 'Paused' || status === 'Cancelled' || status === 'Scheduled';
+  
+  // Format date helper
+  const formatD = (d) => d ? new Date(d).toLocaleDateString('de-DE') : null;
+
+  // Build tooltip content for Paused
+  const renderPauseTooltip = () => {
+    if (status !== 'Paused') return null;
+    return (
+      <>
+        {pauseReason && (
+          <div className="flex items-center gap-2">
+            <span className="text-yellow-400 font-medium">Reason:</span>
+            <span>{pauseReason}</span>
+          </div>
+        )}
+        {pauseStartDate && pauseEndDate && (
+          <div className="flex items-center gap-2">
+            <span className="text-yellow-400 font-medium">Period:</span>
+            <span>{formatD(pauseStartDate)} - {formatD(pauseEndDate)}</span>
+          </div>
+        )}
+        {pauseStartDate && !pauseEndDate && (
+          <div className="flex items-center gap-2">
+            <span className="text-yellow-400 font-medium">Since:</span>
+            <span>{formatD(pauseStartDate)}</span>
+          </div>
+        )}
+        {!pauseReason && !pauseStartDate && (
+          <span>Contract is paused</span>
+        )}
+      </>
+    );
+  };
+
+  // Build tooltip content for Cancelled
+  const renderCancelTooltip = () => {
+    if (status !== 'Cancelled') return null;
+    return (
+      <>
+        {cancelReason && (
+          <div className="flex items-center gap-2">
+            <span className="text-red-400 font-medium">Reason:</span>
+            <span>{cancelReason}</span>
+          </div>
+        )}
+        {cancelDate && (
+          <div className="flex items-center gap-2">
+            <span className="text-red-400 font-medium">Cancelled:</span>
+            <span>{formatD(cancelDate)}</span>
+          </div>
+        )}
+        {!cancelReason && !cancelDate && (
+          <span>Contract was cancelled</span>
+        )}
+      </>
+    );
+  };
+
+  // Build tooltip content for Scheduled
+  const renderScheduledTooltip = () => {
+    if (status !== 'Scheduled') return null;
+    return (
+      <>
+        {scheduledStartDate && (
+          <div className="flex items-center gap-2">
+            <span className="text-gray-400 font-medium">Starts:</span>
+            <span>{formatD(scheduledStartDate)}</span>
+          </div>
+        )}
+        {!scheduledStartDate && (
+          <span>Contract is scheduled</span>
+        )}
+      </>
+    );
+  };
 
   if (compact) {
     return (
-      <div className={`inline-flex items-center gap-1 ${bgColor} text-white px-2 py-1 rounded-lg text-xs font-medium`}>
-        <span className="truncate max-w-[140px]">{status}</span>
+      <div className={`relative ${hasTooltip ? 'group' : ''}`}>
+        <div className={`inline-flex items-center gap-1 ${bgColor} text-white px-2 py-1 rounded-lg text-xs font-medium transition-transform duration-200 ${hasHoverEffect ? 'cursor-pointer hover:scale-110' : ''}`}>
+          <span className="truncate max-w-[140px]">{status}</span>
+        </div>
+        {/* Custom Tooltip */}
+        {hasTooltip && (
+          <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/95 text-white px-3 py-2 rounded-lg text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none">
+            <div className="flex flex-col gap-1">
+              {renderPauseTooltip()}
+              {renderCancelTooltip()}
+              {renderScheduledTooltip()}
+            </div>
+            {/* Arrow pointing up */}
+            <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/95" />
+          </div>
+        )}
       </div>
     );
   }
 
   return (
-    <div className={`inline-flex items-center gap-2 ${bgColor} text-white px-3 py-1.5 rounded-xl text-xs font-medium`}>
-      <span>{status}</span>
+    <div className={`relative ${hasTooltip ? 'group' : ''}`}>
+      <div className={`inline-flex items-center gap-2 ${bgColor} text-white px-3 py-1.5 rounded-xl text-xs font-medium transition-transform duration-200 ${hasHoverEffect ? 'cursor-pointer hover:scale-110' : ''}`}>
+        <span>{status}</span>
+      </div>
+      {/* Custom Tooltip */}
+      {hasTooltip && (
+        <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/95 text-white px-3 py-2 rounded-lg text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none">
+          <div className="flex flex-col gap-1">
+            {renderPauseTooltip()}
+            {renderCancelTooltip()}
+            {renderScheduledTooltip()}
+          </div>
+          {/* Arrow pointing up */}
+          <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/95" />
+        </div>
+      )}
     </div>
   );
 };
@@ -107,12 +226,94 @@ export default function ContractList() {
 
   // Contract data
   const [contracts, setContracts] = useState(initialContracts)
+
+  // Auto-expire contracts and auto-activate scheduled contracts
+  useEffect(() => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    let hasChanges = false
+    
+    let updated = contracts.map(contract => {
+      // Activate Scheduled contracts whose start date has arrived
+      if (contract.status === 'Scheduled') {
+        const startDate = new Date(contract.scheduledStartDate || contract.startDate)
+        startDate.setHours(0, 0, 0, 0)
+        if (today >= startDate) {
+          hasChanges = true
+          return {
+            ...contract,
+            status: 'Active',
+          }
+        }
+        return contract
+      }
+
+      // Only process Active or Paused contracts for auto-expiry
+      if (contract.status !== 'Active' && contract.status !== 'Paused') return contract
+      
+      // Determine the effective final date (considering auto-renewal)
+      let finalDate = new Date(contract.endDate)
+      
+      if (contract.autoRenewal) {
+        if (contract.renewalIndefinite === true) return contract
+        if (contract.autoRenewalEndDate) {
+          finalDate = new Date(contract.autoRenewalEndDate)
+        } else {
+          return contract
+        }
+      }
+      
+      // If final date is in the past -> auto-cancel
+      if (today > finalDate) {
+        hasChanges = true
+        return {
+          ...contract,
+          status: 'Cancelled',
+          cancelReason: 'Contract expired',
+          originalEndDate: contract.originalEndDate || contract.endDate,
+        }
+      }
+      
+      return contract
+    })
+
+    // When a Scheduled contract becomes Active, cancel the old contract it replaced
+    if (hasChanges) {
+      updated = updated.map(contract => {
+        // Find if a newly-activated contract replaced this one
+        const activatedReplacement = updated.find(c => 
+          c.changedFromContractId === contract.id && 
+          c.status === 'Active' &&
+          contract.scheduledCancelDate
+        )
+        if (activatedReplacement && contract.status === 'Active') {
+          return {
+            ...contract,
+            status: 'Cancelled',
+            cancelReason: 'Contract changed',
+            cancelDate: contract.scheduledCancelDate || new Date().toISOString().split('T')[0],
+            changedToContractId: activatedReplacement.id,
+          }
+        }
+        return contract
+      })
+      setContracts(updated)
+    }
+  }, []) // Run once on mount
+  
+  // Leads and Members data for conversion
+  const [leads, setLeads] = useState(leadsData)
+  const [members, setMembers] = useState(membersData)
   
   // Search states - matches members.jsx
   const [searchQuery, setSearchQuery] = useState("")
   const [showSearchDropdown, setShowSearchDropdown] = useState(false)
   const searchDropdownRef = useRef(null)
   const searchInputRef = useRef(null)
+  
+  // Member filters - array of filtered members (can be multiple)
+  const [memberFilters, setMemberFilters] = useState([])
+  // [{ memberId: string, memberName: string }, ...]
 
   // Filter states
   const [filterStatus, setFilterStatus] = useState("all")
@@ -141,6 +342,9 @@ export default function ContractList() {
   const [isRenewModalOpen, setIsRenewModalOpen] = useState(false)
   const [isChangeModalOpen, setIsChangeModalOpen] = useState(false)
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false)
+  // State for ContractFormFillModal after contract change
+  const [isChangeFormFillOpen, setIsChangeFormFillOpen] = useState(false)
+  const [changeFormFillData, setChangeFormFillData] = useState(null)
 
   // Sort options - matches members.jsx pattern
   const sortOptions = [
@@ -193,77 +397,234 @@ export default function ContractList() {
     return contractEndDate <= thirtyDaysFromNow && contractEndDate > today
   }
 
+  // Check if contract should show expiring warning
+  // For auto-renewal contracts: only show if not indefinite and autoRenewalEndDate is approaching
+  const shouldShowExpiring = (contract) => {
+    // Never show expiring for cancelled or pending contracts
+    if (contract.status === 'Cancelled' || contract.status === 'Pending') return false
+
+    // If no auto-renewal, use normal expiring logic
+    if (!contract.autoRenewal) {
+      return isContractExpiringSoon(contract.endDate)
+    }
+    
+    // If renewal is indefinite, never show expiring
+    if (contract.renewalIndefinite === true) {
+      return false
+    }
+    
+    // If auto-renewal with end date (limited renewal), check the final end date
+    if (contract.autoRenewalEndDate) {
+      return isContractExpiringSoon(contract.autoRenewalEndDate)
+    }
+    
+    // Auto-renewal without end date set - never show expiring (assume unlimited)
+    return false
+  }
+
+  // Check if contract should show expired warning
+  const shouldShowExpired = (contract) => {
+    // If no auto-renewal, use normal expired logic
+    if (!contract.autoRenewal) {
+      return isContractExpired(contract.endDate)
+    }
+    
+    // If renewal is indefinite, never show expired
+    if (contract.renewalIndefinite === true) {
+      return false
+    }
+    
+    // If auto-renewal with end date, check the final end date
+    if (contract.autoRenewalEndDate) {
+      return isContractExpired(contract.autoRenewalEndDate)
+    }
+    
+    // Auto-renewal without end date - never show expired
+    return false
+  }
+
+  // Check if contract is expired (end date in past) - used for visual dimming
+  const isExpiredContract = (contract) => {
+    // Cancelled contracts are always dimmed
+    if (contract.status === 'Cancelled') return true
+    
+    // Contracts whose end date is in the past (and no auto-renewal keeping them active)
+    if (contract.endDate) {
+      const endDate = new Date(contract.endDate)
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      
+      if (endDate < today) {
+        // If auto-renewal is active and indefinite, don't dim
+        if (contract.autoRenewal && contract.renewalIndefinite === true) return false
+        // If auto-renewal with end date that's still in the future, don't dim
+        if (contract.autoRenewal && contract.autoRenewalEndDate && new Date(contract.autoRenewalEndDate) >= today) return false
+        return true
+      }
+    }
+    
+    return false
+  }
+
+  // Get auto renewal display info for a contract
+  const getAutoRenewalInfo = (contract) => {
+    if (!contract.autoRenewal) {
+      return { hasRenewal: false, label: "No", tooltip: "No auto renewal" }
+    }
+    
+    // Check if renewal is indefinite (from contract or lookup from contract type)
+    const isIndefinite = contract.renewalIndefinite === true
+    
+    if (isIndefinite) {
+      return { 
+        hasRenewal: true, 
+        label: "Yes", 
+        sublabel: "unlimited",
+        tooltip: "Unlimited auto renewal" 
+      }
+    }
+    
+    // Limited renewal - show the renewal period or end date
+    if (contract.autoRenewalEndDate) {
+      return { 
+        hasRenewal: true, 
+        label: "Yes", 
+        sublabel: `until ${formatDate(contract.autoRenewalEndDate)}`,
+        tooltip: `Auto renewal until ${formatDate(contract.autoRenewalEndDate)}` 
+      }
+    }
+    
+    // Lookup from contract type if available
+    const contractType = DEFAULT_CONTRACT_TYPES.find(t => t.name === contract.contractType)
+    if (contractType?.renewalPeriod) {
+      return { 
+        hasRenewal: true, 
+        label: "Yes", 
+        sublabel: `+${contractType.renewalPeriod} months`,
+        tooltip: `Renews for ${contractType.renewalPeriod} months` 
+      }
+    }
+    
+    // Fallback
+    return { hasRenewal: true, label: "Yes", sublabel: "", tooltip: "Auto renewal enabled" }
+  }
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString('de-DE')
   }
 
-  // Search autocomplete matches
-  const searchMatches = contracts.filter(contract =>
-    contract.memberName.toLowerCase().includes(searchQuery.toLowerCase()) &&
-    searchQuery.length > 0
-  ).slice(0, 5)
+  // Calculate the effective end date considering bonus time with extension
+  // Also calculates the bonus period dynamically for consistent display
+  const getEffectiveEndDate = (contract) => {
+    // Check if contract was cancelled early (cancelToDate set)
+    const isCancelledEarly = !!(contract.cancelToDate && contract.status === 'Cancelled')
+
+    if (!contract.bonusTime?.bonusAmount) {
+      return { date: contract.endDate, isExtended: false, isCancelledEarly, bonusPeriod: null }
+    }
+    const start = new Date(contract.endDate)
+    const end = new Date(contract.endDate)
+    const amount = contract.bonusTime.bonusAmount
+    switch (contract.bonusTime.bonusUnit) {
+      case 'days':
+        end.setDate(end.getDate() + amount)
+        break
+      case 'weeks':
+        end.setDate(end.getDate() + amount * 7)
+        break
+      case 'months':
+        end.setMonth(end.getMonth() + amount)
+        break
+      default:
+        break
+    }
+    const bonusPeriod = `${formatDate(start.toISOString().split('T')[0])} - ${formatDate(end.toISOString().split('T')[0])}`
+    const isExtended = !!contract.bonusTime.withExtension
+    return { 
+      date: isExtended ? end.toISOString().split('T')[0] : contract.endDate, 
+      isExtended, 
+      isCancelledEarly,
+      bonusPeriod,
+      effectiveEndDate: end.toISOString().split('T')[0],
+    }
+  }
+
+  // Get unique members from contracts for search suggestions
+  const getUniqueMembersFromContracts = () => {
+    const memberMap = new Map()
+    contracts.forEach(contract => {
+      if (!memberMap.has(contract.memberId)) {
+        memberMap.set(contract.memberId, {
+          memberId: contract.memberId,
+          memberName: contract.memberName,
+          contractType: contract.contractType,
+        })
+      }
+    })
+    return Array.from(memberMap.values())
+  }
+
+  // Get search suggestions based on query (exclude already filtered members)
+  const getSearchSuggestions = () => {
+    if (!searchQuery.trim()) return []
+    const uniqueMembers = getUniqueMembersFromContracts()
+    return uniqueMembers.filter((member) => {
+      // Exclude already filtered members
+      const isAlreadyFiltered = memberFilters.some(f => f.memberId === member.memberId)
+      if (isAlreadyFiltered) return false
+      
+      const query = searchQuery.toLowerCase()
+      return member.memberName.toLowerCase().includes(query) ||
+        (member.contractNumber && member.contractNumber.toLowerCase().includes(query))
+    }).slice(0, 6)
+  }
+
+  // Handle selecting a member from search suggestions
+  const handleSelectMember = (member) => {
+    setMemberFilters([...memberFilters, {
+      memberId: member.memberId,
+      memberName: member.memberName
+    }])
+    setSearchQuery("")
+    setShowSearchDropdown(false)
+    searchInputRef.current?.focus()
+  }
+
+  // Handle removing a member filter
+  const handleRemoveFilter = (memberId) => {
+    setMemberFilters(memberFilters.filter(f => f.memberId !== memberId))
+  }
+
+  // Handle keyboard navigation
+  const handleSearchKeyDown = (e) => {
+    if (e.key === 'Backspace' && !searchQuery && memberFilters.length > 0) {
+      // Remove last filter when backspace is pressed with empty input
+      setMemberFilters(memberFilters.slice(0, -1))
+    } else if (e.key === 'Escape') {
+      setShowSearchDropdown(false)
+    }
+  }
 
   // Filter and sort contracts
   const filteredAndSortedContracts = () => {
     let filtered = [...contracts]
 
-    // Helper to get the "display" contract for a member (Active > Paused > Ongoing > most recent Cancelled)
-    const getDisplayContractForMember = (memberContracts) => {
-      if (memberContracts.length === 0) return null
-      
-      const active = memberContracts.find(c => c.status === 'Active')
-      if (active) return active
-      
-      const paused = memberContracts.find(c => c.status === 'Paused')
-      if (paused) return paused
-      
-      const ongoing = memberContracts.find(c => c.status === 'Ongoing')
-      if (ongoing) return ongoing
-      
-      // Return most recent cancelled
-      const cancelled = memberContracts
-        .filter(c => c.status === 'Cancelled')
-        .sort((a, b) => new Date(b.endDate) - new Date(a.endDate))
-      
-      return cancelled[0] || null
+    // If memberFilters are active, show only those members' contracts
+    if (memberFilters.length > 0) {
+      const filterIds = memberFilters.map(f => f.memberId)
+      filtered = filtered.filter(contract => filterIds.includes(contract.memberId))
     }
 
-    // For "all" filter, show only the most relevant contract per member
-    if (filterStatus === "all") {
-      // Group by memberId
-      const memberMap = new Map()
-      filtered.forEach(contract => {
-        const memberId = contract.memberId
-        if (!memberMap.has(memberId)) {
-          memberMap.set(memberId, [])
-        }
-        memberMap.get(memberId).push(contract)
-      })
-      
-      // Get display contract for each member
-      filtered = []
-      memberMap.forEach((memberContracts) => {
-        const displayContract = getDisplayContractForMember(memberContracts)
-        if (displayContract) {
-          filtered.push(displayContract)
-        }
-      })
-    } else {
-      // Apply specific status filter - show all matching contracts
+    // Apply status filter
+    if (filterStatus !== "all") {
       filtered = filtered.filter(contract => {
         if (filterStatus === "active") return contract.status === "Active"
-        if (filterStatus === "ongoing") return contract.status === "Ongoing"
+        if (filterStatus === "scheduled") return contract.status === "Scheduled"
+        if (filterStatus === "pending") return contract.status === "Pending"
         if (filterStatus === "paused") return contract.status === "Paused"
         if (filterStatus === "cancelled") return contract.status === "Cancelled"
         return true
       })
-    }
-
-    // Apply search filter
-    if (searchQuery.trim()) {
-      filtered = filtered.filter(contract =>
-        contract.memberName.toLowerCase().includes(searchQuery.toLowerCase())
-      )
     }
 
     // Apply sorting
@@ -329,6 +690,19 @@ export default function ContractList() {
     return () => document.removeEventListener("mousedown", handleClickOutside)
   }, [])
 
+  // Handle navigation state from other pages (e.g., Leads)
+  useEffect(() => {
+    if (location.state?.filterMemberId) {
+      // Set filter for the member from another page (e.g., Leads, Expiring Contracts Widget)
+      setMemberFilters([{
+        memberId: location.state.filterMemberId,
+        memberName: location.state.filterMemberName || 'Member'
+      }])
+      // Clear the navigation state to prevent re-filtering on refresh
+      window.history.replaceState({}, document.title)
+    }
+  }, [location.state])
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyPress = (e) => {
@@ -343,7 +717,8 @@ export default function ContractList() {
         isBonusTimeModalOpen ||
         isRenewModalOpen ||
         isChangeModalOpen ||
-        isHistoryModalOpen;
+        isHistoryModalOpen ||
+        isChangeFormFillOpen;
 
       // ESC key - Close modals
       if (e.key === 'Escape') {
@@ -357,6 +732,7 @@ export default function ContractList() {
         else if (isBonusTimeModalOpen) setIsBonusTimeModalOpen(false);
         else if (isRenewModalOpen) setIsRenewModalOpen(false);
         else if (isChangeModalOpen) setIsChangeModalOpen(false);
+        else if (isChangeFormFillOpen) setIsChangeFormFillOpen(false);
         else if (isHistoryModalOpen) setIsHistoryModalOpen(false);
         return;
       }
@@ -389,6 +765,7 @@ export default function ContractList() {
     isBonusTimeModalOpen,
     isRenewModalOpen,
     isChangeModalOpen,
+    isChangeFormFillOpen,
     isHistoryModalOpen
   ]);
 
@@ -413,6 +790,32 @@ export default function ContractList() {
   const handleCancelContract = (contractId) => {
     setSelectedContract(contracts.find((c) => c.id === contractId))
     setIsCancelModalOpen(true)
+  }
+
+  // Cancel a Scheduled contract: remove it and undo the scheduled cancel on the old contract
+  const handleCancelScheduledContract = (contractId) => {
+    const scheduledContract = contracts.find(c => c.id === contractId)
+    if (!scheduledContract) return
+
+    setContracts(prev => {
+      // Remove the scheduled contract
+      let updated = prev.filter(c => c.id !== contractId)
+      
+      // If the scheduled contract was a change from an old contract, undo the scheduled cancel
+      if (scheduledContract.changedFromContractId) {
+        updated = updated.map(c =>
+          c.id === scheduledContract.changedFromContractId
+            ? {
+                ...c,
+                scheduledCancelDate: null,
+                changedToContractId: null,
+              }
+            : c
+        )
+      }
+      return updated
+    })
+    toast.success("Scheduled contract cancelled")
   }
 
   const handleDeleteContract = (contractId) => {
@@ -440,6 +843,13 @@ export default function ContractList() {
     setIsBonusTimeModalOpen(true)
   }
 
+  const handleRemoveBonusTime = (contractId) => {
+    setContracts(contracts.map(c =>
+      c.id === contractId ? { ...c, bonusTime: null } : c
+    ))
+    toast.success("Bonus time removed")
+  }
+
   const handleRenewContract = (contractId) => {
     setSelectedContract(contracts.find((c) => c.id === contractId))
     setIsRenewModalOpen(true)
@@ -461,26 +871,154 @@ export default function ContractList() {
   }
 
   const handleSaveNewContract = (contractData) => {
-    const newContract = {
-      id: `12321-${contracts.length + 1}`,
-      memberName: contractData.fullName,
-      contractType: contractData.rateType || "Basic",
-      startDate: new Date().toISOString().split("T")[0],
-      endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split("T")[0],
-      status: "Active",
-      pauseReason: null,
-      cancelReason: null,
-      isDigital: contractData.isDigital,
-      email: contractData.email,
-      phone: contractData.phone,
-      iban: contractData.iban,
-      sepaMandate: contractData.sepaMandate,
-      files: contractData.signedFile ? [contractData.signedFile] : [],
-      autoRenewal: contractData.autoRenewal || false,
+    // Check if this is the new format (full contract object from ContractFormFillModal)
+    // New format has contractFormSnapshot or formData property
+    const isNewFormat = !!(contractData.contractFormSnapshot || contractData.formData || contractData.contractNumber)
+    
+    let newContract
+    
+    // Helper: check if a date string is in the future
+    const isFutureDate = (dateStr) => {
+      if (!dateStr) return false
+      const date = new Date(dateStr)
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      date.setHours(0, 0, 0, 0)
+      return date > today
     }
+    
+    if (isNewFormat) {
+      // New format: Full contract object from ContractFormFillModal
+      const futureStart = isFutureDate(contractData.startDate)
+      newContract = {
+        id: contractData.id || `12321-${contracts.length + 1}`,
+        contractNumber: contractData.contractNumber || `C-${Date.now()}`,
+        memberName: contractData.memberName,
+        memberId: contractData.memberId || `M-${Date.now()}`,
+        contractType: contractData.contractType,
+        startDate: contractData.startDate,
+        endDate: contractData.endDate,
+        trainingStartDate: contractData.trainingStartDate,
+        status: futureStart ? "Scheduled" : (contractData.status || "Active"),
+        scheduledStartDate: futureStart ? contractData.startDate : null,
+        autoRenewal: contractData.autoRenewal || false,
+        cost: contractData.cost,
+        billingPeriod: contractData.billingPeriod,
+        email: contractData.email,
+        phone: contractData.phone,
+        iban: contractData.iban,
+        bic: contractData.bic,
+        sepaMandate: contractData.sepaMandate,
+        address: contractData.address || {},
+        discount: contractData.discount,
+        // Store the form data for PDF generation
+        formData: contractData.formData,
+        contractFormSnapshot: contractData.contractFormSnapshot,
+        files: contractData.files || [],
+        isDigital: contractData.isDigital,
+        isDraft: contractData.isDraft || false,
+        dateOfBirth: contractData.dateOfBirth,
+        bankName: contractData.bankName,
+        salutation: contractData.salutation,
+        pauseReason: null,
+        cancelReason: null,
+      }
+    } else {
+      // Legacy format: Basic contract data from old flow
+      const legacyStartDate = contractData.contractStartDate || new Date().toISOString().split("T")[0]
+      const futureStart = isFutureDate(legacyStartDate)
+      newContract = {
+        id: `12321-${contracts.length + 1}`,
+        memberName: contractData.fullName,
+        contractType: contractData.rateType || "Basic",
+        startDate: legacyStartDate,
+        endDate: contractData.contractEndDate || new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split("T")[0],
+        status: futureStart ? "Scheduled" : "Active",
+        scheduledStartDate: futureStart ? legacyStartDate : null,
+        pauseReason: null,
+        cancelReason: null,
+        isDigital: contractData.isDigital,
+        email: contractData.email,
+        phone: contractData.phone,
+        iban: contractData.iban,
+        sepaMandate: contractData.sepaMandate,
+        files: contractData.signedFile ? [contractData.signedFile] : [],
+        autoRenewal: contractData.autoRenewal || false,
+      }
+    }
+    
     setContracts([...contracts, newContract])
     setIsModalOpen(false)
-    toast.success("Contract added successfully")
+    
+    // Set filter to show the newly created contract's member
+    setMemberFilters([{
+      memberId: newContract.memberId,
+      memberName: newContract.memberName
+    }])
+    
+    // Lead-to-Member Conversion Logic
+    // Convert for Active and Scheduled contracts (not Pending)
+    const contractStatus = newContract.status || "Active"
+    const leadId = contractData.leadId || contractData.memberId
+    
+    if ((contractStatus === "Active" || contractStatus === "Scheduled") && leadId) {
+      // Find the lead to convert
+      const leadToConvert = leads.find(lead => 
+        lead.id === leadId || 
+        lead.leadId === leadId ||
+        `${lead.firstName} ${lead.lastName}` === newContract.memberName
+      )
+      
+      if (leadToConvert) {
+        // Create new member from lead data
+        const newMember = {
+          id: newContract.memberId || `member-${Date.now()}`,
+          firstName: leadToConvert.firstName || contractData.firstName || newContract.memberName?.split(' ')[0] || '',
+          lastName: leadToConvert.lastName || contractData.lastName || newContract.memberName?.split(' ').slice(1).join(' ') || '',
+          title: newContract.memberName,
+          email: leadToConvert.email || contractData.email || newContract.email || '',
+          phone: leadToConvert.phoneNumber || leadToConvert.telephoneNumber || contractData.phone || newContract.phone || '',
+          phoneNumber: leadToConvert.phoneNumber || leadToConvert.telephoneNumber || contractData.phone || newContract.phone || '',
+          street: leadToConvert.street || contractData.address?.street || '',
+          zipCode: leadToConvert.zipCode || contractData.address?.zipCode || '',
+          city: leadToConvert.city || contractData.address?.city || '',
+          country: leadToConvert.country || '',
+          birthday: leadToConvert.birthday || contractData.dateOfBirth || '',
+          gender: leadToConvert.gender || '',
+          status: 'active',
+          memberType: 'member',
+          memberSince: newContract.startDate || new Date().toISOString().split('T')[0],
+          contractType: newContract.contractType,
+          image: leadToConvert.avatar || null,
+          notes: leadToConvert.notes || [],
+          // Banking info
+          iban: contractData.iban || newContract.iban || '',
+          bic: contractData.bic || newContract.bic || '',
+          bankName: contractData.bankName || newContract.bankName || '',
+          // Additional data from lead
+          source: leadToConvert.source || leadToConvert.leadSource || '',
+          convertedFromLead: true,
+          originalLeadId: leadToConvert.id,
+          convertedAt: new Date().toISOString(),
+        }
+        
+        // Add new member
+        setMembers(prevMembers => [...prevMembers, newMember])
+        
+        // Remove lead from leads list
+        setLeads(prevLeads => prevLeads.filter(lead => lead.id !== leadToConvert.id))
+        
+        toast.success(`Lead "${newContract.memberName}" converted to member!`)
+      }
+    } else if (contractStatus === "Pending") {
+      // For Pending contracts, keep the lead - no conversion yet
+      toast.info("Contract saved as draft. Lead will be converted when contract is activated.")
+    }
+    
+    // Toast is handled by contract-modal.jsx for new format
+    if (!isNewFormat) {
+      toast.success("Contract added successfully")
+    }
   }
 
   const handleSaveEditedContract = (updatedContract) => {
@@ -502,11 +1040,24 @@ export default function ContractList() {
     toast.success("Contract has been paused")
   }
 
-  const handleCancelSubmit = ({ reason, cancelDate }) => {
+  const handleCancelSubmit = ({ reason, cancelDate, cancelToDate }) => {
     if (selectedContract) {
-      setContracts(contracts.map((c) =>
-        c.id === selectedContract.id ? { ...c, status: "Cancelled", cancelReason: reason } : c
-      ))
+      setContracts(contracts.map((c) => {
+        if (c.id !== selectedContract.id) return c
+        const updates = {
+          ...c,
+          status: "Cancelled",
+          cancelReason: reason,
+          cancelDate: cancelDate || null,
+          cancelToDate: cancelToDate || null,
+        }
+        // If cancelToDate is set, store original endDate and update endDate
+        if (cancelToDate) {
+          updates.originalEndDate = c.originalEndDate || c.endDate // preserve if already set
+          updates.endDate = cancelToDate
+        }
+        return updates
+      }))
     }
     setIsCancelModalOpen(false)
     setSelectedContract(null)
@@ -534,13 +1085,146 @@ export default function ContractList() {
 
   const handleChangeSubmit = (changeData) => {
     if (selectedContract) {
-      setContracts(contracts.map((c) =>
-        c.id === selectedContract.id ? { ...c, contractType: changeData.newContractType } : c
-      ))
+      // Store the change data and open the ContractFormFillModal for the new contract type
+      const newContractType = changeData.selectedContractType || 
+        DEFAULT_CONTRACT_TYPES.find(t => t.name === changeData.newContractType)
+      
+      setChangeFormFillData({
+        changeData,
+        contractType: newContractType,
+        contract: selectedContract,
+      })
+      setIsChangeModalOpen(false)
+      
+      // If the new contract type has a form, open the form fill modal
+      if (newContractType?.contractFormId) {
+        setIsChangeFormFillOpen(true)
+      } else {
+        // No form attached — cancel old contract + create new one directly
+        finalizeContractChange(changeData, newContractType, selectedContract, null)
+      }
     }
-    setIsChangeModalOpen(false)
+  }
+
+  // Handle completion of ContractFormFillModal after contract change
+  const handleChangeFormFillComplete = (formData) => {
+    if (changeFormFillData && changeFormFillData.contract) {
+      const { changeData, contractType, contract: originalContract } = changeFormFillData
+      finalizeContractChange(changeData, contractType, originalContract, formData)
+    }
+    
+    setIsChangeFormFillOpen(false)
     setSelectedContract(null)
-    toast.success("Contract changed successfully")
+    setChangeFormFillData(null)
+  }
+
+  // Shared logic: handle contract change (Scheduled if future, immediate if today)
+  const finalizeContractChange = (changeData, contractType, originalContract, formData) => {
+    const fv = formData?.formValues || {}
+    
+    // Calculate end date for the new contract
+    let newEndDate = changeData.endDate || originalContract.endDate
+    if (changeData.startDate && contractType?.duration) {
+      const start = new Date(changeData.startDate)
+      start.setMonth(start.getMonth() + parseInt(contractType.duration))
+      newEndDate = start.toISOString().split('T')[0]
+    }
+
+    // Determine if the start date is in the future
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const changeStartDate = new Date(changeData.startDate)
+    changeStartDate.setHours(0, 0, 0, 0)
+    const isFutureStart = changeStartDate > today
+
+    // Build the new contract object
+    const newContract = {
+      id: `12321-${Date.now()}`,
+      contractNumber: `C-${Date.now()}`,
+      memberName: originalContract.memberName,
+      memberId: originalContract.memberId,
+      contractType: changeData.newContractType,
+      startDate: changeData.startDate || originalContract.startDate,
+      endDate: newEndDate,
+      trainingStartDate: originalContract.trainingStartDate,
+      // If start date is in the future -> Scheduled, otherwise Active
+      status: isFutureStart ? "Scheduled" : (formData?.status || "Active"),
+      scheduledStartDate: isFutureStart ? changeData.startDate : null,
+      autoRenewal: contractType?.autoRenewal || false,
+      renewalIndefinite: contractType?.renewalIndefinite ?? true,
+      cost: contractType?.cost || originalContract.cost,
+      billingPeriod: contractType?.billingPeriod || originalContract.billingPeriod,
+      email: fv.email || originalContract.email,
+      phone: fv.telephone || originalContract.phone,
+      iban: fv.iban || originalContract.iban,
+      bic: fv.bic || originalContract.bic,
+      sepaMandate: originalContract.sepaMandate,
+      address: {
+        street: fv.street || originalContract.address?.street,
+        zipCode: fv.zipCode || originalContract.address?.zipCode,
+        city: fv.city || originalContract.address?.city,
+      },
+      discount: changeData.discount || null,
+      formData: formData || null,
+      contractFormSnapshot: formData ? {
+        formValues: formData.formValues,
+        systemValues: formData.systemValues,
+        contractFormId: formData.contractFormId,
+        contractFormName: formData.contractFormName,
+        contractFormData: formData.contractFormData,
+        completedAt: formData.completedAt,
+      } : null,
+      files: [],
+      dateOfBirth: originalContract.dateOfBirth,
+      bankName: originalContract.bankName,
+      salutation: originalContract.salutation,
+      isDraft: formData?.isDraft || false,
+      pauseReason: null,
+      cancelReason: null,
+      // Reference to the old contract
+      changedFromContractId: originalContract.id,
+    }
+
+    if (isFutureStart) {
+      // Future start: old contract stays Active, gets scheduled cancel date
+      // New contract is "Scheduled" - will auto-activate on start date
+      setContracts(prev => {
+        const updated = prev.map(c =>
+          c.id === originalContract.id
+            ? {
+                ...c,
+                scheduledCancelDate: changeData.startDate,
+                changedToContractId: newContract.id,
+              }
+            : c
+        )
+        return [...updated, newContract]
+      })
+      toast.success(`Contract change scheduled for ${new Date(changeData.startDate).toLocaleDateString('de-DE')}`)
+    } else {
+      // Immediate: cancel old contract now, new contract is Active
+      setContracts(prev => {
+        const updated = prev.map(c =>
+          c.id === originalContract.id
+            ? {
+                ...c,
+                status: "Cancelled",
+                cancelReason: "Contract changed",
+                cancelDate: new Date().toISOString().split('T')[0],
+                changedToContractId: newContract.id,
+              }
+            : c
+        )
+        return [...updated, newContract]
+      })
+      toast.success("Contract changed successfully")
+    }
+
+    // Filter to show the member's contracts
+    setMemberFilters([{
+      memberId: newContract.memberId,
+      memberName: newContract.memberName,
+    }])
   }
 
   const toggleDropdownContract = (contractId, event) => {
@@ -558,7 +1242,7 @@ export default function ContractList() {
         }}
       />
 
-      <div className="flex flex-col lg:flex-row rounded-3xl bg-[#1C1C1C] transition-all duration-500 text-white relative">
+      <div className="flex flex-col lg:flex-row rounded-3xl bg-[#1C1C1C] transition-all duration-500 text-white relative select-none">
         <div className="flex-1 min-w-0 md:p-6 p-4 pb-36">
           {/* Header - matches members.jsx */}
           <div className="flex sm:items-center justify-between mb-6 sm:mb-8 gap-4">
@@ -690,7 +1374,7 @@ export default function ContractList() {
             </div>
           </div>
 
-          {/* Search Bar */}
+          {/* Search Bar with Inline Filter Chips */}
           <div className="mb-4" ref={searchDropdownRef}>
             <div className="relative">
               <div 
@@ -699,27 +1383,52 @@ export default function ContractList() {
               >
                 <Search className="text-gray-400 flex-shrink-0" size={16} />
                 
+                {/* Filter Chips */}
+                {memberFilters.map((filter) => (
+                  <div 
+                    key={filter.memberId}
+                    className="flex items-center gap-1.5 bg-[#3F74FF]/20 border border-[#3F74FF]/40 rounded-lg px-2 py-1 text-sm"
+                  >
+                    <div className="w-5 h-5 rounded bg-[#2a2a2a] flex items-center justify-center flex-shrink-0">
+                      <FileText size={12} className="text-orange-400" />
+                    </div>
+                    <span className="text-white text-xs whitespace-nowrap">{filter.memberName}</span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveFilter(filter.memberId);
+                      }}
+                      className="p-0.5 hover:bg-[#3F74FF]/30 rounded transition-colors"
+                    >
+                      <X size={12} className="text-gray-400 hover:text-white" />
+                    </button>
+                  </div>
+                ))}
+                
+                {/* Search Input */}
                 <input
                   ref={searchInputRef}
                   type="text"
-                  placeholder="Search contracts..."
+                  placeholder={memberFilters.length > 0 ? "Add more..." : "Search contracts..."}
                   value={searchQuery}
                   onChange={(e) => {
                     setSearchQuery(e.target.value)
                     setShowSearchDropdown(true)
                   }}
                   onFocus={() => searchQuery && setShowSearchDropdown(true)}
+                  onKeyDown={handleSearchKeyDown}
                   className="flex-1 min-w-[100px] bg-transparent outline-none text-sm text-white placeholder-gray-500"
                 />
                 
-                {searchQuery && (
+                {/* Clear All Button */}
+                {memberFilters.length > 0 && (
                   <button
                     onClick={(e) => {
                       e.stopPropagation()
-                      setSearchQuery("")
-                      setShowSearchDropdown(false)
+                      setMemberFilters([])
                     }}
                     className="p-1 hover:bg-gray-700 rounded-lg transition-colors flex-shrink-0"
+                    title="Clear all filters"
                   >
                     <X size={14} className="text-gray-400 hover:text-white" />
                   </button>
@@ -727,23 +1436,20 @@ export default function ContractList() {
               </div>
               
               {/* Autocomplete Dropdown */}
-              {showSearchDropdown && searchQuery.trim() && searchMatches.length > 0 && (
+              {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length > 0 && (
                 <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a1a] border border-[#333333] rounded-xl shadow-lg z-50 overflow-hidden">
-                  {searchMatches.map((contract) => (
+                  {getSearchSuggestions().map((member) => (
                     <button
-                      key={contract.id}
-                      onClick={() => {
-                        setSearchQuery(contract.memberName)
-                        setShowSearchDropdown(false)
-                      }}
+                      key={member.memberId}
+                      onClick={() => handleSelectMember(member)}
                       className="w-full px-3 py-2.5 flex items-center gap-3 hover:bg-[#252525] transition-colors text-left"
                     >
-                      <div className="w-9 h-9 bg-[#2a2a2a] rounded-xl flex items-center justify-center flex-shrink-0">
-                        <FileText size={18} className="text-orange-400" />
+                      <div className="w-8 h-8 rounded-lg bg-[#2a2a2a] flex items-center justify-center flex-shrink-0">
+                        <FileText size={16} className="text-orange-400" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-white truncate">{contract.memberName}</p>
-                        <p className="text-xs text-gray-500 truncate">{contract.contractType}</p>
+                        <p className="text-sm text-white truncate">{member.memberName}</p>
+                        <p className="text-xs text-gray-500 truncate">{member.contractType}</p>
                       </div>
                     </button>
                   ))}
@@ -751,9 +1457,9 @@ export default function ContractList() {
               )}
               
               {/* No results message */}
-              {showSearchDropdown && searchQuery.trim() && searchMatches.length === 0 && (
+              {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length === 0 && (
                 <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a1a] border border-[#333333] rounded-xl shadow-lg z-50 p-3">
-                  <p className="text-sm text-gray-500 text-center">No contracts found</p>
+                  <p className="text-sm text-gray-500 text-center">No members found</p>
                 </div>
               )}
             </div>
@@ -827,7 +1533,7 @@ export default function ContractList() {
                   onClick={() => setFilterStatus('all')}
                   className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatus === 'all' ? "bg-blue-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}
                 >
-                  All ({new Set(contracts.map(c => c.memberId)).size})
+                  All ({contracts.length})
                 </button>
                 <button
                   onClick={() => setFilterStatus('active')}
@@ -836,10 +1542,16 @@ export default function ContractList() {
                   Active ({contracts.filter((c) => c.status === "Active").length})
                 </button>
                 <button
-                  onClick={() => setFilterStatus('ongoing')}
-                  className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatus === 'ongoing' ? "bg-blue-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}
+                  onClick={() => setFilterStatus('scheduled')}
+                  className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatus === 'scheduled' ? "bg-blue-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}
                 >
-                  Ongoing ({contracts.filter((c) => c.status === "Ongoing").length})
+                  Scheduled ({contracts.filter((c) => c.status === "Scheduled").length})
+                </button>
+                <button
+                  onClick={() => setFilterStatus('pending')}
+                  className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatus === 'pending' ? "bg-blue-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}
+                >
+                  Pending ({contracts.filter((c) => c.status === "Pending").length})
                 </button>
                 <button
                   onClick={() => setFilterStatus('paused')}
@@ -861,374 +1573,188 @@ export default function ContractList() {
         <div className="open_sans_font">
           {viewMode === "list" ? (
             // LIST VIEW
-            isCompactView ? (
-              // COMPACT LIST VIEW - Mobile
-              <div className="space-y-2">
-                {filteredAndSortedContracts().length > 0 ? (
-                  filteredAndSortedContracts().map((contract) => (
-                    <div key={contract.id} className="bg-[#161616] rounded-xl overflow-hidden">
-                      {/* Collapsed Row */}
+            <>
+              {/* Desktop Table - unified compact/detailed */}
+              <div className="hidden lg:block">
+                <div className="bg-[#161616] rounded-xl overflow-visible">
+                  {/* Table Header */}
+                  <div className={`grid grid-cols-[auto_1fr_1.5fr_1fr_1fr_0.8fr_1.5fr_auto] gap-4 px-4 bg-[#0f0f0f] text-gray-400 font-medium border-b border-gray-800 rounded-t-xl ${isCompactView ? 'py-2 text-xs' : 'py-3 text-sm'}`}>
+                    <div className={`text-center pr-4 ${isCompactView ? 'w-14' : 'w-20'}`}>Contract</div>
+                    <div>Contract No.</div>
+                    <div>Name</div>
+                    <div>Contract Type</div>
+                    <div>Status</div>
+                    <div>Auto Renewal</div>
+                    <div>Contract Duration</div>
+                    <div className={`text-right ${isCompactView ? 'w-20' : 'w-24'}`}>Actions</div>
+                  </div>
+                  {/* Table Body */}
+                  {filteredAndSortedContracts().length > 0 ? (
+                    filteredAndSortedContracts().map((contract) => (
                       <div
-                        className="p-3 cursor-pointer"
-                        onClick={() => setExpandedMobileRowId(expandedMobileRowId === contract.id ? null : contract.id)}
+                        key={contract.id}
+                        className={`grid grid-cols-[auto_1fr_1.5fr_1fr_1fr_0.8fr_1.5fr_auto] gap-4 px-4 items-center border-b border-gray-800/50 hover:bg-[#1a1a1a] transition-colors relative ${isCompactView ? 'py-2' : 'py-3'}`}
                       >
-                        <div className="flex items-center gap-3">
+                        {isExpiredContract(contract) && (
+                          <div className="absolute inset-0 bg-black/55 z-[40] pointer-events-none" />
+                        )}
+                        <div className={`flex items-center justify-center pr-4 ${isCompactView ? 'w-14' : 'w-20'}`}>
                           <button
-                            onClick={(e) => { e.stopPropagation(); handleManageDocuments(contract); }}
-                            className="w-9 h-9 bg-[#2a2a2a] rounded-xl flex items-center justify-center flex-shrink-0 hover:bg-[#3a3a3a] transition-colors"
+                            onClick={() => handleManageDocuments(contract)}
+                            className={`bg-[#2a2a2a] rounded-xl flex items-center justify-center hover:bg-[#3a3a3a] transition-colors cursor-pointer ${isCompactView ? 'w-8 h-8' : 'w-10 h-10'}`}
                             title="Open Contract Documents"
                           >
-                            <FileText size={18} className="text-orange-400" />
+                            <FileText size={isCompactView ? 16 : 20} className="text-orange-400" />
                           </button>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span className="text-white font-medium text-sm truncate">{contract.memberName}</span>
-                            </div>
-                            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                              <StatusTag status={contract.status} compact={true} />
-                              <span className="text-gray-400 text-xs">{contract.contractType}</span>
-                            </div>
-                          </div>
-                          <ChevronDown
-                            size={18}
-                            className={`text-gray-500 transition-transform duration-200 ${expandedMobileRowId === contract.id ? 'rotate-180' : ''}`}
-                          />
                         </div>
-                      </div>
-
-                      {/* Expandable Actions Panel */}
-                      <div className={`overflow-hidden transition-all duration-200 ease-in-out ${expandedMobileRowId === contract.id ? 'max-h-56 opacity-100' : 'max-h-0 opacity-0'}`}>
-                        <div className="px-3 pb-3 pt-1">
-                          <div className="bg-[#0f0f0f] rounded-xl p-2">
-                            {/* Contract Info */}
-                            <div className="flex items-center justify-center gap-2 mb-2 flex-wrap">
-                              <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-700/50 text-gray-300">
-                                {formatDate(contract.startDate)} - {formatDate(contract.endDate)}
-                              </span>
-                              {isContractExpiringSoon(contract.endDate) && (
-                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-500/20 text-red-400">
-                                  Expiring
+                        <div className={`text-gray-400 truncate ${isCompactView ? 'text-xs' : 'text-sm'}`} title={contract.contractNumber || '-'}>
+                          {contract.contractNumber || '-'}
+                        </div>
+                        <div className="flex items-center">
+                          <span className={`text-white font-medium ${isCompactView ? 'text-xs' : 'text-sm'}`}>{contract.memberName}</span>
+                        </div>
+                        <div className={`text-gray-300 ${isCompactView ? 'text-xs' : 'text-sm'}`}>{contract.contractType}</div>
+                        <div><StatusTag status={contract.status} compact={true} pauseReason={contract.pauseReason} pauseStartDate={contract.pauseStartDate} pauseEndDate={contract.pauseEndDate} cancelReason={contract.cancelReason} cancelDate={contract.cancelDate} scheduledStartDate={contract.scheduledStartDate} /></div>
+                        <div className={`text-gray-300 ${isCompactView ? 'text-xs' : 'text-sm'}`}>
+                          {(() => {
+                            const renewalInfo = getAutoRenewalInfo(contract)
+                            const isCancelled = contract.status === 'Cancelled'
+                            return renewalInfo.hasRenewal ? (
+                              <div className="relative group inline-flex">
+                                <span className={`flex items-center gap-1 cursor-pointer transition-transform duration-200 hover:scale-110 ${isCancelled ? 'text-gray-500 line-through' : 'text-orange-400'}`}>
+                                  <RefreshCw size={isCompactView ? 10 : 12} /> Yes
                                 </span>
-                              )}
-                            </div>
-                            <div className="grid grid-cols-3 gap-1">
-                              {contract.status === "Ongoing" ? (
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); handleEditContract(contract); }}
-                                  className="flex flex-col items-center gap-1 p-2 text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors"
-                                >
-                                  <Pencil size={18} />
-                                  <span className="text-[10px]">Edit</span>
-                                </button>
-                              ) : (
-                                <div className="p-2" />
-                              )}
-                              <button
-                                onClick={(e) => { e.stopPropagation(); handleViewHistory(contract.id); }}
-                                className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-                              >
-                                <History size={18} />
-                                <span className="text-[10px]">History</span>
-                              </button>
-                              <div className="p-2" />
-                            </div>
-                            {/* Status-based action buttons */}
-                            <div className="grid grid-cols-4 gap-1 mt-1">
-                              {/* Ongoing: only Delete */}
-                              {contract.status === "Ongoing" && (
-                                <>
-                                  <div className="p-2" />
-                                  <div className="p-2" />
-                                  <div className="p-2" />
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); handleDeleteContract(contract.id); }}
-                                    className="flex flex-col items-center gap-1 p-2 text-red-400 hover:text-red-300 hover:bg-white/5 rounded-lg transition-colors"
-                                  >
-                                    <Trash2 size={18} />
-                                    <span className="text-[10px]">Delete</span>
-                                  </button>
-                                </>
-                              )}
-
-                              {/* Cancelled: only Renew */}
-                              {contract.status === "Cancelled" && (
-                                <>
-                                  <div className="p-2" />
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); }}
-                                    className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-                                  >
-                                    <RefreshCw size={18} />
-                                    <span className="text-[10px]">Renew</span>
-                                  </button>
-                                  <div className="p-2" />
-                                  <div className="p-2" />
-                                </>
-                              )}
-
-                              {/* Paused: Resume, Renew, Cancel */}
-                              {contract.status === "Paused" && (
-                                <>
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); handleResumeContract(contract.id); }}
-                                    className="flex flex-col items-center gap-1 p-2 text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors"
-                                  >
-                                    <PlayCircle size={18} />
-                                    <span className="text-[10px]">Resume</span>
-                                  </button>
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); }}
-                                    className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-                                  >
-                                    <RefreshCw size={18} />
-                                    <span className="text-[10px]">Renew</span>
-                                  </button>
-                                  <div className="p-2" />
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); handleCancelContract(contract.id); }}
-                                    className="flex flex-col items-center gap-1 p-2 text-red-400 hover:text-red-300 hover:bg-white/5 rounded-lg transition-colors"
-                                  >
-                                    <XCircle size={18} />
-                                    <span className="text-[10px]">Cancel</span>
-                                  </button>
-                                </>
-                              )}
-
-                              {/* Active: Pause, Renew, Cancel */}
-                              {contract.status === "Active" && (
-                                <>
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); handlePauseContract(contract.id); }}
-                                    className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-                                  >
-                                    <PauseCircle size={18} />
-                                    <span className="text-[10px]">Pause</span>
-                                  </button>
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); }}
-                                    className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-                                  >
-                                    <RefreshCw size={18} />
-                                    <span className="text-[10px]">Renew</span>
-                                  </button>
-                                  <div className="p-2" />
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); handleCancelContract(contract.id); }}
-                                    className="flex flex-col items-center gap-1 p-2 text-red-400 hover:text-red-300 hover:bg-white/5 rounded-lg transition-colors"
-                                  >
-                                    <XCircle size={18} />
-                                    <span className="text-[10px]">Cancel</span>
-                                  </button>
-                                </>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-8">
-                    <p className="text-gray-400 text-sm">No contracts found.</p>
-                  </div>
-                )}
-              </div>
-            ) : (
-              // DETAILED LIST VIEW - Desktop Table
-              <>
-                {/* Desktop Table */}
-                <div className="hidden lg:block">
-                  <div className="bg-[#161616] rounded-xl overflow-visible">
-                    {/* Table Header */}
-                    <div className="grid grid-cols-[auto_2fr_1fr_1fr_0.8fr_1.5fr_auto] gap-4 px-4 py-3 bg-[#0f0f0f] text-gray-400 text-sm font-medium border-b border-gray-800 rounded-t-xl">
-                      <div className="w-20 text-center pr-4">Contract</div>
-                      <div>Member</div>
-                      <div>Contract Type</div>
-                      <div>Status</div>
-                      <div>Auto Renewal</div>
-                      <div>Duration</div>
-                      <div className="w-24 text-right">Actions</div>
-                    </div>
-
-                    {/* Table Body */}
-                    {filteredAndSortedContracts().length > 0 ? (
-                      filteredAndSortedContracts().map((contract) => (
-                        <div
-                          key={contract.id}
-                          className="grid grid-cols-[auto_2fr_1fr_1fr_0.8fr_1.5fr_auto] gap-4 px-4 py-3 items-center border-b border-gray-800/50 hover:bg-[#1a1a1a] transition-colors"
-                        >
-                          <div className="w-20 flex items-center justify-center pr-4">
-                            <button
-                              onClick={() => handleManageDocuments(contract)}
-                              className="w-10 h-10 bg-[#2a2a2a] rounded-xl flex items-center justify-center hover:bg-[#3a3a3a] transition-colors cursor-pointer"
-                              title="Open Contract Documents"
-                            >
-                              <FileText size={20} className="text-orange-400" />
-                            </button>
-                          </div>
-                          <div className="flex items-center">
-                            <span className="text-white font-medium">{contract.memberName}</span>
-                          </div>
-                          <div className="text-gray-300">{contract.contractType}</div>
-                          <div><StatusTag status={contract.status} compact={true} /></div>
-                          <div className="text-gray-300 text-sm">
-                            {contract.autoRenewal ? (
-                              <span className="text-orange-400 flex items-center gap-1">
-                                <RefreshCw size={12} /> Yes
-                              </span>
+                                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/95 text-white px-3 py-2 rounded-lg text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none">
+                                  <div className={`flex items-center gap-2 ${isCancelled ? 'line-through text-gray-400' : ''}`}>
+                                    <RefreshCw size={10} className={isCancelled ? 'text-gray-500' : 'text-orange-400'} />
+                                    <span>{renewalInfo.tooltip}</span>
+                                  </div>
+                                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/95" />
+                                </div>
+                              </div>
                             ) : (
                               <span className="text-gray-500">No</span>
-                            )}
-                          </div>
-                          <div className="text-gray-400 text-sm">
-                            {formatDate(contract.startDate)} - {formatDate(contract.endDate)}
-                            {isContractExpiringSoon(contract.endDate) && (
-                              <span className="ml-2 text-red-400 text-xs flex items-center gap-1 inline-flex">
-                                <AlertTriangle size={12} />
-                                Expiring
+                            )
+                          })()}
+                        </div>
+                        <div className={`text-gray-400 ${isCompactView ? 'text-xs' : 'text-sm'}`}>
+                          {contract.status === "Pending" ? (
+                            <span className="text-gray-600 italic">—</span>
+                          ) : (
+                          <>
+                          {formatDate(contract.startDate)} - {(() => {
+                            const eff = getEffectiveEndDate(contract)
+                            if (eff.isCancelledEarly) return <span className="text-red-400 font-medium">{formatDate(contract.endDate)}</span>
+                            if (eff.isExtended) return <span className="text-orange-400 font-medium">{formatDate(eff.date)}</span>
+                            return formatDate(contract.endDate)
+                          })()}
+                          {shouldShowExpiring(contract) && (
+                            <span className={`ml-2 text-red-400 flex items-center gap-1 inline-flex ${isCompactView ? 'text-[10px]' : 'text-xs'}`}>
+                              <AlertTriangle size={isCompactView ? 10 : 12} />
+                              Expiring
+                            </span>
+                          )}
+                          {contract.bonusTime && (
+                            <div className="relative group inline-flex ml-2">
+                              <span className={`text-orange-400 flex items-center gap-1 cursor-pointer transition-transform duration-200 hover:scale-110 ${isCompactView ? 'text-[10px]' : 'text-xs'}`}>
+                                <Gift size={isCompactView ? 10 : 12} />
+                                Bonus
                               </span>
-                            )}
-                          </div>
-                          <div className="w-24 flex items-center justify-end gap-0.5">
-                            {contract.status === "Ongoing" ? (
-                              <button
-                                onClick={() => handleEditContract(contract)}
-                                className="p-2 text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors"
-                                title="Edit"
-                              >
-                                <Pencil size={18} />
-                              </button>
-                            ) : (
-                              <div className="p-2 w-[34px]" />
-                            )}
-                            <button
-                              onClick={() => handleViewHistory(contract.id)}
-                              className="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-                              title="History"
-                            >
-                              <History size={18} />
-                            </button>
-                            <div className="relative dropdown-trigger">
-                              <button
-                                onClick={(e) => toggleDropdownContract(contract.id, e)}
-                                className="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-                              >
-                                <MoreVertical size={18} />
-                              </button>
-                              {activeDropdownId === contract.id && (
-                                <div className="dropdown-menu absolute bottom-full right-0 mb-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-xl z-[9999] min-w-[150px] py-1">
-                                  {/* Ongoing: only Delete */}
-                                  {contract.status === "Ongoing" && (
-                                    <button
-                                      onClick={(e) => { e.stopPropagation(); handleDeleteContract(contract.id); setActiveDropdownId(null); }}
-                                      className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-gray-800 flex items-center gap-2"
-                                    >
-                                      <Trash2 size={14} /> Delete
-                                    </button>
-                                  )}
-
-                                  {/* Cancelled: only Renew */}
-                                  {contract.status === "Cancelled" && (
-                                    <button
-                                      onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); setActiveDropdownId(null); }}
-                                      className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 flex items-center gap-2"
-                                    >
-                                      <RefreshCw size={14} /> Renew
-                                    </button>
-                                  )}
-
-                                  {/* Paused: Resume, Renew, Bonus Time, Change, Cancel */}
-                                  {contract.status === "Paused" && (
-                                    <>
-                                      <button
-                                        onClick={(e) => { e.stopPropagation(); handleResumeContract(contract.id); setActiveDropdownId(null); }}
-                                        className="w-full text-left px-3 py-2 text-sm text-orange-400 hover:bg-gray-800 flex items-center gap-2"
-                                      >
-                                        <PlayCircle size={14} /> Resume
-                                      </button>
-                                      <button
-                                        onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); setActiveDropdownId(null); }}
-                                        className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 flex items-center gap-2"
-                                      >
-                                        <RefreshCw size={14} /> Renew
-                                      </button>
-                                      <button
-                                        onClick={(e) => { e.stopPropagation(); handleAddBonusTime(contract.id); setActiveDropdownId(null); }}
-                                        className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 flex items-center gap-2"
-                                      >
-                                        <Gift size={14} /> Bonus Time
-                                      </button>
-                                      <button
-                                        onClick={(e) => { e.stopPropagation(); handleChangeContract(contract.id); setActiveDropdownId(null); }}
-                                        className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 flex items-center gap-2"
-                                      >
-                                        <ArrowRightLeft size={14} /> Change
-                                      </button>
-                                      <hr className="border-gray-700 my-1" />
-                                      <button
-                                        onClick={(e) => { e.stopPropagation(); handleCancelContract(contract.id); setActiveDropdownId(null); }}
-                                        className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-gray-800 flex items-center gap-2"
-                                      >
-                                        <XCircle size={14} /> Cancel
-                                      </button>
-                                    </>
-                                  )}
-
-                                  {/* Active: Pause, Renew, Bonus Time, Change, Cancel */}
-                                  {contract.status === "Active" && (
-                                    <>
-                                      <button
-                                        onClick={(e) => { e.stopPropagation(); handlePauseContract(contract.id); setActiveDropdownId(null); }}
-                                        className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 flex items-center gap-2"
-                                      >
-                                        <PauseCircle size={14} /> Pause
-                                      </button>
-                                      <button
-                                        onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); setActiveDropdownId(null); }}
-                                        className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 flex items-center gap-2"
-                                      >
-                                        <RefreshCw size={14} /> Renew
-                                      </button>
-                                      <button
-                                        onClick={(e) => { e.stopPropagation(); handleAddBonusTime(contract.id); setActiveDropdownId(null); }}
-                                        className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 flex items-center gap-2"
-                                      >
-                                        <Gift size={14} /> Bonus Time
-                                      </button>
-                                      <button
-                                        onClick={(e) => { e.stopPropagation(); handleChangeContract(contract.id); setActiveDropdownId(null); }}
-                                        className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 flex items-center gap-2"
-                                      >
-                                        <ArrowRightLeft size={14} /> Change
-                                      </button>
-                                      <hr className="border-gray-700 my-1" />
-                                      <button
-                                        onClick={(e) => { e.stopPropagation(); handleCancelContract(contract.id); setActiveDropdownId(null); }}
-                                        className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-gray-800 flex items-center gap-2"
-                                      >
-                                        <XCircle size={14} /> Cancel
-                                      </button>
-                                    </>
-                                  )}
-                                </div>
-                              )}
+                              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/95 text-white px-3 py-2 rounded-lg text-xs opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none max-w-[280px]">
+                                {(() => {
+                                  const eff = getEffectiveEndDate(contract)
+                                  return (
+                                    <div className="flex items-start gap-2">
+                                      <Gift size={10} className="text-orange-400 mt-0.5 flex-shrink-0" />
+                                      <div className="min-w-0 overflow-hidden">
+                                        <span className="font-medium whitespace-nowrap">{contract.bonusTime.bonusAmount} {contract.bonusTime.bonusUnit}</span>
+                                        {contract.bonusTime.reason && <span className="text-gray-300 block truncate"> — {contract.bonusTime.reason}</span>}
+                                        {eff.bonusPeriod && <span className="text-gray-400 block whitespace-nowrap mt-0.5">{eff.bonusPeriod}</span>}
+                                        {contract.bonusTime.withExtension 
+                                          ? <span className="text-green-400 block text-[10px] mt-0.5">+ Contract extension</span>
+                                          : <span className="text-gray-500 block text-[10px] mt-0.5">Without extension</span>
+                                        }
+                                      </div>
+                                    </div>
+                                  )
+                                })()}
+                                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/95" />
+                              </div>
                             </div>
+                          )}
+                          </>
+                          )}
+                        </div>
+                        <div className={`flex items-center justify-end gap-0.5 ${isCompactView ? 'w-20' : 'w-24'}`}>
+                          {contract.status === "Pending" ? (
+                            <button onClick={() => handleEditContract(contract)} className={`text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Edit">
+                              <Pencil size={isCompactView ? 14 : 18} />
+                            </button>
+                          ) : (
+                            <div className={`${isCompactView ? 'p-1.5 w-[28px]' : 'p-2 w-[34px]'}`} />
+                          )}
+                          <button onClick={() => handleViewHistory(contract.id)} className={`text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors ${isCompactView ? 'p-1.5' : 'p-2'}`} title="History">
+                            <History size={isCompactView ? 14 : 18} />
+                          </button>
+                          <div className="relative dropdown-trigger">
+                            <button onClick={(e) => toggleDropdownContract(contract.id, e)} className={`text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors ${isCompactView ? 'p-1.5' : 'p-2'}`}>
+                              <MoreVertical size={isCompactView ? 14 : 18} />
+                            </button>
+                            {activeDropdownId === contract.id && (
+                              <div className="dropdown-menu absolute bottom-full right-0 mb-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-xl z-[9999] min-w-[190px] py-1">
+                                {contract.status === "Pending" && (
+                                  <button onClick={(e) => { e.stopPropagation(); handleDeleteContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-gray-800 flex items-center gap-2"><Trash2 size={14} /> Delete</button>
+                                )}
+                                {contract.status === "Cancelled" && (
+                                  <button onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 flex items-center gap-2"><RefreshCw size={14} /> Renew</button>
+                                )}
+                                {contract.status === "Scheduled" && (
+                                  <button onClick={(e) => { e.stopPropagation(); handleCancelContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-gray-800 flex items-center gap-2"><XCircle size={14} /> Cancel</button>
+                                )}
+                                {contract.status === "Paused" && (
+                                  <>
+                                    <button onClick={(e) => { e.stopPropagation(); handleResumeContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-orange-400 hover:bg-gray-800 flex items-center gap-2"><PlayCircle size={14} /> Resume</button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 flex items-center gap-2"><RefreshCw size={14} /> Renew</button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleAddBonusTime(contract.id); setActiveDropdownId(null); }} className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 flex items-center gap-2 ${contract.bonusTime ? 'text-orange-400' : 'text-gray-300'}`}><Gift size={14} /> {contract.bonusTime ? 'Edit Bonus Time' : 'Add Bonus Time'}</button>
+                                    {contract.bonusTime && (<button onClick={(e) => { e.stopPropagation(); handleRemoveBonusTime(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-gray-800 flex items-center gap-2"><Trash2 size={14} /> Remove Bonus Time</button>)}
+                                    <button onClick={(e) => { e.stopPropagation(); handleChangeContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 flex items-center gap-2"><ArrowRightLeft size={14} /> Change</button>
+                                    <hr className="border-gray-700 my-1" />
+                                    <button onClick={(e) => { e.stopPropagation(); handleCancelContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-gray-800 flex items-center gap-2"><XCircle size={14} /> Cancel</button>
+                                  </>
+                                )}
+                                {contract.status === "Active" && (
+                                  <>
+                                    <button onClick={(e) => { e.stopPropagation(); handlePauseContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 flex items-center gap-2"><PauseCircle size={14} /> Pause</button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 flex items-center gap-2"><RefreshCw size={14} /> Renew</button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleAddBonusTime(contract.id); setActiveDropdownId(null); }} className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 flex items-center gap-2 ${contract.bonusTime ? 'text-orange-400' : 'text-gray-300'}`}><Gift size={14} /> {contract.bonusTime ? 'Edit Bonus Time' : 'Add Bonus Time'}</button>
+                                    {contract.bonusTime && (<button onClick={(e) => { e.stopPropagation(); handleRemoveBonusTime(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-gray-800 flex items-center gap-2"><Trash2 size={14} /> Remove Bonus Time</button>)}
+                                    <button onClick={(e) => { e.stopPropagation(); handleChangeContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 flex items-center gap-2"><ArrowRightLeft size={14} /> Change</button>
+                                    <hr className="border-gray-700 my-1" />
+                                    <button onClick={(e) => { e.stopPropagation(); handleCancelContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-gray-800 flex items-center gap-2"><XCircle size={14} /> Cancel</button>
+                                  </>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </div>
-                      ))
-                    ) : (
-                      <div className="text-center py-8">
-                        <p className="text-gray-400 text-sm">No contracts found.</p>
                       </div>
-                    )}
-                  </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-gray-400 text-sm">No contracts found.</p>
+                    </div>
+                  )}
                 </div>
+              </div>
 
-                {/* Mobile List */}
+              {/* Mobile List */}
                 <div className="lg:hidden space-y-2">
                   {filteredAndSortedContracts().length > 0 ? (
                     filteredAndSortedContracts().map((contract) => (
-                      <div key={contract.id} className="bg-[#161616] rounded-xl overflow-hidden">
+                      <div key={contract.id} className={`bg-[#161616] rounded-xl relative ${isExpiredContract(contract) ? 'overflow-visible' : 'overflow-hidden'}`}>
+                        {isExpiredContract(contract) && (
+                          <div className="absolute inset-0 bg-black/55 z-[40] pointer-events-none rounded-xl" />
+                        )}
                         <div
                           className="p-3 cursor-pointer"
                           onClick={() => setExpandedMobileRowId(expandedMobileRowId === contract.id ? null : contract.id)}
@@ -1242,9 +1768,14 @@ export default function ContractList() {
                               <FileText size={22} className="text-orange-400" />
                             </button>
                             <div className="flex-1 min-w-0">
-                              <span className="text-white font-medium truncate block">{contract.memberName}</span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-white font-medium truncate">{contract.memberName}</span>
+                                {contract.contractNumber && (
+                                  <span className="text-gray-500 text-[10px] flex-shrink-0">#{contract.contractNumber}</span>
+                                )}
+                              </div>
                               <div className="flex items-center gap-2 mt-1">
-                                <StatusTag status={contract.status} compact={true} />
+                                <StatusTag status={contract.status} compact={true} pauseReason={contract.pauseReason} pauseStartDate={contract.pauseStartDate} pauseEndDate={contract.pauseEndDate} cancelReason={contract.cancelReason} cancelDate={contract.cancelDate} scheduledStartDate={contract.scheduledStartDate} />
                                 <span className="text-gray-400 text-xs">{contract.contractType}</span>
                               </div>
                             </div>
@@ -1255,85 +1786,137 @@ export default function ContractList() {
                           </div>
                         </div>
 
-                        <div className={`overflow-hidden transition-all duration-200 ease-in-out ${expandedMobileRowId === contract.id ? 'max-h-56 opacity-100' : 'max-h-0 opacity-0'}`}>
+                        <div className={`overflow-hidden transition-all duration-200 ease-in-out ${expandedMobileRowId === contract.id ? 'max-h-72 opacity-100' : 'max-h-0 opacity-0'}`}>
                           <div className="px-3 pb-3 pt-1">
                             <div className="bg-[#0f0f0f] rounded-xl p-2">
                               <div className="flex items-center justify-center gap-2 mb-2 flex-wrap">
-                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-700/50 text-gray-300">
-                                  {formatDate(contract.startDate)} - {formatDate(contract.endDate)}
-                                </span>
-                              </div>
-                              <div className="grid grid-cols-3 gap-1">
-                                {contract.status === "Ongoing" ? (
-                                  <button onClick={(e) => { e.stopPropagation(); handleEditContract(contract); }} className="flex flex-col items-center gap-1 p-2 text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors">
-                                    <Pencil size={18} /><span className="text-[10px]">Edit</span>
-                                  </button>
+                                {contract.status === "Pending" ? (
+                                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-700/50 text-gray-500 italic">—</span>
                                 ) : (
-                                  <div className="p-2" />
+                                <>
+                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-700/50 text-gray-300">
+                                  {formatDate(contract.startDate)} - {(() => {
+                                    const eff = getEffectiveEndDate(contract)
+                                    if (eff.isCancelledEarly) return <span className="text-red-400 font-medium">{formatDate(contract.endDate)}</span>
+                                    if (eff.isExtended) return <span className="text-orange-400 font-medium">{formatDate(eff.date)}</span>
+                                    return formatDate(contract.endDate)
+                                  })()}
+                                </span>
+                                {contract.bonusTime && (
+                                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 flex items-center gap-1">
+                                    <Gift size={10} /> Bonus
+                                  </span>
                                 )}
-                                <button onClick={(e) => { e.stopPropagation(); handleViewHistory(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
-                                  <History size={18} /><span className="text-[10px]">History</span>
-                                </button>
-                                <div className="p-2" />
+                                </>
+                                )}
                               </div>
-                              {/* Status-based action buttons */}
-                              <div className="grid grid-cols-4 gap-1 mt-1">
-                                {/* Ongoing: only Delete */}
-                                {contract.status === "Ongoing" && (
-                                  <>
-                                    <div className="p-2" />
-                                    <div className="p-2" />
-                                    <div className="p-2" />
-                                    <button onClick={(e) => { e.stopPropagation(); handleDeleteContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-red-400 hover:text-red-300 hover:bg-white/5 rounded-lg transition-colors">
-                                      <Trash2 size={18} /><span className="text-[10px]">Delete</span>
-                                    </button>
-                                  </>
-                                )}
-
-                                {/* Cancelled: only Renew */}
-                                {contract.status === "Cancelled" && (
-                                  <>
-                                    <div className="p-2" />
-                                    <button onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
-                                      <RefreshCw size={18} /><span className="text-[10px]">Renew</span>
-                                    </button>
-                                    <div className="p-2" />
-                                    <div className="p-2" />
-                                  </>
-                                )}
-
-                                {/* Paused: Resume, Renew, Cancel */}
-                                {contract.status === "Paused" && (
-                                  <>
-                                    <button onClick={(e) => { e.stopPropagation(); handleResumeContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors">
-                                      <PlayCircle size={18} /><span className="text-[10px]">Resume</span>
-                                    </button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
-                                      <RefreshCw size={18} /><span className="text-[10px]">Renew</span>
-                                    </button>
-                                    <div className="p-2" />
-                                    <button onClick={(e) => { e.stopPropagation(); handleCancelContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-red-400 hover:text-red-300 hover:bg-white/5 rounded-lg transition-colors">
-                                      <XCircle size={18} /><span className="text-[10px]">Cancel</span>
-                                    </button>
-                                  </>
-                                )}
-
-                                {/* Active: Pause, Renew, Cancel */}
-                                {contract.status === "Active" && (
-                                  <>
+                              {/* Status-based action icons - all visible like members */}
+                              {contract.status === "Active" && (
+                                <>
+                                  <div className="grid grid-cols-4 gap-1">
                                     <button onClick={(e) => { e.stopPropagation(); handlePauseContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
                                       <PauseCircle size={18} /><span className="text-[10px]">Pause</span>
                                     </button>
                                     <button onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
                                       <RefreshCw size={18} /><span className="text-[10px]">Renew</span>
                                     </button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleAddBonusTime(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors">
+                                      <Gift size={18} /><span className="text-[10px]">{contract.bonusTime ? 'Edit Bonus' : 'Bonus'}</span>
+                                    </button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleChangeContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                                      <ArrowRightLeft size={18} /><span className="text-[10px]">Change</span>
+                                    </button>
+                                  </div>
+                                  <div className="grid grid-cols-4 gap-1 mt-1">
+                                    <button onClick={(e) => { e.stopPropagation(); handleViewHistory(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                                      <History size={18} /><span className="text-[10px]">History</span>
+                                    </button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleManageDocuments(contract); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                                      <FileText size={18} /><span className="text-[10px]">Docs</span>
+                                    </button>
                                     <div className="p-2" />
                                     <button onClick={(e) => { e.stopPropagation(); handleCancelContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-red-400 hover:text-red-300 hover:bg-white/5 rounded-lg transition-colors">
                                       <XCircle size={18} /><span className="text-[10px]">Cancel</span>
                                     </button>
-                                  </>
-                                )}
-                              </div>
+                                  </div>
+                                </>
+                              )}
+
+                              {contract.status === "Paused" && (
+                                <>
+                                  <div className="grid grid-cols-4 gap-1">
+                                    <button onClick={(e) => { e.stopPropagation(); handleResumeContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors">
+                                      <PlayCircle size={18} /><span className="text-[10px]">Resume</span>
+                                    </button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                                      <RefreshCw size={18} /><span className="text-[10px]">Renew</span>
+                                    </button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleAddBonusTime(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors">
+                                      <Gift size={18} /><span className="text-[10px]">{contract.bonusTime ? 'Edit Bonus' : 'Bonus'}</span>
+                                    </button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleChangeContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                                      <ArrowRightLeft size={18} /><span className="text-[10px]">Change</span>
+                                    </button>
+                                  </div>
+                                  <div className="grid grid-cols-4 gap-1 mt-1">
+                                    <button onClick={(e) => { e.stopPropagation(); handleViewHistory(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                                      <History size={18} /><span className="text-[10px]">History</span>
+                                    </button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleManageDocuments(contract); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                                      <FileText size={18} /><span className="text-[10px]">Docs</span>
+                                    </button>
+                                    <div className="p-2" />
+                                    <button onClick={(e) => { e.stopPropagation(); handleCancelContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-red-400 hover:text-red-300 hover:bg-white/5 rounded-lg transition-colors">
+                                      <XCircle size={18} /><span className="text-[10px]">Cancel</span>
+                                    </button>
+                                  </div>
+                                </>
+                              )}
+
+                              {contract.status === "Pending" && (
+                                <div className="grid grid-cols-4 gap-1">
+                                  <button onClick={(e) => { e.stopPropagation(); handleEditContract(contract); }} className="flex flex-col items-center gap-1 p-2 text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors">
+                                    <Pencil size={18} /><span className="text-[10px]">Edit</span>
+                                  </button>
+                                  <button onClick={(e) => { e.stopPropagation(); handleViewHistory(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                                    <History size={18} /><span className="text-[10px]">History</span>
+                                  </button>
+                                  <button onClick={(e) => { e.stopPropagation(); handleManageDocuments(contract); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                                    <FileText size={18} /><span className="text-[10px]">Docs</span>
+                                  </button>
+                                  <button onClick={(e) => { e.stopPropagation(); handleDeleteContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-red-400 hover:text-red-300 hover:bg-white/5 rounded-lg transition-colors">
+                                    <Trash2 size={18} /><span className="text-[10px]">Delete</span>
+                                  </button>
+                                </div>
+                              )}
+
+                              {contract.status === "Cancelled" && (
+                                <div className="grid grid-cols-4 gap-1">
+                                  <button onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                                    <RefreshCw size={18} /><span className="text-[10px]">Renew</span>
+                                  </button>
+                                  <button onClick={(e) => { e.stopPropagation(); handleViewHistory(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                                    <History size={18} /><span className="text-[10px]">History</span>
+                                  </button>
+                                  <button onClick={(e) => { e.stopPropagation(); handleManageDocuments(contract); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                                    <FileText size={18} /><span className="text-[10px]">Docs</span>
+                                  </button>
+                                  <div className="p-2" />
+                                </div>
+                              )}
+
+                              {contract.status === "Scheduled" && (
+                                <div className="grid grid-cols-4 gap-1">
+                                  <button onClick={(e) => { e.stopPropagation(); handleManageDocuments(contract); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                                    <FileText size={18} /><span className="text-[10px]">Docs</span>
+                                  </button>
+                                  <div className="p-2" />
+                                  <div className="p-2" />
+                                  <button onClick={(e) => { e.stopPropagation(); handleCancelContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-red-400 hover:text-red-300 hover:bg-white/5 rounded-lg transition-colors">
+                                    <XCircle size={18} /><span className="text-[10px]">Cancel</span>
+                                  </button>
+                                </div>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -1346,95 +1929,201 @@ export default function ContractList() {
                   )}
                 </div>
               </>
-            )
           ) : (
             // GRID VIEW
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className={`grid gap-4 ${isCompactView 
+              ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5' 
+              : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'}`}>
               {filteredAndSortedContracts().length > 0 ? (
                 filteredAndSortedContracts().map((contract) => (
                   <div
                     key={contract.id}
-                    className="bg-[#161616] rounded-xl p-4 hover:bg-[#1a1a1a] transition-colors"
+                    className={`bg-[#161616] rounded-xl hover:bg-[#1a1a1a] transition-colors relative ${isCompactView ? 'p-3' : 'p-4'}`}
                   >
+                    {isExpiredContract(contract) && (
+                      <div className="absolute inset-0 bg-black/55 z-[40] pointer-events-none rounded-xl" />
+                    )}
                     <div className="flex flex-col items-center">
                       <button
                         onClick={() => handleManageDocuments(contract)}
-                        className="w-20 h-20 bg-[#2a2a2a] rounded-xl flex items-center justify-center mb-3 hover:bg-[#3a3a3a] transition-colors cursor-pointer"
+                        className={`bg-[#2a2a2a] rounded-xl flex items-center justify-center hover:bg-[#3a3a3a] transition-colors cursor-pointer ${isCompactView ? 'w-12 h-12 mb-2' : 'w-20 h-20 mb-3'}`}
                         title="Open Contract Documents"
                       >
-                        <FileText size={36} className="text-orange-400" />
+                        <FileText size={isCompactView ? 22 : 36} className="text-orange-400" />
                       </button>
-                      <h3 className="text-white font-medium text-lg text-center">{contract.memberName}</h3>
-                      <div className="flex items-center gap-2 mt-2">
-                        <StatusTag status={contract.status} />
+                      <h3 className={`text-white font-medium text-center ${isCompactView ? 'text-sm' : 'text-lg'}`}>{contract.memberName}</h3>
+                      {contract.contractNumber && (
+                        <p className={`text-gray-500 ${isCompactView ? 'text-[10px]' : 'text-xs'}`}>#{contract.contractNumber}</p>
+                      )}
+                      <div className={`flex items-center gap-2 ${isCompactView ? 'mt-1' : 'mt-2'}`}>
+                        <StatusTag status={contract.status} compact={isCompactView} pauseReason={contract.pauseReason} pauseStartDate={contract.pauseStartDate} pauseEndDate={contract.pauseEndDate} cancelReason={contract.cancelReason} cancelDate={contract.cancelDate} scheduledStartDate={contract.scheduledStartDate} />
                       </div>
-                      <p className="text-gray-400 text-sm mt-2">{contract.contractType}</p>
-                      <p className="text-gray-500 text-xs mt-1">
-                        {formatDate(contract.startDate)} - {formatDate(contract.endDate)}
+                      <p className={`text-gray-400 ${isCompactView ? 'text-xs mt-1' : 'text-sm mt-2'}`}>{contract.contractType}</p>
+                      {contract.status !== "Pending" && (
+                      <p className={`text-gray-500 mt-1 ${isCompactView ? 'text-[10px]' : 'text-xs'}`}>
+                        {formatDate(contract.startDate)} - {(() => {
+                          const eff = getEffectiveEndDate(contract)
+                          if (eff.isCancelledEarly) return <span className="text-red-400 font-medium">{formatDate(contract.endDate)}</span>
+                          if (eff.isExtended) return <span className="text-orange-400 font-medium">{formatDate(eff.date)}</span>
+                          return formatDate(contract.endDate)
+                        })()}
                       </p>
-                      <div className="flex items-center gap-1 mt-1 text-xs">
-                        {contract.autoRenewal ? (
-                          <span className="text-orange-400 flex items-center gap-1">
-                            <RefreshCw size={10} /> Auto Renewal
-                          </span>
-                        ) : (
-                          <span className="text-gray-500">No Auto Renewal</span>
-                        )}
-                      </div>
-                      {isContractExpiringSoon(contract.endDate) && (
-                        <span className="mt-2 text-xs px-2 py-1 rounded-full bg-red-500/20 text-red-400 flex items-center gap-1">
-                          <AlertTriangle size={12} /> Expiring
+                      )}
+                      {!isCompactView && (
+                        <div className="flex items-center gap-1 mt-1 text-xs">
+                          {(() => {
+                            const renewalInfo = getAutoRenewalInfo(contract)
+                            const isCancelled = contract.status === 'Cancelled'
+                            return renewalInfo.hasRenewal ? (
+                              <div className="relative group inline-flex">
+                                <span className={`flex items-center gap-1 cursor-pointer transition-transform duration-200 hover:scale-110 ${isCancelled ? 'text-gray-500 line-through' : 'text-orange-400'}`}>
+                                  <RefreshCw size={10} /> Auto Renewal
+                                </span>
+                                <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 bg-black/95 text-white px-3 py-2 rounded-lg text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none">
+                                  <div className={`flex items-center gap-2 ${isCancelled ? 'line-through text-gray-400' : ''}`}>
+                                    <RefreshCw size={10} className={isCancelled ? 'text-gray-500' : 'text-orange-400'} />
+                                    <span>{renewalInfo.tooltip}</span>
+                                  </div>
+                                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-black/95" />
+                                </div>
+                              </div>
+                            ) : (
+                              <span className="text-gray-500">No Auto Renewal</span>
+                            )
+                          })()}
+                        </div>
+                      )}
+                      {shouldShowExpiring(contract) && (
+                        <span className={`rounded-full bg-red-500/20 text-red-400 flex items-center gap-1 ${isCompactView ? 'mt-1 text-[10px] px-1.5 py-0.5' : 'mt-2 text-xs px-2 py-1'}`}>
+                          <AlertTriangle size={isCompactView ? 10 : 12} /> Expiring
                         </span>
+                      )}
+                      {contract.bonusTime && (
+                        <div className="relative group inline-flex mt-1">
+                          <span className={`rounded-full bg-orange-500/20 text-orange-400 flex items-center gap-1 cursor-pointer transition-transform duration-200 hover:scale-110 ${isCompactView ? 'text-[10px] px-1.5 py-0.5' : 'text-xs px-2 py-1'}`}>
+                            <Gift size={isCompactView ? 10 : 12} /> Bonus
+                          </span>
+                          <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 bg-black/95 text-white px-3 py-2 rounded-lg text-xs opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none max-w-[280px]">
+                            {(() => {
+                              const eff = getEffectiveEndDate(contract)
+                              return (
+                                <div className="flex items-start gap-2">
+                                  <Gift size={10} className="text-orange-400 mt-0.5 flex-shrink-0" />
+                                  <div className="min-w-0 overflow-hidden">
+                                    <span className="font-medium whitespace-nowrap">{contract.bonusTime.bonusAmount} {contract.bonusTime.bonusUnit}</span>
+                                    {contract.bonusTime.reason && <span className="text-gray-300 block truncate"> — {contract.bonusTime.reason}</span>}
+                                    {eff.bonusPeriod && <span className="text-gray-400 block whitespace-nowrap mt-0.5">{eff.bonusPeriod}</span>}
+                                    {contract.bonusTime.withExtension 
+                                      ? <span className="text-green-400 block text-[10px] mt-0.5">+ Contract extension</span>
+                                      : <span className="text-gray-500 block text-[10px] mt-0.5">Without extension</span>
+                                    }
+                                  </div>
+                                </div>
+                              )
+                            })()}
+                            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-black/95" />
+                          </div>
+                        </div>
                       )}
                     </div>
 
-                    {/* Action Buttons */}
-                    <div className="mt-4 pt-3 border-t border-gray-800">
-                      <div className="grid grid-cols-3 gap-1">
-                        {contract.status === "Ongoing" ? (
-                          <button
-                            onClick={() => handleEditContract(contract)}
-                            className="p-2 text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors flex items-center justify-center"
-                            title="Edit"
-                          >
-                            <Pencil size={16} />
-                          </button>
-                        ) : (
-                          <div className="p-2" />
+                    {/* Action Buttons - Members-style visible icons */}
+                    <div className={`bg-[#0a0a0a] rounded-lg ${isCompactView ? 'p-1.5 mt-2' : 'p-2 mt-4'}`}>
+                      {/* Row 1 - Status action icons */}
+                      <div className="grid grid-cols-5 gap-1">
+                        {/* Active: Pause, Renew, Bonus, Change, Cancel */}
+                        {contract.status === "Active" && (
+                          <>
+                            <button onClick={() => handlePauseContract(contract.id)} className={`text-gray-400 hover:text-white rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Pause">
+                              <PauseCircle size={isCompactView ? 14 : 16} />
+                            </button>
+                            <button onClick={() => handleRenewContract(contract.id)} className={`text-gray-400 hover:text-white rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Renew">
+                              <RefreshCw size={isCompactView ? 14 : 16} />
+                            </button>
+                            <button onClick={() => handleAddBonusTime(contract.id)} className={`text-orange-400 hover:text-orange-300 rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title={contract.bonusTime ? 'Edit Bonus Time' : 'Add Bonus Time'}>
+                              <Gift size={isCompactView ? 14 : 16} />
+                            </button>
+                            <button onClick={() => handleChangeContract(contract.id)} className={`text-gray-400 hover:text-white rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Change Contract">
+                              <ArrowRightLeft size={isCompactView ? 14 : 16} />
+                            </button>
+                            <button onClick={() => handleCancelContract(contract.id)} className={`text-red-400 hover:text-red-300 rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Cancel">
+                              <XCircle size={isCompactView ? 14 : 16} />
+                            </button>
+                          </>
                         )}
+
+                        {/* Paused: Resume, Renew, Bonus, Change, Cancel */}
+                        {contract.status === "Paused" && (
+                          <>
+                            <button onClick={() => handleResumeContract(contract.id)} className={`text-orange-400 hover:text-orange-300 rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Resume">
+                              <PlayCircle size={isCompactView ? 14 : 16} />
+                            </button>
+                            <button onClick={() => handleRenewContract(contract.id)} className={`text-gray-400 hover:text-white rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Renew">
+                              <RefreshCw size={isCompactView ? 14 : 16} />
+                            </button>
+                            <button onClick={() => handleAddBonusTime(contract.id)} className={`text-orange-400 hover:text-orange-300 rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title={contract.bonusTime ? 'Edit Bonus Time' : 'Add Bonus Time'}>
+                              <Gift size={isCompactView ? 14 : 16} />
+                            </button>
+                            <button onClick={() => handleChangeContract(contract.id)} className={`text-gray-400 hover:text-white rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Change Contract">
+                              <ArrowRightLeft size={isCompactView ? 14 : 16} />
+                            </button>
+                            <button onClick={() => handleCancelContract(contract.id)} className={`text-red-400 hover:text-red-300 rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Cancel">
+                              <XCircle size={isCompactView ? 14 : 16} />
+                            </button>
+                          </>
+                        )}
+
+                        {/* Pending: Edit, empty, empty, empty, Delete */}
+                        {contract.status === "Pending" && (
+                          <>
+                            <button onClick={() => handleEditContract(contract)} className={`text-orange-400 hover:text-orange-300 rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Edit">
+                              <Pencil size={isCompactView ? 14 : 16} />
+                            </button>
+                            <div className={isCompactView ? 'p-1.5' : 'p-2'} />
+                            <div className={isCompactView ? 'p-1.5' : 'p-2'} />
+                            <div className={isCompactView ? 'p-1.5' : 'p-2'} />
+                            <button onClick={() => handleDeleteContract(contract.id)} className={`text-red-400 hover:text-red-300 rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Delete">
+                              <Trash2 size={isCompactView ? 14 : 16} />
+                            </button>
+                          </>
+                        )}
+
+                        {/* Cancelled: empty, Renew, empty, empty, empty */}
+                        {contract.status === "Cancelled" && (
+                          <>
+                            <div className={isCompactView ? 'p-1.5' : 'p-2'} />
+                            <button onClick={() => handleRenewContract(contract.id)} className={`text-gray-400 hover:text-white rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Renew">
+                              <RefreshCw size={isCompactView ? 14 : 16} />
+                            </button>
+                            <div className={isCompactView ? 'p-1.5' : 'p-2'} />
+                            <div className={isCompactView ? 'p-1.5' : 'p-2'} />
+                            <div className={isCompactView ? 'p-1.5' : 'p-2'} />
+                          </>
+                        )}
+
+                        {/* Scheduled: empty, empty, empty, empty, Cancel */}
+                        {contract.status === "Scheduled" && (
+                          <>
+                            <div className={isCompactView ? 'p-1.5' : 'p-2'} />
+                            <div className={isCompactView ? 'p-1.5' : 'p-2'} />
+                            <div className={isCompactView ? 'p-1.5' : 'p-2'} />
+                            <div className={isCompactView ? 'p-1.5' : 'p-2'} />
+                            <button onClick={() => handleCancelContract(contract.id)} className={`text-red-400 hover:text-red-300 rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Cancel">
+                              <XCircle size={isCompactView ? 14 : 16} />
+                            </button>
+                          </>
+                        )}
+                      </div>
+
+                      {/* Row 2 - History button only */}
+                      <div className="flex justify-center mt-1">
                         <button
                           onClick={() => handleViewHistory(contract.id)}
-                          className="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors flex items-center justify-center"
-                          title="History"
+                          className={`text-gray-400 hover:text-white rounded-lg transition-colors flex items-center justify-center gap-1.5 ${isCompactView ? 'p-1' : 'p-2'}`}
                         >
-                          <History size={16} />
+                          <History size={isCompactView ? 12 : 14} />
+                          <span className={`font-medium ${isCompactView ? 'text-[10px]' : 'text-xs'}`}>History</span>
                         </button>
-                        {/* Status-based last button */}
-                        {contract.status === "Ongoing" ? (
-                          <button
-                            onClick={() => handleDeleteContract(contract.id)}
-                            className="p-2 text-red-400 hover:text-red-300 hover:bg-white/5 rounded-lg transition-colors flex items-center justify-center"
-                            title="Delete"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        ) : contract.status === "Paused" ? (
-                          <button
-                            onClick={() => handleResumeContract(contract.id)}
-                            className="p-2 text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors flex items-center justify-center"
-                            title="Resume"
-                          >
-                            <PlayCircle size={16} />
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => handleRenewContract(contract.id)}
-                            className="p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors flex items-center justify-center"
-                            title="Renew"
-                          >
-                            <RefreshCw size={16} />
-                          </button>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -1451,7 +2140,7 @@ export default function ContractList() {
         {/* Floating Action Button - Mobile */}
         <button
           onClick={handleAddContract}
-          className="sm:hidden fixed bottom-4 right-4 bg-[#3F74FF] hover:bg-[#3F74FF]/90 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
+          className="sm:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-50"
           aria-label="Create Contract"
         >
           <Plus size={22} />
@@ -1459,7 +2148,7 @@ export default function ContractList() {
 
         {/* Modals */}
         {isModalOpen && (
-          <AddContractModal
+          <ContractModal
             onClose={() => setIsModalOpen(false)}
             onSave={handleSaveNewContract}
             leadData={selectedLead}
@@ -1483,7 +2172,7 @@ export default function ContractList() {
         )}
 
         {isEditModalOpenContract && selectedContract && (
-          <EditContractModal
+          <ContractModal
             contract={selectedContract}
             onClose={() => setIsEditModalOpenContract(false)}
             onSave={handleSaveEditedContract}
@@ -1493,7 +2182,6 @@ export default function ContractList() {
         {isDocumentModalOpen && selectedContract && (
           <ContractManagement
             contract={selectedContract}
-            allContracts={contracts}
             onClose={() => setIsDocumentModalOpen(false)}
           />
         )}
@@ -1503,8 +2191,22 @@ export default function ContractList() {
             contract={selectedContract}
             onClose={() => setIsBonusTimeModalOpen(false)}
             onSubmit={(bonusData) => {
+              setContracts(contracts.map(c =>
+                c.id === selectedContract.id
+                  ? { ...c, bonusTime: bonusData }
+                  : c
+              ))
               setIsBonusTimeModalOpen(false)
-              toast.success("Bonus time added successfully")
+              toast.success(selectedContract.bonusTime ? "Bonus time updated successfully" : "Bonus time added successfully")
+            }}
+            onDelete={() => {
+              setContracts(contracts.map(c =>
+                c.id === selectedContract.id
+                  ? { ...c, bonusTime: null }
+                  : c
+              ))
+              setIsBonusTimeModalOpen(false)
+              toast.success("Bonus time removed")
             }}
           />
         )}
@@ -1520,8 +2222,50 @@ export default function ContractList() {
         {isChangeModalOpen && selectedContract && (
           <ChangeContractModal
             contract={selectedContract}
-            onClose={() => setIsChangeModalOpen(false)}
+            onClose={() => {
+              setIsChangeModalOpen(false)
+              setSelectedContract(null)
+              setChangeFormFillData(null)
+            }}
             onSubmit={handleChangeSubmit}
+            initialData={changeFormFillData?.changeData || null}
+          />
+        )}
+
+        {/* ContractFormFillModal for contract changes (signature required) */}
+        {isChangeFormFillOpen && changeFormFillData && (
+          <ContractFormFillModal
+            isOpen={isChangeFormFillOpen}
+            onClose={() => {
+              // Go back to the ChangeContractModal instead of closing everything
+              setIsChangeFormFillOpen(false)
+              setIsChangeModalOpen(true)
+              // Keep selectedContract and changeFormFillData so the change modal is still populated
+            }}
+            onSubmit={handleChangeFormFillComplete}
+            contractType={changeFormFillData.contractType}
+            contractData={{
+              memberId: changeFormFillData.contract.memberId,
+              startDate: changeFormFillData.changeData.startDate || changeFormFillData.contract.startDate,
+              endDate: changeFormFillData.changeData.endDate || changeFormFillData.contract.endDate,
+              trainingStartDate: changeFormFillData.contract.trainingStartDate,
+              sepaReference: changeFormFillData.contract.sepaMandate,
+            }}
+            leadData={{
+              firstName: changeFormFillData.contract.memberName?.split(' ')[0] || '',
+              lastName: changeFormFillData.contract.memberName?.split(' ').slice(1).join(' ') || '',
+              email: changeFormFillData.contract.email || '',
+              phone: changeFormFillData.contract.phone || '',
+              street: changeFormFillData.contract.address?.street || '',
+              zipCode: changeFormFillData.contract.address?.zipCode || '',
+              city: changeFormFillData.contract.address?.city || '',
+              dateOfBirth: changeFormFillData.contract.dateOfBirth || '',
+              iban: changeFormFillData.contract.iban || '',
+              bic: changeFormFillData.contract.bic || '',
+              bankName: changeFormFillData.contract.bankName || '',
+              salutation: changeFormFillData.contract.salutation || '',
+            }}
+            existingFormData={changeFormFillData.contract.formData?.formValues || null}
           />
         )}
 

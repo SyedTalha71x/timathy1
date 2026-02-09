@@ -2,9 +2,12 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
 import React from 'react';
+import { getTranslation } from '../shared/LanguageTabs';
 
 const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, productToDelete }) => {
   if (!isOpen) return null;
+
+  const productName = getTranslation(productToDelete?.productName, "en");
 
   return (
     <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -20,7 +23,7 @@ const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, productToDelete }
           </div>
 
           <p className="text-gray-300 mb-6">
-            Are you sure you want to delete <strong>"{productToDelete?.productName}"</strong>? This action cannot be undone.
+            Are you sure you want to delete <strong>"{productName}"</strong>? All translations will be permanently removed. This action cannot be undone.
           </p>
 
           <div className="flex space-x-3">

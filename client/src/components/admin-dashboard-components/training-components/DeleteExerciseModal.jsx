@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
-// components/DeleteExerciseModal.jsx
 import { Trash2 } from "lucide-react";
+import { getTranslation } from "../shared/LanguageTabs";
 
 export default function DeleteExerciseModal({
   isOpen,
@@ -9,6 +9,8 @@ export default function DeleteExerciseModal({
   onConfirmDelete,
 }) {
   if (!isOpen || !videoToDelete) return null;
+
+  const exerciseName = getTranslation(videoToDelete.name, "en");
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -29,8 +31,9 @@ export default function DeleteExerciseModal({
           </div>
 
           <p className="text-gray-300 mb-6 text-sm">
-            Are you sure you want to delete this exercise? All associated data
-            will be permanently removed.
+            Are you sure you want to delete{" "}
+            <strong className="text-white">&quot;{exerciseName}&quot;</strong>?
+            All associated data and translations will be permanently removed.
           </p>
 
           <div className="flex gap-3">

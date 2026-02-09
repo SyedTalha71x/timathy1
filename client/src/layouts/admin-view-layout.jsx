@@ -1,17 +1,46 @@
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
-import React, { useState } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import Sidebar from '../components/admin-dashboard-components/sidebar'
-import { Globe, History, X } from "lucide-react";
+import { Globe, History, X, Menu, Building2 } from "lucide-react";
+import OrgaGymLogoWihoutText from '../../public/Orgagym white without text.svg'
 
 const AdminDashboardLayout = () => {
   const navigate = useNavigate();
+
+  // Sidebar state
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [isLeftSidebarCollapsed, setIsLeftSidebarCollapsed] = useState(false)
+
+  const toggleSidebar = useCallback(() => setIsSidebarOpen(prev => !prev), [])
+  const closeSidebar = useCallback(() => setIsSidebarOpen(false), [])
+  const toggleLeftSidebarCollapse = useCallback(() => setIsLeftSidebarCollapsed(prev => !prev), [])
+
+  // Header state
   const [isLanguageDropdownOpen, setIsLanguageDropdownOpen] = useState(false)
   const [selectedLanguage, setSelectedLanguage] = useState("English")
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isActivityLogModalOpen, setIsActivityLogModalOpen] = useState(false)
+
+  // Refs for click-outside
+  const languageRef = useRef(null)
+  const profileRef = useRef(null)
+
+  // Close dropdowns on outside click
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (languageRef.current && !languageRef.current.contains(event.target)) {
+        setIsLanguageDropdownOpen(false)
+      }
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setIsDropdownOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => document.removeEventListener("mousedown", handleClickOutside)
+  }, [])
 
   const toggleLanguageDropdown = () => setIsLanguageDropdownOpen(!isLanguageDropdownOpen)
 
@@ -86,15 +115,13 @@ const AdminDashboardLayout = () => {
   const handleLanguageSelect = (language) => {
     setSelectedLanguage(language.name)
     setIsLanguageDropdownOpen(false)
-    console.log("Language selected:", language)
   }
 
   const toggleDropdownMain = () => setIsDropdownOpen(!isDropdownOpen)
 
-  const handleActivityLogClick = () => {
-    setIsActivityLogModalOpen(true)
-  }
+  const handleActivityLogClick = () => setIsActivityLogModalOpen(true)
 
+  const studioName = "Studio One"
   const fullName = "Admin Panel"
   const role = "Trainer"
 
@@ -110,35 +137,23 @@ const AdminDashboardLayout = () => {
 
   const getActivityIcon = (type) => {
     switch (type) {
-      case 'appointment':
-        return '📅'
-      case 'member':
-        return '👤'
-      case 'contract':
-        return '📝'
-      case 'payment':
-        return '💳'
-      case 'class':
-        return '🏋️'
-      default:
-        return '📋'
+      case 'appointment': return '📅'
+      case 'member': return '👤'
+      case 'contract': return '📄'
+      case 'payment': return '💳'
+      case 'class': return '🏋️'
+      default: return '📋'
     }
   }
 
   const getActivityColor = (type) => {
     switch (type) {
-      case 'appointment':
-        return 'border-blue-500'
-      case 'member':
-        return 'border-green-500'
-      case 'contract':
-        return 'border-purple-500'
-      case 'payment':
-        return 'border-yellow-500'
-      case 'class':
-        return 'border-orange-500'
-      default:
-        return 'border-gray-500'
+      case 'appointment': return 'border-blue-500'
+      case 'member': return 'border-green-500'
+      case 'contract': return 'border-purple-500'
+      case 'payment': return 'border-yellow-500'
+      case 'class': return 'border-orange-500'
+      default: return 'border-gray-500'
     }
   }
 
@@ -163,58 +178,146 @@ const AdminDashboardLayout = () => {
   return (
     <div className="bg-[#111111] min-h-screen">
       <div className="flex flex-col md:flex-row h-full">
-        <Sidebar />
-        <main className={`
-    flex-1 md:h-screen h-[calc(100vh-4rem)] overflow-y-auto 
-    lg:pt-5    /* large screens ke liye chhota padding */
-    md:pt-16   /* tablets ke liye 80px padding */
-    sm:pt-16   /* small screens ke liye 96px padding */
-    pt-20     /* extra-small (mobile) screens ke liye 112px padding */
-    pb-10 p-2
-  `}>
-          <div
-            className="lg:flex hidden rounded-md justify-start bg-[#1f1e1e] z-10 p-2 mb-2 items-center gap-2"
-          >
-            <div className="flex gap-1 items-center">
-              <div>
-                <div className="flex items-center gap-2">
-                  {/* Activity Log Button */}
-                  <button
-                    onClick={handleActivityLogClick}
-                    className="p-2 px-3 rounded-xl text-gray-400 bg-[#161616] cursor-pointer flex items-center gap-1"
-                    aria-label="Activity Log"
-                  >
-                    <History size={20} />
-                  </button>
-                  <div className="flex items-center gap-1">
-                    <h2 className="font-semibold text-white text-md leading-tight">
-                      {fullName}
-                    </h2>
+
+        {/* ========== MOBILE HEADER (lg:hidden) ========== */}
+        <div className="fixed top-0 left-0 w-full bg-[#111111] border-b border-zinc-800 p-2 flex items-center justify-between lg:hidden z-40">
+          {/* Mobile overlay for sidebar */}
+          {isSidebarOpen && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={closeSidebar} />}
+
+          {/* Left: Logo + Hamburger */}
+          <div className="flex items-center gap-2">
+            <div className="bg-orange-500 p-2 rounded-md">
+              <img src={OrgaGymLogoWihoutText} className="h-6 w-6" alt="Orgagym Logo" />
+            </div>
+            <button
+              onClick={toggleSidebar}
+              className="p-1.5 rounded-lg text-white hover:bg-zinc-700"
+              aria-label="Toggle Sidebar"
+            >
+              <Menu size={20} />
+            </button>
+          </div>
+
+          {/* Right: Language + Profile */}
+          <div className="flex gap-1 items-center">
+            {/* Language */}
+            <div className="relative mr-2" ref={languageRef}>
+              <button
+                onClick={toggleLanguageDropdown}
+                className="p-2 px-3 rounded-xl text-gray-500 bg-[#1C1C1C] cursor-pointer flex items-center gap-1"
+                aria-label="Language Selection"
+              >
+                <Globe size={20} />
+              </button>
+              {isLanguageDropdownOpen && (
+                <div className="absolute right-0 top-12 w-40 bg-[#222222]/50 backdrop-blur-3xl rounded-lg shadow-lg z-50">
+                  <div className="py-2" role="menu">
+                    {languages.map((language) => (
+                      <button
+                        key={language.code}
+                        onClick={() => handleLanguageSelect(language)}
+                        className={`w-full px-4 py-2 text-sm text-left hover:bg-zinc-700 flex items-center gap-3 ${
+                          selectedLanguage === language.name ? "text-white bg-zinc-600" : "text-zinc-300"
+                        }`}
+                      >
+                        <img src={language.flag} className="h-5 rounded-sm w-8" alt={language.name} />
+                        <span>{language.name}</span>
+                      </button>
+                    ))}
                   </div>
                 </div>
-              </div>
+              )}
+            </div>
 
-              <div className="relative mr-2">
+            {/* Profile */}
+            <div className="relative" ref={profileRef}>
+              <div onClick={toggleDropdownMain} className="flex items-center gap-1 cursor-pointer">
+                <img src="/gray-avatar-fotor-20250912192528.png" alt="Profile" className="w-9 h-9 rounded-lg" />
+              </div>
+              {isDropdownOpen && (
+                <div className="absolute right-0 top-full mt-2 w-46 bg-[#222222]/50 backdrop-blur-3xl rounded-lg shadow-lg z-50">
+                  <div className="p-2">
+                    <div className="flex flex-col">
+                      <h2 className="font-semibold text-white text-sm leading-tight">{fullName}</h2>
+                      <span className="text-zinc-400 text-xs font-medium">{role}</span>
+                    </div>
+                    <div className="flex items-center mt-2 gap-1 bg-black py-1 px-3 rounded-md w-fit">
+                      <Building2 size={14} className="text-white" />
+                      <p className="text-xs font-medium text-white">{studioName}</p>
+                    </div>
+                  </div>
+                  <div className="py-2" role="menu">
+                    <button onClick={handleAccountManagement} className="block w-full px-4 py-2 text-xs text-white hover:bg-zinc-700 text-left">
+                      Account Management
+                    </button>
+                    <hr className="border-zinc-600 my-1" />
+                    <button onClick={handleLogout} className="block w-full px-4 py-2 text-xs text-white hover:bg-zinc-700 text-left">
+                      Logout
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* ========== SIDEBAR ========== */}
+        <Sidebar
+          isOpen={isSidebarOpen}
+          onClose={closeSidebar}
+          isCollapsed={isLeftSidebarCollapsed}
+          onToggleCollapse={toggleLeftSidebarCollapse}
+        />
+
+        {/* ========== MAIN CONTENT ========== */}
+        <main className="flex-1 md:h-screen h-[calc(100vh-4rem)] overflow-y-auto lg:pt-2 md:pt-16 sm:pt-16 pt-16 pb-10 p-2">
+          
+          {/* ========== DESKTOP HEADER BAR (hidden on mobile) ========== */}
+          <div className="lg:flex hidden rounded-md bg-[#1f1e1e] z-10 p-2 mb-2 items-center justify-between">
+            {/* Left: Collapse Toggle + Title */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={toggleLeftSidebarCollapse}
+                className="p-2 px-3 rounded-xl text-gray-400 bg-[#161616] cursor-pointer hover:text-white transition-colors"
+                aria-label="Toggle Sidebar Collapse"
+              >
+                <Menu size={20} />
+              </button>
+              <h2 className="font-semibold text-white text-md leading-tight">{fullName}</h2>
+            </div>
+
+            {/* Right: Activity Log + Language + Profile */}
+            <div className="flex items-center gap-2">
+              {/* Activity Log */}
+              <button
+                onClick={handleActivityLogClick}
+                className="p-2 px-3 rounded-xl text-gray-400 bg-[#161616] cursor-pointer flex items-center gap-1 hover:text-white transition-colors"
+                aria-label="Activity Log"
+              >
+                <History size={20} />
+              </button>
+
+              {/* Language */}
+              <div className="relative" ref={languageRef}>
                 <button
                   onClick={toggleLanguageDropdown}
-                  className="p-2 px-3 rounded-xl text-gray-500 bg-[#1C1C1C] cursor-pointer flex items-center gap-1"
+                  className="p-2 px-3 rounded-xl text-gray-500 bg-[#1C1C1C] cursor-pointer flex items-center gap-1 hover:text-white transition-colors"
                 >
                   <Globe size={20} />
                 </button>
 
                 {isLanguageDropdownOpen && (
-                  <div className="absolute -right-6 top-12 w-40 bg-[#222222]/50 backdrop-blur-3xl rounded-lg shadow-lg z-[90]">
+                  <div className="absolute right-0 top-12 w-40 bg-[#222222]/50 backdrop-blur-3xl rounded-lg shadow-lg z-[90]">
                     <div className="py-2" role="menu">
                       {languages.map((language) => (
                         <button
                           key={language.code}
                           onClick={() => handleLanguageSelect(language)}
-                          className={`w-full px-4 py-2 text-sm text-left hover:bg-zinc-700 flex items-center gap-3 ${selectedLanguage === language.name
-                            ? "text-white bg-zinc-600"
-                            : "text-zinc-300"
-                            }`}
+                          className={`w-full px-4 py-2 text-sm text-left hover:bg-zinc-700 flex items-center gap-3 ${
+                            selectedLanguage === language.name ? "text-white bg-zinc-600" : "text-zinc-300"
+                          }`}
                         >
-                          <img src={language.flag} className="h- rounded-sm w-8" />
+                          <img src={language.flag} className="h-5 rounded-sm w-8" alt={language.name} />
                           <span>{language.name}</span>
                         </button>
                       ))}
@@ -223,32 +326,30 @@ const AdminDashboardLayout = () => {
                 )}
               </div>
 
-              <div className="relative">
-                <div
-                  onClick={toggleDropdownMain}
-                  className="flex items-center gap-1 cursor-pointer"
-                >
-                  <img
-                    src="/gray-avatar-fotor-20250912192528.png"
-                    alt="Profile"
-                    className="w-9 h-9 rounded-lg"
-                  />
+              {/* Profile */}
+              <div className="relative" ref={profileRef}>
+                <div onClick={toggleDropdownMain} className="flex items-center gap-1 cursor-pointer">
+                  <img src="/gray-avatar-fotor-20250912192528.png" alt="Profile" className="w-9 h-9 rounded-lg" />
                 </div>
 
                 {isDropdownOpen && (
                   <div className="absolute right-0 top-full mt-2 w-46 bg-[#222222]/50 backdrop-blur-3xl rounded-lg shadow-lg z-[999]">
+                    <div className="p-2">
+                      <div className="flex flex-col">
+                        <h2 className="font-semibold text-white text-sm leading-tight">{fullName}</h2>
+                        <span className="text-zinc-400 text-xs font-medium">{role}</span>
+                      </div>
+                      <div className="flex items-center mt-2 gap-1 bg-black py-1 px-3 rounded-md w-fit">
+                        <Building2 size={14} className="text-white" />
+                        <p className="text-xs font-medium text-white">{studioName}</p>
+                      </div>
+                    </div>
                     <div className="py-2" role="menu">
-                      <button
-                        onClick={handleAccountManagement}
-                        className="block w-full px-4 py-2 text-sm text-white hover:bg-zinc-700 text-left"
-                      >
+                      <button onClick={handleAccountManagement} className="block w-full px-4 py-2 text-sm text-white hover:bg-zinc-700 text-left">
                         Account Management
                       </button>
                       <hr className="border-zinc-600 my-1" />
-                      <button
-                        onClick={handleLogout}
-                        className="block w-full px-4 py-2 text-xs text-white hover:bg-zinc-700 text-left"
-                      >
+                      <button onClick={handleLogout} className="block w-full px-4 py-2 text-xs text-white hover:bg-zinc-700 text-left">
                         Logout
                       </button>
                     </div>
@@ -258,13 +359,14 @@ const AdminDashboardLayout = () => {
             </div>
           </div>
 
+          {/* Page Content */}
           <div className="lg:pt-0 pt-6">
             <Outlet />
           </div>
         </main>
       </div>
 
-      {/* Activity Log Modal */}
+      {/* ========== ACTIVITY LOG MODAL ========== */}
       <Modal isOpen={isActivityLogModalOpen} onClose={() => setIsActivityLogModalOpen(false)} title="Activity Log">
         <div className="text-zinc-300">
           <div className="mb-6">

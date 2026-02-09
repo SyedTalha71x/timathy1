@@ -1,0 +1,124 @@
+/* ============================================
+   FULLCALENDAR OVERRIDES
+   All var() have fallback values for safety.
+   ============================================ */
+
+.fc {
+  background-color: transparent !important;
+  color: var(--theme-text, white) !important;
+  font-size: 0.875rem !important;
+}
+
+.fc-theme-standard td,
+.fc-theme-standard th {
+  border-color: var(--theme-border-medium, #333) !important;
+}
+
+.fc-theme-standard .fc-scrollgrid {
+  border-color: var(--theme-border-medium, #333) !important;
+}
+
+.fc-timegrid-slot {
+  height: 48px !important;
+  background-color: transparent !important;
+}
+
+.fc-timegrid-slot-label {
+  color: var(--theme-text-secondary, #9CA3AF) !important;
+  font-size: 0.75rem !important;
+}
+
+.fc-day-today {
+  background-color: var(--theme-highlight-today, rgba(255, 255, 255, 0.05)) !important;
+}
+
+.fc-button-primary {
+  background-color: var(--theme-surface-button, #333) !important;
+  border-color: var(--theme-border-light, #444) !important;
+  color: var(--theme-text, white) !important;
+}
+
+.fc-button-primary:hover {
+  background-color: var(--theme-surface-button-hover, #444) !important;
+}
+
+.fc-button-active {
+  background-color: var(--theme-surface-button-active, #555) !important;
+}
+
+.fc-col-header-cell {
+  background-color: transparent !important;
+}
+
+.fc-col-header-cell-cushion {
+  color: var(--theme-text-secondary, #9CA3AF) !important;
+  padding: 4px 2px !important;
+}
+
+.fc-toolbar-title {
+  color: var(--theme-text, white) !important;
+}
+
+.fc-scrollgrid-section-header th {
+  background-color: transparent !important;
+}
+
+.fc-scrollgrid-sync-inner {
+  background-color: transparent !important;
+}
+
+.fc-event {
+  border-radius: 4px !important;
+  margin: 1px !important;
+}
+
+.fc-event-main {
+  padding: 1px !important;
+}
+
+.fc-event-time {
+  display: none !important;
+}
+
+.fc-view {
+  border-radius: 8px !important;
+  overflow: hidden !important;
+}
+
+.fc-toolbar-chunk {
+  display: flex !important;
+  gap: 0.25rem !important;
+}
+
+/* ---- Mobile Responsive ---- */
+@media (max-width: 640px) {
+  .fc-toolbar {
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+  }
+
+  .fc-toolbar-title {
+    font-size: 0.875rem !important;
+  }
+
+  .fc-button {
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.75rem !important;
+  }
+
+  .fc-header-toolbar {
+    margin-bottom: 0.5rem !important;
+  }
+
+  .fc-event {
+    min-height: 50px !important;
+  }
+
+  .fc-toolbar-chunk {
+    justify-content: center !important;
+  }
+
+  .fc-direction-ltr .fc-toolbar > * > :not(:first-child) {
+    margin-left: 0.25rem !important;
+  }
+}

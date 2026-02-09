@@ -20,7 +20,7 @@ import {
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable"
 
 // Components
-import { AddContractModal } from "../../components/shared/contracts/add-contract-modal"
+import { ContractModal } from "../../components/shared/contracts/contract-modal"
 import AddLeadModal from "../../components/studio-components/lead-studio-components/add-lead-modal"
 import EditLeadModal from "../../components/studio-components/lead-studio-components/edit-lead-modal"
 import ViewLeadDetailsModal from "../../components/studio-components/lead-studio-components/view-lead-details-modal"
@@ -1644,22 +1644,44 @@ export default function LeadManagement() {
       />
 
       {isCreateContractModalOpen && (
-        <AddContractModal
+        <ContractModal
           onClose={() => {
             setIsCreateContractModalOpen(false)
             setSelectedLead(null)
           }}
           onSave={(contractData) => {
-            // Delete the lead after contract creation (lead becomes a member in backend)
-            const updatedLeads = leads.filter((lead) => lead.id !== selectedLead?.id)
-            setLeads(updatedLeads)
-            if (selectedLead?.source === "localStorage") {
-              updateLocalStorage(updatedLeads)
+            // Check if contract is Active or Ongoing (Draft)
+            const contractStatus = contractData.status || "Active"
+            const isOngoing = contractStatus === "Ongoing" || contractData.isDraft === true
+            
+            // Get member info for filter
+            const memberName = contractData.memberName || `${selectedLead?.firstName} ${selectedLead?.surname}`.trim()
+            const memberId = contractData.memberId || selectedLead?.id
+            
+            if (isOngoing) {
+              // Draft contract - keep the lead, don't convert yet
+              toast.success("Contract saved as draft. Lead will be converted when contract is activated.")
+            } else {
+              // Active contract - delete the lead (lead becomes a member)
+              const updatedLeads = leads.filter((lead) => lead.id !== selectedLead?.id)
+              setLeads(updatedLeads)
+              if (selectedLead?.source === "localStorage") {
+                updateLocalStorage(updatedLeads)
+              }
+              toast.success("Contract created successfully! Lead has been converted to member.")
             }
             
-            toast.success("Contract created successfully! Lead has been converted to member.")
             setIsCreateContractModalOpen(false)
             setSelectedLead(null)
+            
+            // Navigate to contracts page with filter set
+            navigate("/dashboard/contract", {
+              state: {
+                filterMemberId: memberId,
+                filterMemberName: memberName,
+                fromLeads: true
+              }
+            })
           }}
           leadData={
             selectedLead
