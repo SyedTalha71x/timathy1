@@ -3,8 +3,7 @@ const AppointmentModel = require('../models/AppointmentModel');
 const { MemberModel } = require('../models/Discriminators');
 const StudioModel = require('../models/StudioModel');
 const ServiceModel = require('../models/ServiceModel')
-const { NotFoundError, UnAuthorizedError, BadRequestError } = require('../middleware/error/httpErrors')
-
+const { NotFoundError, UnAuthorizedError, BadRequestError } = require('../middleware/error/httpErrors');
 
 // createAppointment
 
@@ -134,5 +133,9 @@ const cancelAppointment = async (req, res, next) => {
         next(error);
     }
 };
+
+
+
+
 
 module.exports = { createAppointment, getMyAppointment, cancelAppointment }

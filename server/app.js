@@ -15,7 +15,7 @@ const app = express()
 app.use(cors({
     origin: process.env.FRONTEND_URL,
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS","PATCH"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
 }))
 
@@ -44,6 +44,8 @@ app.use(express.urlencoded({ extended: true }))
 
 // for cookies
 app.use(cookieParser())
+
+require('./corns/AppointmentCorns');
 
 // for checking server is running and api call is working or not
 app.get('/api', (req, res) => {
