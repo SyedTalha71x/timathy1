@@ -59,3 +59,9 @@
 .theme-icon {
   filter: var(--icon-filter);
 }
+
+/* Global placeholder color — uses content-muted so it adapts to light/dark mode */
+::placeholder {
+  color: var(--color-content-muted) !important;
+  opacity: 1 !important;
+}

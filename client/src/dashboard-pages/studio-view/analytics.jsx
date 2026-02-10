@@ -47,20 +47,20 @@ const StatCard = ({ title, value, change, icon: Icon, prefix = "", suffix = "", 
   const isNeutral = change === 0
 
   return (
-    <div className="bg-[#2F2F2F] rounded-xl p-3 sm:p-4">
+    <div className="bg-surface-button rounded-xl p-3 sm:p-4">
       <div className="flex items-center gap-3">
         <div className={`p-2 ${iconBg} rounded-lg flex-shrink-0`}>
           <Icon size={18} className={iconColor} />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <h3 className="text-xl sm:text-2xl font-bold text-white">
+            <h3 className="text-xl sm:text-2xl font-bold text-content-primary">
               {prefix}{typeof value === "number" ? value.toLocaleString() : value}{suffix}
             </h3>
             {change !== undefined && (
               <span className={`flex items-center text-xs px-1.5 py-0.5 rounded ${
                 isNeutral 
-                  ? "text-gray-400 bg-gray-500/20" 
+                  ? "text-content-muted bg-gray-500/20" 
                   : isPositive 
                     ? "text-green-400 bg-green-500/20" 
                     : "text-red-400 bg-red-500/20"
@@ -70,7 +70,7 @@ const StatCard = ({ title, value, change, icon: Icon, prefix = "", suffix = "", 
               </span>
             )}
           </div>
-          <p className="text-gray-400 text-xs sm:text-sm truncate">{title}</p>
+          <p className="text-content-muted text-xs sm:text-sm truncate">{title}</p>
         </div>
       </div>
     </div>
@@ -82,8 +82,8 @@ const StatCard = ({ title, value, change, icon: Icon, prefix = "", suffix = "", 
 // ==============================
 const ChartCard = ({ title, children, className = "" }) => {
   return (
-    <div className={`bg-[#2F2F2F] rounded-xl p-4 sm:p-6 ${className}`}>
-      <h3 className="text-base sm:text-lg font-semibold text-white mb-4">{title}</h3>
+    <div className={`bg-surface-button rounded-xl p-4 sm:p-6 ${className}`}>
+      <h3 className="text-base sm:text-lg font-semibold text-content-primary mb-4">{title}</h3>
       {children}
     </div>
   )
@@ -212,8 +212,8 @@ export default function AnalyticsDashboard() {
                 value={appointmentsData.totals.noShows}
                 change={0}
                 icon={AlertCircle}
-                iconBg="bg-orange-500/20"
-                iconColor="text-orange-400"
+                iconBg="bg-primary/20"
+                iconColor="text-primary"
               />
             </div>
 
@@ -271,7 +271,7 @@ export default function AnalyticsDashboard() {
                   </div>
                   <div>
                     <p className="text-blue-300 text-xs sm:text-sm">Total Members</p>
-                    <div className="text-3xl sm:text-4xl font-bold text-white">{membersData.totalMembers}</div>
+                    <div className="text-3xl sm:text-4xl font-bold text-content-primary">{membersData.totalMembers}</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-1.5 bg-green-500/20 px-3 py-1.5 rounded-lg">
@@ -329,7 +329,7 @@ export default function AnalyticsDashboard() {
                   </div>
                   <div>
                     <p className="text-blue-300 text-xs sm:text-sm">Total Leads</p>
-                    <div className="text-3xl sm:text-4xl font-bold text-white">{leadsData.totalLeads}</div>
+                    <div className="text-3xl sm:text-4xl font-bold text-content-primary">{leadsData.totalLeads}</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-1.5 bg-green-500/20 px-3 py-1.5 rounded-lg">
@@ -512,7 +512,7 @@ export default function AnalyticsDashboard() {
         }}
       />
 
-      <div className="min-h-screen rounded-3xl bg-[#1C1C1C] text-white p-3 md:p-6 transition-all duration-500 ease-in-out flex-1">
+      <div className="min-h-screen rounded-3xl bg-surface-base text-content-primary p-3 md:p-6 transition-all duration-500 ease-in-out flex-1">
         {isMobileMenuOpen && (
           <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setIsMobileMenuOpen(false)} />
         )}
@@ -523,23 +523,23 @@ export default function AnalyticsDashboard() {
           {/* ============================== */}
           <div className="flex items-center justify-between mb-6 sm:mb-8 gap-4">
             <div className="flex items-center gap-3">
-              <h1 className="text-white oxanium_font text-xl md:text-2xl">Analytics</h1>
+              <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">Analytics</h1>
               
               {/* Time Period Filter - inline with title */}
               <div className="relative" ref={timePeriodRef}>
                 <button
                   onClick={() => setIsTimePeriodDropdownOpen(!isTimePeriodDropdownOpen)}
-                  className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-xl text-sm text-white transition-colors"
+                  className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-surface-button hover:bg-surface-button-hover rounded-xl text-sm text-content-primary transition-colors"
                 >
-                  <Calendar size={16} className="text-gray-400" />
+                  <Calendar size={16} className="text-content-muted" />
                   <span>
                     {timePeriodOptions.find(o => o.value === selectedTimePeriod)?.label}
                   </span>
-                  <ChevronDown size={16} className={`text-gray-400 transition-transform ${isTimePeriodDropdownOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={16} className={`text-content-muted transition-transform ${isTimePeriodDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
                 
                 {isTimePeriodDropdownOpen && (
-                  <div className="absolute left-0 mt-2 w-48 bg-[#2F2F2F] rounded-xl shadow-lg border border-gray-700 z-50 overflow-hidden">
+                  <div className="absolute left-0 mt-2 w-48 bg-surface-button rounded-xl shadow-lg border border-border-subtle z-50 overflow-hidden">
                     {timePeriodOptions.map((option) => (
                       <button
                         key={option.value}
@@ -547,10 +547,10 @@ export default function AnalyticsDashboard() {
                           setSelectedTimePeriod(option.value)
                           setIsTimePeriodDropdownOpen(false)
                         }}
-                        className={`w-full px-4 py-2.5 text-left text-sm hover:bg-[#3F3F3F] transition-colors ${
+                        className={`w-full px-4 py-2.5 text-left text-sm hover:bg-surface-button-hover transition-colors ${
                           selectedTimePeriod === option.value 
                             ? 'bg-blue-600/20 text-blue-400' 
-                            : 'text-white'
+                            : 'text-content-primary'
                         }`}
                       >
                         {option.label}
@@ -575,7 +575,7 @@ export default function AnalyticsDashboard() {
                   className={`flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${
                     activeTab === tab.name
                       ? "bg-blue-600 text-white shadow-lg shadow-blue-600/25"
-                      : "bg-[#2F2F2F] text-gray-400 hover:bg-[#3F3F3F] hover:text-white"
+                      : "bg-surface-button text-content-muted hover:bg-surface-button-hover hover:text-content-primary"
                   }`}
                 >
                   <Icon size={16} className="sm:w-[18px] sm:h-[18px]" />

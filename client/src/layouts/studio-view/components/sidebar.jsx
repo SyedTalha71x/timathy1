@@ -146,7 +146,7 @@ const FeedbackModal = ({
               onChange={(e) => onFeedbackDataChange({ ...feedbackData, subject: e.target.value })}
               onKeyDown={(e) => e.stopPropagation()}
               placeholder="Brief summary of your feedback"
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-white text-sm sm:text-base placeholder-zinc-500 focus:outline-none focus:border-primary transition-colors"
+              className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-white text-sm sm:text-base focus:outline-none focus:border-primary transition-colors"
             />
           </div>
           
@@ -159,7 +159,7 @@ const FeedbackModal = ({
               onKeyDown={(e) => e.stopPropagation()}
               placeholder="Tell us more about your feedback..."
               rows={4}
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-white text-sm sm:text-base placeholder-zinc-500 focus:outline-none focus:border-primary transition-colors resize-none"
+              className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-white text-sm sm:text-base focus:outline-none focus:border-primary transition-colors resize-none"
             />
           </div>
           
