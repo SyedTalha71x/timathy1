@@ -2,16 +2,11 @@
 import { useState, useRef, useEffect } from "react"
 import {
     Search,
-    Eye,
     MessageSquare,
-    Calendar,
-    Clock,
-    CheckCircle,
     AlertCircle,
     XCircle,
     Download,
     RefreshCw,
-    ArrowUpDown,
     ArrowUp,
     ArrowDown,
 } from "lucide-react"
@@ -25,11 +20,11 @@ const AdminTicketsSystem = () => {
     const [selectedTicket, setSelectedTicket] = useState(null)
     const [searchTerm, setSearchTerm] = useState("")
 
-    // Filter states — simplified to single-select pills (matching bulletin board / marketplace)
+    // Filter states
     const [statusFilter, setStatusFilter] = useState("all")
     const [priorityFilter, setPriorityFilter] = useState("all")
 
-    // Sort states — matching bulletin board / selling pattern
+    // Sort states
     const [sortBy, setSortBy] = useState("date")
     const [sortDirection, setSortDirection] = useState("desc")
     const [showSortDropdown, setShowSortDropdown] = useState(false)
@@ -72,7 +67,7 @@ const AdminTicketsSystem = () => {
 
     // ── Sorting ────────────────────────────────────────────────
     const priorityOrder = { High: 0, Medium: 1, Low: 2 }
-    const statusOrder = { Open: 0, "In Progress": 1, "Pending Customer": 2, Resolved: 3, Closed: 4 }
+    const statusOrder = { Open: 0, "Awaiting your reply": 1, Closed: 2 }
 
     const sortedTickets = [...filteredTickets].sort((a, b) => {
         let comparison = 0
@@ -89,7 +84,6 @@ const AdminTicketsSystem = () => {
                 break
             case "date":
             default: {
-                // Parse dd/mm/yyyy dates for proper comparison
                 const parseDate = (d) => {
                     if (!d) return 0
                     const parts = d.split("/")
@@ -104,7 +98,7 @@ const AdminTicketsSystem = () => {
         return sortDirection === "asc" ? comparison : -comparison
     })
 
-    // ── Sort helpers (matching bulletin board pattern) ─────────
+    // ── Sort helpers ──────────────────────────────────────────
     const handleSortOptionClick = (value) => {
         if (value === sortBy) {
             setSortDirection(prev => (prev === "asc" ? "desc" : "asc"))
@@ -134,7 +128,7 @@ const AdminTicketsSystem = () => {
     }
 
     const handleExport = () => {
-        const headers = ['ID', 'Subject', 'Status', 'Priority', 'Category', 'Customer Name', 'Customer Email', 'Assigned To', 'Created Date', 'Last Updated']
+        const headers = ['ID', 'Subject', 'Status', 'Priority', 'Studio Name', 'Studio Email', 'Studio ID', 'Created Date', 'Last Updated']
 
         const csvContent = [
             headers.join(','),
@@ -143,10 +137,9 @@ const AdminTicketsSystem = () => {
                 `"${ticket.subject.replace(/"/g, '""')}"`,
                 ticket.status,
                 ticket.priority,
-                ticket.category,
-                `"${ticket.customer.name.replace(/"/g, '""')}"`,
+                `"${(ticket.studioName || '').replace(/"/g, '""')}"`,
                 ticket.customer.email,
-                `"${ticket.assignedTo.replace(/"/g, '""')}"`,
+                ticket.customer.id,
                 ticket.createdDate,
                 ticket.lastUpdated
             ].join(','))
@@ -170,45 +163,27 @@ const AdminTicketsSystem = () => {
         setPriorityFilter("all")
     }
 
-    // ── Status / priority visuals ──────────────────────────────
+    // ── Status — solid badges (only 3 statuses) ─────────────
     const getStatusColor = (status) => {
         switch (status) {
             case "Open":
-                return "bg-green-900/20 text-green-400 border-green-700"
-            case "In Progress":
-                return "bg-blue-900/20 text-blue-400 border-blue-700"
-            case "Pending Customer":
-                return "bg-yellow-900/20 text-yellow-400 border-yellow-700"
-            case "Resolved":
-                return "bg-green-900/20 text-green-400 border-green-700"
+                return "bg-green-500 text-white"
+            case "Awaiting your reply":
+                return "bg-yellow-500 text-white"
             case "Closed":
-                return "bg-gray-700 text-gray-400 border-gray-600"
+                return "bg-gray-500 text-white"
             default:
-                return "bg-gray-700 text-gray-400 border-gray-600"
+                return "bg-gray-400 text-white"
         }
     }
 
-    const getPriorityColor = (priority) => {
+    // ── Priority — colored text (no badge) ──────────────────
+    const getPriorityTextColor = (priority) => {
         switch (priority) {
-            case "High":
-                return "bg-red-900/20 text-red-400 border-red-700"
-            case "Medium":
-                return "bg-yellow-900/20 text-yellow-400 border-yellow-700"
-            case "Low":
-                return "bg-green-900/20 text-green-400 border-green-700"
-            default:
-                return "bg-gray-700 text-gray-400 border-gray-600"
-        }
-    }
-
-    const getStatusIcon = (status) => {
-        switch (status) {
-            case "Open": return <AlertCircle size={14} className="text-green-400" />
-            case "In Progress": return <Clock size={14} className="text-blue-400" />
-            case "Pending Customer": return <MessageSquare size={14} className="text-yellow-400" />
-            case "Resolved": return <CheckCircle size={14} className="text-green-400" />
-            case "Closed": return <XCircle size={14} className="text-gray-400" />
-            default: return <AlertCircle size={14} className="text-gray-400" />
+            case "High": return "text-red-400"
+            case "Medium": return "text-yellow-400"
+            case "Low": return "text-green-400"
+            default: return "text-gray-400"
         }
     }
 
@@ -223,7 +198,7 @@ const AdminTicketsSystem = () => {
         return acc
     }, {})
 
-    // ── Sort Dropdown Component (reusable, matching other pages) ──
+    // ── Sort Dropdown Component ────────────────────────────────
     const SortDropdown = ({ className = "" }) => (
         <div className={`relative ${className}`} ref={sortDropdownRef}>
             <button
@@ -269,45 +244,36 @@ const AdminTicketsSystem = () => {
             <div className="flex sm:items-center justify-between mb-6 sm:mb-8 gap-4">
                 <div className="flex items-center gap-3">
                     <h1 className="text-white oxanium_font text-xl md:text-2xl">Tickets</h1>
-
-                    {/* Sort Button — Mobile (next to title, like selling / bulletin board) */}
                     <div className="sm:hidden">
                         <SortDropdown />
                     </div>
                 </div>
 
                 <div className="flex items-center gap-2">
-                    {/* Export Button (styled like Journal / Tags buttons) */}
-                    <div className="relative group">
-                        <button
-                            onClick={handleExport}
-                            className="bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300 text-sm px-3 py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-colors font-medium"
-                        >
-                            <Download size={16} />
-                            <span className="hidden sm:inline">Export</span>
-                        </button>
-                    </div>
-
-                    {/* Refresh Button */}
-                    <div className="relative group">
-                        <button
-                            onClick={handleRefresh}
-                            className="bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300 text-sm px-3 py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-colors font-medium"
-                        >
-                            <RefreshCw size={16} />
-                            <span className="hidden sm:inline">Refresh</span>
-                        </button>
-                    </div>
+                    <button
+                        onClick={handleExport}
+                        className="bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300 text-sm px-3 py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-colors font-medium"
+                    >
+                        <Download size={16} />
+                        <span className="hidden sm:inline">Export</span>
+                    </button>
+                    <button
+                        onClick={handleRefresh}
+                        className="bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300 text-sm px-3 py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-colors font-medium"
+                    >
+                        <RefreshCw size={16} />
+                        <span className="hidden sm:inline">Refresh</span>
+                    </button>
                 </div>
             </div>
 
-            {/* ── Search Bar (matching marketplace / bulletin board / selling) ── */}
+            {/* ── Search Bar ─────────────────────────────────── */}
             <div className="mb-4">
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                     <input
                         type="text"
-                        placeholder="Search by subject, customer, studio or email..."
+                        placeholder="Search by subject, studio or email..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-[#333333] focus:border-[#3F74FF] transition-colors"
@@ -315,7 +281,7 @@ const AdminTicketsSystem = () => {
                 </div>
             </div>
 
-            {/* ── Filter Pills — Status (matching bulletin board / marketplace style) ── */}
+            {/* ── Filter Pills — Status (only 3: Open, Awaiting, Closed) ── */}
             <div className="flex flex-wrap gap-2 sm:gap-3 mb-3">
                 <button
                     onClick={() => setStatusFilter("all")}
@@ -327,7 +293,7 @@ const AdminTicketsSystem = () => {
                 >
                     All
                 </button>
-                {["Open", "In Progress", "Pending Customer", "Resolved", "Closed"].map((status) => (
+                {["Open", "Awaiting your reply", "Closed"].map((status) => (
                     <button
                         key={status}
                         onClick={() => setStatusFilter(statusFilter === status ? "all" : status)}
@@ -373,76 +339,49 @@ const AdminTicketsSystem = () => {
                         ) : null}
                     </button>
                 ))}
-
-                {/* Sort dropdown — Desktop (right-aligned, matching other pages) */}
                 <div className="hidden sm:block ml-auto">
                     <SortDropdown />
                 </div>
             </div>
 
             {/* ── Ticket List ────────────────────────────────── */}
-            <div className="space-y-3">
+            <div className="space-y-2">
                 {sortedTickets.map((ticket) => (
                     <div
                         key={ticket.id}
-                        className="bg-[#1A1A1A] rounded-xl border border-gray-800 hover:border-gray-700 p-4 cursor-pointer hover:shadow-lg transition-all duration-200"
                         onClick={() => handleTicketClick(ticket)}
+                        className="bg-[#161616] rounded-lg p-3 sm:p-4 cursor-pointer transition-colors hover:bg-[#1F1F1F]"
                     >
-                        {/* Row 1: ID, Studio, Date */}
-                        <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                                {getStatusIcon(ticket.status)}
-                                <span className="font-semibold text-white text-sm">#{ticket.id}</span>
-                                <span className="text-sm text-gray-400 font-medium">{ticket.studioName}</span>
-                            </div>
-                            <div className="flex items-center gap-1 text-xs text-gray-500">
-                                <Calendar size={12} />
-                                <span>{ticket.createdDate}</span>
-                            </div>
+                        {/* Row 1: Subject + #ID */}
+                        <div className="flex justify-between items-start mb-1.5 min-w-0">
+                            <h3 className="text-white font-medium text-sm md:text-base flex-1 min-w-0 line-clamp-2 pr-2">
+                                {ticket.subject} <span className="text-blue-400 font-semibold">#{ticket.id}</span>
+                            </h3>
                         </div>
 
-                        {/* Row 2: Subject */}
-                        <h3 className="font-medium text-white mb-3 text-sm leading-snug">
-                            {ticket.subject}
-                        </h3>
+                        {/* Row 2: Studio name */}
+                        <p className="text-sm text-gray-400 mb-2">{ticket.studioName}</p>
 
-                        {/* Row 3: Badges + Customer */}
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-xs font-medium border ${getStatusColor(ticket.status)}`}>
-                                    {ticket.status}
-                                </span>
-                                <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-xs font-medium border ${getPriorityColor(ticket.priority)}`}>
-                                    {ticket.priority}
-                                </span>
-                            </div>
-                            <span className="text-sm text-gray-300 font-medium">
-                                {ticket.customer.name}
+                        {/* Row 3: Timestamps */}
+                        <div className="flex items-center gap-4 text-xs text-gray-400 flex-wrap mb-2">
+                            <span>Created: <span className="text-gray-300">{ticket.createdDate}</span></span>
+                            <span>Updated: <span className="text-gray-300">{ticket.lastUpdated}</span></span>
+                        </div>
+
+                        {/* Row 4: Status badge + Priority text */}
+                        <div className="flex items-center gap-3">
+                            <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium ${getStatusColor(ticket.status)}`}>
+                                {ticket.status}
                             </span>
-                        </div>
-
-                        {/* Row 4: Updated */}
-                        <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-800">
-                            <div className="flex items-center gap-1 text-xs text-gray-500">
-                                <Clock size={12} />
-                                <span>Updated: {ticket.lastUpdated}</span>
-                            </div>
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation()
-                                    handleTicketClick(ticket)
-                                }}
-                                className="text-gray-400 hover:text-orange-400 p-1.5 rounded-lg hover:bg-gray-800 transition-colors"
-                                title="View Ticket"
-                            >
-                                <Eye size={16} />
-                            </button>
+                            <span className={`text-xs font-medium ${getPriorityTextColor(ticket.priority)}`}>
+                                {ticket.priority} Priority
+                            </span>
                         </div>
                     </div>
                 ))}
             </div>
 
-            {/* ── Empty State (matching bulletin board / selling pattern) ── */}
+            {/* ── Empty State ────────────────────────────────── */}
             {sortedTickets.length === 0 && (
                 <div className="text-center py-16">
                     <div className="text-gray-500 mb-6">
@@ -455,7 +394,6 @@ const AdminTicketsSystem = () => {
                 </div>
             )}
 
-            {/* ── Ticket Detail Modal ────────────────────────── */}
             {selectedTicket && (
                 <AdminTicketView
                     ticket={selectedTicket}

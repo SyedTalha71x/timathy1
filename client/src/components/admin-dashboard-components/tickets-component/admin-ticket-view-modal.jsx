@@ -92,6 +92,26 @@ const WysiwygEditor = ({ value, onChange, placeholder }) => {
   )
 }
 
+// ── Helper: parse "Subject – Reason" from ticket.subject ─────
+const parseSubjectAndReason = (subject) => {
+  if (!subject) return { subjectPart: "—", reasonPart: "—" }
+  const emDashIdx = subject.indexOf(" – ")
+  if (emDashIdx !== -1) {
+    return {
+      subjectPart: subject.substring(0, emDashIdx).trim(),
+      reasonPart: subject.substring(emDashIdx + 3).trim(),
+    }
+  }
+  const dashIdx = subject.indexOf(" - ")
+  if (dashIdx !== -1) {
+    return {
+      subjectPart: subject.substring(0, dashIdx).trim(),
+      reasonPart: subject.substring(dashIdx + 3).trim(),
+    }
+  }
+  return { subjectPart: subject, reasonPart: "—" }
+}
+
 // ── Admin Ticket View ────────────────────────────────────────
 const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
   const [replyText, setReplyText] = useState("")
@@ -106,15 +126,7 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
   const messagesContainerRef = useRef(null)
 
   const isTicketClosed = ticket.status === "Closed"
-
-  const staffMembers = [
-    "Unassigned",
-    "Sarah Wilson",
-    "Mike Johnson",
-    "Lisa Chen",
-    "David Rodriguez",
-    "Emma Thompson"
-  ]
+  const { subjectPart, reasonPart } = parseSubjectAndReason(ticket.subject)
 
   // ── Auto-scroll to bottom on new messages ──────────────────
   useEffect(() => {
@@ -127,7 +139,6 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (!viewingImage) return
-
       if (event.key === 'Escape') {
         setViewingImage(null)
       } else if (event.key === 'ArrowLeft') {
@@ -202,7 +213,7 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
     setUploadedImages((prev) => prev.filter((_, i) => i !== index))
   }
 
-  // ── Rich text message rendering (matching TicketView) ─────
+  // ── Rich text message rendering ───────────────────────────
   const renderMessageContent = (message) => {
     return (
       <div
@@ -242,14 +253,34 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
     )
   }
 
-  const getStatusIcon = (status) => {
+  // ── Status badge color (only 3 statuses) ──────────────────
+  const getStatusBadgeColor = (status) => {
     switch (status) {
-      case "Open": return <AlertCircle size={16} className="text-green-400" />
-      case "In Progress": return <Clock size={16} className="text-blue-400" />
-      case "Pending Customer": return <MessageSquare size={16} className="text-yellow-400" />
-      case "Resolved": return <CheckCircle size={16} className="text-green-400" />
-      case "Closed": return <XCircle size={16} className="text-gray-400" />
-      default: return <AlertCircle size={16} className="text-gray-400" />
+      case "Open": return "bg-green-500 text-white"
+      case "Awaiting your reply": return "bg-yellow-500 text-white"
+      case "Closed": return "bg-gray-500 text-white"
+      default: return "bg-gray-400 text-white"
+    }
+  }
+
+  // ── Priority — colored text ───────────────────────────────
+  const getPriorityTextColor = (priority) => {
+    switch (priority) {
+      case "High": return "text-red-400"
+      case "Medium": return "text-yellow-400"
+      case "Low": return "text-green-400"
+      default: return "text-gray-400"
+    }
+  }
+
+  // ── Status pill toggle colors (for sidebar) ───────────────
+  const getStatusPillStyle = (status, isActive) => {
+    if (!isActive) return "bg-[#1C1C1C] text-gray-400 border-gray-700 hover:border-gray-500"
+    switch (status) {
+      case "Open": return "bg-green-500/15 text-green-400 border-green-500"
+      case "Awaiting your reply": return "bg-yellow-500/15 text-yellow-400 border-yellow-500"
+      case "Closed": return "bg-gray-500/15 text-gray-300 border-gray-500"
+      default: return "bg-gray-500/15 text-gray-300 border-gray-500"
     }
   }
 
@@ -264,12 +295,12 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
             {/* Header */}
             <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-700 flex-shrink-0">
               <div className="flex items-center gap-3 flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  {getStatusIcon(ticketStatus)}
-                  <span className="text-sm font-medium text-gray-400">#{ticket.id}</span>
-                </div>
-                <h2 className="text-base sm:text-lg font-semibold text-white truncate">{ticket.subject}</h2>
-                <span className="font-bold text-white">({ticket.studioName})</span>
+                <h2 className="text-base sm:text-lg font-semibold text-white truncate">
+                  {ticket.subject} <span className="text-blue-400">#{ticket.id}</span>
+                </h2>
+                <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium flex-shrink-0 ${getStatusBadgeColor(ticketStatus)}`}>
+                  {ticketStatus}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 <button
@@ -284,7 +315,7 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
               </div>
             </div>
 
-            {/* Customer Info Bar */}
+            {/* Info Bar */}
             <div className="bg-[#161616] px-3 sm:px-4 py-2 border-b border-gray-700 flex-shrink-0">
               <div className="flex flex-wrap items-center gap-4 text-sm">
                 <div className="flex items-center gap-1 text-gray-300">
@@ -298,7 +329,7 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
               </div>
             </div>
 
-            {/* ── Messages (matching TicketView layout) ──── */}
+            {/* ── Messages ───────────────────────────────── */}
             <div
               ref={messagesContainerRef}
               className="flex-1 overflow-y-auto p-3 sm:p-4 min-h-0 bg-[#1C1C1C]"
@@ -310,7 +341,6 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
 
                   return (
                     <div key={message.id} className="flex items-start gap-2 sm:gap-3">
-                      {/* Avatar — consistent sizing with TicketView (w-8/w-10, rounded-xl) */}
                       {isOrgaGym ? (
                         <div className="w-8 h-8 sm:w-10 sm:h-10 bg-orange-500 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
                           <img src={Logo} alt="OrgaGym" className="h-8 w-8 sm:h-10 sm:w-10 rounded-xl object-contain" />
@@ -323,7 +353,6 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
                         </div>
                       )}
 
-                      {/* Message Content */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1 sm:mb-2">
                           <span className="font-medium text-white text-sm sm:text-base">
@@ -333,15 +362,12 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
                             {message.timestamp}
                           </span>
                         </div>
-                        {/* Rich text content */}
                         {renderMessageContent(message)}
-                        {/* Attachments */}
                         {renderAttachments(message)}
                       </div>
                     </div>
                   )
                 })}
-                {/* Invisible element for auto-scroll */}
                 <div ref={messagesEndRef} />
               </div>
             </div>
@@ -356,7 +382,6 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
               ) : (
                 <>
                   <div className="mb-3 sm:mb-4">
-                    {/* Image upload section */}
                     <div className="mb-3">
                       <input
                         type="file"
@@ -397,10 +422,7 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
                               </div>
                               <button
                                 type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  removeImage(idx)
-                                }}
+                                onClick={(e) => { e.stopPropagation(); removeImage(idx) }}
                                 className="absolute top-1 right-1 bg-red-600 hover:bg-red-700 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
                               >
                                 <X size={12} />
@@ -411,7 +433,6 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
                       )}
                     </div>
 
-                    {/* WYSIWYG Editor (matching TicketView) */}
                     <div className="border border-gray-600 rounded-lg overflow-hidden bg-[#101010] h-64 flex flex-col">
                       <WysiwygEditor
                         value={replyText}
@@ -435,83 +456,120 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
             </div>
           </div>
 
-          {/* ── Sidebar — Admin-only (status, priority, customer details) ── */}
+          {/* ══════════════════════════════════════════════════
+              SIDEBAR — redesigned for clarity & intuition
+              Flow: Studio → Topic → Manage → Update
+             ══════════════════════════════════════════════════ */}
           <div className={`${showSidebar ? 'block' : 'hidden'} lg:block w-full lg:w-80 border-t lg:border-l border-gray-700 text-sm flex-shrink-0 lg:max-h-full overflow-y-auto`}>
+
+            {/* 1) Studio Info — who sent this ticket */}
             <div className="p-4 border-b border-gray-700">
-              <h3 className="font-semibold text-white mb-4">Ticket Details</h3>
+              <h4 className="text-[11px] uppercase tracking-wider text-gray-500 font-semibold mb-3">Studio</h4>
+              <div className="space-y-1.5">
+                <p className="text-white font-medium text-sm">{ticket.studioName}</p>
+                <p className="text-gray-400 text-xs">{ticket.customer.email}</p>
+                <p className="text-gray-500 text-xs">ID: {ticket.customer.id}</p>
+              </div>
+            </div>
+
+            {/* 2) Subject & Reason — what is this ticket about */}
+            <div className="p-4 border-b border-gray-700">
+              <h4 className="text-[11px] uppercase tracking-wider text-gray-500 font-semibold mb-3">Topic</h4>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-500 text-xs w-16 flex-shrink-0">Subject</span>
+                  <span className="text-white text-sm font-medium">{subjectPart}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-500 text-xs w-16 flex-shrink-0">Reason</span>
+                  <span className="text-gray-300 text-sm">{reasonPart}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* 3) Manage — status & priority controls */}
+            <div className="p-4 border-b border-gray-700">
+              <h4 className="text-[11px] uppercase tracking-wider text-gray-500 font-semibold mb-3">Manage</h4>
 
               <div className="space-y-4">
-                {/* Status */}
+                {/* Status — pill toggle (3 options only) */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">Status</label>
-                  <select
-                    value={ticketStatus}
-                    onChange={(e) => setTicketStatus(e.target.value)}
-                    className="w-full border border-gray-600 rounded-md px-3 py-2 text-sm bg-[#161616] text-gray-200"
-                  >
-                    <option value="Open">Open</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Pending Customer">Pending Customer</option>
-                    <option value="Resolved">Resolved</option>
-                    <option value="Closed">Closed</option>
-                  </select>
+                  <label className="block text-xs text-gray-400 mb-2">Status</label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {["Open", "Awaiting your reply", "Closed"].map((status) => (
+                      <button
+                        key={status}
+                        onClick={() => setTicketStatus(status)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${getStatusPillStyle(status, ticketStatus === status)}`}
+                      >
+                        {status}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
-                {/* Priority */}
+                {/* Priority — pill toggle */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">Priority</label>
-                  <select
-                    value={ticketPriority}
-                    onChange={(e) => setTicketPriority(e.target.value)}
-                    className="w-full border border-gray-600 rounded-md px-3 py-2 text-sm bg-[#161616] text-gray-200"
-                  >
-                    <option value="Low">Low</option>
-                    <option value="Medium">Medium</option>
-                    <option value="High">High</option>
-                  </select>
+                  <label className="block text-xs text-gray-400 mb-2">Priority</label>
+                  <div className="flex gap-1.5">
+                    {["Low", "Medium", "High"].map((priority) => {
+                      const isActive = ticketPriority === priority
+                      const activeColors = {
+                        Low: "bg-green-500/15 text-green-400 border-green-500",
+                        Medium: "bg-yellow-500/15 text-yellow-400 border-yellow-500",
+                        High: "bg-red-500/15 text-red-400 border-red-500",
+                      }
+                      return (
+                        <button
+                          key={priority}
+                          onClick={() => setTicketPriority(priority)}
+                          className={`flex-1 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
+                            isActive
+                              ? activeColors[priority]
+                              : "bg-[#1C1C1C] text-gray-400 border-gray-700 hover:border-gray-500"
+                          }`}
+                        >
+                          {priority}
+                        </button>
+                      )
+                    })}
+                  </div>
                 </div>
 
+                {/* Update Button */}
                 <button
                   onClick={handleUpdateTicket}
-                  className="w-full px-4 py-2 bg-orange-500 cursor-pointer text-white rounded-md font-medium text-sm hover:bg-orange-600 transition-colors"
+                  className="w-full px-4 py-2.5 bg-orange-500 cursor-pointer text-white rounded-lg font-medium text-sm hover:bg-orange-600 transition-colors"
                 >
                   Update Ticket
                 </button>
               </div>
             </div>
 
-            {/* Customer Details */}
-            <div className="p-4 border-b border-gray-700 text-sm">
-              <h4 className="font-semibold text-white mb-3">Customer Details</h4>
-              <div className="space-y-2 text-sm text-gray-300">
-                <div><strong className="text-gray-200">Studio Name:</strong> {ticket.studioName}</div>
-                <div><strong className="text-gray-200">Email:</strong> {ticket.customer.email}</div>
-                <div><strong className="text-gray-200">Customer ID:</strong> {ticket.customer.id}</div>
-              </div>
-            </div>
-
-            {/* Tags */}
+            {/* 4) Timestamps */}
             <div className="p-4">
-              <h4 className="font-semibold text-white mb-3 text-sm">Subject</h4>
-              <div className="flex flex-wrap gap-2">
-                {ticket.tags.map((tag, index) => (
-                  <span key={index} className="px-2 py-1 bg-blue-900/30 text-blue-400 rounded-full text-xs border border-blue-700">
-                    {tag}
-                  </span>
-                ))}
+              <h4 className="text-[11px] uppercase tracking-wider text-gray-500 font-semibold mb-3">Timeline</h4>
+              <div className="space-y-1.5 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Created</span>
+                  <span className="text-gray-300">{ticket.createdDate}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Last updated</span>
+                  <span className="text-gray-300">{ticket.lastUpdated}</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ── Image Lightbox (matching TicketView) ──────────── */}
+      {/* ── Image Lightbox ───────────────────────────────── */}
       {viewingImage && viewingImage.image && (
         <div
           className="fixed inset-0 bg-black/95 flex items-center justify-center z-[100] p-4"
           onClick={() => setViewingImage(null)}
         >
-          {/* Close */}
           <button
             onClick={() => setViewingImage(null)}
             className="absolute top-4 right-4 text-white hover:text-gray-300 p-2 rounded-lg hover:bg-white/10 transition-colors z-10"
@@ -520,7 +578,6 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
             <X size={32} />
           </button>
 
-          {/* Previous */}
           {viewingImage.images.length > 1 && (
             <button
               onClick={(e) => {
@@ -537,7 +594,6 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
             </button>
           )}
 
-          {/* Next */}
           {viewingImage.images.length > 1 && (
             <button
               onClick={(e) => {
@@ -554,7 +610,6 @@ const AdminTicketView = ({ ticket, onClose, onUpdateTicket }) => {
             </button>
           )}
 
-          {/* Image Container */}
           <div
             className="max-w-[90vw] max-h-[90vh] flex flex-col gap-3"
             onClick={(e) => e.stopPropagation()}

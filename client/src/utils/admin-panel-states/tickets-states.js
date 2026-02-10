@@ -1,7 +1,7 @@
 export const adminTickets = [
     {
         id: 1,
-        subject: "Account is not premium",
+        subject: "Account – Premium Issue",
         studioName: 'FitZone Studio',
         status: "Open",
         priority: "Medium",
@@ -24,14 +24,12 @@ export const adminTickets = [
                 attachments: []
             },
         ],
-        tags: ["premium", "account-issue"]
     },
     {
         id: 2,
-        subject: "Subscription renewal issue",
+        subject: "Billing – Subscription Renewal",
         studioName: 'FitZone Studio',
-
-        status: "In Progress",
+        status: "Open",
         priority: "High",
         category: "Billing",
         customer: {
@@ -54,7 +52,7 @@ export const adminTickets = [
             {
                 id: 2,
                 sender: "support",
-                senderName: "Mike Johnson",
+                senderName: "OrgaGym",
                 content: "I've checked your payment method and it seems there's an issue with your card. Please try updating your payment information.",
                 timestamp: "27/1/2025 3:20 PM",
                 attachments: []
@@ -62,20 +60,18 @@ export const adminTickets = [
             {
                 id: 3,
                 sender: "support",
-                senderName: "Mike Johnson",
-                content: "We have updated your subscription information. Please log in to GamsGo using your personal email and click on 'Subscription' to view the latest details.",
+                senderName: "OrgaGym",
+                content: "We have updated your subscription information. Please log in using your personal email and click on 'Subscription' to view the latest details.",
                 timestamp: "28/1/2025 9:45 AM",
                 attachments: []
             },
         ],
-        tags: ["subscription", "payment", "urgent"]
     },
     {
         id: 3,
-        subject: "Payment processing error",
+        subject: "Billing – Payment Error",
         studioName: 'FitZone Studio',
-
-        status: "Resolved",
+        status: "Closed",
         priority: "Medium",
         category: "Payment",
         customer: {
@@ -98,19 +94,17 @@ export const adminTickets = [
             {
                 id: 2,
                 sender: "support",
-                senderName: "Sarah Wilson",
+                senderName: "OrgaGym",
                 content: "Issue has been resolved. Your payment has been processed successfully.",
                 timestamp: "25/1/2025 1:30 PM",
                 attachments: []
             },
         ],
-        tags: ["payment", "resolved"]
     },
     {
         id: 4,
-        subject: "Widget not loading properly",
+        subject: "Technical – Widget Issue",
         studioName: 'FitZone Studio',
-
         status: "Open",
         priority: "Low",
         category: "Technical",
@@ -132,14 +126,12 @@ export const adminTickets = [
                 attachments: []
             },
         ],
-        tags: ["widget", "technical", "dashboard"]
     },
     {
         id: 5,
-        subject: "Billing discrepancy",
+        subject: "Billing – Duplicate Charge",
         studioName: 'FitZone Studio',
-
-        status: "Pending Customer",
+        status: "Awaiting your reply",
         priority: "High",
         category: "Billing",
         customer: {
@@ -162,12 +154,11 @@ export const adminTickets = [
             {
                 id: 2,
                 sender: "support",
-                senderName: "Lisa Chen",
+                senderName: "OrgaGym",
                 content: "I can see the duplicate charge on your account. Can you please provide the transaction IDs for both charges so I can process a refund?",
                 timestamp: "27/1/2025 10:15 AM",
                 attachments: []
             },
         ],
-        tags: ["billing", "refund", "duplicate-charge"]
     }
 ]
