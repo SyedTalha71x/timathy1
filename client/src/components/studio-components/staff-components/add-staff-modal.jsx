@@ -22,7 +22,7 @@ const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) =>
 
   return (
     <div 
-      className={`bg-[#3F74FF] rounded-xl flex items-center justify-center text-white font-semibold flex-shrink-0 ${sizeClasses[size]} ${className}`}
+      className={`bg-surface-button rounded-xl flex items-center justify-center text- font-semibold flex-shrink-0 ${sizeClasses[size]} ${className}`}
       style={{ fontFamily: 'ui-sans-serif, system-ui, sans-serif' }}
     >
       {getInitials()}
@@ -93,10 +93,10 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[1100] p-4">
-      <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md overflow-hidden">
-        <div className="flex justify-between items-center p-4 border-b border-gray-700">
-          <h3 className="text-white font-semibold">Take Photo</h3>
-          <button onClick={() => { stopCamera(); onClose(); }} className="text-gray-400 hover:text-white">
+      <div className="bg-surface-card rounded-xl w-full max-w-md overflow-hidden">
+        <div className="flex justify-between items-center p-4 border-b border-border">
+          <h3 className="text-content-primary font-semibold">Take Photo</h3>
+          <button onClick={() => { stopCamera(); onClose(); }} className="text-content-muted hover:text-content-primary">
             <X size={20} />
           </button>
         </div>
@@ -107,7 +107,7 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
               <p className="text-red-400 text-sm mb-4">{error}</p>
               <button 
                 onClick={startCamera}
-                className="px-4 py-2 bg-[#3F74FF] text-white rounded-xl text-sm"
+                className="px-4 py-2 bg-surface-button text-content-primary rounded-xl text-sm"
               >
                 Try Again
               </button>
@@ -128,14 +128,14 @@ const CameraModal = ({ isOpen, onClose, onCapture }) => {
               <div className="flex gap-3">
                 <button
                   onClick={toggleCamera}
-                  className="flex-1 py-2.5 bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white rounded-xl text-sm flex items-center justify-center gap-2"
+                  className="flex-1 py-2.5 bg-[#2F2F2F] hover:bg-[#3F3F3F] text-content-primary rounded-xl text-sm flex items-center justify-center gap-2"
                 >
                   <Camera size={16} />
                   Flip
                 </button>
                 <button
                   onClick={handleCapture}
-                  className="flex-[2] py-2.5 bg-[#3F74FF] hover:bg-[#3F74FF]/90 text-white rounded-xl text-sm font-medium"
+                  className="flex-[2] py-2.5 bg-surface-button bg-surface-button-hover text-content-primary rounded-xl text-sm font-medium"
                 >
                   Capture Photo
                 </button>
@@ -300,28 +300,28 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
 
   return (
     <div className="fixed inset-0 open_sans_font w-full h-full bg-black/50 flex items-center justify-center z-[1000] p-2 md:p-4">
-      <div className="bg-[#1C1C1C] p-4 md:p-6 rounded-xl w-full max-w-md my-4 md:my-8 relative max-h-[95vh] md:max-h-[90vh] flex flex-col">
+      <div className="bg-surface-card p-4 md:p-6 rounded-xl w-full max-w-md my-4 md:my-8 relative max-h-[95vh] md:max-h-[90vh] flex flex-col">
         {/* Header - No + icon */}
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl text-white font-bold">Create Staff</h2>
+          <h2 className="text-xl text-content-primary font-bold">Create Staff</h2>
           <button 
             onClick={() => setIsModalOpen(false)} 
-            className="text-gray-400 hover:text-white transition-colors"
+            className="text-content-muted hover:text-content-primary transition-colors"
           >
             <X size={24} />
           </button>
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex border-b border-gray-700 mb-6">
+        <div className="flex border-b border-border mb-6">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`px-4 py-2 text-sm font-medium transition-colors ${
                 activeTab === tab.id 
-                  ? "text-blue-400 border-b-2 border-blue-400" 
-                  : "text-gray-400 hover:text-white"
+                  ? "text-primary border-b-2 border-primary" 
+                : "text-content-muted hover:text-content-primary"
               }`}
             >
               {tab.label}
@@ -348,7 +348,7 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                         <button
                           type="button"
                           onClick={handleRemoveImage}
-                          className="absolute top-1 right-1 bg-black/70 hover:bg-black/90 text-white p-1.5 rounded-lg transition-colors"
+                          className="absolute top-1 right-1 bg-black/70 hover:bg-black/90 text-content-primary p-1.5 rounded-lg transition-colors"
                           title="Remove image"
                         >
                           <X size={14} />
@@ -361,8 +361,8 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                         size="lg"
                       />
                     ) : (
-                      <div className="w-full h-full bg-[#3F74FF] flex items-center justify-center">
-                        <span className="text-white text-3xl font-semibold">?</span>
+                      <div className="w-full h-full bg-surface-button flex items-center justify-center">
+                        <span className="text-content-primary text-3xl font-semibold">?</span>
                       </div>
                     )}
                   </div>
@@ -378,7 +378,7 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                     />
                     <label
                       htmlFor="avatar-upload"
-                      className="bg-[#3F74FF] hover:bg-[#3F74FF]/90 px-4 py-2 rounded-xl text-sm cursor-pointer text-white flex items-center gap-2"
+                      className="bg-primary hover:bg-primary-hover px-4 py-2 rounded-xl text-sm cursor-pointer text-white flex items-center gap-2"
                     >
                       <Upload size={16} />
                       Upload
@@ -386,7 +386,7 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                     <button
                       type="button"
                       onClick={() => setShowCameraModal(true)}
-                      className="bg-[#2F2F2F] hover:bg-[#3F3F3F] px-4 py-2 rounded-xl text-sm text-white flex items-center gap-2"
+                      className="bg-surface-button hover:bg-surface-button-hover px-4 py-2 rounded-xl text-sm text-content-primary flex items-center gap-2"
                     >
                       <Camera size={16} />
                       Camera
@@ -396,11 +396,11 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
 
                 {/* Personal Information */}
                 <div className="space-y-4">
-                  <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Personal Information</div>
+                  <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Personal Information</div>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">
+                      <label className="text-sm text-content-secondary block mb-2">
                         First Name<span className="text-red-500 ml-1">*</span>
                       </label>
                       <input
@@ -409,12 +409,12 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                         value={newStaff.firstName}
                         onChange={handleInputChange}
                         placeholder="John"
-                        className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                        className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm"
                         required
                       />
                     </div>
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">
+                      <label className="text-sm text-content-secondary block mb-2">
                         Last Name<span className="text-red-500 ml-1">*</span>
                       </label>
                       <input
@@ -423,14 +423,14 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                         value={newStaff.lastName}
                         onChange={handleInputChange}
                         placeholder="Doe"
-                        className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                        className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm"
                         required
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">
+                    <label className="text-sm text-content-secondary block mb-2">
                       Email<span className="text-red-500 ml-1">*</span>
                     </label>
                     <input
@@ -439,14 +439,14 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                       value={newStaff.email}
                       onChange={handleInputChange}
                       placeholder="john@example.com"
-                      className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                      className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm"
                       required
                     />
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">
+                      <label className="text-sm text-content-secondary block mb-2">
                         Mobile Number<span className="text-red-500 ml-1">*</span>
                       </label>
                       <input
@@ -455,41 +455,41 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                         value={newStaff.mobileNumber}
                         onChange={handlePhoneChange}
                         placeholder="+49 123 456789"
-                        className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                        className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm"
                         required
                       />
                     </div>
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">Telephone Number</label>
+                      <label className="text-sm text-content-secondary block mb-2">Telephone Number</label>
                       <input
                         type="tel"
                         name="telephoneNumber"
                         value={newStaff.telephoneNumber}
                         onChange={handlePhoneChange}
                         placeholder="+49 123 456789"
-                        className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                        className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">Birthday</label>
+                      <label className="text-sm text-content-secondary block mb-2">Birthday</label>
                       <input
                         type="date"
                         name="birthday"
                         value={newStaff.birthday}
                         onChange={handleInputChange}
-                        className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                        className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm"
                       />
                     </div>
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">Gender</label>
+                      <label className="text-sm text-content-secondary block mb-2">Gender</label>
                       <select
                         name="gender"
                         value={newStaff.gender}
                         onChange={handleInputChange}
-                        className="w-full bg-[#141414] text-sm rounded-xl px-4 py-2 text-white outline-none"
+                        className="w-full bg-surface-dark text-sm rounded-xl px-4 py-2 text-content-primary outline-none"
                       >
                         <option value="">Select gender</option>
                         <option value="male">Male</option>
@@ -501,53 +501,53 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                 </div>
 
                 {/* Address */}
-                <div className="space-y-4 pt-4 border-t border-gray-700">
-                  <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Address</div>
+                <div className="space-y-4 pt-4 border-t border-border">
+                  <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Address</div>
                   
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">Street</label>
+                    <label className="text-sm text-content-secondary block mb-2">Street</label>
                     <input
                       type="text"
                       name="street"
                       value={newStaff.street}
                       onChange={handleInputChange}
                       placeholder="123 Main St"
-                      className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                      className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm"
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-3 sm:gap-4">
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">ZIP Code</label>
+                      <label className="text-sm text-content-secondary block mb-2">ZIP Code</label>
                       <input
                         type="text"
                         name="zipCode"
                         value={newStaff.zipCode}
                         onChange={handleInputChange}
                         placeholder="12345"
-                        className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                        className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm"
                       />
                     </div>
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">City</label>
+                      <label className="text-sm text-content-secondary block mb-2">City</label>
                       <input
                         type="text"
                         name="city"
                         value={newStaff.city}
                         onChange={handleInputChange}
                         placeholder="Berlin"
-                        className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                        className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">Country</label>
+                    <label className="text-sm text-content-secondary block mb-2">Country</label>
                     <select
                       name="country"
                       value={newStaff.country}
                       onChange={handleInputChange}
-                      className="w-full bg-[#141414] text-sm rounded-xl px-4 py-2 text-white outline-none"
+                      className="w-full bg-surface-dark text-sm rounded-xl px-4 py-2 text-content-primary outline-none"
                     >
                       <option value="">Select a country</option>
                       {loading ? (
@@ -564,18 +564,18 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                 </div>
 
                 {/* Employment */}
-                <div className="space-y-4 pt-4 border-t border-gray-700">
-                  <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Employment</div>
+                <div className="space-y-4 pt-4 border-t border-border">
+                  <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Employment</div>
                   
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">
+                    <label className="text-sm text-content-secondary block mb-2">
                       Role<span className="text-red-500 ml-1">*</span>
                     </label>
                     <select
                       name="role"
                       value={newStaff.role}
                       onChange={handleInputChange}
-                      className="w-full bg-[#141414] text-sm rounded-xl px-4 py-2 text-white outline-none"
+                      className="w-full bg-surface-dark text-sm rounded-xl px-4 py-2 text-content-primary outline-none"
                       required
                     >
                       <option value="">Select role</option>
@@ -586,8 +586,8 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                   </div>
 
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">Staff Identification Color</label>
-                    <div className="flex items-center gap-3 bg-[#141414] rounded-xl p-3">
+                    <label className="text-sm text-content-secondary block mb-2">Staff Identification Color</label>
+                    <div className="flex items-center gap-3 bg-surface-dark rounded-xl p-3">
                       <input
                         type="color"
                         name="color"
@@ -595,18 +595,18 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                         onChange={handleColorChange}
                         className="w-10 h-10 bg-transparent rounded-lg cursor-pointer border-0"
                       />
-                      <span className="text-sm text-gray-300">{newStaff.color}</span>
+                      <span className="text-sm text-content-secondary">{newStaff.color}</span>
                     </div>
                   </div>
 
                   {/* Vacation Section */}
-                  <div className="space-y-4 p-4 bg-[#141414] rounded-xl">
+                  <div className="space-y-4 p-4 bg-surface-dark rounded-xl">
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2 flex items-center gap-2">
+                      <label className="text-sm text-content-secondary block mb-2 flex items-center gap-2">
                         Annual Vacation Entitlement (Days)
                         <div className="relative group">
-                          <Info size={14} className="text-gray-500 cursor-help" />
-                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10 pointer-events-none">
+                          <Info size={14} className="text-content-faint cursor-help" />
+                          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-800 text-content-primary text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap z-10 pointer-events-none">
                             Full vacation days per complete year
                             <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
                           </div>
@@ -619,13 +619,13 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                         onChange={handleVacationEntitlementChange}
                         min="0"
                         max="365"
-                        className="w-full bg-[#1a1a1a] text-sm rounded-xl px-4 py-2 text-white outline-none"
+                        className="w-full bg-[#1a1a1a] text-sm rounded-xl px-4 py-2 text-content-primary outline-none"
                         required
                       />
                     </div>
 
-                    <div className="pt-3 border-t border-gray-700">
-                      <label className="text-sm text-gray-200 block mb-2 flex items-center justify-between">
+                    <div className="pt-3 border-t border-border">
+                      <label className="text-sm text-content-secondary block mb-2 flex items-center justify-between">
                         <span className="flex items-center gap-2">
                           Vacation Days Available for {new Date().getFullYear()}
                         </span>
@@ -647,7 +647,7 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                           onChange={handleVacationDaysCurrentYearChange}
                           min="0"
                           max={newStaff.vacationEntitlement}
-                          className="w-full bg-[#1a1a1a] text-sm rounded-xl px-4 py-2 text-white outline-none"
+                          className="w-full bg-[#1a1a1a] text-sm rounded-xl px-4 py-2 text-content-primary outline-none"
                         />
                         {newStaff.hasManualAdjustment && (
                           <div className="absolute top-1/2 -translate-y-1/2 right-3">
@@ -657,7 +657,7 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                           </div>
                         )}
                       </div>
-                      <p className="text-xs text-gray-500 mt-2">
+                      <p className="text-xs text-content-faint mt-2">
                         Automatically calculated based on current date. You can manually adjust this value.
                         {newStaff.vacationDaysCurrentYear < newStaff.vacationEntitlement && (
                           <span className="block text-yellow-400/80 mt-1">
@@ -670,17 +670,17 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                 </div>
 
                 {/* Additional Information */}
-                <div className="space-y-4 pt-4 border-t border-gray-700">
-                  <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Additional Information</div>
+                <div className="space-y-4 pt-4 border-t border-border">
+                  <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Additional Information</div>
                   
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">About</label>
+                    <label className="text-sm text-content-secondary block mb-2">About</label>
                     <textarea
                       name="about"
                       value={newStaff.about}
                       onChange={handleInputChange}
                       placeholder="Enter more details..."
-                      className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm resize-none min-h-[100px]"
+                      className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm resize-none min-h-[100px]"
                     />
                   </div>
                 </div>
@@ -689,10 +689,10 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
 
             {activeTab === "access" && (
               <div className="space-y-4">
-                <div className="text-xs text-gray-400 uppercase tracking-wider font-semibold">Login Credentials</div>
+                <div className="text-xs text-content-muted uppercase tracking-wider font-semibold">Login Credentials</div>
                 
                 <div>
-                  <label className="text-sm text-gray-200 block mb-2">
+                  <label className="text-sm text-content-secondary block mb-2">
                     Username<span className="text-red-500 ml-1">*</span>
                   </label>
                   <input
@@ -701,13 +701,13 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                     value={newStaff.username}
                     onChange={handleInputChange}
                     placeholder="johndoe"
-                    className="w-full bg-[#141414] rounded-xl px-4 py-2 text-white outline-none text-sm"
+                    className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="text-sm text-gray-200 block mb-2">
+                  <label className="text-sm text-content-secondary block mb-2">
                     Password<span className="text-red-500 ml-1">*</span>
                   </label>
                   <div className="relative">
@@ -717,13 +717,13 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
                       value={newStaff.password}
                       onChange={handleInputChange}
                       placeholder="Enter password"
-                      className="w-full bg-[#141414] rounded-xl px-4 py-2 pr-16 text-white outline-none text-sm"
+                      className="w-full bg-surface-dark rounded-xl px-4 py-2 pr-16 text-content-primary outline-none text-sm"
                       required
                     />
                     <button
                       type="button"
                       onClick={handlePasswordToggle}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-gray-400 hover:text-white"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-content-muted hover:text-content-primary"
                     >
                       {showPassword ? "Hide" : "Show"}
                     </button>
@@ -738,13 +738,13 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="w-full sm:w-auto px-4 py-2.5 sm:py-2 text-sm bg-gray-600 text-white rounded-xl hover:bg-gray-700 order-2 sm:order-1"
+              className="w-full sm:w-auto px-4 py-2.5 sm:py-2 text-sm bg-surface-button hover:bg-surface-button-hover text-content-primary rounded-xl order-2 sm:order-1"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="w-full sm:w-auto px-4 py-2.5 sm:py-2 text-sm text-white rounded-xl bg-orange-500 hover:bg-orange-600 order-1 sm:order-2"
+              className="w-full sm:w-auto px-4 py-2.5 sm:py-2 text-sm text-white rounded-xl bg-primary hover:bg-primary-hover order-1 sm:order-2"
             >
               Create Staff
             </button>
