@@ -1078,7 +1078,7 @@ const AdminBanner = () => {
                     }}
                     onFocus={() => searchQuery && setShowSearchDropdown(true)}
                     onKeyDown={handleSearchKeyDown}
-                    className="flex-1 min-w-[100px] bg-transparent outline-none text-sm text-content-primary placeholder:text-content-muted"
+                    className="flex-1 min-w-[100px] bg-transparent outline-none text-sm text-content-primary placeholder-content-faint"
                   />
                   
                   {/* Clear All Button */}

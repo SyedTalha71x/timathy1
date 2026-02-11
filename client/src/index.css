@@ -64,4 +64,5 @@
 ::placeholder {
   color: var(--color-content-muted) !important;
   opacity: 1 !important;
+  -webkit-text-fill-color: var(--color-content-muted) !important;
 }

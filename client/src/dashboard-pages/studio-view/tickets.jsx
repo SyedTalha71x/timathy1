@@ -162,15 +162,15 @@ const Tickets = () => {
 
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-        <div className="bg-surface-base rounded-xl p-6 w-full max-w-md mx-auto">
-          <h3 className="text-lg font-bold text-content-primary mb-4">Close Ticket</h3>
-          <p className="text-content-secondary mb-6">
+        <div className="bg-[#1C1C1C] rounded-xl p-6 w-full max-w-md mx-auto">
+          <h3 className="text-lg font-bold text-white mb-4">Close Ticket</h3>
+          <p className="text-gray-300 mb-6">
             Are you sure you want to close ticket "{ticket?.subject}"? This action cannot be undone.
           </p>
           <div className="flex justify-end gap-3">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-sm border border-border-subtle rounded-lg font-medium text-content-secondary bg-surface-hover hover:bg-surface-button-hover"
+              className="px-4 py-2 text-sm border border-gray-600 rounded-lg font-medium text-gray-300 bg-[#2A2A2A] hover:bg-[#3A3A3A]"
             >
               Cancel
             </button>
@@ -211,15 +211,15 @@ const Tickets = () => {
   }
 
   return (
-    <div className="flex flex-col h-screen rounded-3xl bg-surface-base text-content-primary overflow-hidden">
+    <div className="flex flex-col h-screen rounded-3xl bg-[#1C1C1C] text-white overflow-hidden">
       <div className="flex-shrink-0 pt-6 sm:pt-8 pb-6 sm:pb-8 px-4 sm:px-8">
         {/* Large centered title */}
-        <h1 className="text-2xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-content-primary text-center mb-4 sm:mb-6">
+        <h1 className="text-2xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-white text-center mb-4 sm:mb-6">
           Tickets
         </h1>
 
         {/* Subtitle */}
-        <p className="text-lg sm:text-xl text-content-secondary text-center mb-6 sm:mb-8">
+        <p className="text-lg sm:text-xl text-gray-300 text-center mb-6 sm:mb-8">
           Contact us for a fast Response
         </p>
 
@@ -227,13 +227,13 @@ const Tickets = () => {
         <div className="w-full max-w-7xl mx-auto mb-4 sm:mb-6 px-2">
           <div className="flex gap-3">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-content-muted" size={16} />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
               <input
                 type="text"
                 placeholder="Search Tickets..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-surface-card outline-none text-sm text-content-primary placeholder:text-content-muted rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-border focus:border-accent-blue transition-colors"
+                className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-[#333333] focus:border-[#3F74FF] transition-colors"
               />
             </div>
             
@@ -241,7 +241,7 @@ const Tickets = () => {
             <div className="hidden md:block relative group flex-shrink-0">
               <button
                 onClick={handleNewTicketClick}
-                className="bg-primary hover:bg-primary-hover text-sm text-white px-3 sm:px-4 py-2 rounded-xl flex items-center gap-2 justify-center transition-colors"
+                className="bg-orange-500 hover:bg-orange-600 text-sm text-white px-3 sm:px-4 py-2 rounded-xl flex items-center gap-2 justify-center transition-colors"
               >
                 <Plus size={14} />
                 <span className="hidden sm:inline">Create Ticket</span>
@@ -269,7 +269,7 @@ const Tickets = () => {
                 onClick={() => handleFilterClick(filter)}
                 className={`px-4 py-2 rounded-xl cursor-pointer text-sm font-medium transition-colors ${selectedFilters.includes(filter)
                     ? "bg-blue-600 text-white"
-                    : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
+                    : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
                   }`}
               >
                 {filter}
@@ -288,24 +288,24 @@ const Tickets = () => {
               <div
                 key={ticket.id}
                 onClick={() => handleTicketClick(ticket)}
-                className="bg-surface-card rounded-lg p-3 sm:p-4 lg:p-5 cursor-pointer transition-colors hover:bg-surface-hover"
+                className="bg-[#161616] rounded-lg p-3 sm:p-4 lg:p-5 cursor-pointer transition-colors hover:bg-[#1F1F1F]"
               >
                 <div className="flex justify-between items-start mb-2 min-w-0">
                   {/* Ticket Title with Number */}
-                  <h3 className="text-content-primary font-medium text-sm md:text-base flex-1 min-w-0 line-clamp-2 pr-2">
+                  <h3 className="text-white font-medium text-sm md:text-base flex-1 min-w-0 line-clamp-2 pr-2">
                     {ticket.subject} <span className="text-blue-400 font-semibold">#{ticket.id}</span>
                   </h3>
                 </div>
 
                 {/* Timestamps with time */}
-                <div className="flex items-center gap-4 text-xs text-content-muted flex-wrap mb-2">
+                <div className="flex items-center gap-4 text-xs text-gray-400 flex-wrap mb-2">
                   <div className="flex items-center gap-1">
                     <span>Created:</span>
-                    <span className="text-content-secondary">{ticket.createdAt || ticket.date}</span>
+                    <span className="text-gray-300">{ticket.createdAt || ticket.date}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <span>Updated:</span>
-                    <span className="text-content-secondary">{ticket.updatedAt || ticket.date}</span>
+                    <span className="text-gray-300">{ticket.updatedAt || ticket.date}</span>
                   </div>
                 </div>
 
@@ -319,7 +319,7 @@ const Tickets = () => {
             ))}
 
             {filteredTickets.length === 0 && (
-              <div className="text-center py-12 text-content-muted">
+              <div className="text-center py-12 text-gray-400">
                 <p>No tickets found</p>
               </div>
             )}
@@ -348,7 +348,7 @@ const Tickets = () => {
       {/* Floating Action Button - Mobile Only */}
       <button
         onClick={handleNewTicketClick}
-        className="md:hidden fixed bottom-4 right-4 bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
+        className="md:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
         aria-label="Create Ticket"
       >
         <Plus size={22} />

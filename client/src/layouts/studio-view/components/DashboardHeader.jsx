@@ -3,14 +3,14 @@
 /* eslint-disable no-unused-vars */
 import { useState, useEffect, useRef } from "react"
 import { useNavigate } from "react-router-dom"
-import { Globe, X, Building2, History, Menu, ShoppingCart } from "lucide-react"
+import { Globe, X, Building2, History, Menu, ShoppingCart, Sun, Moon } from "lucide-react"
 import OrgaGymLogoWihoutText from '../../../../public/Orgagym white without text.svg'
 
 /**
  * DashboardHeader Component
  * 
  * Unified header component that handles both mobile and desktop views.
- * Contains: Language dropdown, Profile dropdown, Activity Log, Right Sidebar toggle, and all modals.
+ * Contains: Language dropdown, Profile dropdown, Activity Log, Right Sidebar toggle, Theme toggle, and all modals.
  * 
  * Props:
  * - onToggleSidebar: Function to toggle mobile sidebar
@@ -41,6 +41,13 @@ const DashboardHeader = ({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [selectedLanguage, setSelectedLanguage] = useState("English")
   
+  // Theme state - defaults to dark mode
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    // Check localStorage for saved preference, default to dark
+    const saved = localStorage.getItem('theme')
+    return saved ? saved === 'dark' : true
+  })
+  
   // Modal states
   const [isTermsModalOpen, setIsTermsModalOpen] = useState(false)
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false)
@@ -51,7 +58,7 @@ const DashboardHeader = ({
   const languageDropdownRef = useRef(null)
   const profileDropdownRef = useRef(null)
   
-  // User data (spÃ¤ter aus Context/API)
+  // User data (später aus Context/API)
   const studioName = "Studio One"
   const fullName = "Samantha Jerry"
   const role = "Trainer"
@@ -65,7 +72,7 @@ const DashboardHeader = ({
     { code: "it", name: "Italian", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Flag_of_Italy.svg/1280px-Flag_of_Italy.svg.png" },
   ]
   
-  // Activity log data (spÃ¤ter aus API)
+  // Activity log data (später aus API)
   const activityLogs = [
     { id: 1, action: "Appointment Created", description: "Created new appointment for John Doe - Personal Training", timestamp: "2024-12-15 14:30", type: "appointment" },
     { id: 2, action: "Member Updated", description: "Updated profile information for Sarah Smith", timestamp: "2024-12-15 13:15", type: "member" },
@@ -76,6 +83,55 @@ const DashboardHeader = ({
     { id: 7, action: "Class Created", description: "Created new HIIT class schedule", timestamp: "2024-12-14 15:20", type: "class" },
     { id: 8, action: "Contract Renewed", description: "Renewed contract for Lisa Garcia", timestamp: "2024-12-14 14:10", type: "contract" },
   ]
+
+  // ============================================
+  // Theme Toggle Effect
+  // ============================================
+  useEffect(() => {
+    const root = document.documentElement
+    
+    if (isDarkMode) {
+      // Dark Mode (default) - original values
+      root.style.setProperty('--color-primary', '#f97316')
+      root.style.setProperty('--color-primary-hover', '#ea580c')
+      root.style.setProperty('--color-secondary', '#9ca3af')
+      root.style.setProperty('--color-secondary-hover', '#ffffff')
+      root.style.setProperty('--color-surface-base', '#1c1c1c')
+      root.style.setProperty('--color-surface-card', '#141414')
+      root.style.setProperty('--color-surface-dark', '#0f0f0f')
+      root.style.setProperty('--color-surface-hover', '#1a1a1a')
+      root.style.setProperty('--color-surface-button', '#2f2f2f')
+      root.style.setProperty('--color-surface-button-hover', '#3f3f3f')
+      root.style.setProperty('--color-content-primary', '#ffffff')
+      root.style.setProperty('--color-content-secondary', '#d1d5db')
+      root.style.setProperty('--color-content-muted', '#9ca3af')
+      root.style.setProperty('--color-content-faint', '#6b7280')
+      root.style.setProperty('--color-border', '#333333')
+      root.style.setProperty('--color-border-subtle', '#374151')
+      root.style.setProperty('--icon-filter', 'none')
+      localStorage.setItem('theme', 'dark')
+    } else {
+      // Light Mode
+      root.style.setProperty('--color-primary', '#ea580c')
+      root.style.setProperty('--color-primary-hover', '#c2410c')
+      root.style.setProperty('--color-secondary', '#6b7280')
+      root.style.setProperty('--color-secondary-hover', '#374151')
+      root.style.setProperty('--color-surface-base', '#f5f5f5')
+      root.style.setProperty('--color-surface-card', '#ffffff')
+      root.style.setProperty('--color-surface-dark', '#e5e5e5')
+      root.style.setProperty('--color-surface-hover', '#f0f0f0')
+      root.style.setProperty('--color-surface-button', '#e5e7eb')
+      root.style.setProperty('--color-surface-button-hover', '#d1d5db')
+      root.style.setProperty('--color-content-primary', '#111827')
+      root.style.setProperty('--color-content-secondary', '#374151')
+      root.style.setProperty('--color-content-muted', '#6b7280')
+      root.style.setProperty('--color-content-faint', '#9ca3af')
+      root.style.setProperty('--color-border', '#d1d5db')
+      root.style.setProperty('--color-border-subtle', '#e5e7eb')
+      root.style.setProperty('--icon-filter', 'brightness(0)')
+      localStorage.setItem('theme', 'light')
+    }
+  }, [isDarkMode])
   
   // Close dropdowns on scroll (mobile)
   useEffect(() => {
@@ -104,6 +160,10 @@ const DashboardHeader = ({
     if (!isDropdownOpen && isLanguageDropdownOpen) {
       setIsLanguageDropdownOpen(false)
     }
+  }
+
+  const toggleTheme = () => {
+    setIsDarkMode(!isDarkMode)
   }
   
   // ============================================
@@ -163,6 +223,26 @@ const DashboardHeader = ({
       </div>
     )
   }
+
+  // ============================================
+  // Theme Toggle Component
+  // ============================================
+  const ThemeToggle = ({ isMobile = false }) => (
+    <button
+      onClick={toggleTheme}
+      className={`rounded-xl text-content-muted bg-surface-card hover:bg-surface-hover transition-colors cursor-pointer flex items-center gap-1 ${
+        isMobile ? "p-2 px-3" : "p-1.5 px-2.5"
+      }`}
+      aria-label={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+      title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+    >
+      {isDarkMode ? (
+        <Sun size={isMobile ? 18 : 18} className="text-yellow-500" />
+      ) : (
+        <Moon size={isMobile ? 18 : 18} className="text-blue-500" />
+      )}
+    </button>
+  )
   
   // ============================================
   // Dropdown Components
@@ -352,6 +432,9 @@ const DashboardHeader = ({
         </div>
         
         <div className="flex gap-1 items-center relative">
+          {/* Theme Toggle */}
+          <ThemeToggle isMobile={true} />
+          
           {/* Activity Log */}
           <button
             onClick={handleActivityLogClick}
@@ -401,6 +484,9 @@ const DashboardHeader = ({
               <p className="text-sm font-bold text-content-primary">{studioName}</p>
             </div>
             
+            {/* Theme Toggle */}
+            <ThemeToggle isMobile={false} />
+            
             {/* Activity Log */}
             <button
               onClick={handleActivityLogClick}
@@ -449,80 +535,67 @@ const DashboardHeader = ({
               ))}
             </div>
           </div>
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 md:gap-0 mt-4 md:mt-6 pt-3 md:pt-4 border-t border-border-subtle">
-            <p className="text-xs md:text-sm text-content-muted text-center sm:text-left order-2 sm:order-1">
-              Showing {activityLogs.length} most recent activities
-            </p>
-            <button 
-              className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-hover transition-colors text-sm order-1 sm:order-2"
-              onClick={() => setIsActivityLogModalOpen(false)}
-            >
-              Close
-            </button>
-          </div>
         </div>
       </Modal>
       
-      {/* Terms Modal */}
+      {/* Terms & Conditions Modal */}
       <Modal isOpen={isTermsModalOpen} onClose={() => setIsTermsModalOpen(false)} title="Terms & Conditions">
         <div className="text-content-secondary space-y-6">
           <div>
             <h3 className="text-lg font-semibold text-content-primary mb-3">1. Acceptance of Terms</h3>
             <p className="leading-relaxed">
-              By accessing and using the Studio One fitness management platform, you accept and agree to be bound by
-              the terms and provisions of this agreement. If you do not agree to abide by the above, please do not use
-              this service.
+              By accessing and using the Studio Management Platform ("Service"), you acknowledge that you have read,
+              understood, and agree to be bound by these Terms and Conditions. If you do not agree with any part of these
+              terms, you may not use our Service.
             </p>
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-content-primary mb-3">2. Use License</h3>
+            <h3 className="text-lg font-semibold text-content-primary mb-3">2. Use of Service</h3>
             <p className="leading-relaxed mb-3">
-              Permission is granted to temporarily access the platform for personal, non-commercial use only. This is
-              the grant of a license, not a transfer of title, and under this license you may not:
+              You agree to use the Service only for lawful purposes and in accordance with these Terms. You agree not to:
             </p>
             <ul className="list-disc list-inside space-y-2 ml-4">
-              <li>Modify or copy the materials</li>
-              <li>Use the materials for any commercial purpose</li>
-              <li>Attempt to decompile or reverse engineer any software</li>
-              <li>Remove any copyright or proprietary notations</li>
-              <li>Transfer the materials to another person</li>
+              <li>Use the Service in any way that violates applicable laws or regulations</li>
+              <li>Attempt to gain unauthorized access to any part of the Service</li>
+              <li>Interfere with or disrupt the Service or servers</li>
+              <li>Share your account credentials with third parties</li>
+              <li>Use the Service to transmit harmful or malicious content</li>
             </ul>
           </div>
           <div>
             <h3 className="text-lg font-semibold text-content-primary mb-3">3. Account Responsibilities</h3>
             <p className="leading-relaxed">
-              You are responsible for maintaining the confidentiality of your account and password, including but not
-              limited to the restriction of access to your computer and/or account. You agree to accept responsibility
-              for any and all activities that occur under your account.
+              You are responsible for maintaining the confidentiality of your account information and for all activities
+              that occur under your account. You agree to notify us immediately of any unauthorized use of your account
+              or any other breach of security.
             </p>
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-content-primary mb-3">4. Service Availability</h3>
+            <h3 className="text-lg font-semibold text-content-primary mb-3">4. Intellectual Property</h3>
             <p className="leading-relaxed">
-              We reserve the right to withdraw or amend our service, and any service or material we provide, in our
-              sole discretion without notice. We will not be liable if for any reason all or any part of the service is
-              unavailable at any time.
+              The Service and its original content, features, and functionality are owned by Studio Management Platform
+              and are protected by international copyright, trademark, and other intellectual property laws.
             </p>
           </div>
           <div>
             <h3 className="text-lg font-semibold text-content-primary mb-3">5. Limitation of Liability</h3>
             <p className="leading-relaxed">
-              In no event shall Studio One or its suppliers be liable for any damages arising out of the use or
-              inability to use the materials or services, even if we have been notified of the possibility of such
-              damage.
+              In no event shall Studio Management Platform be liable for any indirect, incidental, special, consequential,
+              or punitive damages, including without limitation, loss of profits, data, or other intangible losses.
             </p>
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-content-primary mb-3">6. Governing Law</h3>
+            <h3 className="text-lg font-semibold text-content-primary mb-3">6. Changes to Terms</h3>
             <p className="leading-relaxed">
-              These terms and conditions are governed by and construed in accordance with applicable laws and you
-              irrevocably submit to the exclusive jurisdiction of the courts in that location.
+              We reserve the right to modify or replace these Terms at any time. If a revision is material, we will
+              provide at least 30 days notice prior to any new terms taking effect. What constitutes a material change
+              will be determined at our sole discretion.
             </p>
           </div>
         </div>
       </Modal>
-      
-      {/* Privacy Modal */}
+
+      {/* Privacy Policy Modal */}
       <Modal isOpen={isPrivacyModalOpen} onClose={() => setIsPrivacyModalOpen(false)} title="Privacy Policy">
         <div className="text-content-secondary space-y-6">
           <div>
@@ -598,7 +671,7 @@ const DashboardHeader = ({
             <p className="text-sm text-content-muted mb-3">Released on December 15, 2024</p>
             <div className="space-y-2">
               <div>
-                <h4 className="font-medium text-content-primary mb-2">ðŸŽ‰ New Features</h4>
+                <h4 className="font-medium text-content-primary mb-2">🎉 New Features</h4>
                 <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
                   <li>Enhanced member analytics dashboard</li>
                   <li>Real-time class capacity tracking</li>
@@ -607,7 +680,7 @@ const DashboardHeader = ({
                 </ul>
               </div>
               <div>
-                <h4 className="font-medium text-content-primary mb-2">ðŸ”§ Improvements</h4>
+                <h4 className="font-medium text-content-primary mb-2">🔧 Improvements</h4>
                 <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
                   <li>Faster loading times for member profiles</li>
                   <li>Improved search functionality</li>
@@ -615,7 +688,7 @@ const DashboardHeader = ({
                 </ul>
               </div>
               <div>
-                <h4 className="font-medium text-content-primary mb-2">ðŸ› Bug Fixes</h4>
+                <h4 className="font-medium text-content-primary mb-2">🐛 Bug Fixes</h4>
                 <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
                   <li>Fixed calendar sync issues</li>
                   <li>Resolved payment processing errors</li>
@@ -630,7 +703,7 @@ const DashboardHeader = ({
             <p className="text-sm text-content-muted mb-3">Released on November 28, 2024</p>
             <div className="space-y-2">
               <div>
-                <h4 className="font-medium text-content-primary mb-2">ðŸ”§ Improvements</h4>
+                <h4 className="font-medium text-content-primary mb-2">🔧 Improvements</h4>
                 <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
                   <li>Enhanced security measures</li>
                   <li>Improved data backup system</li>
@@ -638,7 +711,7 @@ const DashboardHeader = ({
                 </ul>
               </div>
               <div>
-                <h4 className="font-medium text-content-primary mb-2">ðŸ› Bug Fixes</h4>
+                <h4 className="font-medium text-content-primary mb-2">🐛 Bug Fixes</h4>
                 <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
                   <li>Fixed trainer schedule conflicts</li>
                   <li>Resolved email notification delays</li>
@@ -652,7 +725,7 @@ const DashboardHeader = ({
             <p className="text-sm text-content-muted mb-3">Released on October 15, 2024</p>
             <div className="space-y-2">
               <div>
-                <h4 className="font-medium text-content-primary mb-2">ðŸŽ‰ Major Release</h4>
+                <h4 className="font-medium text-content-primary mb-2">🎉 Major Release</h4>
                 <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
                   <li>Complete UI/UX redesign</li>
                   <li>New member management system</li>
@@ -662,7 +735,7 @@ const DashboardHeader = ({
                 </ul>
               </div>
               <div>
-                <h4 className="font-medium text-content-primary mb-2">ðŸ”§ Performance</h4>
+                <h4 className="font-medium text-content-primary mb-2">🔧 Performance</h4>
                 <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
                   <li>50% faster page load times</li>
                   <li>Improved database optimization</li>
@@ -677,7 +750,7 @@ const DashboardHeader = ({
             <p className="text-sm text-content-muted mb-3">Released on September 20, 2024</p>
             <div className="space-y-2">
               <div>
-                <h4 className="font-medium text-content-primary mb-2">ðŸ› Critical Fixes</h4>
+                <h4 className="font-medium text-content-primary mb-2">🐛 Critical Fixes</h4>
                 <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
                   <li>Fixed critical security vulnerability</li>
                   <li>Resolved data synchronization issues</li>
