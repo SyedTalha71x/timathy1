@@ -1,7 +1,7 @@
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable react/prop-types */
 import { useState, useEffect } from "react"
-import { Search, Plus } from "lucide-react"
+import { Search, Plus, X } from "lucide-react"
 import TicketView from "../../components/studio-components/tickets-components/TicketView"
 import NewTicketModal from "../../components/studio-components/tickets-components/NewTicketModal"
 import { sampleTickets } from "../../utils/studio-states/help-center-states"
@@ -13,6 +13,7 @@ const Tickets = () => {
   const [searchQuery, setSearchQuery] = useState("")
   const [closeConfirmModal, setCloseConfirmModal] = useState(null)
   const [selectedFilters, setSelectedFilters] = useState(["All"])
+  const [showSearchDropdown, setShowSearchDropdown] = useState(false)
 
   const handleNewTicketClick = () => setIsModalOpen(true)
   const handleCloseModal = () => {
@@ -114,19 +115,19 @@ const Tickets = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case "Open":
-        return "bg-green-500 text-white"
+        return "bg-green-600 text-white"
       case "In Progress":
-        return "bg-blue-500 text-white"
+        return "bg-blue-600 text-white"
       case "Awaiting your reply":
-        return "bg-yellow-500 text-white"
+        return "bg-yellow-600 text-white"
       case "Resolved":
-        return "bg-purple-500 text-white"
+        return "bg-purple-600 text-white"
       case "Closed":
-        return "bg-gray-500 text-white"
+        return "bg-gray-600 text-white"
       case "Urgent":
-        return "bg-red-500 text-white"
+        return "bg-red-600 text-white"
       default:
-        return "bg-gray-400 text-white"
+        return "bg-gray-600 text-white"
     }
   }
 
@@ -162,21 +163,21 @@ const Tickets = () => {
 
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-        <div className="bg-[#1C1C1C] rounded-xl p-6 w-full max-w-md mx-auto">
-          <h3 className="text-lg font-bold text-white mb-4">Close Ticket</h3>
-          <p className="text-gray-300 mb-6">
+        <div className="bg-surface-card text-content-primary rounded-xl p-6 w-full max-w-md mx-auto">
+          <h3 className="text-lg font-semibold mb-4 text-content-primary">Close Ticket</h3>
+          <p className="text-content-secondary mb-6">
             Are you sure you want to close ticket "{ticket?.subject}"? This action cannot be undone.
           </p>
           <div className="flex justify-end gap-3">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-sm border border-gray-600 rounded-lg font-medium text-gray-300 bg-[#2A2A2A] hover:bg-[#3A3A3A]"
+              className="px-4 py-2 text-sm bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={onConfirm}
-              className="px-4 py-2 text-sm rounded-lg font-medium text-white bg-red-600 hover:bg-red-700"
+              className="px-4 py-2 text-sm bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors"
             >
               Close Ticket
             </button>
@@ -211,15 +212,15 @@ const Tickets = () => {
   }
 
   return (
-    <div className="flex flex-col h-screen rounded-3xl bg-[#1C1C1C] text-white overflow-hidden">
+    <div className="flex flex-col h-screen rounded-3xl bg-surface-base text-content-primary overflow-hidden">
       <div className="flex-shrink-0 pt-6 sm:pt-8 pb-6 sm:pb-8 px-4 sm:px-8">
         {/* Large centered title */}
-        <h1 className="text-2xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-white text-center mb-4 sm:mb-6">
+        <h1 className="text-2xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-content-primary text-center mb-4 sm:mb-6 oxanium_font">
           Tickets
         </h1>
 
         {/* Subtitle */}
-        <p className="text-lg sm:text-xl text-gray-300 text-center mb-6 sm:mb-8">
+        <p className="text-lg sm:text-xl text-content-secondary text-center mb-6 sm:mb-8 open_sans_font">
           Contact us for a fast Response
         </p>
 
@@ -227,54 +228,60 @@ const Tickets = () => {
         <div className="w-full max-w-7xl mx-auto mb-4 sm:mb-6 px-2">
           <div className="flex gap-3">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-content-faint" size={16} />
               <input
                 type="text"
                 placeholder="Search Tickets..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-[#333333] focus:border-[#3F74FF] transition-colors"
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setShowSearchDropdown(true);
+                }}
+                className="w-full bg-surface-card outline-none text-sm text-content-primary rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-border focus:border-primary transition-colors placeholder-content-faint"
               />
             </div>
             
-            {/* Desktop Create Button with Tooltip */}
+            {/* Desktop Create Button mit Tooltip */}
             <div className="hidden md:block relative group flex-shrink-0">
               <button
                 onClick={handleNewTicketClick}
-                className="bg-orange-500 hover:bg-orange-600 text-sm text-white px-3 sm:px-4 py-2 rounded-xl flex items-center gap-2 justify-center transition-colors"
+                className="flex bg-primary hover:bg-primary-hover text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors"
               >
-                <Plus size={14} />
+                <Plus size={14} className="sm:w-4 sm:h-4" />
                 <span className="hidden sm:inline">Create Ticket</span>
               </button>
               
-              {/* Tooltip - YouTube Style */}
-              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+              {/* Tooltip */}
+              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
                 <span className="font-medium">Create Ticket</span>
                 <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
                   C
                 </span>
-                {/* Arrow pointing up */}
                 <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
               </div>
             </div>
           </div>
         </div>
 
-        {/* Filters - Left aligned */}
+        {/* Filters */}
         <div className="w-full max-w-7xl mx-auto px-2">
-          <div className="flex flex-wrap gap-2">
-            {["All", "Open", "Awaiting your reply", "Closed"].map((filter) => (
-              <button
-                key={filter}
-                onClick={() => handleFilterClick(filter)}
-                className={`px-4 py-2 rounded-xl cursor-pointer text-sm font-medium transition-colors ${selectedFilters.includes(filter)
-                    ? "bg-blue-600 text-white"
-                    : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
-                  }`}
-              >
-                {filter}
-              </button>
-            ))}
+          <div className="flex flex-wrap gap-1.5 sm:gap-3">
+            {["All", "Open", "Awaiting your reply", "Closed"].map((filter) => {
+              const isSelected = selectedFilters.includes(filter);
+              const buttonClasses = isSelected
+                ? "bg-primary text-white"
+                : "bg-surface-button text-content-secondary hover:bg-surface-button-hover";
+              
+              return (
+                <button
+                  key={filter}
+                  onClick={() => handleFilterClick(filter)}
+                  className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${buttonClasses}`}
+                >
+                  {filter}
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -288,28 +295,28 @@ const Tickets = () => {
               <div
                 key={ticket.id}
                 onClick={() => handleTicketClick(ticket)}
-                className="bg-[#161616] rounded-lg p-3 sm:p-4 lg:p-5 cursor-pointer transition-colors hover:bg-[#1F1F1F]"
+                className="bg-surface-card rounded-lg p-3 sm:p-4 lg:p-5 cursor-pointer transition-colors hover:bg-surface-hover border border-border-subtle hover:border-border"
               >
                 <div className="flex justify-between items-start mb-2 min-w-0">
                   {/* Ticket Title with Number */}
-                  <h3 className="text-white font-medium text-sm md:text-base flex-1 min-w-0 line-clamp-2 pr-2">
-                    {ticket.subject} <span className="text-blue-400 font-semibold">#{ticket.id}</span>
+                  <h3 className="text-content-primary font-medium text-sm md:text-base flex-1 min-w-0 line-clamp-2 pr-2 open_sans_font">
+                    {ticket.subject} <span className="text-primary font-semibold">#{ticket.id}</span>
                   </h3>
                 </div>
 
                 {/* Timestamps with time */}
-                <div className="flex items-center gap-4 text-xs text-gray-400 flex-wrap mb-2">
+                <div className="flex items-center gap-4 text-xs text-content-faint flex-wrap mb-2 open_sans_font">
                   <div className="flex items-center gap-1">
                     <span>Created:</span>
-                    <span className="text-gray-300">{ticket.createdAt || ticket.date}</span>
+                    <span className="text-content-secondary">{ticket.createdAt || ticket.date}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <span>Updated:</span>
-                    <span className="text-gray-300">{ticket.updatedAt || ticket.date}</span>
+                    <span className="text-content-secondary">{ticket.updatedAt || ticket.date}</span>
                   </div>
                 </div>
 
-                {/* Status Badge - Below timestamps */}
+                {/* Status Badge */}
                 <span
                   className={`inline-flex items-center px-2 sm:px-2.5 py-1 rounded-lg text-xs font-medium ${getStatusColor(ticket.status)}`}
                 >
@@ -319,7 +326,7 @@ const Tickets = () => {
             ))}
 
             {filteredTickets.length === 0 && (
-              <div className="text-center py-12 text-gray-400">
+              <div className="text-center py-12 text-content-faint open_sans_font">
                 <p>No tickets found</p>
               </div>
             )}
@@ -348,7 +355,7 @@ const Tickets = () => {
       {/* Floating Action Button - Mobile Only */}
       <button
         onClick={handleNewTicketClick}
-        className="md:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
+        className="md:hidden fixed bottom-4 right-4 bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
         aria-label="Create Ticket"
       >
         <Plus size={22} />
