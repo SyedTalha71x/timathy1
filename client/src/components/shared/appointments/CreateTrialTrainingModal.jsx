@@ -4,6 +4,7 @@ import { Search, X, Clock, ChevronDown, Check, Users } from "lucide-react"
 import { useEffect, useState, useRef } from "react"
 import AddLeadModal from "../../studio-components/lead-studio-components/add-lead-modal"
 import { MemberSpecialNoteIcon } from '../../shared/special-note/shared-special-note-icon';
+import DatePickerField from '../../shared/DatePickerField';
 
 // Helper function to extract hex color from various formats
 const getColorHex = (type) => {
@@ -480,13 +481,7 @@ const TrialTrainingModal = ({
           {/* Date and Time */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs text-gray-500 mb-2">Date</label>
-              <input 
-                type="date" 
-                value={trialData.date} 
-                onChange={(e) => updateTrialData("date", e.target.value)}
-                className="w-full bg-[#222222] border border-gray-700 text-sm rounded-xl px-4 py-2.5 text-white white-calendar-icon focus:outline-none focus:border-blue-500/50" 
-              />
+              <DatePickerField label="Date" value={trialData.date} onChange={(val) => updateTrialData("date", val)} />
             </div>
             <div>
               <label className="block text-xs text-gray-500 mb-2">Time Slot</label>

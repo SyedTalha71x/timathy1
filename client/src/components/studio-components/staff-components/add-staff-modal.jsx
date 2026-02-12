@@ -5,6 +5,7 @@ import { X, Info, Calculator, Camera, Upload } from "lucide-react"
 import { useState, useEffect, useRef } from "react"
 import toast from "react-hot-toast"
 import useCountries from "../../../hooks/useCountries";
+import DatePickerField from "../../shared/DatePickerField";
 
 // Initials Avatar Component - Blue background with initials (like members)
 const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) => {
@@ -474,13 +475,10 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
-                      <label className="text-sm text-content-secondary block mb-2">Birthday</label>
-                      <input
-                        type="date"
-                        name="birthday"
+                      <DatePickerField
+                        label="Birthday"
                         value={newStaff.birthday}
-                        onChange={handleInputChange}
-                        className="w-full bg-surface-dark rounded-xl px-4 py-2 text-content-primary outline-none text-sm"
+                        onChange={(val) => setNewStaff(prev => ({ ...prev, birthday: val }))}
                       />
                     </div>
                     <div>

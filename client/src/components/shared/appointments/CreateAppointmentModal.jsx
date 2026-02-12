@@ -4,6 +4,7 @@
 import { Search, X, Plus, Users, Calendar, Clock, ChevronDown, AlertTriangle, Check, Info, SkipForward, ChevronRight, RotateCcw } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { MemberSpecialNoteIcon } from '../special-note/shared-special-note-icon';
+import DatePickerField from '../DatePickerField';
 
 const MAX_PARTICIPANTS = 5;
 
@@ -445,9 +446,7 @@ const AddAppointmentModal = ({
           {!showRecurringOptions && (
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs text-gray-500 mb-2">Date</label>
-                <input type="date" value={appointmentData.date} onChange={(e) => updateAppointment("date", e.target.value)}
-                  className="w-full bg-[#222222] border border-gray-700 text-sm rounded-xl px-4 py-2.5 text-white white-calendar-icon" />
+                <DatePickerField label="Date" value={appointmentData.date} onChange={(val) => updateAppointment("date", val)} />
               </div>
               <div>
                 <label className="block text-xs text-gray-500 mb-2">Time Slot</label>
@@ -491,9 +490,7 @@ const AddAppointmentModal = ({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs text-gray-500 mb-2">Start Date</label>
-                  <input type="date" value={recurringOptions.startDate} onChange={(e) => updateRecurringOptions("startDate", e.target.value)}
-                    className="w-full bg-[#181818] border border-gray-700 text-sm rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-orange-500/50 white-calendar-icon" />
+                  <DatePickerField label="Start Date" value={recurringOptions.startDate} onChange={(val) => updateRecurringOptions("startDate", val)} />
                 </div>
                 <div>
                   <label className="block text-xs text-gray-500 mb-2">Occurrences</label>

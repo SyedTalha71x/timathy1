@@ -3,6 +3,7 @@
 import { Trash2, X, Search, Plus, ChevronDown, ChevronUp, Pencil, Info, Camera, Upload } from "lucide-react"
 import { useEffect, useState, useRef } from "react"
 import toast from "react-hot-toast"
+import DatePickerField from "../DatePickerField"
 
 // Initials Avatar Component - Orange background with initials
 const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) => {
@@ -727,13 +728,10 @@ const CreateTempMemberModal = ({
                       </select>
                     </div>
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">Birthday</label>
-                      <input
-                        type="date"
-                        name="dateOfBirth"
+                      <DatePickerField
+                        label="Birthday"
                         value={formData.dateOfBirth || ""}
-                        onChange={handleInputChange}
-                        className="w-full bg-[#141414] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
+                        onChange={(val) => setFormData(prev => ({ ...prev, dateOfBirth: val }))}
                       />
                     </div>
                   </div>
@@ -872,13 +870,10 @@ const CreateTempMemberModal = ({
                   </div>
 
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">Auto-Archive Due Date</label>
-                    <input
-                      type="date"
-                      name="autoArchiveDate"
+                    <DatePickerField
+                      label="Auto-Archive Due Date"
                       value={formData.autoArchiveDate || ""}
-                      onChange={handleInputChange}
-                      className="w-full bg-[#141414] white-calendar-icon rounded-xl px-4 py-2 text-white outline-none text-sm"
+                      onChange={(val) => setFormData(prev => ({ ...prev, autoArchiveDate: val }))}
                     />
                     <p className="text-xs text-gray-500 mt-1">
                       The temporary member will be automatically archived after this date.
@@ -968,24 +963,16 @@ const CreateTempMemberModal = ({
 
                     {/* Optional Date Range */}
                     <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-xs text-gray-400 block mb-1.5">Valid From (optional)</label>
-                        <input
-                          type="date"
-                          value={newNote.startDate}
-                          onChange={(e) => setNewNote({ ...newNote, startDate: e.target.value })}
-                          className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500 white-calendar-icon"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-xs text-gray-400 block mb-1.5">Valid Until (optional)</label>
-                        <input
-                          type="date"
-                          value={newNote.endDate}
-                          onChange={(e) => setNewNote({ ...newNote, endDate: e.target.value })}
-                          className="w-full bg-[#222] text-white rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-blue-500 white-calendar-icon"
-                        />
-                      </div>
+                      <DatePickerField
+                        label="Valid From (optional)"
+                        value={newNote.startDate}
+                        onChange={(val) => setNewNote({ ...newNote, startDate: val })}
+                      />
+                      <DatePickerField
+                        label="Valid Until (optional)"
+                        value={newNote.endDate}
+                        onChange={(val) => setNewNote({ ...newNote, endDate: val })}
+                      />
                     </div>
 
                     <button

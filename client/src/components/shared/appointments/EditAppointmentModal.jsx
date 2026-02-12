@@ -5,6 +5,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { X, Clock, User, ChevronDown, AlertTriangle, Check, Users } from "lucide-react";
 import { MemberSpecialNoteIcon } from '../special-note/shared-special-note-icon';
+import DatePickerField from '../DatePickerField';
 
 // Helper function to extract hex color from various formats
 const getColorHex = (type) => {
@@ -469,9 +470,7 @@ const EditAppointmentModalMain = ({
           {/* Date and Time */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs text-gray-500 mb-2">Date</label>
-              <input type="date" value={editDate} onChange={(e) => setEditDate(e.target.value)}
-                className="w-full bg-[#222222] border border-gray-700 text-sm rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-orange-500/50 transition-colors white-calendar-icon" />
+              <DatePickerField label="Date" value={editDate} onChange={setEditDate} />
             </div>
             <div>
               <label className="block text-xs text-gray-500 mb-2">Time Slot</label>

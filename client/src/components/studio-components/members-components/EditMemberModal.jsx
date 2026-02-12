@@ -4,6 +4,7 @@ import { Trash2, X, Search, Plus, ChevronDown, ChevronUp, Pencil, Archive, Archi
 import { useEffect, useState, useRef } from "react"
 import toast from "react-hot-toast"
 import useCountries from "../../../hooks/useCountries"
+import DatePickerField from "../../shared/DatePickerField"
 
 // Initials Avatar Component - Uses primary color from theme
 const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) => {
@@ -615,8 +616,11 @@ const EditMemberModalMain = ({
                       </select>
                     </div>
                     <div>
-                      <label className="text-sm text-content-secondary block mb-2">Birthday</label>
-                      <input type="date" name="dateOfBirth" value={editFormMain.dateOfBirth || ""} onChange={handleInputChangeMain} className="w-full bg-surface-dark white-calendar-icon rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors" />
+                      <DatePickerField
+                        label="Birthday"
+                        value={editFormMain.dateOfBirth || ""}
+                        onChange={(val) => handleInputChangeMain({ target: { name: "dateOfBirth", value: val } })}
+                      />
                     </div>
                   </div>
                 </div>
@@ -688,8 +692,11 @@ const EditMemberModalMain = ({
 
                   {selectedMemberMain && selectedMemberMain.memberType === "temporary" && (
                     <div>
-                      <label className="text-sm text-content-secondary block mb-2">Auto-Archive Due Date</label>
-                      <input type="date" name="autoArchiveDate" value={editFormMain.autoArchiveDate || ""} onChange={handleInputChangeMain} className="w-full bg-surface-dark white-calendar-icon rounded-xl px-4 py-2 text-content-primary outline-none text-sm border border-transparent focus:border-primary transition-colors" />
+                      <DatePickerField
+                        label="Auto-Archive Due Date"
+                        value={editFormMain.autoArchiveDate || ""}
+                        onChange={(val) => handleInputChangeMain({ target: { name: "autoArchiveDate", value: val } })}
+                      />
                     </div>
                   )}
                 </div>
@@ -731,14 +738,16 @@ const EditMemberModalMain = ({
                     </div>
                     
                     <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-xs text-content-muted block mb-1.5">Valid From (optional)</label>
-                        <input type="date" value={newNote.startDate} onChange={(e) => setNewNote({ ...newNote, startDate: e.target.value })} className="w-full bg-surface-base text-content-primary rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary white-calendar-icon" />
-                      </div>
-                      <div>
-                        <label className="text-xs text-content-muted block mb-1.5">Valid Until (optional)</label>
-                        <input type="date" value={newNote.endDate} onChange={(e) => setNewNote({ ...newNote, endDate: e.target.value })} className="w-full bg-surface-base text-content-primary rounded-lg px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary white-calendar-icon" />
-                      </div>
+                      <DatePickerField
+                        label="Valid From (optional)"
+                        value={newNote.startDate}
+                        onChange={(val) => setNewNote({ ...newNote, startDate: val })}
+                      />
+                      <DatePickerField
+                        label="Valid Until (optional)"
+                        value={newNote.endDate}
+                        onChange={(val) => setNewNote({ ...newNote, endDate: val })}
+                      />
                     </div>
                     
                     <button type="button" onClick={editingNoteId ? handleUpdateNote : handleAddNote} disabled={!newNote.text.trim()} className={`w-full py-2 rounded-lg text-sm font-medium transition-colors ${!newNote.text.trim() ? "bg-primary/50 text-white/50 cursor-not-allowed" : "bg-primary text-white hover:bg-primary-hover"}`}>
