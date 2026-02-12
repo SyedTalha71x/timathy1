@@ -365,7 +365,7 @@ const Sidebar = ({ isOpen = false, onClose, isCollapsed: externalIsCollapsed, on
       hasSubmenu: true,
       submenu: [
         { label: "Training", to: "/dashboard/training", icon: CgGym },
-        { label: "Medical History", to: "/dashboard/assessment", icon: BsFillClipboard2HeartFill },
+        { label: "Medical History", to: "/dashboard/medical-history", icon: BsFillClipboard2HeartFill },
       ],
     },
     { icon: BadgeDollarSign, label: "Finances", to: "/dashboard/finances" },

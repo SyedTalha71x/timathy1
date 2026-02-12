@@ -35,12 +35,12 @@ const SortableFormCard = ({ form, children, isDragDisabled }) => {
   };
 
   return (
-    <div ref={setNodeRef} style={style} className={`relative h-full ${isDragging ? 'rounded-xl ring-2 ring-orange-500/50' : ''}`}>
+    <div ref={setNodeRef} style={style} className={`relative h-full ${isDragging ? 'rounded-xl ring-2 ring-primary/50' : ''}`}>
       {!isDragDisabled && (
         <div 
           {...attributes} 
           {...listeners}
-          className="absolute top-3 left-3 md:top-4 md:left-4 cursor-grab active:cursor-grabbing text-gray-400 hover:text-white active:text-orange-400 p-2 -m-1 md:p-1 md:-m-0 rounded-lg active:bg-orange-500/30 z-10 touch-none"
+          className="absolute top-3 left-3 md:top-4 md:left-4 cursor-grab active:cursor-grabbing text-content-muted hover:text-content-primary active:text-primary p-2 -m-1 md:p-1 md:-m-0 rounded-lg active:bg-primary/30 z-10 touch-none"
           style={{ WebkitTapHighlightColor: 'transparent' }}
         >
           <GripVertical className="w-5 h-5 md:w-4 md:h-4" />
@@ -430,11 +430,11 @@ const Assessment = () => {
   // Get sort icon based on current state
   const getSortIcon = () => {
     if (sortBy === 'custom') {
-      return <ArrowUpDown size={14} className="text-gray-400" />;
+      return <ArrowUpDown size={14} className="text-content-muted" />;
     }
     return sortDirection === 'asc' 
-      ? <ArrowUp size={14} className="text-white" />
-      : <ArrowDown size={14} className="text-white" />;
+      ? <ArrowUp size={14} className="text-content-primary" />
+      : <ArrowDown size={14} className="text-content-primary" />;
   };
 
   // Filter and sort forms
@@ -524,11 +524,11 @@ const Assessment = () => {
           },
         }}
       />
-      <div className="min-h-screen rounded-3xl bg-[#1C1C1C] text-white md:p-6 p-3 transition-all duration-500 ease-in-out flex-1">
+      <div className="min-h-screen rounded-3xl bg-surface-base text-content-primary md:p-6 p-3 transition-all duration-500 ease-in-out flex-1">
         {/* Header */}
         <div className="flex sm:items-center justify-between mb-6 sm:mb-8 gap-4">
           <div className="flex items-center gap-3">
-            <h1 className="text-white oxanium_font text-xl md:text-2xl">Medical History</h1>
+            <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">Medical History</h1>
             
             {/* Sort Button - Mobile: next to title */}
             <div className="md:hidden relative" ref={sortDropdownRef}>
@@ -537,7 +537,7 @@ const Assessment = () => {
                   e.stopPropagation();
                   setShowSortDropdown(!showSortDropdown);
                 }}
-                className="px-3 py-2 bg-[#2F2F2F] text-gray-300 rounded-xl text-xs hover:bg-[#3F3F3F] transition-colors flex items-center gap-2"
+                className="px-3 py-2 bg-surface-button text-content-secondary rounded-xl text-xs hover:bg-surface-button-hover transition-colors flex items-center gap-2"
               >
                 {getSortIcon()}
                 <span>{currentSortLabel}</span>
@@ -545,9 +545,9 @@ const Assessment = () => {
 
               {/* Sort Dropdown */}
               {showSortDropdown && (
-                <div className="absolute left-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[180px]">
+                <div className="absolute left-0 mt-1 bg-surface-hover border border-border-subtle rounded-lg shadow-lg z-50 min-w-[180px]">
                   <div className="py-1">
-                    <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">
+                    <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border-subtle">
                       Sort by
                     </div>
                     {sortOptions.map((option) => (
@@ -557,15 +557,15 @@ const Assessment = () => {
                           e.stopPropagation();
                           handleSortOptionClick(option.value);
                         }}
-                        className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${
+                        className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover transition-colors flex items-center justify-between ${
                           sortBy === option.value 
-                            ? 'text-white bg-gray-800/50' 
-                            : 'text-gray-300'
+                            ? 'text-content-primary bg-surface-hover/50' 
+                            : 'text-content-secondary'
                         }`}
                       >
                         <span>{option.label}</span>
                         {sortBy === option.value && option.value !== 'custom' && (
-                          <span className="text-gray-400">
+                          <span className="text-content-muted">
                             {sortDirection === 'asc' 
                               ? <ArrowUp size={14} /> 
                               : <ArrowDown size={14} />
@@ -580,26 +580,26 @@ const Assessment = () => {
             </div>
             
             {/* View Toggle - Desktop only */}
-            <div className="hidden md:flex items-center gap-2 bg-black rounded-xl p-1">
+            <div className="hidden md:flex items-center gap-2 bg-surface-dark rounded-xl p-1">
               <div className="relative group">
                 <button
                   onClick={() => setViewMode('grid')}
                   className={`p-2 rounded-lg transition-colors ${
                     viewMode === 'grid'
-                      ? 'bg-orange-500 text-white'
-                      : 'text-gray-400 hover:text-white'
+                      ? 'bg-primary text-white'
+                      : 'text-content-muted hover:text-content-primary'
                   }`}
                 >
                   <Grid3x3 size={16} />
                 </button>
                 
                 {/* Tooltip */}
-                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark/90 text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
                   <span className="font-medium">Grid View</span>
                   <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
                     V
                   </span>
-                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-surface-dark/90" />
                 </div>
               </div>
               
@@ -608,20 +608,20 @@ const Assessment = () => {
                   onClick={() => setViewMode('list')}
                   className={`p-2 rounded-lg transition-colors ${
                     viewMode === 'list'
-                      ? 'bg-orange-500 text-white'
-                      : 'text-gray-400 hover:text-white'
+                      ? 'bg-primary text-white'
+                      : 'text-content-muted hover:text-content-primary'
                   }`}
                 >
                   <List size={16} />
                 </button>
                 
                 {/* Tooltip */}
-                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark/90 text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
                   <span className="font-medium">List View</span>
                   <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
                     V
                   </span>
-                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-surface-dark/90" />
                 </div>
               </div>
             </div>
@@ -631,20 +631,20 @@ const Assessment = () => {
             <div className="hidden md:block relative group">
               <button
                 onClick={handleCreateForm}
-                className="flex bg-orange-500 hover:bg-orange-600 text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors"
+                className="flex bg-primary hover:bg-primary-hover text-xs sm:text-sm text-white px-3 sm:px-4 py-2 rounded-xl items-center gap-2 justify-center transition-colors"
               >
                 <Plus size={14} className="sm:w-4 sm:h-4" />
                 <span className='hidden sm:inline'>Create Medical History</span>
               </button>
               
               {/* Tooltip - YouTube Style like Contract Builder */}
-              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark/90 text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
                 <span className="font-medium">Create Medical History</span>
                 <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
                   C
                 </span>
                 {/* Arrow pointing up */}
-                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-surface-dark/90" />
               </div>
             </div>
           </div>
@@ -653,13 +653,13 @@ const Assessment = () => {
       {/* Search Bar */}
       <div className="mb-4">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-content-muted" size={16} />
           <input
             type="text"
             placeholder="Search forms..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-[#333333] focus:border-[#3F74FF] transition-colors"
+            className="w-full bg-surface-card outline-none text-sm text-content-primary rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-border focus:border-accent-blue transition-colors"
           />
         </div>
       </div>
@@ -670,8 +670,8 @@ const Assessment = () => {
           onClick={() => setFilterStatus('all')}
           className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${
             filterStatus === 'all'
-              ? "bg-blue-600 text-white"
-              : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+              ? "bg-primary text-white"
+              : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
           }`}
         >
           All
@@ -680,8 +680,8 @@ const Assessment = () => {
           onClick={() => setFilterStatus('active')}
           className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${
             filterStatus === 'active'
-              ? "bg-blue-600 text-white"
-              : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+              ? "bg-primary text-white"
+              : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
           }`}
         >
           Active
@@ -690,8 +690,8 @@ const Assessment = () => {
           onClick={() => setFilterStatus('inactive')}
           className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${
             filterStatus === 'inactive'
-              ? "bg-blue-600 text-white"
-              : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+              ? "bg-primary text-white"
+              : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
           }`}
         >
           Inactive
@@ -704,7 +704,7 @@ const Assessment = () => {
               e.stopPropagation();
               setShowSortDropdown(!showSortDropdown);
             }}
-            className="px-3 sm:px-4 py-2 bg-[#2F2F2F] text-gray-300 rounded-xl text-xs sm:text-sm hover:bg-[#3F3F3F] transition-colors flex items-center gap-2"
+            className="px-3 sm:px-4 py-2 bg-surface-button text-content-secondary rounded-xl text-xs sm:text-sm hover:bg-surface-button-hover transition-colors flex items-center gap-2"
           >
             {getSortIcon()}
             <span>{currentSortLabel}</span>
@@ -712,9 +712,9 @@ const Assessment = () => {
 
           {/* Sort Dropdown */}
           {showSortDropdown && (
-            <div className="absolute top-full right-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[180px]">
+            <div className="absolute top-full right-0 mt-1 bg-surface-hover border border-border-subtle rounded-lg shadow-lg z-50 min-w-[180px]">
               <div className="py-1">
-                <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">
+                <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border-subtle">
                   Sort by
                 </div>
                 {sortOptions.map((option) => (
@@ -724,15 +724,15 @@ const Assessment = () => {
                       e.stopPropagation();
                       handleSortOptionClick(option.value);
                     }}
-                    className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${
+                    className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover transition-colors flex items-center justify-between ${
                       sortBy === option.value 
-                        ? 'text-white bg-gray-800/50' 
-                        : 'text-gray-300'
+                        ? 'text-content-primary bg-surface-hover/50' 
+                        : 'text-content-secondary'
                     }`}
                   >
                     <span>{option.label}</span>
                     {sortBy === option.value && option.value !== 'custom' && (
-                      <span className="text-gray-400">
+                      <span className="text-content-muted">
                         {sortDirection === 'asc' 
                           ? <ArrowUp size={14} /> 
                           : <ArrowDown size={14} />
@@ -763,13 +763,13 @@ const Assessment = () => {
                 {/* Grid Card - Always on Mobile, on Desktop only if viewMode is grid */}
                 <div className={`${viewMode === 'list' ? 'flex md:hidden' : 'flex'} flex-col select-none h-full`}>
                   <div
-                    className={`bg-[#1A1A1A] rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-800 hover:border-gray-700 p-4 md:p-6 relative h-full flex flex-col ${!isDragDisabled ? 'pl-10 md:pl-12' : ''}`}
+                    className={`bg-surface-hover rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border border-border-subtle hover:border-border-subtle p-4 md:p-6 relative h-full flex flex-col ${!isDragDisabled ? 'pl-10 md:pl-12' : ''}`}
                   >
                   {/* Three dots dropdown */}
                   <div className="absolute top-3 right-3 md:top-4 md:right-4">
                     <button
                       onClick={(e) => toggleDropdown(form.id, e)}
-                      className="text-gray-400 hover:text-orange-400 p-2 rounded-lg hover:bg-gray-800 transition-colors"
+                      className="text-content-muted hover:text-primary p-2 rounded-lg hover:bg-surface-hover transition-colors"
                     >
                       <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
@@ -777,22 +777,22 @@ const Assessment = () => {
                     </button>
 
                     {dropdownOpen === form.id && (
-                      <div className="absolute right-0 top-8 bg-[#1C1C1C] border border-gray-700 rounded-lg shadow-lg py-1 z-10 min-w-[140px]">
+                      <div className="absolute right-0 top-8 bg-surface-base border border-border-subtle rounded-lg shadow-lg py-1 z-10 min-w-[140px]">
                         <button
                           onClick={() => handleEditForm(form)}
-                          className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2 transition-colors"
+                          className="w-full text-left px-3 py-2 hover:bg-surface-hover text-content-secondary text-sm flex items-center gap-2 transition-colors"
                         >
                           <Edit size={14} /> Edit
                         </button>
                         <button
                           onClick={() => handleDuplicateForm(form)}
-                          className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2 transition-colors"
+                          className="w-full text-left px-3 py-2 hover:bg-surface-hover text-content-secondary text-sm flex items-center gap-2 transition-colors"
                         >
                           <Copy size={14} /> Duplicate
                         </button>
                         <button
                           onClick={() => handleDeleteClick(form)}
-                          className="w-full text-left px-3 py-2 hover:bg-gray-800 text-red-500 text-sm flex items-center gap-2 transition-colors"
+                          className="w-full text-left px-3 py-2 hover:bg-surface-hover text-red-500 text-sm flex items-center gap-2 transition-colors"
                         >
                           <Trash2 size={14} /> Delete
                         </button>
@@ -803,17 +803,17 @@ const Assessment = () => {
                   {/* Eye icon for quick preview */}
                   <button
                     onClick={() => handlePreviewForm(form)}
-                    className="absolute top-3 right-10 md:top-4 md:right-12 text-gray-400 hover:text-orange-400 p-2 rounded-lg hover:bg-gray-800 transition-colors"
+                    className="absolute top-3 right-10 md:top-4 md:right-12 text-content-muted hover:text-primary p-2 rounded-lg hover:bg-surface-hover transition-colors"
                     title="Preview Form"
                   >
                     <Eye size={18} />
                   </button>
 
                   <div className="flex justify-between items-start mb-3 pr-16">
-                    <h3 className="text-base md:text-lg font-semibold line-clamp-2 leading-snug" title={form.title}>{form.title}</h3>
+                    <h3 className="text-base md:text-lg font-semibold text-content-primary line-clamp-2 leading-snug" title={form.title}>{form.title}</h3>
                   </div>
 
-                  <div className="text-xs md:text-sm text-gray-400 mb-2">
+                  <div className="text-xs md:text-sm text-content-muted mb-2">
                     {form.sections.length} Sections • {form.sections.reduce((acc, section) => {
                       const items = section.items || section.questions || [];
                       const questionCount = items.filter(item => !item.itemType || item.itemType === 'question' || item.itemType === 'variableField').length;
@@ -823,24 +823,24 @@ const Assessment = () => {
 
                   {/* Dates */}
                   <div className="flex flex-col gap-0.5 mb-4 flex-grow">
-                    <p className="text-[11px] text-gray-500">
+                    <p className="text-[11px] text-content-faint">
                       Created: {formatDateTime(form.createdAt)}
                     </p>
                     {form.updatedAt && form.updatedAt !== form.createdAt && (
-                      <p className="text-[11px] text-gray-500">
+                      <p className="text-[11px] text-content-faint">
                         Updated: {formatDateTime(form.updatedAt)}
                       </p>
                     )}
                   </div>
 
                   {/* Toggle switch for active/inactive - bulletin board style */}
-                  <div className="flex items-center justify-between pt-3 border-t border-gray-700 mt-auto">
+                  <div className="flex items-center justify-between pt-3 border-t border-border-subtle mt-auto">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-400">Status:</span>
+                      <span className="text-xs text-content-muted">Status:</span>
                       <button
                         onClick={(e) => toggleFormActive(form.id, e)}
                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                          form.active ? 'bg-blue-600' : 'bg-gray-600'
+                          form.active ? 'bg-primary' : 'bg-gray-600'
                         }`}
                       >
                         <span
@@ -849,7 +849,7 @@ const Assessment = () => {
                           }`}
                         />
                       </button>
-                      <span className="text-xs font-medium text-gray-300 min-w-[50px]">
+                      <span className="text-xs font-medium text-content-secondary min-w-[50px]">
                         {form.active ? 'Active' : 'Inactive'}
                       </span>
                     </div>
@@ -860,17 +860,17 @@ const Assessment = () => {
                 {/* List Card - Desktop only, hidden on mobile */}
                 <div className={`${viewMode === 'list' ? 'hidden md:flex' : 'hidden'} items-start select-none`}>
                   <div
-                    className={`bg-[#1A1A1A] rounded-xl border border-gray-800 hover:border-gray-700 transition-all duration-200 p-4 w-full relative ${!isDragDisabled ? 'pl-10 md:pl-12' : ''}`}
+                    className={`bg-surface-hover rounded-xl border border-border-subtle hover:border-border-subtle transition-all duration-200 p-4 w-full relative ${!isDragDisabled ? 'pl-10 md:pl-12' : ''}`}
                   >
                     {/* Icons Container - Right side, vertically centered */}
                     <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
                       {/* Status Toggle */}
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-gray-400">Status:</span>
+                        <span className="text-xs text-content-muted">Status:</span>
                         <button
                           onClick={(e) => toggleFormActive(form.id, e)}
                           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            form.active ? 'bg-blue-600' : 'bg-gray-600'
+                            form.active ? 'bg-primary' : 'bg-gray-600'
                           }`}
                         >
                           <span
@@ -879,7 +879,7 @@ const Assessment = () => {
                             }`}
                           />
                         </button>
-                        <span className="text-xs font-medium text-gray-300 min-w-[50px]">
+                        <span className="text-xs font-medium text-content-secondary min-w-[50px]">
                           {form.active ? 'Active' : 'Inactive'}
                         </span>
                       </div>
@@ -887,7 +887,7 @@ const Assessment = () => {
                       {/* Eye icon */}
                       <button
                         onClick={() => handlePreviewForm(form)}
-                        className="text-gray-400 hover:text-orange-400 p-2 rounded-lg hover:bg-gray-800 transition-colors"
+                        className="text-content-muted hover:text-primary p-2 rounded-lg hover:bg-surface-hover transition-colors"
                         title="Preview Form"
                       >
                         <Eye size={18} />
@@ -897,7 +897,7 @@ const Assessment = () => {
                       <div className="relative">
                         <button
                           onClick={(e) => toggleDropdown(form.id, e)}
-                          className="text-gray-400 hover:text-orange-400 p-2 rounded-lg hover:bg-gray-800 transition-colors"
+                          className="text-content-muted hover:text-primary p-2 rounded-lg hover:bg-surface-hover transition-colors"
                         >
                           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
@@ -905,22 +905,22 @@ const Assessment = () => {
                         </button>
 
                         {dropdownOpen === form.id && (
-                          <div className="absolute right-0 top-8 bg-[#1C1C1C] border border-gray-700 rounded-lg shadow-lg py-1 z-10 min-w-[140px]">
+                          <div className="absolute right-0 top-8 bg-surface-base border border-border-subtle rounded-lg shadow-lg py-1 z-10 min-w-[140px]">
                             <button
                               onClick={() => handleEditForm(form)}
-                              className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2 transition-colors"
+                              className="w-full text-left px-3 py-2 hover:bg-surface-hover text-content-secondary text-sm flex items-center gap-2 transition-colors"
                             >
                               <Edit size={14} /> Edit
                             </button>
                             <button
                               onClick={() => handleDuplicateForm(form)}
-                              className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2 transition-colors"
+                              className="w-full text-left px-3 py-2 hover:bg-surface-hover text-content-secondary text-sm flex items-center gap-2 transition-colors"
                             >
                               <Copy size={14} /> Duplicate
                             </button>
                             <button
                               onClick={() => handleDeleteClick(form)}
-                              className="w-full text-left px-3 py-2 hover:bg-gray-800 text-red-500 text-sm flex items-center gap-2 transition-colors"
+                              className="w-full text-left px-3 py-2 hover:bg-surface-hover text-red-500 text-sm flex items-center gap-2 transition-colors"
                             >
                               <Trash2 size={14} /> Delete
                             </button>
@@ -931,8 +931,8 @@ const Assessment = () => {
 
                     {/* Content - Left side */}
                     <div className="pr-96">
-                      <h3 className="text-base font-semibold text-white mb-1 line-clamp-1">{form.title}</h3>
-                      <div className="text-xs text-gray-400 mb-2">
+                      <h3 className="text-base font-semibold text-content-primary mb-1 line-clamp-1">{form.title}</h3>
+                      <div className="text-xs text-content-muted mb-2">
                         {form.sections.length} Sections • {form.sections.reduce((acc, section) => {
                           const items = section.items || section.questions || [];
                           const questionCount = items.filter(item => !item.itemType || item.itemType === 'question' || item.itemType === 'variableField').length;
@@ -940,11 +940,11 @@ const Assessment = () => {
                         }, 0)} Questions
                       </div>
                       <div className="flex flex-col gap-0.5">
-                        <p className="text-[11px] text-gray-500">
+                        <p className="text-[11px] text-content-faint">
                           Created: {formatDateTime(form.createdAt)}
                         </p>
                         {form.updatedAt && form.updatedAt !== form.createdAt && (
-                          <p className="text-[11px] text-gray-500">
+                          <p className="text-[11px] text-content-faint">
                             Updated: {formatDateTime(form.updatedAt)}
                           </p>
                         )}
@@ -956,7 +956,7 @@ const Assessment = () => {
             ))}
 
             {filteredForms.length === 0 && (
-              <div className="col-span-full text-center py-12 text-gray-400">
+              <div className="col-span-full text-center py-12 text-content-muted">
                 {forms.length === 0 ? (
                   <>No forms created yet. Click on "Create Medical History" to get started.</>
                 ) : (
@@ -1001,7 +1001,7 @@ const Assessment = () => {
     {/* Floating Action Button - Mobile Only */}
     <button
       onClick={handleCreateForm}
-      className="md:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
+      className="md:hidden fixed bottom-4 right-4 bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
       aria-label="Create Medical History"
     >
       <Plus size={22} />

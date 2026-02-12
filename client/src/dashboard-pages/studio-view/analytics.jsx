@@ -4,6 +4,8 @@ import { useState, useRef, useEffect } from "react"
 import { Toaster } from "react-hot-toast"
 import { useNavigate } from "react-router-dom"
 import Chart from "react-apexcharts"
+import L from "leaflet"
+import "leaflet/dist/leaflet.css"
 import { 
   Calendar, 
   Users, 
@@ -23,7 +25,7 @@ import {
 } from "lucide-react"
 
 import { trainingVideosData } from "../../utils/studio-states/training-states"
-import { appointmentsData, LeadOriginMap, leadOriginMapData } from "../../utils/studio-states/analytics-states"
+import { appointmentsData, leadOriginMapData } from "../../utils/studio-states/analytics-states"
 import {
   tabs,
   membersData,
@@ -47,20 +49,20 @@ const StatCard = ({ title, value, change, icon: Icon, prefix = "", suffix = "", 
   const isNeutral = change === 0
 
   return (
-    <div className="bg-[#2F2F2F] rounded-xl p-3 sm:p-4">
+    <div className="bg-surface-card rounded-xl p-3 sm:p-4">
       <div className="flex items-center gap-3">
         <div className={`p-2 ${iconBg} rounded-lg flex-shrink-0`}>
           <Icon size={18} className={iconColor} />
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <h3 className="text-xl sm:text-2xl font-bold text-white">
+            <h3 className="text-xl sm:text-2xl font-bold text-content-primary">
               {prefix}{typeof value === "number" ? value.toLocaleString() : value}{suffix}
             </h3>
             {change !== undefined && (
               <span className={`flex items-center text-xs px-1.5 py-0.5 rounded ${
                 isNeutral 
-                  ? "text-gray-400 bg-gray-500/20" 
+                  ? "text-content-muted bg-gray-500/20" 
                   : isPositive 
                     ? "text-green-400 bg-green-500/20" 
                     : "text-red-400 bg-red-500/20"
@@ -70,7 +72,7 @@ const StatCard = ({ title, value, change, icon: Icon, prefix = "", suffix = "", 
               </span>
             )}
           </div>
-          <p className="text-gray-400 text-xs sm:text-sm truncate">{title}</p>
+          <p className="text-content-muted text-xs sm:text-sm truncate">{title}</p>
         </div>
       </div>
     </div>
@@ -82,12 +84,206 @@ const StatCard = ({ title, value, change, icon: Icon, prefix = "", suffix = "", 
 // ==============================
 const ChartCard = ({ title, children, className = "" }) => {
   return (
-    <div className={`bg-[#2F2F2F] rounded-xl p-4 sm:p-6 ${className}`}>
-      <h3 className="text-base sm:text-lg font-semibold text-white mb-4">{title}</h3>
+    <div className={`bg-surface-card rounded-xl p-4 sm:p-6 ${className}`}>
+      <h3 className="text-base sm:text-lg font-semibold text-content-primary mb-4">{title}</h3>
       {children}
     </div>
   )
 }
+
+// ==============================
+// LEAD ORIGIN MAP HELPERS
+// ==============================
+const getHeatColor = (count, maxCount) => {
+  const intensity = count / maxCount;
+  if (intensity > 0.7) return { fill: '#f97316', border: '#ea580c', opacity: 0.7 };
+  if (intensity > 0.4) return { fill: '#fb923c', border: '#f97316', opacity: 0.6 };
+  if (intensity > 0.2) return { fill: '#fdba74', border: '#fb923c', opacity: 0.5 };
+  return { fill: '#fed7aa', border: '#fdba74', opacity: 0.4 };
+};
+
+const getRadius = (count, maxCount) => {
+  const minRadius = 400;
+  const maxRadius = 1500;
+  const intensity = count / maxCount;
+  return minRadius + (maxRadius - minRadius) * intensity;
+};
+
+// ==============================
+// LEAD ORIGIN MAP COMPONENT
+// ==============================
+const LeadOriginMap = ({ data, height = 450 }) => {
+  const mapRef = useRef(null);
+  const mapInstanceRef = useRef(null);
+
+  useEffect(() => {
+    if (mapInstanceRef.current) return;
+    if (!mapRef.current) return;
+
+    const maxLeads = Math.max(...data.regions.map(r => r.leads));
+
+    const map = L.map(mapRef.current, {
+      center: [data.studioLocation.lat, data.studioLocation.lng],
+      zoom: 11,
+      zoomControl: true,
+      scrollWheelZoom: true,
+    });
+
+    mapInstanceRef.current = map;
+
+    // Detect light/dark mode from CSS theme token
+    const surfaceBase = getComputedStyle(document.documentElement).getPropertyValue('--color-surface-base').trim();
+    const isLightMode = surfaceBase ? (() => {
+      const hex = surfaceBase.replace('#', '');
+      const r = parseInt(hex.substring(0, 2), 16);
+      const g = parseInt(hex.substring(2, 4), 16);
+      const b = parseInt(hex.substring(4, 6), 16);
+      return (r + g + b) / 3 > 128;
+    })() : false;
+
+    const tileUrl = isLightMode
+      ? 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+      : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+
+    L.tileLayer(tileUrl, {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+      subdomains: 'abcd',
+      maxZoom: 19
+    }).addTo(map);
+
+    // Studio marker
+    const studioIcon = L.divIcon({
+      className: 'custom-studio-marker',
+      html: `
+        <div style="
+          background: #3b82f6;
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          border: 3px solid #fff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 4px 12px rgba(59, 130, 246, 0.5);
+        ">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            <polyline points="9 22 9 12 15 12 15 22"></polyline>
+          </svg>
+        </div>
+      `,
+      iconSize: [36, 36],
+      iconAnchor: [18, 18],
+    });
+
+    L.marker([data.studioLocation.lat, data.studioLocation.lng], { icon: studioIcon })
+      .addTo(map)
+      .bindPopup(`
+        <div style="text-align: center; padding: 8px;">
+          <strong style="font-size: 14px;">${data.studioLocation.name}</strong><br/>
+          <span style="color: #666; font-size: 12px;">${data.studioLocation.address}</span>
+        </div>
+      `);
+
+    // Distance circles (5km, 10km, 15km)
+    [5000, 10000, 15000].forEach((radius) => {
+      L.circle([data.studioLocation.lat, data.studioLocation.lng], {
+        radius,
+        color: '#4b5563',
+        weight: 1,
+        fillColor: 'transparent',
+        fillOpacity: 0,
+        dashArray: '5, 5',
+      }).addTo(map);
+    });
+
+    // Region circles (heatmap)
+    data.regions.forEach((region) => {
+      const color = getHeatColor(region.leads, maxLeads);
+      const radius = getRadius(region.leads, maxLeads);
+
+      L.circle([region.lat, region.lng], {
+        radius,
+        color: color.border,
+        weight: 2,
+        fillColor: color.fill,
+        fillOpacity: color.opacity,
+      })
+        .addTo(map)
+        .bindPopup(`
+          <div style="min-width: 120px; padding: 8px;">
+            <strong style="font-size: 14px; color: #333;">${region.name}</strong>
+            <hr style="margin: 8px 0; border-color: #eee;"/>
+            <div style="display: flex; justify-content: space-between; margin: 4px 0;">
+              <span style="color: #666;">Leads:</span>
+              <strong style="color: #f97316;">${region.leads}</strong>
+            </div>
+          </div>
+        `);
+    });
+
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, [data]);
+
+  return (
+    <div className="bg-surface-card rounded-xl p-4 sm:p-6 overflow-hidden relative z-0">
+      <style>{`
+        .leaflet-pane, .leaflet-top, .leaflet-bottom, .leaflet-control { z-index: 1 !important; }
+        .leaflet-tile-pane { z-index: 1 !important; }
+        .leaflet-overlay-pane { z-index: 2 !important; }
+        .leaflet-marker-pane { z-index: 3 !important; }
+        .leaflet-popup-pane { z-index: 4 !important; }
+      `}</style>
+      
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-2">
+        <h3 className="text-lg font-semibold text-content-primary">Lead Origin</h3>
+        <div className="text-sm text-content-muted">
+          Total: <span className="font-bold text-primary">{data.totalLeads}</span> leads
+        </div>
+      </div>
+      
+      <div className="w-full overflow-hidden rounded-xl relative" style={{ zIndex: 1 }}>
+        <div 
+          ref={mapRef} 
+          style={{ height: `${height}px`, width: '100%', minWidth: '280px', position: 'relative', zIndex: 1 }}
+          className="rounded-xl"
+        />
+      </div>
+      
+      <div className="mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+        <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded-full bg-blue-500 border-2 border-white"></div>
+            <span className="text-xs text-content-muted">Studio</span>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 text-xs text-content-muted">
+            <span>Density:</span>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 rounded-full bg-orange-200 opacity-60"></div>
+              <span>Low</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 rounded-full bg-orange-400 opacity-70"></div>
+              <span>Med</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="w-3 h-3 rounded-full bg-orange-500 opacity-80"></div>
+              <span>High</span>
+            </div>
+          </div>
+        </div>
+        <div className="text-xs text-content-faint">
+          Click on areas to see details
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // ==============================
 // TIME PERIOD OPTIONS
@@ -212,8 +408,8 @@ export default function AnalyticsDashboard() {
                 value={appointmentsData.totals.noShows}
                 change={0}
                 icon={AlertCircle}
-                iconBg="bg-orange-500/20"
-                iconColor="text-orange-400"
+                iconBg="bg-primary/20"
+                iconColor="text-primary"
               />
             </div>
 
@@ -247,7 +443,8 @@ export default function AnalyticsDashboard() {
                       chart: {
                         ...popularTimesChart.options.chart,
                         height: getResponsiveChartHeight(),
-                      }
+                      },
+                      stroke: { show: false, width: 0 }
                     }}
                     series={popularTimesChart.series} 
                     type="bar" 
@@ -262,23 +459,16 @@ export default function AnalyticsDashboard() {
       case "Members":
         return (
           <div className="space-y-4 sm:space-y-6">
-            {/* Total Members Card - Compact */}
-            <div className="bg-gradient-to-br from-blue-600/20 to-blue-800/20 border border-blue-500/30 rounded-xl p-4 sm:p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-blue-500/20 rounded-xl">
-                    <Users size={24} className="text-blue-400" />
-                  </div>
-                  <div>
-                    <p className="text-blue-300 text-xs sm:text-sm">Total Members</p>
-                    <div className="text-3xl sm:text-4xl font-bold text-white">{membersData.totalMembers}</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1.5 bg-green-500/20 px-3 py-1.5 rounded-lg">
-                  <TrendingUp className="text-green-400" size={16} />
-                  <span className="text-green-400 text-sm font-semibold">+18%</span>
-                </div>
-              </div>
+            {/* Total Members Card */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+              <StatCard
+                title="Total Members"
+                value={membersData.totalMembers}
+                change={18}
+                icon={Users}
+                iconBg="bg-blue-500/20"
+                iconColor="text-blue-400"
+              />
             </div>
 
             {/* Member Activity Chart */}
@@ -306,7 +496,10 @@ export default function AnalyticsDashboard() {
               <div className="flex justify-center">
                 <div className="w-full max-w-md">
                   <Chart
-                    options={membersByTypeChart.options}
+                    options={{
+                      ...membersByTypeChart.options,
+                      stroke: { show: false, width: 0 }
+                    }}
                     series={membersByTypeChart.series}
                     type="donut"
                     height={320}
@@ -320,23 +513,16 @@ export default function AnalyticsDashboard() {
       case "Leads":
         return (
           <div className="space-y-4 sm:space-y-6">
-            {/* Total Leads Card - Compact, Blue like Members */}
-            <div className="bg-gradient-to-br from-blue-600/20 to-blue-800/20 border border-blue-500/30 rounded-xl p-4 sm:p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-blue-500/20 rounded-xl">
-                    <UserPlus size={24} className="text-blue-400" />
-                  </div>
-                  <div>
-                    <p className="text-blue-300 text-xs sm:text-sm">Total Leads</p>
-                    <div className="text-3xl sm:text-4xl font-bold text-white">{leadsData.totalLeads}</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1.5 bg-green-500/20 px-3 py-1.5 rounded-lg">
-                  <TrendingUp className="text-green-400" size={16} />
-                  <span className="text-green-400 text-sm font-semibold">+24%</span>
-                </div>
-              </div>
+            {/* Total Leads Card */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+              <StatCard
+                title="Total Leads"
+                value={leadsData.totalLeads}
+                change={24}
+                icon={UserPlus}
+                iconBg="bg-blue-500/20"
+                iconColor="text-blue-400"
+              />
             </div>
 
             {/* Lead Origin Map */}
@@ -352,7 +538,8 @@ export default function AnalyticsDashboard() {
                       chart: {
                         ...leadsChart.options.chart,
                         height: getResponsiveChartHeight(),
-                      }
+                      },
+                      stroke: { show: false, width: 0 }
                     }}
                     series={leadsChart.series} 
                     type="bar" 
@@ -428,7 +615,8 @@ export default function AnalyticsDashboard() {
                       chart: {
                         ...topServicesByRevenueChart.options.chart,
                         height: getResponsiveChartHeight(),
-                      }
+                      },
+                      stroke: { show: false, width: 0 }
                     }}
                     series={topServicesByRevenueChart.series}
                     type="bar"
@@ -448,7 +636,8 @@ export default function AnalyticsDashboard() {
                       chart: {
                         ...mostFrequentlySoldChart.options.chart,
                         height: getResponsiveChartHeight(),
-                      }
+                      },
+                      stroke: { show: false, width: 0 }
                     }}
                     series={mostFrequentlySoldChart.series}
                     type="bar"
@@ -512,7 +701,7 @@ export default function AnalyticsDashboard() {
         }}
       />
 
-      <div className="min-h-screen rounded-3xl bg-[#1C1C1C] text-white p-3 md:p-6 transition-all duration-500 ease-in-out flex-1">
+      <div className="min-h-screen rounded-3xl bg-surface-base text-content-primary p-3 md:p-6 transition-all duration-500 ease-in-out flex-1">
         {isMobileMenuOpen && (
           <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setIsMobileMenuOpen(false)} />
         )}
@@ -523,23 +712,23 @@ export default function AnalyticsDashboard() {
           {/* ============================== */}
           <div className="flex items-center justify-between mb-6 sm:mb-8 gap-4">
             <div className="flex items-center gap-3">
-              <h1 className="text-white oxanium_font text-xl md:text-2xl">Analytics</h1>
+              <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">Analytics</h1>
               
               {/* Time Period Filter - inline with title */}
               <div className="relative" ref={timePeriodRef}>
                 <button
                   onClick={() => setIsTimePeriodDropdownOpen(!isTimePeriodDropdownOpen)}
-                  className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-xl text-sm text-white transition-colors"
+                  className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-surface-card hover:bg-surface-hover rounded-xl text-sm text-content-primary transition-colors"
                 >
-                  <Calendar size={16} className="text-gray-400" />
+                  <Calendar size={16} className="text-content-muted" />
                   <span>
                     {timePeriodOptions.find(o => o.value === selectedTimePeriod)?.label}
                   </span>
-                  <ChevronDown size={16} className={`text-gray-400 transition-transform ${isTimePeriodDropdownOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown size={16} className={`text-content-muted transition-transform ${isTimePeriodDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
                 
                 {isTimePeriodDropdownOpen && (
-                  <div className="absolute left-0 mt-2 w-48 bg-[#2F2F2F] rounded-xl shadow-lg border border-gray-700 z-50 overflow-hidden">
+                  <div className="absolute left-0 mt-2 w-48 bg-surface-card rounded-xl shadow-lg border border-border-subtle z-50 overflow-hidden">
                     {timePeriodOptions.map((option) => (
                       <button
                         key={option.value}
@@ -547,10 +736,10 @@ export default function AnalyticsDashboard() {
                           setSelectedTimePeriod(option.value)
                           setIsTimePeriodDropdownOpen(false)
                         }}
-                        className={`w-full px-4 py-2.5 text-left text-sm hover:bg-[#3F3F3F] transition-colors ${
+                        className={`w-full px-4 py-2.5 text-left text-sm hover:bg-surface-hover transition-colors ${
                           selectedTimePeriod === option.value 
-                            ? 'bg-blue-600/20 text-blue-400' 
-                            : 'text-white'
+                            ? 'bg-primary/20 text-primary' 
+                            : 'text-content-primary'
                         }`}
                       >
                         {option.label}
@@ -574,8 +763,8 @@ export default function AnalyticsDashboard() {
                   onClick={() => setActiveTab(tab.name)}
                   className={`flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${
                     activeTab === tab.name
-                      ? "bg-blue-600 text-white shadow-lg shadow-blue-600/25"
-                      : "bg-[#2F2F2F] text-gray-400 hover:bg-[#3F3F3F] hover:text-white"
+                      ? "bg-primary text-white shadow-lg shadow-primary/25"
+                      : "bg-surface-card text-content-muted hover:bg-surface-hover hover:text-content-primary"
                   }`}
                 >
                   <Icon size={16} className="sm:w-[18px] sm:h-[18px]" />

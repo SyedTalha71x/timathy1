@@ -31,7 +31,7 @@ import MarketPlace from './dashboard-pages/studio-view/market-place'
 import NotesApp from "./dashboard-pages/studio-view/notes";
 import BulletinBoard from './dashboard-pages/studio-view/bulletin-board'
 import MembersCheckIn from './dashboard-pages/studio-view/members-checkin'
-import Assessment from "./dashboard-pages/studio-view/medical-history";
+import MedicalHistory from "./dashboard-pages/studio-view/medical-history";
 import HelpCenter from "./dashboard-pages/studio-view/help-center";
 import Tickets from "./dashboard-pages/studio-view/tickets";
 
@@ -149,7 +149,7 @@ function App() {
           <Route path="notes" element={<NotesApp />} />
           <Route path="bulletin-board" element={<BulletinBoard />} />
           <Route path="members-checkin" element={<MembersCheckIn />} />
-          <Route path="assessment" element={<Assessment />} />
+          <Route path="medical-history" element={<MedicalHistory />} />
           <Route path="help-center" element={<HelpCenter />} />
 
 

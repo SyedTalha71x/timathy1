@@ -50,7 +50,7 @@ import {
   canEditPlan as checkCanEditPlan,
   getVideoInstructor,
   
-  // APIs (für spätere Backend-Integration)
+  // APIs (fÃ¼r spÃ¤tere Backend-Integration)
   trainingPlansApi,
   memberTrainingPlansApi,
 } from "../../utils/studio-states/training-states"
@@ -128,12 +128,12 @@ const ResponsiveTagList = ({ tags }) => {
   return (
     <div ref={containerRef} className="flex flex-wrap gap-1 mt-2">
       {visibleTags.map((muscle, index) => (
-        <span key={index} className="bg-[#2F2F2F] text-gray-300 px-2 py-1 rounded text-xs whitespace-nowrap">
+        <span key={index} className="bg-surface-button text-content-secondary px-2 py-1 rounded text-xs whitespace-nowrap">
           {muscle}
         </span>
       ))}
       {remainingCount > 0 && (
-        <span className="text-gray-500 text-xs flex items-center">+{remainingCount}</span>
+        <span className="text-content-faint text-xs flex items-center">+{remainingCount}</span>
       )}
     </div>
   );
@@ -178,13 +178,13 @@ export default function Training() {
   const [duration, setDuration] = useState(0)
   
   // -------------------------------------------------------------------------
-  // STATE - Data (wird später durch API-Calls ersetzt)
+  // STATE - Data (wird spÃ¤ter durch API-Calls ersetzt)
   // -------------------------------------------------------------------------
   const [trainingVideos] = useState(trainingVideosData)
   const [trainingPlans, setTrainingPlans] = useState(
     trainingPlansData.map(plan => ({
       ...plan,
-      createdBy: getPlanCreatorName(plan), // Legacy-Kompatibilität
+      createdBy: getPlanCreatorName(plan), // Legacy-KompatibilitÃ¤t
     }))
   )
   const [memberTrainingPlans, setMemberTrainingPlans] = useState(memberTrainingPlansData)
@@ -282,7 +282,7 @@ export default function Training() {
         progress: "Not Started"
       }))
 
-    // Update member training plans (für Backend: API-Call)
+    // Update member training plans (fÃ¼r Backend: API-Call)
     const newAssignments = newMembers.map(memberId => ({
       id: Math.max(...memberTrainingPlans.map(m => m.id), 0) + 1,
       memberId,
@@ -548,23 +548,23 @@ export default function Training() {
           },
         }}
       />
-      <div className="min-h-screen rounded-3xl bg-[#1C1C1C] text--white md:p-6 p-3 transition-all duration-500 ease-in-out flex-1">
+      <div className="min-h-screen rounded-3xl bg-surface-base text-content-primary md:p-6 p-3 transition-all duration-500 ease-in-out flex-1">
         <div className="w-full mx-auto">
           {/* Header */}
           <div className="flex sm:items-center justify-between mb-6 sm:mb-8 gap-4">
             <div>
-              <h1 className="text-white oxanium_font text-xl md:text-2xl">Training</h1>
+              <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">Training</h1>
             </div>
           </div>
 
           {/* Tab Navigation */}
-          <div className="flex border-b border-gray-800 mb-6">
+          <div className="flex border-b border-border-subtle mb-6">
             <button
               onClick={() => setActiveTab("videos")}
               className={`flex-1 px-2 sm:px-4 py-4 text-sm sm:text-base font-medium transition-colors whitespace-nowrap ${
                 activeTab === "videos"
-                  ? "text-white border-b-2 border-orange-400"
-                  : "text-gray-400 hover:text-white"
+                  ? "text-content-primary border-b-2 border-primary"
+                  : "text-content-muted hover:text-content-primary"
               }`}
             >
               <Play size={16} className="inline mr-1 sm:mr-2" />
@@ -574,8 +574,8 @@ export default function Training() {
               onClick={() => setActiveTab("plans")}
               className={`flex-1 px-2 sm:px-4 py-4 text-sm sm:text-base font-medium transition-colors whitespace-nowrap ${
                 activeTab === "plans"
-                  ? "text-white border-b-2 border-orange-400"
-                  : "text-gray-400 hover:text-white"
+                  ? "text-content-primary border-b-2 border-primary"
+                  : "text-content-muted hover:text-content-primary"
               }`}
             >
               <Target size={16} className="inline mr-1 sm:mr-2" />
@@ -591,13 +591,13 @@ export default function Training() {
               {/* Search */}
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 sm:mb-8">
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-content-muted" size={16} />
                   <input
                     type="text"
                     placeholder="Search training videos..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-[#333333] focus:border-[#3F74FF] transition-colors [&::placeholder]:text-ellipsis [&::placeholder]:overflow-hidden"
+                    className="w-full bg-surface-card outline-none text-sm text-content-primary rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-border focus:border-accent-blue transition-colors [&::placeholder]:text-ellipsis [&::placeholder]:overflow-hidden"
                   />
                 </div>
               </div>
@@ -608,8 +608,8 @@ export default function Training() {
                   onClick={() => setSelectedCategories([])}
                   className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${
                     selectedCategories.length === 0
-                      ? "bg-blue-600 text-white"
-                      : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                      ? "bg-primary text-white"
+                      : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
                   }`}
                 >
                   All
@@ -626,8 +626,8 @@ export default function Training() {
                     }}
                     className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${
                       selectedCategories.includes(category.id)
-                        ? `bg-blue-600 text-white`
-                        : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                        ? `bg-primary text-white`
+                        : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
                     }`}
                   >
                     {category.name}
@@ -640,7 +640,7 @@ export default function Training() {
                 {filteredVideos.map((video) => (
                   <div
                     key={video.id}
-                    className="bg-[#161616] rounded-xl overflow-hidden hover:bg-[#1F1F1F] transition-colors cursor-pointer group"
+                    className="bg-surface-card rounded-xl overflow-hidden hover:bg-surface-hover transition-colors cursor-pointer group"
                     onClick={() => handleVideoClick(video)}
                   >
                     <div className="relative">
@@ -650,7 +650,7 @@ export default function Training() {
                         className="w-full h-36 sm:h-48 object-cover"
                       />
                       <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <div className="bg-blue-600 rounded-full p-2 sm:p-3">
+                        <div className="bg-primary rounded-full p-2 sm:p-3">
                           <Play className="text-white" size={20} />
                         </div>
                       </div>
@@ -664,8 +664,8 @@ export default function Training() {
                       </div>
                     </div>
                     <div className="p-3 sm:p-4">
-                      <h3 className="font-semibold text-white mb-2 line-clamp-2 text-sm sm:text-base">{video.title}</h3>
-                      <p className="text-gray-400 text-xs sm:text-sm mb-3 line-clamp-2">{video.description}</p>
+                      <h3 className="font-semibold text-content-primary mb-2 line-clamp-2 text-sm sm:text-base">{video.title}</h3>
+                      <p className="text-content-muted text-xs sm:text-sm mb-3 line-clamp-2">{video.description}</p>
                       <ResponsiveTagList tags={video.targetMuscles} />
                     </div>
                   </div>
@@ -674,7 +674,7 @@ export default function Training() {
 
               {filteredVideos.length === 0 && (
                 <div className="text-center py-12">
-                  <div className="text-gray-400 mb-4">
+                  <div className="text-content-muted mb-4">
                     <Search size={48} className="mx-auto mb-4" />
                     <p>No videos found matching your criteria</p>
                   </div>
@@ -691,18 +691,18 @@ export default function Training() {
               {/* Search */}
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-6 sm:mb-8">
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-content-muted" size={16} />
                   <input
                     type="text"
                     placeholder="Search training plans..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-[#333333] focus:border-[#3F74FF] transition-colors [&::placeholder]:text-ellipsis [&::placeholder]:overflow-hidden"
+                    className="w-full bg-surface-card outline-none text-sm text-content-primary rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-border focus:border-accent-blue transition-colors [&::placeholder]:text-ellipsis [&::placeholder]:overflow-hidden"
                   />
                 </div>
                 <button
                   onClick={() => setIsCreatePlanModalOpen(true)}
-                  className="hidden md:flex items-center gap-2 px-4 sm:px-6 py-2 cursor-pointer text-sm bg-orange-500 hover:bg-orange-600 rounded-xl text-white font-medium transition-colors justify-center sm:justify-start"
+                  className="hidden md:flex items-center gap-2 px-4 sm:px-6 py-2 cursor-pointer text-sm bg-primary hover:bg-primary-hover rounded-xl text-white font-medium transition-colors justify-center sm:justify-start"
                 >
                   <Plus size={18} />
                   Create Plan
@@ -715,8 +715,8 @@ export default function Training() {
                   onClick={() => setSelectedStaffMembers([])}
                   className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${
                     selectedStaffMembers.length === 0
-                      ? "bg-blue-600 text-white"
-                      : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                      ? "bg-primary text-white"
+                      : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
                   }`}
                 >
                   All
@@ -733,8 +733,8 @@ export default function Training() {
                     }}
                     className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${
                       selectedStaffMembers.includes(member.id)
-                        ? "bg-blue-600 text-white"
-                        : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                        ? "bg-primary text-white"
+                        : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
                     }`}
                   >
                     {member.name}
@@ -747,12 +747,12 @@ export default function Training() {
                 {filteredPlans.map((plan) => (
                   <div
                     key={plan.id}
-                    className="bg-[#161616] rounded-xl p-4 sm:p-6 hover:bg-[#1F1F1F] transition-colors"
+                    className="bg-surface-card rounded-xl p-4 sm:p-6 hover:bg-surface-hover transition-colors"
                   >
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-white mb-2 truncate">{plan.name}</h3>
-                        <p className="text-gray-400 text-sm mb-3 line-clamp-2">{plan.description}</p>
+                        <h3 className="font-semibold text-content-primary mb-2 truncate">{plan.name}</h3>
+                        <p className="text-content-muted text-sm mb-3 line-clamp-2">{plan.description}</p>
                       </div>
                       <div
                         className={`px-2 py-1 rounded text-xs text-white ml-2 flex-shrink-0 ${getDifficultyColor(plan.difficulty)}`}
@@ -762,18 +762,18 @@ export default function Training() {
                     </div>
                     <div className="space-y-2 mb-4">
                       {plan.duration && (
-                        <div className="flex items-center gap-2 text-sm text-gray-400">
+                        <div className="flex items-center gap-2 text-sm text-content-muted">
                           <Clock size={14} />
                           <span>{plan.duration}</span>
                         </div>
                       )}
                       {plan.workoutsPerWeek && (
-                        <div className="flex items-center gap-2 text-sm text-gray-400">
+                        <div className="flex items-center gap-2 text-sm text-content-muted">
                           <Calendar size={14} />
                           <span>{plan.workoutsPerWeek}x per week</span>
                         </div>
                       )}
-                      <div className="flex items-center gap-2 text-sm text-gray-400">
+                      <div className="flex items-center gap-2 text-sm text-content-muted">
                         <User size={14} />
                         <span className="truncate">by {plan.createdBy || getPlanCreatorName(plan)}</span>
                       </div>
@@ -784,25 +784,25 @@ export default function Training() {
                           setSelectedPlan(plan)
                           setIsViewPlanModalOpen(true)
                         }}
-                        className="p-2 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-lg transition-colors"
+                        className="p-2 bg-surface-button hover:bg-surface-button-hover rounded-lg transition-colors"
                       >
-                        <Eye size={16} className="text-gray-400" />
+                        <Eye size={16} className="text-content-muted" />
                       </button>
                       <button
                         onClick={() => {
                           setPlanToAssign(plan)
                           setIsAssignPlanModalOpen(true)
                         }}
-                        className="p-2 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-lg transition-colors"
+                        className="p-2 bg-surface-button hover:bg-surface-button-hover rounded-lg transition-colors"
                       >
-                        <Users size={16} className="text-gray-400" />
+                        <Users size={16} className="text-content-muted" />
                       </button>
                       {canEditPlan(plan) && (
                         <button
                           onClick={() => openEditPlan(plan)}
-                          className="p-2 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-lg transition-colors"
+                          className="p-2 bg-surface-button hover:bg-surface-button-hover rounded-lg transition-colors"
                         >
-                          <Edit size={16} className="text-gray-400" />
+                          <Edit size={16} className="text-content-muted" />
                         </button>
                       )}
                     </div>
@@ -812,7 +812,7 @@ export default function Training() {
 
               {filteredPlans.length === 0 && (
                 <div className="text-center py-12">
-                  <div className="text-gray-400 mb-4">
+                  <div className="text-content-muted mb-4">
                     <Target size={48} className="mx-auto mb-4" />
                     <p>No training plans found</p>
                   </div>
@@ -930,7 +930,7 @@ export default function Training() {
       {activeTab === "plans" && (
         <button
           onClick={() => setIsCreatePlanModalOpen(true)}
-          className="md:hidden fixed bottom-4 right-4 bg-orange-500 hover:bg-orange-600 text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
+          className="md:hidden fixed bottom-4 right-4 bg-primary hover:bg-primary-hover text-white p-4 rounded-xl shadow-lg transition-all active:scale-95 z-30"
           aria-label="Create Training Plan"
         >
           <Plus size={22} />
