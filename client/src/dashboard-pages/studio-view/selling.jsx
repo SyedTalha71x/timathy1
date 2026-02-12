@@ -47,7 +47,7 @@ const SortableItemCard = ({ item, children, isDragDisabled }) => {
         <div 
           {...attributes} 
           {...listeners}
-          className="absolute top-3 left-3 md:top-4 md:left-4 cursor-grab active:cursor-grabbing text-white hover:text-white active:text-blue-400 p-1.5 md:p-1.5 rounded-lg active:bg-blue-600/30 z-20 touch-none bg-black/60 shadow-lg"
+          className="absolute top-3 left-3 md:top-4 md:left-4 cursor-grab active:cursor-grabbing text-white hover:text-content-primary active:text-blue-400 p-1.5 md:p-1.5 rounded-lg active:bg-blue-600/30 z-20 touch-none bg-black/60 shadow-lg"
           style={{ WebkitTapHighlightColor: 'transparent' }}
         >
           <GripVertical className="w-4 h-4" />
@@ -312,11 +312,11 @@ const Selling = () => {
 
   const getSortIcon = () => {
     if (sortBy === 'custom') {
-      return <ArrowUpDown size={14} className="text-gray-400" />
+      return <ArrowUpDown size={14} className="text-content-muted" />
     }
     return sortDirection === 'asc' 
-      ? <ArrowUp size={14} className="text-white" />
-      : <ArrowDown size={14} className="text-white" />
+      ? <ArrowUp size={14} className="text-content-primary" />
+      : <ArrowDown size={14} className="text-content-primary" />
   }
 
   const currentSortLabel = sortOptions.find(o => o.value === sortBy)?.label || 'Custom Order'
@@ -362,7 +362,7 @@ const Selling = () => {
     setIsModalOpen(false)
   }
 
-  // Handler fÃ¼r erfolgreiche Erstellung eines temporÃ¤ren Members (Shared Modal)
+  // Handler für erfolgreiche Erstellung eines temporären Members (Shared Modal)
   const handleTempMemberCreated = (newMemberData) => {
     const newMember = {
       id: Date.now(),
@@ -775,7 +775,7 @@ Payment: ${sale.paymentMethod}
 
       <div
         className={`
-          min-h-screen rounded-3xl text-white bg-[#1C1C1C] md:p-6 p-3
+          min-h-screen rounded-3xl text-content-primary bg-surface-base md:p-6 p-3
           transition-all duration-500 ease-in-out flex-1
         `}
       >
@@ -783,13 +783,13 @@ Payment: ${sale.paymentMethod}
           {/* Header */}
           <div className="flex sm:items-center justify-between mb-4 gap-4">
             <div className="flex items-center gap-3">
-              <h1 className="text-white oxanium_font text-xl md:text-2xl">Selling</h1>
+              <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">Selling</h1>
               
               {/* Sort Button - Mobile: next to title */}
               <div className="md:hidden relative" ref={sortDropdownRef}>
                 <button
                   onClick={(e) => { e.stopPropagation(); setShowSortDropdown(!showSortDropdown) }}
-                  className="px-3 py-2 bg-[#2F2F2F] text-gray-300 rounded-xl text-xs hover:bg-[#3F3F3F] transition-colors flex items-center gap-2"
+                  className="px-3 py-2 bg-surface-button text-content-secondary rounded-xl text-xs hover:bg-surface-button-hover transition-colors flex items-center gap-2"
                 >
                   {getSortIcon()}
                   <span>{currentSortLabel}</span>
@@ -797,20 +797,20 @@ Payment: ${sale.paymentMethod}
 
                 {/* Sort Dropdown - Mobile */}
                 {showSortDropdown && (
-                  <div className="absolute left-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[180px]">
+                  <div className="absolute left-0 mt-1 bg-surface-hover border border-border-subtle rounded-lg shadow-lg z-50 min-w-[180px]">
                     <div className="py-1">
-                      <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">
+                      <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border-subtle">
                         Sort by
                       </div>
                       {sortOptions.map((option) => (
                         <button
                           key={option.value}
                           onClick={(e) => { e.stopPropagation(); handleSortOptionClick(option.value) }}
-                          className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${sortBy === option.value ? 'text-white bg-gray-800/50' : 'text-gray-300'}`}
+                          className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover transition-colors flex items-center justify-between ${sortBy === option.value ? 'text-content-primary bg-surface-hover/50' : 'text-content-secondary'}`}
                         >
                           <span>{option.label}</span>
                           {sortBy === option.value && option.value !== 'custom' && (
-                            <span className="text-gray-400">{sortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}</span>
+                            <span className="text-content-muted">{sortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}</span>
                           )}
                         </button>
                       ))}
@@ -825,13 +825,13 @@ Payment: ${sale.paymentMethod}
               <div className="relative group">
                 <button
                   onClick={() => setShowHistoryModalMain(true)}
-                  className="bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300 text-sm px-3 py-3 md:py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-colors font-medium"
+                  className="bg-surface-button hover:bg-surface-button-hover text-content-secondary text-sm px-3 py-3 md:py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-colors font-medium"
                 >
                   <History size={18} className="md:w-4 md:h-4" />
                   <span className="hidden sm:inline">Journal</span>
                 </button>
                 {/* Tooltip */}
-                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark/90 text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
                   <span className="font-medium">Sales Journal</span>
                   <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
                     J
@@ -844,13 +844,13 @@ Payment: ${sale.paymentMethod}
               <div className="hidden md:block relative group">
                 <button
                   onClick={openAddModal}
-                  className="bg-orange-500 hover:bg-orange-600 text-xs sm:text-sm text-white px-3 sm:px-4 py-2.5 rounded-xl flex items-center gap-2 justify-center transition-colors"
+                  className="bg-primary hover:bg-primary-hover text-xs sm:text-sm text-white px-3 sm:px-4 py-2.5 rounded-xl flex items-center gap-2 justify-center transition-colors"
                 >
                   <Plus size={16} />
                   <span className='hidden sm:inline'>Add {activeTab === "services" ? "Service" : "Product"}</span>
                 </button>
                 {/* Tooltip */}
-                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark/90 text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
                   <span className="font-medium">Add {activeTab === "services" ? "Service" : "Product"}</span>
                   <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
                     C
@@ -862,17 +862,17 @@ Payment: ${sale.paymentMethod}
               {/* Add Button - Mobile Only */}
               <button
                 onClick={openAddModal}
-                className="md:hidden cursor-pointer relative p-3 bg-orange-500 hover:bg-orange-600 rounded-xl transition-colors"
+                className="md:hidden cursor-pointer relative p-3 bg-primary hover:bg-primary-hover rounded-xl transition-colors"
                 aria-label={`Add ${activeTab === "services" ? "Service" : "Product"}`}
               >
-                <Plus size={18} className="text-white" />
+                <Plus size={18} className="text-content-primary" />
               </button>
 
               {/* Cart Icon - Desktop Only - Updated badge styling */}
-              <div onClick={toggleRightSidebar} className="hidden md:block cursor-pointer relative p-2.5 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-xl transition-colors">
-                <ShoppingCart size={20} className="text-white" />
+              <div onClick={toggleRightSidebar} className="hidden md:block cursor-pointer relative p-2.5 bg-surface-button hover:bg-surface-button-hover rounded-xl transition-colors">
+                <ShoppingCart size={20} className="text-content-primary" />
                 {cartItemCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-[11px] font-bold rounded-full min-w-[22px] h-[22px] flex items-center justify-center px-1 border-2 border-[#1C1C1C] shadow-lg">
+                  <span className="absolute -top-2 -right-2 bg-primary text-white text-[11px] font-bold rounded-full min-w-[22px] h-[22px] flex items-center justify-center px-1 border-2 border-border-subtle shadow-lg">
                     {cartItemCount}
                   </span>
                 )}
@@ -881,13 +881,13 @@ Payment: ${sale.paymentMethod}
           </div>
 
           {/* Tabs - Bulletin Board Style (moved up) */}
-          <div className="flex border-b border-gray-800 mb-4">
+          <div className="flex border-b border-border-subtle mb-4">
             <button
               onClick={() => setActiveTab("products")}
               className={`flex-1 sm:flex-none px-4 sm:px-6 py-3.5 sm:py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
                 activeTab === "products" 
-                  ? "text-white border-b-2 border-orange-400" 
-                  : "text-gray-400 hover:text-white"
+                  ? "text-content-primary border-b-2 border-primary" 
+                  : "text-content-muted hover:text-content-primary"
               }`}
             >
               <MdOutlineProductionQuantityLimits size={18} />
@@ -897,8 +897,8 @@ Payment: ${sale.paymentMethod}
               onClick={() => setActiveTab("services")}
               className={`flex-1 sm:flex-none px-4 sm:px-6 py-3.5 sm:py-3 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
                 activeTab === "services" 
-                  ? "text-white border-b-2 border-orange-400" 
-                  : "text-gray-400 hover:text-white"
+                  ? "text-content-primary border-b-2 border-primary" 
+                  : "text-content-muted hover:text-content-primary"
               }`}
             >
               <RiServiceFill size={18} />
@@ -910,13 +910,13 @@ Payment: ${sale.paymentMethod}
           <div className="flex gap-3 mb-6">
             {/* Search */}
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-content-muted" size={16} />
               <input
                 type="text"
                 placeholder={activeTab === "products" ? "Search by name, brand or article no..." : "Search by name..."}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-3 md:py-2.5 pl-10 border border-[#333333] focus:border-[#3F74FF] transition-colors [&::placeholder]:text-ellipsis [&::placeholder]:overflow-hidden"
+                className="w-full bg-surface-card outline-none text-sm text-content-primary rounded-xl px-4 py-3 md:py-2.5 pl-10 border border-border focus:border-accent-blue transition-colors [&::placeholder]:text-ellipsis [&::placeholder]:overflow-hidden"
               />
             </div>
 
@@ -924,24 +924,24 @@ Payment: ${sale.paymentMethod}
             <div className="hidden md:block relative" ref={sortDropdownRef}>
               <button
                 onClick={(e) => { e.stopPropagation(); setShowSortDropdown(!showSortDropdown) }}
-                className="px-4 py-2.5 bg-[#2F2F2F] text-gray-300 rounded-xl text-sm hover:bg-[#3F3F3F] transition-colors flex items-center gap-2 whitespace-nowrap"
+                className="px-4 py-2.5 bg-surface-button text-content-secondary rounded-xl text-sm hover:bg-surface-button-hover transition-colors flex items-center gap-2 whitespace-nowrap"
               >
                 {getSortIcon()}
                 <span>{currentSortLabel}</span>
               </button>
               {showSortDropdown && (
-                <div className="absolute top-full right-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[180px]">
+                <div className="absolute top-full right-0 mt-1 bg-surface-hover border border-border-subtle rounded-lg shadow-lg z-50 min-w-[180px]">
                   <div className="py-1">
-                    <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">Sort by</div>
+                    <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border-subtle">Sort by</div>
                     {sortOptions.map((option) => (
                       <button
                         key={option.value}
                         onClick={(e) => { e.stopPropagation(); handleSortOptionClick(option.value) }}
-                        className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${sortBy === option.value ? 'text-white bg-gray-800/50' : 'text-gray-300'}`}
+                        className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover transition-colors flex items-center justify-between ${sortBy === option.value ? 'text-content-primary bg-surface-hover/50' : 'text-content-secondary'}`}
                       >
                         <span>{option.label}</span>
                         {sortBy === option.value && option.value !== 'custom' && (
-                          <span className="text-gray-400">{sortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}</span>
+                          <span className="text-content-muted">{sortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}</span>
                         )}
                       </button>
                     ))}
@@ -961,7 +961,7 @@ Payment: ${sale.paymentMethod}
               >
                 {sortedItems.map((item) => (
                   <SortableItemCard key={item.id} item={item} isDragDisabled={false}>
-                    <div className="w-full h-full bg-[#181818] rounded-2xl overflow-hidden relative group select-none">
+                    <div className="w-full h-full bg-surface-card rounded-2xl overflow-hidden relative group select-none">
                       {/* IMAGE / ORANGE BOX - 16:9 aspect ratio */}
                       <div className="relative w-full aspect-video overflow-hidden rounded-t-2xl">
                         {item.image ? (
@@ -973,7 +973,7 @@ Payment: ${sale.paymentMethod}
                             onDragStart={(e) => e.preventDefault()}
                           />
                         ) : (
-                          <div className="w-full h-full bg-orange-500 flex items-center justify-center text-white text-center p-4">
+                          <div className="w-full h-full bg-primary flex items-center justify-center text-white text-center p-4">
                             <p className={`font-bold leading-tight ${getTextSizeClass(item.name, true)}`} style={{ wordBreak: 'break-word', overflowWrap: 'break-word', userSelect: 'none' }}>
                               {item.name}
                             </p>
@@ -1000,7 +1000,7 @@ Payment: ${sale.paymentMethod}
                           >
                             <ShoppingBasket className="w-4 h-4" />
                             {cart.some(cartItem => cartItem.id === item.id) && (
-                              <span className="absolute -top-1.5 -right-1.5 bg-orange-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-0.5 border border-white shadow-md">
+                              <span className="absolute -top-1.5 -right-1.5 bg-primary text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-0.5 border border-white shadow-md">
                                 {cart.find(cartItem => cartItem.id === item.id)?.quantity || 0}
                               </span>
                             )}
@@ -1045,7 +1045,7 @@ Payment: ${sale.paymentMethod}
 
                           {/* Price row with 3-dot menu */}
                           <div className="flex items-center justify-between mt-auto">
-                            <p className="text-lg font-bold text-white whitespace-nowrap">
+                            <p className="text-lg font-bold text-content-primary whitespace-nowrap">
                               {formatCurrency(item.price)}
                             </p>
                             
@@ -1056,20 +1056,20 @@ Payment: ${sale.paymentMethod}
                                   e.stopPropagation()
                                   setDropdownOpen(dropdownOpen === item.id ? null : item.id)
                                 }}
-                                className="text-gray-400 hover:text-orange-400 p-2 md:p-1.5 rounded-lg hover:bg-gray-800 transition-colors"
+                                className="text-content-muted hover:text-primary p-2 md:p-1.5 rounded-lg hover:bg-surface-hover transition-colors"
                               >
                                 <svg className="w-5 h-5 md:w-4 md:h-4" fill="currentColor" viewBox="0 0 20 20">
                                   <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
                                 </svg>
                               </button>
                               {dropdownOpen === item.id && (
-                                <div className="absolute right-0 bottom-full mb-2 bg-[#1C1C1C] border border-gray-700 rounded-lg shadow-lg py-1 z-30 min-w-[140px]">
+                                <div className="absolute right-0 bottom-full mb-2 bg-surface-base border border-border-subtle rounded-lg shadow-lg py-1 z-30 min-w-[140px]">
                                   <button 
                                     onClick={(e) => {
                                       e.stopPropagation()
                                       openEditModal(item)
                                     }} 
-                                    className="w-full text-left px-3 py-2.5 md:py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2 transition-colors"
+                                    className="w-full text-left px-3 py-2.5 md:py-2 hover:bg-surface-hover text-content-secondary text-sm flex items-center gap-2 transition-colors"
                                   >
                                     <Edit size={14} /> Edit
                                   </button>
@@ -1078,7 +1078,7 @@ Payment: ${sale.paymentMethod}
                                       e.stopPropagation()
                                       handleDuplicateItem(item)
                                     }} 
-                                    className="w-full text-left px-3 py-2.5 md:py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2 transition-colors"
+                                    className="w-full text-left px-3 py-2.5 md:py-2 hover:bg-surface-hover text-content-secondary text-sm flex items-center gap-2 transition-colors"
                                   >
                                     <Copy size={14} /> Duplicate
                                   </button>
@@ -1087,7 +1087,7 @@ Payment: ${sale.paymentMethod}
                                       e.stopPropagation()
                                       openDeleteModal(item)
                                     }} 
-                                    className="w-full text-left px-3 py-2.5 md:py-2 hover:bg-gray-800 text-red-500 text-sm flex items-center gap-2 transition-colors"
+                                    className="w-full text-left px-3 py-2.5 md:py-2 hover:bg-surface-hover text-red-500 text-sm flex items-center gap-2 transition-colors"
                                   >
                                     <Trash2 size={14} /> Delete
                                   </button>
@@ -1107,16 +1107,16 @@ Payment: ${sale.paymentMethod}
           {/* Empty State */}
           {sortedItems.length === 0 && (
             <div className="text-center py-16">
-              <div className="text-gray-500 mb-6">
+              <div className="text-content-faint mb-6">
                 <svg className="w-20 h-20 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                 </svg>
               </div>
-              <h3 className="text-xl font-medium text-gray-300 mb-3">No {activeTab} found</h3>
-              <p className="text-gray-500 mb-6">{searchQuery ? "Try adjusting your search" : `Create a new ${activeTab === "services" ? "service" : "product"} to get started`}</p>
+              <h3 className="text-xl font-medium text-content-secondary mb-3">No {activeTab} found</h3>
+              <p className="text-content-faint mb-6">{searchQuery ? "Try adjusting your search" : `Create a new ${activeTab === "services" ? "service" : "product"} to get started`}</p>
               <button
                 onClick={openAddModal}
-                className="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2.5 rounded-xl font-medium transition-colors inline-flex items-center gap-2"
+                className="bg-primary hover:bg-primary-hover text-white px-5 py-2.5 rounded-xl font-medium transition-colors inline-flex items-center gap-2"
               >
                 <Plus size={18} />
                 Add {activeTab === "services" ? "Service" : "Product"}
@@ -1237,12 +1237,12 @@ Payment: ${sale.paymentMethod}
       {!isRightSidebarOpen && (
         <button
           onClick={toggleRightSidebar}
-          className="md:hidden fixed bottom-4 right-4 bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white p-4 rounded-xl shadow-2xl transition-all active:scale-95 z-[100]"
+          className="md:hidden fixed bottom-4 right-4 bg-surface-button hover:bg-surface-button-hover text-content-primary p-4 rounded-xl shadow-2xl transition-all active:scale-95 z-[100]"
           aria-label="Open Shopping Cart"
         >
           <ShoppingCart size={22} />
           {cartItemCount > 0 && (
-            <span className="absolute -top-2 -right-2 bg-orange-500 text-white text-[11px] font-bold rounded-full min-w-[24px] h-[24px] flex items-center justify-center px-1.5 border-2 border-[#1C1C1C] shadow-lg">
+            <span className="absolute -top-2 -right-2 bg-primary text-white text-[11px] font-bold rounded-full min-w-[24px] h-[24px] flex items-center justify-center px-1.5 border-2 border-border-subtle shadow-lg">
               {cartItemCount}
             </span>
           )}

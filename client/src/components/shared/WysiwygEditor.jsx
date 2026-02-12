@@ -208,7 +208,7 @@ export const WysiwygEditor = forwardRef(({
   const savedContentRef = useRef(normalizedValue || '')
   const hasInitialized = useRef(false)
 
-  // Expose insertText method to parent components via ref
+  // Expose insertText and insertHTML methods to parent components via ref
   useImperativeHandle(ref, () => ({
     insertText: (text) => {
       const quill = quillRef.current?.getEditor()
@@ -231,6 +231,28 @@ export const WysiwygEditor = forwardRef(({
       
       // Move cursor after inserted text
       quill.setSelection(range.index + text.length, 0)
+      
+      // Trigger onChange with new content
+      const newContent = quill.root.innerHTML
+      lastValueRef.current = newContent
+      savedContentRef.current = newContent
+      onChange(newContent)
+    },
+    insertHTML: (html) => {
+      const quill = quillRef.current?.getEditor()
+      if (!quill) return
+      
+      quill.focus()
+      
+      let range = quill.getSelection()
+      if (!range) {
+        const length = quill.getLength()
+        quill.setSelection(length - 1, 0)
+        range = { index: length - 1, length: 0 }
+      }
+      
+      // Use clipboard API to paste HTML at cursor position
+      quill.clipboard.dangerouslyPasteHTML(range.index, html)
       
       // Trigger onChange with new content
       const newContent = quill.root.innerHTML

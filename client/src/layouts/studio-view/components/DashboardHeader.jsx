@@ -43,9 +43,11 @@ const DashboardHeader = ({
   
   // Theme state - defaults to dark mode
   const [isDarkMode, setIsDarkMode] = useState(() => {
-    // Check localStorage for saved preference, default to dark
     const saved = localStorage.getItem('theme')
-    return saved ? saved === 'dark' : true
+    const dark = saved ? saved === 'dark' : true
+    // Apply on initial load so the class is set before first paint
+    if (!dark) document.documentElement.classList.add('light')
+    return dark
   })
   
   // Modal states
@@ -91,44 +93,10 @@ const DashboardHeader = ({
     const root = document.documentElement
     
     if (isDarkMode) {
-      // Dark Mode (default) - original values
-      root.style.setProperty('--color-primary', '#f97316')
-      root.style.setProperty('--color-primary-hover', '#ea580c')
-      root.style.setProperty('--color-secondary', '#9ca3af')
-      root.style.setProperty('--color-secondary-hover', '#ffffff')
-      root.style.setProperty('--color-surface-base', '#1c1c1c')
-      root.style.setProperty('--color-surface-card', '#141414')
-      root.style.setProperty('--color-surface-dark', '#0f0f0f')
-      root.style.setProperty('--color-surface-hover', '#1a1a1a')
-      root.style.setProperty('--color-surface-button', '#2f2f2f')
-      root.style.setProperty('--color-surface-button-hover', '#3f3f3f')
-      root.style.setProperty('--color-content-primary', '#ffffff')
-      root.style.setProperty('--color-content-secondary', '#d1d5db')
-      root.style.setProperty('--color-content-muted', '#9ca3af')
-      root.style.setProperty('--color-content-faint', '#6b7280')
-      root.style.setProperty('--color-border', '#333333')
-      root.style.setProperty('--color-border-subtle', '#374151')
-      root.style.setProperty('--icon-filter', 'none')
+      root.classList.remove('light')
       localStorage.setItem('theme', 'dark')
     } else {
-      // Light Mode
-      root.style.setProperty('--color-primary', '#ea580c')
-      root.style.setProperty('--color-primary-hover', '#c2410c')
-      root.style.setProperty('--color-secondary', '#6b7280')
-      root.style.setProperty('--color-secondary-hover', '#374151')
-      root.style.setProperty('--color-surface-base', '#f5f5f5')
-      root.style.setProperty('--color-surface-card', '#ffffff')
-      root.style.setProperty('--color-surface-dark', '#e5e5e5')
-      root.style.setProperty('--color-surface-hover', '#f0f0f0')
-      root.style.setProperty('--color-surface-button', '#e5e7eb')
-      root.style.setProperty('--color-surface-button-hover', '#d1d5db')
-      root.style.setProperty('--color-content-primary', '#111827')
-      root.style.setProperty('--color-content-secondary', '#374151')
-      root.style.setProperty('--color-content-muted', '#6b7280')
-      root.style.setProperty('--color-content-faint', '#9ca3af')
-      root.style.setProperty('--color-border', '#d1d5db')
-      root.style.setProperty('--color-border-subtle', '#e5e7eb')
-      root.style.setProperty('--icon-filter', 'brightness(0)')
+      root.classList.add('light')
       localStorage.setItem('theme', 'light')
     }
   }, [isDarkMode])

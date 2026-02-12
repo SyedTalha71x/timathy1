@@ -56,6 +56,7 @@ import { RoleItem } from "../../components/studio-components/configuration-compo
 import { StaffAssignmentModal } from "../../components/studio-components/configuration-components/StaffAssignmentModal"
 import ImageSourceModal from "../../components/shared/image-handler/ImageSourceModal"
 import ImageCropModal from "../../components/shared/image-handler/ImageCropModal"
+import DatePickerField from "../../components/shared/DatePickerField"
 import IntroMaterialEditorModal from "../../components/shared/IntroMaterialEditorModal"
 import MediaLibraryPickerModal from "../../components/shared/image-handler/MediaLibraryPickerModal"
 import DefaultAvatar from '../../../public/gray-avatar-fotor-20250912192528.png'
@@ -235,8 +236,8 @@ const ALL_NAVIGATION_ITEMS = [
 const SectionHeader = ({ title, description, action }) => (
   <div className="hidden md:flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
     <div>
-      <h2 className="text-lg sm:text-xl font-semibold text-white">{title}</h2>
-      {description && <p className="text-xs sm:text-sm text-gray-400 mt-1">{description}</p>}
+      <h2 className="text-lg sm:text-xl font-semibold text-content-primary">{title}</h2>
+      {description && <p className="text-xs sm:text-sm text-content-muted mt-1">{description}</p>}
     </div>
     {action}
   </div>
@@ -244,7 +245,7 @@ const SectionHeader = ({ title, description, action }) => (
 
 // Card Component
 const SettingsCard = ({ children, className = "" }) => (
-  <div className={`bg-[#1F1F1F] rounded-xl p-4 sm:p-6 ${className}`}>
+  <div className={`bg-surface-hover rounded-xl p-4 sm:p-6 ${className}`}>
     {children}
   </div>
 )
@@ -253,14 +254,14 @@ const SettingsCard = ({ children, className = "" }) => (
 const InputField = ({ label, value, onChange, placeholder, type = "text", maxLength, required, error, helpText, icon: Icon }) => (
   <div className="space-y-1.5">
     {label && (
-      <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+      <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
         {label}
         {required && <span className="text-red-400">*</span>}
       </label>
     )}
     <div className="relative">
       {Icon && (
-        <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+        <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-content-faint" />
       )}
       <input
         type={type}
@@ -268,12 +269,12 @@ const InputField = ({ label, value, onChange, placeholder, type = "text", maxLen
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         maxLength={maxLength}
-        className={`w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border transition-colors ${
-          error ? "border-red-500" : "border-[#333333] focus:border-[#3F74FF]"
+        className={`w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border transition-colors ${
+          error ? "border-red-500" : "border-border focus:border-accent-blue"
         } ${Icon ? "pl-10" : ""}`}
       />
     </div>
-    {helpText && <p className="text-xs text-gray-500">{helpText}</p>}
+    {helpText && <p className="text-xs text-content-faint">{helpText}</p>}
     {error && <p className="text-xs text-red-400">{error}</p>}
   </div>
 )
@@ -305,7 +306,7 @@ const SelectField = ({ label, value, onChange, options, placeholder, required, s
   return (
     <div className="space-y-1.5">
       {label && (
-        <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+        <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
           {label}
           {required && <span className="text-red-400">*</span>}
         </label>
@@ -314,24 +315,24 @@ const SelectField = ({ label, value, onChange, options, placeholder, required, s
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF] flex items-center justify-between"
+          className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue flex items-center justify-between"
         >
-          <span className={selectedOption ? "text-white" : "text-gray-500"}>
+          <span className={selectedOption ? "text-content-primary" : "text-content-faint"}>
             {selectedOption?.label || placeholder || "Select..."}
           </span>
-          <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+          <ChevronDown className={`w-4 h-4 text-content-muted transition-transform ${isOpen ? "rotate-180" : ""}`} />
         </button>
 
         {isOpen && (
-          <div className="absolute z-50 w-full mt-1 bg-[#1F1F1F] border border-[#333333] rounded-xl shadow-lg max-h-60 overflow-hidden">
+          <div className="absolute z-50 w-full mt-1 bg-surface-hover border border-border rounded-xl shadow-lg max-h-60 overflow-hidden">
             {searchable && (
-              <div className="p-2 border-b border-[#333333]">
+              <div className="p-2 border-b border-border">
                 <input
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Search..."
-                  className="w-full bg-[#141414] text-white rounded-lg px-3 py-2 text-sm outline-none border border-[#333333]"
+                  className="w-full bg-surface-card text-content-primary rounded-lg px-3 py-2 text-sm outline-none border border-border"
                   autoFocus
                 />
               </div>
@@ -346,15 +347,15 @@ const SelectField = ({ label, value, onChange, options, placeholder, required, s
                     setIsOpen(false)
                     setSearch("")
                   }}
-                  className={`w-full px-4 py-2.5 text-sm text-left hover:bg-[#2F2F2F] transition-colors ${
-                    opt.value === value ? "bg-[#2F2F2F] text-orange-400" : "text-white"
+                  className={`w-full px-4 py-2.5 text-sm text-left hover:bg-surface-button transition-colors ${
+                    opt.value === value ? "bg-surface-button text-primary" : "text-content-primary"
                   }`}
                 >
                   {opt.label}
                 </button>
               ))}
               {filteredOptions.length === 0 && (
-                <div className="px-4 py-3 text-sm text-gray-500 text-center">No results found</div>
+                <div className="px-4 py-3 text-sm text-content-faint text-center">No results found</div>
               )}
             </div>
           </div>
@@ -368,14 +369,14 @@ const SelectField = ({ label, value, onChange, options, placeholder, required, s
 const Toggle = ({ label, checked, onChange, helpText }) => (
   <div className="flex items-start justify-between gap-4">
     <div className="flex-1">
-      <span className="text-sm font-medium text-white">{label}</span>
-      {helpText && <p className="text-xs text-gray-500 mt-0.5">{helpText}</p>}
+      <span className="text-sm font-medium text-content-primary">{label}</span>
+      {helpText && <p className="text-xs text-content-faint mt-0.5">{helpText}</p>}
     </div>
     <button
       type="button"
       onClick={() => onChange(!checked)}
       className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${
-        checked ? "bg-orange-500" : "bg-[#333333]"
+        checked ? "bg-primary" : "bg-surface-button"
       }`}
     >
       <span
@@ -390,7 +391,7 @@ const Toggle = ({ label, checked, onChange, helpText }) => (
 // Number Input Component
 const NumberInput = ({ label, value, onChange, min = 0, max, step = 1, suffix, helpText }) => (
   <div className="space-y-1.5">
-    {label && <label className="text-sm font-medium text-gray-300">{label}</label>}
+    {label && <label className="text-sm font-medium text-content-secondary">{label}</label>}
     <div className="flex items-center gap-2">
       <input
         type="number"
@@ -402,24 +403,24 @@ const NumberInput = ({ label, value, onChange, min = 0, max, step = 1, suffix, h
         min={min}
         max={max}
         step={step}
-        className="w-24 bg-[#141414] text-white rounded-xl px-3 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+        className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
       />
-      {suffix && <span className="text-sm text-gray-400">{suffix}</span>}
+      {suffix && <span className="text-sm text-content-muted">{suffix}</span>}
     </div>
-    {helpText && <p className="text-xs text-gray-500">{helpText}</p>}
+    {helpText && <p className="text-xs text-content-faint">{helpText}</p>}
   </div>
 )
 
 // Color Picker Component
 const ColorPickerField = ({ label, value, onChange }) => (
   <div className="space-y-1.5">
-    {label && <label className="text-sm font-medium text-gray-300">{label}</label>}
+    {label && <label className="text-sm font-medium text-content-secondary">{label}</label>}
     <div className="flex items-center gap-3">
       <input
         type="color"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-10 h-10 rounded-lg cursor-pointer bg-transparent border border-[#333333] p-1"
+        className="w-10 h-10 rounded-lg cursor-pointer bg-transparent border border-border p-1"
       />
     </div>
   </div>
@@ -428,26 +429,13 @@ const ColorPickerField = ({ label, value, onChange }) => (
 // Time Picker Component
 const TimePickerField = ({ label, value, onChange, placeholder = "HH:MM" }) => (
   <div className="space-y-1.5">
-    {label && <label className="text-sm font-medium text-gray-300">{label}</label>}
+    {label && <label className="text-sm font-medium text-content-secondary">{label}</label>}
     <input
       type="time"
       value={value || ""}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className="bg-[#141414] text-white rounded-xl px-3 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
-    />
-  </div>
-)
-
-// Date Picker Component
-const DatePickerField = ({ label, value, onChange }) => (
-  <div className="space-y-1.5">
-    {label && <label className="text-sm font-medium text-gray-300">{label}</label>}
-    <input
-      type="date"
-      value={value || ""}
-      onChange={(e) => onChange(e.target.value)}
-      className="bg-[#141414] text-white rounded-xl px-3 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+      className="bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
     />
   </div>
 )
@@ -456,7 +444,7 @@ const DatePickerField = ({ label, value, onChange }) => (
 const Tooltip = ({ children, content, position = "left" }) => (
   <div className="relative group inline-flex">
     {children}
-    <div className={`absolute top-full mt-2 px-3 py-2 bg-[#1F1F1F] text-gray-300 text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] w-64 border border-[#333333] shadow-xl pointer-events-none ${position === "right" ? "right-0" : "left-0"}`}>
+    <div className={`absolute top-full mt-2 px-3 py-2 bg-surface-hover text-content-secondary text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-[100] w-64 border border-border shadow-xl pointer-events-none ${position === "right" ? "right-0" : "left-0"}`}>
       <div className={`absolute bottom-full border-4 border-transparent border-b-[#333333] ${position === "right" ? "right-4" : "left-4"}`} />
       <div className={`absolute bottom-full mb-[-1px] border-4 border-transparent border-b-[#1F1F1F] ${position === "right" ? "right-4" : "left-4"}`} />
       <div className="break-words leading-relaxed">{content}</div>
@@ -467,7 +455,7 @@ const Tooltip = ({ children, content, position = "left" }) => (
 // Info Icon with Tooltip
 const InfoTooltip = ({ content, position = "left" }) => (
   <Tooltip content={content} position={position}>
-    <Info className="w-4 h-4 text-gray-500 hover:text-gray-300 cursor-help" />
+    <Info className="w-4 h-4 text-content-faint hover:text-content-secondary cursor-help" />
   </Tooltip>
 )
 
@@ -475,13 +463,13 @@ const InfoTooltip = ({ content, position = "left" }) => (
 // Admin Banner Component
 // ============================================
 const AdminBanner = ({ studioName }) => (
-  <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl px-4 py-3 flex items-center gap-3">
-    <AlertTriangle className="w-5 h-5 text-orange-400 flex-shrink-0" />
+  <div className="bg-primary/10 border border-primary/30 rounded-xl px-4 py-3 flex items-center gap-3">
+    <AlertTriangle className="w-5 h-5 text-primary flex-shrink-0" />
     <div>
       <p className="text-sm font-medium text-orange-300">
         Admin Mode — Editing: {studioName || "Studio"}
       </p>
-      <p className="text-xs text-orange-400/70 mt-0.5">
+      <p className="text-xs text-primary/70 mt-0.5">
         Changes will apply to this studio&apos;s configuration
       </p>
     </div>
@@ -711,13 +699,13 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   // Countries
   const [countries, setCountries] = useState([])
 
-  // Refs for textareas (for variable insertion)
-  const birthdayTextareaRef = useRef(null)
-  const confirmationTextareaRef = useRef(null)
-  const cancellationTextareaRef = useRef(null)
-  const rescheduledTextareaRef = useRef(null)
-  const reminderTextareaRef = useRef(null)
-  const registrationTextareaRef = useRef(null)
+  // Refs for WysiwygEditors (for variable insertion via insertText)
+  const birthdayEditorRef = useRef(null)
+  const appointmentEditorRefs = useRef({})
+  const signatureEditorRef = useRef(null)
+  const einvoiceEditorRef = useRef(null)
+  const cancellationEditorRef = useRef(null)
+  const conclusionEditorRef = useRef(null)
   const qrCodeRef = useRef(null)
 
   // ============================================
@@ -1403,7 +1391,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       const parts = text.split(regex)
       return parts.map((part, i) => 
         part.toLowerCase() === searchQuery.toLowerCase() ? (
-          <span key={i} className="bg-orange-500/30 text-orange-300 rounded px-0.5">{part}</span>
+          <span key={i} className="bg-primary/30 text-orange-300 rounded px-0.5">{part}</span>
         ) : part
       )
     } catch {
@@ -1427,14 +1415,14 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
             {/* Profile Picture Upload */}
             <SettingsCard>
               <div className="flex flex-col sm:flex-row items-center gap-6">
-                <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden bg-[#141414] flex-shrink-0">
+                <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden bg-surface-card flex-shrink-0">
                   <img src={profilePreviewUrl || DefaultAvatar} alt="Profile Preview" className="w-full h-full object-cover" />
                 </div>
                 <div className="flex-1 text-center sm:text-left">
-                  <h3 className="text-white font-medium mb-2">Profile Picture</h3>
-                  <p className="text-xs sm:text-sm text-gray-400 mb-4">Upload your profile picture</p>
+                  <h3 className="text-content-primary font-medium mb-2">Profile Picture</h3>
+                  <p className="text-xs sm:text-sm text-content-muted mb-4">Upload your profile picture</p>
                   <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
-                    <label className="px-4 py-2 bg-[#3F74FF] text-white text-sm rounded-xl hover:bg-blue-600 cursor-pointer transition-colors">
+                    <label className="px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover cursor-pointer transition-colors">
                       <Upload className="w-4 h-4 inline-block mr-2" />
                       Upload Picture
                       <input
@@ -1460,7 +1448,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
 
             {/* Personal Information */}
             <SettingsCard>
-              <h3 className="text-white font-medium mb-4">Personal Information</h3>
+              <h3 className="text-content-primary font-medium mb-4">Personal Information</h3>
               <div className="max-w-2xl space-y-4">
                 {/* First + Last Name */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1480,15 +1468,11 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
 
                 {/* Birthday + Email */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-gray-300">Birthday</label>
-                    <input
-                      type="date"
-                      value={profileData.birthday}
-                      onChange={(e) => handleProfileInputChange("birthday", e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl bg-[#141414] border border-[#333333] outline-none text-sm text-white focus:border-[#3F74FF]"
-                    />
-                  </div>
+                  <DatePickerField
+                    label="Birthday"
+                    value={profileData.birthday}
+                    onChange={(val) => handleProfileInputChange("birthday", val)}
+                  />
                   <InputField
                     label="Email"
                     value={profileData.email}
@@ -1569,19 +1553,19 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                 />
 
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-gray-300">Password</label>
+                  <label className="text-sm font-medium text-content-secondary">Password</label>
                   <div className="relative">
                     <input
                       type={showPassword ? "text" : "password"}
                       value={profileData.password}
                       onChange={(e) => handleProfileInputChange("password", e.target.value)}
-                      className="w-full px-4 py-2.5 pr-12 rounded-xl bg-[#141414] border border-[#333333] outline-none text-sm text-white focus:border-[#3F74FF]"
+                      className="w-full px-4 py-2.5 pr-12 rounded-xl bg-surface-card border border-border outline-none text-sm text-content-primary focus:border-accent-blue"
                       placeholder="Enter password"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-content-muted hover:text-content-primary transition-colors"
                     >
                       {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
@@ -1592,11 +1576,11 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
 
             <SettingsCard>
               <div className="max-w-md space-y-4">
-                <h3 className="text-white font-medium">Security</h3>
-                <p className="text-sm text-gray-400">
+                <h3 className="text-content-primary font-medium">Security</h3>
+                <p className="text-sm text-content-muted">
                   For your security, we recommend changing your password regularly and using a strong, unique password.
                 </p>
-                <button className="px-4 py-2 bg-[#2F2F2F] text-white text-sm rounded-xl hover:bg-[#3F3F3F] transition-colors">
+                <button className="px-4 py-2 bg-surface-button text-content-primary text-sm rounded-xl hover:bg-surface-button-hover transition-colors">
                   Change Password
                 </button>
               </div>
@@ -1615,14 +1599,14 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
             {/* Logo Upload */}
             <SettingsCard>
               <div className="flex flex-col sm:flex-row items-center gap-6">
-                <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden bg-[#141414] flex-shrink-0">
+                <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden bg-surface-card flex-shrink-0">
                   <img src={logoUrl || DefaultAvatar} alt="Logo" className="w-full h-full object-cover" />
                 </div>
                 <div className="flex-1 text-center sm:text-left">
-                  <h3 className="text-white font-medium mb-2">Studio Logo</h3>
-                  <p className="text-xs sm:text-sm text-gray-400 mb-4">Upload your studio logo (recommended: 1000x1000px)</p>
+                  <h3 className="text-content-primary font-medium mb-2">Studio Logo</h3>
+                  <p className="text-xs sm:text-sm text-content-muted mb-4">Upload your studio logo (recommended: 1000x1000px)</p>
                   <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
-                    <label className="px-4 py-2 bg-[#2F2F2F] text-white text-sm rounded-xl hover:bg-[#3F3F3F] cursor-pointer transition-colors">
+                    <label className="px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover cursor-pointer transition-colors">
                       <Upload className="w-4 h-4 inline-block mr-2" />
                       Upload Logo
                       <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
@@ -1642,15 +1626,15 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
 
             {/* Studio Details */}
             <SettingsCard>
-              <h3 className="text-white font-medium mb-4">Studio Details</h3>
+              <h3 className="text-content-primary font-medium mb-4">Studio Details</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-gray-300">Studio ID</label>
+                  <label className="text-sm font-medium text-content-secondary">Studio ID</label>
                   <input
                     type="text"
                     value={studioId}
                     disabled
-                    className="w-full bg-[#0a0a0a] text-gray-500 rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] cursor-not-allowed"
+                    className="w-full bg-surface-dark text-content-faint rounded-xl px-4 py-2.5 text-sm outline-none border border-border cursor-not-allowed"
                   />
                 </div>
                 <InputField
@@ -1695,7 +1679,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
 
             {/* Studio Address */}
             <SettingsCard>
-              <h3 className="text-white font-medium mb-4">Studio Address</h3>
+              <h3 className="text-content-primary font-medium mb-4">Studio Address</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <InputField
                   label="Street & Number"
@@ -1735,7 +1719,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
 
             {/* Studio Operator */}
             <SettingsCard>
-              <h3 className="text-white font-medium mb-4">Studio Operator</h3>
+              <h3 className="text-content-primary font-medium mb-4">Studio Operator</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="sm:col-span-2">
                   <InputField
@@ -1786,9 +1770,9 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                   const isClosed = hour.closed
                   
                   return (
-                    <div key={day} className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 bg-[#141414] rounded-xl">
+                    <div key={day} className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 bg-surface-card rounded-xl">
                       <div className="flex items-center justify-between sm:w-32">
-                        <span className="text-white font-medium text-sm sm:text-base">{day}</span>
+                        <span className="text-content-primary font-medium text-sm sm:text-base">{day}</span>
                       </div>
                       <div className="flex items-center gap-3 flex-1 flex-wrap sm:flex-nowrap">
                         <button
@@ -1809,7 +1793,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                             }
                           }}
                           className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${
-                            !isClosed ? "bg-orange-500" : "bg-[#333333]"
+                            !isClosed ? "bg-primary" : "bg-surface-button"
                           }`}
                         >
                           <span
@@ -1818,7 +1802,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                             }`}
                           />
                         </button>
-                        <span className="text-sm text-gray-400 w-12">{isClosed ? "Closed" : "Open"}</span>
+                        <span className="text-sm text-content-muted w-12">{isClosed ? "Closed" : "Open"}</span>
                         
                         {!isClosed && (
                           <div className="flex items-center gap-2 flex-1 w-full sm:w-auto">
@@ -1839,9 +1823,9 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                                   }])
                                 }
                               }}
-                              className="bg-[#1F1F1F] text-white rounded-lg px-2 sm:px-3 py-2 text-sm border border-[#333333] flex-1 sm:flex-none"
+                              className="bg-surface-hover text-content-primary rounded-lg px-2 sm:px-3 py-2 text-sm border border-border flex-1 sm:flex-none"
                             />
-                            <span className="text-gray-400 text-sm">to</span>
+                            <span className="text-content-muted text-sm">to</span>
                             <input
                               type="time"
                               value={hour.endTime || ""}
@@ -1859,7 +1843,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                                   }])
                                 }
                               }}
-                              className="bg-[#1F1F1F] text-white rounded-lg px-2 sm:px-3 py-2 text-sm border border-[#333333] flex-1 sm:flex-none"
+                              className="bg-surface-hover text-content-primary rounded-lg px-2 sm:px-3 py-2 text-sm border border-border flex-1 sm:flex-none"
                             />
                           </div>
                         )}
@@ -1884,7 +1868,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     <button
                       onClick={addPublicHolidaysToClosingDays}
                       disabled={isLoadingHolidays}
-                      className="px-3 sm:px-4 py-2 bg-[#2F2F2F] text-white text-sm rounded-xl hover:bg-[#3F3F3F] transition-colors flex items-center justify-center gap-2"
+                      className="px-3 sm:px-4 py-2 bg-surface-button text-content-primary text-sm rounded-xl hover:bg-surface-button-hover transition-colors flex items-center justify-center gap-2"
                     >
                       <Calendar className="w-4 h-4" />
                       Import Holidays
@@ -1892,7 +1876,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                   )}
                   <button
                     onClick={() => setClosingDays([...closingDays, { date: "", description: "" }])}
-                    className="px-3 sm:px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
+                    className="px-3 sm:px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center justify-center gap-2"
                   >
                     <Plus className="w-4 h-4" />
                     Add Day
@@ -1902,8 +1886,8 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
             />
             
             {studioCountry && publicHolidays.length > 0 && (
-              <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl">
-                <p className="text-blue-400 text-sm">
+              <div className="p-4 bg-primary/10 border border-primary/20 rounded-xl">
+                <p className="text-primary text-sm">
                   <Info className="w-4 h-4 inline-block mr-2" />
                   {publicHolidays.length} public holidays available for {countries.find(c => c.code === studioCountry)?.name}
                 </p>
@@ -1912,24 +1896,24 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
 
             <SettingsCard>
               {closingDays.length === 0 ? (
-                <div className="text-center py-8 text-gray-400">
+                <div className="text-center py-8 text-content-muted">
                   <CalendarOff className="w-12 h-12 mx-auto mb-3 opacity-50" />
                   <p>No closing days configured</p>
                 </div>
               ) : (
                 <div className="space-y-3">
                   {closingDays.map((day, index) => (
-                    <div key={index} className="flex flex-col sm:flex-row gap-3 p-3 bg-[#141414] rounded-xl">
-                      <input
-                        type="date"
-                        value={day.date || ""}
-                        onChange={(e) => {
-                          const updated = [...closingDays]
-                          updated[index].date = e.target.value
-                          setClosingDays(updated)
-                        }}
-                        className="bg-[#1F1F1F] text-white rounded-lg px-3 py-2 text-sm border border-[#333333] w-full sm:w-40"
-                      />
+                    <div key={index} className="flex flex-col sm:flex-row gap-3 p-3 bg-surface-card rounded-xl">
+                      <div className="w-full sm:w-44">
+                        <DatePickerField
+                          value={day.date || ""}
+                          onChange={(val) => {
+                            const updated = [...closingDays]
+                            updated[index].date = val
+                            setClosingDays(updated)
+                          }}
+                        />
+                      </div>
                       <input
                         type="text"
                         value={day.description || ""}
@@ -1939,7 +1923,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                           setClosingDays(updated)
                         }}
                         placeholder="Description (e.g., Public Holiday)"
-                        className="bg-[#1F1F1F] text-white rounded-lg px-3 py-2 text-sm border border-[#333333] flex-1"
+                        className="bg-surface-hover text-content-primary rounded-lg px-3 py-2 text-sm border border-border flex-1"
                       />
                       <button
                         onClick={() => setClosingDays(closingDays.filter((_, i) => i !== index))}
@@ -1967,8 +1951,8 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
             <SettingsCard>
               <div className="flex items-center justify-between">
                 <div>
-                  <label className="text-sm font-medium text-white block">Hide Closed Days</label>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <label className="text-sm font-medium text-content-primary block">Hide Closed Days</label>
+                  <p className="text-xs text-content-faint mt-1">
                     When enabled, days marked as closed in opening hours (e.g., weekends) will not appear as columns in week/day view
                   </p>
                 </div>
@@ -1982,13 +1966,13 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     })}
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-[#333333] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
+                  <div className="w-11 h-6 bg-surface-button peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                 </label>
               </div>
               
               {/* Week View Preview */}
-              <div className="mt-4 p-4 bg-[#141414] rounded-xl overflow-x-auto">
-                <p className="text-xs text-gray-500 mb-3">Preview:</p>
+              <div className="mt-4 p-4 bg-surface-card rounded-xl overflow-x-auto">
+                <p className="text-xs text-content-faint mb-3">Preview:</p>
                 <div className="flex gap-1 min-w-[400px]">
                   {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => {
                     const isWeekend = day === 'Sat' || day === 'Sun';
@@ -2001,8 +1985,8 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         key={day}
                         className={`flex-1 min-w-[50px] text-center py-3 rounded-lg ${
                           isWeekend 
-                            ? 'bg-gray-700/30 text-gray-500' 
-                            : 'bg-[#1F1F1F] text-white'
+                            ? 'bg-gray-700/30 text-content-faint' 
+                            : 'bg-surface-hover text-content-primary'
                         }`}
                       >
                         <span className="text-xs font-medium">{day}</span>
@@ -2010,7 +1994,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     );
                   })}
                 </div>
-                <p className="text-xs text-gray-500 mt-3 text-center">
+                <p className="text-xs text-content-faint mt-3 text-center">
                   {calendarSettings.hideClosedDays 
                     ? 'Showing Monday - Friday (closed days hidden)'
                     : 'Showing all days including weekends'
@@ -2021,13 +2005,13 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
 
             {/* Calendar Time Range */}
             <SettingsCard>
-              <h4 className="text-white font-medium mb-4">Calendar Time Range</h4>
-              <p className="text-xs text-gray-500 mb-4">
+              <h4 className="text-content-primary font-medium mb-4">Calendar Time Range</h4>
+              <p className="text-xs text-content-faint mb-4">
                 Set the visible time range for the calendar. Times outside this range will not be displayed.
               </p>
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                 <div className="flex items-center gap-3">
-                  <label className="text-sm text-gray-400 w-16">Start</label>
+                  <label className="text-sm text-content-muted w-16">Start</label>
                   <input
                     type="time"
                     value={calendarSettings.calendarStartTime}
@@ -2035,12 +2019,12 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       ...calendarSettings,
                       calendarStartTime: e.target.value
                     })}
-                    className="bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                    className="bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
                   />
                 </div>
-                <span className="text-gray-500 hidden sm:block">—</span>
+                <span className="text-content-faint hidden sm:block">—</span>
                 <div className="flex items-center gap-3">
-                  <label className="text-sm text-gray-400 w-16">End</label>
+                  <label className="text-sm text-content-muted w-16">End</label>
                   <input
                     type="time"
                     value={calendarSettings.calendarEndTime}
@@ -2048,7 +2032,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       ...calendarSettings,
                       calendarEndTime: e.target.value
                     })}
-                    className="bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                    className="bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
                   />
                 </div>
               </div>
@@ -2058,8 +2042,8 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
             <SettingsCard>
               <div className="flex items-center justify-between">
                 <div>
-                  <label className="text-sm font-medium text-white block">Fade Past Appointments</label>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <label className="text-sm font-medium text-content-primary block">Fade Past Appointments</label>
+                  <p className="text-xs text-content-faint mt-1">
                     When enabled, past appointments will be displayed with reduced opacity to distinguish them from upcoming ones
                   </p>
                 </div>
@@ -2073,25 +2057,25 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     })}
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-[#333333] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
+                  <div className="w-11 h-6 bg-surface-button peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                 </label>
               </div>
               
               {/* Preview */}
-              <div className="mt-4 p-4 bg-[#141414] rounded-xl">
-                <p className="text-xs text-gray-500 mb-3">Preview:</p>
+              <div className="mt-4 p-4 bg-surface-card rounded-xl">
+                <p className="text-xs text-content-faint mb-3">Preview:</p>
                 <div className="flex gap-3">
                   <div className="flex-1">
-                    <p className="text-[10px] text-gray-500 mb-1.5 text-center">Past</p>
+                    <p className="text-[10px] text-content-faint mb-1.5 text-center">Past</p>
                     <div 
-                      className={`p-3 rounded-lg bg-[#3B82F6] ${calendarSettings.fadePastAppointments ? 'opacity-45' : ''}`}
+                      className={`p-3 rounded-lg bg-accent-blue ${calendarSettings.fadePastAppointments ? 'opacity-45' : ''}`}
                     >
                       <span className="text-xs text-white font-medium">EMS Training</span>
                     </div>
                   </div>
                   <div className="flex-1">
-                    <p className="text-[10px] text-gray-500 mb-1.5 text-center">Upcoming</p>
-                    <div className="p-3 rounded-lg bg-[#3B82F6]">
+                    <p className="text-[10px] text-content-faint mb-1.5 text-center">Upcoming</p>
+                    <div className="p-3 rounded-lg bg-accent-blue">
                       <span className="text-xs text-white font-medium">EMS Training</span>
                     </div>
                   </div>
@@ -2109,7 +2093,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
             <SettingsCard>
               <div className="space-y-6">
                 <div>
-                  <label className="text-sm font-medium text-gray-300 mb-2 block">Total Studio Capacity</label>
+                  <label className="text-sm font-medium text-content-secondary mb-2 block">Total Studio Capacity</label>
                   <div className="flex items-center gap-4">
                     <input
                       type="number"
@@ -2121,45 +2105,45 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       min={1}
                       max={100}
                       step={1}
-                      className="w-24 bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                      className="w-24 bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
                     />
-                    <span className="text-sm text-gray-400">slots</span>
+                    <span className="text-sm text-content-muted">slots</span>
                   </div>
-                  <p className="text-xs text-gray-500 mt-2">
+                  <p className="text-xs text-content-faint mt-2">
                     The maximum number of slots that can be used at the same time across all appointments.
                   </p>
                 </div>
               </div>
             </SettingsCard>
 
-            <SettingsCard className="bg-[#181818]">
-              <h4 className="text-white font-medium mb-3">How Capacity Works</h4>
-              <div className="space-y-3 text-sm text-gray-400">
+            <SettingsCard className="bg-surface-card">
+              <h4 className="text-content-primary font-medium mb-3">How Capacity Works</h4>
+              <div className="space-y-3 text-sm text-content-muted">
                 <div className="flex gap-3">
-                  <span className="text-orange-400 font-medium w-32 flex-shrink-0">Slots Required</span>
+                  <span className="text-primary font-medium w-32 flex-shrink-0">Slots Required</span>
                   <span>How many capacity slots each appointment uses. Set to 0 if the appointment doesn't block any capacity.</span>
                 </div>
                 <div className="flex gap-3">
-                  <span className="text-orange-400 font-medium w-32 flex-shrink-0">Max Parallel</span>
+                  <span className="text-primary font-medium w-32 flex-shrink-0">Max Parallel</span>
                   <span>The maximum number of this appointment type that can run at the same time.</span>
                 </div>
               </div>
-              <div className="mt-4 p-4 bg-[#141414] rounded-xl">
-                <p className="text-sm text-gray-300 font-medium mb-2">Example with 3 total slots:</p>
-                <div className="space-y-1.5 text-xs text-gray-500">
-                  <p>• <span className="text-gray-300">EMS Strength</span> (1 slot, max 2×) – Can run twice in parallel, uses 2 slots total</p>
-                  <p>• <span className="text-gray-300">Body Check</span> (2 slots, max 1×) – Uses 2 slots, only 1 slot left for other appointments</p>
-                  <p>• <span className="text-gray-300">Trial Training</span> (3 slots, max 1×) – Uses all capacity, blocks all other bookings</p>
-                  <p>• <span className="text-gray-300">EMP Chair</span> (0 slots, max 1×) – Doesn't use any capacity, runs independently</p>
+              <div className="mt-4 p-4 bg-surface-card rounded-xl">
+                <p className="text-sm text-content-secondary font-medium mb-2">Example with 3 total slots:</p>
+                <div className="space-y-1.5 text-xs text-content-faint">
+                  <p>• <span className="text-content-secondary">EMS Strength</span> (1 slot, max 2×) – Can run twice in parallel, uses 2 slots total</p>
+                  <p>• <span className="text-content-secondary">Body Check</span> (2 slots, max 1×) – Uses 2 slots, only 1 slot left for other appointments</p>
+                  <p>• <span className="text-content-secondary">Trial Training</span> (3 slots, max 1×) – Uses all capacity, blocks all other bookings</p>
+                  <p>• <span className="text-content-secondary">EMP Chair</span> (0 slots, max 1×) – Doesn't use any capacity, runs independently</p>
                 </div>
               </div>
             </SettingsCard>
 
             {appointmentTypes.length > 0 && (
               <SettingsCard>
-                <h4 className="text-white font-medium mb-4">Current Configuration</h4>
+                <h4 className="text-content-primary font-medium mb-4">Current Configuration</h4>
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between px-3 py-2 text-xs text-gray-500 border-b border-[#333333]">
+                  <div className="flex items-center justify-between px-3 py-2 text-xs text-content-faint border-b border-border">
                     <span>Appointment Type</span>
                     <div className="flex items-center gap-8">
                       <span className="w-20 text-center">Slots</span>
@@ -2167,17 +2151,17 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     </div>
                   </div>
                   {appointmentTypes.map((type) => (
-                    <div key={type.id} className="flex items-center justify-between p-3 bg-[#141414] rounded-xl">
+                    <div key={type.id} className="flex items-center justify-between p-3 bg-surface-card rounded-xl">
                       <div className="flex items-center gap-3">
                         <div
                           className="w-3 h-3 rounded-full"
                           style={{ backgroundColor: type.color }}
                         />
-                        <span className="text-white">{type.name}</span>
+                        <span className="text-content-primary">{type.name}</span>
                       </div>
                       <div className="flex items-center gap-8 text-sm">
-                        <span className="w-20 text-center text-gray-400">{type.slotsRequired ?? 1}</span>
-                        <span className="w-20 text-center text-gray-400">{type.maxParallel || 1}×</span>
+                        <span className="w-20 text-center text-content-muted">{type.slotsRequired ?? 1}</span>
+                        <span className="w-20 text-center text-content-muted">{type.maxParallel || 1}×</span>
                       </div>
                     </div>
                   ))}
@@ -2196,7 +2180,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
               action={
                 <button
                   onClick={() => handleOpenAppointmentTypeModal(null)}
-                  className="px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
+                  className="px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
                   Add Type
@@ -2206,13 +2190,13 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
             
             {appointmentTypes.length === 0 ? (
               <SettingsCard>
-                <div className="text-center py-12 text-gray-400">
+                <div className="text-center py-12 text-content-muted">
                   <Calendar className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                  <h3 className="text-lg font-medium text-white mb-2">No appointment types yet</h3>
+                  <h3 className="text-lg font-medium text-content-primary mb-2">No appointment types yet</h3>
                   <p className="text-sm mb-6">Create your first appointment type that members can book</p>
                   <button
                     onClick={() => handleOpenAppointmentTypeModal(null)}
-                    className="px-6 py-2.5 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors inline-flex items-center gap-2"
+                    className="px-6 py-2.5 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors inline-flex items-center gap-2"
                   >
                     <Plus className="w-4 h-4" />
                     Create Appointment Type
@@ -2224,10 +2208,10 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                 {appointmentTypes.map((type) => (
                   <div
                     key={type.id}
-                    className="bg-[#1F1F1F] rounded-xl overflow-hidden border border-[#333333] hover:border-[#444444] transition-colors group"
+                    className="bg-surface-hover rounded-xl overflow-hidden border border-border hover:border-border transition-colors group"
                   >
                     {/* Image */}
-                    <div className="relative aspect-video bg-[#141414]">
+                    <div className="relative aspect-video bg-surface-card">
                       {type.image ? (
                         <img
                           src={type.image}
@@ -2236,7 +2220,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
-                          <Calendar className="w-12 h-12 text-gray-600" />
+                          <Calendar className="w-12 h-12 text-content-faint" />
                         </div>
                       )}
                       {/* Gradient overlay */}
@@ -2244,7 +2228,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       
                       {/* Category badge - blue like member view */}
                       {type.category && (
-                        <div className="absolute top-3 left-3 px-2.5 py-1 bg-blue-500/90 backdrop-blur-sm text-white text-xs font-medium rounded-full">
+                        <div className="absolute top-3 left-3 px-2.5 py-1 bg-secondary backdrop-blur-sm text-white text-xs font-medium rounded-full">
                           {type.category}
                         </div>
                       )}
@@ -2253,14 +2237,14 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       {type.description && (
                         <div className="absolute top-3 right-3 group/info">
                           <button
-                            className="flex items-center justify-center bg-orange-500 w-7 h-7 rounded-full hover:bg-orange-600 transition-colors"
+                            className="flex items-center justify-center bg-primary w-7 h-7 rounded-full hover:bg-primary-hover transition-colors"
                           >
                             <Info className="w-4 h-4 text-white" />
                           </button>
                           {/* Popup - shows on hover or focus */}
-                          <div className="absolute top-full right-0 mt-2 w-64 p-3 bg-[#1F1F1F] border border-[#333333] rounded-xl shadow-xl opacity-0 invisible group-hover/info:opacity-100 group-hover/info:visible group-focus-within/info:opacity-100 group-focus-within/info:visible transition-all z-50">
-                            <p className="text-gray-300 text-sm">{type.description}</p>
-                            <div className="absolute -top-2 right-3 w-3 h-3 bg-[#1F1F1F] border-l border-t border-[#333333] rotate-45" />
+                          <div className="absolute top-full right-0 mt-2 w-64 p-3 bg-surface-hover border border-border rounded-xl shadow-xl opacity-0 invisible group-hover/info:opacity-100 group-hover/info:visible group-focus-within/info:opacity-100 group-focus-within/info:visible transition-all z-50">
+                            <p className="text-content-secondary text-sm">{type.description}</p>
+                            <div className="absolute -top-2 right-3 w-3 h-3 bg-surface-hover border-l border-t border-border rotate-45" />
                           </div>
                         </div>
                       )}
@@ -2275,10 +2259,10 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                           style={{ backgroundColor: type.color }}
                           title="Calendar color"
                         />
-                        <h3 className="text-white font-medium truncate">{type.name || "Untitled"}</h3>
+                        <h3 className="text-content-primary font-medium truncate">{type.name || "Untitled"}</h3>
                       </div>
                       
-                      <div className="flex items-center flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 mb-4">
+                      <div className="flex items-center flex-wrap gap-x-4 gap-y-1 text-xs text-content-faint">
                         <span className="flex items-center gap-1">
                           <Clock className="w-3.5 h-3.5" />
                           {type.duration} min
@@ -2296,12 +2280,13 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                           {type.contingentUsage ?? 1} credit{(type.contingentUsage ?? 1) !== 1 ? 's' : ''}
                         </span>
                       </div>
+                    </div>
                       
-                      {/* Actions */}
-                      <div className="flex gap-2">
+                    {/* Actions */}
+                    <div className="px-4 py-3 bg-surface-card border-t border-border flex gap-2">
                         <button
                           onClick={() => handleOpenAppointmentTypeModal(type)}
-                          className="flex-1 px-3 py-2 bg-[#2F2F2F] text-white text-sm rounded-lg hover:bg-[#3F3F3F] transition-colors flex items-center justify-center gap-2"
+                          className="flex-1 px-3 py-2 bg-surface-button text-content-primary text-sm rounded-lg hover:bg-surface-button-hover transition-colors flex items-center justify-center gap-2"
                         >
                           <Edit className="w-4 h-4" />
                           Edit
@@ -2313,7 +2298,6 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
-                    </div>
                   </div>
                 ))}
               </div>
@@ -2330,7 +2314,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
               action={
                 <button
                   onClick={handleAddCategory}
-                  className="px-3 sm:px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
+                  className="px-3 sm:px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
                   <span className="hidden sm:inline">Add</span> Category
@@ -2359,7 +2343,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                             }
                           }}
                           autoFocus
-                          className="bg-[#141414] text-white rounded-lg px-3 py-1.5 text-sm border border-[#3F74FF] w-32"
+                          className="bg-surface-card text-content-primary rounded-lg px-3 py-1.5 text-sm border border-accent-blue w-32"
                         />
                         <button
                           onClick={() => {
@@ -2381,7 +2365,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       </div>
                     ) : (
                       <div
-                        className="flex items-center gap-1 px-3 py-1.5 bg-blue-500/20 text-blue-400 rounded-lg text-sm cursor-pointer hover:bg-blue-500/30 transition-colors"
+                        className="flex items-center gap-1 px-3 py-1.5 bg-secondary/20 text-secondary rounded-lg text-sm cursor-pointer hover:bg-secondary/30 transition-colors"
                         onClick={() => setEditingCategory({ index, value: category })}
                       >
                         {category}
@@ -2390,7 +2374,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                             e.stopPropagation()
                             handleRemoveCategory(index)
                           }}
-                          className="ml-1 p-0.5 text-blue-400 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="ml-1 p-0.5 text-secondary hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                           <X className="w-3 h-3" />
                         </button>
@@ -2399,7 +2383,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                   </div>
                 ))}
               </div>
-              <p className="text-xs text-gray-500 mt-4">
+              <p className="text-xs text-content-faint mt-4">
                 Click a category to edit. Categories in use cannot be deleted.
               </p>
             </SettingsCard>
@@ -2413,11 +2397,11 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
             <SettingsCard>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-gray-500" />
+                  <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-content-faint" />
                     Duration
                     <Tooltip content="How long the trial training session lasts in minutes">
-                      <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                      <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
                     </Tooltip>
                   </label>
                   <div className="flex items-center gap-2">
@@ -2428,18 +2412,18 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault() }}
                       min={15}
                       max={180}
-                      className="w-24 bg-[#141414] text-white rounded-xl px-3 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                      className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
                     />
-                    <span className="text-sm text-gray-400">min</span>
+                    <span className="text-sm text-content-muted">min</span>
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
-                    <Settings className="w-4 h-4 text-gray-500" />
+                  <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
+                    <Settings className="w-4 h-4 text-content-faint" />
                     Slots
                     <Tooltip content="How many capacity slots the trial training uses. Set to max to block all other bookings.">
-                      <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                      <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
                     </Tooltip>
                   </label>
                   <input
@@ -2449,16 +2433,16 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault() }}
                     min={0}
                     max={studioCapacity}
-                    className="w-24 bg-[#141414] text-white rounded-xl px-3 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                    className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
-                    <Users className="w-4 h-4 text-gray-500" />
+                  <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
+                    <Users className="w-4 h-4 text-content-faint" />
                     Max Parallel
                     <Tooltip content="Maximum number of trial trainings that can run at the same time">
-                      <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                      <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
                     </Tooltip>
                   </label>
                   <input
@@ -2468,22 +2452,22 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault() }}
                     min={1}
                     max={studioCapacity}
-                    className="w-24 bg-[#141414] text-white rounded-xl px-3 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                    className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                  <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
                     Calendar Color
                     <Tooltip content="The color used to display trial trainings in the calendar" position="right">
-                      <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                      <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
                     </Tooltip>
                   </label>
                   <input
                     type="color"
                     value={trialTraining.color}
                     onChange={(e) => setTrialTraining({ ...trialTraining, color: e.target.value })}
-                    className="w-10 h-10 rounded-lg cursor-pointer bg-transparent border border-[#333333] p-1"
+                    className="w-10 h-10 rounded-lg cursor-pointer bg-transparent border border-border p-1"
                   />
                 </div>
               </div>
@@ -2500,11 +2484,11 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
             <SectionHeader title="Staff Default Settings" description="Default values for new staff members" />
             
             {/* Info Box */}
-            <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+            <div className="p-4 bg-primary/10 border border-primary/20 rounded-xl">
               <div className="flex items-start gap-3">
-                <Info className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                <Info className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm text-blue-300">
+                  <p className="text-sm text-primary">
                     These settings are automatically applied when creating new staff members. You can always adjust them individually for each staff member later.
                   </p>
                 </div>
@@ -2552,7 +2536,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
               action={
                 <button
                   onClick={handleAddRole}
-                  className="px-3 sm:px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
+                  className="px-3 sm:px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
                   <span className="hidden sm:inline">Add</span> Role
@@ -2568,7 +2552,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       type="color"
                       value={role.color || "#3B82F6"}
                       onChange={(e) => handleUpdateRole(index, "color", e.target.value)}
-                      className="w-10 h-10 rounded-lg cursor-pointer bg-transparent border border-[#333333] p-1 flex-shrink-0"
+                      className="w-10 h-10 rounded-lg cursor-pointer bg-transparent border border-border p-1 flex-shrink-0"
                     />
                     
                     {/* Role Name */}
@@ -2579,10 +2563,10 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                           value={role.name}
                           onChange={(e) => handleUpdateRole(index, "name", e.target.value)}
                           placeholder="Enter role name"
-                          className="w-full bg-transparent text-white text-lg font-medium outline-none border-b border-transparent hover:border-[#333333] focus:border-orange-500 transition-colors pb-1"
+                          className="w-full bg-transparent text-content-primary text-lg font-medium outline-none border-b border-transparent hover:border-border focus:border-primary transition-colors pb-1"
                         />
                         {role.isAdmin && (
-                          <span className="text-xs bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded flex-shrink-0">Admin</span>
+                          <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded flex-shrink-0">Admin</span>
                         )}
                       </div>
                     </div>
@@ -2594,26 +2578,26 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                           setSelectedRoleIndex(index)
                           setPermissionModalVisible(true)
                         }}
-                        className="px-3 py-2 bg-[#2F2F2F] text-white text-sm rounded-xl hover:bg-[#3F3F3F] transition-colors flex items-center gap-2"
+                        className="px-3 py-2 bg-surface-button text-content-primary text-sm rounded-xl hover:bg-surface-button-hover transition-colors flex items-center gap-2"
                       >
                         <Shield className="w-4 h-4" />
                         <span className="hidden sm:inline">Permissions</span>
-                        <span className="bg-[#444444] px-1.5 py-0.5 rounded text-xs">{role.permissions?.length || 0}</span>
+                        <span className="bg-surface-button-hover px-1.5 py-0.5 rounded text-xs">{role.permissions?.length || 0}</span>
                       </button>
                       <button
                         onClick={() => {
                           setSelectedRoleForAssignment(index)
                           setStaffAssignmentModalVisible(true)
                         }}
-                        className="px-3 py-2 bg-[#2F2F2F] text-white text-sm rounded-xl hover:bg-[#3F3F3F] transition-colors flex items-center gap-2"
+                        className="px-3 py-2 bg-surface-button text-content-primary text-sm rounded-xl hover:bg-surface-button-hover transition-colors flex items-center gap-2"
                       >
                         <Users className="w-4 h-4" />
                         <span className="hidden sm:inline">Staff</span>
-                        <span className="bg-[#444444] px-1.5 py-0.5 rounded text-xs">{role.staffCount || 0}</span>
+                        <span className="bg-surface-button-hover px-1.5 py-0.5 rounded text-xs">{role.staffCount || 0}</span>
                       </button>
                       <button
                         onClick={() => handleCopyRole(index)}
-                        className="p-2 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded-lg transition-colors"
+                        className="p-2 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors"
                         title="Duplicate role"
                       >
                         <Copy className="w-4 h-4" />
@@ -2657,7 +2641,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
             {allowMemberQRCheckIn && (
               <SettingsCard>
                 <div className="flex flex-col items-center gap-6">
-                  <h3 className="text-white font-medium">{studioName || "Studio"}</h3>
+                  <h3 className="text-content-primary font-medium">{studioName || "Studio"}</h3>
                   <div ref={qrCodeRef} className="p-6 bg-white rounded-2xl shadow-lg">
                     <QRCode
                       value={memberQRCodeUrl || "https://your-studio-app.com/member-checkin"}
@@ -2668,26 +2652,26 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       color="#1a1a2e"
                     />
                   </div>
-                  <p className="text-sm text-gray-400 text-center">
+                  <p className="text-sm text-content-muted text-center">
                     Scan to check in
                   </p>
                   <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                     <button 
                       onClick={handleDownloadQRCode}
-                      className="px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
+                      className="px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center justify-center gap-2"
                     >
                       <Download className="w-4 h-4" />
                       Download
                     </button>
                     <button 
                       onClick={handlePrintQRCode}
-                      className="px-4 py-2 bg-[#2F2F2F] text-white text-sm rounded-xl hover:bg-[#3F3F3F] transition-colors flex items-center justify-center gap-2"
+                      className="px-4 py-2 bg-surface-button text-content-primary text-sm rounded-xl hover:bg-surface-button-hover transition-colors flex items-center justify-center gap-2"
                     >
                       <Printer className="w-4 h-4" />
                       Print
                     </button>
                   </div>
-                  <p className="text-xs text-gray-500 text-center mt-2">
+                  <p className="text-xs text-content-faint text-center mt-2">
                     The downloaded and printed QR code will include your studio name and branding.
                   </p>
                 </div>
@@ -2705,7 +2689,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
               action={
                 <button
                   onClick={handleAddLeadSource}
-                  className="px-3 sm:px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
+                  className="px-3 sm:px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
                   <span className="hidden sm:inline">Add</span> Source
@@ -2714,14 +2698,14 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
             />
             <SettingsCard>
               {leadSources.length === 0 ? (
-                <div className="text-center py-8 text-gray-400">
+                <div className="text-center py-8 text-content-muted">
                   <UserPlus className="w-12 h-12 mx-auto mb-3 opacity-50" />
                   <p>No lead sources configured</p>
                 </div>
               ) : (
                 <div className="space-y-3">
                   {leadSources.map((source) => (
-                    <div key={source.id} className="flex items-center gap-3 p-3 bg-[#141414] rounded-xl">
+                    <div key={source.id} className="flex items-center gap-3 p-3 bg-surface-card rounded-xl">
                       <input
                         type="color"
                         value={source.color}
@@ -2733,7 +2717,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         value={source.name}
                         onChange={(e) => handleUpdateLeadSource(source.id, "name", e.target.value)}
                         placeholder="Source name"
-                        className="flex-1 bg-transparent text-white text-sm outline-none min-w-0"
+                        className="flex-1 bg-transparent text-content-primary text-sm outline-none min-w-0"
                       />
                       <button
                         onClick={() => handleRemoveLeadSource(source.id)}
@@ -2768,7 +2752,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     setEditingIntroMaterialIndex(null) // null = new material
                     setIntroMaterialEditorVisible(true)
                   }}
-                  className="px-3 sm:px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
+                  className="px-3 sm:px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
                   <span className="hidden sm:inline">Add</span> Material
@@ -2778,7 +2762,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
             
             {introductoryMaterials.length === 0 ? (
               <SettingsCard>
-                <div className="text-center py-8 text-gray-400">
+                <div className="text-center py-8 text-content-muted">
                   <BookOpen className="w-12 h-12 mx-auto mb-3 opacity-50" />
                   <p>No introductory materials created</p>
                   <p className="text-sm mt-1">Create welcome guides for new members</p>
@@ -2787,67 +2771,69 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {introductoryMaterials.map((material, index) => (
-                  <SettingsCard key={material.id}>
-                    <div className="space-y-4">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-white font-medium truncate">
-                            {material.name || "Untitled Material"}
-                          </h3>
-                          <div className="flex items-center gap-2 text-sm text-gray-400 mt-1">
-                            <BookOpen className="w-4 h-4" />
-                            {material.pages.length} page{material.pages.length !== 1 ? "s" : ""}
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => setDeletingIntroMaterialIndex(index)}
-                          className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                      
-                      {/* Page previews with content thumbnails */}
-                      <div className="flex gap-1.5 overflow-x-auto pb-1">
-                        {material.pages.slice(0, 4).map((page, pageIndex) => (
-                          <div 
-                            key={page.id} 
-                            className="w-14 h-[72px] bg-white border border-[#333333] rounded-lg flex-shrink-0 overflow-hidden relative"
-                          >
-                            {/* Scaled content preview */}
-                            <div 
-                              className="w-full h-full overflow-hidden pointer-events-none"
-                              style={{ 
-                                transform: 'scale(0.12)', 
-                                transformOrigin: 'top left', 
-                                width: '833%', 
-                                height: '833%',
-                                fontSize: '11px',
-                                padding: '4px',
-                                color: '#000',
-                                lineHeight: '1.3',
-                                fontFamily: 'Arial, sans-serif'
-                              }}
-                              dangerouslySetInnerHTML={{ 
-                                __html: page.content || `<p style="color:#ccc;text-align:center;padding-top:40px;">Page ${pageIndex + 1}</p>` 
-                              }}
-                            />
-                            {/* Page number badge */}
-                            <div className="absolute bottom-0.5 right-0.5 bg-black/60 text-white text-[8px] px-1 rounded">
-                              {pageIndex + 1}
+                  <div key={material.id} className="bg-surface-hover rounded-xl overflow-hidden border border-border hover:border-border transition-colors group">
+                    <div className="p-4 sm:p-5">
+                      <div className="space-y-4">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-content-primary font-medium truncate">
+                              {material.name || "Untitled Material"}
+                            </h3>
+                            <div className="flex items-center gap-2 text-sm text-content-muted mt-1">
+                              <BookOpen className="w-4 h-4" />
+                              {material.pages.length} page{material.pages.length !== 1 ? "s" : ""}
                             </div>
                           </div>
-                        ))}
-                        {material.pages.length > 4 && (
-                          <div className="w-14 h-[72px] bg-[#141414] border border-[#333333] rounded-lg flex-shrink-0 flex items-center justify-center text-xs text-gray-400 font-medium">
-                            +{material.pages.length - 4}
-                          </div>
-                        )}
+                          <button
+                            onClick={() => setDeletingIntroMaterialIndex(index)}
+                            className="p-2 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                        
+                        {/* Page previews with content thumbnails */}
+                        <div className="flex gap-1.5 overflow-x-auto pb-1">
+                          {material.pages.slice(0, 4).map((page, pageIndex) => (
+                            <div 
+                              key={page.id} 
+                              className="w-14 h-[72px] bg-white border border-border rounded-lg flex-shrink-0 overflow-hidden relative"
+                            >
+                              {/* Scaled content preview */}
+                              <div 
+                                className="w-full h-full overflow-hidden pointer-events-none"
+                                style={{ 
+                                  transform: 'scale(0.12)', 
+                                  transformOrigin: 'top left', 
+                                  width: '833%', 
+                                  height: '833%',
+                                  fontSize: '11px',
+                                  padding: '4px',
+                                  color: '#000',
+                                  lineHeight: '1.3',
+                                  fontFamily: 'Arial, sans-serif'
+                                }}
+                                dangerouslySetInnerHTML={{ 
+                                  __html: page.content || `<p style="color:#ccc;text-align:center;padding-top:40px;">Page ${pageIndex + 1}</p>` 
+                                }}
+                              />
+                              {/* Page number badge */}
+                              <div className="absolute bottom-0.5 right-0.5 bg-black/60 text-white text-[8px] px-1 rounded">
+                                {pageIndex + 1}
+                              </div>
+                            </div>
+                          ))}
+                          {material.pages.length > 4 && (
+                            <div className="w-14 h-[72px] bg-surface-card border border-border rounded-lg flex-shrink-0 flex items-center justify-center text-xs text-content-muted font-medium">
+                              +{material.pages.length - 4}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      
+                    </div>
+                    <div className="px-4 py-3 bg-surface-card border-t border-border">
                       <button 
                         onClick={() => {
-                          // Deep copy the material including pages
                           const deepCopy = {
                             ...material,
                             pages: material.pages.map(p => ({ ...p }))
@@ -2856,13 +2842,13 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                           setEditingIntroMaterialIndex(index)
                           setIntroMaterialEditorVisible(true)
                         }}
-                        className="w-full px-4 py-2 bg-[#2F2F2F] text-white text-sm rounded-xl hover:bg-[#3F3F3F] transition-colors flex items-center justify-center gap-2"
+                        className="w-full px-3 py-2 bg-surface-button text-content-primary text-sm rounded-lg hover:bg-surface-button-hover transition-colors flex items-center justify-center gap-2"
                       >
                         <Edit className="w-4 h-4" />
                         Edit Content
                       </button>
                     </div>
-                  </SettingsCard>
+                  </div>
                 ))}
               </div>
             )}
@@ -2870,23 +2856,23 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
             {/* Delete Confirmation Dialog */}
             {deletingIntroMaterialIndex !== null && (
               <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50">
-                <div className="bg-[#1C1C1C] rounded-2xl p-6 w-full max-w-sm shadow-2xl border border-[#333333]">
+                <div className="bg-surface-base rounded-2xl p-6 w-full max-w-sm shadow-2xl border border-border">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="p-2 bg-red-500/20 rounded-xl">
                       <Trash2 className="w-6 h-6 text-red-400" />
                     </div>
-                    <h3 className="text-lg font-semibold text-white">Delete Material</h3>
+                    <h3 className="text-lg font-semibold text-content-primary">Delete Material</h3>
                   </div>
-                  <p className="text-gray-400 mb-2">
-                    Are you sure you want to delete <span className="text-white font-medium">&quot;{introductoryMaterials[deletingIntroMaterialIndex]?.name || "Untitled Material"}&quot;</span>?
+                  <p className="text-content-muted mb-2">
+                    Are you sure you want to delete <span className="text-content-primary font-medium">&quot;{introductoryMaterials[deletingIntroMaterialIndex]?.name || "Untitled Material"}&quot;</span>?
                   </p>
-                  <p className="text-gray-500 text-sm mb-6">
+                  <p className="text-content-faint text-sm mb-6">
                     This will permanently delete all {introductoryMaterials[deletingIntroMaterialIndex]?.pages?.length || 0} page(s). This action cannot be undone.
                   </p>
                   <div className="flex gap-3">
                     <button
                       onClick={() => setDeletingIntroMaterialIndex(null)}
-                      className="flex-1 px-4 py-2.5 bg-[#2F2F2F] text-white text-sm font-medium rounded-xl hover:bg-[#3F3F3F] transition-colors"
+                      className="flex-1 px-4 py-2.5 bg-surface-button text-content-primary text-sm font-medium rounded-xl hover:bg-surface-button-hover transition-colors"
                     >
                       Cancel
                     </button>
@@ -2919,7 +2905,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
             {/* Member Settings */}
             <SettingsCard>
               <div className="space-y-4">
-                <h3 className="text-white font-medium">Member Permissions</h3>
+                <h3 className="text-content-primary font-medium">Member Permissions</h3>
                 <Toggle
                   label="Allow Member Self-Cancellation"
                   checked={allowMemberSelfCancellation}
@@ -2933,15 +2919,15 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
             <SettingsCard>
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-white font-medium mb-1">Contract Defaults</h3>
-                  <p className="text-xs text-gray-500">Applied when creating new contract types</p>
+                  <h3 className="text-content-primary font-medium mb-1">Contract Defaults</h3>
+                  <p className="text-xs text-content-faint">Applied when creating new contract types</p>
                 </div>
                 
                 {/* Info Box */}
-                <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl">
+                <div className="p-4 bg-primary/10 border border-primary/20 rounded-xl">
                   <div className="flex items-start gap-3">
-                    <Info className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
-                    <p className="text-sm text-blue-300">
+                    <Info className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                    <p className="text-sm text-primary">
                       These settings are automatically applied when creating new contract types. You can always adjust them individually for each contract type.
                     </p>
                   </div>
@@ -2970,10 +2956,10 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                 </div>
                 
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                  <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
                     Default Contingent
                     <Tooltip content="The number of appointment credits members receive per billing period. Each appointment type can deduct a different amount from this contingent. Set to 0 for unlimited.">
-                      <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                      <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
                     </Tooltip>
                   </label>
                   <div className="flex items-center gap-2">
@@ -2983,11 +2969,11 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       onChange={(e) => setDefaultAppointmentLimit(Number(e.target.value))}
                       min={0}
                       placeholder="0 = Unlimited"
-                      className="w-32 bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                      className="w-32 bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
                     />
-                    <span className="text-gray-400 text-sm">credits per billing period</span>
+                    <span className="text-content-muted text-sm">credits per billing period</span>
                   </div>
-                  <p className="text-xs text-gray-500">0 = Unlimited contingent</p>
+                  <p className="text-xs text-content-faint">0 = Unlimited contingent</p>
                 </div>
               </div>
             </SettingsCard>
@@ -2996,8 +2982,8 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
             <SettingsCard>
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-white font-medium mb-1">Renewal Defaults</h3>
-                  <p className="text-xs text-gray-500">Settings for contract renewal after minimum duration</p>
+                  <h3 className="text-content-primary font-medium mb-1">Renewal Defaults</h3>
+                  <p className="text-xs text-content-faint">Settings for contract renewal after minimum duration</p>
                 </div>
                 
                 <Toggle
@@ -3007,19 +2993,19 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                   helpText="New contracts will have automatic renewal enabled"
                 />
                 
-                <div className="pt-4 border-t border-[#333333] space-y-4">
+                <div className="pt-4 border-t border-border space-y-4">
                   <div className="space-y-1.5">
-                    <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                    <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
                       Default Renewal Duration
                       <Tooltip content="How long contracts continue after the minimum duration. Choose 'Indefinite' for open-ended contracts that run until cancelled.">
-                        <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                        <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
                       </Tooltip>
                     </label>
                     <div className="flex flex-wrap items-center gap-3">
                       <select
                         value={defaultRenewalIndefinite ? "indefinite" : "fixed"}
                         onChange={(e) => setDefaultRenewalIndefinite(e.target.value === "indefinite")}
-                        className="bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                        className="bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
                       >
                         <option value="fixed">Fixed period</option>
                         <option value="indefinite">Indefinite</option>
@@ -3031,14 +3017,14 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                             value={defaultRenewalPeriod}
                             onChange={(e) => setDefaultRenewalPeriod(Number(e.target.value))}
                             min={1}
-                            className="w-20 bg-[#141414] text-white rounded-xl px-3 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                            className="w-20 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
                           />
-                          <span className="text-gray-400">months</span>
+                          <span className="text-content-muted">months</span>
                         </div>
                       )}
                     </div>
                     {defaultRenewalIndefinite && (
-                      <p className="text-xs text-gray-500 mt-1">Contracts will run indefinitely until cancelled</p>
+                      <p className="text-xs text-content-faint mt-1">Contracts will run indefinitely until cancelled</p>
                     )}
                   </div>
                 </div>
@@ -3056,7 +3042,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
               action={
                 <button
                   onClick={() => setShowCreateFormModal(true)}
-                  className="px-3 sm:px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
+                  className="px-3 sm:px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
                   <span className="hidden sm:inline">Create</span> Form
@@ -3066,13 +3052,13 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
             
             {contractForms.length === 0 ? (
               <SettingsCard>
-                <div className="text-center py-12 text-gray-400">
+                <div className="text-center py-12 text-content-muted">
                   <FileText className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                  <h3 className="text-lg font-medium text-white mb-2">No contract forms yet</h3>
+                  <h3 className="text-lg font-medium text-content-primary mb-2">No contract forms yet</h3>
                   <p className="text-sm mb-6">Create your first contract form template</p>
                   <button
                     onClick={() => setShowCreateFormModal(true)}
-                    className="px-6 py-2.5 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors inline-flex items-center gap-2"
+                    className="px-6 py-2.5 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors inline-flex items-center gap-2"
                   >
                     <Plus className="w-4 h-4" />
                     Create Contract Form
@@ -3082,96 +3068,100 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {contractForms.map((form) => (
-                  <SettingsCard key={form.id}>
-                    <div className="space-y-3">
-                      <div className="flex items-start justify-between gap-2">
-                        {editingContractFormName.id === form.id ? (
-                          <div className="flex items-center gap-2 flex-1">
-                            <input
-                              type="text"
-                              value={editingContractFormName.value}
-                              onChange={(e) => setEditingContractFormName({ ...editingContractFormName, value: e.target.value })}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
+                  <div key={form.id} className="bg-surface-hover rounded-xl overflow-hidden border border-border hover:border-border transition-colors group">
+                    <div className="p-4 sm:p-5">
+                      <div className="space-y-3">
+                        <div className="flex items-start justify-between gap-2">
+                          {editingContractFormName.id === form.id ? (
+                            <div className="flex items-center gap-2 flex-1">
+                              <input
+                                type="text"
+                                value={editingContractFormName.value}
+                                onChange={(e) => setEditingContractFormName({ ...editingContractFormName, value: e.target.value })}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    setContractForms(contractForms.map(f => 
+                                      f.id === form.id ? { ...f, name: editingContractFormName.value.trim() || form.name } : f
+                                    ))
+                                    setEditingContractFormName({ id: null, value: "" })
+                                  }
+                                  if (e.key === 'Escape') {
+                                    setEditingContractFormName({ id: null, value: "" })
+                                  }
+                                }}
+                                autoFocus
+                                className="flex-1 bg-surface-card text-content-primary text-sm font-medium outline-none border border-accent-blue focus:border-primary rounded-lg px-2 py-1"
+                              />
+                              <button
+                                onClick={() => {
                                   setContractForms(contractForms.map(f => 
                                     f.id === form.id ? { ...f, name: editingContractFormName.value.trim() || form.name } : f
                                   ))
                                   setEditingContractFormName({ id: null, value: "" })
-                                }
-                                if (e.key === 'Escape') {
-                                  setEditingContractFormName({ id: null, value: "" })
-                                }
-                              }}
-                              autoFocus
-                              className="flex-1 bg-[#141414] text-white text-sm font-medium outline-none border border-[#3F74FF] focus:border-orange-500 rounded-lg px-2 py-1"
-                            />
-                            <button
-                              onClick={() => {
-                                setContractForms(contractForms.map(f => 
-                                  f.id === form.id ? { ...f, name: editingContractFormName.value.trim() || form.name } : f
-                                ))
-                                setEditingContractFormName({ id: null, value: "" })
-                              }}
-                              className="p-1 text-green-400 hover:bg-green-500/10 rounded"
+                                }}
+                                className="p-1 text-green-400 hover:bg-green-500/10 rounded"
+                              >
+                                <Check className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => setEditingContractFormName({ id: null, value: "" })}
+                                className="p-1 text-red-400 hover:bg-red-500/10 rounded"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ) : (
+                            <h3 
+                              className="text-content-primary font-medium text-sm sm:text-base cursor-pointer hover:text-primary transition-colors"
+                              onClick={() => setEditingContractFormName({ id: form.id, value: form.name })}
+                              title="Click to edit name"
                             >
-                              <Check className="w-4 h-4" />
+                              {form.name}
+                            </h3>
+                          )}
+                          <div className="flex gap-1">
+                            <button
+                              onClick={() => setContractForms([...contractForms, {
+                                ...form,
+                                id: Date.now(),
+                                name: `${form.name} (Copy)`,
+                                createdAt: new Date().toISOString()
+                              }])}
+                              className="p-1.5 text-content-muted hover:text-content-primary hover:bg-surface-button rounded transition-colors"
+                              title="Duplicate"
+                            >
+                              <Copy className="w-4 h-4" />
                             </button>
                             <button
-                              onClick={() => setEditingContractFormName({ id: null, value: "" })}
-                              className="p-1 text-red-400 hover:bg-red-500/10 rounded"
+                              onClick={() => setDeletingContractFormId(form.id)}
+                              className="p-1.5 text-red-400 hover:bg-red-500/10 rounded transition-colors"
+                              title="Delete"
                             >
-                              <X className="w-4 h-4" />
+                              <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
-                        ) : (
-                          <h3 
-                            className="text-white font-medium text-sm sm:text-base cursor-pointer hover:text-orange-400 transition-colors"
-                            onClick={() => setEditingContractFormName({ id: form.id, value: form.name })}
-                            title="Click to edit name"
-                          >
-                            {form.name}
-                          </h3>
-                        )}
-                        <div className="flex gap-1">
-                          <button
-                            onClick={() => setContractForms([...contractForms, {
-                              ...form,
-                              id: Date.now(),
-                              name: `${form.name} (Copy)`,
-                              createdAt: new Date().toISOString()
-                            }])}
-                            className="p-1.5 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded transition-colors"
-                            title="Duplicate"
-                          >
-                            <Copy className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => setDeletingContractFormId(form.id)}
-                            className="p-1.5 text-red-400 hover:bg-red-500/10 rounded transition-colors"
-                            title="Delete"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                        </div>
+                        <div className="text-xs text-content-faint">
+                          Created: {new Date(form.createdAt).toLocaleDateString()}
+                        </div>
+                        <div className="text-xs text-content-faint">
+                          {form.pages?.length || 1} page{(form.pages?.length || 1) !== 1 ? "s" : ""}
                         </div>
                       </div>
-                      <div className="text-xs text-gray-500">
-                        Created: {new Date(form.createdAt).toLocaleDateString()}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {form.pages?.length || 1} page{(form.pages?.length || 1) !== 1 ? "s" : ""}
-                      </div>
+                    </div>
+                    <div className="px-4 py-3 bg-surface-card border-t border-border">
                       <button
                         onClick={() => {
                           setSelectedContractForm(form)
                           setContractBuilderModalVisible(true)
                         }}
-                        className="w-full px-3 py-2 bg-[#2F2F2F] text-white text-sm rounded-xl hover:bg-[#3F3F3F] transition-colors flex items-center justify-center gap-2"
+                        className="w-full px-3 py-2 bg-surface-button text-content-primary text-sm rounded-lg hover:bg-surface-button-hover transition-colors flex items-center justify-center gap-2"
                       >
                         <Edit className="w-4 h-4" />
                         Open Builder
                       </button>
                     </div>
-                  </SettingsCard>
+                  </div>
                 ))}
               </div>
             )}
@@ -3179,15 +3169,15 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
             {/* Delete Contract Form Confirmation */}
             {deletingContractFormId !== null && (
               <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50">
-                <div className="bg-[#1C1C1C] rounded-2xl p-6 w-full max-w-md shadow-2xl border border-[#333333]">
+                <div className="bg-surface-base rounded-2xl p-6 w-full max-w-md shadow-2xl border border-border">
                   <div className="flex items-center gap-3 mb-4">
                     <div className="p-2 bg-red-500/20 rounded-xl">
                       <Trash2 className="w-6 h-6 text-red-400" />
                     </div>
-                    <h3 className="text-lg font-semibold text-white">Delete Contract Form</h3>
+                    <h3 className="text-lg font-semibold text-content-primary">Delete Contract Form</h3>
                   </div>
-                  <p className="text-gray-400 mb-2">
-                    Are you sure you want to delete <span className="text-white font-medium">&quot;{contractForms.find(f => f.id === deletingContractFormId)?.name || "this form"}&quot;</span>?
+                  <p className="text-content-muted mb-2">
+                    Are you sure you want to delete <span className="text-content-primary font-medium">&quot;{contractForms.find(f => f.id === deletingContractFormId)?.name || "this form"}&quot;</span>?
                   </p>
                   <p className="text-sm text-red-400/80 mb-6">
                     This will permanently delete all pages and content. This action cannot be undone.
@@ -3195,7 +3185,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                   <div className="flex gap-3">
                     <button
                       onClick={() => setDeletingContractFormId(null)}
-                      className="flex-1 px-4 py-2.5 bg-[#2F2F2F] text-white text-sm font-medium rounded-xl hover:bg-[#3F3F3F] transition-colors"
+                      className="flex-1 px-4 py-2.5 bg-surface-button text-content-primary text-sm font-medium rounded-xl hover:bg-surface-button-hover transition-colors"
                     >
                       Cancel
                     </button>
@@ -3226,7 +3216,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
               action={
                 <button
                   onClick={handleAddContractType}
-                  className="px-3 sm:px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
+                  className="px-3 sm:px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
                   <span className="hidden sm:inline">Add</span> Type
@@ -3236,13 +3226,13 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
             
             {contractTypes.length === 0 ? (
               <SettingsCard>
-                <div className="text-center py-12 text-gray-400">
+                <div className="text-center py-12 text-content-muted">
                   <RiContractLine className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                  <h3 className="text-lg font-medium text-white mb-2">No contract types yet</h3>
+                  <h3 className="text-lg font-medium text-content-primary mb-2">No contract types yet</h3>
                   <p className="text-sm mb-6">Create your first membership contract type</p>
                   <button
                     onClick={handleAddContractType}
-                    className="px-6 py-2.5 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors inline-flex items-center gap-2"
+                    className="px-6 py-2.5 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors inline-flex items-center gap-2"
                   >
                     <Plus className="w-4 h-4" />
                     Create Contract Type
@@ -3254,14 +3244,14 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                 {contractTypes.map((type, index) => (
                   <div
                     key={index}
-                    className="bg-[#1F1F1F] rounded-xl overflow-hidden border border-[#333333] hover:border-[#444444] transition-colors group"
+                    className="bg-surface-hover rounded-xl overflow-hidden border border-border hover:border-border transition-colors group"
                   >
                     {/* Header */}
                     <div className="p-4">
                       <div className="flex items-start justify-between gap-2 mb-3">
-                        <h3 className="text-white font-medium truncate">{type.name || "Untitled"}</h3>
+                        <h3 className="text-content-primary font-medium truncate">{type.name || "Untitled"}</h3>
                         {type.autoRenewal && (
-                          <span className="px-2.5 py-1 bg-blue-500/90 text-white text-xs font-medium rounded-full flex-shrink-0">
+                          <span className="px-2.5 py-1 bg-primary text-white text-xs font-medium rounded-full flex-shrink-0">
                             Auto-Renew
                           </span>
                         )}
@@ -3269,32 +3259,32 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       
                       {/* Price highlight */}
                       <div className="mb-4">
-                        <span className="text-2xl font-bold text-white">{type.cost}{currency}</span>
-                        <span className="text-gray-500 text-sm">/{type.billingPeriod === 'monthly' ? 'month' : type.billingPeriod === 'weekly' ? 'week' : 'year'}</span>
+                        <span className="text-2xl font-bold text-content-primary">{type.cost}{currency}</span>
+                        <span className="text-content-faint text-sm">/{type.billingPeriod === 'monthly' ? 'month' : type.billingPeriod === 'weekly' ? 'week' : 'year'}</span>
                       </div>
                       
                       {/* Key info */}
                       <div className="space-y-2 text-sm">
-                        <div className="flex items-center justify-between text-gray-400">
+                        <div className="flex items-center justify-between text-content-muted">
                           <span className="flex items-center gap-2">
                             <Clock className="w-4 h-4" />
                             Duration
                           </span>
-                          <span className="text-white">{type.duration} months</span>
+                          <span className="text-content-primary">{type.duration} months</span>
                         </div>
-                        <div className="flex items-center justify-between text-gray-400">
+                        <div className="flex items-center justify-between text-content-muted">
                           <span className="flex items-center gap-2">
                             <BadgeDollarSign className="w-4 h-4" />
                             Contingent
                           </span>
-                          <span className="text-white">{type.userCapacity || '∞'} credits / {type.billingPeriod === 'monthly' ? 'month' : type.billingPeriod === 'weekly' ? 'week' : 'year'}</span>
+                          <span className="text-content-primary">{type.userCapacity || '∞'} credits / {type.billingPeriod === 'monthly' ? 'month' : type.billingPeriod === 'weekly' ? 'week' : 'year'}</span>
                         </div>
-                        <div className="flex items-center justify-between text-gray-400">
+                        <div className="flex items-center justify-between text-content-muted">
                           <span className="flex items-center gap-2">
                             <FileText className="w-4 h-4" />
                             Form
                           </span>
-                          <span className="text-white truncate max-w-[120px]">
+                          <span className="text-content-primary truncate max-w-[120px]">
                             {type.contractFormId ? contractForms.find(f => String(f.id) === String(type.contractFormId))?.name || 'Unknown' : 'None'}
                           </span>
                         </div>
@@ -3302,10 +3292,10 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     </div>
                     
                     {/* Actions */}
-                    <div className="px-4 py-3 bg-[#141414] border-t border-[#333333] flex gap-2">
+                    <div className="px-4 py-3 bg-surface-card border-t border-border flex gap-2">
                       <button
                         onClick={() => handleEditContractType(type, index)}
-                        className="flex-1 px-3 py-2 bg-[#2F2F2F] text-white text-sm rounded-lg hover:bg-[#3F3F3F] transition-colors flex items-center justify-center gap-2"
+                        className="flex-1 px-3 py-2 bg-surface-button text-content-primary text-sm rounded-lg hover:bg-surface-button-hover transition-colors flex items-center justify-center gap-2"
                       >
                         <Edit className="w-4 h-4" />
                         Edit
@@ -3325,10 +3315,10 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
             {/* Contract Type Edit Modal */}
             {contractTypeModalVisible && editingContractType && (
               <div className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4 bg-black/50 overflow-hidden">
-                <div className="bg-[#1C1C1C] rounded-2xl w-full max-w-lg max-h-[90vh] overflow-hidden shadow-2xl border border-[#333333] flex flex-col">
+                <div className="bg-surface-base rounded-2xl w-full max-w-lg max-h-[90vh] overflow-hidden shadow-2xl border border-border flex flex-col">
                   {/* Modal Header */}
-                  <div className="flex items-center justify-between p-4 border-b border-[#333333] flex-shrink-0">
-                    <h3 className="text-lg font-semibold text-white">
+                  <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
+                    <h3 className="text-lg font-semibold text-content-primary">
                       {editingContractTypeIndex !== null ? 'Edit Contract Type' : 'New Contract Type'}
                     </h3>
                     <button
@@ -3337,7 +3327,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         setEditingContractType(null)
                         setEditingContractTypeIndex(null)
                       }}
-                      className="p-2 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded-lg transition-colors"
+                      className="p-2 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors"
                     >
                       <X className="w-5 h-5" />
                     </button>
@@ -3347,11 +3337,11 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                   <div className="p-4 overflow-y-auto overflow-x-hidden flex-1 space-y-4">
                     {/* Name */}
                     <div className="space-y-1.5">
-                      <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                      <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
                         Contract Name
                         <span className="text-red-400">*</span>
                         <Tooltip content="The name of this contract type that members will see when signing up">
-                          <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                          <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
                         </Tooltip>
                       </label>
                       <input
@@ -3359,18 +3349,18 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         value={editingContractType.name}
                         onChange={(e) => setEditingContractType({ ...editingContractType, name: e.target.value })}
                         placeholder="e.g., Premium Membership"
-                        className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                        className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
                       />
                     </div>
                     
                     {/* Price & Duration */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-1.5">
-                        <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                        <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
                           Cost
                           <span className="text-red-400">*</span>
                           <Tooltip content="The price charged to the member per billing period (weekly, monthly, or annually)">
-                            <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                            <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
                           </Tooltip>
                         </label>
                         <div className="flex items-center gap-2">
@@ -3379,17 +3369,17 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                             value={editingContractType.cost}
                             onChange={(e) => setEditingContractType({ ...editingContractType, cost: Number(e.target.value) })}
                             min={0}
-                            className="flex-1 min-w-0 bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                            className="flex-1 min-w-0 bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
                           />
-                          <span className="text-gray-400 flex-shrink-0">{currency}</span>
+                          <span className="text-content-muted flex-shrink-0">{currency}</span>
                         </div>
                       </div>
                       <div className="space-y-1.5">
-                        <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                        <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
                           Minimum Duration
                           <span className="text-red-400">*</span>
                           <Tooltip content="The minimum commitment period. After this period, the contract can be renewed or terminated." position="right">
-                            <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                            <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
                           </Tooltip>
                         </label>
                         <div className="flex items-center gap-2">
@@ -3399,9 +3389,9 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                             onChange={(e) => setEditingContractType({ ...editingContractType, duration: Number(e.target.value) })}
                             min={1}
                             max={60}
-                            className="flex-1 min-w-0 bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                            className="flex-1 min-w-0 bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
                           />
-                          <span className="text-gray-400 flex-shrink-0">months</span>
+                          <span className="text-content-muted flex-shrink-0">months</span>
                         </div>
                       </div>
                     </div>
@@ -3409,17 +3399,17 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     {/* Billing & Contingent */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-1.5">
-                        <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                        <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
                           Billing Period
                           <span className="text-red-400">*</span>
                           <Tooltip content="How often the member is charged. The cost above is charged once per billing period.">
-                            <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                            <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
                           </Tooltip>
                         </label>
                         <select
                           value={editingContractType.billingPeriod}
                           onChange={(e) => setEditingContractType({ ...editingContractType, billingPeriod: e.target.value })}
-                          className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                          className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
                         >
                           <option value="weekly">Weekly</option>
                           <option value="monthly">Monthly</option>
@@ -3427,11 +3417,11 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         </select>
                       </div>
                       <div className="space-y-1.5">
-                        <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                        <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
                           Contingent
                           <span className="text-red-400">*</span>
                           <Tooltip content="The number of appointment credits members receive per billing period. Each appointment type deducts from this contingent based on its 'Contingent Usage' setting. Set to 0 for unlimited." position="right">
-                            <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                            <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
                           </Tooltip>
                         </label>
                         <div className="flex items-center gap-2">
@@ -3441,32 +3431,32 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                             onChange={(e) => setEditingContractType({ ...editingContractType, userCapacity: Number(e.target.value) })}
                             min={0}
                             placeholder="0 = Unlimited"
-                            className="flex-1 min-w-0 bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                            className="flex-1 min-w-0 bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
                           />
-                          <span className="text-gray-400 flex-shrink-0">credits</span>
+                          <span className="text-content-muted flex-shrink-0">credits</span>
                         </div>
                       </div>
                     </div>
                     
                     {/* Contract Form */}
                     <div className="space-y-1.5">
-                      <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                      <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
                         Contract Form
                         <span className="text-red-400">*</span>
                         <Tooltip content="The document template used when a member signs this contract. Create forms in the 'Contract Forms' section.">
-                          <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                          <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
                         </Tooltip>
                       </label>
                       {contractForms.length === 0 ? (
-                        <div className="p-3 bg-[#141414] rounded-xl border border-yellow-500/30">
+                        <div className="p-3 bg-surface-card rounded-xl border border-yellow-500/30">
                           <p className="text-sm text-yellow-400">No contract forms available.</p>
-                          <p className="text-xs text-gray-500 mt-1">Please create a contract form first in the "Contract Forms" section.</p>
+                          <p className="text-xs text-content-faint mt-1">Please create a contract form first in the "Contract Forms" section.</p>
                         </div>
                       ) : (
                         <select
                           value={editingContractType.contractFormId || ""}
                           onChange={(e) => setEditingContractType({ ...editingContractType, contractFormId: e.target.value ? Number(e.target.value) : null })}
-                          className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                          className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
                         >
                           <option value="">Select a form...</option>
                           {contractForms.map(f => (
@@ -3478,10 +3468,10 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     
                     {/* Notice Period */}
                     <div className="space-y-1.5">
-                      <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                      <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
                         Notice Period
                         <Tooltip content="How many days before the contract end date the member must cancel. After this deadline, the contract will auto-renew (if enabled).">
-                          <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                          <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
                         </Tooltip>
                       </label>
                       <div className="flex items-center gap-2">
@@ -3490,14 +3480,14 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                           value={editingContractType.cancellationPeriod}
                           onChange={(e) => setEditingContractType({ ...editingContractType, cancellationPeriod: Number(e.target.value) })}
                           min={0}
-                          className="w-20 sm:w-24 bg-[#141414] text-white rounded-xl px-3 sm:px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                          className="w-20 sm:w-24 bg-surface-card text-content-primary rounded-xl px-3 sm:px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
                         />
-                        <span className="text-gray-400 text-sm">days before end</span>
+                        <span className="text-content-muted text-sm">days before end</span>
                       </div>
                     </div>
                     
                     {/* Auto Renewal Section */}
-                    <div className="p-4 bg-[#141414] rounded-xl space-y-4">
+                    <div className="p-4 bg-surface-card rounded-xl space-y-4">
                       <Toggle
                         label="Automatic Renewal"
                         checked={editingContractType.autoRenewal}
@@ -3506,13 +3496,13 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       />
                       
                       {editingContractType.autoRenewal && (
-                        <div className="space-y-4 pt-3 border-t border-[#333333]">
+                        <div className="space-y-4 pt-3 border-t border-border">
                           {/* Renewal Duration */}
                           <div className="space-y-1.5">
-                            <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                            <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
                               Renewal Duration
                               <Tooltip content="How long the contract continues after the minimum duration. Choose 'Indefinite' for an open-ended contract that runs until cancelled.">
-                                <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                                <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
                               </Tooltip>
                             </label>
                             <div className="flex items-center gap-2">
@@ -3522,7 +3512,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                                   ...editingContractType, 
                                   renewalIndefinite: e.target.value === "indefinite"
                                 })}
-                                className={`${editingContractType.renewalIndefinite ? 'flex-1' : ''} bg-[#141414] text-white rounded-xl px-3 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]`}
+                                className={`${editingContractType.renewalIndefinite ? 'flex-1' : ''} bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-accent-blue`}
                               >
                                 <option value="fixed">Fixed period</option>
                                 <option value="indefinite">Indefinite</option>
@@ -3534,9 +3524,9 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                                     value={editingContractType.renewalPeriod}
                                     onChange={(e) => setEditingContractType({ ...editingContractType, renewalPeriod: Number(e.target.value) })}
                                     min={1}
-                                    className="flex-1 min-w-0 bg-[#141414] text-white rounded-xl px-3 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                                    className="flex-1 min-w-0 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
                                   />
-                                  <span className="text-gray-400 flex-shrink-0">months</span>
+                                  <span className="text-content-muted flex-shrink-0">months</span>
                                 </>
                               )}
                             </div>
@@ -3544,10 +3534,10 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
 
                           {/* Price After Renewal */}
                           <div className="space-y-1.5">
-                            <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                            <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
                               Price After Renewal
                               <Tooltip content="The new price per billing period after the contract renews.">
-                                <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                                <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
                               </Tooltip>
                             </label>
                             <div className="flex items-center gap-2">
@@ -3556,9 +3546,9 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                                 value={editingContractType.renewalPrice}
                                 onChange={(e) => setEditingContractType({ ...editingContractType, renewalPrice: Number(e.target.value) })}
                                 min={0}
-                                className="w-32 bg-[#141414] text-white rounded-xl px-3 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                                className="w-32 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
                               />
-                              <span className="text-gray-400 flex-shrink-0">{currency}</span>
+                              <span className="text-content-muted flex-shrink-0">{currency}</span>
                             </div>
                           </div>
                         </div>
@@ -3567,20 +3557,20 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                   </div>
                   
                   {/* Modal Footer */}
-                  <div className="flex gap-3 p-4 border-t border-[#333333] flex-shrink-0">
+                  <div className="flex gap-3 p-4 border-t border-border flex-shrink-0">
                     <button
                       onClick={() => {
                         setContractTypeModalVisible(false)
                         setEditingContractType(null)
                         setEditingContractTypeIndex(null)
                       }}
-                      className="flex-1 px-4 py-2.5 bg-[#2F2F2F] text-white text-sm font-medium rounded-xl hover:bg-[#3F3F3F] transition-colors"
+                      className="flex-1 px-4 py-2.5 bg-surface-button text-content-primary text-sm font-medium rounded-xl hover:bg-surface-button-hover transition-colors"
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleSaveContractType}
-                      className="flex-1 px-4 py-2.5 bg-orange-500 text-white text-sm font-medium rounded-xl hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
+                      className="flex-1 px-4 py-2.5 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary-hover transition-colors flex items-center justify-center gap-2"
                     >
                       <Check className="w-4 h-4" />
                       {editingContractTypeIndex !== null ? 'Save' : 'Create'}
@@ -3601,7 +3591,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
               action={
                 <button
                   onClick={() => setContractPauseReasons([...contractPauseReasons, { name: "", maxDays: 30 }])}
-                  className="px-3 sm:px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
+                  className="px-3 sm:px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
                   <span className="hidden sm:inline">Add</span> Reason
@@ -3610,14 +3600,14 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
             />
             <SettingsCard>
               {contractPauseReasons.length === 0 ? (
-                <div className="text-center py-8 text-gray-400">
+                <div className="text-center py-8 text-content-muted">
                   <PauseCircle className="w-12 h-12 mx-auto mb-3 opacity-50" />
                   <p>No pause reasons configured</p>
                 </div>
               ) : (
                 <div className="space-y-3">
                   {contractPauseReasons.map((reason, index) => (
-                    <div key={index} className="flex items-center gap-3 p-3 bg-[#141414] rounded-xl">
+                    <div key={index} className="flex items-center gap-3 p-3 bg-surface-card rounded-xl">
                       <input
                         type="text"
                         value={reason.name}
@@ -3627,7 +3617,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                           setContractPauseReasons(updated)
                         }}
                         placeholder="Reason name"
-                        className="flex-1 bg-transparent text-white text-sm outline-none min-w-0"
+                        className="flex-1 bg-transparent text-content-primary text-sm outline-none min-w-0"
                       />
                       <button
                         onClick={() => setContractPauseReasons(contractPauseReasons.filter((_, i) => i !== index))}
@@ -3652,8 +3642,8 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
             <SectionHeader title="Communication Settings" description="General communication preferences" />
             <SettingsCard>
               <div className="space-y-4">
-                <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl">
-                  <p className="text-blue-400 text-sm flex items-start gap-2">
+                <div className="p-3 bg-primary/10 border border-primary/20 rounded-xl">
+                  <p className="text-primary text-sm flex items-start gap-2">
                     <Info className="w-4 h-4 mt-0.5 flex-shrink-0" />
                     <span>Archiving only affects member chats in the Messenger. Archived chats are hidden from the main view but are not deleted – they remain accessible and can be retrieved at any time.</span>
                   </p>
@@ -3682,8 +3672,8 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-white font-medium">Birthday Email</h3>
-                    <p className="text-sm text-gray-400">Automatically sends birthday greetings via email when enabled</p>
+                    <h3 className="text-content-primary font-medium">Birthday Email</h3>
+                    <p className="text-sm text-content-muted">Automatically sends birthday greetings via email when enabled</p>
                   </div>
                   <Toggle
                     checked={settings.birthdayEmailEnabled}
@@ -3692,28 +3682,28 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                 </div>
                 
                 {settings.birthdayEmailEnabled && (
-                  <div className="space-y-4 pt-4 border-t border-[#333333]">
+                  <div className="space-y-4 pt-4 border-t border-border">
                     {/* Send Time */}
                     <div className="flex items-center gap-3 flex-wrap">
-                      <span className="text-sm text-gray-300">Send time:</span>
+                      <span className="text-sm text-content-secondary">Send time:</span>
                       <input
                         type="time"
                         value={settings.birthdaySendTime || "09:00"}
                         onChange={(e) => setSettings({ ...settings, birthdaySendTime: e.target.value })}
-                        className="bg-[#141414] text-white rounded-lg px-3 py-2 text-sm border border-[#333333]"
+                        className="bg-surface-card text-content-primary rounded-lg px-3 py-2 text-sm border border-border"
                       />
                     </div>
                     
                     {/* Subject */}
                     <div className="space-y-2">
-                      <label className="text-sm font-medium text-gray-300">Subject</label>
+                      <label className="text-sm font-medium text-content-secondary">Subject</label>
                       <div className="flex flex-wrap items-center gap-2 mb-2">
-                        <span className="text-xs text-gray-500 mr-2">Variables:</span>
+                        <span className="text-xs text-content-faint mr-2">Variables:</span>
                         {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}"].map(v => (
                           <button
                             key={v}
                             onClick={() => setSettings({ ...settings, birthdayEmailSubject: (settings.birthdayEmailSubject || "") + " " + v })}
-                            className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
+                            className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
                           >
                             {v.replace(/{|}/g, "").replace(/_/g, " ")}
                           </button>
@@ -3724,41 +3714,42 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         value={settings.birthdayEmailSubject || ""}
                         onChange={(e) => setSettings({ ...settings, birthdayEmailSubject: e.target.value })}
                         placeholder="🎂 Happy Birthday, {Member_First_Name}!"
-                        className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                        className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
                       />
                     </div>
                     
                     {/* Message */}
                     <div className="space-y-2">
-                      <label className="text-sm font-medium text-gray-300">Message</label>
+                      <label className="text-sm font-medium text-content-secondary">Message</label>
                       <div className="flex flex-wrap items-center gap-2 mb-2">
-                        <span className="text-xs text-gray-500 mr-1">Variables:</span>
+                        <span className="text-xs text-content-faint mr-1">Variables:</span>
                         {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}"].map(v => (
                           <button
                             key={v}
-                            onClick={() => setSettings({ ...settings, birthdayEmailTemplate: (settings.birthdayEmailTemplate || "") + v })}
-                            className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
+                            onClick={() => birthdayEditorRef.current?.insertText(v)}
+                            className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
                           >
                             {v.replace(/{|}/g, "").replace(/_/g, " ")}
                           </button>
                         ))}
-                        <span className="text-xs text-gray-500 mx-2">|</span>
-                        <span className="text-xs text-gray-500 mr-1">Insert:</span>
+                        <span className="text-xs text-content-faint mx-2">|</span>
+                        <span className="text-xs text-content-faint mr-1">Insert:</span>
                         <button
                           onClick={() => {
                             if (settings.emailSignature) {
-                              setSettings({ ...settings, birthdayEmailTemplate: (settings.birthdayEmailTemplate || "") + settings.emailSignature })
+                              birthdayEditorRef.current?.insertHTML(settings.emailSignature)
                             } else {
                               notification.warning({ message: "No email signature configured", description: "Please set up your email signature first." })
                             }
                           }}
-                          className="px-2 py-1 bg-orange-500 text-white text-xs rounded-lg hover:bg-orange-600 flex items-center gap-1"
+                          className="px-2 py-1 bg-primary text-white text-xs rounded-lg hover:bg-primary-hover flex items-center gap-1"
                         >
                           <FileText className="w-3 h-3" />
                           Email Signature
                         </button>
                       </div>
                       <WysiwygEditor
+                        ref={birthdayEditorRef}
                         value={settings.birthdayEmailTemplate || ""}
                         onChange={(v) => setSettings({ ...settings, birthdayEmailTemplate: v })}
                         placeholder="Happy Birthday, {Member_First_Name}! We hope you have a wonderful day..."
@@ -3804,8 +3795,8 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h3 className="text-white font-medium">{titles[type]} Email</h3>
-                        <p className="text-sm text-gray-400">{descriptions[type]}</p>
+                        <h3 className="text-content-primary font-medium">{titles[type]} Email</h3>
+                        <p className="text-sm text-content-muted">{descriptions[type]}</p>
                       </div>
                       <Toggle
                         checked={config.emailEnabled || false}
@@ -3817,11 +3808,11 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     </div>
                     
                     {config.emailEnabled && (
-                      <div className="space-y-4 pt-4 border-t border-[#333333]">
+                      <div className="space-y-4 pt-4 border-t border-border">
                         {/* Reminder timing */}
                         {type === "reminder" && (
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-sm text-gray-300">Send</span>
+                            <span className="text-sm text-content-secondary">Send</span>
                             <input
                               type="number"
                               value={config.hoursBefore || 24}
@@ -3829,17 +3820,17 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                                 ...appointmentNotificationTypes,
                                 [type]: { ...config, hoursBefore: Number(e.target.value) }
                               })}
-                              className="w-20 bg-[#141414] text-white rounded-lg px-3 py-2 text-sm border border-[#333333]"
+                              className="w-20 bg-surface-card text-content-primary rounded-lg px-3 py-2 text-sm border border-border"
                             />
-                            <span className="text-sm text-gray-300">hours before appointment</span>
+                            <span className="text-sm text-content-secondary">hours before appointment</span>
                           </div>
                         )}
                         
                         {/* Subject */}
                         <div className="space-y-2">
-                          <label className="text-sm font-medium text-gray-300">Subject</label>
+                          <label className="text-sm font-medium text-content-secondary">Subject</label>
                           <div className="flex flex-wrap items-center gap-2 mb-2">
-                            <span className="text-xs text-gray-500 mr-2">Variables:</span>
+                            <span className="text-xs text-content-faint mr-2">Variables:</span>
                             {subjectVariables.map(v => (
                               <button
                                 key={v}
@@ -3847,7 +3838,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                                   ...appointmentNotificationTypes,
                                   [type]: { ...config, emailSubject: (config.emailSubject || "") + " " + v }
                                 })}
-                                className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
+                                className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
                               >
                                 {v.replace(/{|}/g, "").replace(/_/g, " ")}
                               </button>
@@ -3861,47 +3852,42 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                               [type]: { ...config, emailSubject: e.target.value }
                             })}
                             placeholder={`${titles[type]} - {Appointment_Type}`}
-                            className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                            className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
                           />
                         </div>
                         
                         {/* Message */}
                         <div className="space-y-2">
-                          <label className="text-sm font-medium text-gray-300">Message</label>
+                          <label className="text-sm font-medium text-content-secondary">Message</label>
                           <div className="flex flex-wrap items-center gap-2 mb-2">
-                            <span className="text-xs text-gray-500 mr-1">Variables:</span>
+                            <span className="text-xs text-content-faint mr-1">Variables:</span>
                             {messageVariables.map(v => (
                               <button
                                 key={v}
-                                onClick={() => setAppointmentNotificationTypes({
-                                  ...appointmentNotificationTypes,
-                                  [type]: { ...config, emailTemplate: (config.emailTemplate || "") + v }
-                                })}
-                                className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
+                                onClick={() => appointmentEditorRefs.current[type]?.insertText(v)}
+                                className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
                               >
                                 {v.replace(/{|}/g, "").replace(/_/g, " ")}
                               </button>
                             ))}
-                            <span className="text-xs text-gray-500 mx-2">|</span>
-                            <span className="text-xs text-gray-500 mr-1">Insert:</span>
+                            <span className="text-xs text-content-faint mx-2">|</span>
+                            <span className="text-xs text-content-faint mr-1">Insert:</span>
                             <button
                               onClick={() => {
                                 if (settings.emailSignature) {
-                                  setAppointmentNotificationTypes({
-                                    ...appointmentNotificationTypes,
-                                    [type]: { ...config, emailTemplate: (config.emailTemplate || "") + settings.emailSignature }
-                                  })
+                                  appointmentEditorRefs.current[type]?.insertHTML(settings.emailSignature)
                                 } else {
                                   notification.warning({ message: "No email signature configured", description: "Please set up your email signature first." })
                                 }
                               }}
-                              className="px-2 py-1 bg-orange-500 text-white text-xs rounded-lg hover:bg-orange-600 flex items-center gap-1"
+                              className="px-2 py-1 bg-primary text-white text-xs rounded-lg hover:bg-primary-hover flex items-center gap-1"
                             >
                               <FileText className="w-3 h-3" />
                               Email Signature
                             </button>
                           </div>
                           <WysiwygEditor
+                            ref={(el) => { appointmentEditorRefs.current[type] = el }}
                             value={config.emailTemplate || ""}
                             onChange={(v) => setAppointmentNotificationTypes({
                               ...appointmentNotificationTypes,
@@ -3931,8 +3917,8 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="text-white font-medium">Birthday Push Notification</h3>
-                    <p className="text-sm text-gray-400">Automatically sends birthday greetings via app push notification when enabled</p>
+                    <h3 className="text-content-primary font-medium">Birthday Push Notification</h3>
+                    <p className="text-sm text-content-muted">Automatically sends birthday greetings via app push notification when enabled</p>
                   </div>
                   <Toggle
                     checked={settings.birthdayAppEnabled}
@@ -3941,28 +3927,28 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                 </div>
                 
                 {settings.birthdayAppEnabled && (
-                  <div className="space-y-4 pt-4 border-t border-[#333333]">
+                  <div className="space-y-4 pt-4 border-t border-border">
                     {/* Send Time */}
                     <div className="flex items-center gap-3 flex-wrap">
-                      <span className="text-sm text-gray-300">Send time:</span>
+                      <span className="text-sm text-content-secondary">Send time:</span>
                       <input
                         type="time"
                         value={settings.birthdayAppSendTime || "09:00"}
                         onChange={(e) => setSettings({ ...settings, birthdayAppSendTime: e.target.value })}
-                        className="bg-[#141414] text-white rounded-lg px-3 py-2 text-sm border border-[#333333]"
+                        className="bg-surface-card text-content-primary rounded-lg px-3 py-2 text-sm border border-border"
                       />
                     </div>
                     
                     {/* Title */}
                     <div className="space-y-2">
-                      <label className="text-sm font-medium text-gray-300">Title</label>
+                      <label className="text-sm font-medium text-content-secondary">Title</label>
                       <div className="flex flex-wrap items-center gap-2 mb-2">
-                        <span className="text-xs text-gray-500 mr-2">Variables:</span>
+                        <span className="text-xs text-content-faint mr-2">Variables:</span>
                         {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}"].map(v => (
                           <button
                             key={v}
                             onClick={() => setSettings({ ...settings, birthdayAppTitle: (settings.birthdayAppTitle || "") + " " + v })}
-                            className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
+                            className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
                           >
                             {v.replace(/{|}/g, "").replace(/_/g, " ")}
                           </button>
@@ -3973,20 +3959,20 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         value={settings.birthdayAppTitle || ""}
                         onChange={(e) => setSettings({ ...settings, birthdayAppTitle: e.target.value })}
                         placeholder="🎂 Happy Birthday!"
-                        className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                        className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
                       />
                     </div>
                     
                     {/* Message */}
                     <div className="space-y-2">
-                      <label className="text-sm font-medium text-gray-300">Message</label>
+                      <label className="text-sm font-medium text-content-secondary">Message</label>
                       <div className="flex flex-wrap items-center gap-2 mb-2">
-                        <span className="text-xs text-gray-500 mr-2">Variables:</span>
+                        <span className="text-xs text-content-faint mr-2">Variables:</span>
                         {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}"].map(v => (
                           <button
                             key={v}
                             onClick={() => setSettings({ ...settings, birthdayAppMessage: (settings.birthdayAppMessage || "") + v })}
-                            className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
+                            className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
                           >
                             {v.replace(/{|}/g, "").replace(/_/g, " ")}
                           </button>
@@ -3997,7 +3983,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         onChange={(e) => setSettings({ ...settings, birthdayAppMessage: e.target.value })}
                         placeholder="Happy Birthday, {Member_First_Name}! We wish you a wonderful day."
                         rows={3}
-                        className="w-full bg-[#141414] text-white rounded-xl px-4 py-3 text-sm outline-none border border-[#333333] focus:border-[#3F74FF] resize-none"
+                        className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-3 text-sm outline-none border border-border focus:border-accent-blue resize-none"
                       />
                     </div>
                   </div>
@@ -4032,8 +4018,8 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h3 className="text-white font-medium">{titles[type]} Push</h3>
-                        <p className="text-sm text-gray-400">{descriptions[type]}</p>
+                        <h3 className="text-content-primary font-medium">{titles[type]} Push</h3>
+                        <p className="text-sm text-content-muted">{descriptions[type]}</p>
                       </div>
                       <Toggle
                         checked={config.appEnabled || false}
@@ -4045,11 +4031,11 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     </div>
                     
                     {config.appEnabled && (
-                      <div className="space-y-4 pt-4 border-t border-[#333333]">
+                      <div className="space-y-4 pt-4 border-t border-border">
                         {/* Reminder timing */}
                         {type === "reminder" && (
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-sm text-gray-300">Send</span>
+                            <span className="text-sm text-content-secondary">Send</span>
                             <input
                               type="number"
                               value={config.appHoursBefore || 24}
@@ -4057,17 +4043,17 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                                 ...appointmentNotificationTypes,
                                 [type]: { ...config, appHoursBefore: Number(e.target.value) }
                               })}
-                              className="w-20 bg-[#141414] text-white rounded-lg px-3 py-2 text-sm border border-[#333333]"
+                              className="w-20 bg-surface-card text-content-primary rounded-lg px-3 py-2 text-sm border border-border"
                             />
-                            <span className="text-sm text-gray-300">hours before appointment</span>
+                            <span className="text-sm text-content-secondary">hours before appointment</span>
                           </div>
                         )}
                         
                         {/* Title */}
                         <div className="space-y-2">
-                          <label className="text-sm font-medium text-gray-300">Title</label>
+                          <label className="text-sm font-medium text-content-secondary">Title</label>
                           <div className="flex flex-wrap items-center gap-2 mb-2">
-                            <span className="text-xs text-gray-500 mr-2">Variables:</span>
+                            <span className="text-xs text-content-faint mr-2">Variables:</span>
                             {titleVariables.map(v => (
                               <button
                                 key={v}
@@ -4075,7 +4061,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                                   ...appointmentNotificationTypes,
                                   [type]: { ...config, appTitle: (config.appTitle || "") + " " + v }
                                 })}
-                                className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
+                                className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
                               >
                                 {v.replace(/{|}/g, "").replace(/_/g, " ")}
                               </button>
@@ -4089,15 +4075,15 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                               [type]: { ...config, appTitle: e.target.value }
                             })}
                             placeholder={`${titles[type]}`}
-                            className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                            className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
                           />
                         </div>
                         
                         {/* Message */}
                         <div className="space-y-2">
-                          <label className="text-sm font-medium text-gray-300">Message</label>
+                          <label className="text-sm font-medium text-content-secondary">Message</label>
                           <div className="flex flex-wrap items-center gap-2 mb-2">
-                            <span className="text-xs text-gray-500 mr-2">Variables:</span>
+                            <span className="text-xs text-content-faint mr-2">Variables:</span>
                             {messageVariables.map(v => (
                               <button
                                 key={v}
@@ -4105,7 +4091,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                                   ...appointmentNotificationTypes,
                                   [type]: { ...config, appMessage: (config.appMessage || "") + v }
                                 })}
-                                className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
+                                className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
                               >
                                 {v.replace(/{|}/g, "").replace(/_/g, " ")}
                               </button>
@@ -4119,7 +4105,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                             })}
                             placeholder={`Enter ${type} push notification message...`}
                             rows={3}
-                            className="w-full bg-[#141414] text-white rounded-xl px-4 py-3 text-sm outline-none border border-[#333333] focus:border-[#3F74FF] resize-none"
+                            className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-3 text-sm outline-none border border-border focus:border-accent-blue resize-none"
                           />
                         </div>
                       </div>
@@ -4170,11 +4156,11 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       />
                     </div>
                     <div className="flex-1">
-                      <label className="text-sm font-medium text-gray-300 mb-1.5 block">Security</label>
+                      <label className="text-sm font-medium text-content-secondary mb-1.5 block">Security</label>
                       <select
                         value={settings.smtpSecure ? "tls" : "none"}
                         onChange={(e) => setSettings({ ...settings, smtpSecure: e.target.value === "tls" })}
-                        className="w-full bg-[#141414] text-white rounded-xl px-3 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                        className="w-full bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
                       >
                         <option value="tls">TLS/SSL</option>
                         <option value="none">None</option>
@@ -4212,7 +4198,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         })
                       }, 1500)
                     }}
-                    className="px-4 py-2 bg-[#2F2F2F] text-white text-sm rounded-xl hover:bg-[#3F3F3F] transition-colors flex items-center gap-2"
+                    className="px-4 py-2 bg-surface-button text-content-primary text-sm rounded-xl hover:bg-surface-button-hover transition-colors flex items-center gap-2"
                   >
                     <Mail className="w-4 h-4" />
                     Test Connection
@@ -4232,7 +4218,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         })
                       }, 2000)
                     }}
-                    className="px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
+                    className="px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
                   >
                     <Mail className="w-4 h-4" />
                     Send Test Email
@@ -4249,22 +4235,23 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
             <SectionHeader title="Email Signature" description="Default signature appended to all outgoing emails" />
             <SettingsCard>
               <div className="space-y-3">
-                <p className="text-sm text-gray-400">
+                <p className="text-sm text-content-muted">
                   This signature can be inserted into your email notification templates using the orange "Email Signature" button.
                 </p>
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-xs text-gray-500 mr-1">Variables:</span>
+                  <span className="text-xs text-content-faint mr-1">Variables:</span>
                   {["{Studio_Name}", "{Studio_Operator}", "{Studio_Phone}", "{Studio_Email}", "{Studio_Website}", "{Studio_Address}"].map(v => (
                     <button
                       key={v}
-                      onClick={() => setSettings({ ...settings, emailSignature: (settings.emailSignature || "") + v })}
-                      className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
+                      onClick={() => signatureEditorRef.current?.insertText(v)}
+                      className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
                     >
                       {v.replace(/{|}/g, "").replace(/_/g, " ")}
                     </button>
                   ))}
                 </div>
                 <WysiwygEditor
+                  ref={signatureEditorRef}
                   value={settings.emailSignature || ""}
                   onChange={(v) => setSettings({ ...settings, emailSignature: v })}
                   placeholder="Best regards,&#10;{Studio_Name} Team&#10;{Studio_Phone} | {Studio_Email}"
@@ -4283,14 +4270,14 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
             <SettingsCard>
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-300 mb-2 block">Subject</label>
+                  <label className="text-sm font-medium text-content-secondary mb-2 block">Subject</label>
                   <div className="flex flex-wrap items-center gap-2 mb-2">
-                    <span className="text-xs text-gray-500 mr-2">Variables:</span>
+                    <span className="text-xs text-content-faint mr-2">Variables:</span>
                     {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Invoice_Number}", "{Total_Amount}", "{Selling_Date}"].map(v => (
                       <button
                         key={v}
                         onClick={() => setSettings({ ...settings, einvoiceSubject: (settings.einvoiceSubject || "") + " " + v })}
-                        className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
+                        className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
                       >
                         {v.replace(/{|}/g, "").replace(/_/g, " ")}
                       </button>
@@ -4301,40 +4288,41 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     value={settings.einvoiceSubject || ""}
                     onChange={(e) => setSettings({ ...settings, einvoiceSubject: e.target.value })}
                     placeholder="Invoice {Invoice_Number} - {Selling_Date}"
-                    className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                    className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
                   />
                 </div>
                 
                 <div>
-                  <label className="text-sm font-medium text-gray-300 mb-2 block">Message</label>
+                  <label className="text-sm font-medium text-content-secondary mb-2 block">Message</label>
                   <div className="flex flex-wrap items-center gap-2 mb-2">
-                    <span className="text-xs text-gray-500 mr-1">Variables:</span>
+                    <span className="text-xs text-content-faint mr-1">Variables:</span>
                     {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Invoice_Number}", "{Total_Amount}", "{Selling_Date}"].map(v => (
                       <button
                         key={v}
-                        onClick={() => setSettings({ ...settings, einvoiceTemplate: (settings.einvoiceTemplate || "") + v })}
-                        className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
+                        onClick={() => einvoiceEditorRef.current?.insertText(v)}
+                        className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
                       >
                         {v.replace(/{|}/g, "").replace(/_/g, " ")}
                       </button>
                     ))}
-                    <span className="text-xs text-gray-500 mx-2">|</span>
-                    <span className="text-xs text-gray-500 mr-1">Insert:</span>
+                    <span className="text-xs text-content-faint mx-2">|</span>
+                    <span className="text-xs text-content-faint mr-1">Insert:</span>
                     <button
                       onClick={() => {
                         if (settings.emailSignature) {
-                          setSettings({ ...settings, einvoiceTemplate: (settings.einvoiceTemplate || "") + settings.emailSignature })
+                          einvoiceEditorRef.current?.insertHTML(settings.emailSignature)
                         } else {
                           notification.warning({ message: "No email signature configured", description: "Please set up your email signature first." })
                         }
                       }}
-                      className="px-2 py-1 bg-orange-500 text-white text-xs rounded-lg hover:bg-orange-600 flex items-center gap-1"
+                      className="px-2 py-1 bg-primary text-white text-xs rounded-lg hover:bg-primary-hover flex items-center gap-1"
                     >
                       <FileText className="w-3 h-3" />
                       Email Signature
                     </button>
                   </div>
                   <WysiwygEditor
+                    ref={einvoiceEditorRef}
                     value={settings.einvoiceTemplate || ""}
                     onChange={(v) => setSettings({ ...settings, einvoiceTemplate: v })}
                     placeholder="Dear {Member_First_Name}, please find attached your invoice #{Invoice_Number}..."
@@ -4354,14 +4342,14 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
             <SettingsCard>
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-300 mb-2 block">Subject</label>
+                  <label className="text-sm font-medium text-content-secondary mb-2 block">Subject</label>
                   <div className="flex flex-wrap items-center gap-2 mb-2">
-                    <span className="text-xs text-gray-500 mr-2">Variables:</span>
+                    <span className="text-xs text-content-faint mr-2">Variables:</span>
                     {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Contract_Type}", "{Cancellation_Date}", "{Contract_End_Date}"].map(v => (
                       <button
                         key={v}
                         onClick={() => setSettings({ ...settings, contractCancellationSubject: (settings.contractCancellationSubject || "") + " " + v })}
-                        className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
+                        className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
                       >
                         {v.replace(/{|}/g, "").replace(/_/g, " ")}
                       </button>
@@ -4372,40 +4360,41 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     value={settings.contractCancellationSubject || ""}
                     onChange={(e) => setSettings({ ...settings, contractCancellationSubject: e.target.value })}
                     placeholder="Contract Cancellation Confirmation - {Contract_Type}"
-                    className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                    className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
                   />
                 </div>
                 
                 <div>
-                  <label className="text-sm font-medium text-gray-300 mb-2 block">Message</label>
+                  <label className="text-sm font-medium text-content-secondary mb-2 block">Message</label>
                   <div className="flex flex-wrap items-center gap-2 mb-2">
-                    <span className="text-xs text-gray-500 mr-1">Variables:</span>
+                    <span className="text-xs text-content-faint mr-1">Variables:</span>
                     {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Contract_Type}", "{Cancellation_Date}", "{Contract_End_Date}"].map(v => (
                       <button
                         key={v}
-                        onClick={() => setSettings({ ...settings, contractCancellationTemplate: (settings.contractCancellationTemplate || "") + v })}
-                        className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
+                        onClick={() => cancellationEditorRef.current?.insertText(v)}
+                        className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
                       >
                         {v.replace(/{|}/g, "").replace(/_/g, " ")}
                       </button>
                     ))}
-                    <span className="text-xs text-gray-500 mx-2">|</span>
-                    <span className="text-xs text-gray-500 mr-1">Insert:</span>
+                    <span className="text-xs text-content-faint mx-2">|</span>
+                    <span className="text-xs text-content-faint mr-1">Insert:</span>
                     <button
                       onClick={() => {
                         if (settings.emailSignature) {
-                          setSettings({ ...settings, contractCancellationTemplate: (settings.contractCancellationTemplate || "") + settings.emailSignature })
+                          cancellationEditorRef.current?.insertHTML(settings.emailSignature)
                         } else {
                           notification.warning({ message: "No email signature configured", description: "Please set up your email signature first." })
                         }
                       }}
-                      className="px-2 py-1 bg-orange-500 text-white text-xs rounded-lg hover:bg-orange-600 flex items-center gap-1"
+                      className="px-2 py-1 bg-primary text-white text-xs rounded-lg hover:bg-primary-hover flex items-center gap-1"
                     >
                       <FileText className="w-3 h-3" />
                       Email Signature
                     </button>
                   </div>
                   <WysiwygEditor
+                    ref={cancellationEditorRef}
                     value={settings.contractCancellationTemplate || ""}
                     onChange={(v) => setSettings({ ...settings, contractCancellationTemplate: v })}
                     placeholder="Dear {Member_First_Name}, we confirm the cancellation of your {Contract_Type} contract effective {Contract_End_Date}..."
@@ -4425,14 +4414,14 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
             <SettingsCard>
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-300 mb-2 block">Subject</label>
+                  <label className="text-sm font-medium text-content-secondary mb-2 block">Subject</label>
                   <div className="flex flex-wrap items-center gap-2 mb-2">
-                    <span className="text-xs text-gray-500 mr-2">Variables:</span>
+                    <span className="text-xs text-content-faint mr-2">Variables:</span>
                     {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Contract_Type}", "{Contract_Start_Date}", "{Contract_End_Date}", "{Monthly_Fee}"].map(v => (
                       <button
                         key={v}
                         onClick={() => setSettings({ ...settings, contractConclusionSubject: (settings.contractConclusionSubject || "") + " " + v })}
-                        className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
+                        className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
                       >
                         {v.replace(/{|}/g, "").replace(/_/g, " ")}
                       </button>
@@ -4443,40 +4432,41 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     value={settings.contractConclusionSubject || ""}
                     onChange={(e) => setSettings({ ...settings, contractConclusionSubject: e.target.value })}
                     placeholder="Welcome to {Studio_Name} - Your {Contract_Type} Contract"
-                    className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                    className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
                   />
                 </div>
                 
                 <div>
-                  <label className="text-sm font-medium text-gray-300 mb-2 block">Message</label>
+                  <label className="text-sm font-medium text-content-secondary mb-2 block">Message</label>
                   <div className="flex flex-wrap items-center gap-2 mb-2">
-                    <span className="text-xs text-gray-500 mr-1">Variables:</span>
+                    <span className="text-xs text-content-faint mr-1">Variables:</span>
                     {["{Studio_Name}", "{Member_First_Name}", "{Member_Last_Name}", "{Contract_Type}", "{Contract_Start_Date}", "{Contract_End_Date}", "{Monthly_Fee}"].map(v => (
                       <button
                         key={v}
-                        onClick={() => setSettings({ ...settings, contractConclusionTemplate: (settings.contractConclusionTemplate || "") + v })}
-                        className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg hover:bg-blue-600"
+                        onClick={() => conclusionEditorRef.current?.insertText(v)}
+                        className="px-2 py-1 bg-secondary text-white text-xs rounded-lg hover:opacity-80"
                       >
                         {v.replace(/{|}/g, "").replace(/_/g, " ")}
                       </button>
                     ))}
-                    <span className="text-xs text-gray-500 mx-2">|</span>
-                    <span className="text-xs text-gray-500 mr-1">Insert:</span>
+                    <span className="text-xs text-content-faint mx-2">|</span>
+                    <span className="text-xs text-content-faint mr-1">Insert:</span>
                     <button
                       onClick={() => {
                         if (settings.emailSignature) {
-                          setSettings({ ...settings, contractConclusionTemplate: (settings.contractConclusionTemplate || "") + settings.emailSignature })
+                          conclusionEditorRef.current?.insertHTML(settings.emailSignature)
                         } else {
                           notification.warning({ message: "No email signature configured", description: "Please set up your email signature first." })
                         }
                       }}
-                      className="px-2 py-1 bg-orange-500 text-white text-xs rounded-lg hover:bg-orange-600 flex items-center gap-1"
+                      className="px-2 py-1 bg-primary text-white text-xs rounded-lg hover:bg-primary-hover flex items-center gap-1"
                     >
                       <FileText className="w-3 h-3" />
                       Email Signature
                     </button>
                   </div>
                   <WysiwygEditor
+                    ref={conclusionEditorRef}
                     value={settings.contractConclusionTemplate || ""}
                     onChange={(v) => setSettings({ ...settings, contractConclusionTemplate: v })}
                     placeholder="Dear {Member_First_Name}, welcome to {Studio_Name}! Your {Contract_Type} contract starts on {Contract_Start_Date}..."
@@ -4501,7 +4491,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
               action={
                 <button
                   onClick={handleAddVatRate}
-                  className="px-3 sm:px-4 py-2 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors flex items-center gap-2"
+                  className="px-3 sm:px-4 py-2 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
                   <span className="hidden sm:inline">Add</span> Rate
@@ -4511,7 +4501,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
             <SettingsCard>
               <div className="space-y-3">
                 {vatRates.map((rate, index) => (
-                  <div key={index} className="flex flex-col sm:flex-row gap-3 p-3 bg-[#141414] rounded-xl">
+                  <div key={index} className="flex flex-col sm:flex-row gap-3 p-3 bg-surface-card rounded-xl">
                     <div className="flex items-center gap-2 sm:w-24">
                       <input
                         type="number"
@@ -4521,9 +4511,9 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                           updated[index].percentage = Number(e.target.value)
                           setVatRates(updated)
                         }}
-                        className="w-16 bg-[#1F1F1F] text-white rounded-lg px-3 py-2 text-sm border border-[#333333]"
+                        className="w-16 bg-surface-hover text-content-primary rounded-lg px-3 py-2 text-sm border border-border"
                       />
-                      <span className="text-gray-400">%</span>
+                      <span className="text-content-muted">%</span>
                     </div>
                     <input
                       type="text"
@@ -4534,7 +4524,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                         setVatRates(updated)
                       }}
                       placeholder="Description"
-                      className="flex-1 bg-transparent text-white text-sm outline-none min-w-0"
+                      className="flex-1 bg-transparent text-content-primary text-sm outline-none min-w-0"
                     />
                     <button
                       onClick={() => setVatRates(vatRates.filter((_, i) => i !== index))}
@@ -4558,12 +4548,12 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Currency - Disabled/Read-only */}
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-gray-300">Currency</label>
+                  <label className="text-sm font-medium text-content-secondary">Currency</label>
                   <input
                     type="text"
                     value={currency}
                     disabled
-                    className="w-full bg-[#141414] text-gray-400 rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] cursor-not-allowed"
+                    className="w-full bg-surface-card text-content-muted rounded-xl px-4 py-2.5 text-sm outline-none border border-border cursor-not-allowed"
                   />
                 </div>
                 <InputField
@@ -4627,33 +4617,33 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
             <SettingsCard>
               <div className="space-y-6">
                 <div>
-                  <label className="text-sm font-medium text-gray-300 mb-3 block">Default Theme</label>
+                  <label className="text-sm font-medium text-content-secondary mb-3 block">Default Theme</label>
                   <div className="flex flex-col sm:flex-row gap-4">
                     <button
                       onClick={() => setAppearance({ ...appearance, theme: "light" })}
                       className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors flex-1 sm:flex-none ${
                         appearance.theme === "light"
-                          ? "border-orange-500 bg-orange-500/10"
-                          : "border-[#333333] hover:border-[#444444]"
+                          ? "border-primary bg-primary/10"
+                          : "border-border hover:border-border"
                       }`}
                     >
                       <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center">
-                        <Sun className="w-4 h-4 text-gray-800" />
+                        <Sun className="w-4 h-4 text-amber-500" />
                       </div>
-                      <span className="text-white">Light</span>
+                      <span className="text-content-primary">Light</span>
                     </button>
                     <button
                       onClick={() => setAppearance({ ...appearance, theme: "dark" })}
                       className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-colors flex-1 sm:flex-none ${
                         appearance.theme === "dark"
-                          ? "border-orange-500 bg-orange-500/10"
-                          : "border-[#333333] hover:border-[#444444]"
+                          ? "border-primary bg-primary/10"
+                          : "border-border hover:border-border"
                       }`}
                     >
-                      <div className="w-8 h-8 rounded-lg bg-[#1C1C1C] flex items-center justify-center border border-[#333333]">
-                        <Moon className="w-4 h-4 text-white" />
+                      <div className="w-8 h-8 rounded-lg bg-surface-base flex items-center justify-center border border-border">
+                        <Moon className="w-4 h-4 text-content-primary" />
                       </div>
-                      <span className="text-white">Dark</span>
+                      <span className="text-content-primary">Dark</span>
                     </button>
                   </div>
                 </div>
@@ -4669,17 +4659,17 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                   onChange={(v) => setAppearance({ ...appearance, allowMemberThemeToggle: v })}
                 />
 
-                <div className="pt-4 border-t border-[#333333]">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* Primary Color */}
+                <div className="pt-4 border-t border-border">
+                  <div className="grid grid-cols-1 gap-4">
+                    {/* Color Scheme */}
                     <div className="space-y-1.5">
-                      <label className="text-sm font-medium text-gray-300">Primary Color</label>
+                      <label className="text-sm font-medium text-content-secondary">Color Scheme</label>
                       <div className="flex items-center gap-2">
                         <input
                           type="color"
                           value={appearance.primaryColor}
                           onChange={(e) => setAppearance({ ...appearance, primaryColor: e.target.value })}
-                          className="w-10 h-10 rounded-lg cursor-pointer bg-transparent border border-[#333333]"
+                          className="w-10 h-10 rounded-lg cursor-pointer bg-transparent border border-border"
                         />
                         <input
                           type="text"
@@ -4690,7 +4680,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                               setAppearance({ ...appearance, primaryColor: val })
                             }
                           }}
-                          className="flex-1 bg-[#141414] text-white rounded-lg px-3 py-2 text-sm font-mono border border-[#333333] uppercase"
+                          className="flex-1 bg-surface-card text-content-primary rounded-lg px-3 py-2 text-sm font-mono border border-border uppercase"
                           maxLength={7}
                         />
                         <button
@@ -4698,48 +4688,15 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                             navigator.clipboard.writeText(appearance.primaryColor)
                             notification.success({ message: "Copied!", duration: 1.5 })
                           }}
-                          className="p-2 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-lg transition-colors"
+                          className="p-2 bg-surface-button hover:bg-surface-button-hover rounded-lg transition-colors"
                           title="Copy color code"
                         >
-                          <Clipboard className="w-4 h-4 text-gray-400" />
+                          <Clipboard className="w-4 h-4 text-content-muted" />
                         </button>
                       </div>
                     </div>
                     
-                    {/* Secondary Color */}
-                    <div className="space-y-1.5">
-                      <label className="text-sm font-medium text-gray-300">Secondary Color</label>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="color"
-                          value={appearance.secondaryColor}
-                          onChange={(e) => setAppearance({ ...appearance, secondaryColor: e.target.value })}
-                          className="w-10 h-10 rounded-lg cursor-pointer bg-transparent border border-[#333333]"
-                        />
-                        <input
-                          type="text"
-                          value={appearance.secondaryColor}
-                          onChange={(e) => {
-                            const val = e.target.value
-                            if (/^#[0-9A-Fa-f]{0,6}$/.test(val)) {
-                              setAppearance({ ...appearance, secondaryColor: val })
-                            }
-                          }}
-                          className="flex-1 bg-[#141414] text-white rounded-lg px-3 py-2 text-sm font-mono border border-[#333333] uppercase"
-                          maxLength={7}
-                        />
-                        <button
-                          onClick={() => {
-                            navigator.clipboard.writeText(appearance.secondaryColor)
-                            notification.success({ message: "Copied!", duration: 1.5 })
-                          }}
-                          className="p-2 bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-lg transition-colors"
-                          title="Copy color code"
-                        >
-                          <Clipboard className="w-4 h-4 text-gray-400" />
-                        </button>
-                      </div>
-                    </div>
+
                   </div>
                 </div>
               </div>
@@ -4755,8 +4712,8 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
           <div className="space-y-6">
             <SectionHeader title="Data Import" description="Import data from other platforms" />
             
-            <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl">
-              <p className="text-blue-400 text-sm flex items-start gap-2">
+            <div className="p-4 bg-primary/10 border border-primary/20 rounded-xl">
+              <p className="text-primary text-sm flex items-start gap-2">
                 <Info className="w-4 h-4 mt-0.5 flex-shrink-0" />
                 You can import your existing data from other fitness studio platforms. Supported formats: CSV, Excel, PDF, Word
               </p>
@@ -4772,14 +4729,14 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                 <SettingsCard key={index}>
                   <div className="space-y-3">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-[#2F2F2F] rounded-lg">
-                        <item.icon className="w-5 h-5 text-orange-400" />
+                      <div className="p-2 bg-surface-button rounded-lg">
+                        <item.icon className="w-5 h-5 text-primary" />
                       </div>
-                      <h3 className="text-white font-medium text-sm sm:text-base">{item.title}</h3>
+                      <h3 className="text-content-primary font-medium text-sm sm:text-base">{item.title}</h3>
                     </div>
-                    <p className="text-xs sm:text-sm text-gray-400">{item.desc}</p>
+                    <p className="text-xs sm:text-sm text-content-muted">{item.desc}</p>
                     <label className="block">
-                      <span className="px-4 py-2 bg-[#2F2F2F] text-white text-sm rounded-xl hover:bg-[#3F3F3F] cursor-pointer transition-colors inline-flex items-center gap-2">
+                      <span className="px-4 py-2 bg-surface-button text-content-primary text-sm rounded-xl hover:bg-surface-button-hover cursor-pointer transition-colors inline-flex items-center gap-2">
                         <Upload className="w-4 h-4" />
                         Upload File
                       </span>
@@ -4791,8 +4748,8 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
             </div>
 
             <SettingsCard>
-              <h3 className="text-white font-medium mb-3">Import Instructions</h3>
-              <ul className="text-sm text-gray-400 space-y-2">
+              <h3 className="text-content-primary font-medium mb-3">Import Instructions</h3>
+              <ul className="text-sm text-content-muted space-y-2">
                 <li className="flex items-start gap-2">
                   <Check className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
                   Ensure your files are in supported formats (CSV, Excel, PDF, Word)
@@ -4816,7 +4773,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
 
       default:
         return (
-          <div className="text-center py-12 text-gray-400">
+          <div className="text-center py-12 text-content-muted">
             <Settings className="w-12 h-12 mx-auto mb-3 opacity-50" />
             <p>Select a section from the menu</p>
           </div>
@@ -4829,10 +4786,10 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   // ============================================
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full bg-[#1C1C1C] text-white rounded-3xl">
+      <div className="flex items-center justify-center h-full bg-surface-base text-content-primary rounded-3xl">
         <div className="text-center">
-          <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-400">Loading configuration...</p>
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-content-muted">Loading configuration...</p>
         </div>
       </div>
     )
@@ -4840,11 +4797,11 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-full bg-[#1C1C1C] text-white rounded-3xl">
+      <div className="flex items-center justify-center h-full bg-surface-base text-content-primary rounded-3xl">
         <div className="text-center">
           <AlertTriangle className="w-12 h-12 text-red-400 mx-auto mb-4" />
           <p className="text-red-400 mb-2">Failed to load configuration</p>
-          <p className="text-gray-500 text-sm">{error}</p>
+          <p className="text-content-faint text-sm">{error}</p>
         </div>
       </div>
     )
@@ -4854,41 +4811,41 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
   // Main Render
   // ============================================
   return (
-    <div className="flex flex-col lg:flex-row h-full bg-[#1C1C1C] text-white overflow-hidden rounded-3xl">
+    <div className="flex flex-col lg:flex-row h-full bg-surface-base text-content-primary overflow-hidden rounded-3xl">
       {/* Sidebar Navigation - Desktop */}
-      <div className="hidden lg:flex lg:w-72 flex-shrink-0 border-r border-[#333333] bg-[#181818] flex-col min-h-0">
+      <div className="hidden lg:flex lg:w-72 flex-shrink-0 border-r border-border bg-surface-card flex-col min-h-0">
         {/* Admin Banner */}
         {mode === "admin" && (
-          <div className="p-3 border-b border-[#333333] flex-shrink-0">
+          <div className="p-3 border-b border-border flex-shrink-0">
             <AdminBanner studioName={studioNameProp || studioName} />
           </div>
         )}
 
         {/* Search */}
-        <div className="p-4 border-b border-[#333333] flex-shrink-0">
+        <div className="p-4 border-b border-border flex-shrink-0">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-content-faint" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search settings..."
-              className="w-full bg-[#141414] text-white rounded-xl pl-10 pr-10 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF] transition-colors"
+              className="w-full bg-surface-card text-content-primary rounded-xl pl-10 pr-10 py-2.5 text-sm outline-none border border-border focus:border-accent-blue transition-colors"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 text-gray-500 hover:text-white transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 text-content-faint hover:text-content-primary transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             )}
           </div>
           {searchQuery && filteredNavItems.length === 0 && (
-            <p className="text-sm text-gray-500 mt-2 text-center">No results found</p>
+            <p className="text-sm text-content-faint mt-2 text-center">No results found</p>
           )}
           {searchQuery && filteredNavItems.length > 0 && (
-            <p className="text-xs text-gray-500 mt-2">
+            <p className="text-xs text-content-faint mt-2">
               {filteredNavItems.reduce((acc, cat) => acc + cat.sections.filter(s => matchesSearch(s.label) || matchesSearch(cat.label)).length, 0)} results found
             </p>
           )}
@@ -4910,10 +4867,10 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                   }}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-colors ${
                     activeCategory === category.id
-                      ? "bg-[#2F2F2F] text-white"
+                      ? "bg-surface-button text-content-primary"
                       : categoryMatches
-                        ? "bg-orange-500/10 text-orange-300 hover:bg-orange-500/20"
-                        : "text-gray-400 hover:text-white hover:bg-[#252525]"
+                        ? "bg-primary/10 text-orange-300 hover:bg-primary/20"
+                        : "text-content-muted hover:text-content-primary hover:bg-surface-hover"
                   }`}
                 >
                   <category.icon className="w-5 h-5 flex-shrink-0" />
@@ -4933,7 +4890,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       return (
                         <div key={section.id}>
                           {showGroupHeader && (
-                            <div className={`px-3 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-gray-600 ${idx > 0 ? 'border-t border-[#2a2a2a] mt-1.5' : ''}`}>
+                            <div className={`px-3 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-content-faint ${idx > 0 ? 'border-t border-border-subtle mt-1.5' : ''}`}>
                               {section.group}
                             </div>
                           )}
@@ -4941,10 +4898,10 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                             onClick={() => navigateToSection(category.id, section.id)}
                             className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
                               activeSection === section.id
-                                ? "text-orange-400 bg-orange-500/10"
+                                ? "text-primary bg-primary/10"
                                 : sectionMatches
-                                  ? "text-orange-300 bg-orange-500/10 hover:bg-orange-500/20"
-                                  : "text-gray-500 hover:text-white hover:bg-[#252525]"
+                                  ? "text-orange-300 bg-primary/10 hover:bg-primary/20"
+                                  : "text-content-faint hover:text-content-primary hover:bg-surface-hover"
                             }`}
                           >
                             {highlightText(section.label)}
@@ -4963,7 +4920,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       {/* Mobile Navigation List */}
       <div className={`lg:hidden flex flex-col h-full ${mobileShowContent ? 'hidden' : 'flex'}`}>
         {/* Mobile Header */}
-        <div className="flex items-center justify-between p-4 border-b border-[#333333] flex-shrink-0">
+        <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
           <h1 className="text-xl font-bold">Configuration</h1>
         </div>
 
@@ -4975,20 +4932,20 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
         )}
 
         {/* Mobile Search */}
-        <div className="p-3 border-b border-[#333333]">
+        <div className="p-3 border-b border-border">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-content-faint" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search settings..."
-              className="w-full bg-[#141414] text-white rounded-xl pl-10 pr-10 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF] transition-colors"
+              className="w-full bg-surface-card text-content-primary rounded-xl pl-10 pr-10 py-2.5 text-sm outline-none border border-border focus:border-accent-blue transition-colors"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 text-gray-500 hover:text-white transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 text-content-faint hover:text-content-primary transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -5007,10 +4964,10 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                   onClick={() => toggleCategory(category.id)}
                   className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left transition-colors ${
                     activeCategory === category.id
-                      ? "bg-[#2F2F2F] text-white"
+                      ? "bg-surface-button text-content-primary"
                       : categoryMatches
-                        ? "bg-orange-500/10 text-orange-300"
-                        : "text-gray-400 hover:text-white hover:bg-[#252525]"
+                        ? "bg-primary/10 text-orange-300"
+                        : "text-content-muted hover:text-content-primary hover:bg-surface-hover"
                   }`}
                 >
                   <category.icon className="w-5 h-5 flex-shrink-0" />
@@ -5030,7 +4987,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       return (
                         <div key={section.id}>
                           {showGroupHeader && (
-                            <div className={`px-3 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-gray-600 ${idx > 0 ? 'border-t border-[#2a2a2a] mt-1.5' : ''}`}>
+                            <div className={`px-3 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-wider text-content-faint ${idx > 0 ? 'border-t border-border-subtle mt-1.5' : ''}`}>
                               {section.group}
                             </div>
                           )}
@@ -5038,8 +4995,8 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                             onClick={() => navigateToSection(category.id, section.id)}
                             className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors flex items-center justify-between ${
                               sectionMatches
-                                ? "text-orange-300 bg-orange-500/10"
-                                : "text-gray-500 hover:text-white hover:bg-[#252525]"
+                                ? "text-orange-300 bg-primary/10"
+                                : "text-content-faint hover:text-content-primary hover:bg-surface-hover"
                             }`}
                           >
                             <span>{highlightText(section.label)}</span>
@@ -5059,10 +5016,10 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       {/* Mobile Content View */}
       <div className={`lg:hidden flex flex-col h-full ${mobileShowContent ? 'flex' : 'hidden'}`}>
         {/* Mobile Content Header with Back Button */}
-        <div className="flex items-center gap-3 p-4 border-b border-[#333333] flex-shrink-0">
+        <div className="flex items-center gap-3 p-4 border-b border-border flex-shrink-0">
           <button
             onClick={() => setMobileShowContent(false)}
-            className="p-2 -ml-2 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded-lg transition-colors"
+            className="p-2 -ml-2 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
@@ -5080,7 +5037,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       {/* Desktop Main Content */}
       <div className="hidden lg:flex flex-1 flex-col min-h-0 overflow-hidden">
         {/* Desktop Header */}
-        <div className="flex items-center justify-between p-6 border-b border-[#333333] flex-shrink-0">
+        <div className="flex items-center justify-between p-6 border-b border-border flex-shrink-0">
           <h1 className="text-2xl font-bold">Configuration</h1>
         </div>
 
@@ -5113,8 +5070,8 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       {/* Create Contract Form Modal */}
       {showCreateFormModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#1F1F1F] rounded-2xl p-6 w-full max-w-md">
-            <h3 className="text-lg font-bold text-white mb-4">Create New Contract Form</h3>
+          <div className="bg-surface-hover rounded-2xl p-6 w-full max-w-md">
+            <h3 className="text-lg font-bold text-content-primary mb-4">Create New Contract Form</h3>
             <InputField
               label="Contract Form Name"
               value={newContractFormName}
@@ -5127,13 +5084,13 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                   setShowCreateFormModal(false)
                   setNewContractFormName("")
                 }}
-                className="flex-1 px-4 py-2.5 bg-[#2F2F2F] text-white text-sm rounded-xl hover:bg-[#3F3F3F] transition-colors"
+                className="flex-1 px-4 py-2.5 bg-surface-button text-content-primary text-sm rounded-xl hover:bg-surface-button-hover transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleCreateContractForm}
-                className="flex-1 px-4 py-2.5 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors"
+                className="flex-1 px-4 py-2.5 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors"
               >
                 Create
               </button>
@@ -5144,7 +5101,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
 
       {/* Contract Builder Fullscreen */}
       {contractBuilderModalVisible && selectedContractForm && (
-        <div className="fixed inset-0 z-50 bg-[#1C1C1C]">
+        <div className="fixed inset-0 z-50 bg-surface-base">
           <ContractBuilder
             contractForm={selectedContractForm}
             onUpdate={(updatedForm) => {
@@ -5161,15 +5118,15 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
       {/* Appointment Type Modal */}
       {showAppointmentTypeModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50 overflow-y-auto">
-          <div className="bg-[#1C1C1C] rounded-2xl w-full max-w-2xl my-8">
+          <div className="bg-surface-base rounded-2xl w-full max-w-2xl my-8">
             {/* Header */}
-            <div className="flex items-center justify-between p-5 border-b border-[#333333]">
-              <h2 className="text-lg font-semibold text-white">
+            <div className="flex items-center justify-between p-5 border-b border-border">
+              <h2 className="text-lg font-semibold text-content-primary">
                 {editingAppointmentType ? "Edit Appointment Type" : "Create Appointment Type"}
               </h2>
               <button
                 onClick={() => setShowAppointmentTypeModal(false)}
-                className="p-2 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded-lg transition-colors"
+                className="p-2 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -5179,11 +5136,11 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
             <div className="p-5 space-y-6 max-h-[calc(100vh-200px)] overflow-y-auto overflow-x-hidden">
               {/* Image Upload */}
               <div>
-                <label className="text-sm font-medium text-gray-300 mb-3 block">
-                  Appointment Image <span className="text-gray-500">(16:9, shown in member app)</span>
+                <label className="text-sm font-medium text-content-secondary mb-3 block">
+                  Appointment Image <span className="text-content-faint">(16:9, shown in member app)</span>
                 </label>
                 <div
-                  className="relative aspect-video bg-[#141414] rounded-xl border-2 border-dashed border-[#333333] hover:border-[#444444] transition-colors cursor-pointer overflow-hidden group"
+                  className="relative aspect-video bg-surface-card rounded-xl border-2 border-dashed border-border hover:border-border transition-colors cursor-pointer overflow-hidden group"
                   onClick={() => setShowImageSourceModal(true)}
                 >
                   {appointmentTypeForm.image ? (
@@ -5207,7 +5164,7 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       </button>
                     </>
                   ) : (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-content-faint">
                       <Upload className="w-10 h-10 mb-2" />
                       <span className="text-sm">Click to upload image</span>
                       <span className="text-xs mt-1">Recommended: 1920x1080px</span>
@@ -5226,11 +5183,11 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
               {/* Name & Category */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                  <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
                     Name
                     <span className="text-red-400">*</span>
                     <Tooltip content="The name members will see when booking this appointment">
-                      <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                      <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
                     </Tooltip>
                   </label>
                   <input
@@ -5238,14 +5195,14 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     value={appointmentTypeForm.name}
                     onChange={(e) => setAppointmentTypeForm({ ...appointmentTypeForm, name: e.target.value })}
                     placeholder="e.g., Personal Training"
-                    className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                    className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                  <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
                     Category
                     <Tooltip content="Group similar appointments together for easier organization">
-                      <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                      <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
                     </Tooltip>
                   </label>
                   <SelectField
@@ -5259,10 +5216,10 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
 
               {/* Description */}
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
                   Description
                   <Tooltip content="Optional details about what this appointment includes. Shown to members.">
-                    <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                    <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
                   </Tooltip>
                 </label>
                 <textarea
@@ -5270,19 +5227,19 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                   onChange={(e) => setAppointmentTypeForm({ ...appointmentTypeForm, description: e.target.value })}
                   placeholder="Describe what this appointment includes..."
                   rows={3}
-                  className="w-full bg-[#141414] text-white rounded-xl px-4 py-3 text-sm outline-none border border-[#333333] focus:border-[#3F74FF] resize-none"
+                  className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-3 text-sm outline-none border border-border focus:border-accent-blue resize-none"
                 />
               </div>
 
               {/* Duration, Slots Required, Max Parallel, Interval */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-gray-500" />
+                  <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-content-faint" />
                     Duration
                     <span className="text-red-400">*</span>
                     <Tooltip content="How long the appointment lasts in minutes">
-                      <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                      <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
                     </Tooltip>
                   </label>
                   <div className="flex items-center gap-2">
@@ -5293,19 +5250,19 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault() }}
                       min={5}
                       max={480}
-                      className="w-24 bg-[#141414] text-white rounded-xl px-3 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                      className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
                     />
-                    <span className="text-sm text-gray-400">min</span>
+                    <span className="text-sm text-content-muted">min</span>
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-gray-500" />
+                  <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-content-faint" />
                     Interval
                     <span className="text-red-400">*</span>
                     <Tooltip content="Time between available booking slots (e.g., 30 = bookings at :00 and :30)">
-                      <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                      <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
                     </Tooltip>
                   </label>
                   <div className="flex items-center gap-2">
@@ -5316,19 +5273,19 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                       onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault() }}
                       min={5}
                       max={120}
-                      className="w-24 bg-[#141414] text-white rounded-xl px-3 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                      className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
                     />
-                    <span className="text-sm text-gray-400">min</span>
+                    <span className="text-sm text-content-muted">min</span>
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
-                    <Settings className="w-4 h-4 text-gray-500" />
+                  <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
+                    <Settings className="w-4 h-4 text-content-faint" />
                     Slots
                     <span className="text-red-400">*</span>
                     <Tooltip content="How many capacity slots this appointment uses. Set to 0 if it doesn't block any capacity.">
-                      <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                      <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
                     </Tooltip>
                   </label>
                   <input
@@ -5338,17 +5295,17 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault() }}
                     min={0}
                     max={studioCapacity}
-                    className="w-24 bg-[#141414] text-white rounded-xl px-3 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                    className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
-                    <Users className="w-4 h-4 text-gray-500" />
+                  <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
+                    <Users className="w-4 h-4 text-content-faint" />
                     Max Parallel
                     <span className="text-red-400">*</span>
                     <Tooltip content="Maximum number of this appointment type that can run at the same time" position="right">
-                      <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                      <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
                     </Tooltip>
                   </label>
                   <input
@@ -5358,19 +5315,19 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault() }}
                     min={1}
                     max={studioCapacity}
-                    className="w-24 bg-[#141414] text-white rounded-xl px-3 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                    className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
                   />
                 </div>
               </div>
 
               {/* Contingent Usage */}
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
-                  <BadgeDollarSign className="w-4 h-4 text-gray-500" />
+                <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
+                  <BadgeDollarSign className="w-4 h-4 text-content-faint" />
                   Contingent Usage
                   <span className="text-red-400">*</span>
                   <Tooltip content="How many credits are deducted from the member's contract contingent when booking this appointment. For example, if set to 2, a member with 10 credits will have 8 left after booking.">
-                    <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                    <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
                   </Tooltip>
                 </label>
                 <div className="flex items-center gap-2">
@@ -5380,41 +5337,41 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                     onChange={(e) => setAppointmentTypeForm({ ...appointmentTypeForm, contingentUsage: Math.floor(Number(e.target.value)) })}
                     onKeyDown={(e) => { if (e.key === '.' || e.key === ',') e.preventDefault() }}
                     min={0}
-                    className="w-24 bg-[#141414] text-white rounded-xl px-3 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#3F74FF]"
+                    className="w-24 bg-surface-card text-content-primary rounded-xl px-3 py-2.5 text-sm outline-none border border-border focus:border-accent-blue"
                   />
-                  <span className="text-sm text-gray-400">per booking</span>
+                  <span className="text-sm text-content-muted">per booking</span>
                 </div>
-                <p className="text-xs text-gray-500">0 = No deduction from member's contingent</p>
+                <p className="text-xs text-content-faint">0 = No deduction from member's contingent</p>
               </div>
 
               {/* Color */}
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
                   Calendar Color
                   <Tooltip content="The color used to display this appointment type in the calendar">
-                    <Info className="w-3.5 h-3.5 text-gray-500 hover:text-gray-300 cursor-help" />
+                    <Info className="w-3.5 h-3.5 text-content-faint hover:text-content-secondary cursor-help" />
                   </Tooltip>
                 </label>
                 <input
                   type="color"
                   value={appointmentTypeForm.color}
                   onChange={(e) => setAppointmentTypeForm({ ...appointmentTypeForm, color: e.target.value })}
-                  className="w-10 h-10 rounded-lg cursor-pointer bg-transparent border border-[#333333] p-1"
+                  className="w-10 h-10 rounded-lg cursor-pointer bg-transparent border border-border p-1"
                 />
               </div>
             </div>
 
             {/* Footer */}
-            <div className="flex gap-3 p-5 border-t border-[#333333]">
+            <div className="flex gap-3 p-5 border-t border-border">
               <button
                 onClick={() => setShowAppointmentTypeModal(false)}
-                className="flex-1 px-4 py-2.5 bg-[#2F2F2F] text-white text-sm rounded-xl hover:bg-[#3F3F3F] transition-colors"
+                className="flex-1 px-4 py-2.5 bg-surface-button text-content-primary text-sm rounded-xl hover:bg-surface-button-hover transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSaveAppointmentType}
-                className="flex-1 px-4 py-2.5 bg-orange-500 text-white text-sm rounded-xl hover:bg-orange-600 transition-colors"
+                className="flex-1 px-4 py-2.5 bg-primary text-white text-sm rounded-xl hover:bg-primary-hover transition-colors"
               >
                 {editingAppointmentType ? "Save Changes" : "Create"}
               </button>

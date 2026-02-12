@@ -4,6 +4,9 @@
    
    Generates Tailwind classes automatically:
    bg-primary, bg-surface-base, text-content-primary, etc.
+   
+   Dark mode = default.
+   Light mode = toggle .light class on <html>.
    ============================================ */
 
 @theme {
@@ -45,23 +48,72 @@
 }
 
 /* ============================================
+   LIGHT MODE OVERRIDES
+   
+   Activated by adding class="light" to <html>.
+   Only overrides what changes – fonts, accents
+   and primary color stay the same.
+   ============================================ */
+
+.light {
+  color-scheme: light;
+
+  --color-secondary:            #6b7280;
+  --color-secondary-hover:      #374151;
+
+  --color-surface-base:         #f5f5f5;
+  --color-surface-card:         #ffffff;
+  --color-surface-dark:         #e5e5e5;
+  --color-surface-hover:        #f0f0f0;
+  --color-surface-button:       #e5e7eb;
+  --color-surface-button-hover: #d1d5db;
+
+  --color-content-primary:      #111827;
+  --color-content-secondary:    #374151;
+  --color-content-muted:        #6b7280;
+  --color-content-faint:        #9ca3af;
+
+  --color-border:               #d1d5db;
+  --color-border-subtle:        #e5e7eb;
+
+  --icon-filter: brightness(0);
+}
+
+/* ============================================
    THEME UTILITIES
    ============================================ */
 
 /* Icon filter for white SVG icons loaded via <img> tags.
    Dark mode (default): no filter (icons stay white).
-   Light mode: set --icon-filter: brightness(0) to turn icons black. */
-:root {
-  --icon-filter: none;
-}
-
+   Light mode: .light sets brightness(0) to turn icons black. */
 .theme-icon {
-  filter: var(--icon-filter);
+  filter: var(--icon-filter, none);
 }
 
-/* Global placeholder color — uses content-muted so it adapts to light/dark mode */
+/* Global placeholder color – uses content-muted so it adapts to light/dark mode */
 ::placeholder {
   color: var(--color-content-muted) !important;
   opacity: 1 !important;
   -webkit-text-fill-color: var(--color-content-muted) !important;
+}
+
+/* Browser date/time/color inputs – adapt picker chrome to theme */
+html {
+  color-scheme: dark;
+}
+
+/* Ensure date/time input text inherits theme color */
+input[type="time"],
+input[type="date"],
+input[type="datetime-local"] {
+  color: var(--color-content-primary);
+  -webkit-text-fill-color: var(--color-content-primary);
+}
+
+/* Calendar/clock picker icons: white by default (dark mode).
+   In light mode, invert to black. */
+.light input[type="time"]::-webkit-calendar-picker-indicator,
+.light input[type="date"]::-webkit-calendar-picker-indicator,
+.light input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(1) !important;
 }
