@@ -69,12 +69,12 @@ const FeedbackModal = ({
         onKeyDown={(e) => e.stopPropagation()}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="bg-[#1a1a1a] rounded-2xl w-full max-w-md overflow-hidden border border-zinc-700 p-8 text-center">
+        <div className="bg-surface-card rounded-2xl w-full max-w-md overflow-hidden border border-border p-8 text-center">
           <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircle size={32} className="text-primary" />
           </div>
-          <h2 className="text-xl font-semibold text-white mb-2">Thank You!</h2>
-          <p className="text-zinc-400">
+          <h2 className="text-xl font-semibold text-content-primary mb-2 oxanium_font">Thank You!</h2>
+          <p className="text-content-secondary open_sans_font">
             Your feedback has been submitted successfully. We appreciate you taking the time to help us improve OrgaGym.
           </p>
         </div>
@@ -89,25 +89,25 @@ const FeedbackModal = ({
       onClick={(e) => e.stopPropagation()}
     >
       <div 
-        className="bg-[#1a1a1a] rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto border border-zinc-700"
+        className="bg-surface-card rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto border border-border"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-zinc-700">
+        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-border">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center">
               <MessageSquarePlus size={20} className="text-primary" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-white">Send Feedback</h2>
-              <p className="text-sm text-zinc-400">Help us improve OrgaGym</p>
+              <h2 className="text-lg font-semibold text-content-primary oxanium_font">Send Feedback</h2>
+              <p className="text-sm text-content-secondary open_sans_font">Help us improve OrgaGym</p>
             </div>
           </div>
           <button 
             onClick={onClose}
-            className="p-2 hover:bg-zinc-700 rounded-lg transition-colors"
+            className="p-2 hover:bg-surface-hover rounded-lg transition-colors"
           >
-            <span className="text-zinc-400 hover:text-white text-xl">×</span>
+            <span className="text-content-faint hover:text-content-secondary text-xl">×</span>
           </button>
         </div>
         
@@ -115,22 +115,27 @@ const FeedbackModal = ({
         <div className="p-4 sm:p-5 space-y-4 sm:space-y-5">
           {/* Feedback Type */}
           <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-2">Feedback Type</label>
+            <label className="block text-sm font-medium text-content-secondary mb-2 open_sans_font">Feedback Type</label>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {feedbackTypes.map((type) => {
                 const IconComponent = type.icon
+                const isSelected = feedbackData.type === type.id;
+                
                 return (
                   <button
                     key={type.id}
                     onClick={() => onFeedbackDataChange({ ...feedbackData, type: type.id })}
                     className={`p-3 rounded-xl border transition-all text-center ${
-                      feedbackData.type === type.id
-                        ? 'border-primary bg-primary/10 text-white'
-                        : 'border-zinc-700 bg-zinc-800/50 text-zinc-400 hover:border-zinc-600'
+                      isSelected
+                        ? 'border-primary bg-primary/10 text-content-primary'
+                        : 'border-border bg-surface-button text-content-secondary hover:bg-surface-button-hover'
                     }`}
                   >
-                    <IconComponent size={20} className={`mx-auto mb-1 ${feedbackData.type === type.id ? 'text-primary' : ''}`} />
-                    <span className="text-xs">{type.label}</span>
+                    <IconComponent 
+                      size={20} 
+                      className={`mx-auto mb-1 ${isSelected ? 'text-primary' : 'text-content-faint'}`} 
+                    />
+                    <span className="text-xs open_sans_font">{type.label}</span>
                   </button>
                 )
               })}
@@ -139,34 +144,34 @@ const FeedbackModal = ({
           
           {/* Subject */}
           <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-2">Subject</label>
+            <label className="block text-sm font-medium text-content-secondary mb-2 open_sans_font">Subject</label>
             <input
               type="text"
               value={feedbackData.subject}
               onChange={(e) => onFeedbackDataChange({ ...feedbackData, subject: e.target.value })}
               onKeyDown={(e) => e.stopPropagation()}
               placeholder="Brief summary of your feedback"
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-white text-sm sm:text-base focus:outline-none focus:border-primary transition-colors"
+              className="w-full bg-surface-dark border border-border rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-content-primary text-sm sm:text-base focus:outline-none focus:border-primary transition-colors placeholder-content-faint"
             />
           </div>
           
           {/* Message */}
           <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-2">Message</label>
+            <label className="block text-sm font-medium text-content-secondary mb-2 open_sans_font">Message</label>
             <textarea
               value={feedbackData.message}
               onChange={(e) => onFeedbackDataChange({ ...feedbackData, message: e.target.value })}
               onKeyDown={(e) => e.stopPropagation()}
               placeholder="Tell us more about your feedback..."
               rows={4}
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-white text-sm sm:text-base focus:outline-none focus:border-primary transition-colors resize-none"
+              className="w-full bg-surface-dark border border-border rounded-xl px-3 sm:px-4 py-2.5 sm:py-3 text-content-primary text-sm sm:text-base focus:outline-none focus:border-primary transition-colors resize-none placeholder-content-faint"
             />
           </div>
           
           {/* Rating (optional) */}
           <div>
-            <label className="block text-sm font-medium text-zinc-300 mb-2">
-              How would you rate your experience? <span className="text-zinc-500">(optional)</span>
+            <label className="block text-sm font-medium text-content-secondary mb-2 open_sans_font">
+              How would you rate your experience? <span className="text-content-faint">(optional)</span>
             </label>
             <div className="flex gap-2">
               {[1, 2, 3, 4, 5].map((star) => (
@@ -177,14 +182,14 @@ const FeedbackModal = ({
                 >
                   <Star 
                     size={24} 
-                    className={feedbackData.rating >= star ? 'text-primary fill-primary' : 'text-zinc-600'} 
+                    className={feedbackData.rating >= star ? 'text-primary fill-primary' : 'text-content-faint'} 
                   />
                 </button>
               ))}
               {feedbackData.rating > 0 && (
                 <button
                   onClick={() => onFeedbackDataChange({ ...feedbackData, rating: 0 })}
-                  className="text-xs text-zinc-500 hover:text-zinc-400 ml-2"
+                  className="text-xs text-content-faint hover:text-content-secondary ml-2"
                 >
                   Clear
                 </button>
@@ -194,17 +199,17 @@ const FeedbackModal = ({
         </div>
         
         {/* Footer */}
-        <div className="flex gap-3 p-4 sm:p-5 border-t border-zinc-700">
+        <div className="flex gap-3 p-4 sm:p-5 border-t border-border">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2.5 sm:py-3 bg-zinc-700 text-white rounded-xl hover:bg-zinc-600 transition-colors font-medium text-sm sm:text-base"
+            className="flex-1 px-4 py-2.5 sm:py-3 bg-surface-button text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors font-medium text-sm sm:text-base open_sans_font"
           >
             Cancel
           </button>
           <button
             onClick={onSubmit}
             disabled={!feedbackData.subject.trim() || !feedbackData.message.trim()}
-            className="flex-1 px-4 py-2.5 sm:py-3 bg-primary text-white rounded-xl hover:bg-primary-hover transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+            className="flex-1 px-4 py-2.5 sm:py-3 bg-primary text-white rounded-xl hover:bg-primary-hover transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base open_sans_font"
           >
             Send Feedback
           </button>

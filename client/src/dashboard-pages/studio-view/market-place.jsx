@@ -114,7 +114,7 @@ const InfoTooltip = ({ product }) => {
     >
       <button
         onClick={handleClick}
-        className={`${isLocked ? 'bg-blue-700' : 'bg-blue-600 hover:bg-blue-700'} text-white p-2 rounded-full transition-colors`}
+        className={`${isLocked ? 'bg-secondary' : 'bg-secondary hover:bg-secondary-hover'} text-white p-2 rounded-full transition-colors`}
         aria-label="Show product information"
       >
         <Info size={16} />
@@ -122,10 +122,10 @@ const InfoTooltip = ({ product }) => {
       
       {isVisible && product.infoText && (
         <div 
-          className="absolute top-full right-0 mt-2 w-64 bg-[#1C1C1C] border border-gray-700 rounded-xl shadow-lg z-50 p-3"
+          className="absolute top-full right-0 mt-2 w-64 bg-surface-hover border border-border rounded-xl shadow-lg z-50 p-3"
         >
-          <div className="absolute -top-1.5 right-4 w-3 h-3 bg-[#1C1C1C] border-l border-t border-gray-700 rotate-45"></div>
-          <p className="text-gray-300 text-sm leading-relaxed">{product.infoText}</p>
+          <div className="absolute -top-1.5 right-4 w-3 h-3 bg-surface-hover border-l border-t border-border rotate-45"></div>
+          <p className="text-content-secondary text-sm leading-relaxed open_sans_font">{product.infoText}</p>
         </div>
       )}
     </div>
@@ -143,17 +143,17 @@ const ExternalLinkModal = ({ isOpen, onClose, link }) => {
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
-      <div className="bg-[#1C1C1C] rounded-2xl w-full max-w-md mx-auto border border-gray-700 shadow-2xl">
+      <div className="bg-surface-card rounded-2xl w-full max-w-md mx-auto border border-border shadow-2xl">
         <div className="p-6">
           {/* Affiliate Notice Banner */}
-          <div className="bg-orange-500/10 border border-orange-500/30 rounded-xl p-4 mb-5">
+          <div className="bg-primary/10 border border-primary/30 rounded-xl p-4 mb-5">
             <div className="flex items-start gap-3">
-              <div className="bg-orange-500 rounded-full p-1.5 mt-0.5">
+              <div className="bg-primary rounded-full p-1.5 mt-0.5">
                 <Info size={14} className="text-white" />
               </div>
               <div>
-                <h4 className="text-orange-400 font-semibold text-sm mb-1">Affiliate Link</h4>
-                <p className="text-orange-300/80 text-xs leading-relaxed">
+                <h4 className="text-primary font-semibold text-sm mb-1 oxanium_font">Affiliate Link</h4>
+                <p className="text-primary/80 text-xs leading-relaxed open_sans_font">
                   This is an affiliate link. We may earn a small commission if you make a purchase through this link, at no additional cost to you.
                 </p>
               </div>
@@ -162,32 +162,32 @@ const ExternalLinkModal = ({ isOpen, onClose, link }) => {
 
           {/* External Link Warning */}
           <div className="text-center mb-6">
-            <div className="bg-[#2a2a2a] rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-              <ExternalLink size={28} className="text-gray-400" />
+            <div className="bg-surface-dark rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
+              <ExternalLink size={28} className="text-content-secondary" />
             </div>
-            <h3 className="text-xl font-bold text-white mb-2">You are leaving our site</h3>
-            <p className="text-gray-400 text-sm leading-relaxed">
+            <h3 className="text-xl font-bold text-content-primary mb-2 oxanium_font">You are leaving our site</h3>
+            <p className="text-content-secondary text-sm leading-relaxed open_sans_font">
               You are about to be redirected to an external website. We are not responsible for the content, privacy policies, or practices of third-party websites.
             </p>
           </div>
 
           {/* Link Preview */}
-          <div className="bg-[#101010] rounded-xl p-3 mb-6">
-            <p className="text-gray-500 text-xs mb-1">Destination:</p>
-            <p className="text-blue-400 text-sm break-all truncate">{link}</p>
+          <div className="bg-surface-dark rounded-xl p-3 mb-6">
+            <p className="text-content-faint text-xs mb-1">Destination:</p>
+            <p className="text-secondary text-sm break-all truncate">{link}</p>
           </div>
 
           {/* Action Buttons */}
           <div className="flex gap-3">
             <button
               onClick={onClose}
-              className="flex-1 bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white py-3 px-4 rounded-xl font-medium transition-colors text-sm"
+              className="flex-1 bg-surface-button hover:bg-surface-button-hover text-content-primary py-3 px-4 rounded-xl font-medium transition-colors text-sm open_sans_font"
             >
               Cancel
             </button>
             <button
               onClick={handleContinue}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-xl font-medium transition-colors text-sm flex items-center justify-center gap-2"
+              className="flex-1 bg-primary hover:bg-primary-hover text-white py-3 px-4 rounded-xl font-medium transition-colors text-sm open_sans_font flex items-center justify-center gap-2"
             >
               Continue
               <ExternalLink size={16} />
@@ -204,7 +204,7 @@ const AffiliateLinkButton = ({ link, onOpenModal }) => {
   return (
     <button
       onClick={() => onOpenModal(link)}
-      className="bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-full transition-colors"
+      className="bg-surface-button hover:bg-surface-button-hover text-content-secondary p-2 rounded-full transition-colors"
       aria-label="Open product link (affiliate)"
     >
       <ExternalLink size={16} />
@@ -215,7 +215,7 @@ const AffiliateLinkButton = ({ link, onOpenModal }) => {
 // Discount Badge Component
 const DiscountBadge = ({ percentage }) => {
   return (
-    <div className="absolute top-3 right-3 bg-blue-500 text-white px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1 z-10">
+    <div className="absolute top-3 right-3 bg-secondary text-white px-2 py-1 rounded-lg text-xs font-bold flex items-center gap-1 z-10">
       <Tag size={12} />
       -{percentage}%
     </div>
@@ -231,14 +231,14 @@ const PriceDisplay = ({ product }) => {
     return (
       <div className="flex flex-col">
         <div className="flex items-center gap-2">
-          <span className="text-lg font-bold text-blue-400">
+          <span className="text-lg font-bold text-secondary">
             {formatPrice(product.price, product.currency)}
           </span>
-          <span className="text-sm text-gray-500 line-through">
+          <span className="text-sm text-content-faint line-through">
             {formatPrice(product.originalPrice, product.currency)}
           </span>
         </div>
-        <span className="text-xs text-blue-400 font-medium">
+        <span className="text-xs text-secondary font-medium open_sans_font">
           You save {formatPrice(product.originalPrice - product.price, product.currency)} ({discountPercentage}%)
         </span>
       </div>
@@ -246,7 +246,7 @@ const PriceDisplay = ({ product }) => {
   }
   
   return (
-    <p className="text-lg font-bold text-white">
+    <p className="text-lg font-bold text-content-primary">
       {formatPrice(product.price, product.currency)}
     </p>
   );
@@ -255,8 +255,8 @@ const PriceDisplay = ({ product }) => {
 // Product Card Component
 const ProductCard = ({ product, isFavorite, toggleFavorite, openExternalLinkModal }) => {
   return (
-    <div className="bg-[#2a2a2a] rounded-2xl overflow-hidden relative select-none">
-      <div className="relative w-full h-48 bg-white">
+    <div className="bg-surface-card rounded-2xl overflow-hidden relative select-none border border-border-subtle hover:border-border transition-colors">
+      <div className="relative w-full h-48 bg-surface-dark">
         <img
           src={product.image || "/placeholder.svg"}
           alt={product.name}
@@ -274,7 +274,7 @@ const ProductCard = ({ product, isFavorite, toggleFavorite, openExternalLinkModa
           onClick={() => toggleFavorite(product.id)}
           className={`absolute top-3 left-3 p-2 rounded-full transition-colors ${
             isFavorite
-              ? 'bg-orange-500 hover:bg-orange-600'
+              ? 'bg-primary hover:bg-primary-hover'
               : 'bg-black/50 hover:bg-black/70'
           }`}
           aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
@@ -292,10 +292,10 @@ const ProductCard = ({ product, isFavorite, toggleFavorite, openExternalLinkModa
         </div>
       </div>
 
-      <div className="p-4 bg-[#2a2a2a] text-white">
-        <h3 className="text-base font-medium mb-1">{product.name}</h3>
-        <p className="text-sm text-gray-300 mb-1">{product.brand}</p>
-        <p className="text-sm text-gray-400 mb-2">Art. No: {product.articleNo}</p>
+      <div className="p-4 bg-surface-card text-content-primary">
+        <h3 className="text-base font-medium mb-1 open_sans_font text-content-primary">{product.name}</h3>
+        <p className="text-sm text-content-secondary mb-1 open_sans_font">{product.brand}</p>
+        <p className="text-sm text-content-faint mb-2 open_sans_font">Art. No: {product.articleNo}</p>
         <PriceDisplay product={product} />
       </div>
     </div>
@@ -492,7 +492,7 @@ export default function MarketplacePage() {
           e.stopPropagation();
           setShowSortDropdown(!showSortDropdown);
         }}
-        className="px-3 sm:px-4 py-2 bg-[#2F2F2F] text-gray-300 rounded-xl text-xs sm:text-sm hover:bg-[#3F3F3F] transition-colors flex items-center gap-2"
+        className="px-3 sm:px-4 py-2 bg-surface-button text-content-secondary rounded-xl text-xs sm:text-sm hover:bg-surface-button-hover transition-colors flex items-center gap-2"
       >
         {getSortIcon()}
         <span className="hidden sm:inline">{currentSortLabel}</span>
@@ -500,35 +500,38 @@ export default function MarketplacePage() {
 
       {/* Sort Dropdown */}
       {showSortDropdown && (
-        <div className="absolute top-full right-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[180px]">
+        <div className="absolute top-full right-0 mt-1 bg-surface-hover border border-border rounded-lg shadow-lg z-50 min-w-[180px]">
           <div className="py-1">
-            <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">
+            <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border">
               Sort by
             </div>
-            {sortOptions.map((option) => (
-              <button
-                key={option.value}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleSortOptionClick(option.value);
-                }}
-                className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${
-                  sortBy === option.value 
-                    ? 'text-white bg-gray-800/50' 
-                    : 'text-gray-300'
-                }`}
-              >
-                <span>{option.label}</span>
-                {sortBy === option.value && (
-                  <span className="text-gray-400">
-                    {sortDirection === 'asc' 
-                      ? <ArrowUp size={14} /> 
-                      : <ArrowDown size={14} />
-                    }
-                  </span>
-                )}
-              </button>
-            ))}
+            {sortOptions.map((option) => {
+              const isSelected = sortBy === option.value;
+              const optionClasses = isSelected
+                ? 'text-content-primary bg-surface-hover/80'
+                : 'text-content-secondary hover:bg-surface-hover';
+              
+              return (
+                <button
+                  key={option.value}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSortOptionClick(option.value);
+                  }}
+                  className={`w-full text-left px-3 py-2 text-sm transition-colors flex items-center justify-between ${optionClasses}`}
+                >
+                  <span>{option.label}</span>
+                  {isSelected && (
+                    <span className="text-content-muted">
+                      {sortDirection === 'asc' 
+                        ? <ArrowUp size={14} /> 
+                        : <ArrowDown size={14} />
+                      }
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
       )}
@@ -571,12 +574,12 @@ export default function MarketplacePage() {
           },
         }}
       />
-      <div className="min-h-screen rounded-3xl bg-[#1C1C1C] text-white lg:p-3 md:p-3 sm:p-2 p-1 transition-all duration-500 ease-in-out flex-1">
+      <div className="min-h-screen rounded-3xl bg-surface-base text-content-primary lg:p-3 md:p-3 sm:p-2 p-1 transition-all duration-500 ease-in-out flex-1">
         <div className="md:p-6 p-3">
           {/* Header with title, sort (mobile) */}
           <div className="flex justify-between items-center w-full mb-6">
             <div className="flex items-center gap-3">
-              <h1 className="text-white oxanium_font text-xl md:text-2xl">Marketplace</h1>
+              <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">Marketplace</h1>
               {/* Sort button - visible on mobile only */}
               <div className="sm:hidden">
                 <SortDropdown />
@@ -584,32 +587,32 @@ export default function MarketplacePage() {
             </div>
           </div>
 
-          {/* Search Bar - matching assessment.jsx style */}
+          {/* Search Bar */}
           <div className="mb-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-content-faint" size={16} />
               <input
                 type="text"
                 placeholder="Search by name, brand or article number..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-[#333333] focus:border-[#3F74FF] transition-colors"
+                className="w-full bg-surface-card outline-none text-sm text-content-primary rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-border focus:border-primary transition-colors placeholder-content-faint"
               />
             </div>
           </div>
 
-          {/* Filter and Sort Controls - matching assessment.jsx style */}
-          <div className="flex flex-wrap gap-2 sm:gap-3 mb-6">
+          {/* Filter and Sort Controls */}
+          <div className="flex flex-wrap gap-1.5 sm:gap-3 mb-6 items-center">
             {/* All filter */}
             <button
               onClick={() => {
                 setShowFavoritesOnly(false);
                 setShowSaleOnly(false);
               }}
-              className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${
                 !showFavoritesOnly && !showSaleOnly
-                  ? "bg-blue-600 text-white"
-                  : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                  ? "bg-primary text-white"
+                  : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
               }`}
             >
               All
@@ -621,10 +624,10 @@ export default function MarketplacePage() {
                 setShowSaleOnly(!showSaleOnly);
                 if (!showSaleOnly) setShowFavoritesOnly(false);
               }}
-              className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors flex items-center gap-2 ${
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors flex items-center gap-1.5 ${
                 showSaleOnly
-                  ? "bg-blue-600 text-white"
-                  : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                  ? "bg-secondary text-white"
+                  : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
               }`}
             >
               <Tag size={14} />
@@ -637,10 +640,10 @@ export default function MarketplacePage() {
                 setShowFavoritesOnly(!showFavoritesOnly);
                 if (!showFavoritesOnly) setShowSaleOnly(false);
               }}
-              className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors flex items-center gap-2 ${
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors flex items-center gap-1.5 ${
                 showFavoritesOnly
-                  ? "bg-orange-500 text-white"
-                  : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                  ? "bg-primary text-white"
+                  : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
               }`}
             >
               <Heart size={14} className={showFavoritesOnly ? "fill-white" : ""} />
@@ -665,10 +668,10 @@ export default function MarketplacePage() {
                   >
                     <ChevronDown 
                       size={20} 
-                      className={`text-gray-400 transition-transform duration-200 ${isFeaturedCollapsed ? '-rotate-90' : ''}`} 
+                      className={`text-content-faint transition-transform duration-200 ${isFeaturedCollapsed ? '-rotate-90' : ''}`} 
                     />
-                    <h2 className="text-lg font-semibold text-white group-hover:text-gray-300 transition-colors">Featured</h2>
-                    <span className="text-sm text-gray-400">({featuredProducts.length})</span>
+                    <h2 className="text-lg font-semibold text-content-primary group-hover:text-content-secondary transition-colors oxanium_font">Featured</h2>
+                    <span className="text-sm text-content-faint">({featuredProducts.length})</span>
                   </button>
                   {!isFeaturedCollapsed && (
                     <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6`}>
@@ -679,7 +682,6 @@ export default function MarketplacePage() {
                           isFavorite={isFavorite(product.id)}
                           toggleFavorite={toggleFavorite}
                           openExternalLinkModal={openExternalLinkModal}
-                          
                         />
                       ))}
                     </div>
@@ -696,10 +698,10 @@ export default function MarketplacePage() {
                   >
                     <ChevronDown 
                       size={20} 
-                      className={`text-gray-400 transition-transform duration-200 ${isMoreCollapsed ? '-rotate-90' : ''}`} 
+                      className={`text-content-faint transition-transform duration-200 ${isMoreCollapsed ? '-rotate-90' : ''}`} 
                     />
-                    <h2 className="text-lg font-semibold text-white group-hover:text-gray-300 transition-colors">More Products</h2>
-                    <span className="text-sm text-gray-400">({allProducts.length})</span>
+                    <h2 className="text-lg font-semibold text-content-primary group-hover:text-content-secondary transition-colors oxanium_font">More Products</h2>
+                    <span className="text-sm text-content-faint">({allProducts.length})</span>
                   </button>
                   {!isMoreCollapsed && (
                     <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6`}>
@@ -710,7 +712,6 @@ export default function MarketplacePage() {
                           isFavorite={isFavorite(product.id)}
                           toggleFavorite={toggleFavorite}
                           openExternalLinkModal={openExternalLinkModal}
-                          
                         />
                       ))}
                     </div>
@@ -729,7 +730,6 @@ export default function MarketplacePage() {
                     isFavorite={isFavorite(product.id)}
                     toggleFavorite={toggleFavorite}
                     openExternalLinkModal={openExternalLinkModal}
-                    
                   />
                 ))}
               </div>
@@ -738,7 +738,7 @@ export default function MarketplacePage() {
 
           {sortedProducts.length === 0 && (
             <div className="text-center py-12">
-              <p className="text-gray-400 text-lg">
+              <p className="text-content-faint text-lg open_sans_font">
                 {showFavoritesOnly 
                   ? "No favorites yet. Click the heart icon to add products to your favorites."
                   : showSaleOnly
@@ -749,19 +749,17 @@ export default function MarketplacePage() {
             </div>
           )}
         </div>
-
-
       </div>
 
       {isInfoModalOpen && productForInfo && (
-        <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md mx-auto">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-surface-card rounded-xl w-full max-w-md mx-auto border border-border">
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold text-white">Product Information</h2>
+                <h2 className="text-xl font-bold text-content-primary oxanium_font">Product Information</h2>
                 <button
                   onClick={closeInfoModal}
-                  className="text-gray-400 hover:text-white transition-colors"
+                  className="text-content-faint hover:text-content-secondary transition-colors"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
@@ -770,23 +768,23 @@ export default function MarketplacePage() {
               </div>
 
               <div className="mb-6">
-                <h3 className="text-lg font-semibold text-white mb-2">{productForInfo.productName || productForInfo.name}</h3>
-                <p className="text-gray-400 text-sm mb-1">Brand: {productForInfo.brandName || productForInfo.brand}</p>
-                <p className="text-gray-400 text-sm mb-3">Article No: {productForInfo.articleNo}</p>
+                <h3 className="text-lg font-semibold text-content-primary mb-2 open_sans_font">{productForInfo.productName || productForInfo.name}</h3>
+                <p className="text-content-secondary text-sm mb-1 open_sans_font">Brand: {productForInfo.brandName || productForInfo.brand}</p>
+                <p className="text-content-faint text-sm mb-3 open_sans_font">Article No: {productForInfo.articleNo}</p>
 
                 {productForInfo.infoText ? (
-                  <div className="bg-[#101010] rounded-lg p-4">
-                    <p className="text-gray-300 text-sm leading-relaxed">{productForInfo.infoText}</p>
+                  <div className="bg-surface-dark rounded-lg p-4">
+                    <p className="text-content-secondary text-sm leading-relaxed open_sans_font">{productForInfo.infoText}</p>
                   </div>
                 ) : (
-                  <div className="bg-[#101010] rounded-lg p-4 text-center">
-                    <p className="text-gray-500 text-sm">No additional information available</p>
+                  <div className="bg-surface-dark rounded-lg p-4 text-center">
+                    <p className="text-content-faint text-sm open_sans_font">No additional information available</p>
                     <button
                       onClick={() => {
                         closeInfoModal();
                         openEditModal(productForInfo);
                       }}
-                      className="text-blue-400 hover:text-blue-300 text-sm mt-2"
+                      className="text-secondary hover:text-secondary-hover text-sm mt-2 transition-colors"
                     >
                       Add information
                     </button>
@@ -795,10 +793,9 @@ export default function MarketplacePage() {
               </div>
 
               <div className="flex space-x-3">
-
                 <button
                   onClick={closeInfoModal}
-                  className="flex-1 bg-gray-600 text-sm hover:bg-gray-700 text-white py-3 px-4 rounded-xl font-medium transition-colors duration-200"
+                  className="flex-1 bg-surface-button hover:bg-surface-button-hover text-content-primary text-sm py-3 px-4 rounded-xl font-medium transition-colors open_sans_font"
                 >
                   Close
                 </button>
@@ -815,6 +812,5 @@ export default function MarketplacePage() {
         link={externalLinkUrl}
       />
     </>
-
   )
 }
