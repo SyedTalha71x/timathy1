@@ -470,7 +470,11 @@ const EditAppointmentModalMain = ({
           {/* Date and Time */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <DatePickerField label="Date" value={editDate} onChange={setEditDate} />
+              <label className="block text-xs text-gray-500 mb-2">Date</label>
+              <div className="w-full flex items-center justify-between bg-[#222222] border border-gray-700 text-sm rounded-xl px-4 py-2.5">
+                <span className={editDate ? "text-white" : "text-gray-500"}>{editDate ? (() => { const [y,m,d] = editDate.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+                <DatePickerField value={editDate} onChange={setEditDate} />
+              </div>
             </div>
             <div>
               <label className="block text-xs text-gray-500 mb-2">Time Slot</label>

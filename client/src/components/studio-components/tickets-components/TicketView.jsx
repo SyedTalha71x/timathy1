@@ -4,97 +4,8 @@
 import { ImageIcon, Paperclip } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { X } from "react-feather"
-import ReactQuill from "react-quill"
+import { WysiwygEditor } from "../../shared/WysiwygEditor"
 import OrgaGymLogo from '../../../../public/Orgagym white without text.svg'
-
-const WysiwygEditor = ({ value, onChange, placeholder }) => {
-  const modules = {
-    toolbar: [
-      [{ 'header': [1, 2, 3, false] }],
-      ['bold', 'italic', 'underline', 'strike'],
-      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-      [{ 'align': [] }],
-      ['link'],
-      ['clean']
-    ],
-  }
-
-  const formats = [
-    'header',
-    'bold', 'italic', 'underline', 'strike',
-    'list', 'bullet',
-    'align',
-    'link'
-  ]
-
-  // Add custom CSS for placeholder and fix toolbar visibility
-  useEffect(() => {
-    const style = document.createElement('style')
-    style.textContent = `
-      .ql-editor.ql-blank::before {
-        color: #ffffff !important;
-        opacity: 0.7 !important;
-      }
-      .ql-editor {
-        color: #ffffff !important;
-        min-height: 120px;
-        max-height: 200px;
-        overflow-y: auto;
-      }
-      .ql-toolbar {
-        border-color: #303030 !important;
-        background-color: #151515 !important;
-        position: relative;
-        z-index: 10;
-      }
-      .ql-container {
-        border-color: #303030 !important;
-        background-color: #101010 !important;
-      }
-      .ql-snow .ql-stroke {
-        stroke: #ffffff !important;
-      }
-      .ql-snow .ql-fill {
-        fill: #ffffff !important;
-      }
-      .ql-snow .ql-picker-label {
-        color: #ffffff !important;
-      }
-      .ql-snow .ql-picker-options {
-        background-color: #151515 !important;
-        border-color: #303030 !important;
-      }
-      .ql-snow .ql-picker-item {
-        color: #ffffff !important;
-      }
-      .ql-snow .ql-tooltip {
-        background-color: #151515 !important;
-        border-color: #303030 !important;
-        color: #ffffff !important;
-        z-index: 20;
-      }
-      .ql-snow .ql-tooltip input[type="text"] {
-        color: #000000 !important;
-      }
-    `
-    document.head.appendChild(style)
-
-    return () => {
-      document.head.removeChild(style)
-    }
-  }, [])
-
-  return (
-    <ReactQuill
-      value={value}
-      onChange={onChange}
-      modules={modules}
-      formats={formats}
-      placeholder={placeholder}
-      theme="snow"
-    />
-  )
-}
 
 
 const TicketView = ({ ticket, onClose, onUpdateTicket }) => {
@@ -216,7 +127,7 @@ const TicketView = ({ ticket, onClose, onUpdateTicket }) => {
     const renderMessageContent = (message) => {
       return (
         <div
-          className="text-gray-100 text-sm sm:text-base leading-relaxed break-words rich-text-content"
+          className="text-content-primary text-sm sm:text-base leading-relaxed break-words rich-text-content"
           dangerouslySetInnerHTML={{ __html: message.content }}
         />
       )
@@ -241,7 +152,7 @@ const TicketView = ({ ticket, onClose, onUpdateTicket }) => {
               <img 
                 src={img || "/placeholder.svg"} 
                 alt={`Attachment ${idx + 1}`} 
-                className="w-full h-16 object-cover rounded-lg border border-gray-700 group-hover:border-blue-500 transition-colors" 
+                className="w-full h-16 object-cover rounded-lg border border-border group-hover:border-primary transition-colors" 
               />
               <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
                 <span className="text-white text-xs font-medium">View</span>
@@ -258,31 +169,31 @@ const TicketView = ({ ticket, onClose, onUpdateTicket }) => {
 
       return (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[60] p-4">
-          <div className="bg-[#2A2A2A] rounded-xl p-6 w-full max-w-md mx-auto border border-gray-600">
+          <div className="bg-surface-base rounded-2xl p-6 w-full max-w-md mx-auto shadow-2xl">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-white">Close Ticket</h3>
+              <h3 className="text-lg font-semibold text-content-primary">Close Ticket</h3>
               <button
                 onClick={cancelCloseTicket}
-                className="text-gray-400 hover:text-gray-200 p-1"
+                className="text-content-muted hover:text-content-primary transition-colors p-1"
               >
                 <X size={20} />
               </button>
             </div>
             
-            <p className="text-gray-300 mb-6 text-sm leading-relaxed">
-              Are you sure you want to close this ticket? <span className="text-yellow-400 font-medium">You won't be able to send replies anymore.</span>
+            <p className="text-content-secondary mb-6 text-sm leading-relaxed">
+              Are you sure you want to close this ticket? <span className="font-bold">You won't be able to send replies anymore.</span>
             </p>
             
             <div className="flex justify-end gap-3">
               <button
                 onClick={cancelCloseTicket}
-                className="px-4 py-2 text-sm border border-gray-600 rounded-lg font-medium text-gray-300 bg-[#2A2A2A] hover:bg-[#3A3A3A] transition-colors"
+                className="px-4 py-2.5 text-sm rounded-xl font-medium text-content-secondary bg-surface-button hover:bg-surface-button-hover transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmCloseTicket}
-                className="px-4 py-2 text-sm rounded-lg font-medium text-white bg-red-600 hover:bg-red-700 transition-colors"
+                className="px-4 py-2.5 text-sm rounded-xl font-medium text-white bg-red-600 hover:bg-red-700 transition-colors"
               >
                 Close Ticket
               </button>
@@ -295,38 +206,38 @@ const TicketView = ({ ticket, onClose, onUpdateTicket }) => {
     return (
       <>
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4">
-          <div className="bg-[#2A2A2A] rounded-lg sm:rounded-xl w-full max-w-5xl h-[95vh] sm:h-[90vh] flex flex-col max-h-screen">
-            <div className="flex items-center justify-between p-3 sm:p-4 border-b border-gray-600 flex-shrink-0">
+          <div className="bg-surface-button rounded-lg sm:rounded-xl w-full max-w-5xl h-[95vh] sm:h-[90vh] flex flex-col max-h-screen">
+            <div className="flex items-center justify-between p-3 sm:p-4 border-b border-border flex-shrink-0">
               <div className="flex items-center gap-3 min-w-0">
-                <h2 className="text-base sm:text-lg font-semibold text-white truncate">
-                  {ticket.subject} <span className="text-blue-400">#{ticket.id}</span>
+                <h2 className="text-base sm:text-lg font-semibold text-content-primary truncate">
+                  {ticket.subject} <span className="text-primary">#{ticket.id}</span>
                 </h2>
                 <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium flex-shrink-0 ${
                   ticket.status === "Open" ? "bg-green-500 text-white" :
                   ticket.status === "In Progress" ? "bg-blue-500 text-white" :
                   ticket.status === "Awaiting your reply" ? "bg-yellow-500 text-white" :
                   ticket.status === "Resolved" ? "bg-purple-500 text-white" :
-                  ticket.status === "Closed" ? "bg-gray-500 text-white" :
+                  ticket.status === "Closed" ? "bg-content-faint text-white" :
                   ticket.status === "Urgent" ? "bg-red-500 text-white" :
-                  "bg-gray-400 text-white"
+                  "bg-content-muted text-white"
                 }`}>
                   {ticket.status}
                 </span>
               </div>
-              <button onClick={onClose} className="text-gray-400 hover:text-gray-200 p-1 flex-shrink-0">
+              <button onClick={onClose} className="text-content-muted hover:text-content-secondary p-1 flex-shrink-0">
                 <X size={20} className="sm:w-6 sm:h-6" />
               </button>
             </div>
     
             <div 
               ref={messagesContainerRef}
-              className="flex-1 overflow-y-auto p-3 sm:p-4 min-h-0 bg-[#1C1C1C]"
+              className="flex-1 overflow-y-auto p-3 sm:p-4 min-h-0 bg-surface-base"
             >
               <div className="space-y-4 sm:space-y-6">
                 {ticket.messages.map((message) => (
                   <div key={message.id} className="flex items-start gap-2 sm:gap-3">
                     {message.sender === "user" ? (
-                      <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary rounded-xl flex items-center justify-center flex-shrink-0">
                         <span className="text-white font-bold text-xs sm:text-sm">U</span>
                       </div>
                     ) : (
@@ -336,11 +247,11 @@ const TicketView = ({ ticket, onClose, onUpdateTicket }) => {
                     )}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1 sm:mb-2">
-                        <span className="font-medium text-white text-sm sm:text-base">
+                        <span className="font-medium text-content-primary text-sm sm:text-base">
                           {message.sender === "user" ? "You" : "OrgaGym"}
                         </span>
                         {/* Timestamp with date AND time */}
-                        <span className="text-gray-400 text-xs sm:text-sm">{message.timestamp}</span>
+                        <span className="text-content-muted text-xs sm:text-sm">{message.timestamp}</span>
                       </div>
                       {/* Message content */}
                       {renderMessageContent(message)}
@@ -354,9 +265,9 @@ const TicketView = ({ ticket, onClose, onUpdateTicket }) => {
               </div>
             </div>
     
-            <div className="border-t border-gray-600 p-3 sm:p-4 flex-shrink-0 bg-[#2A2A2A]">
+            <div className="border-t border-border p-3 sm:p-4 flex-shrink-0 bg-surface-button">
               {isTicketClosed ? (
-                <div className="text-center text-gray-400 py-4 bg-[#1C1C1C] rounded-lg">
+                <div className="text-center text-content-muted py-4 bg-surface-base rounded-lg">
                   <div className="text-sm font-medium mb-1">This ticket is closed</div>
                   <div className="text-xs">You cannot send replies anymore.</div>
                 </div>
@@ -375,7 +286,7 @@ const TicketView = ({ ticket, onClose, onUpdateTicket }) => {
                       />
                       <button
                         onClick={() => fileInputRef.current?.click()}
-                        className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
+                        className="flex items-center gap-2 px-3 py-2 text-sm border border-border rounded-lg text-content-secondary hover:bg-surface-hover hover:text-content-primary transition-colors"
                       >
                         <ImageIcon size={16} />
                         Attach Images
@@ -396,10 +307,10 @@ const TicketView = ({ ticket, onClose, onUpdateTicket }) => {
                                 <img 
                                   src={img || "/placeholder.svg"} 
                                   alt={`Preview ${idx + 1}`}
-                                  className="w-full h-20 object-cover rounded-lg border border-gray-700"
+                                  className="w-full h-20 object-cover rounded-lg border border-border"
                                 />
                                 <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                                  <span className="text-white text-xs font-medium bg-gray-800 px-3 py-1 rounded">View</span>
+                                  <span className="text-white text-xs font-medium bg-black/60 px-3 py-1 rounded">View</span>
                                 </div>
                               </div>
                               <button
@@ -418,27 +329,28 @@ const TicketView = ({ ticket, onClose, onUpdateTicket }) => {
                       )}
                     </div>
 
-                    {/* WYSIWYG Editor with fixed height and scrollable content */}
-                    <div className="border border-gray-600 rounded-lg overflow-hidden bg-[#101010] h-64 flex flex-col">
+                    {/* WYSIWYG Editor */}
                       <WysiwygEditor
                         value={replyText}
                         onChange={setReplyText}
                         placeholder="Type your reply here..."
+                        minHeight={180}
+                        maxHeight={220}
+                        showImages={false}
                       />
-                    </div>
                   </div>
 
                   <div className="flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-0">
                     <button
                       onClick={handleCloseTicket}
-                      className="w-full sm:w-auto px-4 sm:px-6 py-2 text-white text-sm rounded-lg bg-gray-600 hover:bg-gray-700 font-medium transition-colors order-2 sm:order-1"
+                      className="w-full sm:w-auto px-4 sm:px-6 py-2 text-content-secondary text-sm rounded-lg bg-surface-button hover:bg-surface-button-hover font-medium transition-colors order-2 sm:order-1"
                     >
                       Close Ticket
                     </button>
                     <button
                       onClick={handleAddReply}
                       disabled={!replyText.trim()}
-                      className="w-full sm:w-auto px-4 sm:px-6 py-2 bg-blue-600 text-white rounded-md sm:rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm transition-colors order-1 sm:order-2"
+                      className="w-full sm:w-auto px-4 sm:px-6 py-2 bg-primary text-white rounded-md sm:rounded-lg hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm transition-colors order-1 sm:order-2"
                     >
                       Add Reply
                     </button>
@@ -458,7 +370,7 @@ const TicketView = ({ ticket, onClose, onUpdateTicket }) => {
             {/* Close Button */}
             <button
               onClick={() => setViewingImage(null)}
-              className="absolute top-4 right-4 text-white hover:text-gray-300 p-2 rounded-lg hover:bg-white/10 transition-colors z-10"
+              className="absolute top-4 right-4 text-white hover:text-content-secondary p-2 rounded-lg hover:bg-white/10 transition-colors z-10"
               aria-label="Close image"
             >
               <X size={32} />
@@ -476,7 +388,7 @@ const TicketView = ({ ticket, onClose, onUpdateTicket }) => {
                     index: newIndex
                   })
                 }}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 p-3 rounded-lg hover:bg-white/10 transition-colors z-10"
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-content-secondary p-3 rounded-lg hover:bg-white/10 transition-colors z-10"
                 aria-label="Previous image"
               >
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -497,7 +409,7 @@ const TicketView = ({ ticket, onClose, onUpdateTicket }) => {
                     index: newIndex
                   })
                 }}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 p-3 rounded-lg hover:bg-white/10 transition-colors z-10"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:text-content-secondary p-3 rounded-lg hover:bg-white/10 transition-colors z-10"
                 aria-label="Next image"
               >
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -516,7 +428,7 @@ const TicketView = ({ ticket, onClose, onUpdateTicket }) => {
                 <p className="text-white text-sm font-medium text-center">
                   {viewingImage.image.name}
                   {viewingImage.images.length > 1 && (
-                    <span className="text-gray-400 ml-2">
+                    <span className="text-content-muted ml-2">
                       ({viewingImage.index + 1}/{viewingImage.images.length})
                     </span>
                   )}

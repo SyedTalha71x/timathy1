@@ -6,7 +6,7 @@ import { useEffect, useState, useMemo } from "react";
 const MaskedIban = ({ iban, className = "" }) => {
   const [isRevealed, setIsRevealed] = useState(false);
 
-  if (!iban) return <span className="text-gray-500">-</span>;
+  if (!iban) return <span className="text-content-faint">-</span>;
 
   const maskIban = (ibanStr) => {
     if (ibanStr.length <= 8) return ibanStr;
@@ -27,7 +27,7 @@ const MaskedIban = ({ iban, className = "" }) => {
           e.stopPropagation();
           setIsRevealed(!isRevealed);
         }}
-        className="p-0.5 text-gray-400 hover:text-white transition-colors flex-shrink-0"
+        className="p-0.5 text-content-muted hover:text-content-primary transition-colors flex-shrink-0"
         title={isRevealed ? "Hide IBAN" : "Show full IBAN"}
       >
         {isRevealed ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
@@ -195,11 +195,11 @@ const CheckFundsModal = ({
 
   const getSortIcon = (column) => {
     if (sortBy !== column) {
-      return <ArrowUpDown size={14} className="text-gray-500" />;
+      return <ArrowUpDown size={14} className="text-content-faint" />;
     }
     return sortDirection === "asc" 
-      ? <ArrowUp size={14} className="text-white" />
-      : <ArrowDown size={14} className="text-white" />;
+      ? <ArrowUp size={14} className="text-content-primary" />
+      : <ArrowDown size={14} className="text-content-primary" />;
   };
 
   const handleToggleTransaction = (id) => {
@@ -269,26 +269,26 @@ const CheckFundsModal = ({
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-      <div className="bg-[#1C1C1C] rounded-xl w-full max-w-6xl max-h-[80vh] overflow-hidden flex flex-col mx-4">
-        <div className="p-4 border-b border-gray-800 flex justify-between items-center">
-          <h2 className="text-white text-lg font-medium">
+      <div className="bg-surface-base rounded-xl w-full max-w-6xl max-h-[80vh] overflow-hidden flex flex-col mx-4">
+        <div className="p-4 border-b border-border flex justify-between items-center">
+          <h2 className="text-content-primary text-lg font-medium">
             Check Incoming Funds
           </h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white">
+          <button onClick={onClose} className="text-content-muted hover:text-content-primary">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Search Bar */}
-        <div className="p-4 border-b border-gray-800">
+        <div className="p-4 border-b border-border">
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-content-muted w-4 h-4 pointer-events-none" />
             <input
               type="search"
               placeholder="Search by member, IBAN, or mandate number..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="h-10 bg-[#141414] text-white rounded-xl pl-12 pr-4 w-full text-sm outline-none border border-[#333333] focus:border-[#3F74FF] transition-colors"
+              className="h-10 bg-surface-dark text-content-primary rounded-xl pl-12 pr-4 w-full text-sm outline-none border border-border focus:border-primary transition-colors"
             />
           </div>
         </div>
@@ -297,18 +297,18 @@ const CheckFundsModal = ({
           {sortedTransactions.length > 0 ? (
             <>
               <div className="flex flex-col sm:flex-row justify-between gap-3 mb-4">
-                <p className="text-gray-300 text-sm">
+                <p className="text-content-secondary text-sm">
                   Update the status of pending transactions:
                 </p>
                 <div className="flex gap-2">
                   <button
-                    className="px-3 py-1 text-sm rounded-lg bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F] transition-colors"
+                    className="px-3 py-1 text-sm rounded-lg bg-surface-button text-content-secondary hover:bg-surface-button-hover transition-colors"
                     onClick={() => handleSelectAll(true)}
                   >
                     Select All
                   </button>
                   <button
-                    className="px-3 py-1 text-sm rounded-lg bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F] transition-colors"
+                    className="px-3 py-1 text-sm rounded-lg bg-surface-button text-content-secondary hover:bg-surface-button-hover transition-colors"
                     onClick={() => handleSelectAll(false)}
                   >
                     Deselect All
@@ -318,20 +318,20 @@ const CheckFundsModal = ({
 
               {/* Bulk status update buttons */}
               {selectedCount > 0 && (
-                <div className="mb-4 p-3 bg-[#141414] rounded-lg">
+                <div className="mb-4 p-3 bg-surface-dark rounded-lg">
                   <div className="flex flex-wrap items-center gap-3">
-                    <span className="text-gray-300 text-sm">
+                    <span className="text-content-secondary text-sm">
                       Set all selected ({selectedCount}) to:
                     </span>
                     <button
                       onClick={() => handleSetAllSelectedStatus("Successful")}
-                      className="px-3 py-1 text-sm rounded-lg bg-[#10b981] text-white hover:bg-[#10b981]/80 transition-colors"
+                      className="px-3 py-1 text-sm rounded-lg bg-green-500 text-white hover:bg-green-500/80 transition-colors"
                     >
                       Successful
                     </button>
                     <button
                       onClick={() => handleSetAllSelectedStatus("Failed")}
-                      className="px-3 py-1 text-sm rounded-lg bg-[#ef4444] text-white hover:bg-[#ef4444]/80 transition-colors"
+                      className="px-3 py-1 text-sm rounded-lg bg-red-500 text-white hover:bg-red-500/80 transition-colors"
                     >
                       Failed
                     </button>
@@ -340,13 +340,13 @@ const CheckFundsModal = ({
               )}
 
               <div className="overflow-x-auto">
-                <table className="text-sm text-gray-300 border-collapse w-full" style={{ minWidth: '600px' }}>
-                  <thead className="text-xs text-gray-400 uppercase bg-[#141414]">
+                <table className="text-sm text-content-secondary border-collapse w-full" style={{ minWidth: '600px' }}>
+                  <thead className="text-xs text-content-muted uppercase bg-surface-dark">
                     <tr>
                       <th className="px-1.5 py-2 w-8 rounded-tl-lg">
                         <input
                           type="checkbox"
-                          className="rounded bg-black border-gray-700 text-orange-500 focus:ring-orange-500"
+                          className="rounded bg-black border-border text-primary focus:ring-primary"
                           checked={
                             sortedTransactions.length > 0 &&
                             sortedTransactions.every((tx) => selectedTransactions[tx.id])
@@ -359,7 +359,7 @@ const CheckFundsModal = ({
                       </th>
                       {/* Member Column */}
                       <th 
-                        className="px-1.5 md:px-2 py-2 text-left hover:bg-[#1C1C1C] transition-colors relative"
+                        className="px-1.5 md:px-2 py-2 text-left transition-colors relative"
                         style={{ width: `${columnWidths.member}px`, minWidth: '60px' }}
                       >
                         <div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("member")}>
@@ -372,12 +372,12 @@ const CheckFundsModal = ({
                           onMouseDown={(e) => handleResizeMouseDown(e, 'member')}
                           style={{ touchAction: 'none' }}
                         >
-                          <div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" />
+                          <div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-surface-button group-hover:bg-primary transition-colors" />
                         </div>
                       </th>
                       {/* Amount Column - 2nd */}
                       <th 
-                        className="px-1.5 md:px-2 py-2 text-right cursor-pointer hover:bg-[#1C1C1C] transition-colors relative"
+                        className="px-1.5 md:px-2 py-2 text-right cursor-pointer transition-colors relative"
                         onClick={() => handleSort("amount")}
                         style={{ width: `${columnWidths.amount}px`, minWidth: '40px' }}
                       >
@@ -391,7 +391,7 @@ const CheckFundsModal = ({
                           onMouseDown={(e) => handleResizeMouseDown(e, 'amount')}
                           style={{ touchAction: 'none' }}
                         >
-                          <div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" />
+                          <div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-surface-button group-hover:bg-primary transition-colors" />
                         </div>
                       </th>
                       {/* Services Column - 3rd, next to Amount */}
@@ -406,12 +406,12 @@ const CheckFundsModal = ({
                           onMouseDown={(e) => handleResizeMouseDown(e, 'services')}
                           style={{ touchAction: 'none' }}
                         >
-                          <div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" />
+                          <div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-surface-button group-hover:bg-primary transition-colors" />
                         </div>
                       </th>
                       {/* Status Column - 4th */}
                       <th 
-                        className="px-1.5 md:px-2 py-2 text-left hover:bg-[#1C1C1C] transition-colors relative"
+                        className="px-1.5 md:px-2 py-2 text-left transition-colors relative"
                         style={{ width: `${columnWidths.status}px`, minWidth: '100px' }}
                       >
                         <div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("status")}>
@@ -422,12 +422,12 @@ const CheckFundsModal = ({
                           onMouseDown={(e) => handleResizeMouseDown(e, 'status')}
                           style={{ touchAction: 'none' }}
                         >
-                          <div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" />
+                          <div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-surface-button group-hover:bg-primary transition-colors" />
                         </div>
                       </th>
                       {/* IBAN Column */}
                       <th 
-                        className="px-1.5 md:px-2 py-2 text-left hover:bg-[#1C1C1C] transition-colors relative"
+                        className="px-1.5 md:px-2 py-2 text-left transition-colors relative"
                         style={{ width: `${columnWidths.iban}px`, minWidth: '60px' }}
                       >
                         <div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("iban")}>
@@ -438,12 +438,12 @@ const CheckFundsModal = ({
                           onMouseDown={(e) => handleResizeMouseDown(e, 'iban')}
                           style={{ touchAction: 'none' }}
                         >
-                          <div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" />
+                          <div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-surface-button group-hover:bg-primary transition-colors" />
                         </div>
                       </th>
                       {/* Mandate Column */}
                       <th 
-                        className="px-1.5 md:px-2 py-2 text-left hover:bg-[#1C1C1C] transition-colors relative"
+                        className="px-1.5 md:px-2 py-2 text-left transition-colors relative"
                         style={{ width: `${columnWidths.mandate}px`, minWidth: '60px' }}
                       >
                         <div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("mandate")}>
@@ -456,12 +456,12 @@ const CheckFundsModal = ({
                           onMouseDown={(e) => handleResizeMouseDown(e, 'mandate')}
                           style={{ touchAction: 'none' }}
                         >
-                          <div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" />
+                          <div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-surface-button group-hover:bg-primary transition-colors" />
                         </div>
                       </th>
                       {/* Date Column */}
                       <th 
-                        className="px-1.5 md:px-2 py-2 text-left rounded-tr-lg hover:bg-[#1C1C1C] transition-colors relative"
+                        className="px-1.5 md:px-2 py-2 text-left rounded-tr-lg transition-colors relative"
                         style={{ width: `${columnWidths.date}px`, minWidth: '50px' }}
                       >
                         <div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("date")}>
@@ -472,7 +472,7 @@ const CheckFundsModal = ({
                           onMouseDown={(e) => handleResizeMouseDown(e, 'date')}
                           style={{ touchAction: 'none' }}
                         >
-                          <div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-gray-600 group-hover:bg-[#3F74FF] transition-colors" />
+                          <div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-surface-button group-hover:bg-primary transition-colors" />
                         </div>
                       </th>
                     </tr>
@@ -485,14 +485,14 @@ const CheckFundsModal = ({
                       return (
                         <tr 
                           key={tx.id} 
-                          className={`border-b border-gray-800 ${
+                          className={`border-b border-border ${
                             !isSelected ? "opacity-50" : ""
                           } transition-colors`}
                         >
                           <td className="px-1.5 py-2">
                             <input
                               type="checkbox"
-                              className="rounded bg-black border-gray-700 text-orange-500 focus:ring-orange-500"
+                              className="rounded bg-black border-border text-primary focus:ring-primary"
                               checked={isSelected || false}
                               onChange={() => handleToggleTransaction(tx.id)}
                             />
@@ -507,7 +507,7 @@ const CheckFundsModal = ({
                           <td className="px-1.5 md:px-2 py-2 text-center">
                             <button
                               onClick={() => handleShowServices(tx.services, tx.memberName)}
-                              className="text-blue-400 hover:text-blue-300"
+                              className="text-primary hover:text-primary-hover"
                             >
                               <Info className="w-3 h-3" />
                             </button>
@@ -519,8 +519,8 @@ const CheckFundsModal = ({
                                   onClick={() => handleUpdateStatus(tx.id, "Successful")}
                                   className={`px-1 md:px-2 py-0.5 md:py-1 rounded md:rounded-lg text-xs font-medium transition-colors ${
                                     currentStatus === "Successful"
-                                      ? "bg-[#10b981] text-white"
-                                      : "bg-[#2F2F2F] text-gray-400 hover:bg-[#3F3F3F]"
+                                      ? "bg-green-500 text-white"
+                                      : "bg-surface-button text-content-muted hover:bg-surface-button-hover"
                                   }`}
                                 >
                                   <span className="hidden md:inline">Successful</span>
@@ -530,8 +530,8 @@ const CheckFundsModal = ({
                                   onClick={() => handleUpdateStatus(tx.id, "Failed")}
                                   className={`px-1 md:px-2 py-0.5 md:py-1 rounded md:rounded-lg text-xs font-medium transition-colors ${
                                     currentStatus === "Failed"
-                                      ? "bg-[#ef4444] text-white"
-                                      : "bg-[#2F2F2F] text-gray-400 hover:bg-[#3F3F3F]"
+                                      ? "bg-red-500 text-white"
+                                      : "bg-surface-button text-content-muted hover:bg-surface-button-hover"
                                   }`}
                                 >
                                   <span className="hidden md:inline">Failed</span>
@@ -540,10 +540,10 @@ const CheckFundsModal = ({
                               </div>
                             ) : (
                               <>
-                                <span className="hidden md:inline text-white bg-[#f59e0b] px-2 py-1 rounded-lg text-xs">
+                                <span className="hidden md:inline text-white bg-yellow-500 px-2 py-1 rounded-lg text-xs">
                                   Pending
                                 </span>
-                                <span className="md:hidden text-white bg-[#f59e0b] px-1 py-0.5 rounded text-xs">
+                                <span className="md:hidden text-white bg-yellow-500 px-1 py-0.5 rounded text-xs">
                                   P
                                 </span>
                               </>
@@ -566,8 +566,8 @@ const CheckFundsModal = ({
               </div>
             </>
           ) : (
-            <div className="bg-[#141414] p-6 rounded-xl text-center">
-              <p className="text-gray-400">
+            <div className="bg-surface-dark p-6 rounded-xl text-center">
+              <p className="text-content-muted">
                 {searchTerm 
                   ? "No transactions found matching your search."
                   : "No transactions are pending fund verification."
@@ -577,10 +577,10 @@ const CheckFundsModal = ({
           )}
         </div>
 
-        <div className="p-4 border-t border-gray-800 flex justify-end gap-3">
+        <div className="p-4 border-t border-border flex justify-end gap-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-xl text-sm bg-[#2F2F2F] text-white hover:bg-[#3F3F3F] transition-colors"
+            className="px-4 py-2 rounded-xl text-sm bg-surface-button text-content-secondary hover:bg-surface-button-hover transition-colors"
           >
             Cancel
           </button>
@@ -597,36 +597,36 @@ const CheckFundsModal = ({
         {/* Services Modal */}
         {servicesModalOpen && (
           <div className="absolute inset-0 bg-black/70 flex items-center justify-center z-20">
-            <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col mx-4">
-              <div className="p-4 border-b border-gray-800 flex justify-between items-center">
-                <h2 className="text-white text-lg font-medium">Services Breakdown</h2>
-                <button onClick={() => setServicesModalOpen(false)} className="text-gray-400 hover:text-white">
+            <div className="bg-surface-base rounded-xl w-full max-w-md max-h-[80vh] overflow-hidden flex flex-col mx-4">
+              <div className="p-4 border-b border-border flex justify-between items-center">
+                <h2 className="text-content-primary text-lg font-medium">Services Breakdown</h2>
+                <button onClick={() => setServicesModalOpen(false)} className="text-content-muted hover:text-content-primary">
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               <div className="p-4 overflow-y-auto flex-grow">
                 <div className="mb-4">
-                  <h3 className="text-white font-medium mb-2">{selectedMemberName}</h3>
-                  <p className="text-gray-400 text-sm">Service breakdown for this member</p>
+                  <h3 className="text-content-primary font-medium mb-2">{selectedMemberName}</h3>
+                  <p className="text-content-muted text-sm">Service breakdown for this member</p>
                 </div>
 
                 <div className="space-y-3">
                   {selectedServices.map((service, index) => (
-                    <div key={index} className="bg-[#141414] p-3 rounded-lg">
+                    <div key={index} className="bg-surface-dark p-3 rounded-lg">
                       <div className="flex justify-between items-start mb-1">
-                        <span className="text-white font-medium text-sm">{service.name}</span>
-                        <span className="text-white font-semibold text-sm">${service.cost?.toFixed(2) || '0.00'}</span>
+                        <span className="text-content-primary font-medium text-sm">{service.name}</span>
+                        <span className="text-content-primary font-semibold text-sm">${service.cost?.toFixed(2) || '0.00'}</span>
                       </div>
-                      <p className="text-gray-400 text-xs">{service.description}</p>
+                      <p className="text-content-muted text-xs">{service.description}</p>
                     </div>
                   ))}
                 </div>
 
-                <div className="mt-4 pt-4 border-t border-gray-800">
+                <div className="mt-4 pt-4 border-t border-border">
                   <div className="flex justify-between items-center">
-                    <span className="text-white font-semibold text-sm">Total Amount</span>
-                    <span className="text-white font-bold text-lg">
+                    <span className="text-content-primary font-semibold text-sm">Total Amount</span>
+                    <span className="text-content-primary font-bold text-lg">
                       ${selectedServices.reduce((sum, service) => sum + (service.cost || 0), 0).toFixed(2)} USD
                     </span>
                   </div>

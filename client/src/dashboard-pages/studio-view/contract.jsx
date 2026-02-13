@@ -59,11 +59,11 @@ const StatusTag = ({
   const getStatusColor = (status) => {
     switch (status) {
       case 'Active': return 'bg-green-600';
-      case 'Pending': return 'bg-gray-600';
+      case 'Pending': return 'bg-surface-button-hover';
       case 'Paused': return 'bg-yellow-600';
       case 'Cancelled': return 'bg-red-600';
-      case 'Scheduled': return 'bg-gray-600';
-      default: return 'bg-gray-600';
+      case 'Scheduled': return 'bg-surface-button-hover';
+      default: return 'bg-surface-button-hover';
     }
   };
 
@@ -135,7 +135,7 @@ const StatusTag = ({
       <>
         {scheduledStartDate && (
           <div className="flex items-center gap-2">
-            <span className="text-gray-400 font-medium">Starts:</span>
+            <span className="text-content-muted font-medium">Starts:</span>
             <span>{formatD(scheduledStartDate)}</span>
           </div>
         )}
@@ -154,14 +154,14 @@ const StatusTag = ({
         </div>
         {/* Custom Tooltip */}
         {hasTooltip && (
-          <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/95 text-white px-3 py-2 rounded-lg text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none">
+          <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none">
             <div className="flex flex-col gap-1">
               {renderPauseTooltip()}
               {renderCancelTooltip()}
               {renderScheduledTooltip()}
             </div>
             {/* Arrow pointing up */}
-            <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/95" />
+            <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent" style={{ borderBottomColor: 'var(--color-surface-dark)' }} />
           </div>
         )}
       </div>
@@ -175,14 +175,14 @@ const StatusTag = ({
       </div>
       {/* Custom Tooltip */}
       {hasTooltip && (
-        <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/95 text-white px-3 py-2 rounded-lg text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none">
+        <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none">
           <div className="flex flex-col gap-1">
             {renderPauseTooltip()}
             {renderCancelTooltip()}
             {renderScheduledTooltip()}
           </div>
           {/* Arrow pointing up */}
-          <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/95" />
+          <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent" style={{ borderBottomColor: 'var(--color-surface-dark)' }} />
         </div>
       )}
     </div>
@@ -316,7 +316,7 @@ export default function ContractList() {
   // [{ memberId: string, memberName: string }, ...]
 
   // Filter states
-  const [filterStatus, setFilterStatus] = useState("all")
+  const [filterStatuses, setFilterStatuses] = useState([])
   const [filtersExpanded, setFiltersExpanded] = useState(false)
 
   // Sort states - matches members.jsx pattern
@@ -615,15 +615,17 @@ export default function ContractList() {
       filtered = filtered.filter(contract => filterIds.includes(contract.memberId))
     }
 
-    // Apply status filter
-    if (filterStatus !== "all") {
+    // Apply status filter (multi-select)
+    if (filterStatuses.length > 0) {
       filtered = filtered.filter(contract => {
-        if (filterStatus === "active") return contract.status === "Active"
-        if (filterStatus === "scheduled") return contract.status === "Scheduled"
-        if (filterStatus === "pending") return contract.status === "Pending"
-        if (filterStatus === "paused") return contract.status === "Paused"
-        if (filterStatus === "cancelled") return contract.status === "Cancelled"
-        return true
+        const statusMap = {
+          active: 'Active',
+          scheduled: 'Scheduled',
+          pending: 'Pending',
+          paused: 'Paused',
+          cancelled: 'Cancelled'
+        }
+        return filterStatuses.some(f => contract.status === statusMap[f])
       })
     }
 
@@ -1242,12 +1244,12 @@ export default function ContractList() {
         }}
       />
 
-      <div className="flex flex-col lg:flex-row rounded-3xl bg-[#1C1C1C] transition-all duration-500 text-white relative select-none">
+      <div className="flex flex-col lg:flex-row rounded-3xl bg-surface-base transition-all duration-500 text-content-primary relative select-none">
         <div className="flex-1 min-w-0 md:p-6 p-4 pb-36">
           {/* Header - matches members.jsx */}
           <div className="flex sm:items-center justify-between mb-6 sm:mb-8 gap-4">
             <div className="flex items-center gap-3">
-              <h1 className="text-white oxanium_font text-xl md:text-2xl">Contracts</h1>
+              <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">Contracts</h1>
               
               {/* Sort Button - Mobile: next to title */}
               <div className="lg:hidden relative" ref={mobileSortDropdownRef}>
@@ -1256,7 +1258,7 @@ export default function ContractList() {
                     e.stopPropagation()
                     setShowMobileSortDropdown(!showMobileSortDropdown)
                   }}
-                  className="px-3 py-2 bg-[#2F2F2F] text-gray-300 rounded-xl text-xs hover:bg-[#3F3F3F] transition-colors flex items-center gap-2"
+                  className="px-3 py-2 bg-surface-button text-content-secondary rounded-xl text-xs hover:bg-surface-button-hover transition-colors flex items-center gap-2"
                 >
                   {getSortIcon()}
                   <span>{currentSortLabel}</span>
@@ -1264,9 +1266,9 @@ export default function ContractList() {
 
                 {/* Sort Dropdown - Mobile */}
                 {showMobileSortDropdown && (
-                  <div className="absolute left-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[180px]">
+                  <div className="absolute left-0 mt-1 bg-surface-hover border border-border rounded-lg shadow-lg z-50 min-w-[180px]">
                     <div className="py-1">
-                      <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">Sort by</div>
+                      <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border">Sort by</div>
                       {sortOptions.map((option) => (
                         <button
                           key={option.value}
@@ -1274,11 +1276,11 @@ export default function ContractList() {
                             e.stopPropagation()
                             handleSortOptionClick(option.value)
                           }}
-                          className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${sortBy === option.value ? 'text-white bg-gray-800/50' : 'text-gray-300'}`}
+                          className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover transition-colors flex items-center justify-between ${sortBy === option.value ? 'text-content-primary bg-surface-hover/50' : 'text-content-secondary'}`}
                         >
                           <span>{option.label}</span>
                           {sortBy === option.value && (
-                            <span className="text-gray-400">
+                            <span className="text-content-muted">
                               {sortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
                             </span>
                           )}
@@ -1290,62 +1292,62 @@ export default function ContractList() {
               </div>
               
               {/* View Toggle - Desktop only */}
-              <div className="hidden lg:flex items-center gap-2 bg-black rounded-xl p-1">
+              <div className="hidden lg:flex items-center gap-2 bg-surface-dark rounded-xl p-1">
                 <div className="relative group">
                   <button
                     onClick={() => setViewMode('grid')}
-                    className={`p-2 rounded-lg transition-colors ${viewMode === 'grid' ? 'bg-orange-500 text-white' : 'text-gray-400 hover:text-white'}`}
+                    className={`p-2 rounded-lg transition-colors ${viewMode === 'grid' ? 'bg-primary text-white' : 'text-secondary hover:text-secondary-hover'}`}
                   >
                     <Grid3X3 size={16} />
                   </button>
                   
                   {/* Tooltip */}
-                  <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                  <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
                     <span className="font-medium">Grid View</span>
                     <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">V</span>
-                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent" style={{ borderBottomColor: 'var(--color-surface-dark)' }} />
                   </div>
                 </div>
                 
                 <div className="relative group">
                   <button
                     onClick={() => setViewMode('list')}
-                    className={`p-2 rounded-lg transition-colors ${viewMode === 'list' ? 'bg-orange-500 text-white' : 'text-gray-400 hover:text-white'}`}
+                    className={`p-2 rounded-lg transition-colors ${viewMode === 'list' ? 'bg-primary text-white' : 'text-secondary hover:text-secondary-hover'}`}
                   >
                     <List size={16} />
                   </button>
                   
                   {/* Tooltip */}
-                  <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                  <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
                     <span className="font-medium">List View</span>
                     <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">V</span>
-                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent" style={{ borderBottomColor: 'var(--color-surface-dark)' }} />
                   </div>
                 </div>
 
                 {/* Compact/Detailed Toggle */}
-                <div className="h-6 w-px bg-gray-700 mx-1"></div>
+                <div className="h-6 w-px bg-border mx-1"></div>
                 <div className="relative group">
                   <button
                     onClick={() => setIsCompactView(!isCompactView)}
-                    className="p-2 rounded-lg transition-colors flex items-center gap-1 text-orange-500"
+                    className={`p-2 rounded-lg transition-colors flex items-center gap-1 ${isCompactView ? "text-primary" : "text-primary"}`}
                   >
                     <div className="flex flex-col gap-0.5">
                       <div className="flex gap-0.5">
-                        <div className={`w-1.5 h-1.5 rounded-full ${!isCompactView ? 'bg-current' : 'bg-gray-500'}`}></div>
-                        <div className={`w-1.5 h-1.5 rounded-full ${!isCompactView ? 'bg-current' : 'bg-gray-500'}`}></div>
+                        <div className={`w-1.5 h-1.5 rounded-full ${!isCompactView ? 'bg-current' : 'bg-content-muted'}`}></div>
+                        <div className={`w-1.5 h-1.5 rounded-full ${!isCompactView ? 'bg-current' : 'bg-content-muted'}`}></div>
                       </div>
                       <div className="flex gap-0.5">
-                        <div className={`w-1.5 h-1.5 rounded-full ${isCompactView ? 'bg-current' : 'bg-gray-500'}`}></div>
-                        <div className={`w-1.5 h-1.5 rounded-full ${isCompactView ? 'bg-current' : 'bg-gray-500'}`}></div>
+                        <div className={`w-1.5 h-1.5 rounded-full ${isCompactView ? 'bg-current' : 'bg-content-muted'}`}></div>
+                        <div className={`w-1.5 h-1.5 rounded-full ${isCompactView ? 'bg-current' : 'bg-content-muted'}`}></div>
                       </div>
                     </div>
                   </button>
                   
                   {/* Tooltip */}
-                  <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                  <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
                     <span className="font-medium">{isCompactView ? "Compact View" : "Detailed View"}</span>
-                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent" style={{ borderBottomColor: 'var(--color-surface-dark)' }} />
                   </div>
                 </div>
               </div>
@@ -1362,13 +1364,13 @@ export default function ContractList() {
                 </button>
                 
                 {/* Tooltip - YouTube Style */}
-                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
                   <span className="font-medium">Create Contract</span>
                   <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
                     C
                   </span>
                   {/* Arrow pointing up */}
-                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent" style={{ borderBottomColor: 'var(--color-surface-dark)' }} />
                 </div>
               </div>
             </div>
@@ -1378,29 +1380,29 @@ export default function ContractList() {
           <div className="mb-4" ref={searchDropdownRef}>
             <div className="relative">
               <div 
-                className="bg-[#141414] rounded-xl px-3 py-2 min-h-[42px] flex flex-wrap items-center gap-1.5 border border-[#333333] focus-within:border-[#3F74FF] transition-colors cursor-text"
+                className="bg-surface-card rounded-xl px-3 py-2 min-h-[42px] flex flex-wrap items-center gap-1.5 border border-border focus-within:border-primary transition-colors cursor-text"
                 onClick={() => searchInputRef.current?.focus()}
               >
-                <Search className="text-gray-400 flex-shrink-0" size={16} />
+                <Search className="text-content-muted flex-shrink-0" size={16} />
                 
                 {/* Filter Chips */}
                 {memberFilters.map((filter) => (
                   <div 
                     key={filter.memberId}
-                    className="flex items-center gap-1.5 bg-[#3F74FF]/20 border border-[#3F74FF]/40 rounded-lg px-2 py-1 text-sm"
+                    className="flex items-center gap-1.5 bg-primary/20 border border-primary/40 rounded-lg px-2 py-1 text-sm"
                   >
-                    <div className="w-5 h-5 rounded bg-[#2a2a2a] flex items-center justify-center flex-shrink-0">
+                    <div className="w-5 h-5 rounded bg-surface-button flex items-center justify-center flex-shrink-0">
                       <FileText size={12} className="text-orange-400" />
                     </div>
-                    <span className="text-white text-xs whitespace-nowrap">{filter.memberName}</span>
+                    <span className="text-content-primary text-xs whitespace-nowrap">{filter.memberName}</span>
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleRemoveFilter(filter.memberId);
                       }}
-                      className="p-0.5 hover:bg-[#3F74FF]/30 rounded transition-colors"
+                      className="p-0.5 hover:bg-primary/30 rounded transition-colors"
                     >
-                      <X size={12} className="text-gray-400 hover:text-white" />
+                      <X size={12} className="text-content-muted hover:text-content-primary" />
                     </button>
                   </div>
                 ))}
@@ -1417,7 +1419,7 @@ export default function ContractList() {
                   }}
                   onFocus={() => searchQuery && setShowSearchDropdown(true)}
                   onKeyDown={handleSearchKeyDown}
-                  className="flex-1 min-w-[100px] bg-transparent outline-none text-sm text-white placeholder-gray-500"
+                  className="flex-1 min-w-[100px] bg-transparent outline-none text-sm text-content-primary placeholder-gray-500"
                 />
                 
                 {/* Clear All Button */}
@@ -1427,29 +1429,29 @@ export default function ContractList() {
                       e.stopPropagation()
                       setMemberFilters([])
                     }}
-                    className="p-1 hover:bg-gray-700 rounded-lg transition-colors flex-shrink-0"
+                    className="p-1 hover:bg-surface-button rounded-lg transition-colors flex-shrink-0"
                     title="Clear all filters"
                   >
-                    <X size={14} className="text-gray-400 hover:text-white" />
+                    <X size={14} className="text-content-muted hover:text-content-primary" />
                   </button>
                 )}
               </div>
               
               {/* Autocomplete Dropdown */}
               {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a1a] border border-[#333333] rounded-xl shadow-lg z-50 overflow-hidden">
+                <div className="absolute top-full left-0 right-0 mt-1 bg-surface-hover border border-border rounded-xl shadow-lg z-50 overflow-hidden">
                   {getSearchSuggestions().map((member) => (
                     <button
                       key={member.memberId}
                       onClick={() => handleSelectMember(member)}
-                      className="w-full px-3 py-2.5 flex items-center gap-3 hover:bg-[#252525] transition-colors text-left"
+                      className="w-full px-3 py-2.5 flex items-center gap-3 hover:bg-surface-button transition-colors text-left"
                     >
-                      <div className="w-8 h-8 rounded-lg bg-[#2a2a2a] flex items-center justify-center flex-shrink-0">
+                      <div className="w-8 h-8 rounded-lg bg-surface-button flex items-center justify-center flex-shrink-0">
                         <FileText size={16} className="text-orange-400" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-white truncate">{member.memberName}</p>
-                        <p className="text-xs text-gray-500 truncate">{member.contractType}</p>
+                        <p className="text-sm text-content-primary truncate">{member.memberName}</p>
+                        <p className="text-xs text-content-faint truncate">{member.contractType}</p>
                       </div>
                     </button>
                   ))}
@@ -1458,8 +1460,8 @@ export default function ContractList() {
               
               {/* No results message */}
               {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length === 0 && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a1a] border border-[#333333] rounded-xl shadow-lg z-50 p-3">
-                  <p className="text-sm text-gray-500 text-center">No members found</p>
+                <div className="absolute top-full left-0 right-0 mt-1 bg-surface-hover border border-border rounded-xl shadow-lg z-50 p-3">
+                  <p className="text-sm text-content-faint text-center">No members found</p>
                 </div>
               )}
             </div>
@@ -1472,7 +1474,7 @@ export default function ContractList() {
               {/* Filters Toggle - Clickable to expand/collapse */}
               <button
                 onClick={() => setFiltersExpanded(!filtersExpanded)}
-                className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+                className="flex items-center gap-2 text-secondary hover:text-secondary-hover transition-colors"
               >
                 <Filter size={14} />
                 <span className="text-xs sm:text-sm font-medium">Filters</span>
@@ -1480,8 +1482,8 @@ export default function ContractList() {
                   size={14}
                   className={`transition-transform duration-200 ${filtersExpanded ? 'rotate-180' : ''}`}
                 />
-                {!filtersExpanded && filterStatus !== 'all' && (
-                  <span className="bg-blue-600 text-white text-[10px] px-1.5 py-0.5 rounded-full">1</span>
+                {!filtersExpanded && filterStatuses.length > 0 && (
+                  <span className="bg-white/20 text-white text-[10px] px-1.5 py-0.5 rounded-full">{filterStatuses.length}</span>
                 )}
               </button>
 
@@ -1492,7 +1494,7 @@ export default function ContractList() {
                     e.stopPropagation()
                     setShowSortDropdown(!showSortDropdown)
                   }}
-                  className="px-3 sm:px-4 py-1.5 bg-[#2F2F2F] text-gray-300 rounded-xl text-xs sm:text-sm hover:bg-[#3F3F3F] transition-colors flex items-center gap-2"
+                  className="px-3 sm:px-4 py-1.5 bg-surface-button text-content-secondary rounded-xl text-xs sm:text-sm hover:bg-surface-button-hover transition-colors flex items-center gap-2"
                 >
                   {getSortIcon()}
                   <span>{currentSortLabel}</span>
@@ -1500,9 +1502,9 @@ export default function ContractList() {
 
                 {/* Sort Dropdown - Desktop */}
                 {showSortDropdown && (
-                  <div className="absolute top-full right-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[180px]">
+                  <div className="absolute top-full right-0 mt-1 bg-surface-hover border border-border rounded-lg shadow-lg z-50 min-w-[180px]">
                     <div className="py-1">
-                      <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">Sort by</div>
+                      <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border">Sort by</div>
                       {sortOptions.map((option) => (
                         <button
                           key={option.value}
@@ -1510,11 +1512,11 @@ export default function ContractList() {
                             e.stopPropagation()
                             handleSortOptionClick(option.value)
                           }}
-                          className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${sortBy === option.value ? 'text-white bg-gray-800/50' : 'text-gray-300'}`}
+                          className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover transition-colors flex items-center justify-between ${sortBy === option.value ? 'text-content-primary bg-surface-hover/50' : 'text-content-secondary'}`}
                         >
                           <span>{option.label}</span>
                           {sortBy === option.value && (
-                            <span className="text-gray-400">
+                            <span className="text-content-muted">
                               {sortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
                             </span>
                           )}
@@ -1530,38 +1532,38 @@ export default function ContractList() {
             <div className={`overflow-hidden transition-all duration-300 ${filtersExpanded ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
               <div className="flex flex-wrap gap-1.5 sm:gap-3">
                 <button
-                  onClick={() => setFilterStatus('all')}
-                  className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatus === 'all' ? "bg-blue-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}
+                  onClick={() => setFilterStatuses([])}
+                  className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatuses.length === 0 ? "bg-primary text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"}`}
                 >
                   All ({contracts.length})
                 </button>
                 <button
-                  onClick={() => setFilterStatus('active')}
-                  className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatus === 'active' ? "bg-blue-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}
+                  onClick={() => setFilterStatuses(prev => prev.includes('active') ? prev.filter(f => f !== 'active') : [...prev, 'active'])}
+                  className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatuses.includes('active') ? "bg-primary text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"}`}
                 >
                   Active ({contracts.filter((c) => c.status === "Active").length})
                 </button>
                 <button
-                  onClick={() => setFilterStatus('scheduled')}
-                  className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatus === 'scheduled' ? "bg-blue-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}
+                  onClick={() => setFilterStatuses(prev => prev.includes('scheduled') ? prev.filter(f => f !== 'scheduled') : [...prev, 'scheduled'])}
+                  className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatuses.includes('scheduled') ? "bg-primary text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"}`}
                 >
                   Scheduled ({contracts.filter((c) => c.status === "Scheduled").length})
                 </button>
                 <button
-                  onClick={() => setFilterStatus('pending')}
-                  className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatus === 'pending' ? "bg-blue-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}
+                  onClick={() => setFilterStatuses(prev => prev.includes('pending') ? prev.filter(f => f !== 'pending') : [...prev, 'pending'])}
+                  className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatuses.includes('pending') ? "bg-primary text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"}`}
                 >
                   Pending ({contracts.filter((c) => c.status === "Pending").length})
                 </button>
                 <button
-                  onClick={() => setFilterStatus('paused')}
-                  className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatus === 'paused' ? "bg-blue-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}
+                  onClick={() => setFilterStatuses(prev => prev.includes('paused') ? prev.filter(f => f !== 'paused') : [...prev, 'paused'])}
+                  className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatuses.includes('paused') ? "bg-primary text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"}`}
                 >
                   Paused ({contracts.filter((c) => c.status === "Paused").length})
                 </button>
                 <button
-                  onClick={() => setFilterStatus('cancelled')}
-                  className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatus === 'cancelled' ? "bg-blue-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}
+                  onClick={() => setFilterStatuses(prev => prev.includes('cancelled') ? prev.filter(f => f !== 'cancelled') : [...prev, 'cancelled'])}
+                  className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl cursor-pointer text-[11px] sm:text-sm font-medium transition-colors ${filterStatuses.includes('cancelled') ? "bg-primary text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"}`}
                 >
                   Cancelled ({contracts.filter((c) => c.status === "Cancelled").length})
                 </button>
@@ -1576,9 +1578,9 @@ export default function ContractList() {
             <>
               {/* Desktop Table - unified compact/detailed */}
               <div className="hidden lg:block">
-                <div className="bg-[#161616] rounded-xl overflow-visible">
+                <div className="bg-surface-card rounded-xl overflow-visible">
                   {/* Table Header */}
-                  <div className={`grid grid-cols-[auto_1fr_1.5fr_1fr_1fr_0.8fr_1.5fr_auto] gap-4 px-4 bg-[#0f0f0f] text-gray-400 font-medium border-b border-gray-800 rounded-t-xl ${isCompactView ? 'py-2 text-xs' : 'py-3 text-sm'}`}>
+                  <div className={`grid grid-cols-[auto_1fr_1.5fr_1fr_1fr_0.8fr_1.5fr_auto] gap-4 px-4 bg-surface-dark text-content-muted font-medium border-b border-border rounded-t-xl ${isCompactView ? 'py-2 text-xs' : 'py-3 text-sm'}`}>
                     <div className={`text-center pr-4 ${isCompactView ? 'w-14' : 'w-20'}`}>Contract</div>
                     <div>Contract No.</div>
                     <div>Name</div>
@@ -1593,53 +1595,53 @@ export default function ContractList() {
                     filteredAndSortedContracts().map((contract) => (
                       <div
                         key={contract.id}
-                        className={`grid grid-cols-[auto_1fr_1.5fr_1fr_1fr_0.8fr_1.5fr_auto] gap-4 px-4 items-center border-b border-gray-800/50 hover:bg-[#1a1a1a] transition-colors relative ${isCompactView ? 'py-2' : 'py-3'}`}
+                        className={`grid grid-cols-[auto_1fr_1.5fr_1fr_1fr_0.8fr_1.5fr_auto] gap-4 px-4 items-center border-b border-border/50 hover:bg-surface-hover transition-colors relative ${isCompactView ? 'py-2' : 'py-3'}`}
                       >
                         {isExpiredContract(contract) && (
-                          <div className="absolute inset-0 bg-black/55 z-[40] pointer-events-none" />
+                          <div className="absolute inset-0 bg-surface-dark/70 z-[40] pointer-events-none" />
                         )}
                         <div className={`flex items-center justify-center pr-4 ${isCompactView ? 'w-14' : 'w-20'}`}>
                           <button
                             onClick={() => handleManageDocuments(contract)}
-                            className={`bg-[#2a2a2a] rounded-xl flex items-center justify-center hover:bg-[#3a3a3a] transition-colors cursor-pointer ${isCompactView ? 'w-8 h-8' : 'w-10 h-10'}`}
+                            className={`bg-surface-button rounded-xl flex items-center justify-center hover:bg-surface-button-hover transition-colors cursor-pointer ${isCompactView ? 'w-8 h-8' : 'w-10 h-10'}`}
                             title="Open Contract Documents"
                           >
                             <FileText size={isCompactView ? 16 : 20} className="text-orange-400" />
                           </button>
                         </div>
-                        <div className={`text-gray-400 truncate ${isCompactView ? 'text-xs' : 'text-sm'}`} title={contract.contractNumber || '-'}>
+                        <div className={`text-content-muted truncate ${isCompactView ? 'text-xs' : 'text-sm'}`} title={contract.contractNumber || '-'}>
                           {contract.contractNumber || '-'}
                         </div>
                         <div className="flex items-center">
-                          <span className={`text-white font-medium ${isCompactView ? 'text-xs' : 'text-sm'}`}>{contract.memberName}</span>
+                          <span className={`text-content-primary font-medium ${isCompactView ? 'text-xs' : 'text-sm'}`}>{contract.memberName}</span>
                         </div>
-                        <div className={`text-gray-300 ${isCompactView ? 'text-xs' : 'text-sm'}`}>{contract.contractType}</div>
+                        <div className={`text-content-secondary ${isCompactView ? 'text-xs' : 'text-sm'}`}>{contract.contractType}</div>
                         <div><StatusTag status={contract.status} compact={true} pauseReason={contract.pauseReason} pauseStartDate={contract.pauseStartDate} pauseEndDate={contract.pauseEndDate} cancelReason={contract.cancelReason} cancelDate={contract.cancelDate} scheduledStartDate={contract.scheduledStartDate} /></div>
-                        <div className={`text-gray-300 ${isCompactView ? 'text-xs' : 'text-sm'}`}>
+                        <div className={`text-content-secondary ${isCompactView ? 'text-xs' : 'text-sm'}`}>
                           {(() => {
                             const renewalInfo = getAutoRenewalInfo(contract)
                             const isCancelled = contract.status === 'Cancelled'
                             return renewalInfo.hasRenewal ? (
                               <div className="relative group inline-flex">
-                                <span className={`flex items-center gap-1 cursor-pointer transition-transform duration-200 hover:scale-110 ${isCancelled ? 'text-gray-500 line-through' : 'text-orange-400'}`}>
+                                <span className={`flex items-center gap-1 cursor-pointer transition-transform duration-200 hover:scale-110 ${isCancelled ? 'text-content-faint line-through' : 'text-orange-400'}`}>
                                   <RefreshCw size={isCompactView ? 10 : 12} /> Yes
                                 </span>
-                                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/95 text-white px-3 py-2 rounded-lg text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none">
-                                  <div className={`flex items-center gap-2 ${isCancelled ? 'line-through text-gray-400' : ''}`}>
-                                    <RefreshCw size={10} className={isCancelled ? 'text-gray-500' : 'text-orange-400'} />
+                                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none">
+                                  <div className={`flex items-center gap-2 ${isCancelled ? 'line-through text-content-muted' : ''}`}>
+                                    <RefreshCw size={10} className={isCancelled ? 'text-content-faint' : 'text-orange-400'} />
                                     <span>{renewalInfo.tooltip}</span>
                                   </div>
-                                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/95" />
+                                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent" style={{ borderBottomColor: 'var(--color-surface-dark)' }} />
                                 </div>
                               </div>
                             ) : (
-                              <span className="text-gray-500">No</span>
+                              <span className="text-content-faint">No</span>
                             )
                           })()}
                         </div>
-                        <div className={`text-gray-400 ${isCompactView ? 'text-xs' : 'text-sm'}`}>
+                        <div className={`text-content-muted ${isCompactView ? 'text-xs' : 'text-sm'}`}>
                           {contract.status === "Pending" ? (
-                            <span className="text-gray-600 italic">—</span>
+                            <span className="text-content-faint italic">—</span>
                           ) : (
                           <>
                           {formatDate(contract.startDate)} - {(() => {
@@ -1660,7 +1662,7 @@ export default function ContractList() {
                                 <Gift size={isCompactView ? 10 : 12} />
                                 Bonus
                               </span>
-                              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/95 text-white px-3 py-2 rounded-lg text-xs opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none max-w-[280px]">
+                              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none max-w-[280px]">
                                 {(() => {
                                   const eff = getEffectiveEndDate(contract)
                                   return (
@@ -1668,17 +1670,17 @@ export default function ContractList() {
                                       <Gift size={10} className="text-orange-400 mt-0.5 flex-shrink-0" />
                                       <div className="min-w-0 overflow-hidden">
                                         <span className="font-medium whitespace-nowrap">{contract.bonusTime.bonusAmount} {contract.bonusTime.bonusUnit}</span>
-                                        {contract.bonusTime.reason && <span className="text-gray-300 block truncate"> — {contract.bonusTime.reason}</span>}
-                                        {eff.bonusPeriod && <span className="text-gray-400 block whitespace-nowrap mt-0.5">{eff.bonusPeriod}</span>}
+                                        {contract.bonusTime.reason && <span className="text-content-secondary block truncate"> — {contract.bonusTime.reason}</span>}
+                                        {eff.bonusPeriod && <span className="text-content-muted block whitespace-nowrap mt-0.5">{eff.bonusPeriod}</span>}
                                         {contract.bonusTime.withExtension 
                                           ? <span className="text-green-400 block text-[10px] mt-0.5">+ Contract extension</span>
-                                          : <span className="text-gray-500 block text-[10px] mt-0.5">Without extension</span>
+                                          : <span className="text-content-faint block text-[10px] mt-0.5">Without extension</span>
                                         }
                                       </div>
                                     </div>
                                   )
                                 })()}
-                                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/95" />
+                                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent" style={{ borderBottomColor: 'var(--color-surface-dark)' }} />
                               </div>
                             </div>
                           )}
@@ -1687,50 +1689,50 @@ export default function ContractList() {
                         </div>
                         <div className={`flex items-center justify-end gap-0.5 ${isCompactView ? 'w-20' : 'w-24'}`}>
                           {contract.status === "Pending" ? (
-                            <button onClick={() => handleEditContract(contract)} className={`text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Edit">
+                            <button onClick={() => handleEditContract(contract)} className={`text-orange-400 hover:text-orange-300 hover:bg-surface-hover rounded-lg transition-colors ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Edit">
                               <Pencil size={isCompactView ? 14 : 18} />
                             </button>
                           ) : (
                             <div className={`${isCompactView ? 'p-1.5 w-[28px]' : 'p-2 w-[34px]'}`} />
                           )}
-                          <button onClick={() => handleViewHistory(contract.id)} className={`text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors ${isCompactView ? 'p-1.5' : 'p-2'}`} title="History">
+                          <button onClick={() => handleViewHistory(contract.id)} className={`text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors ${isCompactView ? 'p-1.5' : 'p-2'}`} title="History">
                             <History size={isCompactView ? 14 : 18} />
                           </button>
                           <div className="relative dropdown-trigger">
-                            <button onClick={(e) => toggleDropdownContract(contract.id, e)} className={`text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors ${isCompactView ? 'p-1.5' : 'p-2'}`}>
+                            <button onClick={(e) => toggleDropdownContract(contract.id, e)} className={`text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors ${isCompactView ? 'p-1.5' : 'p-2'}`}>
                               <MoreVertical size={isCompactView ? 14 : 18} />
                             </button>
                             {activeDropdownId === contract.id && (
-                              <div className="dropdown-menu absolute bottom-full right-0 mb-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-xl z-[9999] min-w-[190px] py-1">
+                              <div className="dropdown-menu absolute bottom-full right-0 mb-1 bg-surface-hover border border-border rounded-lg shadow-xl z-[9999] min-w-[190px] py-1">
                                 {contract.status === "Pending" && (
-                                  <button onClick={(e) => { e.stopPropagation(); handleDeleteContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-gray-800 flex items-center gap-2"><Trash2 size={14} /> Delete</button>
+                                  <button onClick={(e) => { e.stopPropagation(); handleDeleteContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-surface-hover flex items-center gap-2"><Trash2 size={14} /> Delete</button>
                                 )}
                                 {contract.status === "Cancelled" && (
-                                  <button onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 flex items-center gap-2"><RefreshCw size={14} /> Renew</button>
+                                  <button onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-content-secondary hover:bg-surface-hover flex items-center gap-2"><RefreshCw size={14} /> Renew</button>
                                 )}
                                 {contract.status === "Scheduled" && (
-                                  <button onClick={(e) => { e.stopPropagation(); handleCancelContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-gray-800 flex items-center gap-2"><XCircle size={14} /> Cancel</button>
+                                  <button onClick={(e) => { e.stopPropagation(); handleCancelContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-surface-hover flex items-center gap-2"><XCircle size={14} /> Cancel</button>
                                 )}
                                 {contract.status === "Paused" && (
                                   <>
-                                    <button onClick={(e) => { e.stopPropagation(); handleResumeContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-orange-400 hover:bg-gray-800 flex items-center gap-2"><PlayCircle size={14} /> Resume</button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 flex items-center gap-2"><RefreshCw size={14} /> Renew</button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleAddBonusTime(contract.id); setActiveDropdownId(null); }} className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 flex items-center gap-2 ${contract.bonusTime ? 'text-orange-400' : 'text-gray-300'}`}><Gift size={14} /> {contract.bonusTime ? 'Edit Bonus Time' : 'Add Bonus Time'}</button>
-                                    {contract.bonusTime && (<button onClick={(e) => { e.stopPropagation(); handleRemoveBonusTime(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-gray-800 flex items-center gap-2"><Trash2 size={14} /> Remove Bonus Time</button>)}
-                                    <button onClick={(e) => { e.stopPropagation(); handleChangeContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 flex items-center gap-2"><ArrowRightLeft size={14} /> Change</button>
-                                    <hr className="border-gray-700 my-1" />
-                                    <button onClick={(e) => { e.stopPropagation(); handleCancelContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-gray-800 flex items-center gap-2"><XCircle size={14} /> Cancel</button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleResumeContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-orange-400 hover:bg-surface-hover flex items-center gap-2"><PlayCircle size={14} /> Resume</button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-content-secondary hover:bg-surface-hover flex items-center gap-2"><RefreshCw size={14} /> Renew</button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleAddBonusTime(contract.id); setActiveDropdownId(null); }} className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover flex items-center gap-2 ${contract.bonusTime ? 'text-orange-400' : 'text-content-secondary'}`}><Gift size={14} /> {contract.bonusTime ? 'Edit Bonus Time' : 'Add Bonus Time'}</button>
+                                    {contract.bonusTime && (<button onClick={(e) => { e.stopPropagation(); handleRemoveBonusTime(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-surface-hover flex items-center gap-2"><Trash2 size={14} /> Remove Bonus Time</button>)}
+                                    <button onClick={(e) => { e.stopPropagation(); handleChangeContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-content-secondary hover:bg-surface-hover flex items-center gap-2"><ArrowRightLeft size={14} /> Change</button>
+                                    <hr className="border-border my-1" />
+                                    <button onClick={(e) => { e.stopPropagation(); handleCancelContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-surface-hover flex items-center gap-2"><XCircle size={14} /> Cancel</button>
                                   </>
                                 )}
                                 {contract.status === "Active" && (
                                   <>
-                                    <button onClick={(e) => { e.stopPropagation(); handlePauseContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 flex items-center gap-2"><PauseCircle size={14} /> Pause</button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 flex items-center gap-2"><RefreshCw size={14} /> Renew</button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleAddBonusTime(contract.id); setActiveDropdownId(null); }} className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 flex items-center gap-2 ${contract.bonusTime ? 'text-orange-400' : 'text-gray-300'}`}><Gift size={14} /> {contract.bonusTime ? 'Edit Bonus Time' : 'Add Bonus Time'}</button>
-                                    {contract.bonusTime && (<button onClick={(e) => { e.stopPropagation(); handleRemoveBonusTime(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-gray-800 flex items-center gap-2"><Trash2 size={14} /> Remove Bonus Time</button>)}
-                                    <button onClick={(e) => { e.stopPropagation(); handleChangeContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-gray-300 hover:bg-gray-800 flex items-center gap-2"><ArrowRightLeft size={14} /> Change</button>
-                                    <hr className="border-gray-700 my-1" />
-                                    <button onClick={(e) => { e.stopPropagation(); handleCancelContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-gray-800 flex items-center gap-2"><XCircle size={14} /> Cancel</button>
+                                    <button onClick={(e) => { e.stopPropagation(); handlePauseContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-content-secondary hover:bg-surface-hover flex items-center gap-2"><PauseCircle size={14} /> Pause</button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-content-secondary hover:bg-surface-hover flex items-center gap-2"><RefreshCw size={14} /> Renew</button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleAddBonusTime(contract.id); setActiveDropdownId(null); }} className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover flex items-center gap-2 ${contract.bonusTime ? 'text-orange-400' : 'text-content-secondary'}`}><Gift size={14} /> {contract.bonusTime ? 'Edit Bonus Time' : 'Add Bonus Time'}</button>
+                                    {contract.bonusTime && (<button onClick={(e) => { e.stopPropagation(); handleRemoveBonusTime(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-surface-hover flex items-center gap-2"><Trash2 size={14} /> Remove Bonus Time</button>)}
+                                    <button onClick={(e) => { e.stopPropagation(); handleChangeContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-content-secondary hover:bg-surface-hover flex items-center gap-2"><ArrowRightLeft size={14} /> Change</button>
+                                    <hr className="border-border my-1" />
+                                    <button onClick={(e) => { e.stopPropagation(); handleCancelContract(contract.id); setActiveDropdownId(null); }} className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-surface-hover flex items-center gap-2"><XCircle size={14} /> Cancel</button>
                                   </>
                                 )}
                               </div>
@@ -1741,7 +1743,7 @@ export default function ContractList() {
                     ))
                   ) : (
                     <div className="text-center py-8">
-                      <p className="text-gray-400 text-sm">No contracts found.</p>
+                      <p className="text-content-muted text-sm">No contracts found.</p>
                     </div>
                   )}
                 </div>
@@ -1751,9 +1753,9 @@ export default function ContractList() {
                 <div className="lg:hidden space-y-2">
                   {filteredAndSortedContracts().length > 0 ? (
                     filteredAndSortedContracts().map((contract) => (
-                      <div key={contract.id} className={`bg-[#161616] rounded-xl relative ${isExpiredContract(contract) ? 'overflow-visible' : 'overflow-hidden'}`}>
+                      <div key={contract.id} className={`bg-surface-card rounded-xl relative ${isExpiredContract(contract) ? 'overflow-visible' : 'overflow-hidden'}`}>
                         {isExpiredContract(contract) && (
-                          <div className="absolute inset-0 bg-black/55 z-[40] pointer-events-none rounded-xl" />
+                          <div className="absolute inset-0 bg-surface-dark/70 z-[40] pointer-events-none rounded-xl" />
                         )}
                         <div
                           className="p-3 cursor-pointer"
@@ -1762,39 +1764,39 @@ export default function ContractList() {
                           <div className="flex items-center gap-3">
                             <button
                               onClick={(e) => { e.stopPropagation(); handleManageDocuments(contract); }}
-                              className="w-11 h-11 bg-[#2a2a2a] rounded-xl flex items-center justify-center flex-shrink-0 hover:bg-[#3a3a3a] transition-colors"
+                              className="w-11 h-11 bg-surface-button rounded-xl flex items-center justify-center flex-shrink-0 hover:bg-surface-button-hover transition-colors"
                               title="Open Contract Documents"
                             >
                               <FileText size={22} className="text-orange-400" />
                             </button>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2">
-                                <span className="text-white font-medium truncate">{contract.memberName}</span>
+                                <span className="text-content-primary font-medium truncate">{contract.memberName}</span>
                                 {contract.contractNumber && (
-                                  <span className="text-gray-500 text-[10px] flex-shrink-0">#{contract.contractNumber}</span>
+                                  <span className="text-content-faint text-[10px] flex-shrink-0">#{contract.contractNumber}</span>
                                 )}
                               </div>
                               <div className="flex items-center gap-2 mt-1">
                                 <StatusTag status={contract.status} compact={true} pauseReason={contract.pauseReason} pauseStartDate={contract.pauseStartDate} pauseEndDate={contract.pauseEndDate} cancelReason={contract.cancelReason} cancelDate={contract.cancelDate} scheduledStartDate={contract.scheduledStartDate} />
-                                <span className="text-gray-400 text-xs">{contract.contractType}</span>
+                                <span className="text-content-muted text-xs">{contract.contractType}</span>
                               </div>
                             </div>
                             <ChevronDown
                               size={18}
-                              className={`text-gray-500 transition-transform duration-200 ${expandedMobileRowId === contract.id ? 'rotate-180' : ''}`}
+                              className={`text-content-faint transition-transform duration-200 ${expandedMobileRowId === contract.id ? 'rotate-180' : ''}`}
                             />
                           </div>
                         </div>
 
                         <div className={`overflow-hidden transition-all duration-200 ease-in-out ${expandedMobileRowId === contract.id ? 'max-h-72 opacity-100' : 'max-h-0 opacity-0'}`}>
                           <div className="px-3 pb-3 pt-1">
-                            <div className="bg-[#0f0f0f] rounded-xl p-2">
+                            <div className="bg-surface-dark rounded-xl p-2">
                               <div className="flex items-center justify-center gap-2 mb-2 flex-wrap">
                                 {contract.status === "Pending" ? (
-                                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-700/50 text-gray-500 italic">—</span>
+                                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-surface-button/50 text-content-faint italic">—</span>
                                 ) : (
                                 <>
-                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-700/50 text-gray-300">
+                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-surface-button/50 text-content-secondary">
                                   {formatDate(contract.startDate)} - {(() => {
                                     const eff = getEffectiveEndDate(contract)
                                     if (eff.isCancelledEarly) return <span className="text-red-400 font-medium">{formatDate(contract.endDate)}</span>
@@ -1814,28 +1816,28 @@ export default function ContractList() {
                               {contract.status === "Active" && (
                                 <>
                                   <div className="grid grid-cols-4 gap-1">
-                                    <button onClick={(e) => { e.stopPropagation(); handlePauseContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                                    <button onClick={(e) => { e.stopPropagation(); handlePauseContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
                                       <PauseCircle size={18} /><span className="text-[10px]">Pause</span>
                                     </button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                                    <button onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
                                       <RefreshCw size={18} /><span className="text-[10px]">Renew</span>
                                     </button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleAddBonusTime(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors">
+                                    <button onClick={(e) => { e.stopPropagation(); handleAddBonusTime(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-orange-400 hover:text-orange-300 hover:bg-surface-hover rounded-lg transition-colors">
                                       <Gift size={18} /><span className="text-[10px]">{contract.bonusTime ? 'Edit Bonus' : 'Bonus'}</span>
                                     </button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleChangeContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                                    <button onClick={(e) => { e.stopPropagation(); handleChangeContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
                                       <ArrowRightLeft size={18} /><span className="text-[10px]">Change</span>
                                     </button>
                                   </div>
                                   <div className="grid grid-cols-4 gap-1 mt-1">
-                                    <button onClick={(e) => { e.stopPropagation(); handleViewHistory(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                                    <button onClick={(e) => { e.stopPropagation(); handleViewHistory(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
                                       <History size={18} /><span className="text-[10px]">History</span>
                                     </button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleManageDocuments(contract); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                                    <button onClick={(e) => { e.stopPropagation(); handleManageDocuments(contract); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
                                       <FileText size={18} /><span className="text-[10px]">Docs</span>
                                     </button>
                                     <div className="p-2" />
-                                    <button onClick={(e) => { e.stopPropagation(); handleCancelContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-red-400 hover:text-red-300 hover:bg-white/5 rounded-lg transition-colors">
+                                    <button onClick={(e) => { e.stopPropagation(); handleCancelContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-red-400 hover:text-red-300 hover:bg-surface-hover rounded-lg transition-colors">
                                       <XCircle size={18} /><span className="text-[10px]">Cancel</span>
                                     </button>
                                   </div>
@@ -1845,28 +1847,28 @@ export default function ContractList() {
                               {contract.status === "Paused" && (
                                 <>
                                   <div className="grid grid-cols-4 gap-1">
-                                    <button onClick={(e) => { e.stopPropagation(); handleResumeContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors">
+                                    <button onClick={(e) => { e.stopPropagation(); handleResumeContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-orange-400 hover:text-orange-300 hover:bg-surface-hover rounded-lg transition-colors">
                                       <PlayCircle size={18} /><span className="text-[10px]">Resume</span>
                                     </button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                                    <button onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
                                       <RefreshCw size={18} /><span className="text-[10px]">Renew</span>
                                     </button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleAddBonusTime(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors">
+                                    <button onClick={(e) => { e.stopPropagation(); handleAddBonusTime(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-orange-400 hover:text-orange-300 hover:bg-surface-hover rounded-lg transition-colors">
                                       <Gift size={18} /><span className="text-[10px]">{contract.bonusTime ? 'Edit Bonus' : 'Bonus'}</span>
                                     </button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleChangeContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                                    <button onClick={(e) => { e.stopPropagation(); handleChangeContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
                                       <ArrowRightLeft size={18} /><span className="text-[10px]">Change</span>
                                     </button>
                                   </div>
                                   <div className="grid grid-cols-4 gap-1 mt-1">
-                                    <button onClick={(e) => { e.stopPropagation(); handleViewHistory(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                                    <button onClick={(e) => { e.stopPropagation(); handleViewHistory(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
                                       <History size={18} /><span className="text-[10px]">History</span>
                                     </button>
-                                    <button onClick={(e) => { e.stopPropagation(); handleManageDocuments(contract); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                                    <button onClick={(e) => { e.stopPropagation(); handleManageDocuments(contract); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
                                       <FileText size={18} /><span className="text-[10px]">Docs</span>
                                     </button>
                                     <div className="p-2" />
-                                    <button onClick={(e) => { e.stopPropagation(); handleCancelContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-red-400 hover:text-red-300 hover:bg-white/5 rounded-lg transition-colors">
+                                    <button onClick={(e) => { e.stopPropagation(); handleCancelContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-red-400 hover:text-red-300 hover:bg-surface-hover rounded-lg transition-colors">
                                       <XCircle size={18} /><span className="text-[10px]">Cancel</span>
                                     </button>
                                   </div>
@@ -1875,16 +1877,16 @@ export default function ContractList() {
 
                               {contract.status === "Pending" && (
                                 <div className="grid grid-cols-4 gap-1">
-                                  <button onClick={(e) => { e.stopPropagation(); handleEditContract(contract); }} className="flex flex-col items-center gap-1 p-2 text-orange-400 hover:text-orange-300 hover:bg-white/5 rounded-lg transition-colors">
+                                  <button onClick={(e) => { e.stopPropagation(); handleEditContract(contract); }} className="flex flex-col items-center gap-1 p-2 text-orange-400 hover:text-orange-300 hover:bg-surface-hover rounded-lg transition-colors">
                                     <Pencil size={18} /><span className="text-[10px]">Edit</span>
                                   </button>
-                                  <button onClick={(e) => { e.stopPropagation(); handleViewHistory(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                                  <button onClick={(e) => { e.stopPropagation(); handleViewHistory(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
                                     <History size={18} /><span className="text-[10px]">History</span>
                                   </button>
-                                  <button onClick={(e) => { e.stopPropagation(); handleManageDocuments(contract); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                                  <button onClick={(e) => { e.stopPropagation(); handleManageDocuments(contract); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
                                     <FileText size={18} /><span className="text-[10px]">Docs</span>
                                   </button>
-                                  <button onClick={(e) => { e.stopPropagation(); handleDeleteContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-red-400 hover:text-red-300 hover:bg-white/5 rounded-lg transition-colors">
+                                  <button onClick={(e) => { e.stopPropagation(); handleDeleteContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-red-400 hover:text-red-300 hover:bg-surface-hover rounded-lg transition-colors">
                                     <Trash2 size={18} /><span className="text-[10px]">Delete</span>
                                   </button>
                                 </div>
@@ -1892,13 +1894,13 @@ export default function ContractList() {
 
                               {contract.status === "Cancelled" && (
                                 <div className="grid grid-cols-4 gap-1">
-                                  <button onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                                  <button onClick={(e) => { e.stopPropagation(); handleRenewContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
                                     <RefreshCw size={18} /><span className="text-[10px]">Renew</span>
                                   </button>
-                                  <button onClick={(e) => { e.stopPropagation(); handleViewHistory(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                                  <button onClick={(e) => { e.stopPropagation(); handleViewHistory(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
                                     <History size={18} /><span className="text-[10px]">History</span>
                                   </button>
-                                  <button onClick={(e) => { e.stopPropagation(); handleManageDocuments(contract); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                                  <button onClick={(e) => { e.stopPropagation(); handleManageDocuments(contract); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
                                     <FileText size={18} /><span className="text-[10px]">Docs</span>
                                   </button>
                                   <div className="p-2" />
@@ -1907,12 +1909,12 @@ export default function ContractList() {
 
                               {contract.status === "Scheduled" && (
                                 <div className="grid grid-cols-4 gap-1">
-                                  <button onClick={(e) => { e.stopPropagation(); handleManageDocuments(contract); }} className="flex flex-col items-center gap-1 p-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                                  <button onClick={(e) => { e.stopPropagation(); handleManageDocuments(contract); }} className="flex flex-col items-center gap-1 p-2 text-content-muted hover:text-content-primary hover:bg-surface-hover rounded-lg transition-colors">
                                     <FileText size={18} /><span className="text-[10px]">Docs</span>
                                   </button>
                                   <div className="p-2" />
                                   <div className="p-2" />
-                                  <button onClick={(e) => { e.stopPropagation(); handleCancelContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-red-400 hover:text-red-300 hover:bg-white/5 rounded-lg transition-colors">
+                                  <button onClick={(e) => { e.stopPropagation(); handleCancelContract(contract.id); }} className="flex flex-col items-center gap-1 p-2 text-red-400 hover:text-red-300 hover:bg-surface-hover rounded-lg transition-colors">
                                     <XCircle size={18} /><span className="text-[10px]">Cancel</span>
                                   </button>
                                 </div>
@@ -1924,7 +1926,7 @@ export default function ContractList() {
                     ))
                   ) : (
                     <div className="text-center py-8">
-                      <p className="text-gray-400 text-sm">No contracts found.</p>
+                      <p className="text-content-muted text-sm">No contracts found.</p>
                     </div>
                   )}
                 </div>
@@ -1938,29 +1940,29 @@ export default function ContractList() {
                 filteredAndSortedContracts().map((contract) => (
                   <div
                     key={contract.id}
-                    className={`bg-[#161616] rounded-xl hover:bg-[#1a1a1a] transition-colors relative ${isCompactView ? 'p-3' : 'p-4'}`}
+                    className={`bg-surface-card rounded-xl hover:bg-surface-hover transition-colors relative ${isCompactView ? 'p-3' : 'p-4'}`}
                   >
                     {isExpiredContract(contract) && (
-                      <div className="absolute inset-0 bg-black/55 z-[40] pointer-events-none rounded-xl" />
+                      <div className="absolute inset-0 bg-surface-dark/70 z-[40] pointer-events-none rounded-xl" />
                     )}
                     <div className="flex flex-col items-center">
                       <button
                         onClick={() => handleManageDocuments(contract)}
-                        className={`bg-[#2a2a2a] rounded-xl flex items-center justify-center hover:bg-[#3a3a3a] transition-colors cursor-pointer ${isCompactView ? 'w-12 h-12 mb-2' : 'w-20 h-20 mb-3'}`}
+                        className={`bg-surface-button rounded-xl flex items-center justify-center hover:bg-surface-button-hover transition-colors cursor-pointer ${isCompactView ? 'w-12 h-12 mb-2' : 'w-20 h-20 mb-3'}`}
                         title="Open Contract Documents"
                       >
                         <FileText size={isCompactView ? 22 : 36} className="text-orange-400" />
                       </button>
-                      <h3 className={`text-white font-medium text-center ${isCompactView ? 'text-sm' : 'text-lg'}`}>{contract.memberName}</h3>
+                      <h3 className={`text-content-primary font-medium text-center ${isCompactView ? 'text-sm' : 'text-lg'}`}>{contract.memberName}</h3>
                       {contract.contractNumber && (
-                        <p className={`text-gray-500 ${isCompactView ? 'text-[10px]' : 'text-xs'}`}>#{contract.contractNumber}</p>
+                        <p className={`text-content-faint ${isCompactView ? 'text-[10px]' : 'text-xs'}`}>#{contract.contractNumber}</p>
                       )}
                       <div className={`flex items-center gap-2 ${isCompactView ? 'mt-1' : 'mt-2'}`}>
                         <StatusTag status={contract.status} compact={isCompactView} pauseReason={contract.pauseReason} pauseStartDate={contract.pauseStartDate} pauseEndDate={contract.pauseEndDate} cancelReason={contract.cancelReason} cancelDate={contract.cancelDate} scheduledStartDate={contract.scheduledStartDate} />
                       </div>
-                      <p className={`text-gray-400 ${isCompactView ? 'text-xs mt-1' : 'text-sm mt-2'}`}>{contract.contractType}</p>
+                      <p className={`text-content-muted ${isCompactView ? 'text-xs mt-1' : 'text-sm mt-2'}`}>{contract.contractType}</p>
                       {contract.status !== "Pending" && (
-                      <p className={`text-gray-500 mt-1 ${isCompactView ? 'text-[10px]' : 'text-xs'}`}>
+                      <p className={`text-content-faint mt-1 ${isCompactView ? 'text-[10px]' : 'text-xs'}`}>
                         {formatDate(contract.startDate)} - {(() => {
                           const eff = getEffectiveEndDate(contract)
                           if (eff.isCancelledEarly) return <span className="text-red-400 font-medium">{formatDate(contract.endDate)}</span>
@@ -1976,19 +1978,19 @@ export default function ContractList() {
                             const isCancelled = contract.status === 'Cancelled'
                             return renewalInfo.hasRenewal ? (
                               <div className="relative group inline-flex">
-                                <span className={`flex items-center gap-1 cursor-pointer transition-transform duration-200 hover:scale-110 ${isCancelled ? 'text-gray-500 line-through' : 'text-orange-400'}`}>
+                                <span className={`flex items-center gap-1 cursor-pointer transition-transform duration-200 hover:scale-110 ${isCancelled ? 'text-content-faint line-through' : 'text-orange-400'}`}>
                                   <RefreshCw size={10} /> Auto Renewal
                                 </span>
-                                <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 bg-black/95 text-white px-3 py-2 rounded-lg text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none">
-                                  <div className={`flex items-center gap-2 ${isCancelled ? 'line-through text-gray-400' : ''}`}>
-                                    <RefreshCw size={10} className={isCancelled ? 'text-gray-500' : 'text-orange-400'} />
+                                <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none">
+                                  <div className={`flex items-center gap-2 ${isCancelled ? 'line-through text-content-muted' : ''}`}>
+                                    <RefreshCw size={10} className={isCancelled ? 'text-content-faint' : 'text-orange-400'} />
                                     <span>{renewalInfo.tooltip}</span>
                                   </div>
-                                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-black/95" />
+                                  <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent" style={{ borderTopColor: 'var(--color-surface-dark)' }} />
                                 </div>
                               </div>
                             ) : (
-                              <span className="text-gray-500">No Auto Renewal</span>
+                              <span className="text-content-faint">No Auto Renewal</span>
                             )
                           })()}
                         </div>
@@ -2003,7 +2005,7 @@ export default function ContractList() {
                           <span className={`rounded-full bg-orange-500/20 text-orange-400 flex items-center gap-1 cursor-pointer transition-transform duration-200 hover:scale-110 ${isCompactView ? 'text-[10px] px-1.5 py-0.5' : 'text-xs px-2 py-1'}`}>
                             <Gift size={isCompactView ? 10 : 12} /> Bonus
                           </span>
-                          <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 bg-black/95 text-white px-3 py-2 rounded-lg text-xs opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none max-w-[280px]">
+                          <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 shadow-lg pointer-events-none max-w-[280px]">
                             {(() => {
                               const eff = getEffectiveEndDate(contract)
                               return (
@@ -2011,39 +2013,39 @@ export default function ContractList() {
                                   <Gift size={10} className="text-orange-400 mt-0.5 flex-shrink-0" />
                                   <div className="min-w-0 overflow-hidden">
                                     <span className="font-medium whitespace-nowrap">{contract.bonusTime.bonusAmount} {contract.bonusTime.bonusUnit}</span>
-                                    {contract.bonusTime.reason && <span className="text-gray-300 block truncate"> — {contract.bonusTime.reason}</span>}
-                                    {eff.bonusPeriod && <span className="text-gray-400 block whitespace-nowrap mt-0.5">{eff.bonusPeriod}</span>}
+                                    {contract.bonusTime.reason && <span className="text-content-secondary block truncate"> — {contract.bonusTime.reason}</span>}
+                                    {eff.bonusPeriod && <span className="text-content-muted block whitespace-nowrap mt-0.5">{eff.bonusPeriod}</span>}
                                     {contract.bonusTime.withExtension 
                                       ? <span className="text-green-400 block text-[10px] mt-0.5">+ Contract extension</span>
-                                      : <span className="text-gray-500 block text-[10px] mt-0.5">Without extension</span>
+                                      : <span className="text-content-faint block text-[10px] mt-0.5">Without extension</span>
                                     }
                                   </div>
                                 </div>
                               )
                             })()}
-                            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-black/95" />
+                            <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent" style={{ borderTopColor: 'var(--color-surface-dark)' }} />
                           </div>
                         </div>
                       )}
                     </div>
 
                     {/* Action Buttons - Members-style visible icons */}
-                    <div className={`bg-[#0a0a0a] rounded-lg ${isCompactView ? 'p-1.5 mt-2' : 'p-2 mt-4'}`}>
+                    <div className={`bg-surface-dark rounded-lg ${isCompactView ? 'p-1.5 mt-2' : 'p-2 mt-4'}`}>
                       {/* Row 1 - Status action icons */}
                       <div className="grid grid-cols-5 gap-1">
                         {/* Active: Pause, Renew, Bonus, Change, Cancel */}
                         {contract.status === "Active" && (
                           <>
-                            <button onClick={() => handlePauseContract(contract.id)} className={`text-gray-400 hover:text-white rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Pause">
+                            <button onClick={() => handlePauseContract(contract.id)} className={`text-content-muted hover:text-content-primary rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Pause">
                               <PauseCircle size={isCompactView ? 14 : 16} />
                             </button>
-                            <button onClick={() => handleRenewContract(contract.id)} className={`text-gray-400 hover:text-white rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Renew">
+                            <button onClick={() => handleRenewContract(contract.id)} className={`text-content-muted hover:text-content-primary rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Renew">
                               <RefreshCw size={isCompactView ? 14 : 16} />
                             </button>
                             <button onClick={() => handleAddBonusTime(contract.id)} className={`text-orange-400 hover:text-orange-300 rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title={contract.bonusTime ? 'Edit Bonus Time' : 'Add Bonus Time'}>
                               <Gift size={isCompactView ? 14 : 16} />
                             </button>
-                            <button onClick={() => handleChangeContract(contract.id)} className={`text-gray-400 hover:text-white rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Change Contract">
+                            <button onClick={() => handleChangeContract(contract.id)} className={`text-content-muted hover:text-content-primary rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Change Contract">
                               <ArrowRightLeft size={isCompactView ? 14 : 16} />
                             </button>
                             <button onClick={() => handleCancelContract(contract.id)} className={`text-red-400 hover:text-red-300 rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Cancel">
@@ -2058,13 +2060,13 @@ export default function ContractList() {
                             <button onClick={() => handleResumeContract(contract.id)} className={`text-orange-400 hover:text-orange-300 rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Resume">
                               <PlayCircle size={isCompactView ? 14 : 16} />
                             </button>
-                            <button onClick={() => handleRenewContract(contract.id)} className={`text-gray-400 hover:text-white rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Renew">
+                            <button onClick={() => handleRenewContract(contract.id)} className={`text-content-muted hover:text-content-primary rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Renew">
                               <RefreshCw size={isCompactView ? 14 : 16} />
                             </button>
                             <button onClick={() => handleAddBonusTime(contract.id)} className={`text-orange-400 hover:text-orange-300 rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title={contract.bonusTime ? 'Edit Bonus Time' : 'Add Bonus Time'}>
                               <Gift size={isCompactView ? 14 : 16} />
                             </button>
-                            <button onClick={() => handleChangeContract(contract.id)} className={`text-gray-400 hover:text-white rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Change Contract">
+                            <button onClick={() => handleChangeContract(contract.id)} className={`text-content-muted hover:text-content-primary rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Change Contract">
                               <ArrowRightLeft size={isCompactView ? 14 : 16} />
                             </button>
                             <button onClick={() => handleCancelContract(contract.id)} className={`text-red-400 hover:text-red-300 rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Cancel">
@@ -2092,7 +2094,7 @@ export default function ContractList() {
                         {contract.status === "Cancelled" && (
                           <>
                             <div className={isCompactView ? 'p-1.5' : 'p-2'} />
-                            <button onClick={() => handleRenewContract(contract.id)} className={`text-gray-400 hover:text-white rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Renew">
+                            <button onClick={() => handleRenewContract(contract.id)} className={`text-content-muted hover:text-content-primary rounded-lg transition-colors flex items-center justify-center ${isCompactView ? 'p-1.5' : 'p-2'}`} title="Renew">
                               <RefreshCw size={isCompactView ? 14 : 16} />
                             </button>
                             <div className={isCompactView ? 'p-1.5' : 'p-2'} />
@@ -2119,7 +2121,7 @@ export default function ContractList() {
                       <div className="flex justify-center mt-1">
                         <button
                           onClick={() => handleViewHistory(contract.id)}
-                          className={`text-gray-400 hover:text-white rounded-lg transition-colors flex items-center justify-center gap-1.5 ${isCompactView ? 'p-1' : 'p-2'}`}
+                          className={`text-content-muted hover:text-content-primary rounded-lg transition-colors flex items-center justify-center gap-1.5 ${isCompactView ? 'p-1' : 'p-2'}`}
                         >
                           <History size={isCompactView ? 12 : 14} />
                           <span className={`font-medium ${isCompactView ? 'text-[10px]' : 'text-xs'}`}>History</span>
@@ -2130,7 +2132,7 @@ export default function ContractList() {
                 ))
               ) : (
                 <div className="text-center py-8 col-span-full">
-                  <p className="text-gray-400 text-sm">No contracts found.</p>
+                  <p className="text-content-muted text-sm">No contracts found.</p>
                 </div>
               )}
             </div>

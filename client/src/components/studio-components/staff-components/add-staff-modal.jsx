@@ -475,11 +475,11 @@ function AddStaffModal({ setIsModalOpen, staffMembers, setStaffMembers }) {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
-                      <DatePickerField
-                        label="Birthday"
-                        value={newStaff.birthday}
-                        onChange={(val) => setNewStaff(prev => ({ ...prev, birthday: val }))}
-                      />
+                      <label className="text-sm text-content-secondary block mb-2">Birthday</label>
+                      <div className="w-full flex items-center justify-between bg-surface-dark rounded-xl px-4 py-2 text-sm">
+                        <span className={newStaff.birthday ? "text-content-primary" : "text-content-faint"}>{newStaff.birthday ? (() => { const [y,m,d] = newStaff.birthday.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+                        <DatePickerField value={newStaff.birthday} onChange={(val) => setNewStaff(prev => ({ ...prev, birthday: val }))} />
+                      </div>
                     </div>
                     <div>
                       <label className="text-sm text-content-secondary block mb-2">Gender</label>

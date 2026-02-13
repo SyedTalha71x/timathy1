@@ -728,11 +728,11 @@ const CreateTempMemberModal = ({
                       </select>
                     </div>
                     <div>
-                      <DatePickerField
-                        label="Birthday"
-                        value={formData.dateOfBirth || ""}
-                        onChange={(val) => setFormData(prev => ({ ...prev, dateOfBirth: val }))}
-                      />
+                      <label className="text-sm text-gray-200 block mb-2">Birthday</label>
+                      <div className="w-full flex items-center justify-between bg-[#141414] rounded-xl px-4 py-2 text-sm">
+                        <span className={formData.dateOfBirth ? "text-white" : "text-gray-500"}>{formData.dateOfBirth ? (() => { const [y,m,d] = (formData.dateOfBirth || "").split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+                        <DatePickerField value={formData.dateOfBirth || ""} onChange={(val) => setFormData(prev => ({ ...prev, dateOfBirth: val }))} />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -870,11 +870,11 @@ const CreateTempMemberModal = ({
                   </div>
 
                   <div>
-                    <DatePickerField
-                      label="Auto-Archive Due Date"
-                      value={formData.autoArchiveDate || ""}
-                      onChange={(val) => setFormData(prev => ({ ...prev, autoArchiveDate: val }))}
-                    />
+                    <label className="text-sm text-gray-200 block mb-2">Auto-Archive Due Date</label>
+                    <div className="w-full flex items-center justify-between bg-[#141414] rounded-xl px-4 py-2 text-sm">
+                      <span className={formData.autoArchiveDate ? "text-white" : "text-gray-500"}>{formData.autoArchiveDate ? (() => { const [y,m,d] = (formData.autoArchiveDate || "").split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+                      <DatePickerField value={formData.autoArchiveDate || ""} onChange={(val) => setFormData(prev => ({ ...prev, autoArchiveDate: val }))} />
+                    </div>
                     <p className="text-xs text-gray-500 mt-1">
                       The temporary member will be automatically archived after this date.
                     </p>
@@ -963,16 +963,20 @@ const CreateTempMemberModal = ({
 
                     {/* Optional Date Range */}
                     <div className="grid grid-cols-2 gap-3">
-                      <DatePickerField
-                        label="Valid From (optional)"
-                        value={newNote.startDate}
-                        onChange={(val) => setNewNote({ ...newNote, startDate: val })}
-                      />
-                      <DatePickerField
-                        label="Valid Until (optional)"
-                        value={newNote.endDate}
-                        onChange={(val) => setNewNote({ ...newNote, endDate: val })}
-                      />
+                      <div>
+                        <label className="text-sm text-gray-200 block mb-2">Valid From (optional)</label>
+                        <div className="w-full flex items-center justify-between bg-[#141414] rounded-xl px-4 py-2 text-sm">
+                          <span className={newNote.startDate ? "text-white" : "text-gray-500"}>{newNote.startDate ? (() => { const [y,m,d] = newNote.startDate.split('-'); return `${d}.${m}.${y}` })() : "Select"}</span>
+                          <DatePickerField value={newNote.startDate} onChange={(val) => setNewNote({ ...newNote, startDate: val })} />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-sm text-gray-200 block mb-2">Valid Until (optional)</label>
+                        <div className="w-full flex items-center justify-between bg-[#141414] rounded-xl px-4 py-2 text-sm">
+                          <span className={newNote.endDate ? "text-white" : "text-gray-500"}>{newNote.endDate ? (() => { const [y,m,d] = newNote.endDate.split('-'); return `${d}.${m}.${y}` })() : "Select"}</span>
+                          <DatePickerField value={newNote.endDate} onChange={(val) => setNewNote({ ...newNote, endDate: val })} />
+                        </div>
+                      </div>
                     </div>
 
                     <button

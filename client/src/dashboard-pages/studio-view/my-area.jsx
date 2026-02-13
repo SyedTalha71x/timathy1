@@ -549,7 +549,7 @@ export default function MyArea() {
         }}
       />
 
-      <div className="flex flex-col md:flex-row rounded-3xl bg-[#1C1C1C] text-white min-h-screen">
+      <div className="flex flex-col md:flex-row rounded-3xl bg-surface-base text-content-primary min-h-screen">
         <main className="flex-1 min-w-0 p-2 overflow-hidden">
           <div className="p-1 md:p-5 space-y-4">
             {/* Header */}
@@ -563,7 +563,7 @@ export default function MyArea() {
                 {!isEditing && (
                   <button
                     onClick={() => setIsViewModalOpen(true)}
-                    className="px-4 py-2 flex justify-center items-center md:w-auto w-full text-sm gap-2 bg-gray-600 text-white hover:bg-gray-700 rounded-lg cursor-pointer"
+                    className="px-4 py-2 flex justify-center items-center md:w-auto w-full text-sm gap-2 bg-surface-button text-content-primary hover:bg-surface-button-hover rounded-lg cursor-pointer"
                   >
                     <Eye size={16} />
                     <span className="md:inline hidden">
@@ -650,7 +650,7 @@ export default function MyArea() {
                           getMemberById={getMemberById}
                           showCollapseButton={false}
                           useFixedHeight={true}
-                          backgroundColor="bg-[#2F2F2F]"
+                          backgroundColor="bg-surface-button"
                           showDatePicker={true}
                           initialDate={new Date()}
                         />

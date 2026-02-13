@@ -38,20 +38,20 @@ export default function SepaXmlSuccessModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-[#1E1E1E] rounded-2xl border border-gray-700 max-w-md w-full">
+      <div className="bg-surface-card rounded-2xl border border-border max-w-md w-full">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-700">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-border">
           <div className="flex items-center gap-3 min-w-0 flex-1">
-            <div className="bg-green-500/20 p-2 rounded-full flex-shrink-0">
-              <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-500" />
+            <div className="bg-primary/20 p-2 rounded-full flex-shrink-0">
+              <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
             </div>
-            <h3 className="text-white text-base sm:text-lg font-semibold truncate">
+            <h3 className="text-content-primary text-base sm:text-lg font-semibold truncate">
               SEPA XML Generated
             </h3>
           </div>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors flex-shrink-0 ml-2"
+            className="text-content-muted hover:text-content-primary transition-colors flex-shrink-0 ml-2"
           >
             <X className="w-5 h-5" />
           </button>
@@ -59,25 +59,25 @@ export default function SepaXmlSuccessModal({
 
         {/* Content */}
         <div className="p-4 sm:p-6 space-y-4">
-          <p className="text-gray-300 text-sm">
+          <p className="text-content-secondary text-sm">
             {shouldAutoDownload 
               ? "Your SEPA XML file has been generated and downloaded automatically."
               : "Your SEPA XML file has been generated successfully and is ready for download."
             }
           </p>
           
-          <div className="bg-[#141414] rounded-lg p-3 sm:p-4 space-y-3">
+          <div className="bg-surface-dark rounded-lg p-3 sm:p-4 space-y-3">
             <div className="flex justify-between items-center gap-2 text-sm min-w-0">
-              <span className="text-gray-400 flex-shrink-0 whitespace-nowrap">File Name:</span>
-              <span className="text-white font-medium truncate text-right" title={fileName}>{fileName}</span>
+              <span className="text-content-muted flex-shrink-0 whitespace-nowrap">File Name:</span>
+              <span className="text-content-primary font-medium truncate text-right" title={fileName}>{fileName}</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-gray-400">Transactions:</span>
-              <span className="text-white">{transactionCount} records</span>
+              <span className="text-content-muted">Transactions:</span>
+              <span className="text-content-primary">{transactionCount} records</span>
             </div>
             <div className="flex justify-between text-sm">
-              <span className="text-gray-400">Total Amount:</span>
-              <span className="text-green-500 font-medium">
+              <span className="text-content-muted">Total Amount:</span>
+              <span className="text-primary font-medium">
                 {new Intl.NumberFormat('en-US', {
                   style: 'currency',
                   currency: 'USD'
@@ -86,13 +86,13 @@ export default function SepaXmlSuccessModal({
             </div>
           </div>
 
-          <p className="text-gray-400 text-xs">
+          <p className="text-content-muted text-xs">
             The XML file follows SEPA ISO 20022 standards and is ready for bank processing.
           </p>
         </div>
 
         {/* Footer - Show download button only if auto-download was disabled */}
-        <div className={`flex gap-3 p-4 sm:p-6 border-t border-gray-700 ${shouldAutoDownload ? 'justify-center' : ''}`}>
+        <div className={`flex gap-3 p-4 sm:p-6 border-t border-border ${shouldAutoDownload ? 'justify-center' : ''}`}>
           {shouldAutoDownload ? (
             <button
               onClick={onClose}
@@ -104,7 +104,7 @@ export default function SepaXmlSuccessModal({
             <>
               <button
                 onClick={onClose}
-                className="flex-1 py-3 px-4 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#3F3F3F] transition-colors"
+                className="flex-1 py-3 px-4 bg-surface-button text-content-secondary rounded-xl hover:bg-surface-button-hover transition-colors"
               >
                 Close
               </button>

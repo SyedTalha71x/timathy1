@@ -97,6 +97,16 @@
   -webkit-text-fill-color: var(--color-content-muted) !important;
 }
 
+/* Global text selection — uses primary color across the entire platform */
+::selection {
+  background: var(--color-primary) !important;
+  color: #ffffff !important;
+}
+::-moz-selection {
+  background: var(--color-primary) !important;
+  color: #ffffff !important;
+}
+
 /* Browser date/time/color inputs – adapt picker chrome to theme */
 html {
   color-scheme: dark;

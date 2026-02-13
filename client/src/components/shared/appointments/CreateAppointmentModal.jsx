@@ -446,7 +446,11 @@ const AddAppointmentModal = ({
           {!showRecurringOptions && (
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <DatePickerField label="Date" value={appointmentData.date} onChange={(val) => updateAppointment("date", val)} />
+                <label className="block text-xs text-gray-500 mb-2">Date</label>
+                <div className="w-full flex items-center justify-between bg-[#222222] border border-gray-700 text-sm rounded-xl px-4 py-2.5">
+                  <span className={appointmentData.date ? "text-white" : "text-gray-500"}>{appointmentData.date ? (() => { const [y,m,d] = appointmentData.date.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+                  <DatePickerField value={appointmentData.date} onChange={(val) => updateAppointment("date", val)} />
+                </div>
               </div>
               <div>
                 <label className="block text-xs text-gray-500 mb-2">Time Slot</label>
@@ -490,7 +494,11 @@ const AddAppointmentModal = ({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <DatePickerField label="Start Date" value={recurringOptions.startDate} onChange={(val) => updateRecurringOptions("startDate", val)} />
+                  <label className="block text-xs text-gray-500 mb-2">Start Date</label>
+                  <div className="w-full flex items-center justify-between bg-[#181818] border border-gray-700 text-sm rounded-xl px-3 py-2.5">
+                    <span className={recurringOptions.startDate ? "text-white" : "text-gray-500"}>{recurringOptions.startDate ? (() => { const [y,m,d] = recurringOptions.startDate.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+                    <DatePickerField value={recurringOptions.startDate} onChange={(val) => updateRecurringOptions("startDate", val)} />
+                  </div>
                 </div>
                 <div>
                   <label className="block text-xs text-gray-500 mb-2">Occurrences</label>

@@ -8,7 +8,7 @@ import autoTable from 'jspdf-autotable'
 const MaskedIban = ({ iban, className = "" }) => {
   const [isRevealed, setIsRevealed] = useState(false);
 
-  if (!iban) return <span className="text-gray-500">-</span>;
+  if (!iban) return <span className="text-content-faint">-</span>;
 
   const maskIban = (ibanStr) => {
     if (ibanStr.length <= 8) return ibanStr;
@@ -23,13 +23,13 @@ const MaskedIban = ({ iban, className = "" }) => {
 
   return (
     <div className={`flex items-center gap-1 ${className}`}>
-      <span className="font-mono text-xs whitespace-nowrap text-white">{displayValue}</span>
+      <span className="font-mono text-xs whitespace-nowrap text-content-primary">{displayValue}</span>
       <button
         onClick={(e) => {
           e.stopPropagation();
           setIsRevealed(!isRevealed);
         }}
-        className="p-0.5 text-gray-400 hover:text-white transition-colors flex-shrink-0"
+        className="p-0.5 text-content-muted hover:text-content-primary transition-colors flex-shrink-0"
         title={isRevealed ? "Hide IBAN" : "Show full IBAN"}
       >
         {isRevealed ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
@@ -453,17 +453,17 @@ ${run.transactions.map((tx, idx) => {
   return (
     <>
       <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-        <div className="bg-[#1C1C1C] rounded-xl w-full max-w-5xl max-h-[85vh] overflow-hidden flex flex-col">
+        <div className="bg-surface-base rounded-xl w-full max-w-5xl max-h-[85vh] overflow-hidden flex flex-col">
           {/* Header - Gray colors, not orange */}
-          <div className="p-4 border-b border-gray-800 flex justify-between items-center">
+          <div className="p-4 border-b border-border flex justify-between items-center">
             <div className="flex items-center gap-3">
-              <FileText className="w-5 h-5 text-gray-400" />
-              <h2 className="text-white text-lg font-medium">Payment Run History</h2>
-              <span className="bg-gray-700 text-gray-300 text-xs px-2 py-1 rounded-full">
+              <FileText className="w-5 h-5 text-content-muted" />
+              <h2 className="text-content-primary text-lg font-medium">Payment Run History</h2>
+              <span className="bg-surface-button text-content-secondary text-xs px-2 py-1 rounded-full">
                 {paymentRuns.length} Runs
               </span>
             </div>
-            <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
+            <button onClick={onClose} className="text-content-muted hover:text-content-primary transition-colors">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -472,27 +472,27 @@ ${run.transactions.map((tx, idx) => {
           <div className="p-4 overflow-y-auto flex-grow">
             {paymentRuns.length === 0 ? (
               <div className="text-center py-12">
-                <FileText className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                <p className="text-gray-400 text-lg mb-2">No Payment Runs Yet</p>
-                <p className="text-gray-500 text-sm">Completed payment runs will appear here</p>
+                <FileText className="w-16 h-16 text-content-faint mx-auto mb-4" />
+                <p className="text-content-muted text-lg mb-2">No Payment Runs Yet</p>
+                <p className="text-content-faint text-sm">Completed payment runs will appear here</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {paymentRuns.map((run, index) => (
-                  <div key={run.id} className="bg-[#141414] rounded-xl overflow-hidden border border-gray-800 hover:border-gray-700 transition-colors">
+                  <div key={run.id} className="bg-surface-dark rounded-xl overflow-hidden border border-border hover:border-border transition-colors">
                     {/* Main Row - Gray expand icon, not orange */}
                     <div className="p-4 cursor-pointer" onClick={() => toggleExpand(run.id)}>
                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div className="flex items-start gap-4">
-                          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-800">
-                            {expandedRun === run.id ? <ChevronDown className="w-5 h-5 text-gray-400" /> : <ChevronRight className="w-5 h-5 text-gray-400" />}
+                          <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-surface-hover">
+                            {expandedRun === run.id ? <ChevronDown className="w-5 h-5 text-content-muted" /> : <ChevronRight className="w-5 h-5 text-content-muted" />}
                           </div>
                           <div>
                             <div className="flex items-center gap-3 mb-1">
-                              <span className="text-white font-bold text-lg">{run.paymentRunNumber}</span>
-                              {index === 0 && <span className="bg-blue-500/20 text-blue-400 text-xs px-2 py-0.5 rounded-full">Latest</span>}
+                              <span className="text-content-primary font-bold text-lg">{run.paymentRunNumber}</span>
+                              {index === 0 && <span className="bg-primary/20 text-primary text-xs px-2 py-0.5 rounded-full">Latest</span>}
                             </div>
-                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-400">
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-content-muted">
                               <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" />{formatDate(run.createdAt)}</span>
                               <span className="flex items-center gap-1"><User className="w-3.5 h-3.5" />{run.executedBy}</span>
                               <span className="flex items-center gap-1"><Hash className="w-3.5 h-3.5" />{run.transactions.length} Transactions</span>
@@ -501,13 +501,13 @@ ${run.transactions.map((tx, idx) => {
                         </div>
                         <div className="flex items-center gap-4 ml-14 md:ml-0">
                           <div className="text-right">
-                            <div className="text-xs text-gray-500 mb-1">Total Amount</div>
-                            <div className="text-white font-bold text-xl">{formatCurrency(run.totalAmount)}</div>
+                            <div className="text-xs text-content-faint mb-1">Total Amount</div>
+                            <div className="text-content-primary font-bold text-xl">{formatCurrency(run.totalAmount)}</div>
                           </div>
                           <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                            <button onClick={() => downloadSepaXml(run)} className="p-2 text-blue-400 hover:text-blue-300 hover:bg-blue-900/20 rounded-lg transition-colors" title="Download SEPA XML"><Download className="w-4 h-4" /></button>
+                            <button onClick={() => downloadSepaXml(run)} className="p-2 text-primary hover:opacity-80 hover:bg-primary/10 rounded-lg transition-colors" title="Download SEPA XML"><Download className="w-4 h-4" /></button>
                             <button onClick={() => downloadPdfReport(run)} className="p-2 text-orange-400 hover:text-orange-300 hover:bg-orange-900/20 rounded-lg transition-colors" title="Download PDF Report"><FileText className="w-4 h-4" /></button>
-                            <button onClick={() => handleDeleteClick(run)} className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-colors" title="Delete"><Trash2 className="w-4 h-4" /></button>
+                            <button onClick={() => handleDeleteClick(run)} className="p-2 text-content-muted hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-colors" title="Delete"><Trash2 className="w-4 h-4" /></button>
                           </div>
                         </div>
                       </div>
@@ -515,32 +515,32 @@ ${run.transactions.map((tx, idx) => {
 
                     {/* Expanded Details - Gray icons, not orange */}
                     {expandedRun === run.id && (
-                      <div className="border-t border-gray-800 p-4 bg-[#0D0D0D]">
+                      <div className="border-t border-border p-4 bg-surface-dark">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                          <div className="bg-[#1C1C1C] rounded-lg p-4">
-                            <h4 className="text-white font-medium mb-3 flex items-center gap-2"><Calendar className="w-4 h-4 text-gray-400" />Payment Details</h4>
+                          <div className="bg-surface-base rounded-lg p-4">
+                            <h4 className="text-content-primary font-medium mb-3 flex items-center gap-2"><Calendar className="w-4 h-4 text-content-muted" />Payment Details</h4>
                             <div className="space-y-2 text-sm">
-                              <div className="flex justify-between"><span className="text-gray-400">Claims Through:</span><span className="text-white">{formatDateShort(run.claimsUntilDate)}</span></div>
-                              <div className="flex justify-between"><span className="text-gray-400">Collection Date:</span><span className="text-white">{formatDateShort(run.collectionDate)}</span></div>
-                              <div className="flex justify-between"><span className="text-gray-400">Direct Debits:</span><span className="text-white">{run.transactions.length}</span></div>
+                              <div className="flex justify-between"><span className="text-content-muted">Claims Through:</span><span className="text-content-primary">{formatDateShort(run.claimsUntilDate)}</span></div>
+                              <div className="flex justify-between"><span className="text-content-muted">Collection Date:</span><span className="text-content-primary">{formatDateShort(run.collectionDate)}</span></div>
+                              <div className="flex justify-between"><span className="text-content-muted">Direct Debits:</span><span className="text-content-primary">{run.transactions.length}</span></div>
                             </div>
                           </div>
-                          <div className="bg-[#1C1C1C] rounded-lg p-4">
-                            <h4 className="text-white font-medium mb-3 flex items-center gap-2"><Building className="w-4 h-4 text-gray-400" />Creditor Information</h4>
+                          <div className="bg-surface-base rounded-lg p-4">
+                            <h4 className="text-content-primary font-medium mb-3 flex items-center gap-2"><Building className="w-4 h-4 text-content-muted" />Creditor Information</h4>
                             <div className="space-y-2 text-sm">
-                              <div className="flex justify-between"><span className="text-gray-400">Bank:</span><span className="text-white">{run.creditor.bankName}</span></div>
-                              <div className="flex justify-between"><span className="text-gray-400">IBAN:</span><span className="text-white font-mono text-xs">{run.creditor.iban}</span></div>
-                              <div className="flex justify-between"><span className="text-gray-400">BIC:</span><span className="text-white font-mono text-xs">{run.creditor.bic}</span></div>
-                              <div className="flex justify-between"><span className="text-gray-400">Creditor ID:</span><span className="text-white font-mono text-xs">{run.creditor.creditorId}</span></div>
+                              <div className="flex justify-between"><span className="text-content-muted">Bank:</span><span className="text-content-primary">{run.creditor.bankName}</span></div>
+                              <div className="flex justify-between"><span className="text-content-muted">IBAN:</span><span className="text-content-primary font-mono text-xs">{run.creditor.iban}</span></div>
+                              <div className="flex justify-between"><span className="text-content-muted">BIC:</span><span className="text-content-primary font-mono text-xs">{run.creditor.bic}</span></div>
+                              <div className="flex justify-between"><span className="text-content-muted">Creditor ID:</span><span className="text-content-primary font-mono text-xs">{run.creditor.creditorId}</span></div>
                             </div>
                           </div>
                         </div>
-                        <div className="bg-[#1C1C1C] rounded-lg p-4">
-                          <h4 className="text-white font-medium mb-3">Transactions ({run.transactions.length})</h4>
+                        <div className="bg-surface-base rounded-lg p-4">
+                          <h4 className="text-content-primary font-medium mb-3">Transactions ({run.transactions.length})</h4>
                           <div className="overflow-x-auto">
                             <table className="w-full text-sm" style={{ minWidth: '700px' }}>
                               <thead>
-                                <tr className="text-gray-400 text-xs uppercase">
+                                <tr className="text-content-muted text-xs uppercase">
                                   <th className="text-left py-2 px-2">Member No.</th>
                                   <th className="text-left py-2 px-2">Account Holder</th>
                                   <th className="text-left py-2 px-2">Booking No.</th>
@@ -551,17 +551,17 @@ ${run.transactions.map((tx, idx) => {
                               </thead>
                               <tbody>
                                 {run.transactions.map((tx, idx) => (
-                                  <tr key={tx.id || idx} className="border-t border-gray-800">
-                                    <td className="py-2 px-2 text-gray-300">{tx.memberNumber || `M-${String(idx + 1).padStart(5, '0')}`}</td>
-                                    <td className="py-2 px-2 text-white">{tx.accountHolder || tx.memberName}</td>
-                                    <td className="py-2 px-2 text-gray-300">{tx.bookingNumber || `BK-${run.paymentRunNumber}-${String(idx + 1).padStart(4, '0')}`}</td>
+                                  <tr key={tx.id || idx} className="border-t border-border">
+                                    <td className="py-2 px-2 text-content-secondary">{tx.memberNumber || `M-${String(idx + 1).padStart(5, '0')}`}</td>
+                                    <td className="py-2 px-2 text-content-primary">{tx.accountHolder || tx.memberName}</td>
+                                    <td className="py-2 px-2 text-content-secondary">{tx.bookingNumber || `BK-${run.paymentRunNumber}-${String(idx + 1).padStart(4, '0')}`}</td>
                                     <td className="py-2 px-2"><MaskedIban iban={getIban(tx)} /></td>
-                                    <td className="py-2 px-2 text-gray-400 text-xs">{tx.services.map(s => s.name).join(', ')}</td>
-                                    <td className="py-2 px-2 text-right text-white font-medium">{formatCurrency(tx.amount)}</td>
+                                    <td className="py-2 px-2 text-content-muted text-xs">{tx.services.map(s => s.name).join(', ')}</td>
+                                    <td className="py-2 px-2 text-right text-content-primary font-medium">{formatCurrency(tx.amount)}</td>
                                   </tr>
                                 ))}
                                 <tr className="border-t-2 border-orange-500 bg-orange-500/10">
-                                  <td colSpan="5" className="py-3 px-2 text-right text-white font-bold">Total:</td>
+                                  <td colSpan="5" className="py-3 px-2 text-right text-content-primary font-bold">Total:</td>
                                   <td className="py-3 px-2 text-right text-orange-500 font-bold text-lg">{formatCurrency(run.totalAmount)}</td>
                                 </tr>
                               </tbody>
@@ -569,7 +569,7 @@ ${run.transactions.map((tx, idx) => {
                           </div>
                         </div>
                         <div className="flex flex-wrap gap-3 mt-4">
-                          <button onClick={() => downloadSepaXml(run)} className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"><Download className="w-4 h-4" />Download SEPA XML</button>
+                          <button onClick={() => downloadSepaXml(run)} className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg transition-colors"><Download className="w-4 h-4" />Download SEPA XML</button>
                           <button onClick={() => downloadPdfReport(run)} className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors"><FileText className="w-4 h-4" />Download PDF Report</button>
                         </div>
                       </div>
@@ -585,23 +585,23 @@ ${run.transactions.map((tx, idx) => {
       {/* Delete Confirmation Modal */}
       {deleteConfirmationOpen && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[60] p-4">
-          <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md">
+          <div className="bg-surface-base rounded-xl w-full max-w-md">
             <div className="p-6">
               <div className="flex items-center gap-3 mb-4">
                 <div className="bg-red-900/30 p-2 rounded-lg"><AlertTriangle className="w-6 h-6 text-red-400" /></div>
-                <h3 className="text-white text-lg font-medium">Delete Payment Run</h3>
+                <h3 className="text-content-primary text-lg font-medium">Delete Payment Run</h3>
               </div>
-              <p className="text-gray-300 mb-2">Are you sure you want to delete this payment run?</p>
+              <p className="text-content-secondary mb-2">Are you sure you want to delete this payment run?</p>
               {runToDelete && (
-                <div className="bg-[#141414] rounded-lg p-3 mb-4">
-                  <p className="text-white font-medium">{runToDelete.paymentRunNumber}</p>
-                  <p className="text-gray-400 text-sm mt-1">Created: {formatDate(runToDelete.createdAt)}</p>
-                  <p className="text-gray-400 text-sm">Transactions: {runToDelete.transactions.length} | Amount: {formatCurrency(runToDelete.totalAmount)}</p>
+                <div className="bg-surface-dark rounded-lg p-3 mb-4">
+                  <p className="text-content-primary font-medium">{runToDelete.paymentRunNumber}</p>
+                  <p className="text-content-muted text-sm mt-1">Created: {formatDate(runToDelete.createdAt)}</p>
+                  <p className="text-content-muted text-sm">Transactions: {runToDelete.transactions.length} | Amount: {formatCurrency(runToDelete.totalAmount)}</p>
                 </div>
               )}
               <p className="text-yellow-400 text-sm mb-6">This action cannot be undone. All associated data will be permanently deleted.</p>
               <div className="flex gap-3 justify-end">
-                <button onClick={cancelDelete} className="px-4 py-2 bg-[#2F2F2F] text-white rounded-xl hover:bg-[#3F3F3F] transition-colors">Cancel</button>
+                <button onClick={cancelDelete} className="px-4 py-2 bg-surface-button text-content-secondary rounded-xl hover:bg-surface-button-hover transition-colors">Cancel</button>
                 <button onClick={confirmDelete} className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors flex items-center gap-2"><Trash2 className="w-4 h-4" />Delete</button>
               </div>
             </div>

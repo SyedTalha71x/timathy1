@@ -60,10 +60,10 @@ const RepeatTaskModal = ({ onClose, onRepeatTask, task }) => {
   return (
     <>
       <div className="fixed inset-0 open_sans_font w-screen h-screen bg-black/50 flex items-center p-3 sm:p-4 md:p-6 justify-center z-[1000]">
-        <div className="bg-[#181818] rounded-2xl w-full max-w-md p-4 sm:p-5 md:p-6 lg:p-6 relative">
+        <div className="bg-surface-card rounded-2xl w-full max-w-md p-4 sm:p-5 md:p-6 lg:p-6 relative">
           <div className="flex justify-between items-center mb-5 sm:mb-6">
-            <h2 className="text-white text-lg open_sans_font_700 font-semibold">Repeat Task: {task.title}</h2>
-            <button onClick={onClose} className="text-gray-400 cursor-pointer hover:text-white">
+            <h2 className="text-content-primary text-lg open_sans_font_700 font-semibold">Repeat Task: {task.title}</h2>
+            <button onClick={onClose} className="text-content-muted cursor-pointer hover:text-content-primary">
               <X size={20} />
             </button>
           </div>
@@ -72,11 +72,11 @@ const RepeatTaskModal = ({ onClose, onRepeatTask, task }) => {
             className="space-y-4 custom-scrollbar max-h-[calc(100vh-180px)] overflow-y-auto"
           >
             <div>
-              <label className="text-sm text-gray-200">Repeat Frequency</label>
+              <label className="text-sm text-content-secondary">Repeat Frequency</label>
               <select
                 value={frequency}
                 onChange={(e) => setFrequency(e.target.value)}
-                className="w-full bg-[#101010] mt-1 text-sm rounded-xl px-4 py-2.5 text-white outline-none"
+                className="w-full bg-surface-dark mt-1 text-sm rounded-xl px-4 py-2.5 text-content-primary outline-none"
               >
                 <option value="daily">Daily</option>
                 <option value="weekly">Weekly</option>
@@ -85,7 +85,7 @@ const RepeatTaskModal = ({ onClose, onRepeatTask, task }) => {
             </div>
             {frequency === "weekly" && (
               <div>
-                <label className="text-sm text-gray-200">Repeat on days</label>
+                <label className="text-sm text-content-secondary">Repeat on days</label>
                 <div className="flex flex-wrap gap-2 mt-1">
                   {daysOfWeek.map((day) => (
                     <button
@@ -93,7 +93,7 @@ const RepeatTaskModal = ({ onClose, onRepeatTask, task }) => {
                       type="button"
                       onClick={() => handleDayToggle(day.value)}
                       className={`px-3 py-1.5 rounded-full text-xs transition-colors ${
-                        repeatDays.includes(day.value) ? "bg-[#3F74FF] text-white" : "bg-[#2F2F2F] text-gray-200 hover:bg-[#3F3F3F]"
+                        repeatDays.includes(day.value) ? "bg-primary text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
                       }`}
                     >
                       {day.name}
@@ -103,30 +103,30 @@ const RepeatTaskModal = ({ onClose, onRepeatTask, task }) => {
               </div>
             )}
             <div>
-              <label className="text-sm text-gray-200 block mb-2">Ends</label>
+              <label className="text-sm text-content-secondary block mb-2">Ends</label>
               <div className="space-y-3">
                 {/* Never option */}
-                <label className="flex items-center gap-3 text-sm text-gray-200 cursor-pointer">
+                <label className="flex items-center gap-3 text-sm text-content-secondary cursor-pointer">
                   <input
                     type="radio"
                     name="repeatEnd"
                     value="never"
                     checked={endType === "never"}
                     onChange={() => handleEndTypeChange("never")}
-                    className="w-4 h-4 text-[#FF843E] bg-[#101010] border-gray-500 focus:ring-[#FF843E] focus:ring-2"
+                    className="w-4 h-4 text-primary bg-surface-dark border-border focus:ring-primary focus:ring-2"
                   />
                   <span>Never</span>
                 </label>
                 
                 {/* On date option */}
-                <label className="flex items-center gap-3 text-sm text-gray-200 cursor-pointer">
+                <label className="flex items-center gap-3 text-sm text-content-secondary cursor-pointer">
                   <input
                     type="radio"
                     name="repeatEnd"
                     value="onDate"
                     checked={endType === "onDate"}
                     onChange={() => handleEndTypeChange("onDate")}
-                    className="w-4 h-4 text-[#FF843E] bg-[#101010] border-gray-500 focus:ring-[#FF843E] focus:ring-2"
+                    className="w-4 h-4 text-primary bg-surface-dark border-border focus:ring-primary focus:ring-2"
                   />
                   <span>On date:</span>
                   <input
@@ -137,19 +137,19 @@ const RepeatTaskModal = ({ onClose, onRepeatTask, task }) => {
                       setEndType("onDate")
                     }}
                     onClick={() => setEndType("onDate")}
-                    className="bg-[#101010] text-sm rounded-xl px-3 py-1.5 text-white outline-none border border-gray-600 focus:border-[#FF843E]"
+                    className="bg-surface-dark text-sm rounded-xl px-3 py-1.5 text-content-primary outline-none border border-border focus:border-primary"
                   />
                 </label>
                 
                 {/* After occurrences option */}
-                <label className="flex items-center gap-3 text-sm text-gray-200 cursor-pointer">
+                <label className="flex items-center gap-3 text-sm text-content-secondary cursor-pointer">
                   <input
                     type="radio"
                     name="repeatEnd"
                     value="afterOccurrences"
                     checked={endType === "afterOccurrences"}
                     onChange={() => handleEndTypeChange("afterOccurrences")}
-                    className="w-4 h-4 text-[#FF843E] bg-[#101010] border-gray-500 focus:ring-[#FF843E] focus:ring-2"
+                    className="w-4 h-4 text-primary bg-surface-dark border-border focus:ring-primary focus:ring-2"
                   />
                   <span>After</span>
                   <input
@@ -165,7 +165,7 @@ const RepeatTaskModal = ({ onClose, onRepeatTask, task }) => {
   onClick={() => setEndType("afterOccurrences")}
   min="1"
   placeholder="4"
-  className="w-20 bg-[#101010] text-sm rounded-xl px-3 py-1.5 text-white outline-none border border-gray-600 focus:border-[#FF843E]"
+  className="w-20 bg-surface-dark text-sm rounded-xl px-3 py-1.5 text-content-primary outline-none border border-border focus:border-primary"
 />
                   <span>occurrences</span>
                 </label>
@@ -175,7 +175,7 @@ const RepeatTaskModal = ({ onClose, onRepeatTask, task }) => {
               <button
                 type="button"
                 onClick={onClose}
-                className="px-6 py-2 bg-[#2F2F2F] text-sm text-white rounded-xl hover:bg-[#3F3F3F] transition-colors"
+                className="px-6 py-2 bg-surface-button text-sm text-content-primary rounded-xl hover:bg-surface-button-hover transition-colors"
               >
                 Cancel
               </button>

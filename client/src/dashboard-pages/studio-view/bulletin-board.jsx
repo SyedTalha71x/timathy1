@@ -95,7 +95,7 @@ const SortablePostCard = ({ post, children, isDragDisabled }) => {
         <div 
           {...attributes} 
           {...listeners}
-          className="absolute top-3 left-3 md:top-4 md:left-4 cursor-grab active:cursor-grabbing text-white hover:text-white active:text-orange-400 p-1 rounded active:bg-orange-500/30 z-20 touch-none bg-black/40 shadow"
+          className="absolute top-3 left-3 md:top-4 md:left-4 cursor-grab active:cursor-grabbing text-white hover:text-content-primary active:text-orange-400 p-1 rounded active:bg-orange-500/30 z-20 touch-none bg-black/40 shadow"
           style={{ WebkitTapHighlightColor: 'transparent' }}
         >
           <GripVertical className="w-4 h-4" />
@@ -246,11 +246,11 @@ const BulletinBoard = () => {
 
   const getSortIcon = () => {
     if (sortBy === 'custom') {
-      return <ArrowUpDown size={14} className="text-gray-400" />
+      return <ArrowUpDown size={14} className="text-content-muted" />
     }
     return sortDirection === 'asc' 
-      ? <ArrowUp size={14} className="text-white" />
-      : <ArrowDown size={14} className="text-white" />
+      ? <ArrowUp size={14} className="text-content-primary" />
+      : <ArrowDown size={14} className="text-content-primary" />
   }
 
   const currentSortLabel = sortOptions.find(o => o.value === sortBy)?.label || 'Date'
@@ -441,11 +441,11 @@ const BulletinBoard = () => {
       </style>
       <Toaster position="top-right" toastOptions={{ duration: 2000, style: { background: "#333", color: "#fff" } }} />
 
-      <div className="min-h-screen rounded-3xl bg-[#1C1C1C] text-white md:p-6 p-3 transition-all duration-500 ease-in-out flex-1">
+      <div className="min-h-screen rounded-3xl bg-surface-base text-content-primary md:p-6 p-3 transition-all duration-500 ease-in-out flex-1">
         {/* Header */}
         <div className="flex sm:items-center justify-between mb-6 sm:mb-8 gap-4">
           <div className="flex items-center gap-3">
-            <h1 className="text-white oxanium_font text-xl md:text-2xl">Bulletin Board</h1>
+            <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">Bulletin Board</h1>
             
             {/* Info Tooltip */}
             <div className="relative" ref={infoTooltipRef}>
@@ -453,23 +453,23 @@ const BulletinBoard = () => {
                 onClick={(e) => { e.stopPropagation(); setShowInfoTooltip(!showInfoTooltip) }}
                 onMouseEnter={() => setShowInfoTooltip(true)}
                 onMouseLeave={() => setShowInfoTooltip(false)}
-                className="text-gray-400 hover:text-gray-300 transition-colors p-1"
+                className="text-content-muted hover:text-content-secondary transition-colors p-1"
               >
                 <Info size={16} />
               </button>
               {showInfoTooltip && (
-                <div className="absolute left-0 top-full mt-2 w-64 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-xl p-4 z-50">
+                <div className="absolute left-0 top-full mt-2 w-64 bg-surface-hover border border-border rounded-lg shadow-xl p-4 z-50">
                   <div className="text-sm space-y-3">
                     <div>
                       <p className="text-orange-400 font-medium mb-1">Member Posts</p>
-                      <p className="text-gray-300 text-xs leading-relaxed">Visible to all members.</p>
+                      <p className="text-content-secondary text-xs leading-relaxed">Visible to all members.</p>
                     </div>
-                    <div className="border-t border-gray-700 pt-3">
-                      <p className="text-blue-400 font-medium mb-1">Staff Posts</p>
-                      <p className="text-gray-300 text-xs leading-relaxed">Visible only to staff members.</p>
+                    <div className="border-t border-border pt-3">
+                      <p className="text-primary font-medium mb-1">Staff Posts</p>
+                      <p className="text-content-secondary text-xs leading-relaxed">Visible only to staff members.</p>
                     </div>
                   </div>
-                  <div className="absolute -top-1 left-3 w-2 h-2 bg-[#2a2a2a] border-l border-t border-gray-700 transform rotate-45"></div>
+                  <div className="absolute -top-1 left-3 w-2 h-2 bg-surface-hover border-l border-t border-border transform rotate-45"></div>
                 </div>
               )}
             </div>
@@ -478,24 +478,24 @@ const BulletinBoard = () => {
             <div className="md:hidden relative" ref={sortDropdownRef}>
               <button
                 onClick={(e) => { e.stopPropagation(); setShowSortDropdown(!showSortDropdown) }}
-                className="px-3 py-2 bg-[#2F2F2F] text-gray-300 rounded-xl text-xs hover:bg-[#3F3F3F] transition-colors flex items-center gap-2"
+                className="px-3 py-2 bg-surface-button text-content-secondary rounded-xl text-xs hover:bg-surface-button-hover transition-colors flex items-center gap-2"
               >
                 {getSortIcon()}
                 <span>{sortBy === 'custom' ? 'Custom' : currentSortLabel}</span>
               </button>
               {showSortDropdown && (
-                <div className="absolute right-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[160px]">
+                <div className="absolute right-0 mt-1 bg-surface-hover border border-border rounded-lg shadow-lg z-50 min-w-[160px]">
                   <div className="py-1">
-                    <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">Sort by</div>
+                    <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border">Sort by</div>
                     {sortOptions.map((option) => (
                       <button
                         key={option.value}
                         onClick={(e) => { e.stopPropagation(); handleSortOptionClick(option.value) }}
-                        className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${sortBy === option.value ? 'text-white bg-gray-800/50' : 'text-gray-300'}`}
+                        className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover transition-colors flex items-center justify-between ${sortBy === option.value ? 'text-content-primary bg-surface-hover' : 'text-content-secondary'}`}
                       >
                         <span>{option.label}</span>
                         {sortBy === option.value && option.value !== 'custom' && (
-                          <span className="text-gray-400">{sortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}</span>
+                          <span className="text-content-muted">{sortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}</span>
                         )}
                       </button>
                     ))}
@@ -508,14 +508,14 @@ const BulletinBoard = () => {
           <div className="flex items-center gap-2">
             {/* Tags Button - Desktop */}
             <div className="hidden md:block relative group">
-              <button onClick={() => setIsTagManagerOpen(true)} className="bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300 text-sm px-3 py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-colors font-medium">
+              <button onClick={() => setIsTagManagerOpen(true)} className="bg-surface-button hover:bg-surface-button-hover text-content-secondary text-sm px-3 py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-colors font-medium">
                 <Tag size={16} />
                 <span className="hidden sm:inline">Tags</span>
               </button>
-              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
                 <span className="font-medium">Manage Tags</span>
                 <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">T</span>
-                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-transparent" />
               </div>
             </div>
 
@@ -525,10 +525,10 @@ const BulletinBoard = () => {
                 <Plus size={14} className="sm:w-4 sm:h-4" />
                 <span className='hidden sm:inline'>Create Post</span>
               </button>
-              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
                 <span className="font-medium">Create Post</span>
                 <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">C</span>
-                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-transparent" />
               </div>
             </div>
           </div>
@@ -537,39 +537,39 @@ const BulletinBoard = () => {
         {/* Search Bar */}
         <div className="mb-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-content-muted" size={16} />
             <input
               type="text"
               placeholder="Search posts..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-[#333333] focus:border-[#3F74FF] transition-colors"
+              className="w-full bg-surface-card outline-none text-sm text-content-primary rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-border focus:border-primary transition-colors"
             />
           </div>
         </div>
 
         {/* Filter Pills */}
         <div className="flex flex-wrap gap-2 sm:gap-3 mb-6">
-          <button onClick={() => setFilterStatus('all')} className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${filterStatus === 'all' ? "bg-blue-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}>All</button>
-          <button onClick={() => setFilterStatus('active')} className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${filterStatus === 'active' ? "bg-blue-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}>Active</button>
-          <button onClick={() => setFilterStatus('scheduled')} className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${filterStatus === 'scheduled' ? "bg-blue-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}>Scheduled</button>
-          <button onClick={() => setFilterStatus('inactive')} className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${filterStatus === 'inactive' ? "bg-blue-600 text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"}`}>Inactive</button>
-          <button onClick={() => setIsTagManagerOpen(true)} className="md:hidden px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F] flex items-center gap-1.5"><Tag size={14} />Tags</button>
+          <button onClick={() => setFilterStatus('all')} className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${filterStatus === 'all' ? "bg-primary text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"}`}>All</button>
+          <button onClick={() => setFilterStatus('active')} className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${filterStatus === 'active' ? "bg-primary text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"}`}>Active</button>
+          <button onClick={() => setFilterStatus('scheduled')} className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${filterStatus === 'scheduled' ? "bg-primary text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"}`}>Scheduled</button>
+          <button onClick={() => setFilterStatus('inactive')} className={`px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors ${filterStatus === 'inactive' ? "bg-primary text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"}`}>Inactive</button>
+          <button onClick={() => setIsTagManagerOpen(true)} className="md:hidden px-3 sm:px-4 py-2 rounded-xl cursor-pointer text-xs sm:text-sm font-medium transition-colors bg-surface-button text-content-secondary hover:bg-surface-button-hover flex items-center gap-1.5"><Tag size={14} />Tags</button>
           
           {/* Sort - Desktop */}
           <div className="hidden md:block ml-auto relative" ref={sortDropdownRef}>
-            <button onClick={(e) => { e.stopPropagation(); setShowSortDropdown(!showSortDropdown) }} className="px-3 sm:px-4 py-2 bg-[#2F2F2F] text-gray-300 rounded-xl text-xs sm:text-sm hover:bg-[#3F3F3F] transition-colors flex items-center gap-2">
+            <button onClick={(e) => { e.stopPropagation(); setShowSortDropdown(!showSortDropdown) }} className="px-3 sm:px-4 py-2 bg-surface-button text-content-secondary rounded-xl text-xs sm:text-sm hover:bg-surface-button-hover transition-colors flex items-center gap-2">
               {getSortIcon()}
               <span>{currentSortLabel}</span>
             </button>
             {showSortDropdown && (
-              <div className="absolute top-full right-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[180px]">
+              <div className="absolute top-full right-0 mt-1 bg-surface-hover border border-border rounded-lg shadow-lg z-50 min-w-[180px]">
                 <div className="py-1">
-                  <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">Sort by</div>
+                  <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border">Sort by</div>
                   {sortOptions.map((option) => (
-                    <button key={option.value} onClick={(e) => { e.stopPropagation(); handleSortOptionClick(option.value) }} className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${sortBy === option.value ? 'text-white bg-gray-800/50' : 'text-gray-300'}`}>
+                    <button key={option.value} onClick={(e) => { e.stopPropagation(); handleSortOptionClick(option.value) }} className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover transition-colors flex items-center justify-between ${sortBy === option.value ? 'text-content-primary bg-surface-hover' : 'text-content-secondary'}`}>
                       <span>{option.label}</span>
-                      {sortBy === option.value && option.value !== 'custom' && (<span className="text-gray-400">{sortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}</span>)}
+                      {sortBy === option.value && option.value !== 'custom' && (<span className="text-content-muted">{sortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}</span>)}
                     </button>
                   ))}
                 </div>
@@ -579,9 +579,9 @@ const BulletinBoard = () => {
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-gray-800 mb-6">
-          <button onClick={() => setActiveTab("member")} className={`flex-1 sm:flex-none px-6 py-4 text-base font-medium transition-colors ${activeTab === "member" ? "text-white border-b-2 border-orange-400" : "text-gray-400 hover:text-white"}`}>Member</button>
-          <button onClick={() => setActiveTab("staff")} className={`flex-1 sm:flex-none px-6 py-4 text-base font-medium transition-colors ${activeTab === "staff" ? "text-white border-b-2 border-orange-400" : "text-gray-400 hover:text-white"}`}>Staff</button>
+        <div className="flex border-b border-border mb-6">
+          <button onClick={() => setActiveTab("member")} className={`flex-1 sm:flex-none px-6 py-4 text-base font-medium transition-colors ${activeTab === "member" ? "text-content-primary border-b-2 border-orange-400" : "text-content-muted hover:text-content-primary"}`}>Member</button>
+          <button onClick={() => setActiveTab("staff")} className={`flex-1 sm:flex-none px-6 py-4 text-base font-medium transition-colors ${activeTab === "staff" ? "text-content-primary border-b-2 border-orange-400" : "text-content-muted hover:text-content-primary"}`}>Staff</button>
         </div>
 
         {/* Posts Grid with Drag and Drop */}
@@ -595,13 +595,13 @@ const BulletinBoard = () => {
                   <SortablePostCard key={post.id} post={post} isDragDisabled={isDragDisabled}>
                     <div className={`flex flex-col select-none h-full ${isInactive ? 'post-inactive' : ''} ${isScheduled ? 'post-scheduled' : ''}`}>
                       <div 
-                        className="bg-[#1A1A1A] rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-800 hover:border-gray-700 p-4 md:p-6 relative h-full flex flex-col"
+                        className="bg-surface-hover rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border border-border hover:border-border p-4 md:p-6 relative h-full flex flex-col"
                         onClick={() => dropdownOpen === post.id && setDropdownOpen(null)}
                       >
 
                         {/* Cover Image */}
                         {post.image && (
-                          <div className="relative mb-4 rounded-lg overflow-hidden border border-gray-700 -mx-4 -mt-4 md:-mx-6 md:-mt-6 rounded-t-xl rounded-b-none aspect-video bg-black">
+                          <div className="relative mb-4 rounded-lg overflow-hidden border border-border -mx-4 -mt-4 md:-mx-6 md:-mt-6 rounded-t-xl rounded-b-none aspect-video bg-black">
                             <img src={post.image} alt="Post cover" className="w-full h-full object-contain pointer-events-none" draggable="false" />
                           </div>
                         )}
@@ -631,20 +631,20 @@ const BulletinBoard = () => {
                         )}
 
                         {/* Content Preview - Plain text with line breaks preserved */}
-                        <p className={`text-xs md:text-sm text-gray-400 break-words whitespace-pre-line ${post.image ? 'line-clamp-3' : 'line-clamp-[8]'}`}>
+                        <p className={`text-xs md:text-sm text-content-muted break-words whitespace-pre-line ${post.image ? 'line-clamp-3' : 'line-clamp-[8]'}`}>
                           {stripHtmlTags(post.content)}
                         </p>
 
                         {/* Created and Author - single line, above separator */}
-                        <p className="text-[11px] text-gray-500 mt-auto pt-3">
+                        <p className="text-[11px] text-content-faint mt-auto pt-3">
                           Created: {formatDateTime(post.createdAt)} • By {post.author}
                         </p>
 
                         {/* Status Bar with Toggle, Eye and Menu */}
-                        <div className="flex items-center justify-between pt-3 border-t border-gray-700">
+                        <div className="flex items-center justify-between pt-3 border-t border-border">
                           {/* Left: Status Toggle */}
                           <div className="flex items-center gap-2">
-                            <span className="text-xs text-gray-400">Status:</span>
+                            <span className="text-xs text-content-muted">Status:</span>
                             {post.status === "Scheduled" ? (
                               <div 
                                 className="relative flex items-center gap-2" 
@@ -664,7 +664,7 @@ const BulletinBoard = () => {
                                 </button>
                                 {/* Popup for schedule info */}
                                 {post.schedule && schedulePopupPostId === post.id && (
-                                  <div className="absolute bottom-full left-0 mb-2 px-3 py-2 bg-[#1a1a1a] border border-gray-700 rounded-lg shadow-xl z-50 whitespace-nowrap">
+                                  <div className="absolute bottom-full left-0 mb-2 px-3 py-2 bg-surface-hover border border-border rounded-lg shadow-xl z-50 whitespace-nowrap">
                                     <div className="text-xs space-y-1">
                                       {post.schedule.startDate && (
                                         <div className="flex items-center gap-2 text-orange-400">
@@ -673,22 +673,22 @@ const BulletinBoard = () => {
                                         </div>
                                       )}
                                       {post.schedule.hasEndDate && post.schedule.endDate && (
-                                        <div className="flex items-center gap-2 text-gray-400">
+                                        <div className="flex items-center gap-2 text-content-muted">
                                           <Clock size={10} />
                                           <span>Ends: {formatScheduleDate(post.schedule.endDate)}{post.schedule.endTime && ` at ${formatScheduleTime(post.schedule.endTime)}`}</span>
                                         </div>
                                       )}
                                     </div>
-                                    <div className="absolute -bottom-1 left-4 w-2 h-2 bg-[#1a1a1a] border-r border-b border-gray-700 transform rotate-45" />
+                                    <div className="absolute -bottom-1 left-4 w-2 h-2 bg-surface-hover border-r border-b border-border transform rotate-45" />
                                   </div>
                                 )}
                               </div>
                             ) : (
                               <>
-                                <button onClick={(e) => handleStatusToggle(post.id, e)} className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${post.status === "Active" ? 'bg-blue-600' : 'bg-gray-600'}`}>
+                                <button onClick={(e) => handleStatusToggle(post.id, e)} className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${post.status === "Active" ? 'bg-primary' : 'bg-surface-button'}`}>
                                   <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${post.status === "Active" ? 'translate-x-6' : 'translate-x-1'}`} />
                                 </button>
-                                <span className="text-xs font-medium text-gray-300 min-w-[50px]">{post.status}</span>
+                                <span className="text-xs font-medium text-content-secondary min-w-[50px]">{post.status}</span>
                               </>
                             )}
                           </div>
@@ -696,7 +696,7 @@ const BulletinBoard = () => {
                           {/* Right: Eye and 3-dot menu */}
                           <div className="flex items-center gap-1">
                             {/* Eye icon for preview */}
-                            <button onClick={() => setViewingPost(post)} className="text-gray-400 hover:text-orange-400 p-1.5 rounded-lg hover:bg-gray-800 transition-colors" title="Preview Post">
+                            <button onClick={() => setViewingPost(post)} className="text-content-muted hover:text-orange-400 p-1.5 rounded-lg hover:bg-surface-hover transition-colors" title="Preview Post">
                               <Eye size={16} />
                             </button>
 
@@ -707,14 +707,14 @@ const BulletinBoard = () => {
                                   e.stopPropagation()
                                   toggleDropdown(post.id, e)
                                 }} 
-                                className="text-gray-400 hover:text-orange-400 p-1.5 rounded-lg hover:bg-gray-800 transition-colors"
+                                className="text-content-muted hover:text-orange-400 p-1.5 rounded-lg hover:bg-surface-hover transition-colors"
                               >
                                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                   <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
                                 </svg>
                               </button>
                               {dropdownOpen === post.id && (
-                                <div className="absolute right-0 bottom-full mb-2 bg-[#1C1C1C] border border-gray-700 rounded-lg shadow-lg py-1 z-30 min-w-[140px]">
+                                <div className="absolute right-0 bottom-full mb-2 bg-surface-card border border-border rounded-lg shadow-lg py-1 z-30 min-w-[140px]">
                                   <button 
                                     onClick={(e) => {
                                       e.stopPropagation()
@@ -722,7 +722,7 @@ const BulletinBoard = () => {
                                       setSelectedPost(post)
                                       setShowEditModal(true)
                                     }} 
-                                    className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2 transition-colors"
+                                    className="w-full text-left px-3 py-2 hover:bg-surface-hover text-content-secondary text-sm flex items-center gap-2 transition-colors"
                                   >
                                     <Edit size={14} /> Edit
                                   </button>
@@ -739,7 +739,7 @@ const BulletinBoard = () => {
                                       }
                                       setPosts(prev => [duplicatedPost, ...prev])
                                     }} 
-                                    className="w-full text-left px-3 py-2 hover:bg-gray-800 text-gray-300 text-sm flex items-center gap-2 transition-colors"
+                                    className="w-full text-left px-3 py-2 hover:bg-surface-hover text-content-secondary text-sm flex items-center gap-2 transition-colors"
                                   >
                                     <Copy size={14} /> Duplicate
                                   </button>
@@ -750,7 +750,7 @@ const BulletinBoard = () => {
                                       setSelectedPost(post)
                                       setShowDeleteModal(true)
                                     }} 
-                                    className="w-full text-left px-3 py-2 hover:bg-gray-800 text-red-500 text-sm flex items-center gap-2 transition-colors"
+                                    className="w-full text-left px-3 py-2 hover:bg-surface-hover text-red-500 text-sm flex items-center gap-2 transition-colors"
                                   >
                                     <Trash2 size={14} /> Delete
                                   </button>
@@ -771,13 +771,13 @@ const BulletinBoard = () => {
         {/* Empty State */}
         {filteredPosts.length === 0 && (
           <div className="text-center py-16">
-            <div className="text-gray-500 mb-6">
+            <div className="text-content-faint mb-6">
               <svg className="w-20 h-20 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m4-6v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
             </div>
-            <h3 className="text-xl font-medium text-gray-300 mb-3">No posts found</h3>
-            <p className="text-gray-500 mb-6">{searchQuery ? "Try adjusting your search or filters" : "Create a new post to get started"}</p>
+            <h3 className="text-xl font-medium text-content-secondary mb-3">No posts found</h3>
+            <p className="text-content-faint mb-6">{searchQuery ? "Try adjusting your search or filters" : "Create a new post to get started"}</p>
             <button onClick={() => setShowCreateModal(true)} className="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2.5 rounded-xl font-medium transition-colors inline-flex items-center gap-2">
               <Plus size={18} />Create Post
             </button>

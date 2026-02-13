@@ -11,11 +11,18 @@ const MONTH_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Se
 const DAY_HEADERS = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]
 
 /**
- * Custom date picker with calendar dropdown + year/month drill-down.
- * Renders dropdown as a full-screen portal overlay (like a mini-modal)
- * to guarantee it appears above modals with overflow:hidden and high z-index.
+ * Icon-only date picker. Renders a calendar icon button that opens a
+ * portal-based calendar popup. The parent controls the surrounding field
+ * styling and display value — this component only provides the icon trigger
+ * and the calendar dropdown.
+ *
+ * Props:
+ * - value        YYYY-MM-DD string (or "")
+ * - onChange(str) callback with YYYY-MM-DD or ""
+ * - iconSize     optional, default 16
+ * - className    optional extra classes on the icon button
  */
-const DatePickerField = ({ label, value, onChange, placeholder = "Select date", className = "" }) => {
+const DatePickerField = ({ value, onChange, iconSize = 16, className = "" }) => {
   const [open, setOpen] = useState(false)
   const [view, setView] = useState("days")
   const [viewDate, setViewDate] = useState(() => {
@@ -29,12 +36,12 @@ const DatePickerField = ({ label, value, onChange, placeholder = "Select date", 
     const y = viewDate.getFullYear()
     return y - (y % 20)
   })
-  const [pos, setPos] = useState({ top: 0, left: 0, openAbove: false })
+  const [pos, setPos] = useState({ top: -9999, left: -9999 })
+  const [positioned, setPositioned] = useState(false)
 
   const triggerRef = useRef(null)
   const calRef = useRef(null)
 
-  // Calculate position from trigger button
   const calcPosition = useCallback(() => {
     if (!triggerRef.current) return
     const rect = triggerRef.current.getBoundingClientRect()
@@ -43,29 +50,21 @@ const DatePickerField = ({ label, value, onChange, placeholder = "Select date", 
     const pad = 8
 
     let top = rect.bottom + 4
-    let openAbove = false
-
-    // Flip above if no room below
     if (top + calHeight > window.innerHeight - pad && rect.top > calHeight + pad) {
       top = rect.top - calHeight - 4
-      openAbove = true
     }
 
-    let left = rect.left
-    if (left + calWidth > window.innerWidth - pad) {
-      left = window.innerWidth - calWidth - pad
-    }
+    let left = rect.right - calWidth
     if (left < pad) left = pad
+    if (left + calWidth > window.innerWidth - pad) left = window.innerWidth - calWidth - pad
 
-    setPos({ top, left, openAbove })
+    setPos({ top, left })
+    setPositioned(true)
   }, [])
 
-  // Recalculate on open / view change / scroll / resize
   useEffect(() => {
     if (!open) return
-    // Small delay to let the DOM render so calRef is available
     requestAnimationFrame(calcPosition)
-
     window.addEventListener("scroll", calcPosition, true)
     window.addEventListener("resize", calcPosition)
     return () => {
@@ -74,7 +73,6 @@ const DatePickerField = ({ label, value, onChange, placeholder = "Select date", 
     }
   }, [open, view, calcPosition])
 
-  // Close on Escape
   useEffect(() => {
     if (!open) return
     const handler = (e) => { if (e.key === "Escape") setOpen(false) }
@@ -82,7 +80,6 @@ const DatePickerField = ({ label, value, onChange, placeholder = "Select date", 
     return () => document.removeEventListener("keydown", handler)
   }, [open])
 
-  // Sync viewDate when value changes externally
   useEffect(() => {
     if (value) {
       const parts = value.split('-')
@@ -90,9 +87,9 @@ const DatePickerField = ({ label, value, onChange, placeholder = "Select date", 
     }
   }, [value])
 
-  // Reset view when opening
   useEffect(() => {
     if (open) {
+      setPositioned(false)
       setView("days")
       const y = viewDate.getFullYear()
       setYearRangeStart(y - (y % 20))
@@ -114,121 +111,68 @@ const DatePickerField = ({ label, value, onChange, placeholder = "Select date", 
     setOpen(false)
   }
 
-  const handleMonthSelect = (m) => {
-    setViewDate(new Date(year, m, 1))
-    setView("days")
-  }
-
-  const handleYearSelect = (y) => {
-    setViewDate(new Date(y, month, 1))
-    setView("months")
-  }
-
+  const handleMonthSelect = (m) => { setViewDate(new Date(year, m, 1)); setView("days") }
+  const handleYearSelect = (y) => { setViewDate(new Date(y, month, 1)); setView("months") }
   const prevMonth = () => setViewDate(new Date(year, month - 1, 1))
   const nextMonth = () => setViewDate(new Date(year, month + 1, 1))
-
-  const displayValue = value
-    ? (() => {
-        const [y, m, d] = value.split('-')
-        return `${d}.${m}.${y}`
-      })()
-    : ""
 
   const selectedYear = value ? +value.split('-')[0] : null
   const selectedMonth = value ? +value.split('-')[1] - 1 : null
 
-  // ── Portal overlay (full-screen, above everything) ──
   const overlay = open ? createPortal(
-    // Full-screen invisible backdrop - click to close
     <div
       style={{ position: 'fixed', inset: 0, zIndex: 2147483647 }}
-      onClick={(e) => {
-        // Close only if clicking the backdrop, not the calendar
-        if (e.target === e.currentTarget) setOpen(false)
-      }}
+      onMouseDown={(e) => e.nativeEvent.stopImmediatePropagation()}
+      onClick={(e) => { if (e.target === e.currentTarget) setOpen(false) }}
     >
-      {/* Calendar panel - positioned near trigger */}
       <div
         ref={calRef}
         onClick={(e) => e.stopPropagation()}
         style={{
-          position: 'fixed',
-          top: pos.top,
-          left: pos.left,
-          width: 288
+          position: 'fixed', top: pos.top, left: pos.left, width: 288,
+          opacity: positioned ? 1 : 0, transition: 'opacity 0.05s ease-out'
         }}
-        className="bg-[#141414] border border-[#333] rounded-xl shadow-2xl p-4"
+        className="bg-surface-base border border-border rounded-xl shadow-2xl p-4"
       >
-
-        {/* ===== DAYS VIEW ===== */}
+        {/* DAYS */}
         {view === "days" && (
           <>
             <div className="flex justify-between items-center mb-3">
-              <button type="button" onClick={prevMonth}
-                className="p-1.5 text-gray-400 hover:text-white hover:bg-[#2f2f2f] rounded-lg transition-colors">
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <button type="button" onClick={() => setView("months")}
-                className="text-white font-medium text-sm hover:bg-[#2f2f2f] px-2 py-1 rounded-lg transition-colors">
-                {MONTH_NAMES[month]} {year}
-              </button>
-              <button type="button" onClick={nextMonth}
-                className="p-1.5 text-gray-400 hover:text-white hover:bg-[#2f2f2f] rounded-lg transition-colors">
-                <ChevronRight className="w-4 h-4" />
-              </button>
+              <button type="button" onClick={prevMonth} className="p-1.5 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors"><ChevronLeft className="w-4 h-4" /></button>
+              <button type="button" onClick={() => setView("months")} className="text-content-primary font-medium text-sm hover:bg-surface-button px-2 py-1 rounded-lg transition-colors">{MONTH_NAMES[month]} {year}</button>
+              <button type="button" onClick={nextMonth} className="p-1.5 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors"><ChevronRight className="w-4 h-4" /></button>
             </div>
-
             <div className="grid grid-cols-7 gap-1 mb-1">
-              {DAY_HEADERS.map(d => (
-                <div key={d} className="text-center text-gray-500 text-xs font-medium py-1">{d}</div>
-              ))}
+              {DAY_HEADERS.map(d => (<div key={d} className="text-center text-content-faint text-xs font-medium py-1">{d}</div>))}
             </div>
-
             <div className="grid grid-cols-7 gap-1">
-              {Array.from({ length: firstDay }).map((_, i) => (
-                <div key={`e-${i}`} className="w-8 h-8" />
-              ))}
+              {Array.from({ length: firstDay }).map((_, i) => (<div key={`e-${i}`} className="w-8 h-8" />))}
               {Array.from({ length: daysInMonth }).map((_, i) => {
                 const day = i + 1
                 const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
                 const isSelected = value === dateStr
                 const isToday = dateStr === todayStr
-
                 return (
                   <button key={day} type="button" onClick={() => handleSelect(day)}
                     className={`w-8 h-8 text-sm rounded-lg flex items-center justify-center transition-all duration-200 ${
-                      isSelected
-                        ? "bg-orange-500 text-white font-medium"
-                        : isToday
-                          ? "bg-orange-500/30 text-orange-400 font-medium"
-                          : "text-gray-300 hover:bg-[#2f2f2f]"
-                    }`}>
-                    {day}
-                  </button>
+                      isSelected ? "bg-primary text-white font-medium"
+                        : isToday ? "bg-primary/20 text-primary font-medium"
+                        : "text-content-secondary hover:bg-surface-button"
+                    }`}>{day}</button>
                 )
               })}
             </div>
           </>
         )}
 
-        {/* ===== MONTHS VIEW ===== */}
+        {/* MONTHS */}
         {view === "months" && (
           <>
             <div className="flex justify-between items-center mb-4">
-              <button type="button" onClick={() => setViewDate(new Date(year - 1, month, 1))}
-                className="p-1.5 text-gray-400 hover:text-white hover:bg-[#2f2f2f] rounded-lg transition-colors">
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <button type="button" onClick={() => { setYearRangeStart(year - (year % 20)); setView("years") }}
-                className="text-white font-medium text-sm hover:bg-[#2f2f2f] px-2 py-1 rounded-lg transition-colors">
-                {year}
-              </button>
-              <button type="button" onClick={() => setViewDate(new Date(year + 1, month, 1))}
-                className="p-1.5 text-gray-400 hover:text-white hover:bg-[#2f2f2f] rounded-lg transition-colors">
-                <ChevronRight className="w-4 h-4" />
-              </button>
+              <button type="button" onClick={() => setViewDate(new Date(year - 1, month, 1))} className="p-1.5 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors"><ChevronLeft className="w-4 h-4" /></button>
+              <button type="button" onClick={() => { setYearRangeStart(year - (year % 20)); setView("years") }} className="text-content-primary font-medium text-sm hover:bg-surface-button px-2 py-1 rounded-lg transition-colors">{year}</button>
+              <button type="button" onClick={() => setViewDate(new Date(year + 1, month, 1))} className="p-1.5 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors"><ChevronRight className="w-4 h-4" /></button>
             </div>
-
             <div className="grid grid-cols-3 gap-2">
               {MONTH_SHORT.map((name, i) => {
                 const isCurrent = year === todayYear && i === todayMonth
@@ -236,35 +180,24 @@ const DatePickerField = ({ label, value, onChange, placeholder = "Select date", 
                 return (
                   <button key={name} type="button" onClick={() => handleMonthSelect(i)}
                     className={`py-2.5 text-sm rounded-lg transition-all duration-200 ${
-                      isSelected ? "bg-orange-500 text-white font-medium"
-                        : isCurrent ? "bg-orange-500/30 text-orange-400 font-medium"
-                        : "text-gray-300 hover:bg-[#2f2f2f]"
-                    }`}>
-                    {name}
-                  </button>
+                      isSelected ? "bg-primary text-white font-medium"
+                        : isCurrent ? "bg-primary/20 text-primary font-medium"
+                        : "text-content-secondary hover:bg-surface-button"
+                    }`}>{name}</button>
                 )
               })}
             </div>
           </>
         )}
 
-        {/* ===== YEARS VIEW ===== */}
+        {/* YEARS */}
         {view === "years" && (
           <>
             <div className="flex justify-between items-center mb-4">
-              <button type="button" onClick={() => setYearRangeStart(yearRangeStart - 20)}
-                className="p-1.5 text-gray-400 hover:text-white hover:bg-[#2f2f2f] rounded-lg transition-colors">
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <span className="text-white font-medium text-sm">
-                {yearRangeStart} – {yearRangeStart + 19}
-              </span>
-              <button type="button" onClick={() => setYearRangeStart(yearRangeStart + 20)}
-                className="p-1.5 text-gray-400 hover:text-white hover:bg-[#2f2f2f] rounded-lg transition-colors">
-                <ChevronRight className="w-4 h-4" />
-              </button>
+              <button type="button" onClick={() => setYearRangeStart(yearRangeStart - 20)} className="p-1.5 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors"><ChevronLeft className="w-4 h-4" /></button>
+              <span className="text-content-primary font-medium text-sm">{yearRangeStart} – {yearRangeStart + 19}</span>
+              <button type="button" onClick={() => setYearRangeStart(yearRangeStart + 20)} className="p-1.5 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors"><ChevronRight className="w-4 h-4" /></button>
             </div>
-
             <div className="grid grid-cols-4 gap-2">
               {Array.from({ length: 20 }).map((_, i) => {
                 const y = yearRangeStart + i
@@ -273,12 +206,10 @@ const DatePickerField = ({ label, value, onChange, placeholder = "Select date", 
                 return (
                   <button key={y} type="button" onClick={() => handleYearSelect(y)}
                     className={`py-2 text-sm rounded-lg transition-all duration-200 ${
-                      isSelected ? "bg-orange-500 text-white font-medium"
-                        : isCurrent ? "bg-orange-500/30 text-orange-400 font-medium"
-                        : "text-gray-300 hover:bg-[#2f2f2f]"
-                    }`}>
-                    {y}
-                  </button>
+                      isSelected ? "bg-primary text-white font-medium"
+                        : isCurrent ? "bg-primary/20 text-primary font-medium"
+                        : "text-content-secondary hover:bg-surface-button"
+                    }`}>{y}</button>
                 )
               })}
             </div>
@@ -286,17 +217,13 @@ const DatePickerField = ({ label, value, onChange, placeholder = "Select date", 
         )}
 
         {/* Footer */}
-        <div className="mt-3 pt-3 border-t border-[#333] flex justify-between items-center">
+        <div className="mt-3 pt-3 border-t border-border flex justify-between items-center">
           <button type="button"
             onClick={() => { const now = new Date(); setViewDate(now); setView("days"); onChange(`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`); setOpen(false) }}
-            className="text-xs text-orange-400 hover:text-orange-300 transition-colors">
-            Today
-          </button>
+            className="text-xs text-primary hover:text-primary-hover transition-colors">Today</button>
           {value && (
             <button type="button" onClick={() => { onChange(""); setOpen(false) }}
-              className="text-xs text-gray-500 hover:text-red-400 transition-colors">
-              Clear
-            </button>
+              className="text-xs text-content-faint hover:text-red-400 transition-colors">Clear</button>
           )}
         </div>
       </div>
@@ -305,22 +232,17 @@ const DatePickerField = ({ label, value, onChange, placeholder = "Select date", 
   ) : null
 
   return (
-    <div className={`space-y-1.5 ${className}`}>
-      {label && <label className="text-sm font-medium text-content-secondary">{label}</label>}
-      <div ref={triggerRef}>
-        <button
-          type="button"
-          onClick={() => setOpen(!open)}
-          className="w-full flex items-center justify-between bg-surface-card text-sm rounded-xl px-3 py-2.5 border border-border hover:border-content-faint focus:border-accent-blue outline-none transition-colors text-left"
-        >
-          <span className={displayValue ? "text-content-primary" : "text-content-faint"}>
-            {displayValue || placeholder}
-          </span>
-          <Calendar className="w-4 h-4 text-content-muted flex-shrink-0" />
-        </button>
-      </div>
+    <>
+      <button
+        ref={triggerRef}
+        type="button"
+        onClick={() => setOpen(!open)}
+        className={`text-content-muted hover:text-content-primary transition-colors flex-shrink-0 ${className}`}
+      >
+        <Calendar style={{ width: iconSize, height: iconSize }} />
+      </button>
       {overlay}
-    </div>
+    </>
   )
 }
 

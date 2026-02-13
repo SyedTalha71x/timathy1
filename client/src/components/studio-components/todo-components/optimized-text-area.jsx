@@ -58,7 +58,7 @@ export const OptimizedTextarea = memo(function OptimizedTextarea({
       onBlur={handleBlur}
       onKeyDown={handleKeyDown}
       placeholder={placeholder}
-      className="flex-grow bg-transparent text-white outline-none text-sm placeholder-gray-500"
+      className="flex-grow bg-transparent text-content-primary outline-none text-sm placeholder-content-faint"
       style={{
         lineHeight: '28px',
       }}

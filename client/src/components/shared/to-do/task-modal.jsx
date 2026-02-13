@@ -186,10 +186,10 @@ const TaskModal = ({
     <>
       {/* Main Modal */}
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-        <div className="bg-[#181818] rounded-xl w-full max-w-md max-h-[90vh] flex flex-col">
+        <div className="bg-surface-card rounded-xl w-full max-w-md max-h-[90vh] flex flex-col">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-700 flex-shrink-0">
-            <h2 className="text-lg font-semibold text-white">
+          <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
+            <h2 className="text-lg font-semibold text-content-primary">
               {isEditMode ? "Edit Task" : "New Task"}
             </h2>
             <div className="flex items-center gap-2">
@@ -212,7 +212,7 @@ const TaskModal = ({
                       e.stopPropagation()
                       setShowMobileActionsMenu(!showMobileActionsMenu)
                     }}
-                    className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg transition-colors"
+                    className="text-content-muted hover:text-content-primary p-2 hover:bg-surface-hover rounded-lg transition-colors"
                     aria-label="More actions"
                   >
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -228,7 +228,7 @@ const TaskModal = ({
                         onClick={() => setShowMobileActionsMenu(false)}
                       />
                       <div 
-                        className="fixed bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-xl min-w-[200px] z-[9999] overflow-hidden"
+                        className="fixed bg-surface-hover border border-border rounded-xl shadow-xl min-w-[200px] z-[9999] overflow-hidden"
                         style={{
                           top: mobileActionsMenuRef.current?.getBoundingClientRect().bottom + 8 + 'px',
                           right: (window.innerWidth - mobileActionsMenuRef.current?.getBoundingClientRect().right) + 'px'
@@ -243,7 +243,7 @@ const TaskModal = ({
                                 setShowMobileActionsMenu(false)
                                 onClose()
                               }}
-                              className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-white"
+                              className="w-full text-left px-4 py-3 text-sm hover:bg-surface-hover transition-colors flex items-center gap-3 text-content-primary"
                             >
                               <Check size={16} />
                               <span>Mark Complete</span>
@@ -256,7 +256,7 @@ const TaskModal = ({
                                 onStatusChange(task.id, "ongoing")
                                 setShowMobileActionsMenu(false)
                               }}
-                              className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-white"
+                              className="w-full text-left px-4 py-3 text-sm hover:bg-surface-hover transition-colors flex items-center gap-3 text-content-primary"
                             >
                               <Edit size={16} />
                               <span>Set Ongoing</span>
@@ -271,7 +271,7 @@ const TaskModal = ({
                                 setShowMobileActionsMenu(false)
                                 onClose()
                               }}
-                              className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-white"
+                              className="w-full text-left px-4 py-3 text-sm hover:bg-surface-hover transition-colors flex items-center gap-3 text-content-primary"
                             >
                               <X size={16} />
                               <span>Cancel Task</span>
@@ -285,7 +285,7 @@ const TaskModal = ({
                                   onStatusChange(task.id, "ongoing")
                                   setShowMobileActionsMenu(false)
                                 }}
-                                className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-white"
+                                className="w-full text-left px-4 py-3 text-sm hover:bg-surface-hover transition-colors flex items-center gap-3 text-content-primary"
                               >
                                 <Edit size={16} />
                                 <span>Set Ongoing</span>
@@ -296,7 +296,7 @@ const TaskModal = ({
                                   setShowMobileActionsMenu(false)
                                   onClose()
                                 }}
-                                className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-white"
+                                className="w-full text-left px-4 py-3 text-sm hover:bg-surface-hover transition-colors flex items-center gap-3 text-content-primary"
                               >
                                 <Check size={16} />
                                 <span>Mark Complete</span>
@@ -304,7 +304,7 @@ const TaskModal = ({
                             </>
                           )}
 
-                          <div className="border-t border-gray-700 my-1"></div>
+                          <div className="border-t border-border my-1"></div>
 
                           {/* Pin/Unpin - uses local state, saved with Save Changes */}
                           {isEditMode && (
@@ -313,7 +313,7 @@ const TaskModal = ({
                                 setIsPinned(!isPinned)
                                 setShowMobileActionsMenu(false)
                               }}
-                              className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-white"
+                              className="w-full text-left px-4 py-3 text-sm hover:bg-surface-hover transition-colors flex items-center gap-3 text-content-primary"
                             >
                               {isPinned ? <PinOff size={16} /> : <Pin size={16} />}
                               <span>{isPinned ? 'Unpin Task' : 'Pin Task'}</span>
@@ -328,14 +328,14 @@ const TaskModal = ({
                                 setShowMobileActionsMenu(false)
                                 onClose()
                               }}
-                              className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-white"
+                              className="w-full text-left px-4 py-3 text-sm hover:bg-surface-hover transition-colors flex items-center gap-3 text-content-primary"
                             >
                               <Copy size={16} />
                               <span>Duplicate</span>
                             </button>
                           )}
 
-                          <div className="border-t border-gray-700 my-1"></div>
+                          <div className="border-t border-border my-1"></div>
                           
                           {/* Delete */}
                           {onDelete && (
@@ -344,7 +344,7 @@ const TaskModal = ({
                                 onDelete(task.id)
                                 setShowMobileActionsMenu(false)
                               }}
-                              className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-red-500"
+                              className="w-full text-left px-4 py-3 text-sm hover:bg-surface-hover transition-colors flex items-center gap-3 text-red-500"
                             >
                               <Trash2 size={16} />
                               <span>Delete</span>
@@ -359,7 +359,7 @@ const TaskModal = ({
               
               <button
                 onClick={onClose}
-                className="text-gray-400 hover:text-white transition-colors"
+                className="text-content-muted hover:text-content-primary transition-colors"
               >
                 <X size={20} />
               </button>
@@ -369,16 +369,16 @@ const TaskModal = ({
           {/* Content - Scrollable */}
           <div className="flex-1 overflow-y-auto custom-scrollbar">
             {/* Task Title */}
-            <div className="p-4 border-b border-gray-700">
+            <div className="p-4 border-b border-border">
               <textarea
                 ref={titleInputRef}
                 value={taskTitle}
                 onChange={(e) => setTaskTitle(e.target.value)}
                 placeholder={isEditMode ? "Task title..." : "What needs to be done?"}
                 className={`w-full bg-transparent text-lg font-medium outline-none resize-none min-h-[60px] ${
-                  isCompleted ? "text-gray-500" :
-                  isCanceled ? "text-gray-600 line-through italic" :
-                  "text-white placeholder-gray-500"
+                  isCompleted ? "text-content-faint" :
+                  isCanceled ? "text-content-faint line-through italic" :
+                  "text-white placeholder-content-faint"
                 }`}
                 rows={isEditMode ? 1 : 2}
                 style={isEditMode ? { height: "auto", overflow: "hidden" } : {}}
@@ -389,7 +389,7 @@ const TaskModal = ({
                 disabled={isDisabled}
               />
               {isEditMode && task?.createdAt && (
-                <p className="text-xs text-gray-500 mt-2">
+                <p className="text-xs text-content-faint mt-2">
                   Created: {new Date(task.createdAt).toLocaleDateString("en-US", {
                     day: "numeric",
                     month: "short",
@@ -404,34 +404,34 @@ const TaskModal = ({
             {/* Date & Time Section */}
             <button
               onClick={() => !isDisabled && setShowCalendarModal(true)}
-              className={`w-full p-4 border-b border-gray-700 flex items-center justify-between transition-colors ${
-                !isDisabled ? "hover:bg-[#1F1F1F]" : "opacity-60"
+              className={`w-full p-4 border-b border-border flex items-center justify-between transition-colors ${
+                !isDisabled ? "hover:bg-surface-hover" : "opacity-60"
               }`}
               disabled={isDisabled}
             >
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-[#2F2F2F]">
-                  <Calendar size={18} className="text-gray-400" />
+                <div className="p-2 rounded-xl bg-surface-button">
+                  <Calendar size={18} className="text-content-muted" />
                 </div>
                 <div className="text-left">
-                  <p className="text-sm font-medium text-gray-300">Due Date & Time</p>
-                  <p className={`text-sm ${taskData.dueDate ? "text-white" : "text-gray-500"}`}>
+                  <p className="text-sm font-medium text-content-secondary">Due Date & Time</p>
+                  <p className={`text-sm ${taskData.dueDate ? "text-white" : "text-content-faint"}`}>
                     {formatDateTime()}
                   </p>
                 </div>
               </div>
-              {!isDisabled && <ChevronDown size={18} className="text-gray-400" />}
+              {!isDisabled && <ChevronDown size={18} className="text-content-muted" />}
             </button>
 
             {/* Reminder Section (shown if set) */}
             {taskData.reminder && taskData.reminder !== "" && taskData.reminder !== "None" && (
-              <div className="p-4 border-b border-gray-700 flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-[#2F2F2F]">
-                  <Bell size={18} className="text-gray-400" />
+              <div className="p-4 border-b border-border flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-surface-button">
+                  <Bell size={18} className="text-content-muted" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-300">Reminder</p>
-                  <p className="text-sm text-white">{taskData.reminder}</p>
+                  <p className="text-sm font-medium text-content-secondary">Reminder</p>
+                  <p className="text-sm text-content-primary">{taskData.reminder}</p>
                 </div>
               </div>
             )}
@@ -439,34 +439,34 @@ const TaskModal = ({
             {/* Assignees Section */}
             <button
               onClick={() => !isDisabled && setShowAssignModal(true)}
-              className={`w-full p-4 border-b border-gray-700 text-left transition-colors ${
-                !isDisabled ? "hover:bg-[#1F1F1F]" : "opacity-60"
+              className={`w-full p-4 border-b border-border text-left transition-colors ${
+                !isDisabled ? "hover:bg-surface-hover" : "opacity-60"
               }`}
               disabled={isDisabled}
             >
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-[#2F2F2F]">
-                  <Users size={18} className="text-gray-400" />
+                <div className="p-2 rounded-xl bg-surface-button">
+                  <Users size={18} className="text-content-muted" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-300">Assigned To</p>
+                  <p className="text-sm font-medium text-content-secondary">Assigned To</p>
                   {taskData.assignees.length > 0 ? (
                     <div className="flex flex-wrap gap-2 mt-2">
                       {taskData.assignees.map((assignee, idx) => (
                         <span
                           key={idx}
-                          className="px-2.5 py-1 bg-[#2F2F2F] text-gray-300 rounded-lg text-xs"
+                          className="px-2.5 py-1 bg-surface-button text-content-secondary rounded-lg text-xs"
                         >
                           {assignee}
                         </span>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-gray-500">No one assigned</p>
+                    <p className="text-sm text-content-faint">No one assigned</p>
                   )}
                 </div>
                 {!isDisabled && (
-                  <ChevronDown size={18} className="text-gray-400 flex-shrink-0" />
+                  <ChevronDown size={18} className="text-content-muted flex-shrink-0" />
                 )}
               </div>
             </button>
@@ -474,17 +474,17 @@ const TaskModal = ({
             {/* Tags Section */}
             <button
               onClick={() => !isDisabled && setShowTagsModal(true)}
-              className={`w-full p-4 border-b border-gray-700 text-left transition-colors ${
-                !isDisabled ? "hover:bg-[#1F1F1F]" : "opacity-60"
+              className={`w-full p-4 border-b border-border text-left transition-colors ${
+                !isDisabled ? "hover:bg-surface-hover" : "opacity-60"
               }`}
               disabled={isDisabled}
             >
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-[#2F2F2F]">
-                  <Tag size={18} className="text-gray-400" />
+                <div className="p-2 rounded-xl bg-surface-button">
+                  <Tag size={18} className="text-content-muted" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-300">Tags</p>
+                  <p className="text-sm font-medium text-content-secondary">Tags</p>
                   {taskData.tags.length > 0 ? (
                     <div className="flex flex-wrap gap-2 mt-2">
                       {taskData.tags.map((tag, idx) => (
@@ -498,21 +498,21 @@ const TaskModal = ({
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-gray-500">No tags</p>
+                    <p className="text-sm text-content-faint">No tags</p>
                   )}
                 </div>
                 {!isDisabled && (
-                  <ChevronDown size={18} className="text-gray-400 flex-shrink-0" />
+                  <ChevronDown size={18} className="text-content-muted flex-shrink-0" />
                 )}
               </div>
             </button>
           </div>
 
           {/* Footer */}
-          <div className="flex-shrink-0 p-4 border-t border-gray-700 flex justify-end gap-3">
+          <div className="flex-shrink-0 p-4 border-t border-border flex justify-end gap-3">
             <button
               onClick={onClose}
-              className="px-4 py-2 bg-[#2F2F2F] text-sm text-gray-300 rounded-xl hover:bg-gray-700 transition-colors"
+              className="px-4 py-2 bg-surface-button text-sm text-content-secondary rounded-xl hover:bg-surface-button transition-colors"
             >
               Cancel
             </button>
@@ -522,7 +522,7 @@ const TaskModal = ({
               className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
                 taskTitle.trim()
                   ? "bg-orange-500 text-white hover:bg-orange-600"
-                  : "bg-gray-700 text-gray-500 cursor-not-allowed"
+                  : "bg-surface-button text-content-faint cursor-not-allowed"
               }`}
             >
               {isEditMode ? "Save Changes" : "Create Task"}
@@ -575,15 +575,15 @@ const TaskModal = ({
           width: 6px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-          background: #2F2F2F;
+          background: var(--color-surface-button, #2F2F2F);
           border-radius: 3px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #555;
+          background: var(--color-content-faint, #555);
           border-radius: 3px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #777;
+          background: var(--color-content-muted, #777);
         }
       `}</style>
     </>

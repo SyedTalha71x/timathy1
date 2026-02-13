@@ -4,7 +4,7 @@ export default function SuccessModal({ isOpen, onClose, title, message, buttonTe
   
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-        <div className="bg-[#1C1C1C] rounded-xl p-6 max-w-md w-full mx-auto border border-gray-700">
+        <div className="bg-surface-base rounded-xl p-6 max-w-md w-full mx-auto border border-border">
           <div className="flex justify-center mb-4">
             <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center">
               <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -13,9 +13,9 @@ export default function SuccessModal({ isOpen, onClose, title, message, buttonTe
             </div>
           </div>
           
-          <h3 className="text-white text-lg font-semibold text-center mb-2">{title}</h3>
+          <h3 className="text-content-primary text-lg font-semibold text-center mb-2">{title}</h3>
           
-          <p className="text-gray-300 text-sm text-center mb-6">{message}</p>
+          <p className="text-content-secondary text-sm text-center mb-6">{message}</p>
           
           <div className="flex justify-center">
             <button

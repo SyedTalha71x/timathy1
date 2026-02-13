@@ -9,15 +9,15 @@ const DeleteModal = ({ isOpen, task, onCancel, onConfirm }) => {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000]">
-      <div className="bg-[#1E1E1E] rounded-xl p-6 max-w-md w-full mx-4">
-        <h3 className="text-white text-lg font-medium mb-2">Confirm Delete</h3>
-        <p className="text-gray-300 text-sm mb-6">
+      <div className="bg-surface-card rounded-xl p-6 max-w-md w-full mx-4">
+        <h3 className="text-content-primary text-lg font-medium mb-2">Confirm Delete</h3>
+        <p className="text-content-secondary text-sm mb-6">
           Are you sure you want to delete the task "{task.title}"? This action cannot be undone.
         </p>
         <div className="flex gap-3 justify-end">
           <button
             onClick={onCancel}
-            className="bg-[#2F2F2F] text-sm text-gray-300 px-4 py-2 rounded-xl hover:bg-gray-700"
+            className="bg-surface-button text-sm text-content-secondary px-4 py-2 rounded-xl hover:bg-surface-button"
           >
             Cancel
           </button>

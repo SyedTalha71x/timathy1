@@ -102,7 +102,7 @@ const HighlightedText = ({ text, isUserMessage }) => {
         result.push(
           <span 
             key={`match-${index}`}
-            className={`border-b ${isUserMessage ? 'border-white/60' : 'border-gray-400'}`}
+            className={`border-b ${isUserMessage ? 'border-white/60' : 'border-border'}`}
             style={{ borderBottomStyle: 'dotted', paddingBottom: '1px', whiteSpace: 'pre-wrap' }}
           >
             {part}
@@ -135,7 +135,7 @@ const InitialsAvatar = ({ firstName, lastName, size = "md", isStaff = false, cla
   }
 
   // Blue for staff, Orange for members
-  const bgColor = isStaff ? "bg-blue-600" : "bg-orange-500"
+  const bgColor = isStaff ? "bg-primary" : "bg-orange-500"
 
   return (
     <div 
@@ -186,7 +186,7 @@ const MobileEmailItem = ({
       onTouchEnd={handleTouchEnd}
     >
       <div 
-        className={`flex items-center gap-3 px-4 py-3 border-b border-gray-800/50 active:bg-[#222222] transition-transform duration-200 ${
+        className={`flex items-center gap-3 px-4 py-3 border-b border-border active:bg-surface-hover transition-transform duration-200 ${
           showActions ? '-translate-x-20' : 'translate-x-0'
         }`}
         onClick={() => {
@@ -206,18 +206,18 @@ const MobileEmailItem = ({
           <div className={`w-6 h-6 rounded-lg flex items-center justify-center transition-colors ${
             selectedEmailIds.includes(email.id)
               ? "bg-orange-500"
-              : "border-2 border-gray-600"
+              : "border-2 border-border"
           }`}>
             {selectedEmailIds.includes(email.id) && (
-              <Check size={14} className="text-white" />
+              <Check size={14} className="text-content-primary" />
             )}
           </div>
         </div>
 
         {/* Email Icon with Unread Indicator */}
         <div className="relative flex-shrink-0">
-          <div className="w-11 h-11 rounded-xl bg-[#222222] flex items-center justify-center">
-            <Mail size={18} className="text-gray-500" />
+          <div className="w-11 h-11 rounded-xl bg-surface-hover flex items-center justify-center">
+            <Mail size={18} className="text-content-faint" />
           </div>
           {!email.isRead && (
             <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-orange-500 rounded-full border-2 border-[#1C1C1C]" />
@@ -227,13 +227,13 @@ const MobileEmailItem = ({
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2 mb-0.5">
-            <span className={`font-medium truncate ${!email.isRead ? 'text-white' : 'text-gray-300'}`}>
+            <span className={`font-medium truncate ${!email.isRead ? 'text-content-primary' : 'text-content-secondary'}`}>
               {emailTab === "sent" ? email.recipient : email.sender}
             </span>
-            <span className="text-xs text-gray-500 flex-shrink-0">{formatEmailTime(email.time)}</span>
+            <span className="text-xs text-content-faint flex-shrink-0">{formatEmailTime(email.time)}</span>
           </div>
           <div className="flex items-center gap-2">
-            <p className={`text-sm truncate ${!email.isRead ? "font-medium text-white" : "text-gray-400"}`}>
+            <p className={`text-sm truncate ${!email.isRead ? "font-medium text-content-primary" : "text-content-muted"}`}>
               {email.subject || "(No subject)"}
             </p>
             {email.status === "Draft" && (
@@ -242,9 +242,9 @@ const MobileEmailItem = ({
               </span>
             )}
           </div>
-          <p className="text-xs text-gray-500 truncate mt-0.5">{truncateEmailText(email.body, 50)}</p>
+          <p className="text-xs text-content-faint truncate mt-0.5">{truncateEmailText(email.body, 50)}</p>
           {email.attachments?.length > 0 && (
-            <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
+            <div className="flex items-center gap-1 mt-1 text-xs text-content-faint">
               <Paperclip size={10} />
               <span>{email.attachments.length}</span>
             </div>
@@ -264,7 +264,7 @@ const MobileEmailItem = ({
             setShowActions(false)
           }}
         >
-          <Trash2 size={20} className="text-white" />
+          <Trash2 size={20} className="text-content-primary" />
         </button>
       </div>
     </div>
@@ -2251,7 +2251,7 @@ export default function Communications() {
       const firstApp = appointmentsNew.find(app => app.type === type);
       return {
         name: type,
-        color: firstApp?.color || "bg-gray-700",
+        color: firstApp?.color || "bg-surface-button",
         duration: 30
       };
     });
@@ -2262,11 +2262,11 @@ export default function Communications() {
   const getMessageStatusIcon = (status) => {
     switch (status) {
       case "sent":
-        return <Check className="w-3.5 h-3.5 text-gray-400" />
+        return <Check className="w-3.5 h-3.5 text-content-muted" />
       case "delivered":
-        return <CheckCheck className="w-3.5 h-3.5 text-gray-400" />
+        return <CheckCheck className="w-3.5 h-3.5 text-content-muted" />
       case "read":
-        return <CheckCheck className="w-3.5 h-3.5 text-blue-400" />
+        return <CheckCheck className="w-3.5 h-3.5 text-primary" />
       default:
         return null
     }
@@ -2440,8 +2440,8 @@ export default function Communications() {
           relative flex items-start gap-3 p-4 rounded-xl cursor-pointer select-none
           transition-all duration-200 group border-b border-slate-700
           ${isSelected 
-            ? "bg-[#181818] border-l-2 border-l-orange-500" 
-            : "hover:bg-[#181818] border-l-2 border-l-transparent"
+            ? "bg-surface-card border-l-2 border-l-orange-500" 
+            : "hover:bg-surface-card border-l-2 border-l-transparent"
           }
         `}
       >
@@ -2501,21 +2501,21 @@ export default function Communications() {
         <div className="flex-1 min-w-0">
           {/* Row 1: Name + New Chat Badge */}
           <div className="flex items-center gap-2">
-            <span className={`font-medium truncate ${isSelected ? 'text-orange-400' : 'text-white'}`}>
+            <span className={`font-medium truncate ${isSelected ? 'text-orange-400' : 'text-content-primary'}`}>
               {chat.name}
             </span>
             {chat.isNewChat && (
-              <span className="text-[10px] bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded">New</span>
+              <span className="text-[10px] bg-primary/20 text-primary px-1.5 py-0.5 rounded">New</span>
             )}
           </div>
           
           {/* Row 2: Message Preview - dynamically computed from messages */}
-          <p className="text-sm text-gray-400 truncate mt-0.5">
+          <p className="text-sm text-content-muted truncate mt-0.5">
             {getLastMessageContent(chat)}
           </p>
           
           {/* Row 3: Time - dynamically computed from messages */}
-          <div className="flex items-center gap-1 text-gray-500 mt-1.5">
+          <div className="flex items-center gap-1 text-content-faint mt-1.5">
             <Clock size={12} />
             <span className="text-xs">{getLastMessageTime(chat) || "No messages"}</span>
           </div>
@@ -2550,7 +2550,7 @@ export default function Communications() {
                 e.stopPropagation();
                 onMenuClick(chat.id);
               }}
-              className="w-[18px] h-[18px] flex items-center justify-center text-gray-400 hover:text-orange-400 rounded hover:bg-gray-800 transition-colors"
+              className="w-[18px] h-[18px] flex items-center justify-center text-content-muted hover:text-orange-400 rounded hover:bg-surface-hover transition-colors"
             >
               <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z" />
@@ -2563,13 +2563,13 @@ export default function Communications() {
         {showChatMenu === chat.id && (
           <div
             ref={chatMenuRef}
-            className={`absolute right-4 w-48 bg-[#1C1C1C] border border-gray-700 rounded-lg shadow-lg py-1 z-20 ${
+            className={`absolute right-4 w-48 bg-surface-base border border-border rounded-lg shadow-lg py-1 z-20 ${
               shouldOpenUpward() ? 'bottom-16' : 'top-16'
             }`}
           >
             {/* Mark as read/unread - available for all chat types */}
             <button
-              className="w-full px-3 py-2 text-sm text-left hover:bg-gray-800 text-gray-300 flex items-center gap-2 transition-colors"
+              className="w-full px-3 py-2 text-sm text-left hover:bg-surface-hover text-content-secondary flex items-center gap-2 transition-colors"
               onClick={(e) => {
                 const hasUnread = getUnreadCount(chat) > 0 || chat.markedUnread;
                 hasUnread ? handleMarkChatAsRead(chat.id, e, isCompanyChat) : handleMarkChatAsUnread(chat.id, e, isCompanyChat);
@@ -2584,21 +2584,21 @@ export default function Communications() {
             {!isCompanyChat && !isStaffChat && (
               <>
                 <button
-                  className="w-full px-3 py-2 text-sm text-left hover:bg-gray-800 text-gray-300 flex items-center gap-2 transition-colors"
+                  className="w-full px-3 py-2 text-sm text-left hover:bg-surface-hover text-content-secondary flex items-center gap-2 transition-colors"
                   onClick={(e) => handlePinChat(chat.id, e)}
                 >
                   {pinnedChats.has(chat.id) ? <PinOff className="w-4 h-4" /> : <Pin className="w-4 h-4" />}
                   {pinnedChats.has(chat.id) ? "Unpin" : "Pin"} chat
                 </button>
                 <button
-                  className="w-full px-3 py-2 text-sm text-left hover:bg-gray-800 text-gray-300 flex items-center gap-2 transition-colors"
+                  className="w-full px-3 py-2 text-sm text-left hover:bg-surface-hover text-content-secondary flex items-center gap-2 transition-colors"
                   onClick={(e) => handleArchiveChat(chat.id, e)}
                 >
                   <Archive className="w-4 h-4" />
                   Archive chat
                 </button>
                 <button
-                  className="w-full px-3 py-2 text-sm text-left hover:bg-gray-800 text-gray-300 flex items-center gap-2 transition-colors"
+                  className="w-full px-3 py-2 text-sm text-left hover:bg-surface-hover text-content-secondary flex items-center gap-2 transition-colors"
                   onClick={(e) => handleViewMember(chat.id, e)}
                 >
                   <User className="w-4 h-4" />
@@ -2609,7 +2609,7 @@ export default function Communications() {
             {/* Staff-specific actions */}
             {isStaffChat && (
               <button
-                className="w-full px-3 py-2 text-sm text-left hover:bg-gray-800 text-gray-300 flex items-center gap-2 transition-colors"
+                className="w-full px-3 py-2 text-sm text-left hover:bg-surface-hover text-content-secondary flex items-center gap-2 transition-colors"
                 onClick={(e) => handleViewStaff(chat.id, e)}
               >
                 <User className="w-4 h-4" />
@@ -2623,7 +2623,7 @@ export default function Communications() {
   };
 
   return (
-    <div className="relative flex h-[92vh] max-h-[92vh] bg-[#1C1C1C] text-gray-200 rounded-3xl overflow-hidden">
+    <div className="relative flex h-[92vh] max-h-[92vh] bg-surface-base text-content-secondary rounded-3xl overflow-hidden">
       <ToastContainer />
 
       {/* Chat List Sidebar - Fixed height container */}
@@ -2635,14 +2635,14 @@ export default function Communications() {
         {/* Header Section - Fixed, doesn't scroll */}
         <div className="flex-shrink-0 p-4">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold text-white">Messenger</h1>
+            <h1 className="text-2xl font-bold text-content-primary">Messenger</h1>
           </div>
 
           {/* Tabs - Equal width, full width */}
           <div className="mb-4">
-            <div className="flex bg-[#141414] rounded-xl border border-[#333333] p-1 w-full overflow-hidden">
+            <div className="flex bg-surface-card rounded-xl border border-border p-1 w-full overflow-hidden">
               <button
-                className={`flex-1 py-2 flex items-center justify-center rounded-lg text-sm transition-colors relative ${chatType === "member" && activeScreen !== "email-frontend" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white hover:bg-[#222222]"
+                className={`flex-1 py-2 flex items-center justify-center rounded-lg text-sm transition-colors relative ${chatType === "member" && activeScreen !== "email-frontend" ? "bg-primary text-white" : "text-content-muted hover:text-content-primary hover:bg-surface-hover"
                   }`}
                 onClick={() => {
                   setChatType("member");
@@ -2661,7 +2661,7 @@ export default function Communications() {
                 )}
               </button>
               <button
-                className={`flex-1 py-2 flex items-center justify-center rounded-lg text-sm transition-colors relative ${chatType === "company" && activeScreen !== "email-frontend" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white hover:bg-[#222222]"
+                className={`flex-1 py-2 flex items-center justify-center rounded-lg text-sm transition-colors relative ${chatType === "company" && activeScreen !== "email-frontend" ? "bg-primary text-white" : "text-content-muted hover:text-content-primary hover:bg-surface-hover"
                   }`}
                 onClick={() => {
                   setChatType("company");
@@ -2680,7 +2680,7 @@ export default function Communications() {
                 )}
               </button>
               <button
-                className={`flex-1 py-2 flex items-center justify-center rounded-lg text-sm transition-colors relative ${activeScreen === "email-frontend" ? "bg-[#3F74FF] text-white" : "text-gray-400 hover:text-white hover:bg-[#222222]"}`}
+                className={`flex-1 py-2 flex items-center justify-center rounded-lg text-sm transition-colors relative ${activeScreen === "email-frontend" ? "bg-primary text-white" : "text-content-muted hover:text-content-primary hover:bg-surface-hover"}`}
                 onClick={handleEmailClick}
               >
                 <Mail size={16} className="mr-2" />
@@ -2698,13 +2698,13 @@ export default function Communications() {
           {activeScreen !== "email-frontend" ? (
             <>
               <div className="relative mb-4">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-content-muted" size={16} />
                 <input
                   type="text"
                   placeholder="Search chats by name..."
                   value={searchMember}
                   onChange={(e) => setSearchMember(e.target.value)}
-                  className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-9 border border-[#333333] focus:border-[#3F74FF] transition-colors"
+                  className="w-full bg-surface-card outline-none text-sm text-content-primary rounded-xl px-4 py-2 pl-9 border border-border focus:border-primary transition-colors"
                 />
               </div>
 
@@ -2712,9 +2712,9 @@ export default function Communications() {
               {chatType === "member" && (
                 <button
                   onClick={() => setShowArchive(true)}
-                  className="flex items-center gap-2 px-4 py-2.5 bg-[#2a2a2a] hover:bg-[#333333] rounded-xl text-sm text-white transition-colors w-full mb-4"
+                  className="flex items-center gap-2 px-4 py-2.5 bg-surface-button hover:bg-surface-button-hover rounded-xl text-sm text-content-primary transition-colors w-full mb-4"
                 >
-                  <Archive className="w-4 h-4 text-white" />
+                  <Archive className="w-4 h-4 text-content-primary" />
                   Archived ({archivedChats.length})
                 </button>
               )}
@@ -2723,13 +2723,13 @@ export default function Communications() {
             <>
               {/* Email Search */}
               <div className="relative mb-4">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-content-muted" size={16} />
                 <input
                   type="text"
                   placeholder="Search emails..."
                   value={emailSearchQuery}
                   onChange={(e) => setEmailSearchQuery(e.target.value)}
-                  className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-9 border border-[#333333] focus:border-[#3F74FF] transition-colors"
+                  className="w-full bg-surface-card outline-none text-sm text-content-primary rounded-xl px-4 py-2 pl-9 border border-border focus:border-primary transition-colors"
                 />
               </div>
 
@@ -2793,7 +2793,7 @@ export default function Communications() {
                           ))}
                           {/* Divider between pinned and unpinned */}
                           <div className="flex items-center px-2 py-1 mt-2">
-                            <div className="flex-1 h-px bg-gray-700"></div>
+                            <div className="flex-1 h-px bg-surface-button"></div>
                           </div>
                         </>
                       )}
@@ -2802,8 +2802,8 @@ export default function Communications() {
                       {unpinned.map((chat, index) => {
                         if (chat.type === "separator") {
                           return (
-                            <div key="separator" className="border-t border-gray-600 my-2">
-                              <div className="text-xs text-gray-500 text-center py-2">Staff Chats</div>
+                            <div key="separator" className="border-t border-border my-2">
+                              <div className="text-xs text-content-faint text-center py-2">Staff Chats</div>
                             </div>
                           )
                         }
@@ -2852,14 +2852,14 @@ export default function Communications() {
                       // Don't allow dragging from draft, error, or trash folders
                       if (emailTab === 'draft' || emailTab === 'error' || emailTab === 'trash') return
                       e.preventDefault()
-                      e.currentTarget.classList.add('bg-[#333333]')
+                      e.currentTarget.classList.add('bg-surface-button-hover')
                     }}
                     onDragLeave={(e) => {
-                      e.currentTarget.classList.remove('bg-[#333333]')
+                      e.currentTarget.classList.remove('bg-surface-button-hover')
                     }}
                     onDrop={(e) => {
                       e.preventDefault()
-                      e.currentTarget.classList.remove('bg-[#333333]')
+                      e.currentTarget.classList.remove('bg-surface-button-hover')
                       // Don't allow dropping on draft, error, or trash folders
                       if (folder.id === 'draft' || folder.id === 'error' || folder.id === 'trash') return
                       // Don't allow dragging from draft, error, or trash folders
@@ -2871,14 +2871,14 @@ export default function Communications() {
                     }}
                     className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-colors border-l-2 ${
                       isActive 
-                        ? "bg-[#181818] border-l-orange-500 text-white" 
-                        : "border-l-transparent text-gray-400 hover:bg-[#222222] hover:text-white"
+                        ? "bg-surface-card border-l-orange-500 text-content-primary" 
+                        : "border-l-transparent text-content-muted hover:bg-surface-hover hover:text-content-primary"
                     }`}
                   >
                     <div className="flex items-center gap-3">
                       <Icon size={18} className={isActive ? "text-orange-400" : ""} />
                       <span className={`text-sm font-medium ${isActive ? "text-orange-400" : ""}`}>
-                        {folder.label} <span className={isActive ? "text-gray-400" : "text-gray-500"}>[{totalCount}]</span>
+                        {folder.label} <span className={isActive ? "text-content-muted" : "text-content-faint"}>[{totalCount}]</span>
                       </span>
                     </div>
                     {unreadCount > 0 && (
@@ -2909,12 +2909,12 @@ export default function Communications() {
         {!selectedChat && activeScreen === "chat" && (
           <div className="flex flex-col items-center justify-center h-full text-center p-6">
             <div className="mb-6">
-              <div className="w-24 h-24 rounded-2xl bg-[#1a1a1a] border border-[#333333] flex items-center justify-center mx-auto">
-                <MessageCircle className="w-12 h-12 text-gray-600" />
+              <div className="w-24 h-24 rounded-2xl bg-surface-hover border border-border flex items-center justify-center mx-auto">
+                <MessageCircle className="w-12 h-12 text-content-faint" />
               </div>
             </div>
-            <h3 className="text-white font-medium text-lg mb-2">No chat selected</h3>
-            <p className="text-gray-500 text-sm max-w-xs">
+            <h3 className="text-content-primary font-medium text-lg mb-2">No chat selected</h3>
+            <p className="text-content-faint text-sm max-w-xs">
               Select a conversation from the chatlist to start messaging.
             </p>
           </div>
@@ -2923,11 +2923,11 @@ export default function Communications() {
         {selectedChat && activeScreen === "chat" && (
           <div className="flex flex-col h-full overflow-hidden">
             {/* Chat Header */}
-            <div className="flex items-center justify-between p-4 border-b border-gray-800 flex-shrink-0 select-none">
+            <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0 select-none">
               <div className="flex items-center gap-3">
                 {/* Clickable Profile Container */}
                 <div 
-                  className={`flex items-center gap-3 px-3 py-2 bg-black rounded-xl ${(chatType !== "company" || (chatType === "company" && selectedChat.id !== 100)) ? "cursor-pointer hover:bg-gray-700 active:scale-[0.98] transition-all duration-200" : ""}`}
+                  className={`flex items-center gap-3 px-3 py-2 bg-black rounded-xl ${(chatType !== "company" || (chatType === "company" && selectedChat.id !== 100)) ? "cursor-pointer hover:bg-surface-button active:scale-[0.98] transition-all duration-200" : ""}`}
                   onClick={(e) => {
                     const isStaffChat = chatType === "company" && selectedChat.id !== 100;
                     if (isStaffChat) {
@@ -2965,7 +2965,7 @@ export default function Communications() {
                       size="md"
                     />
                   </div>
-                  <span className="font-medium text-white">
+                  <span className="font-medium text-content-primary">
                     {selectedChat.name}
                   </span>
                 </div>
@@ -2973,7 +2973,7 @@ export default function Communications() {
               <div className="flex items-center gap-2">
                 {chatType !== "company" && (
                   <button
-                    className="text-blue-500 hover:text-blue-400"
+                    className="text-primary hover:text-primary-hover"
                     aria-label="View appointments"
                     onClick={handleCalendarClick}
                   >
@@ -2997,9 +2997,9 @@ export default function Communications() {
                     <div className="relative flex-shrink-0">
                       <button
                         onClick={() => setActiveMessageMenu(activeMessageMenu === message.id ? null : message.id)}
-                        className="message-menu-trigger opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-gray-700 rounded-lg mt-2"
+                        className="message-menu-trigger opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-surface-button rounded-lg mt-2"
                       >
-                        <MoreVertical size={18} className="text-gray-400" />
+                        <MoreVertical size={18} className="text-content-muted" />
                       </button>
                       
                       {/* Menu for own messages - appears to the right of button */}
@@ -3011,11 +3011,11 @@ export default function Communications() {
                           />
                           <div
                             ref={messageMenuRef}
-                            className="absolute top-0 left-full ml-1 z-[1100] bg-[#2a2a2a] rounded-xl shadow-xl p-1 min-w-[140px] border border-gray-700"
+                            className="absolute top-0 left-full ml-1 z-[1100] bg-surface-button rounded-xl shadow-xl p-1 min-w-[140px] border border-border"
                           >
                             <button
                               onClick={() => handleReplyToMessage(message)}
-                              className="w-full text-left px-3 py-2 text-sm hover:bg-gray-700 rounded-lg text-white flex items-center gap-2"
+                              className="w-full text-left px-3 py-2 text-sm hover:bg-surface-button rounded-lg text-content-primary flex items-center gap-2"
                             >
                               <Reply size={14} />
                               Reply
@@ -3026,7 +3026,7 @@ export default function Communications() {
                                 setShowReactionPicker(message.id);
                                 setActiveMessageMenu(null);
                               }}
-                              className="w-full text-left px-3 py-2 text-sm hover:bg-gray-700 rounded-lg text-white flex items-center gap-2"
+                              className="w-full text-left px-3 py-2 text-sm hover:bg-surface-button rounded-lg text-content-primary flex items-center gap-2"
                             >
                               <Smile size={14} />
                               React
@@ -3034,7 +3034,7 @@ export default function Communications() {
 
                             <button
                               onClick={() => handleCopyMessage(message)}
-                              className="w-full text-left px-3 py-2 text-sm hover:bg-gray-700 rounded-lg text-white flex items-center gap-2"
+                              className="w-full text-left px-3 py-2 text-sm hover:bg-surface-button rounded-lg text-content-primary flex items-center gap-2"
                             >
                               <Copy size={14} />
                               Copy
@@ -3045,7 +3045,7 @@ export default function Communications() {
                                 setShowDeleteConfirm(message.id);
                                 setActiveMessageMenu(null);
                               }}
-                              className="w-full text-left px-3 py-2 text-sm hover:bg-gray-700 rounded-lg text-red-400 flex items-center gap-2"
+                              className="w-full text-left px-3 py-2 text-sm hover:bg-surface-button rounded-lg text-red-400 flex items-center gap-2"
                             >
                               <Trash2 size={14} />
                               Delete
@@ -3059,7 +3059,7 @@ export default function Communications() {
                   <div className={`flex flex-col gap-1 ${message.sender === "You" ? "items-end" : ""} max-w-lg`}>
                     {/* Sender name ONLY for main studio group chat (ID 100) */}
                     {selectedChat?.id === 100 && message.sender !== "You" && !message.isDeleted && (
-                      <div className="text-xs text-gray-500 font-medium mb-1">
+                      <div className="text-xs text-content-faint font-medium mb-1">
                         {message.sender}
                       </div>
                     )}
@@ -3067,7 +3067,7 @@ export default function Communications() {
                     <div
                       className={`rounded-xl p-3 ${
                         message.isDeleted
-                          ? "bg-gray-800/50 text-gray-500 italic"
+                          ? "bg-surface-hover text-content-faint italic"
                           : message.sender === "You"
                             ? "bg-orange-500"
                             : "bg-black"
@@ -3079,13 +3079,13 @@ export default function Communications() {
                           className={`mb-2 p-2 rounded-lg text-xs border-l-2 ${
                             message.sender === 'You'
                               ? "bg-orange-600/50 border-l-white"
-                              : "bg-gray-700 border-l-orange-500"
+                              : "bg-surface-button border-l-orange-500"
                           }`}
                         >
-                          <p className="font-semibold mb-0.5 text-white text-xs">
+                          <p className="font-semibold mb-0.5 text-content-primary text-xs">
                             {message.replyTo.sender === 'You' ? 'You' : message.replyTo.sender}
                           </p>
-                          <p className={`${message.sender === 'You' ? 'text-orange-100/80' : 'text-gray-400'} text-xs`}>
+                          <p className={`${message.sender === 'You' ? 'text-orange-100/80' : 'text-content-muted'} text-xs`}>
                             {truncateText(message.replyTo.content, 50)}
                           </p>
                         </div>
@@ -3093,7 +3093,7 @@ export default function Communications() {
 
                       {/* Message Content */}
                       <p 
-                        className={`text-sm ${message.isDeleted ? "" : "text-white"}`}
+                        className={`text-sm ${message.isDeleted ? "" : "text-content-primary"}`}
                         style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word' }}
                       >
                         {message.isDeleted ? (
@@ -3108,13 +3108,13 @@ export default function Communications() {
 
                       {/* Time and status */}
                       <div className={`text-[11px] mt-1.5 flex items-center gap-1 ${
-                        message.sender === "You" ? "text-white/70 justify-end" : "text-gray-500"
+                        message.sender === "You" ? "text-white/70 justify-end" : "text-content-faint"
                       }`}>
                         <span>{message.time || formatTimestamp(message.timestamp)}</span>
                         {message.sender === "You" && !message.isDeleted && (
                           <span className="ml-1">
                             {message.status === "read" ? (
-                              <CheckCheck className="w-3.5 h-3.5 text-blue-400" />
+                              <CheckCheck className="w-3.5 h-3.5 text-primary" />
                             ) : message.status === "delivered" ? (
                               <CheckCheck className="w-3.5 h-3.5" />
                             ) : (
@@ -3130,11 +3130,11 @@ export default function Communications() {
                       <div className={`flex gap-1 ${message.sender === 'You' ? 'justify-end' : 'justify-start'}`}>
                         <button
                           onClick={(e) => removeReaction(message.id, e)}
-                          className="bg-gray-700/80 rounded-full px-2 py-0.5 text-base flex items-center gap-1 hover:bg-gray-600 transition-colors group/reaction"
+                          className="bg-surface-button/80 rounded-full px-2 py-0.5 text-base flex items-center gap-1 hover:bg-surface-button transition-colors group/reaction"
                           title="Click to remove"
                         >
                           <span>{messageReactions[message.id]}</span>
-                          <span className="opacity-0 group-hover/reaction:opacity-100 text-xs text-gray-400">ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¢</span>
+                          <span className="opacity-0 group-hover/reaction:opacity-100 text-xs text-content-muted">ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¢</span>
                         </button>
                       </div>
                     )}
@@ -3145,11 +3145,11 @@ export default function Communications() {
                     <div className="relative flex-shrink-0">
                       <button
                         onClick={() => setActiveMessageMenu(activeMessageMenu === message.id ? null : message.id)}
-                        className={`message-menu-trigger opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-gray-700 rounded-lg ${
+                        className={`message-menu-trigger opacity-0 group-hover:opacity-100 transition-opacity p-1.5 hover:bg-surface-button rounded-lg ${
                           selectedChat?.id === 100 ? "mt-7" : "mt-2"
                         }`}
                       >
-                        <MoreVertical size={18} className="text-gray-400" />
+                        <MoreVertical size={18} className="text-content-muted" />
                       </button>
                       
                       {/* Menu for received messages - appears to the left of button */}
@@ -3161,11 +3161,11 @@ export default function Communications() {
                           />
                           <div
                             ref={messageMenuRef}
-                            className="absolute top-0 right-full mr-1 z-[1100] bg-[#2a2a2a] rounded-xl shadow-xl p-1 min-w-[140px] border border-gray-700"
+                            className="absolute top-0 right-full mr-1 z-[1100] bg-surface-button rounded-xl shadow-xl p-1 min-w-[140px] border border-border"
                           >
                             <button
                               onClick={() => handleReplyToMessage(message)}
-                              className="w-full text-left px-3 py-2 text-sm hover:bg-gray-700 rounded-lg text-white flex items-center gap-2"
+                              className="w-full text-left px-3 py-2 text-sm hover:bg-surface-button rounded-lg text-content-primary flex items-center gap-2"
                             >
                               <Reply size={14} />
                               Reply
@@ -3176,7 +3176,7 @@ export default function Communications() {
                                 setShowReactionPicker(message.id);
                                 setActiveMessageMenu(null);
                               }}
-                              className="w-full text-left px-3 py-2 text-sm hover:bg-gray-700 rounded-lg text-white flex items-center gap-2"
+                              className="w-full text-left px-3 py-2 text-sm hover:bg-surface-button rounded-lg text-content-primary flex items-center gap-2"
                             >
                               <Smile size={14} />
                               React
@@ -3184,7 +3184,7 @@ export default function Communications() {
 
                             <button
                               onClick={() => handleCopyMessage(message)}
-                              className="w-full text-left px-3 py-2 text-sm hover:bg-gray-700 rounded-lg text-white flex items-center gap-2"
+                              className="w-full text-left px-3 py-2 text-sm hover:bg-surface-button rounded-lg text-content-primary flex items-center gap-2"
                             >
                               <Copy size={14} />
                               Copy
@@ -3201,18 +3201,18 @@ export default function Communications() {
 
             {/* Reply Preview Bar */}
             {replyingTo && (
-              <div className="px-4 py-3 bg-[#1a1a1a] border-t border-gray-800 flex-shrink-0">
-                <div className="flex items-center gap-3 bg-[#2a2a2a] rounded-xl p-3">
+              <div className="px-4 py-3 bg-surface-hover border-t border-border flex-shrink-0">
+                <div className="flex items-center gap-3 bg-surface-button rounded-xl p-3">
                   <div className="w-1 h-10 bg-orange-500 rounded-full"></div>
                   <div className="flex-1 min-w-0">
                     <p className="text-orange-400 text-xs font-semibold">
                       Replying to {replyingTo.sender === 'You' ? 'yourself' : replyingTo.sender}
                     </p>
-                    <p className="text-gray-300 text-sm truncate">{truncateText(replyingTo.content, 50)}</p>
+                    <p className="text-content-secondary text-sm truncate">{truncateText(replyingTo.content, 50)}</p>
                   </div>
                   <button
                     onClick={cancelReply}
-                    className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors"
+                    className="p-1.5 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors"
                   >
                     <X size={16} />
                   </button>
@@ -3221,21 +3221,21 @@ export default function Communications() {
             )}
 
             {/* Input Area - Fixed at bottom like WhatsApp */}
-            <div className="px-4 pt-4 pb-6 border-t border-gray-800 flex-shrink-0 bg-[#1C1C1C] relative">
+            <div className="px-4 pt-4 pb-6 border-t border-border flex-shrink-0 bg-surface-base relative">
               <div className="flex items-end gap-2 bg-black rounded-xl p-2">
                 <button
-                  className="p-2 hover:bg-gray-700 rounded-full flex items-center justify-center flex-shrink-0"
+                  className="p-2 hover:bg-surface-button rounded-full flex items-center justify-center flex-shrink-0"
                   aria-label="Add emoji"
                   onClick={() => setShowEmojiPicker(prev => !prev)}
                   type="button"
                 >
-                  <Smile className="w-6 h-6 text-gray-200" />
+                  <Smile className="w-6 h-6 text-content-secondary" />
                 </button>
 
                 <textarea
                   ref={textareaRef}
                   placeholder="Type your message here..."
-                  className="flex-1 bg-transparent focus:outline-none text-sm min-w-0 resize-none overflow-y-auto leading-5 text-gray-200 placeholder-gray-400 max-h-[150px]"
+                  className="flex-1 bg-transparent focus:outline-none text-sm min-w-0 resize-none overflow-y-auto leading-5 text-content-secondary placeholder-content-faint max-h-[150px]"
                   rows={1}
                   value={messageText}
                   onInput={(e) => {
@@ -3256,7 +3256,7 @@ export default function Communications() {
                   className={`p-2 rounded-lg flex items-center justify-center transition-colors ${
                     messageText.trim() 
                       ? 'bg-orange-500 hover:bg-orange-600 text-white' 
-                      : 'text-gray-500 cursor-not-allowed'
+                      : 'text-content-faint cursor-not-allowed'
                   }`}
                   aria-label="Send message"
                   onClick={handleSendMessage}
@@ -3296,20 +3296,20 @@ export default function Communications() {
         {activeScreen === "email-frontend" && (
           <div className="flex h-full select-none">
             {/* Email List - Fixed width, always visible separator */}
-            <div className="w-[400px] flex-shrink-0 border-r border-[#333333] flex flex-col">
+            <div className="w-[400px] flex-shrink-0 border-r border-border flex flex-col">
               {/* Bulk Actions Header */}
               {(getPinnedEmails().length > 0 || getFilteredEmails(false).length > 0) && (
-                <div className="px-3 py-2 border-b border-[#333333] flex items-center gap-2">
+                <div className="px-3 py-2 border-b border-border flex items-center gap-2">
                   <button
                     onClick={selectAllEmails}
-                    className="flex items-center gap-2 px-2 py-1.5 hover:bg-[#222222] rounded-lg transition-colors"
+                    className="flex items-center gap-2 px-2 py-1.5 hover:bg-surface-hover rounded-lg transition-colors"
                   >
                     <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
                       selectedEmailIds.length > 0 && selectedEmailIds.length === [...getPinnedEmails(), ...getFilteredEmails(false)].length
                         ? "bg-orange-500 border-orange-500"
                         : selectedEmailIds.length > 0
                         ? "bg-orange-500/50 border-orange-500"
-                        : "border-gray-500"
+                        : "border-border"
                     }`}>
                       {selectedEmailIds.length > 0 && (
                         <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -3317,7 +3317,7 @@ export default function Communications() {
                         </svg>
                       )}
                     </div>
-                    <span className="text-xs text-gray-400">
+                    <span className="text-xs text-content-muted">
                       {selectedEmailIds.length > 0 ? `${selectedEmailIds.length} selected` : "Select all"}
                     </span>
                   </button>
@@ -3330,21 +3330,21 @@ export default function Communications() {
                         <>
                           <button
                             onClick={() => bulkMarkAsRead(true)}
-                            className="p-1.5 hover:bg-[#333333] rounded-lg transition-colors text-gray-400 hover:text-white"
+                            className="p-1.5 hover:bg-surface-button-hover rounded-lg transition-colors text-content-muted hover:text-content-primary"
                             title="Mark as read"
                           >
                             <MailCheck size={16} />
                           </button>
                           <button
                             onClick={() => bulkMarkAsRead(false)}
-                            className="p-1.5 hover:bg-[#333333] rounded-lg transition-colors text-gray-400 hover:text-white"
+                            className="p-1.5 hover:bg-surface-button-hover rounded-lg transition-colors text-content-muted hover:text-content-primary"
                             title="Mark as unread"
                           >
                             <MailOpen size={16} />
                           </button>
                           <button
                             onClick={bulkArchive}
-                            className="p-1.5 hover:bg-[#333333] rounded-lg transition-colors text-gray-400 hover:text-white"
+                            className="p-1.5 hover:bg-surface-button-hover rounded-lg transition-colors text-content-muted hover:text-content-primary"
                             title="Archive"
                           >
                             <Archive size={16} />
@@ -3353,7 +3353,7 @@ export default function Communications() {
                       )}
                       <button
                         onClick={bulkDelete}
-                        className="p-1.5 hover:bg-[#333333] rounded-lg transition-colors text-gray-400 hover:text-red-400"
+                        className="p-1.5 hover:bg-surface-button-hover rounded-lg transition-colors text-content-muted hover:text-red-400"
                         title={emailTab === "trash" ? "Delete permanently" : "Delete"}
                       >
                         <Trash2 size={16} />
@@ -3366,10 +3366,10 @@ export default function Communications() {
               <div className="flex-1 overflow-y-auto">
                 {getPinnedEmails().length === 0 && getFilteredEmails(false).length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full text-center p-6">
-                    <div className="w-16 h-16 rounded-2xl bg-[#222222] border border-[#333333] flex items-center justify-center mb-4">
-                      <Mail className="w-8 h-8 text-gray-600" />
+                    <div className="w-16 h-16 rounded-2xl bg-surface-hover border border-border flex items-center justify-center mb-4">
+                      <Mail className="w-8 h-8 text-content-faint" />
                     </div>
-                    <p className="text-gray-400 text-sm">No emails in this folder</p>
+                    <p className="text-content-muted text-sm">No emails in this folder</p>
                   </div>
                 ) : (
                   <div className="px-2 py-2 select-none">
@@ -3405,8 +3405,8 @@ export default function Communications() {
                               relative flex items-center gap-3 p-4 rounded-xl cursor-pointer
                               transition-all duration-200 group border-b border-slate-700
                               ${selectedEmail?.id === email.id 
-                                ? "bg-[#181818] border-l-2 border-l-orange-500" 
-                                : "hover:bg-[#181818] border-l-2 border-l-transparent"
+                                ? "bg-surface-card border-l-2 border-l-orange-500" 
+                                : "hover:bg-surface-card border-l-2 border-l-transparent"
                               }
                             `}
                           >
@@ -3421,7 +3421,7 @@ export default function Communications() {
                               <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors cursor-pointer ${
                                 selectedEmailIds.includes(email.id)
                                   ? "bg-orange-500 border-orange-500"
-                                  : "border-gray-500 hover:border-gray-400"
+                                  : "border-border hover:border-border"
                               }`}>
                                 {selectedEmailIds.includes(email.id) && (
                                   <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -3433,8 +3433,8 @@ export default function Communications() {
 
                             {/* Email Icon */}
                             <div className="relative flex-shrink-0">
-                              <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-[#222222]">
-                                <Mail size={20} className="text-gray-500" />
+                              <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-surface-hover">
+                                <Mail size={20} className="text-content-faint" />
                               </div>
                               {!email.isRead && (
                                 <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-orange-500 rounded-full" />
@@ -3444,22 +3444,22 @@ export default function Communications() {
                             {/* Content */}
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between gap-2 mb-0.5">
-                                <span className={`font-medium truncate ${selectedEmail?.id === email.id ? 'text-orange-400' : 'text-white'}`}>
+                                <span className={`font-medium truncate ${selectedEmail?.id === email.id ? 'text-orange-400' : 'text-content-primary'}`}>
                                   {emailTab === "sent" ? email.recipient : email.sender}
                                 </span>
-                                <span className="text-xs text-gray-500 flex-shrink-0">{formatEmailTime(email.time)}</span>
+                                <span className="text-xs text-content-faint flex-shrink-0">{formatEmailTime(email.time)}</span>
                               </div>
                               <div className="flex items-center gap-2">
-                                <p className={`text-sm truncate ${!email.isRead ? "font-medium text-white" : "text-gray-400"}`}>
+                                <p className={`text-sm truncate ${!email.isRead ? "font-medium text-content-primary" : "text-content-muted"}`}>
                                   {email.subject || "(No subject)"}
                                 </p>
                                 {email.status === "Draft" && (
                                   <span className="text-[10px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded flex-shrink-0">Draft</span>
                                 )}
                               </div>
-                              <p className="text-xs text-gray-500 truncate mt-0.5">{truncateEmailText(email.body)}</p>
+                              <p className="text-xs text-content-faint truncate mt-0.5">{truncateEmailText(email.body)}</p>
                               {email.attachments?.length > 0 && (
-                                <div className="flex items-center gap-1 mt-1.5 text-xs text-gray-500 select-none">
+                                <div className="flex items-center gap-1 mt-1.5 text-xs text-content-faint select-none">
                                   <Paperclip size={12} />
                                   <span>{email.attachments.length}</span>
                                 </div>
@@ -3470,7 +3470,7 @@ export default function Communications() {
                         {/* Divider between pinned and unpinned */}
                         {getFilteredEmails(false).length > 0 && (
                           <div className="flex items-center px-2 py-1 mt-2">
-                            <div className="flex-1 h-px bg-gray-700"></div>
+                            <div className="flex-1 h-px bg-surface-button"></div>
                           </div>
                         )}
                       </>
@@ -3501,8 +3501,8 @@ export default function Communications() {
                           relative flex items-center gap-3 p-4 rounded-xl cursor-pointer
                           transition-all duration-200 group border-b border-slate-700
                           ${selectedEmail?.id === email.id 
-                            ? "bg-[#181818] border-l-2 border-l-orange-500" 
-                            : "hover:bg-[#181818] border-l-2 border-l-transparent"
+                            ? "bg-surface-card border-l-2 border-l-orange-500" 
+                            : "hover:bg-surface-card border-l-2 border-l-transparent"
                           }
                         `}
                       >
@@ -3517,7 +3517,7 @@ export default function Communications() {
                           <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors cursor-pointer ${
                             selectedEmailIds.includes(email.id)
                               ? "bg-orange-500 border-orange-500"
-                              : "border-gray-500 hover:border-gray-400"
+                              : "border-border hover:border-border"
                           }`}>
                             {selectedEmailIds.includes(email.id) && (
                               <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -3529,8 +3529,8 @@ export default function Communications() {
 
                         {/* Email Icon */}
                         <div className="relative flex-shrink-0">
-                          <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-[#222222]">
-                            <Mail size={20} className="text-gray-500" />
+                          <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-surface-hover">
+                            <Mail size={20} className="text-content-faint" />
                           </div>
                           {!email.isRead && (
                             <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-orange-500 rounded-full" />
@@ -3540,22 +3540,22 @@ export default function Communications() {
                         {/* Content */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between gap-2 mb-0.5">
-                            <span className={`font-medium truncate ${selectedEmail?.id === email.id ? 'text-orange-400' : 'text-white'}`}>
+                            <span className={`font-medium truncate ${selectedEmail?.id === email.id ? 'text-orange-400' : 'text-content-primary'}`}>
                               {emailTab === "sent" ? email.recipient : email.sender}
                             </span>
-                            <span className="text-xs text-gray-500 flex-shrink-0">{formatEmailTime(email.time)}</span>
+                            <span className="text-xs text-content-faint flex-shrink-0">{formatEmailTime(email.time)}</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <p className={`text-sm truncate ${!email.isRead ? "font-medium text-white" : "text-gray-400"}`}>
+                            <p className={`text-sm truncate ${!email.isRead ? "font-medium text-content-primary" : "text-content-muted"}`}>
                               {email.subject || "(No subject)"}
                             </p>
                             {email.status === "Draft" && (
                               <span className="text-[10px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded flex-shrink-0">Draft</span>
                             )}
                           </div>
-                          <p className="text-xs text-gray-500 truncate mt-0.5">{truncateEmailText(email.body)}</p>
+                          <p className="text-xs text-content-faint truncate mt-0.5">{truncateEmailText(email.body)}</p>
                           {email.attachments?.length > 0 && (
-                            <div className="flex items-center gap-1 mt-1.5 text-xs text-gray-500 select-none">
+                            <div className="flex items-center gap-1 mt-1.5 text-xs text-content-faint select-none">
                               <Paperclip size={12} />
                               <span>{email.attachments.length}</span>
                             </div>
@@ -3572,7 +3572,7 @@ export default function Communications() {
             {selectedEmail ? (
               <div className="flex-1 flex flex-col min-w-0 select-text">
                 {/* Email Header */}
-                <div className="p-4 border-b border-[#333333] flex-shrink-0">
+                <div className="p-4 border-b border-border flex-shrink-0">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       {selectedEmail.isPinned && (
@@ -3587,7 +3587,7 @@ export default function Communications() {
                       {emailTab === "error" && (
                         <button
                           onClick={() => retryFailedEmail(selectedEmail)}
-                          className="p-2 hover:bg-[#333333] rounded-lg transition-colors text-gray-400 hover:text-white"
+                          className="p-2 hover:bg-surface-button-hover rounded-lg transition-colors text-content-muted hover:text-content-primary"
                           title="Retry Send"
                         >
                           <RefreshCw size={18} />
@@ -3597,7 +3597,7 @@ export default function Communications() {
                       {emailTab !== "draft" && emailTab !== "error" && emailTab !== "trash" && (
                         <button
                           onClick={() => handleEmailReply(selectedEmail)}
-                          className="p-2 hover:bg-[#333333] rounded-lg transition-colors text-gray-400 hover:text-white"
+                          className="p-2 hover:bg-surface-button-hover rounded-lg transition-colors text-content-muted hover:text-content-primary"
                           title="Reply"
                         >
                           <Reply size={18} />
@@ -3607,7 +3607,7 @@ export default function Communications() {
                       {emailTab !== "trash" && emailTab !== "error" && (
                         <button
                           onClick={() => updateEmailStatus(selectedEmail.id, { isPinned: !selectedEmail.isPinned })}
-                          className={`p-2 hover:bg-[#333333] rounded-lg transition-colors ${selectedEmail.isPinned ? "text-amber-500" : "text-gray-400 hover:text-white"}`}
+                          className={`p-2 hover:bg-surface-button-hover rounded-lg transition-colors ${selectedEmail.isPinned ? "text-amber-500" : "text-content-muted hover:text-content-primary"}`}
                           title={selectedEmail.isPinned ? "Unpin" : "Pin"}
                         >
                           {selectedEmail.isPinned ? <PinOff size={18} /> : <Pin size={18} />}
@@ -3620,7 +3620,7 @@ export default function Communications() {
                             updateEmailStatus(selectedEmail.id, { isArchived: !selectedEmail.isArchived })
                             setSelectedEmail(null)
                           }}
-                          className="p-2 hover:bg-[#333333] rounded-lg transition-colors text-gray-400 hover:text-white"
+                          className="p-2 hover:bg-surface-button-hover rounded-lg transition-colors text-content-muted hover:text-content-primary"
                           title={selectedEmail.isArchived ? "Unarchive" : "Archive"}
                         >
                           <Archive size={18} />
@@ -3636,7 +3636,7 @@ export default function Communications() {
                             moveEmailToTrash(selectedEmail.id)
                           }
                         }}
-                        className="p-2 hover:bg-[#333333] rounded-lg transition-colors text-gray-400 hover:text-red-400"
+                        className="p-2 hover:bg-surface-button-hover rounded-lg transition-colors text-content-muted hover:text-red-400"
                         title={emailTab === "trash" ? "Delete Permanently" : "Delete"}
                       >
                         <Trash2 size={18} />
@@ -3644,22 +3644,22 @@ export default function Communications() {
                     </div>
                   </div>
 
-                  <h2 className="text-xl font-semibold text-white mb-3">{selectedEmail.subject}</h2>
+                  <h2 className="text-xl font-semibold text-content-primary mb-3">{selectedEmail.subject}</h2>
                   
                   <div className="flex items-start justify-between">
                     <div>
-                      <p className="text-sm text-white font-medium">{selectedEmail.sender}</p>
+                      <p className="text-sm text-content-primary font-medium">{selectedEmail.sender}</p>
                       {selectedEmail.senderEmail && (
-                        <p className="text-xs text-gray-500">&lt;{selectedEmail.senderEmail}&gt;</p>
+                        <p className="text-xs text-content-faint">&lt;{selectedEmail.senderEmail}&gt;</p>
                       )}
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-content-faint mt-1">
                         To: {selectedEmail.recipient}
                         {selectedEmail.recipientEmail && <span> &lt;{selectedEmail.recipientEmail}&gt;</span>}
                         {selectedEmail.cc && <span> ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ CC: {selectedEmail.cc}</span>}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs text-gray-500">{new Date(selectedEmail.time).toLocaleString()}</p>
+                      <p className="text-xs text-content-faint">{new Date(selectedEmail.time).toLocaleString()}</p>
                       {selectedEmail.status === "Failed" && (
                         <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded mt-1 bg-red-500/20 text-red-400">
                           Failed
@@ -3673,8 +3673,8 @@ export default function Communications() {
                 <div className="flex-1 overflow-y-auto p-6">
                   {/* Attachments - Show at top */}
                   {selectedEmail.attachments?.length > 0 && (
-                    <div className="mb-6 pb-4 border-b border-[#333333] select-none">
-                      <p className="text-sm font-medium text-gray-400 mb-3 flex items-center gap-2">
+                    <div className="mb-6 pb-4 border-b border-border select-none">
+                      <p className="text-sm font-medium text-content-muted mb-3 flex items-center gap-2">
                         <Paperclip size={16} />
                         Attachments ({selectedEmail.attachments.length})
                       </p>
@@ -3682,11 +3682,11 @@ export default function Communications() {
                         {selectedEmail.attachments.map((file, index) => (
                           <div 
                             key={index}
-                            className="flex items-center gap-2 px-3 py-2 bg-[#222222] rounded-lg border border-[#333333] hover:border-[#444444] cursor-pointer transition-colors"
+                            className="flex items-center gap-2 px-3 py-2 bg-surface-hover rounded-lg border border-border hover:border-border cursor-pointer transition-colors"
                           >
-                            <Paperclip size={14} className="text-gray-500" />
-                            <span className="text-sm text-gray-300">{file.name || file}</span>
-                            {file.size && <span className="text-xs text-gray-500">({file.size})</span>}
+                            <Paperclip size={14} className="text-content-faint" />
+                            <span className="text-sm text-content-secondary">{file.name || file}</span>
+                            {file.size && <span className="text-xs text-content-faint">({file.size})</span>}
                           </div>
                         ))}
                       </div>
@@ -3708,11 +3708,11 @@ export default function Communications() {
               </div>
             ) : (
               <div className="flex-1 flex flex-col items-center justify-center h-full text-center p-6">
-                <div className="w-24 h-24 rounded-2xl bg-[#222222] border border-[#333333] flex items-center justify-center mb-4">
-                  <Mail className="w-12 h-12 text-gray-600" />
+                <div className="w-24 h-24 rounded-2xl bg-surface-hover border border-border flex items-center justify-center mb-4">
+                  <Mail className="w-12 h-12 text-content-faint" />
                 </div>
-                <h3 className="text-white font-medium text-lg mb-2">No email selected</h3>
-                <p className="text-gray-500 text-sm">Select an email from the list to view its contents</p>
+                <h3 className="text-content-primary font-medium text-lg mb-2">No email selected</h3>
+                <p className="text-content-faint text-sm">Select an email from the list to view its contents</p>
               </div>
             )}
           </div>
@@ -3784,7 +3784,7 @@ export default function Communications() {
 
       {/* Mobile Broadcast Modal */}
       {showBroadcastModal && (
-        <div className="md:hidden fixed inset-0 bg-[#1C1C1C] z-[100] flex flex-col overflow-auto">
+        <div className="md:hidden fixed inset-0 bg-surface-base z-[100] flex flex-col overflow-auto">
           <BroadcastModal
             onClose={() => setShowBroadcastModal(false)}
             broadcastFolders={broadcastFolders}
@@ -3844,9 +3844,9 @@ export default function Communications() {
 
       {/* Mobile Fullscreen Chat Overlay - same as notes.jsx */}
       {selectedChat && activeScreen === "chat" && (
-        <div className="md:hidden fixed inset-0 bg-[#1C1C1C] z-[60] flex flex-col">
+        <div className="md:hidden fixed inset-0 bg-surface-base z-[60] flex flex-col">
           {/* Mobile Chat Header with Back Button */}
-          <div className="flex items-center justify-between p-3 border-b border-gray-800 flex-shrink-0">
+          <div className="flex items-center justify-between p-3 border-b border-border flex-shrink-0">
             <div className="flex items-center gap-4">
               <button
                 onClick={() => {
@@ -3854,7 +3854,7 @@ export default function Communications() {
                   setMessages([]);
                   setIsMessagesOpen(true);
                 }}
-                className="text-gray-400 hover:text-white p-1.5 hover:bg-gray-800 rounded-lg transition-colors"
+                className="text-content-muted hover:text-content-primary p-1.5 hover:bg-surface-hover rounded-lg transition-colors"
                 aria-label="Back to chat list"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -3864,7 +3864,7 @@ export default function Communications() {
               
               {/* Profile Container */}
               <div 
-                className={`flex items-center gap-2 px-2 py-1.5 bg-black rounded-xl ${(chatType !== "company" || (chatType === "company" && selectedChat.id !== 100)) ? "cursor-pointer hover:bg-gray-700 active:scale-[0.98] transition-all duration-200" : ""}`}
+                className={`flex items-center gap-2 px-2 py-1.5 bg-black rounded-xl ${(chatType !== "company" || (chatType === "company" && selectedChat.id !== 100)) ? "cursor-pointer hover:bg-surface-button active:scale-[0.98] transition-all duration-200" : ""}`}
                 onClick={(e) => {
                   const isStaffChat = chatType === "company" && selectedChat.id !== 100;
                   if (isStaffChat) {
@@ -3902,7 +3902,7 @@ export default function Communications() {
                     className="absolute -top-1 -right-1"
                   />
                 </div>
-                <span className="font-medium text-white text-sm truncate max-w-[150px]">
+                <span className="font-medium text-content-primary text-sm truncate max-w-[150px]">
                   {selectedChat.name}
                 </span>
               </div>
@@ -3911,7 +3911,7 @@ export default function Communications() {
             {/* Calendar Button */}
             {chatType !== "company" && (
               <button
-                className="text-blue-500 hover:text-blue-400 p-1.5"
+                className="text-primary hover:text-primary-hover p-1.5"
                 aria-label="View appointments"
                 onClick={handleCalendarClick}
               >
@@ -3927,7 +3927,7 @@ export default function Communications() {
             style={{ minHeight: 0 }}
           >
             {messages.length === 0 ? (
-              <div className="flex items-center justify-center h-full text-gray-500">
+              <div className="flex items-center justify-center h-full text-content-faint">
                 <p>No messages yet</p>
               </div>
             ) : (
@@ -3936,7 +3936,7 @@ export default function Communications() {
                   <div className={`flex flex-col ${message.sender === "You" ? "items-end" : "items-start"} max-w-[80%] min-w-0`}>
                     {/* Sender name for group chats */}
                     {selectedChat?.id === 100 && message.sender !== "You" && !message.isDeleted && (
-                      <span className="text-xs text-gray-500 font-medium mb-1 px-1">
+                      <span className="text-xs text-content-faint font-medium mb-1 px-1">
                         {message.sender}
                       </span>
                     )}
@@ -3945,10 +3945,10 @@ export default function Communications() {
                     <div
                       className={`rounded-xl px-3 py-2 max-w-full overflow-hidden select-none ${
                         message.isDeleted
-                          ? "bg-gray-800/50"
+                          ? "bg-surface-hover"
                           : message.sender === "You"
                             ? "bg-orange-500"
-                            : "bg-[#2a2a2a]"
+                            : "bg-surface-button"
                       }`}
                       style={{ wordBreak: 'break-word', WebkitUserSelect: 'none', userSelect: 'none' }}
                       onTouchStart={(e) => handleTouchStart(message, e)}
@@ -3967,13 +3967,13 @@ export default function Communications() {
                           className={`mb-2 pl-2 border-l-2 ${
                             message.sender === "You" 
                               ? "border-white/40" 
-                              : "border-gray-600"
+                              : "border-border"
                           }`}
                         >
-                          <p className={`text-xs font-medium ${message.sender === "You" ? "text-white/80" : "text-gray-400"}`}>
+                          <p className={`text-xs font-medium ${message.sender === "You" ? "text-white/80" : "text-content-muted"}`}>
                             {message.replyTo.sender}
                           </p>
-                          <p className={`text-xs truncate max-w-[200px] ${message.sender === "You" ? "text-white/60" : "text-gray-500"}`}>
+                          <p className={`text-xs truncate max-w-[200px] ${message.sender === "You" ? "text-white/60" : "text-content-faint"}`}>
                             {message.replyTo.content || message.replyTo.text}
                           </p>
                         </div>
@@ -3983,8 +3983,8 @@ export default function Communications() {
                       <p 
                         className={`text-sm ${
                           message.isDeleted 
-                            ? "text-gray-500 italic" 
-                            : "text-white"
+                            ? "text-content-faint italic" 
+                            : "text-content-primary"
                         }`}
                         style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word' }}
                       >
@@ -3996,13 +3996,13 @@ export default function Communications() {
                       
                       {/* Time and status */}
                       <div className={`text-[11px] mt-1 flex items-center gap-1 ${
-                        message.sender === "You" ? "text-white/70 justify-end" : "text-gray-500"
+                        message.sender === "You" ? "text-white/70 justify-end" : "text-content-faint"
                       }`}>
                         <span>{message.time || formatTimestamp(message.timestamp)}</span>
                         {message.sender === "You" && !message.isDeleted && (
                           <span className="ml-1">
                             {message.status === "read" ? (
-                              <CheckCheck className="w-3 h-3 text-blue-400" />
+                              <CheckCheck className="w-3 h-3 text-primary" />
                             ) : message.status === "delivered" ? (
                               <CheckCheck className="w-3 h-3" />
                             ) : (
@@ -4018,7 +4018,7 @@ export default function Communications() {
                       <div className={`flex gap-1 mt-1 ${message.sender === "You" ? "justify-end" : ""}`}>
                         <button
                           onClick={(e) => removeReaction(message.id, e)}
-                          className="bg-gray-700/80 rounded-full px-2 py-0.5 text-base flex items-center gap-1 hover:bg-gray-600 transition-colors"
+                          className="bg-surface-button/80 rounded-full px-2 py-0.5 text-base flex items-center gap-1 hover:bg-surface-button transition-colors"
                         >
                           <span>{messageReactions[message.id]}</span>
                         </button>
@@ -4032,14 +4032,14 @@ export default function Communications() {
 
           {/* Mobile Reply Preview */}
           {replyingTo && (
-            <div className="px-4 py-2 bg-[#1a1a1a] border-t border-gray-800 flex items-center gap-3">
+            <div className="px-4 py-2 bg-surface-hover border-t border-border flex items-center gap-3">
               <div className="flex-1 pl-3 border-l-2 border-orange-500">
                 <p className="text-xs font-medium text-orange-400">{replyingTo.sender}</p>
-                <p className="text-xs text-gray-400 truncate">{truncateText(replyingTo.content || replyingTo.text, 50)}</p>
+                <p className="text-xs text-content-muted truncate">{truncateText(replyingTo.content || replyingTo.text, 50)}</p>
               </div>
               <button
                 onClick={cancelReply}
-                className="text-gray-400 hover:text-white p-1"
+                className="text-content-muted hover:text-content-primary p-1"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -4047,15 +4047,15 @@ export default function Communications() {
           )}
 
           {/* Mobile Input Area - Multi-line with auto-resize */}
-          <div className="p-3 bg-[#1C1C1C] border-t border-gray-800 flex-shrink-0 relative">
-            <div className="flex items-end gap-2 bg-black px-3 py-2 rounded-xl border border-gray-800">
+          <div className="p-3 bg-surface-base border-t border-border flex-shrink-0 relative">
+            <div className="flex items-end gap-2 bg-black px-3 py-2 rounded-xl border border-border">
               <button
-                className="p-2 hover:bg-gray-700 rounded-full flex-shrink-0"
+                className="p-2 hover:bg-surface-button rounded-full flex-shrink-0"
                 aria-label="Add emoji"
                 onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                 type="button"
               >
-                <Smile className="w-5 h-5 text-gray-400" />
+                <Smile className="w-5 h-5 text-content-muted" />
               </button>
               {showEmojiPicker && (
                 <div 
@@ -4086,7 +4086,7 @@ export default function Communications() {
                   e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
                 }}
                 placeholder="Type a message..."
-                className="flex-1 bg-transparent text-white outline-none text-sm min-w-0 resize-none max-h-[120px] leading-5"
+                className="flex-1 bg-transparent text-content-primary outline-none text-sm min-w-0 resize-none max-h-[120px] leading-5"
                 rows={1}
                 style={{ height: '32px' }}
               />
@@ -4094,7 +4094,7 @@ export default function Communications() {
                 className={`p-2 rounded-lg flex-shrink-0 transition-colors ${
                   messageText.trim() 
                     ? 'bg-orange-500 hover:bg-orange-600 text-white' 
-                    : 'text-gray-500 cursor-not-allowed'
+                    : 'text-content-faint cursor-not-allowed'
                 }`}
                 aria-label="Send message"
                 onClick={handleSendMessage}
@@ -4116,11 +4116,11 @@ export default function Communications() {
         >
           <div className="absolute inset-0 bg-black/60" />
           <div 
-            className="relative bg-[#2a2a2a] rounded-t-2xl w-full max-w-lg p-4 pb-8"
+            className="relative bg-surface-button rounded-t-2xl w-full max-w-lg p-4 pb-8"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Handle bar */}
-            <div className="w-10 h-1 bg-gray-600 rounded-full mx-auto mb-4" />
+            <div className="w-10 h-1 bg-surface-button rounded-full mx-auto mb-4" />
             
             <div className="space-y-1">
               <button
@@ -4128,7 +4128,7 @@ export default function Communications() {
                   handleReplyToMessage(mobileContextMenu.message);
                   setMobileContextMenu(null);
                 }}
-                className="w-full text-left px-4 py-3 text-base hover:bg-gray-700 rounded-xl text-white flex items-center gap-3"
+                className="w-full text-left px-4 py-3 text-base hover:bg-surface-button rounded-xl text-content-primary flex items-center gap-3"
               >
                 <Reply size={20} />
                 Reply
@@ -4139,7 +4139,7 @@ export default function Communications() {
                   setShowReactionPicker(mobileContextMenu.messageId);
                   setMobileContextMenu(null);
                 }}
-                className="w-full text-left px-4 py-3 text-base hover:bg-gray-700 rounded-xl text-white flex items-center gap-3"
+                className="w-full text-left px-4 py-3 text-base hover:bg-surface-button rounded-xl text-content-primary flex items-center gap-3"
               >
                 <Smile size={20} />
                 React
@@ -4149,7 +4149,7 @@ export default function Communications() {
                 onClick={() => {
                   handleCopyMessage(mobileContextMenu.message);
                 }}
-                className="w-full text-left px-4 py-3 text-base hover:bg-gray-700 rounded-xl text-white flex items-center gap-3"
+                className="w-full text-left px-4 py-3 text-base hover:bg-surface-button rounded-xl text-content-primary flex items-center gap-3"
               >
                 <Copy size={20} />
                 Copy
@@ -4161,7 +4161,7 @@ export default function Communications() {
                     setShowDeleteConfirm(mobileContextMenu.messageId);
                     setMobileContextMenu(null);
                   }}
-                  className="w-full text-left px-4 py-3 text-base hover:bg-gray-700 rounded-xl text-red-400 flex items-center gap-3"
+                  className="w-full text-left px-4 py-3 text-base hover:bg-surface-button rounded-xl text-red-400 flex items-center gap-3"
                 >
                   <Trash2 size={20} />
                   Delete
@@ -4171,7 +4171,7 @@ export default function Communications() {
 
             <button
               onClick={() => setMobileContextMenu(null)}
-              className="w-full mt-4 px-4 py-3 text-base bg-gray-700 hover:bg-gray-600 rounded-xl text-white font-medium"
+              className="w-full mt-4 px-4 py-3 text-base bg-surface-button hover:bg-surface-button rounded-xl text-white font-medium"
             >
               Cancel
             </button>
@@ -4182,13 +4182,13 @@ export default function Communications() {
       {/* Global Delete Confirmation Modal */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[10000]">
-          <div className="bg-[#2a2a2a] rounded-xl p-5 mx-4 max-w-sm w-full shadow-xl border border-gray-700">
+          <div className="bg-surface-button rounded-xl p-5 mx-4 max-w-sm w-full shadow-xl border border-border">
             <h4 className="text-white font-medium mb-2">Delete Message?</h4>
-            <p className="text-gray-400 text-sm mb-4">This message will be marked as deleted and cannot be recovered.</p>
+            <p className="text-content-muted text-sm mb-4">This message will be marked as deleted and cannot be recovered.</p>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowDeleteConfirm(null)}
-                className="flex-1 px-4 py-2.5 bg-gray-700 text-white text-sm rounded-xl hover:bg-gray-600 transition-colors"
+                className="flex-1 px-4 py-2.5 bg-surface-button text-white text-sm rounded-xl hover:bg-surface-button transition-colors"
               >
                 Cancel
               </button>
@@ -4231,33 +4231,33 @@ export default function Communications() {
 
       {/* Mobile Email List View - Shows when no email is selected */}
       {activeScreen === "email-frontend" && !selectedEmail && (
-        <div className="md:hidden fixed inset-0 bg-[#1C1C1C] z-[60] flex flex-col">
+        <div className="md:hidden fixed inset-0 bg-surface-base z-[60] flex flex-col">
           {/* Mobile Email Header */}
-          <div className="flex items-center justify-between p-3 border-b border-gray-800 flex-shrink-0">
+          <div className="flex items-center justify-between p-3 border-b border-border flex-shrink-0">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => {
                   setActiveScreen("chat")
                   setIsMessagesOpen(true)
                 }}
-                className="text-gray-400 hover:text-white p-1.5 hover:bg-gray-800 rounded-lg transition-colors"
+                className="text-content-muted hover:text-content-primary p-1.5 hover:bg-surface-hover rounded-lg transition-colors"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
-              <h2 className="text-lg font-semibold text-white">Email</h2>
+              <h2 className="text-lg font-semibold text-content-primary">Email</h2>
             </div>
             <button
               onClick={() => setShowEmailModal(true)}
               className="p-2 bg-orange-500 hover:bg-orange-600 rounded-xl transition-colors"
             >
-              <Send size={18} className="text-white" />
+              <Send size={18} className="text-content-primary" />
             </button>
           </div>
 
           {/* Mobile Email Folder Tabs - Horizontal Scroll */}
-          <div className="border-b border-gray-800 flex-shrink-0">
+          <div className="border-b border-border flex-shrink-0">
             <div className="flex overflow-x-auto px-2 py-2 gap-1" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
               {emailFolders.map((folder) => {
                 const Icon = folder.icon
@@ -4274,7 +4274,7 @@ export default function Communications() {
                     className={`flex-shrink-0 flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
                       isActive 
                         ? "bg-orange-500 text-white" 
-                        : "bg-[#222222] text-gray-400 active:bg-[#2a2a2a]"
+                        : "bg-surface-hover text-content-muted active:bg-surface-button"
                     }`}
                   >
                     <Icon size={16} />
@@ -4293,25 +4293,25 @@ export default function Communications() {
           </div>
 
           {/* Mobile Email Search */}
-          <div className="px-3 py-2 border-b border-gray-800 flex-shrink-0">
+          <div className="px-3 py-2 border-b border-border flex-shrink-0">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-content-faint" />
               <input
                 type="text"
                 placeholder="Search emails..."
                 value={emailSearchQuery}
                 onChange={(e) => setEmailSearchQuery(e.target.value)}
-                className="w-full bg-[#222222] text-white text-sm rounded-xl pl-10 pr-4 py-2.5 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-orange-500/50"
+                className="w-full bg-surface-hover text-content-primary text-sm rounded-xl pl-10 pr-4 py-2.5 placeholder-content-faint focus:outline-none focus:ring-1 focus:ring-orange-500/50"
               />
             </div>
           </div>
 
           {/* Mobile Bulk Actions - Only show when emails are selected */}
           {selectedEmailIds.length > 0 && (
-            <div className="px-3 py-2 bg-[#181818] border-b border-gray-800 flex items-center justify-between flex-shrink-0">
+            <div className="px-3 py-2 bg-surface-card border-b border-border flex items-center justify-between flex-shrink-0">
               <button
                 onClick={() => setSelectedEmailIds([])}
-                className="text-sm text-gray-400 flex items-center gap-1"
+                className="text-sm text-content-muted flex items-center gap-1"
               >
                 <X size={16} />
                 {selectedEmailIds.length} selected
@@ -4322,21 +4322,21 @@ export default function Communications() {
                   <>
                     <button
                       onClick={() => bulkMarkAsRead(true)}
-                      className="p-2 hover:bg-[#333333] rounded-lg transition-colors text-gray-400"
+                      className="p-2 hover:bg-surface-button-hover rounded-lg transition-colors text-content-muted"
                       title="Mark as read"
                     >
                       <MailCheck size={18} />
                     </button>
                     <button
                       onClick={() => bulkMarkAsRead(false)}
-                      className="p-2 hover:bg-[#333333] rounded-lg transition-colors text-gray-400"
+                      className="p-2 hover:bg-surface-button-hover rounded-lg transition-colors text-content-muted"
                       title="Mark as unread"
                     >
                       <MailOpen size={18} />
                     </button>
                     <button
                       onClick={bulkArchive}
-                      className="p-2 hover:bg-[#333333] rounded-lg transition-colors text-gray-400"
+                      className="p-2 hover:bg-surface-button-hover rounded-lg transition-colors text-content-muted"
                       title="Archive"
                     >
                       <Archive size={18} />
@@ -4345,7 +4345,7 @@ export default function Communications() {
                 )}
                 <button
                   onClick={bulkDelete}
-                  className="p-2 hover:bg-[#333333] rounded-lg transition-colors text-red-400"
+                  className="p-2 hover:bg-surface-button-hover rounded-lg transition-colors text-red-400"
                   title={emailTab === "trash" ? "Delete permanently" : "Delete"}
                 >
                   <Trash2 size={18} />
@@ -4358,18 +4358,18 @@ export default function Communications() {
           <div className="flex-1 overflow-y-auto select-none">
             {getPinnedEmails().length === 0 && getFilteredEmails(false).length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-center p-6">
-                <div className="w-20 h-20 rounded-2xl bg-[#222222] border border-[#333333] flex items-center justify-center mb-4">
-                  <Mail className="w-10 h-10 text-gray-600" />
+                <div className="w-20 h-20 rounded-2xl bg-surface-hover border border-border flex items-center justify-center mb-4">
+                  <Mail className="w-10 h-10 text-content-faint" />
                 </div>
-                <h3 className="text-white font-medium text-lg mb-2">No emails</h3>
-                <p className="text-gray-500 text-sm">No emails in this folder</p>
+                <h3 className="text-content-primary font-medium text-lg mb-2">No emails</h3>
+                <p className="text-content-faint text-sm">No emails in this folder</p>
               </div>
             ) : (
               <div className="pb-20">
                 {/* Pinned Emails Section */}
                 {getPinnedEmails().length > 0 && (
                   <>
-                    <div className="flex items-center gap-2 px-4 py-2 bg-[#0E0E0E]">
+                    <div className="flex items-center gap-2 px-4 py-2 bg-surface-dark">
                       <Pin size={12} className="text-orange-500 fill-orange-500" />
                       <span className="text-xs text-orange-500 font-medium">Pinned</span>
                       <div className="flex-1 h-px bg-orange-500/30"></div>
@@ -4392,7 +4392,7 @@ export default function Communications() {
                 
                 {/* Regular Emails */}
                 {getPinnedEmails().length > 0 && getFilteredEmails(false).length > 0 && (
-                  <div className="h-px bg-gray-800 mx-4 my-2" />
+                  <div className="h-px bg-surface-hover mx-4 my-2" />
                 )}
                 {getFilteredEmails(false).map((email) => (
                   <MobileEmailItem 
@@ -4415,26 +4415,26 @@ export default function Communications() {
 
       {/* Mobile Fullscreen Email Overlay */}
       {activeScreen === "email-frontend" && selectedEmail && (
-        <div className="md:hidden fixed inset-0 bg-[#1C1C1C] z-[60] flex flex-col">
+        <div className="md:hidden fixed inset-0 bg-surface-base z-[60] flex flex-col">
           {/* Mobile Email Header */}
-          <div className="flex items-center justify-between p-3 border-b border-gray-800 flex-shrink-0">
+          <div className="flex items-center justify-between p-3 border-b border-border flex-shrink-0">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setSelectedEmail(null)}
-                className="text-gray-400 hover:text-white p-1.5 hover:bg-gray-800 rounded-lg transition-colors"
+                className="text-content-muted hover:text-content-primary p-1.5 hover:bg-surface-hover rounded-lg transition-colors"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
-              <span className="font-medium text-white text-sm">Email</span>
+              <span className="font-medium text-content-primary text-sm">Email</span>
             </div>
             <div className="flex items-center gap-1">
               {/* Retry button for failed emails */}
               {emailTab === "error" && (
                 <button
                   onClick={() => retryFailedEmail(selectedEmail)}
-                  className="p-2 hover:bg-[#333333] rounded-lg text-gray-400 hover:text-white"
+                  className="p-2 hover:bg-surface-button-hover rounded-lg text-content-muted hover:text-content-primary"
                 >
                   <RefreshCw size={18} />
                 </button>
@@ -4443,7 +4443,7 @@ export default function Communications() {
               {emailTab !== "trash" && emailTab !== "error" && (
                 <button
                   onClick={() => updateEmailStatus(selectedEmail.id, { isPinned: !selectedEmail.isPinned })}
-                  className={`p-2 hover:bg-[#333333] rounded-lg ${selectedEmail.isPinned ? "text-orange-500" : "text-gray-400 hover:text-white"}`}
+                  className={`p-2 hover:bg-surface-button-hover rounded-lg ${selectedEmail.isPinned ? "text-orange-500" : "text-content-muted hover:text-content-primary"}`}
                 >
                   {selectedEmail.isPinned ? <PinOff size={18} /> : <Pin size={18} />}
                 </button>
@@ -4455,7 +4455,7 @@ export default function Communications() {
                     updateEmailStatus(selectedEmail.id, { isArchived: !selectedEmail.isArchived })
                     setSelectedEmail(null)
                   }}
-                  className="p-2 hover:bg-[#333333] rounded-lg text-gray-400 hover:text-white"
+                  className="p-2 hover:bg-surface-button-hover rounded-lg text-content-muted hover:text-content-primary"
                 >
                   <Archive size={18} />
                 </button>
@@ -4470,7 +4470,7 @@ export default function Communications() {
                     moveEmailToTrash(selectedEmail.id)
                   }
                 }}
-                className="p-2 hover:bg-[#333333] rounded-lg text-gray-400 hover:text-red-400"
+                className="p-2 hover:bg-surface-button-hover rounded-lg text-content-muted hover:text-red-400"
               >
                 <Trash2 size={18} />
               </button>
@@ -4479,34 +4479,34 @@ export default function Communications() {
 
           {/* Email Content */}
           <div className="flex-1 overflow-y-auto p-4">
-            <h2 className="text-lg font-semibold text-white mb-3">{selectedEmail.subject}</h2>
+            <h2 className="text-lg font-semibold text-content-primary mb-3">{selectedEmail.subject}</h2>
             <div className="flex items-start justify-between mb-4">
               <div>
-                <p className="text-sm text-white font-medium">{selectedEmail.sender}</p>
+                <p className="text-sm text-content-primary font-medium">{selectedEmail.sender}</p>
                 {selectedEmail.senderEmail && (
-                  <p className="text-xs text-gray-500">&lt;{selectedEmail.senderEmail}&gt;</p>
+                  <p className="text-xs text-content-faint">&lt;{selectedEmail.senderEmail}&gt;</p>
                 )}
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-content-faint mt-1">
                   To: {selectedEmail.recipient}
                   {selectedEmail.recipientEmail && <span> &lt;{selectedEmail.recipientEmail}&gt;</span>}
                 </p>
               </div>
-              <p className="text-xs text-gray-500">{formatEmailTime(selectedEmail.time)}</p>
+              <p className="text-xs text-content-faint">{formatEmailTime(selectedEmail.time)}</p>
             </div>
             
             {/* Attachments - Show at top */}
             {selectedEmail.attachments?.length > 0 && (
-              <div className="mb-4 pb-4 border-b border-[#333333] select-none">
-                <p className="text-sm font-medium text-gray-400 mb-2 flex items-center gap-2">
+              <div className="mb-4 pb-4 border-b border-border select-none">
+                <p className="text-sm font-medium text-content-muted mb-2 flex items-center gap-2">
                   <Paperclip size={14} />
                   Attachments ({selectedEmail.attachments.length})
                 </p>
                 <div className="space-y-2">
                   {selectedEmail.attachments.map((file, index) => (
-                    <div key={index} className="flex items-center gap-2 px-3 py-2 bg-[#222222] rounded-lg">
-                      <Paperclip size={14} className="text-gray-500" />
-                      <span className="text-sm text-gray-300">{file.name || file}</span>
-                      {file.size && <span className="text-xs text-gray-500">({file.size})</span>}
+                    <div key={index} className="flex items-center gap-2 px-3 py-2 bg-surface-hover rounded-lg">
+                      <Paperclip size={14} className="text-content-faint" />
+                      <span className="text-sm text-content-secondary">{file.name || file}</span>
+                      {file.size && <span className="text-xs text-content-faint">({file.size})</span>}
                     </div>
                   ))}
                 </div>
@@ -4528,7 +4528,7 @@ export default function Communications() {
 
           {/* Mobile Action Button - Reply for inbox/sent, Retry for error */}
           {emailTab !== "trash" && emailTab !== "draft" && (
-            <div className="p-3 border-t border-[#333333] bg-[#181818]">
+            <div className="p-3 border-t border-border bg-surface-card">
               {emailTab === "error" ? (
                 <button
                   onClick={() => retryFailedEmail(selectedEmail)}
@@ -4553,7 +4553,7 @@ export default function Communications() {
 
       {/* Copied Toast */}
       {showCopiedToast && (
-        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[9999] bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg text-sm font-medium">
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[9999] bg-surface-hover text-white px-4 py-2 rounded-lg shadow-lg text-sm font-medium">
           Copied!
         </div>
       )}
@@ -4623,17 +4623,17 @@ export default function Communications() {
       {/* Permanent Delete Confirmation Modal */}
       {showPermanentDeleteConfirm && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[90] p-4">
-          <div className="bg-[#1C1C1C] rounded-2xl w-full max-w-md p-6">
+          <div className="bg-surface-base rounded-2xl w-full max-w-md p-6">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 rounded-xl bg-red-500/20 flex items-center justify-center">
                 <Trash2 className="w-6 h-6 text-red-400" />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-white">Delete Permanently?</h3>
-                <p className="text-sm text-gray-500">This action cannot be undone</p>
+                <h3 className="text-lg font-semibold text-content-primary">Delete Permanently?</h3>
+                <p className="text-sm text-content-faint">This action cannot be undone</p>
               </div>
             </div>
-            <p className="text-gray-400 text-sm mb-6">
+            <p className="text-content-muted text-sm mb-6">
               {emailsToDelete.length === 1 
                 ? "Are you sure you want to permanently delete this email? This action cannot be undone."
                 : `Are you sure you want to permanently delete ${emailsToDelete.length} emails? This action cannot be undone.`
@@ -4645,7 +4645,7 @@ export default function Communications() {
                   setShowPermanentDeleteConfirm(false)
                   setEmailsToDelete([])
                 }}
-                className="px-4 py-2.5 bg-[#333333] hover:bg-[#444444] text-white rounded-xl text-sm font-medium transition-colors"
+                className="px-4 py-2.5 bg-surface-button-hover hover:bg-surface-button-hover text-content-primary rounded-xl text-sm font-medium transition-colors"
               >
                 Cancel
               </button>

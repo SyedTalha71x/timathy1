@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import { useEffect, useRef, useState, useMemo, useCallback, forwardRef, useImperativeHandle } from "react"
+import { createPortal } from "react-dom"
 import ReactQuill, { Quill } from "react-quill"
 import "react-quill/dist/quill.snow.css"
 import { X, Upload } from "lucide-react"
@@ -148,15 +149,15 @@ const EditorModal = ({ show, onClose, title, children, onSubmit, submitText, sub
   if (!show) return null
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[10000]" onClick={onClose}>
-      <div className="bg-[#1F1F1F] rounded-2xl p-5 w-full max-w-md mx-4 border border-[#333333] shadow-2xl" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-surface-hover rounded-2xl p-5 w-full max-w-md mx-4 border border-border shadow-2xl" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-white">{title}</h3>
-          <button onClick={onClose} className="p-1.5 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded-lg"><X className="w-5 h-5" /></button>
+          <h3 className="text-lg font-semibold text-content-primary">{title}</h3>
+          <button onClick={onClose} className="p-1.5 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg"><X className="w-5 h-5" /></button>
         </div>
         {children}
         <div className="flex gap-3 mt-5">
-          <button onClick={onClose} className="flex-1 px-4 py-2.5 bg-[#2F2F2F] text-white text-sm font-medium rounded-xl hover:bg-[#3F3F3F]">Cancel</button>
-          <button onClick={onSubmit} disabled={submitDisabled} className="flex-1 px-4 py-2.5 bg-orange-500 text-white text-sm font-medium rounded-xl hover:bg-orange-600 disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed">{submitText}</button>
+          <button onClick={onClose} className="flex-1 px-4 py-2.5 bg-surface-button text-content-primary text-sm font-medium rounded-xl hover:bg-surface-button-hover">Cancel</button>
+          <button onClick={onSubmit} disabled={submitDisabled} className="flex-1 px-4 py-2.5 bg-orange-500 text-white text-sm font-medium rounded-xl hover:bg-orange-600 disabled:bg-surface-button disabled:text-content-faint disabled:cursor-not-allowed">{submitText}</button>
         </div>
       </div>
     </div>
@@ -192,6 +193,7 @@ export const WysiwygEditor = forwardRef(({
   const [showLinkModal, setShowLinkModal] = useState(false)
   const [showImageModal, setShowImageModal] = useState(false)
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  const [emojiPickerPos, setEmojiPickerPos] = useState({ top: 0, left: 0 })
   const [linkUrl, setLinkUrl] = useState('')
   const [linkText, setLinkText] = useState('')
   const [imageUrl, setImageUrl] = useState('')
@@ -511,6 +513,20 @@ export const WysiwygEditor = forwardRef(({
       hasInitialized.current = true
       lastValueRef.current = normalizedValue
       if (normalizedValue) savedContentRef.current = normalizedValue
+      
+      // Explicitly clear editor if mounting with empty value (e.g. new note)
+      if (!normalizedValue || normalizedValue === '') {
+        const quill = quillRef.current?.getEditor()
+        if (quill) {
+          setTimeout(() => {
+            const content = quill.root.innerHTML
+            if (content && content !== '<p><br></p>' && content !== '') {
+              quill.root.innerHTML = ''
+              savedContentRef.current = ''
+            }
+          }, 50)
+        }
+      }
       return
     }
     
@@ -539,6 +555,8 @@ export const WysiwygEditor = forwardRef(({
     // Check if this looks like a template change (significant content change)
     const isTemplateChange = !normalizedCurrent || 
       normalizedCurrent === '<p><br></p>' || 
+      !normalizedProp ||
+      normalizedProp === '<p><br></p>' ||
       (normalizedProp.length > 50 && Math.abs(normalizedProp.length - normalizedCurrent.length) > normalizedCurrent.length * 0.5)
     
     if (isTemplateChange) {
@@ -723,7 +741,7 @@ export const WysiwygEditor = forwardRef(({
       pointer-events: none;
       z-index: 99999;
       opacity: 0.9;
-      border: 2px solid #3B82F6;
+      border: 2px solid #FF843E;
       border-radius: 6px;
       background: white;
       padding: 4px;
@@ -745,12 +763,12 @@ export const WysiwygEditor = forwardRef(({
       position: absolute;
       width: 3px;
       height: 24px;
-      background: #3B82F6;
+      background: #FF843E;
       pointer-events: none;
       z-index: 9999;
       display: none;
       border-radius: 2px;
-      box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
+      box-shadow: 0 0 8px rgba(255, 132, 62, 0.6);
     `
     editor.appendChild(indicator)
     
@@ -1201,7 +1219,24 @@ export const WysiwygEditor = forwardRef(({
 
   // Emoji handler for toolbar
   const emojiHandler = useCallback(() => {
-    setShowEmojiPicker(prev => !prev)
+    setShowEmojiPicker(prev => {
+      if (!prev && containerRef.current) {
+        const btn = containerRef.current.querySelector('.ql-emoji')
+        if (btn) {
+          const rect = btn.getBoundingClientRect()
+          const pickerWidth = 352
+          const pickerHeight = 435
+          let top = rect.bottom + 8
+          let left = rect.right - pickerWidth
+          if (left < 8) left = 8
+          if (top + pickerHeight > window.innerHeight - 8) {
+            top = rect.top - pickerHeight - 8
+          }
+          setEmojiPickerPos({ top, left })
+        }
+      }
+      return !prev
+    })
   }, [])
 
   const modules = useMemo(() => ({
@@ -1226,20 +1261,30 @@ export const WysiwygEditor = forwardRef(({
     style.textContent = `
       .wysiwyg-editor-${editorId} { position: relative; z-index: 1; }
       .wysiwyg-editor-${editorId}:has(.ql-expanded) { z-index: 1000; }
+      
+      /* Flex layout: outer -> .quill -> toolbar (fixed) + container (scrolls) */
+      .wysiwyg-editor-${editorId} .quill {
+        display: flex !important;
+        flex-direction: column !important;
+        flex: 1 !important;
+        min-height: 0 !important;
+        height: 100% !important;
+      }
       .wysiwyg-editor-${editorId} .ql-container {
         border: none !important;
         background-color: #ffffff !important;
         font-family: Arial, sans-serif;
         border-radius: 0 0 12px 12px !important;
-        overflow: hidden !important;
         position: relative !important;
+        flex: 1 !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        min-height: 0 !important;
       }
       .wysiwyg-editor-${editorId} .ql-editor {
         color: #000000 !important;
         background-color: #ffffff !important;
         min-height: ${minHeight}px;
-        max-height: ${maxHeight}px;
-        overflow-y: auto;
         font-size: 14px;
         line-height: 1.5;
         padding: 12px 16px;
@@ -1256,7 +1301,9 @@ export const WysiwygEditor = forwardRef(({
         transition: opacity 0.15s;
       }
       .wysiwyg-editor-${editorId} .ql-editor img:active { cursor: grabbing; }
-      .wysiwyg-editor-${editorId} .ql-editor a { color: #2563eb; }
+      .wysiwyg-editor-${editorId} .ql-editor a { color: var(--color-primary, #f97316); }
+      .wysiwyg-editor-${editorId} .ql-editor ::selection { background: var(--color-primary, #f97316); color: white; }
+      .wysiwyg-editor-${editorId} .ql-editor ::-moz-selection { background: var(--color-primary, #f97316); color: white; }
       
       .wysiwyg-editor-${editorId} .ql-editor .ql-font-arial { font-family: Arial, sans-serif; }
       .wysiwyg-editor-${editorId} .ql-editor .ql-font-times-new-roman { font-family: 'Times New Roman', serif; }
@@ -1269,8 +1316,8 @@ export const WysiwygEditor = forwardRef(({
       /* Toolbar */
       .wysiwyg-editor-${editorId} .ql-toolbar {
         border: none !important;
-        border-bottom: 1px solid #333333 !important;
-        background-color: #1a1a1a !important;
+        border-bottom: 1px solid var(--color-border, #333333) !important;
+        background-color: var(--color-surface-hover, #1a1a1a) !important;
         padding: 6px 8px !important;
         display: flex !important;
         flex-wrap: nowrap !important;
@@ -1285,6 +1332,7 @@ export const WysiwygEditor = forwardRef(({
         scrollbar-color: #444 transparent;
         position: relative !important;
         z-index: 100 !important;
+        flex-shrink: 0 !important;
       }
       .wysiwyg-editor-${editorId} .ql-toolbar::-webkit-scrollbar {
         height: 4px;
@@ -1329,14 +1377,14 @@ export const WysiwygEditor = forwardRef(({
         border: none !important;
         flex-shrink: 0 !important;
       }
-      .wysiwyg-editor-${editorId} .ql-snow.ql-toolbar button:hover { background-color: rgba(255,255,255,0.1) !important; }
+      .wysiwyg-editor-${editorId} .ql-snow.ql-toolbar button:hover { background-color: var(--color-surface-button, rgba(255,255,255,0.1)) !important; }
       .wysiwyg-editor-${editorId} .ql-snow.ql-toolbar button.ql-active { background-color: rgba(255,132,62,0.2) !important; }
       
       /* SVG Icons */
-      .wysiwyg-editor-${editorId} .ql-snow .ql-stroke { stroke: #a0a0a0 !important; stroke-width: 1.5 !important; }
-      .wysiwyg-editor-${editorId} .ql-snow .ql-fill { fill: #a0a0a0 !important; }
-      .wysiwyg-editor-${editorId} .ql-snow.ql-toolbar button:hover .ql-stroke { stroke: #ffffff !important; }
-      .wysiwyg-editor-${editorId} .ql-snow.ql-toolbar button:hover .ql-fill { fill: #ffffff !important; }
+      .wysiwyg-editor-${editorId} .ql-snow .ql-stroke { stroke: var(--color-content-muted, #a0a0a0) !important; stroke-width: 1.5 !important; }
+      .wysiwyg-editor-${editorId} .ql-snow .ql-fill { fill: var(--color-content-muted, #a0a0a0) !important; }
+      .wysiwyg-editor-${editorId} .ql-snow.ql-toolbar button:hover .ql-stroke { stroke: var(--color-content-primary, #ffffff) !important; }
+      .wysiwyg-editor-${editorId} .ql-snow.ql-toolbar button:hover .ql-fill { fill: var(--color-content-primary, #ffffff) !important; }
       .wysiwyg-editor-${editorId} .ql-snow.ql-toolbar button.ql-active .ql-stroke { stroke: #FF843E !important; }
       .wysiwyg-editor-${editorId} .ql-snow.ql-toolbar button.ql-active .ql-fill { fill: #FF843E !important; }
       .wysiwyg-editor-${editorId} .ql-snow svg { width: 20px !important; height: 20px !important; }
@@ -1346,6 +1394,7 @@ export const WysiwygEditor = forwardRef(({
       .wysiwyg-editor-${editorId} .ql-undo::before, .wysiwyg-editor-${editorId} .ql-redo::before {
         content: ''; display: block; width: 20px; height: 20px;
         background-repeat: no-repeat; background-position: center; background-size: 20px;
+        transition: filter 0.15s;
       }
       .wysiwyg-editor-${editorId} .ql-undo::before {
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a0a0a0' stroke-width='2'%3E%3Cpath d='M3 7v6h6'/%3E%3Cpath d='M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13'/%3E%3C/svg%3E");
@@ -1353,11 +1402,13 @@ export const WysiwygEditor = forwardRef(({
       .wysiwyg-editor-${editorId} .ql-redo::before {
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a0a0a0' stroke-width='2'%3E%3Cpath d='M21 7v6h-6'/%3E%3Cpath d='M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7'/%3E%3C/svg%3E");
       }
-      .wysiwyg-editor-${editorId} .ql-undo:hover::before {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2'%3E%3Cpath d='M3 7v6h6'/%3E%3Cpath d='M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13'/%3E%3C/svg%3E");
-      }
+      .wysiwyg-editor-${editorId} .ql-undo:hover::before,
       .wysiwyg-editor-${editorId} .ql-redo:hover::before {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2'%3E%3Cpath d='M21 7v6h-6'/%3E%3Cpath d='M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3l3 2.7'/%3E%3C/svg%3E");
+        filter: brightness(2.5);
+      }
+      .light .wysiwyg-editor-${editorId} .ql-undo:hover::before,
+      .light .wysiwyg-editor-${editorId} .ql-redo:hover::before {
+        filter: brightness(0);
       }
       
       /* Emoji Button */
@@ -1365,10 +1416,14 @@ export const WysiwygEditor = forwardRef(({
       .wysiwyg-editor-${editorId} .ql-emoji::before {
         content: ''; display: block; width: 20px; height: 20px;
         background-repeat: no-repeat; background-position: center; background-size: 20px;
+        transition: filter 0.15s;
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a0a0a0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M8 14s1.5 2 4 2 4-2 4-2'/%3E%3Cline x1='9' y1='9' x2='9.01' y2='9'/%3E%3Cline x1='15' y1='9' x2='15.01' y2='9'/%3E%3C/svg%3E");
       }
       .wysiwyg-editor-${editorId} .ql-emoji:hover::before {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M8 14s1.5 2 4 2 4-2 4-2'/%3E%3Cline x1='9' y1='9' x2='9.01' y2='9'/%3E%3Cline x1='15' y1='9' x2='15.01' y2='9'/%3E%3C/svg%3E");
+        filter: brightness(2.5);
+      }
+      .light .wysiwyg-editor-${editorId} .ql-emoji:hover::before {
+        filter: brightness(0);
       }
       .wysiwyg-editor-${editorId} .ql-emoji.ql-active::before {
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FF843E' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cpath d='M8 14s1.5 2 4 2 4-2 4-2'/%3E%3Cline x1='9' y1='9' x2='9.01' y2='9'/%3E%3Cline x1='15' y1='9' x2='15.01' y2='9'/%3E%3C/svg%3E");
@@ -1378,7 +1433,7 @@ export const WysiwygEditor = forwardRef(({
       .wysiwyg-editor-${editorId} .ql-snow .ql-picker {
         height: 36px !important;
         font-size: 12px !important;
-        color: #a0a0a0 !important;
+        color: var(--color-content-muted, #a0a0a0) !important;
         display: inline-flex !important;
         align-items: center !important;
         flex-shrink: 0 !important;
@@ -1389,19 +1444,19 @@ export const WysiwygEditor = forwardRef(({
         padding-right: 20px !important;
         border: none !important;
         border-radius: 6px !important;
-        color: #a0a0a0 !important;
+        color: var(--color-content-muted, #a0a0a0) !important;
         display: inline-flex !important;
         align-items: center !important;
         height: 36px !important;
       }
-      .wysiwyg-editor-${editorId} .ql-snow .ql-picker-label:hover { background-color: rgba(255,255,255,0.1) !important; color: #ffffff !important; }
+      .wysiwyg-editor-${editorId} .ql-snow .ql-picker-label:hover { background-color: var(--color-surface-button, rgba(255,255,255,0.1)) !important; color: var(--color-content-primary, #ffffff) !important; }
       .wysiwyg-editor-${editorId} .ql-snow .ql-picker-label svg { width: 16px !important; height: 16px !important; right: 4px !important; }
       
       /* Picker dropdown */
       .wysiwyg-editor-${editorId} .ql-snow .ql-picker-options {
         display: none !important;
-        background-color: #1f1f1f !important;
-        border: 1px solid #333 !important;
+        background-color: var(--color-surface-hover, #1f1f1f) !important;
+        border: 1px solid var(--color-border, #333) !important;
         border-radius: 6px !important;
         padding: 4px !important;
         z-index: 99999 !important;
@@ -1424,12 +1479,12 @@ export const WysiwygEditor = forwardRef(({
         z-index: 99999 !important;
       }
       .wysiwyg-editor-${editorId} .ql-snow .ql-picker-item {
-        color: #e5e5e5 !important;
+        color: var(--color-content-secondary, #e5e5e5) !important;
         padding: 6px 10px !important;
         border-radius: 4px !important;
         font-size: 12px !important;
       }
-      .wysiwyg-editor-${editorId} .ql-snow .ql-picker-item:hover { background-color: rgba(255,255,255,0.1) !important; }
+      .wysiwyg-editor-${editorId} .ql-snow .ql-picker-item:hover { background-color: var(--color-surface-button, rgba(255,255,255,0.1)) !important; }
       
       /* Font picker */
       .wysiwyg-editor-${editorId} .ql-snow .ql-font { width: 80px !important; }
@@ -1486,10 +1541,10 @@ export const WysiwygEditor = forwardRef(({
         font-family: Arial, sans-serif;
         font-size: 18px;
         font-weight: 700;
-        color: #a0a0a0;
+        color: var(--color-content-muted, #a0a0a0);
         line-height: 1;
       }
-      .wysiwyg-editor-${editorId} .ql-snow .ql-color-picker .ql-picker-label:hover::before { color: #ffffff; }
+      .wysiwyg-editor-${editorId} .ql-snow .ql-color-picker .ql-picker-label:hover::before { color: var(--color-content-primary, #ffffff); }
       
       .wysiwyg-editor-${editorId} .ql-snow .ql-background .ql-picker-label::before {
         content: '';
@@ -1500,7 +1555,10 @@ export const WysiwygEditor = forwardRef(({
         background-repeat: no-repeat;
       }
       .wysiwyg-editor-${editorId} .ql-snow .ql-background .ql-picker-label:hover::before {
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2'%3E%3Cpath d='m9 11-6 6v3h9l3-3'/%3E%3Cpath d='m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4'/%3E%3C/svg%3E");
+        filter: brightness(2.5);
+      }
+      .light .wysiwyg-editor-${editorId} .ql-snow .ql-background .ql-picker-label:hover::before {
+        filter: brightness(0);
       }
       
       .wysiwyg-editor-${editorId} .ql-snow .ql-color-picker .ql-picker-label .color-indicator,
@@ -1525,7 +1583,7 @@ export const WysiwygEditor = forwardRef(({
         border-radius: 3px !important;
         margin: 2px !important;
         padding: 0 !important;
-        border: 1px solid rgba(255,255,255,0.15) !important;
+        border: 1px solid var(--color-border, rgba(255,255,255,0.15)) !important;
       }
       .wysiwyg-editor-${editorId} .ql-snow .ql-color-picker .ql-picker-item:hover,
       .wysiwyg-editor-${editorId} .ql-snow .ql-background .ql-picker-item:hover { border-color: #FF843E !important; }
@@ -1573,8 +1631,11 @@ export const WysiwygEditor = forwardRef(({
       .wysiwyg-editor-${editorId} .ql-snow .ql-tooltip { display: none !important; }
       
       .wysiwyg-editor-${editorId} .ql-editor::-webkit-scrollbar { width: 6px; }
-      .wysiwyg-editor-${editorId} .ql-editor::-webkit-scrollbar-track { background: #f0f0f0; }
-      .wysiwyg-editor-${editorId} .ql-editor::-webkit-scrollbar-thumb { background: #c0c0c0; border-radius: 3px; }
+      .wysiwyg-editor-${editorId} .ql-editor::-webkit-scrollbar-track { background: transparent; }
+      .wysiwyg-editor-${editorId} .ql-editor::-webkit-scrollbar-thumb { background: var(--color-content-faint, #c0c0c0); border-radius: 3px; }
+      .wysiwyg-editor-${editorId} .ql-container::-webkit-scrollbar { width: 6px; }
+      .wysiwyg-editor-${editorId} .ql-container::-webkit-scrollbar-track { background: transparent; }
+      .wysiwyg-editor-${editorId} .ql-container::-webkit-scrollbar-thumb { background: var(--color-content-faint, #c0c0c0); border-radius: 3px; }
     `
     document.head.appendChild(style)
     return () => { const s = document.getElementById(`wysiwyg-style-${editorId}`); if (s) document.head.removeChild(s) }
@@ -1783,7 +1844,7 @@ export const WysiwygEditor = forwardRef(({
                   color: currentAlignment === 'left' ? 'white' : '#a0a0a0',
                   transition: 'all 0.15s'
                 }}
-                onMouseEnter={(e) => { if (currentAlignment !== 'left') e.target.style.backgroundColor = 'rgba(255,255,255,0.1)' }}
+                onMouseEnter={(e) => { if (currentAlignment !== 'left') e.target.style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--color-surface-button').trim() || 'rgba(255,255,255,0.1)' }}
                 onMouseLeave={(e) => { if (currentAlignment !== 'left') e.target.style.backgroundColor = 'transparent' }}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1808,7 +1869,7 @@ export const WysiwygEditor = forwardRef(({
                   color: currentAlignment === 'center' ? 'white' : '#a0a0a0',
                   transition: 'all 0.15s'
                 }}
-                onMouseEnter={(e) => { if (currentAlignment !== 'center') e.target.style.backgroundColor = 'rgba(255,255,255,0.1)' }}
+                onMouseEnter={(e) => { if (currentAlignment !== 'center') e.target.style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--color-surface-button').trim() || 'rgba(255,255,255,0.1)' }}
                 onMouseLeave={(e) => { if (currentAlignment !== 'center') e.target.style.backgroundColor = 'transparent' }}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1833,7 +1894,7 @@ export const WysiwygEditor = forwardRef(({
                   color: currentAlignment === 'right' ? 'white' : '#a0a0a0',
                   transition: 'all 0.15s'
                 }}
-                onMouseEnter={(e) => { if (currentAlignment !== 'right') e.target.style.backgroundColor = 'rgba(255,255,255,0.1)' }}
+                onMouseEnter={(e) => { if (currentAlignment !== 'right') e.target.style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--color-surface-button').trim() || 'rgba(255,255,255,0.1)' }}
                 onMouseLeave={(e) => { if (currentAlignment !== 'right') e.target.style.backgroundColor = 'transparent' }}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1856,11 +1917,14 @@ export const WysiwygEditor = forwardRef(({
     <>
       <div 
         ref={containerRef}
-        className={`wysiwyg-editor-${editorId} rounded-xl border border-[#333333] ${className}`}
+        className={`wysiwyg-editor-${editorId} rounded-xl border border-border ${className}`}
         onClick={handleContainerClick}
         style={{ 
           position: 'relative', 
-          overflow: 'visible'
+          overflow: 'visible',
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: 0
         }}
       >
         <ReactQuill
@@ -1874,11 +1938,12 @@ export const WysiwygEditor = forwardRef(({
         />
         {renderImageSelection()}
         
-        {/* Emoji Picker - positioned below toolbar */}
-        {showEmojiPicker && (
+        {/* Emoji Picker - rendered via portal for proper z-index */}
+        {showEmojiPicker && createPortal(
           <div 
             ref={emojiPickerRef}
-            className="absolute top-14 right-2 z-[1000]"
+            className="fixed shadow-2xl rounded-xl overflow-hidden"
+            style={{ top: emojiPickerPos.top, left: emojiPickerPos.left, zIndex: 99999, '--color-a': 'var(--color-primary, #f97316)', '--rgb-accent': '249, 115, 22' }}
             data-emoji-picker
             onMouseDown={(e) => e.stopPropagation()}
             onTouchStart={(e) => e.stopPropagation()}
@@ -1889,25 +1954,26 @@ export const WysiwygEditor = forwardRef(({
                 insertEmoji(emoji)
                 setShowEmojiPicker(false)
               }}
-              theme="dark"
+              theme={document.documentElement.classList.contains('light') ? 'light' : 'dark'}
               previewPosition="none"
               skinTonePosition="none"
               perLine={8}
               maxFrequentRows={2}
             />
-          </div>
+          </div>,
+          document.body
         )}
       </div>
 
       <EditorModal show={showLinkModal} onClose={() => setShowLinkModal(false)} title="Insert Link" onSubmit={insertLink} submitText="Insert Link" submitDisabled={!linkUrl}>
         <div className="space-y-4">
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-300">Link Text</label>
-            <input type="text" value={linkText} onChange={(e) => setLinkText(e.target.value)} placeholder="Text to display" className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#FF843E]" autoFocus />
+            <label className="text-sm font-medium text-content-secondary">Link Text</label>
+            <input type="text" value={linkText} onChange={(e) => setLinkText(e.target.value)} placeholder="Text to display" className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary" autoFocus />
           </div>
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-300">URL</label>
-            <input type="text" value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} placeholder="https://example.com" className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#FF843E]" />
+            <label className="text-sm font-medium text-content-secondary">URL</label>
+            <input type="text" value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} placeholder="https://example.com" className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary" />
           </div>
         </div>
       </EditorModal>
@@ -1915,24 +1981,24 @@ export const WysiwygEditor = forwardRef(({
       <EditorModal show={showImageModal} onClose={() => setShowImageModal(false)} title="Insert Image" onSubmit={insertImageFromUrl} submitText="Insert from URL" submitDisabled={!imageUrl}>
         <div className="space-y-4">
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-300">Upload from device</label>
+            <label className="text-sm font-medium text-content-secondary">Upload from device</label>
             <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
-            <button onClick={() => fileInputRef.current?.click()} className="w-full flex items-center justify-center gap-2 bg-[#141414] text-gray-300 hover:text-white rounded-xl px-4 py-3 text-sm border border-[#333333] hover:border-[#FF843E]">
+            <button onClick={() => fileInputRef.current?.click()} className="w-full flex items-center justify-center gap-2 bg-surface-card text-content-secondary hover:text-content-primary rounded-xl px-4 py-3 text-sm border border-border hover:border-primary">
               <Upload className="w-4 h-4" /> Choose File
             </button>
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex-1 h-px bg-[#333333]" />
-            <span className="text-xs text-gray-500">or</span>
-            <div className="flex-1 h-px bg-[#333333]" />
+            <div className="flex-1 h-px bg-border" />
+            <span className="text-xs text-content-faint">or</span>
+            <div className="flex-1 h-px bg-border" />
           </div>
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-300">Image URL</label>
-            <input type="text" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://example.com/image.jpg" className="w-full bg-[#141414] text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-[#333333] focus:border-[#FF843E]" />
+            <label className="text-sm font-medium text-content-secondary">Image URL</label>
+            <input type="text" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://example.com/image.jpg" className="w-full bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-border focus:border-primary" />
           </div>
           {imageUrl && (
-            <div className="mt-2 p-2 bg-[#141414] rounded-lg border border-[#333333]">
-              <p className="text-xs text-gray-500 mb-2">Preview:</p>
+            <div className="mt-2 p-2 bg-surface-card rounded-lg border border-border">
+              <p className="text-xs text-content-faint mb-2">Preview:</p>
               <img src={imageUrl} alt="Preview" className="max-h-32 rounded object-contain" onError={(e) => e.target.style.display = 'none'} />
             </div>
           )}

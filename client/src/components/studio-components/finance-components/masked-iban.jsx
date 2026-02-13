@@ -13,7 +13,7 @@ import { useState } from "react"
 const MaskedIban = ({ iban, className = "" }) => {
   const [isRevealed, setIsRevealed] = useState(false)
 
-  if (!iban) return <span className="text-gray-500">-</span>
+  if (!iban) return <span className="text-content-faint">-</span>
 
   // Mask the IBAN: show first 4 chars + last 4 chars, mask middle
   const maskIban = (ibanStr) => {
@@ -35,7 +35,7 @@ const MaskedIban = ({ iban, className = "" }) => {
           e.stopPropagation()
           setIsRevealed(!isRevealed)
         }}
-        className="p-0.5 text-gray-400 hover:text-white transition-colors flex-shrink-0"
+        className="p-0.5 text-content-muted hover:text-content-primary transition-colors flex-shrink-0"
         title={isRevealed ? "Hide IBAN" : "Show full IBAN"}
       >
         {isRevealed ? (

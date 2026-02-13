@@ -1468,11 +1468,13 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
 
                 {/* Birthday + Email */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <DatePickerField
-                    label="Birthday"
-                    value={profileData.birthday}
-                    onChange={(val) => handleProfileInputChange("birthday", val)}
-                  />
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-content-secondary">Birthday</label>
+                    <div className="w-full flex items-center justify-between bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm border border-border">
+                      <span className={profileData.birthday ? "text-content-primary" : "text-content-faint"}>{profileData.birthday ? (() => { const [y,m,d] = profileData.birthday.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+                      <DatePickerField value={profileData.birthday} onChange={(val) => handleProfileInputChange("birthday", val)} />
+                    </div>
+                  </div>
                   <InputField
                     label="Email"
                     value={profileData.email}
@@ -1905,14 +1907,17 @@ const ConfigurationPage = ({ studioId: studioIdProp = null, mode = "studio", stu
                   {closingDays.map((day, index) => (
                     <div key={index} className="flex flex-col sm:flex-row gap-3 p-3 bg-surface-card rounded-xl">
                       <div className="w-full sm:w-44">
-                        <DatePickerField
-                          value={day.date || ""}
-                          onChange={(val) => {
-                            const updated = [...closingDays]
-                            updated[index].date = val
-                            setClosingDays(updated)
-                          }}
-                        />
+                        <div className="w-full flex items-center justify-between bg-surface-card text-content-primary rounded-xl px-4 py-2.5 text-sm border border-border">
+                          <span className={day.date ? "text-content-primary" : "text-content-faint"}>{day.date ? (() => { const [y,m,d] = (day.date || "").split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+                          <DatePickerField
+                            value={day.date || ""}
+                            onChange={(val) => {
+                              const updated = [...closingDays]
+                              updated[index].date = val
+                              setClosingDays(updated)
+                            }}
+                          />
+                        </div>
                       </div>
                       <input
                         type="text"

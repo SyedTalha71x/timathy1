@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import { Calendar, ChevronDown } from "lucide-react"
 import { useState, useRef, useEffect } from "react"
+import DatePickerField from "../../shared/DatePickerField"
 
 /**
  * PeriodPicker Component
@@ -84,27 +85,27 @@ const PeriodPicker = ({
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`bg-[#141414] text-white px-4 py-2.5 rounded-xl border border-[#333333] hover:border-[#3F74FF] flex items-center gap-3 text-sm transition-colors ${className}`}
+        className={`bg-surface-dark text-content-primary px-4 py-2.5 rounded-xl border border-border hover:border-primary flex items-center gap-3 text-sm transition-colors ${className}`}
       >
-        <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
+        <Calendar className="w-4 h-4 text-content-muted flex-shrink-0" />
         <span className="text-sm flex-1 text-left truncate">{selectedPeriod}</span>
-        <ChevronDown className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-4 h-4 text-content-muted flex-shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
       
       {isOpen && (
-        <div className="absolute z-20 mt-2 min-w-[320px] bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-lg overflow-hidden">
+        <div className="absolute z-20 mt-2 min-w-[320px] bg-surface-hover border border-border rounded-xl shadow-lg overflow-hidden">
           {/* Preset Periods */}
           <div className="py-1">
-            <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">
+            <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border">
               Select Period
             </div>
             {periods.map((period) => (
               <button
                 key={period}
-                className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-800 transition-colors ${
+                className={`w-full text-left px-4 py-2.5 text-sm hover:bg-surface-hover transition-colors ${
                   selectedPeriod === period && !isCustomPeriod
-                    ? 'text-white bg-gray-800/50' 
-                    : 'text-gray-300'
+                    ? 'text-content-primary bg-surface-hover/50' 
+                    : 'text-content-secondary'
                 }`}
                 onClick={() => handleSelectPeriod(period)}
               >
@@ -114,10 +115,10 @@ const PeriodPicker = ({
           </div>
           
           {/* Custom Period Section */}
-          <div className="border-t border-gray-700">
+          <div className="border-t border-border">
             <button
-              className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-800 transition-colors flex items-center gap-2 ${
-                isCustomExpanded || isCustomPeriod ? 'text-white bg-gray-800/50' : 'text-gray-300'
+              className={`w-full text-left px-4 py-2.5 text-sm hover:bg-surface-hover transition-colors flex items-center gap-2 ${
+                isCustomExpanded || isCustomPeriod ? 'text-content-primary bg-surface-hover/50' : 'text-content-secondary'
               }`}
               onClick={handleCustomClick}
             >
@@ -127,32 +128,28 @@ const PeriodPicker = ({
             
             {/* Date Inputs - Show when custom period is selected */}
             {isCustomExpanded && (
-              <div className="px-4 py-3 bg-[#141414] border-t border-gray-700">
+              <div className="px-4 py-3 bg-surface-dark border-t border-border">
                 <div className="flex flex-col gap-3">
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs text-gray-500 mb-1">Start Date</label>
-                      <input
-                        type="date"
-                        value={customDates.startDate}
-                        onChange={(e) => setCustomDates((prev) => ({ ...prev, startDate: e.target.value }))}
-                        className="w-full bg-[#1C1C1C] text-white px-3 py-2 rounded-lg border border-gray-700 text-sm focus:border-[#3F74FF] focus:outline-none white-calendar-icon"
-                      />
+                      <label className="block text-xs text-content-faint mb-1">Start Date</label>
+                      <div className="w-full flex items-center justify-between bg-surface-base text-sm rounded-lg px-3 py-2 border border-border">
+                        <span className={customDates.startDate ? "text-content-primary" : "text-content-faint"}>{customDates.startDate ? formatDateForDisplay(customDates.startDate) : "Select"}</span>
+                        <DatePickerField value={customDates.startDate} onChange={(val) => setCustomDates((prev) => ({ ...prev, startDate: val }))} />
+                      </div>
                     </div>
                     <div>
-                      <label className="block text-xs text-gray-500 mb-1">End Date</label>
-                      <input
-                        type="date"
-                        value={customDates.endDate}
-                        onChange={(e) => setCustomDates((prev) => ({ ...prev, endDate: e.target.value }))}
-                        className="w-full bg-[#1C1C1C] text-white px-3 py-2 rounded-lg border border-gray-700 text-sm focus:border-[#3F74FF] focus:outline-none white-calendar-icon"
-                      />
+                      <label className="block text-xs text-content-faint mb-1">End Date</label>
+                      <div className="w-full flex items-center justify-between bg-surface-base text-sm rounded-lg px-3 py-2 border border-border">
+                        <span className={customDates.endDate ? "text-content-primary" : "text-content-faint"}>{customDates.endDate ? formatDateForDisplay(customDates.endDate) : "Select"}</span>
+                        <DatePickerField value={customDates.endDate} onChange={(val) => setCustomDates((prev) => ({ ...prev, endDate: val }))} />
+                      </div>
                     </div>
                   </div>
                   <button
                     onClick={handleApplyCustom}
                     disabled={!customDates.startDate || !customDates.endDate}
-                    className="w-full py-2 bg-[#3F74FF] text-white rounded-lg text-sm hover:bg-[#3F74FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full py-2 bg-primary text-white rounded-lg text-sm hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Apply
                   </button>

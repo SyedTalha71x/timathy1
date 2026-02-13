@@ -2,96 +2,7 @@
 import { ImageIcon } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { X } from "react-feather"
-import ReactQuill from "react-quill"
-
-const WysiwygEditor = ({ value, onChange, placeholder }) => {
-  const modules = {
-    toolbar: [
-      [{ 'header': [1, 2, 3, false] }],
-      ['bold', 'italic', 'underline', 'strike'],
-      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-      [{ 'align': [] }],
-      ['link'],
-      ['clean']
-    ],
-  }
-
-  const formats = [
-    'header',
-    'bold', 'italic', 'underline', 'strike',
-    'list', 'bullet',
-    'align',
-    'link'
-  ]
-
-  // Consistent styling with TicketView
-  useEffect(() => {
-    const style = document.createElement('style')
-    style.textContent = `
-      .ql-editor.ql-blank::before {
-        color: #ffffff !important;
-        opacity: 0.7 !important;
-      }
-      .ql-editor {
-        color: #ffffff !important;
-        min-height: 120px;
-        max-height: 200px;
-        overflow-y: auto;
-      }
-      .ql-toolbar {
-        border-color: #303030 !important;
-        background-color: #151515 !important;
-        position: relative;
-        z-index: 10;
-      }
-      .ql-container {
-        border-color: #303030 !important;
-        background-color: #101010 !important;
-      }
-      .ql-snow .ql-stroke {
-        stroke: #ffffff !important;
-      }
-      .ql-snow .ql-fill {
-        fill: #ffffff !important;
-      }
-      .ql-snow .ql-picker-label {
-        color: #ffffff !important;
-      }
-      .ql-snow .ql-picker-options {
-        background-color: #151515 !important;
-        border-color: #303030 !important;
-      }
-      .ql-snow .ql-picker-item {
-        color: #ffffff !important;
-      }
-      .ql-snow .ql-tooltip {
-        background-color: #151515 !important;
-        border-color: #303030 !important;
-        color: #ffffff !important;
-        z-index: 20;
-      }
-      .ql-snow .ql-tooltip input[type="text"] {
-        color: #000000 !important;
-      }
-    `
-    document.head.appendChild(style)
-
-    return () => {
-      document.head.removeChild(style)
-    }
-  }, [])
-
-  return (
-    <ReactQuill
-      value={value}
-      onChange={onChange}
-      modules={modules}
-      formats={formats}
-      placeholder={placeholder}
-      theme="snow"
-    />
-  )
-}
+import { WysiwygEditor } from "../../shared/WysiwygEditor"
 
 const NewTicketModal = ({ isOpen, onClose, onSubmit }) => {
     const [subject, setSubject] = useState("")
@@ -315,34 +226,34 @@ const NewTicketModal = ({ isOpen, onClose, onSubmit }) => {
     return (
       <>
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-2 sm:p-4">
-        <div className="bg-[#1C1C1C] rounded-lg sm:rounded-xl p-4 sm:p-6 w-full max-w-md mx-2 sm:mx-0 relative max-h-[95vh] overflow-y-auto">
+        <div className="bg-surface-base rounded-lg sm:rounded-xl p-4 sm:p-6 w-full max-w-2xl mx-2 sm:mx-0 relative max-h-[95vh] overflow-y-auto">
           <button
             onClick={handleClose}
-            className="absolute top-2 right-2 sm:top-3 sm:right-3 text-gray-400 hover:text-gray-200"
+            className="absolute top-2 right-2 sm:top-3 sm:right-3 text-content-muted hover:text-content-secondary"
           >
             <X size={18} className="sm:w-5 sm:h-5" />
           </button>
-          <h2 className="text-lg sm:text-xl font-bold text-white mb-1 text-center pr-6">Create New Ticket</h2>
-          <p className="text-xs text-gray-400 text-center mb-4 sm:mb-6">A ticket number will be assigned automatically</p>
+          <h2 className="text-lg sm:text-xl font-bold text-content-primary mb-1 text-center pr-6">Create New Ticket</h2>
+          <p className="text-xs text-content-muted text-center mb-4 sm:mb-6">A ticket number will be assigned automatically</p>
 
           <div className="space-y-4 sm:space-y-5 max-h-[60vh] overflow-y-auto custom-scrollbar pr-2">
             {/* Studio Info Card */}
-            <div className="bg-[#101010] rounded-xl p-4 border border-[#333333]">
+            <div className="bg-surface-dark rounded-xl p-4 border border-border">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center flex-shrink-0">
                   <span className="text-white font-bold text-sm">{studioName.charAt(0)}</span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-white font-medium text-sm truncate">{studioName}</p>
-                  <p className="text-gray-400 text-xs truncate">{studioEmail}</p>
+                  <p className="text-content-primary font-medium text-sm truncate">{studioName}</p>
+                  <p className="text-content-muted text-xs truncate">{studioEmail}</p>
                 </div>
               </div>
               
               {/* Privacy Toggle - Blue color, shows name when active */}
-              <div className="mt-4 pt-3 border-t border-[#333333]">
+              <div className="mt-4 pt-3 border-t border-border">
                 <div className="flex items-center justify-between">
                   <div className="flex-1 min-w-0 pr-3">
-                    <p className="text-sm text-white">Share my name with support</p>
+                    <p className="text-sm text-content-primary">Share my name with support</p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
                     <input
@@ -351,31 +262,31 @@ const NewTicketModal = ({ isOpen, onClose, onSubmit }) => {
                       onChange={(e) => setIncludeRequesterName(e.target.checked)}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    <div className="w-11 h-6 bg-content-faint peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                   </label>
                 </div>
                 
                 {/* Show name when toggle is active */}
                 {includeRequesterName && (
-                  <div className="mt-3 p-3 bg-blue-600/10 border border-blue-600/30 rounded-lg">
-                    <p className="text-xs text-gray-400 mb-1">Name shared with support:</p>
-                    <p className="text-sm text-white font-medium">{requesterName}</p>
+                  <div className="mt-3 p-3 bg-primary/10 border border-primary/30 rounded-lg">
+                    <p className="text-xs text-content-muted mb-1">Name shared with support:</p>
+                    <p className="text-sm text-content-primary font-medium">{requesterName}</p>
                   </div>
                 )}
                 
                 {!includeRequesterName && (
-                  <p className="text-xs text-gray-500 mt-2">Only studio info will be shared</p>
+                  <p className="text-xs text-content-faint mt-2">Only studio info will be shared</p>
                 )}
               </div>
             </div>
 
             {/* Subject Selection */}
             <div>
-              <label className="block text-sm font-medium text-white mb-2">Subject *</label>
+              <label className="block text-sm font-medium text-content-primary mb-2">Subject *</label>
               <select
                 value={subject}
                 onChange={handleSubjectChange}
-                className="w-full bg-[#101010] text-sm rounded-xl px-3 sm:px-4 py-2.5 text-white outline-none border border-[#333333] focus:border-[#3F74FF]"
+                className="w-full bg-surface-dark text-sm rounded-xl px-3 sm:px-4 py-2.5 text-content-primary outline-none border border-border focus:border-primary"
               >
                 {subjects.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -387,12 +298,12 @@ const NewTicketModal = ({ isOpen, onClose, onSubmit }) => {
 
             {/* Reason Selection */}
             <div>
-              <label className="block text-sm font-medium text-white mb-2">Reason *</label>
+              <label className="block text-sm font-medium text-content-primary mb-2">Reason *</label>
               <select
                 value={reason}
                 onChange={handleReasonChange}
                 disabled={!subject}
-                className="w-full bg-[#101010] text-sm rounded-xl px-3 sm:px-4 py-2.5 text-white outline-none border border-[#333333] focus:border-[#3F74FF] disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full bg-surface-dark text-sm rounded-xl px-3 sm:px-4 py-2.5 text-content-primary outline-none border border-border focus:border-primary disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {subject ? (
                   reasons[subject].map((option) => (
@@ -408,7 +319,7 @@ const NewTicketModal = ({ isOpen, onClose, onSubmit }) => {
 
             {/* Additional Description */}
             <div>
-              <label className="block text-sm font-medium text-white mb-2">Description</label>
+              <label className="block text-sm font-medium text-content-primary mb-2">Description</label>
               
               {/* Image Upload */}
               <div className="mb-3">
@@ -422,7 +333,7 @@ const NewTicketModal = ({ isOpen, onClose, onSubmit }) => {
                 />
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
+                  className="flex items-center gap-2 px-3 py-2 text-sm border border-border rounded-lg text-content-secondary hover:bg-surface-hover hover:text-content-primary transition-colors"
                 >
                   <ImageIcon size={16} />
                   Attach Images
@@ -443,10 +354,10 @@ const NewTicketModal = ({ isOpen, onClose, onSubmit }) => {
                           <img 
                             src={img || "/placeholder.svg"} 
                             alt={`Preview ${idx + 1}`}
-                            className="w-full h-20 object-cover rounded-lg border border-gray-700"
+                            className="w-full h-20 object-cover rounded-lg border border-border"
                           />
                           <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                            <span className="text-white text-xs font-medium bg-gray-800 px-3 py-1 rounded">View</span>
+                            <span className="text-white text-xs font-medium bg-black/60 px-3 py-1 rounded">View</span>
                           </div>
                         </div>
                         <button
@@ -465,21 +376,22 @@ const NewTicketModal = ({ isOpen, onClose, onSubmit }) => {
                 )}
               </div>
 
-              {/* WYSIWYG Editor - Consistent with TicketView */}
-              <div className="border border-gray-600 rounded-lg overflow-hidden bg-[#101010] h-64 flex flex-col">
+              {/* WYSIWYG Editor */}
                 <WysiwygEditor
                   value={additionalDescription}
                   onChange={setAdditionalDescription}
                   placeholder="Provide additional details about your issue..."
+                  minHeight={180}
+                  maxHeight={220}
+                  showImages={false}
                 />
-              </div>
             </div>
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3 pt-2">
               <button
                 onClick={handleClose}
-                className="w-full sm:w-auto px-4 py-2.5 text-sm border border-gray-600 rounded-xl font-medium text-gray-300 bg-[#2A2A2A] hover:bg-[#3A3A3A] order-2 sm:order-1 transition-colors"
+                className="w-full sm:w-auto px-4 py-2.5 text-sm border border-border rounded-xl font-medium text-content-secondary bg-surface-button hover:bg-surface-button-hover order-2 sm:order-1 transition-colors"
               >
                 Cancel
               </button>
@@ -504,7 +416,7 @@ const NewTicketModal = ({ isOpen, onClose, onSubmit }) => {
           {/* Close Button */}
           <button
             onClick={() => setViewingImage(null)}
-            className="absolute top-4 right-4 text-white hover:text-gray-300 p-2 rounded-lg hover:bg-white/10 transition-colors z-10"
+            className="absolute top-4 right-4 text-white hover:text-content-secondary p-2 rounded-lg hover:bg-white/10 transition-colors z-10"
             aria-label="Close image"
           >
             <X size={32} />
@@ -522,7 +434,7 @@ const NewTicketModal = ({ isOpen, onClose, onSubmit }) => {
                   index: newIndex
                 })
               }}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 p-3 rounded-lg hover:bg-white/10 transition-colors z-10"
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-content-secondary p-3 rounded-lg hover:bg-white/10 transition-colors z-10"
               aria-label="Previous image"
             >
               <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -543,7 +455,7 @@ const NewTicketModal = ({ isOpen, onClose, onSubmit }) => {
                   index: newIndex
                 })
               }}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 p-3 rounded-lg hover:bg-white/10 transition-colors z-10"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:text-content-secondary p-3 rounded-lg hover:bg-white/10 transition-colors z-10"
               aria-label="Next image"
             >
               <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -562,7 +474,7 @@ const NewTicketModal = ({ isOpen, onClose, onSubmit }) => {
               <p className="text-white text-sm font-medium text-center">
                 {viewingImage.image.name}
                 {viewingImage.images.length > 1 && (
-                  <span className="text-gray-400 ml-2">
+                  <span className="text-content-muted ml-2">
                     ({viewingImage.index + 1}/{viewingImage.images.length})
                   </span>
                 )}

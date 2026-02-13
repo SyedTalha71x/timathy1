@@ -48,10 +48,10 @@ const FolderCardWithMenu = ({ folder, isSelected, designCount, onSelect, onEdit,
   
   return (
     <div
-      className={`relative group bg-[#1C1C1C] rounded-xl p-4 border transition-all cursor-pointer ${
+      className={`relative group bg-surface-base rounded-xl p-4 border transition-all cursor-pointer ${
         isSelected 
           ? 'border-orange-500 ring-2 ring-orange-500/20' 
-          : 'border-[#333333] hover:border-orange-500/50'
+          : 'border-border hover:border-orange-500/50'
       }`}
       onClick={() => onSelect(folder.id === onSelect ? null : folder.id)}
     >
@@ -67,8 +67,8 @@ const FolderCardWithMenu = ({ folder, isSelected, designCount, onSelect, onEdit,
             />
           </div>
           <div className="min-w-0 flex-1">
-            <h4 className="text-sm font-medium text-white truncate">{folder.name}</h4>
-            <p className="text-xs text-gray-500">
+            <h4 className="text-sm font-medium text-content-primary truncate">{folder.name}</h4>
+            <p className="text-xs text-content-faint">
               {designCount} design{designCount !== 1 ? 's' : ''}
               {folder.isDefault && <span className="ml-1.5 text-orange-400">• Default</span>}
             </p>
@@ -82,7 +82,7 @@ const FolderCardWithMenu = ({ folder, isSelected, designCount, onSelect, onEdit,
               e.stopPropagation();
               setShowMenu(!showMenu);
             }}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-orange-400 hover:bg-gray-800 transition-colors"
+            className="p-1.5 rounded-lg text-content-muted hover:text-orange-400 hover:bg-surface-hover transition-colors"
           >
             <MoreHorizontal size={16} />
           </button>
@@ -96,14 +96,14 @@ const FolderCardWithMenu = ({ folder, isSelected, designCount, onSelect, onEdit,
                   setShowMenu(false);
                 }}
               />
-              <div className="absolute right-0 top-full mt-1 w-32 bg-[#1C1C1C] border border-gray-700 rounded-lg shadow-xl py-1 z-20">
+              <div className="absolute right-0 top-full mt-1 w-32 bg-surface-base border border-border rounded-lg shadow-xl py-1 z-20">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     onEdit(folder);
                     setShowMenu(false);
                   }}
-                  className="w-full px-3 py-2 text-sm text-left hover:bg-gray-800 text-gray-300 flex items-center gap-2 transition-colors"
+                  className="w-full px-3 py-2 text-sm text-left hover:bg-surface-hover text-content-secondary flex items-center gap-2 transition-colors"
                 >
                   <Edit2 size={14} />
                   Edit
@@ -115,7 +115,7 @@ const FolderCardWithMenu = ({ folder, isSelected, designCount, onSelect, onEdit,
                       onDelete(folder);
                       setShowMenu(false);
                     }}
-                    className="w-full px-3 py-2 text-sm text-left hover:bg-gray-800 text-red-400 flex items-center gap-2 transition-colors"
+                    className="w-full px-3 py-2 text-sm text-left hover:bg-surface-hover text-red-400 flex items-center gap-2 transition-colors"
                   >
                     <Trash2 size={14} />
                     Delete
@@ -609,11 +609,11 @@ const MediaLibrary = () => {
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-    <div className="min-h-screen rounded-3xl p-4 md:p-6 bg-[#1C1C1C] transition-all duration-300 ease-in-out flex-1">
+    <div className="min-h-screen rounded-3xl p-4 md:p-6 bg-surface-base transition-all duration-300 ease-in-out flex-1">
       {/* Header */}
       <div className="flex items-center justify-between mb-4 sm:mb-6">
         <div className="flex items-center gap-3">
-          <h1 className="text-xl sm:text-2xl text-white oxanium_font">Media Library</h1>
+          <h1 className="text-xl sm:text-2xl text-content-primary oxanium_font">Media Library</h1>
           
           {/* Mobile Info Tooltip - only visible on mobile */}
           <div className="sm:hidden relative">
@@ -621,21 +621,21 @@ const MediaLibrary = () => {
               onClick={() => setShowMobileInfoTooltip(!showMobileInfoTooltip)}
               onMouseEnter={() => setShowMobileInfoTooltip(true)}
               onMouseLeave={() => setShowMobileInfoTooltip(false)}
-              className="text-gray-400 hover:text-gray-300 transition-colors p-1"
+              className="text-content-muted hover:text-content-secondary transition-colors p-1"
               aria-label="Design Information"
             >
               <Info size={16} />
             </button>
             
             {showMobileInfoTooltip && (
-              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-64 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-xl p-4 z-50">
+              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 w-64 bg-surface-button border border-border rounded-lg shadow-xl p-4 z-50">
                 <div className="text-sm space-y-2">
                   <p className="text-orange-400 font-medium">Desktop Only</p>
-                  <p className="text-gray-300 text-xs leading-relaxed">
+                  <p className="text-content-secondary text-xs leading-relaxed">
                     Creating and editing designs is only available on desktop devices for the best experience.
                   </p>
                 </div>
-                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-[#2a2a2a] border-l border-t border-gray-700 transform rotate-45"></div>
+                <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-surface-button border-l border-t border-border transform rotate-45"></div>
               </div>
             )}
           </div>
@@ -666,18 +666,18 @@ const MediaLibrary = () => {
 
       {/* Search */}
       <div className="mb-4 sm:mb-6 relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-content-muted" size={16} />
         <input
           type="text"
           placeholder="Search all designs..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full bg-[#141414] outline-none text-sm text-white rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-[#333333] focus:border-[#3F74FF] transition-colors"
+          className="w-full bg-surface-card outline-none text-sm text-content-primary rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-border focus:border-accent-blue transition-colors"
         />
         {searchQuery && (
           <button
             onClick={() => setSearchQuery('')}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-content-faint hover:text-content-primary transition-colors"
           >
             <X size={14} />
           </button>
@@ -692,12 +692,12 @@ const MediaLibrary = () => {
               <div className="flex items-center justify-between mb-3">
                 <button
                   onClick={() => setShowFoldersSection(!showFoldersSection)}
-                  className="flex items-center gap-2 text-white hover:text-orange-500 transition-colors"
+                  className="flex items-center gap-2 text-content-primary hover:text-orange-500 transition-colors"
                 >
                   {showFoldersSection ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
                   <FolderIcon size={18} />
                   <span className="font-medium text-sm">Folders</span>
-                  <span className="text-gray-500 text-xs ml-1">({folders.length})</span>
+                  <span className="text-content-faint text-xs ml-1">({folders.length})</span>
                 </button>
                 
                 <button
@@ -741,7 +741,7 @@ const MediaLibrary = () => {
             <div className="flex items-center justify-between mb-3">
               <button
                 onClick={() => setShowDesignsSection(!showDesignsSection)}
-                className="flex items-center gap-2 text-white hover:text-orange-500 transition-colors"
+                className="flex items-center gap-2 text-content-primary hover:text-orange-500 transition-colors"
               >
                 {showDesignsSection ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
                 <Palette size={18} />
@@ -751,14 +751,14 @@ const MediaLibrary = () => {
                     : (selectedFolder?.name || 'All Designs')
                   }
                 </span>
-                <span className="text-gray-500 text-xs ml-1">
+                <span className="text-content-faint text-xs ml-1">
                   ({filteredDesigns.length})
                 </span>
               </button>
               {isSearching && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="text-xs text-gray-400 hover:text-white flex items-center gap-1 transition-colors"
+                  className="text-xs text-content-muted hover:text-content-primary flex items-center gap-1 transition-colors"
                 >
                   <X size={12} />
                   Clear search
@@ -782,14 +782,14 @@ const MediaLibrary = () => {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-12 bg-[#141414] rounded-xl border border-[#333333]">
-                  <div className="w-16 h-16 bg-[#141414] rounded-xl flex items-center justify-center mx-auto mb-3">
-                    {isSearching ? <Search size={28} className="text-gray-600" /> : <Sparkles size={28} className="text-gray-600" />}
+                <div className="text-center py-12 bg-surface-card rounded-xl border border-border">
+                  <div className="w-16 h-16 bg-surface-card rounded-xl flex items-center justify-center mx-auto mb-3">
+                    {isSearching ? <Search size={28} className="text-content-faint" /> : <Sparkles size={28} className="text-content-faint" />}
                   </div>
-                  <h3 className="text-white font-medium mb-1">
+                  <h3 className="text-content-primary font-medium mb-1">
                     {isSearching ? 'No designs found' : 'No designs yet'}
                   </h3>
-                  <p className="text-gray-500 text-sm mb-4">
+                  <p className="text-content-faint text-sm mb-4">
                     {isSearching 
                       ? `No designs matching "${searchQuery}"` 
                       : 'Create your first design to get started'
@@ -798,7 +798,7 @@ const MediaLibrary = () => {
                   {isSearching ? (
                     <button
                       onClick={() => setSearchQuery('')}
-                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white text-sm font-medium rounded-xl transition-colors"
+                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-surface-button hover:bg-surface-button-hover text-content-primary text-sm font-medium rounded-xl transition-colors"
                     >
                       <X size={16} />
                       Clear Search
@@ -812,7 +812,7 @@ const MediaLibrary = () => {
                         <Plus size={16} />
                         Create Design
                       </button>
-                      <p className="sm:hidden text-gray-500 text-xs mt-2">
+                      <p className="sm:hidden text-content-faint text-xs mt-2">
                         Design creation is only available on desktop
                       </p>
                     </>
@@ -827,12 +827,12 @@ const MediaLibrary = () => {
             <div className="flex items-center justify-between mb-3">
               <button
                 onClick={() => setShowDraftsSection(!showDraftsSection)}
-                className="flex items-center gap-2 text-white hover:text-orange-500 transition-colors"
+                className="flex items-center gap-2 text-content-primary hover:text-orange-500 transition-colors"
               >
                 {showDraftsSection ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
                 <FileText size={18} />
                 <span className="font-medium text-sm">Drafts</span>
-                <span className="text-gray-500 text-xs ml-1">({filteredDrafts.length})</span>
+                <span className="text-content-faint text-xs ml-1">({filteredDrafts.length})</span>
               </button>
             </div>
 
@@ -855,10 +855,10 @@ const MediaLibrary = () => {
                     return (
                       <div
                         key={draft.id}
-                        className="group relative bg-[#1a1a1a] rounded-xl overflow-hidden border border-dashed border-[#444444] hover:border-orange-500/50 transition-all"
+                        className="group relative bg-surface-hover rounded-xl overflow-hidden border border-dashed border-border hover:border-orange-500/50 transition-all"
                       >
                         {/* Fixed-size Preview Container - same height as DesignCard */}
-                        <div className="relative w-full h-[180px] bg-[#2a2a2a] flex items-center justify-center overflow-hidden">
+                        <div className="relative w-full h-[180px] bg-surface-button flex items-center justify-center overflow-hidden">
                           {draft.thumbnail && draft.thumbnail !== 'data:,' ? (
                             <img 
                               src={draft.thumbnail}
@@ -867,7 +867,7 @@ const MediaLibrary = () => {
                               draggable={false}
                             />
                           ) : (
-                            <div className="flex flex-col items-center justify-center text-gray-500">
+                            <div className="flex flex-col items-center justify-center text-content-faint">
                               <FileText size={32} className="mb-2 opacity-50" />
                               <span className="text-xs">Draft</span>
                             </div>
@@ -898,15 +898,15 @@ const MediaLibrary = () => {
                         </div>
 
                         {/* Info - consistent with DesignCard */}
-                        <div className="p-3 bg-[#1a1a1a]">
-                          <h4 className="text-white font-medium text-sm truncate group-hover:text-orange-400 transition-colors">
+                        <div className="p-3 bg-surface-hover">
+                          <h4 className="text-content-primary font-medium text-sm truncate group-hover:text-orange-400 transition-colors">
                             {draft.name}
                           </h4>
                           <div className="flex items-center justify-between mt-1.5">
-                            <span className="text-gray-500 text-xs">{formatDate(draft.createdAt)}</span>
-                            <span className="text-gray-500 text-xs">{draft.size}</span>
+                            <span className="text-content-faint text-xs">{formatDate(draft.createdAt)}</span>
+                            <span className="text-content-faint text-xs">{draft.size}</span>
                           </div>
-                          <div className="flex items-center gap-1 text-gray-500 text-xs mt-1">
+                          <div className="flex items-center gap-1 text-content-faint text-xs mt-1">
                             <Layers size={10} />
                             <span>{draft.elements?.length || 0} layers</span>
                           </div>
@@ -916,9 +916,9 @@ const MediaLibrary = () => {
                   })}
                 </div>
               ) : (
-                <div className="text-center py-6 bg-[#141414] rounded-xl border border-[#333333]">
-                  <FileText size={28} className="mx-auto text-gray-600 mb-2" />
-                  <p className="text-gray-500 text-sm">No drafts saved</p>
+                <div className="text-center py-6 bg-surface-card rounded-xl border border-border">
+                  <FileText size={28} className="mx-auto text-content-faint mb-2" />
+                  <p className="text-content-faint text-sm">No drafts saved</p>
                 </div>
               )
             )}
@@ -970,7 +970,7 @@ const MediaLibrary = () => {
         size="sm"
       >
         <div className="space-y-4">
-          <p className="text-gray-300 text-sm">
+          <p className="text-content-secondary text-sm">
             Are you sure you want to delete "{designToDelete?.name}"? This action cannot be undone.
           </p>
           <div className="flex gap-3">
@@ -979,7 +979,7 @@ const MediaLibrary = () => {
                 setShowDeleteConfirm(false);
                 setDesignToDelete(null);
               }}
-              className="flex-1 py-2.5 bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white rounded-xl transition-colors"
+              className="flex-1 py-2.5 bg-surface-button hover:bg-surface-button-hover text-content-primary rounded-xl transition-colors"
             >
               Cancel
             </button>
@@ -1028,28 +1028,28 @@ const MediaLibrary = () => {
             <div className="space-y-2">
               <button
                 onClick={handleDeleteFolderOnly}
-                className="w-full flex items-center gap-3 p-3 bg-[#0a0a0a] hover:bg-[#2F2F2F] text-white rounded-xl transition-colors text-left"
+                className="w-full flex items-center gap-3 p-3 bg-surface-dark hover:bg-surface-button text-content-primary rounded-xl transition-colors text-left"
               >
                 <FolderInput size={18} className="text-blue-400" />
                 <div>
                   <p className="text-sm font-medium">Delete folder only</p>
-                  <p className="text-gray-500 text-xs">Move designs to another folder</p>
+                  <p className="text-content-faint text-xs">Move designs to another folder</p>
                 </div>
               </button>
               
               <button
                 onClick={handleDeleteFolderWithContents}
-                className="w-full flex items-center gap-3 p-3 bg-[#0a0a0a] hover:bg-red-500/10 text-white hover:text-red-400 rounded-xl transition-colors text-left border border-transparent hover:border-red-500/30"
+                className="w-full flex items-center gap-3 p-3 bg-surface-dark hover:bg-red-500/10 text-white hover:text-red-400 rounded-xl transition-colors text-left border border-transparent hover:border-red-500/30"
               >
                 <Trash2 size={18} className="text-red-400" />
                 <div>
                   <p className="text-sm font-medium">Delete folder and designs</p>
-                  <p className="text-gray-500 text-xs">Permanently delete {designsToMove.length} design{designsToMove.length !== 1 ? 's' : ''}</p>
+                  <p className="text-content-faint text-xs">Permanently delete {designsToMove.length} design{designsToMove.length !== 1 ? 's' : ''}</p>
                 </div>
               </button>
             </div>
           ) : (
-            <p className="text-gray-400 text-sm">
+            <p className="text-content-muted text-sm">
               Are you sure you want to delete this empty folder?
             </p>
           )}
@@ -1061,7 +1061,7 @@ const MediaLibrary = () => {
                 setFolderToDelete(null);
                 setDesignsToMove([]);
               }}
-              className="flex-1 py-2.5 bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white rounded-xl transition-colors"
+              className="flex-1 py-2.5 bg-surface-button hover:bg-surface-button-hover text-content-primary rounded-xl transition-colors"
             >
               Cancel
             </button>
@@ -1097,7 +1097,7 @@ const MediaLibrary = () => {
                 <button
                   key={folder.id}
                   onClick={() => handleMoveDesignsToFolder(folder.id)}
-                  className="w-full flex items-center gap-3 p-3 bg-[#0a0a0a] hover:bg-[#2F2F2F] text-white rounded-xl transition-colors text-left"
+                  className="w-full flex items-center gap-3 p-3 bg-surface-dark hover:bg-surface-button text-content-primary rounded-xl transition-colors text-left"
                 >
                   <div 
                     className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
@@ -1107,12 +1107,12 @@ const MediaLibrary = () => {
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-medium">{folder.name}</p>
-                    <p className="text-gray-500 text-xs">
+                    <p className="text-content-faint text-xs">
                       {getDesignsForFolder(folder.id).length} designs
                     </p>
                   </div>
                   {folder.isDefault && (
-                    <span className="text-[10px] bg-[#2F2F2F] text-gray-400 px-2 py-0.5 rounded">
+                    <span className="text-[10px] bg-surface-button text-content-muted px-2 py-0.5 rounded">
                       Default
                     </span>
                   )}
@@ -1125,7 +1125,7 @@ const MediaLibrary = () => {
               setShowMoveDesignsModal(false);
               setShowFolderDeleteModal(true);
             }}
-            className="w-full py-2.5 bg-[#2F2F2F] hover:bg-[#3F3F3F] text-white rounded-xl transition-colors"
+            className="w-full py-2.5 bg-surface-button hover:bg-surface-button-hover text-content-primary rounded-xl transition-colors"
           >
             Back
           </button>
@@ -1167,15 +1167,15 @@ const MediaLibrary = () => {
               />
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center py-20 text-gray-500">
+            <div className="flex flex-col items-center justify-center py-20 text-content-faint">
               <Eye size={48} className="mb-4 opacity-50" />
               <span>No preview available</span>
             </div>
           )}
-          <div className="flex items-center justify-between w-full mt-4 pt-4 border-t border-[#333333]">
+          <div className="flex items-center justify-between w-full mt-4 pt-4 border-t border-border">
             <div>
-              <p className="text-gray-400 text-sm">{previewDesign?.size}</p>
-              <p className="text-gray-500 text-xs">{previewDesign?.elements?.length || 0} layers</p>
+              <p className="text-content-muted text-sm">{previewDesign?.size}</p>
+              <p className="text-content-faint text-xs">{previewDesign?.elements?.length || 0} layers</p>
             </div>
             <div className="flex gap-2">
               <button
@@ -1199,8 +1199,8 @@ const MediaLibrary = () => {
     {/* Drag Overlay - shows preview while dragging */}
     <DragOverlay>
       {draggingDesign ? (
-        <div className="bg-[#1a1a1a] rounded-xl border-2 border-orange-500 shadow-2xl shadow-orange-500/20 p-3 w-48 opacity-90">
-          <div className="h-24 bg-[#2a2a2a] rounded-lg mb-2 flex items-center justify-center overflow-hidden">
+        <div className="bg-surface-hover rounded-xl border-2 border-orange-500 shadow-2xl shadow-orange-500/20 p-3 w-48 opacity-90">
+          <div className="h-24 bg-surface-button rounded-lg mb-2 flex items-center justify-center overflow-hidden">
             {draggingDesign.thumbnail && draggingDesign.thumbnail !== 'data:,' ? (
               <img 
                 src={draggingDesign.thumbnail}
@@ -1209,10 +1209,10 @@ const MediaLibrary = () => {
                 draggable="false"
               />
             ) : (
-              <Layers size={24} className="text-gray-500" />
+              <Layers size={24} className="text-content-faint" />
             )}
           </div>
-          <p className="text-white text-sm font-medium truncate">{draggingDesign.name}</p>
+          <p className="text-content-primary text-sm font-medium truncate">{draggingDesign.name}</p>
           <p className="text-orange-400 text-xs mt-1">Drop on folder to move</p>
         </div>
       ) : null}

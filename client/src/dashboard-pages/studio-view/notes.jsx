@@ -4,8 +4,7 @@ import { Search, Plus, X, GripVertical, Edit, Copy, Trash2, ArrowUpDown, ArrowUp
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core'
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import ReactQuill from "react-quill"
-import "react-quill/dist/quill.snow.css"
+import { WysiwygEditor } from "../../components/shared/WysiwygEditor"
 import DeleteConfirmModal from "../../components/shared/notes/DeleteConfirmModal"
 import TagManagerModal from "../../components/shared/TagManagerModal"
 import ImageSourceModal from "../../components/shared/image-handler/ImageSourceModal"
@@ -71,367 +70,6 @@ const stripHtmlTags = (html) => {
   return text.replace(/\s+/g, ' ').trim()
 }
 
-// Quill editor configuration - defined OUTSIDE component to prevent re-creation on renders
-// This is CRITICAL: ReactQuill compares modules/formats by reference, new objects cause reinitialization
-const QUILL_MODULES = {
-  toolbar: [
-    [{ 'header': [1, 2, 3, false] }],
-    ['bold', 'italic', 'underline', 'strike'],
-    [{ 'color': [] }, { 'background': [] }],
-    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-    [{ 'align': [] }],
-    ['link'],
-    ['clean']
-  ],
-}
-
-const QUILL_FORMATS = [
-  'header',
-  'bold', 'italic', 'underline', 'strike',
-  'color', 'background',
-  'list', 'bullet',
-  'align',
-  'link'
-]
-
-// WysiwygEditor component - uses internal state to prevent cursor jumping
-const WysiwygEditor = ({ value, initialValue, onChange, placeholder, className = "", noteId, isMobile = false }) => {
-  const quillRef = useRef(null)
-  // Use initialValue for first render (from selectedNote.content), fallback to value
-  const [internalValue, setInternalValue] = useState(initialValue ?? value)
-  const currentNoteIdRef = useRef(noteId)
-  
-  // Only sync when switching to a DIFFERENT note (handled by key prop remounting)
-  // This effect handles edge cases where value might update after mount
-  useEffect(() => {
-    if (noteId !== currentNoteIdRef.current) {
-      setInternalValue(initialValue ?? value)
-      currentNoteIdRef.current = noteId
-    }
-  }, [noteId, value, initialValue])
-  
-  // Handle internal changes
-  const handleChange = (newValue) => {
-    setInternalValue(newValue)
-    onChange(newValue)
-  }
-
-  useEffect(() => {
-    const style = document.createElement('style')
-    style.textContent = `
-      /* Line clamp utility for sidebar */
-      .line-clamp-2 {
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-      }
-      .notes-editor-wrapper {
-        border-radius: 12px;
-        overflow: hidden;
-        border: 1px solid #404040;
-        display: flex;
-        flex-direction: column;
-        transition: border-color 0.2s ease;
-      }
-      .notes-editor-wrapper:focus-within {
-        border-color: #3b82f6;
-      }
-      .notes-editor-wrapper.full-height {
-        height: 100%;
-      }
-      .notes-editor-wrapper.full-height .quill {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-      }
-      .notes-editor-wrapper.full-height .ql-container {
-        flex: 1;
-        overflow: auto;
-      }
-      .notes-editor-wrapper.full-height .ql-editor {
-        min-height: 100% !important;
-      }
-      .notes-editor-wrapper .ql-editor.ql-blank::before {
-        color: #9ca3af !important;
-        opacity: 0.7 !important;
-      }
-      .notes-editor-wrapper .ql-editor {
-        color: #e5e7eb !important;
-        background-color: #1f1f1f !important;
-        min-height: 300px;
-        font-size: 15px;
-        line-height: 1.4;
-        padding-bottom: 100px !important;
-      }
-      .notes-editor-wrapper .ql-editor p,
-      .notes-editor-wrapper .ql-editor div {
-        margin: 0 !important;
-        padding: 0 !important;
-      }
-      .notes-editor-wrapper .ql-editor p + p,
-      .notes-editor-wrapper .ql-editor div + div {
-        margin: 0 !important;
-      }
-      .notes-editor-wrapper .ql-editor br {
-        line-height: inherit;
-      }
-      .notes-editor-wrapper .ql-toolbar.ql-snow {
-        border: none !important;
-        border-bottom: 1px solid #404040 !important;
-        background-color: #161616 !important;
-        flex-shrink: 0;
-      }
-      .notes-editor-wrapper .ql-container.ql-snow {
-        border: none !important;
-        background-color: #1f1f1f !important;
-      }
-      /* White icons for toolbar */
-      .notes-editor-wrapper .ql-snow .ql-stroke {
-        stroke: #ffffff !important;
-      }
-      .notes-editor-wrapper .ql-snow .ql-fill {
-        fill: #ffffff !important;
-      }
-      .notes-editor-wrapper .ql-snow .ql-picker-label {
-        color: #ffffff !important;
-      }
-      .notes-editor-wrapper .ql-snow .ql-picker-label .ql-stroke {
-        stroke: #ffffff !important;
-      }
-      /* Dropdown styles */
-      .notes-editor-wrapper .ql-snow .ql-picker-options {
-        background-color: #1f1f1f !important;
-        border-color: #404040 !important;
-        z-index: 100 !important;
-      }
-      .notes-editor-wrapper .ql-snow .ql-picker-item {
-        color: #e5e7eb !important;
-      }
-      /* Tooltip/popup styles with high z-index */
-      .notes-editor-wrapper .ql-snow .ql-tooltip {
-        background-color: #1f1f1f !important;
-        border-color: #404040 !important;
-        color: #e5e7eb !important;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
-        z-index: 100 !important;
-      }
-      .notes-editor-wrapper .ql-snow .ql-tooltip input[type="text"] {
-        color: #e5e7eb !important;
-        background-color: #161616 !important;
-        border: 1px solid #404040 !important;
-        padding: 6px 10px !important;
-        border-radius: 6px !important;
-      }
-      .notes-editor-wrapper .ql-snow .ql-tooltip input[type="text"]::placeholder {
-        color: #6b7280 !important;
-      }
-      .notes-editor-wrapper .ql-snow .ql-tooltip a.ql-action,
-      .notes-editor-wrapper .ql-snow .ql-tooltip a.ql-remove {
-        color: #f97316 !important;
-      }
-      /* Hover/active states - orange accent */
-      .notes-editor-wrapper .ql-snow.ql-toolbar button:hover .ql-stroke,
-      .notes-editor-wrapper .ql-snow .ql-toolbar button:hover .ql-stroke,
-      .notes-editor-wrapper .ql-snow.ql-toolbar button.ql-active .ql-stroke,
-      .notes-editor-wrapper .ql-snow .ql-toolbar button.ql-active .ql-stroke {
-        stroke: #f97316 !important;
-      }
-      .notes-editor-wrapper .ql-snow.ql-toolbar button:hover .ql-fill,
-      .notes-editor-wrapper .ql-snow .ql-toolbar button:hover .ql-fill,
-      .notes-editor-wrapper .ql-snow.ql-toolbar button.ql-active .ql-fill,
-      .notes-editor-wrapper .ql-snow .ql-toolbar button.ql-active .ql-fill {
-        fill: #f97316 !important;
-      }
-      .notes-editor-wrapper .ql-snow.ql-toolbar .ql-picker-label:hover,
-      .notes-editor-wrapper .ql-snow .ql-toolbar .ql-picker-label:hover,
-      .notes-editor-wrapper .ql-snow.ql-toolbar .ql-picker-label.ql-active,
-      .notes-editor-wrapper .ql-snow .ql-toolbar .ql-picker-label.ql-active {
-        color: #f97316 !important;
-      }
-      .notes-editor-wrapper .ql-snow.ql-toolbar .ql-picker-label:hover .ql-stroke,
-      .notes-editor-wrapper .ql-snow .ql-toolbar .ql-picker-label:hover .ql-stroke {
-        stroke: #f97316 !important;
-      }
-      /* Color picker popup fix */
-      .notes-editor-wrapper .ql-snow .ql-color-picker .ql-picker-options,
-      .notes-editor-wrapper .ql-snow .ql-background .ql-picker-options {
-        padding: 3px 5px !important;
-        width: 152px !important;
-      }
-      @media (max-width: 767px) {
-        .mobile-note-scroll {
-          scroll-behavior: auto;
-        }
-        .mobile-editor-container {
-          position: relative;
-          z-index: 9999;
-        }
-        .mobile-editor-container .notes-editor-wrapper {
-          border: none !important;
-          border-radius: 0 !important;
-        }
-        .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow {
-          display: flex;
-          flex-wrap: wrap !important;
-          padding: 8px 12px !important;
-          gap: 4px;
-          background-color: #161616 !important;
-          border-bottom: 1px solid #404040 !important;
-          border-radius: 0 !important;
-          overflow: visible !important;
-          position: relative;
-          z-index: 99999;
-          align-items: center;
-        }
-        /* When picker is expanded, ensure it's visible */
-        .mobile-editor-container .notes-editor-wrapper .ql-snow .ql-picker.ql-expanded {
-          overflow: visible !important;
-          z-index: 999999 !important;
-        }
-        .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow::-webkit-scrollbar {
-          display: none;
-        }
-        .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow .ql-formats {
-          display: flex;
-          flex-wrap: wrap;
-          margin-right: 8px !important;
-          margin-bottom: 4px !important;
-          align-items: center;
-          gap: 2px;
-          overflow: visible !important;
-          position: relative;
-        }
-        /* Uniform button size */
-        .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow button {
-          width: 28px !important;
-          height: 28px !important;
-          padding: 4px !important;
-          flex-shrink: 0;
-          display: flex !important;
-          align-items: center !important;
-          justify-content: center !important;
-        }
-        .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow button svg {
-          width: 14px !important;
-          height: 14px !important;
-        }
-        /* Uniform picker size */
-        .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow .ql-picker {
-          height: 28px !important;
-          flex-shrink: 0;
-        }
-        .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow .ql-picker-label {
-          padding: 4px 6px !important;
-          height: 28px !important;
-          display: flex !important;
-          align-items: center !important;
-        }
-        .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow .ql-picker-label svg {
-          width: 14px !important;
-          height: 14px !important;
-        }
-        /* Color picker buttons uniform */
-        .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow .ql-color-picker .ql-picker-label,
-        .mobile-editor-container .notes-editor-wrapper .ql-toolbar.ql-snow .ql-background .ql-picker-label {
-          width: 28px !important;
-          padding: 4px !important;
-          justify-content: center !important;
-        }
-        .mobile-editor-container .notes-editor-wrapper .ql-container.ql-snow {
-          border: none !important;
-          border-radius: 0 !important;
-        }
-        .mobile-editor-container .notes-editor-wrapper .ql-editor {
-          padding: 16px !important;
-          min-height: 200px !important;
-        }
-        /* Dropdown styling - ABSOLUTE position relative to picker */
-        .mobile-editor-container .notes-editor-wrapper .ql-snow .ql-picker-options {
-          position: absolute !important;
-          background-color: #1f1f1f !important;
-          border: 1px solid #404040 !important;
-          border-radius: 8px !important;
-          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6) !important;
-          z-index: 9999999 !important;
-          max-height: 200px !important;
-          overflow-y: auto !important;
-          min-width: 120px !important;
-          left: 0 !important;
-          right: auto !important;
-          top: 100% !important;
-          margin-top: 4px !important;
-          width: auto !important;
-        }
-        /* Ensure expanded picker is visible on iOS */
-        .mobile-editor-container .notes-editor-wrapper .ql-snow .ql-picker.ql-expanded .ql-picker-options {
-          display: block !important;
-          visibility: visible !important;
-          opacity: 1 !important;
-        }
-        /* Color picker specific */
-        .mobile-editor-container .notes-editor-wrapper .ql-snow .ql-color-picker .ql-picker-options,
-        .mobile-editor-container .notes-editor-wrapper .ql-snow .ql-background .ql-picker-options {
-          min-width: 152px !important;
-          width: 152px !important;
-          padding: 5px !important;
-          left: auto !important;
-          right: 0 !important;
-          top: 100% !important;
-          margin-top: 4px !important;
-        }
-        /* Ensure picker parent has relative positioning */
-        .mobile-editor-container .notes-editor-wrapper .ql-snow .ql-picker {
-          position: relative !important;
-          overflow: visible !important;
-        }
-        /* Link tooltip styling */
-        .mobile-editor-container .notes-editor-wrapper .ql-snow .ql-tooltip {
-          background-color: #1f1f1f !important;
-          border: 1px solid #404040 !important;
-          z-index: 9999999 !important;
-          position: fixed !important;
-          left: 16px !important;
-          right: 16px !important;
-          top: 50% !important;
-          margin-top: -50px !important;
-          width: auto !important;
-          padding: 12px !important;
-          border-radius: 8px !important;
-        }
-        .mobile-editor-container .notes-editor-wrapper .ql-snow .ql-tooltip input[type="text"] {
-          width: 100% !important;
-          background-color: #161616 !important;
-          border: 1px solid #404040 !important;
-          border-radius: 6px !important;
-          padding: 8px !important;
-          color: white !important;
-        }
-        .mobile-editor-container .notes-editor-wrapper .ql-snow .ql-tooltip a {
-          color: #f97316 !important;
-        }
-      }
-    `
-    document.head.appendChild(style)
-    return () => document.head.removeChild(style)
-  }, [])
-
-  return (
-    <div className={`notes-editor-wrapper ${className}`}>
-      <ReactQuill
-        ref={quillRef}
-        value={internalValue}
-        onChange={handleChange}
-        modules={QUILL_MODULES}
-        formats={QUILL_FORMATS}
-        placeholder={placeholder}
-        theme="snow"
-      />
-    </div>
-  )
-}
-
-// Sortable Note Item in Sidebar
 const SortableNoteItem = ({ note, isSelected, onClick, availableTags, onPin }) => {
   const {
     attributes,
@@ -457,11 +95,11 @@ const SortableNoteItem = ({ note, isSelected, onClick, availableTags, onPin }) =
     <div
       ref={setNodeRef}
       style={style}
-      className={`group relative cursor-pointer select-none border-b border-gray-800 ${
+      className={`group relative cursor-pointer select-none border-b border-border ${
         isSelected 
-          ? 'bg-gray-800/80' 
-          : 'hover:bg-gray-800/50 active:bg-gray-800/70'
-      } ${isDragging ? 'rounded-xl border border-orange-500/50 bg-gray-800/90' : ''}`}
+          ? 'bg-surface-hover/80' 
+          : 'hover:bg-surface-hover/50 active:bg-surface-hover/70'
+      } ${isDragging ? 'rounded-xl border border-orange-500/50 bg-surface-hover/90' : ''}`}
       onClick={onClick}
     >
       <div className="flex items-start gap-2 p-3 overflow-hidden">
@@ -469,7 +107,7 @@ const SortableNoteItem = ({ note, isSelected, onClick, availableTags, onPin }) =
         <div
           {...attributes}
           {...listeners}
-          className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-white active:text-orange-400 mt-0.5 flex-shrink-0 touch-none p-2 -m-2 md:p-1 md:-m-1 rounded-lg active:bg-orange-500/30"
+          className="cursor-grab active:cursor-grabbing text-content-muted hover:text-content-primary active:text-orange-400 mt-0.5 flex-shrink-0 touch-none p-2 -m-2 md:p-1 md:-m-1 rounded-lg active:bg-orange-500/30"
           style={{ WebkitTapHighlightColor: 'transparent' }}
         >
           <GripVertical className="w-5 h-5 md:w-3.5 md:h-3.5" />
@@ -478,7 +116,7 @@ const SortableNoteItem = ({ note, isSelected, onClick, availableTags, onPin }) =
         {/* Note Content - constrained width */}
         <div className="flex-1 min-w-0 overflow-hidden">
           <div className="flex items-start justify-between gap-2 mb-1">
-            <h4 className={`text-sm font-medium truncate ${note.title ? 'text-white' : 'text-gray-500 italic'}`}>
+            <h4 className={`text-sm font-medium truncate ${note.title ? 'text-content-primary' : 'text-content-faint italic'}`}>
               {note.title || 'Untitled'}
             </h4>
             {note.isPinned && (
@@ -487,7 +125,7 @@ const SortableNoteItem = ({ note, isSelected, onClick, availableTags, onPin }) =
           </div>
           
           <p 
-            className="text-xs text-gray-400 mb-2"
+            className="text-xs text-content-muted mb-2"
             style={{
               display: '-webkit-box',
               WebkitLineClamp: 2,
@@ -515,7 +153,7 @@ const SortableNoteItem = ({ note, isSelected, onClick, availableTags, onPin }) =
                 ) : null
               })}
               {note.tags.length > 4 && (
-                <span className="text-[10px] text-gray-500">+{note.tags.length - 4}</span>
+                <span className="text-[10px] text-content-faint">+{note.tags.length - 4}</span>
               )}
             </div>
           )}
@@ -660,7 +298,7 @@ export default function NotesApp() {
         target.closest?.('[contenteditable="true"]') ||
         target.closest?.('.ql-editor') ||
         target.closest?.('.ql-container') ||
-        target.closest?.('.notes-editor-wrapper')
+        target.closest?.('[class*="wysiwyg-editor"]')
       
       const isActiveElementEditable =
         activeEl?.tagName === 'INPUT' ||
@@ -669,7 +307,7 @@ export default function NotesApp() {
         activeEl?.closest?.('[contenteditable="true"]') ||
         activeEl?.closest?.('.ql-editor') ||
         activeEl?.closest?.('.ql-container') ||
-        activeEl?.closest?.('.notes-editor-wrapper')
+        activeEl?.closest?.('[class*="wysiwyg-editor"]')
       
       const isInEditableArea = isTargetEditable || isActiveElementEditable
       
@@ -770,11 +408,11 @@ export default function NotesApp() {
   // Get sort icon based on current state
   const getSortIcon = () => {
     if (sortBy === 'custom') {
-      return <ArrowUpDown size={14} className="text-gray-400" />
+      return <ArrowUpDown size={14} className="text-content-muted" />
     }
     return sortDirection === 'asc' 
-      ? <ArrowUp size={14} className="text-white" />
-      : <ArrowDown size={14} className="text-white" />
+      ? <ArrowUp size={14} className="text-content-primary" />
+      : <ArrowDown size={14} className="text-content-primary" />
   }
 
   // Handle sort option click (dropdown stays open for direction toggle)
@@ -831,6 +469,13 @@ export default function NotesApp() {
       [activeTab]: [note, ...prev[activeTab]],
     }))
     
+    // Reset editing state BEFORE selecting note so editor mounts with empty content
+    setEditedContent('')
+    setEditedTitle('')
+    setEditedTags([])
+    setEditedAttachments([])
+    setHasUnsavedChanges(false)
+    loadedNoteIdRef.current = note.id
     setSelectedNote(note)
     
     // Focus title input after render - iOS needs longer delay and special handling
@@ -1045,11 +690,11 @@ export default function NotesApp() {
 
   return (
     <>
-      <div className="min-h-screen rounded-3xl bg-[#1C1C1C] text-white p-3 md:p-6 flex flex-col transition-all duration-500 ease-in-out flex-1">
+      <div className="min-h-screen rounded-3xl bg-surface-base text-content-primary p-3 md:p-6 flex flex-col transition-all duration-500 ease-in-out flex-1">
         {/* Header */}
         <div className="flex items-center justify-between mb-4 md:mb-6">
           <div className="flex items-center gap-2">
-            <h1 className="text-xl md:text-2xl font-bold text-white">Notes</h1>
+            <h1 className="text-xl md:text-2xl font-bold text-content-primary">Notes</h1>
             {/* Combined Info Tooltip */}
             <div className="relative" ref={studioTooltipRef}>
               <button
@@ -1059,29 +704,29 @@ export default function NotesApp() {
                 }}
                 onMouseEnter={() => setShowStudioTooltip(true)}
                 onMouseLeave={() => setShowStudioTooltip(false)}
-                className="text-gray-400 hover:text-gray-300 transition-colors p-1"
+                className="text-content-muted hover:text-content-secondary transition-colors p-1"
                 aria-label="Notes Information"
               >
                 <Info size={16} />
               </button>
               
               {showStudioTooltip && (
-                <div className="absolute left-0 top-full mt-2 w-64 bg-[#2a2a2a] border border-gray-700 rounded-lg shadow-xl p-4 z-50">
+                <div className="absolute left-0 top-full mt-2 w-64 bg-surface-button border border-border rounded-lg shadow-xl p-4 z-50">
                   <div className="text-sm space-y-3">
                     <div>
                       <p className="text-orange-400 font-medium mb-1">Studio Notes</p>
-                      <p className="text-gray-300 text-xs leading-relaxed">
+                      <p className="text-content-secondary text-xs leading-relaxed">
                         Shared with everyone. All team members can see and edit these notes.
                       </p>
                     </div>
-                    <div className="border-t border-gray-700 pt-3">
+                    <div className="border-t border-border pt-3">
                       <p className="text-blue-400 font-medium mb-1">Personal Notes</p>
-                      <p className="text-gray-300 text-xs leading-relaxed">
+                      <p className="text-content-secondary text-xs leading-relaxed">
                         Private to you. Only you can see and edit these notes.
                       </p>
                     </div>
                   </div>
-                  <div className="absolute -top-1 left-3 w-2 h-2 bg-[#2a2a2a] border-l border-t border-gray-700 transform rotate-45"></div>
+                  <div className="absolute -top-1 left-3 w-2 h-2 bg-surface-button border-l border-t border-border transform rotate-45"></div>
                 </div>
               )}
             </div>
@@ -1091,7 +736,7 @@ export default function NotesApp() {
         {/* Main Content Area: Sidebar + Content */}
         <div className="flex-1 flex flex-col md:flex-row gap-4 md:gap-6 min-h-0 overflow-hidden">
           {/* Left Sidebar - Notes List */}
-          <div className="w-full md:w-[22rem] flex flex-col bg-[#161616] rounded-xl border border-gray-800 h-[calc(100vh-140px)] md:max-h-[calc(100vh-200px)]">
+          <div className="w-full md:w-[22rem] flex flex-col bg-surface-card rounded-xl border border-border overflow-hidden h-[calc(100vh-140px)] md:max-h-[calc(100vh-200px)]">
             {/* Desktop: Buttons Row + Search Row */}
             {/* Mobile: Single Row with Search + Icon Buttons */}
             
@@ -1123,7 +768,7 @@ export default function NotesApp() {
                     e.stopPropagation()
                     setShowSortDropdown(!showSortDropdown)
                   }}
-                  className="w-full px-3 py-2.5 bg-[#2F2F2F] text-gray-300 rounded-xl text-sm hover:bg-[#3F3F3F] transition-colors flex items-center justify-between gap-2"
+                  className="w-full px-3 py-2.5 bg-surface-button text-content-secondary rounded-xl text-sm hover:bg-surface-button-hover transition-colors flex items-center justify-between gap-2"
                 >
                   <div className="flex items-center gap-2 flex-1 min-w-0">
                     {getSortIcon()}
@@ -1132,9 +777,9 @@ export default function NotesApp() {
                 </button>
 
                 {showSortDropdown && (
-                  <div className="absolute left-0 top-full mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-full w-max">
+                  <div className="absolute left-0 top-full mt-1 bg-surface-hover border border-border rounded-lg shadow-lg z-50 min-w-full w-max">
                     <div className="py-1">
-                      <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">Sort by</div>
+                      <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border">Sort by</div>
                       {sortOptions.map((option) => (
                         <button
                           key={option.value}
@@ -1142,13 +787,13 @@ export default function NotesApp() {
                             e.stopPropagation()
                             handleSortOptionClick(option.value)
                           }}
-                          className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${
-                            sortBy === option.value ? 'text-white bg-gray-800/50' : 'text-gray-300'
+                          className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover transition-colors flex items-center justify-between ${
+                            sortBy === option.value ? 'text-content-primary bg-surface-hover/50' : 'text-content-secondary'
                           }`}
                         >
                           <span>{option.label}</span>
                           {sortBy === option.value && option.value !== 'custom' && (
-                            <span className="text-gray-400 ml-3">
+                            <span className="text-content-muted ml-3">
                               {sortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
                             </span>
                           )}
@@ -1163,7 +808,7 @@ export default function NotesApp() {
               <div className="relative group">
                 <button
                   onClick={() => setShowTagsModal(true)}
-                  className="bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300 text-sm px-3 py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-colors font-medium flex-shrink-0"
+                  className="bg-surface-button hover:bg-surface-button-hover text-content-secondary text-sm px-3 py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-colors font-medium flex-shrink-0"
                 >
                   <Tag size={16} />
                   <span className="hidden sm:inline">Tags</span>
@@ -1181,16 +826,16 @@ export default function NotesApp() {
             </div>
 
             {/* Search Bar + Icon Buttons */}
-            <div className="p-2 md:px-3 md:py-3 border-b md:border-b-0 border-gray-800 flex gap-2">
+            <div className="p-2 md:px-3 md:py-3 border-b md:border-b-0 border-border flex gap-2">
               {/* Search Bar */}
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={14} />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-content-muted" size={14} />
                 <input
                   type="text"
                   placeholder="Search..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-[#0a0a0a] outline-none text-sm text-white rounded-lg px-3 py-2 pl-8 border border-[#333333] focus:border-blue-500 transition-colors selection:bg-blue-500 selection:text-white"
+                  className="w-full bg-surface-dark outline-none text-sm text-content-primary rounded-lg px-3 py-2 pl-8 border border-border focus:border-primary transition-colors selection:bg-primary selection:text-white"
                 />
               </div>
               
@@ -1201,16 +846,16 @@ export default function NotesApp() {
                     e.stopPropagation()
                     setShowSortDropdown(!showSortDropdown)
                   }}
-                  className="w-10 h-10 flex items-center justify-center bg-[#2F2F2F] text-gray-300 rounded-lg hover:bg-[#3F3F3F] transition-colors"
+                  className="w-10 h-10 flex items-center justify-center bg-surface-button text-content-secondary rounded-lg hover:bg-surface-button-hover transition-colors"
                   title="Sort"
                 >
                   <ArrowUpDown size={14} />
                 </button>
 
                 {showSortDropdown && (
-                  <div className="absolute right-0 top-full mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[180px]">
+                  <div className="absolute right-0 top-full mt-1 bg-surface-hover border border-border rounded-lg shadow-lg z-50 min-w-[180px]">
                     <div className="py-1">
-                      <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700">Sort by</div>
+                      <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border">Sort by</div>
                       {sortOptions.map((option) => (
                         <button
                           key={option.value}
@@ -1218,13 +863,13 @@ export default function NotesApp() {
                             e.stopPropagation()
                             handleSortOptionClick(option.value)
                           }}
-                          className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-800 transition-colors flex items-center justify-between ${
-                            sortBy === option.value ? 'text-white bg-gray-800/50' : 'text-gray-300'
+                          className={`w-full text-left px-3 py-2 text-sm hover:bg-surface-hover transition-colors flex items-center justify-between ${
+                            sortBy === option.value ? 'text-content-primary bg-surface-hover/50' : 'text-content-secondary'
                           }`}
                         >
                           <span>{option.label}</span>
                           {sortBy === option.value && option.value !== 'custom' && (
-                            <span className="text-gray-400 ml-3">
+                            <span className="text-content-muted ml-3">
                               {sortDirection === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
                             </span>
                           )}
@@ -1238,7 +883,7 @@ export default function NotesApp() {
               {/* Mobile Only: Tags Icon Button */}
               <button
                 onClick={() => setShowTagsModal(true)}
-                className="md:hidden w-10 h-10 flex items-center justify-center bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300 rounded-lg transition-colors"
+                className="md:hidden w-10 h-10 flex items-center justify-center bg-surface-button hover:bg-surface-button-hover text-content-secondary rounded-lg transition-colors"
                 title="Manage Tags (T)"
               >
                 <Tag size={16} />
@@ -1246,7 +891,7 @@ export default function NotesApp() {
             </div>
             
             {/* Tabs */}
-            <div className="flex border-b border-gray-800 mt-1">
+            <div className="flex border-b border-border mt-1">
               {/* Studio Notes Tab */}
               <button
                 onClick={() => {
@@ -1255,8 +900,8 @@ export default function NotesApp() {
                 }}
                 className={`flex-1 px-4 py-4 text-base font-medium transition-colors ${
                   activeTab === "studio"
-                    ? "text-white border-b-2 border-orange-400"
-                    : "text-gray-400 hover:text-white"
+                    ? "text-content-primary border-b-2 border-orange-400"
+                    : "text-content-muted hover:text-content-primary"
                 }`}
               >
                 Studio Notes
@@ -1270,8 +915,8 @@ export default function NotesApp() {
                 }}
                 className={`flex-1 px-4 py-4 text-base font-medium transition-colors ${
                   activeTab === "personal"
-                    ? "text-white border-b-2 border-orange-400"
-                    : "text-gray-400 hover:text-white"
+                    ? "text-content-primary border-b-2 border-orange-400"
+                    : "text-content-muted hover:text-content-primary"
                 }`}
               >
                 Personal Notes
@@ -1281,7 +926,7 @@ export default function NotesApp() {
             {/* Notes List with DnD */}
             <div className="flex-1 overflow-y-auto">
               {currentNotes.length === 0 ? (
-                <div className="p-6 md:p-8 text-center text-gray-500">
+                <div className="p-6 md:p-8 text-center text-content-faint">
                   <p className="text-sm">No notes yet</p>
                   <p className="text-xs mt-2">Create your first note to get started</p>
                 </div>
@@ -1309,11 +954,11 @@ export default function NotesApp() {
           </div>
 
           {/* Right Content Area - Note Editor (Desktop only) */}
-          <div className="hidden md:flex flex-1 flex-col bg-[#161616] rounded-xl border border-gray-800 min-w-0 max-h-[calc(100vh-200px)]">
+          <div className="hidden md:flex flex-1 flex-col bg-surface-card rounded-xl border border-border overflow-hidden min-w-0 max-h-[calc(100vh-200px)]">
             {selectedNote ? (
               <>
                 {/* Note Header */}
-                <div className="p-4 md:p-6 border-b border-gray-800 flex-shrink-0">
+                <div className="p-4 md:p-6 border-b border-border flex-shrink-0">
                   <div className="flex items-start justify-between gap-4 mb-4">
                     <div className="flex-1 min-w-0">
                       <input
@@ -1325,9 +970,9 @@ export default function NotesApp() {
                           setHasUnsavedChanges(true)
                         }}
                         placeholder="Untitled"
-                        className="w-full bg-transparent text-xl md:text-2xl font-bold text-white outline-none border-b-2 border-transparent hover:border-gray-600 focus:border-blue-500 transition-all pb-1 truncate"
+                        className="w-full bg-transparent text-xl md:text-2xl font-bold text-content-primary outline-none border-b-2 border-transparent hover:border-border-subtle focus:border-primary transition-all pb-1 truncate"
                       />
-                      <div className="flex flex-wrap gap-3 mt-2 text-[10px] md:text-xs text-gray-500">
+                      <div className="flex flex-wrap gap-3 mt-2 text-[10px] md:text-xs text-content-faint">
                         <span>Created: {formatDateTime(selectedNote.createdAt)}</span>
                         {selectedNote.updatedAt !== selectedNote.createdAt && (
                           <span>Updated: {formatDateTime(selectedNote.updatedAt)}</span>
@@ -1338,8 +983,8 @@ export default function NotesApp() {
                     <div className="flex gap-2 flex-shrink-0">
                       <button
                         onClick={() => togglePin(selectedNote.id)}
-                        className={`p-2 rounded-lg hover:bg-gray-800 transition-colors ${
-                          selectedNote.isPinned ? 'text-orange-400' : 'text-gray-400 hover:text-white'
+                        className={`p-2 rounded-lg hover:bg-surface-hover transition-colors ${
+                          selectedNote.isPinned ? 'text-orange-400' : 'text-content-muted hover:text-content-primary'
                         }`}
                         title={selectedNote.isPinned ? 'Unpin' : 'Pin'}
                       >
@@ -1347,21 +992,21 @@ export default function NotesApp() {
                       </button>
                       <button
                         onClick={duplicateNote}
-                        className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-800 transition-colors hidden md:block"
+                        className="text-content-muted hover:text-content-primary p-2 rounded-lg hover:bg-surface-hover transition-colors hidden md:block"
                         title="Duplicate"
                       >
                         <Copy size={18} />
                       </button>
                       <button
                         onClick={moveNoteToOtherTab}
-                        className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-800 transition-colors hidden md:block"
+                        className="text-content-muted hover:text-content-primary p-2 rounded-lg hover:bg-surface-hover transition-colors hidden md:block"
                         title={`Move to ${activeTab === 'personal' ? 'Studio' : 'Personal'} Notes`}
                       >
                         <ArrowRightLeft size={18} />
                       </button>
                       <button
                         onClick={() => setDeleteConfirm(selectedNote)}
-                        className="text-gray-400 hover:text-red-500 p-2 rounded-lg hover:bg-gray-800 transition-colors"
+                        className="text-content-muted hover:text-red-500 p-2 rounded-lg hover:bg-surface-hover transition-colors"
                         title="Delete"
                       >
                         <Trash2 size={18} />
@@ -1377,7 +1022,7 @@ export default function NotesApp() {
                           key={tag.id}
                           onClick={() => toggleTag(tag.id)}
                           className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
-                            editedTags.includes(tag.id) ? "text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                            editedTags.includes(tag.id) ? "text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
                           }`}
                           style={{ backgroundColor: editedTags.includes(tag.id) ? tag.color : undefined }}
                         >
@@ -1400,25 +1045,25 @@ export default function NotesApp() {
                 </div>
 
                 {/* Note Content - Fills available space */}
-                <div className="flex-1 overflow-hidden p-6 flex flex-col">
+                <div className="flex-1 min-h-0 overflow-hidden p-6 flex flex-col">
                   <WysiwygEditor
                     key={`editor-${selectedNote.id}`}
-                    noteId={selectedNote.id}
-                    initialValue={selectedNote.content}
                     value={editedContent}
                     onChange={(value) => {
                       setEditedContent(value)
                       setHasUnsavedChanges(true)
                     }}
                     placeholder="Start writing..."
-                    className="full-height"
+                    minHeight={350}
+                    maxHeight={9999}
+                    className="flex-1"
                   />
                 </div>
 
                 {/* Attachments Section - Fixed at bottom */}
-                <div className="flex-shrink-0 border-t border-gray-800 p-4 md:p-6 bg-[#161616]">
+                <div className="flex-shrink-0 border-t border-border p-4 md:p-6 bg-surface-card">
                   <div className="flex items-center justify-between mb-3">
-                    <label className="text-sm font-medium text-gray-300 flex items-center gap-2">
+                    <label className="text-sm font-medium text-content-secondary flex items-center gap-2">
                       <Paperclip size={14} />
                       Attachments
                     </label>
@@ -1433,7 +1078,7 @@ export default function NotesApp() {
                       />
                       <button
                         onClick={() => setShowImageSourceModal(true)}
-                        className="text-sm bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300 px-4 py-2.5 rounded-xl transition-colors flex items-center gap-2"
+                        className="text-sm bg-surface-button hover:bg-surface-button-hover text-content-secondary px-4 py-2.5 rounded-xl transition-colors flex items-center gap-2"
                       >
                         <Plus size={16} />
                         Add Images
@@ -1453,10 +1098,10 @@ export default function NotesApp() {
                               <img
                                 src={attachment.url}
                                 alt={attachment.name}
-                                className="w-full h-14 md:h-16 object-cover rounded-lg border border-gray-700"
+                                className="w-full h-14 md:h-16 object-cover rounded-lg border border-border"
                               />
                               <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                                <span className="text-white text-xs font-medium bg-gray-800 px-3 py-1 rounded">View</span>
+                                <span className="text-content-primary text-xs font-medium bg-surface-hover px-3 py-1 rounded">View</span>
                               </div>
                             </div>
                             <button
@@ -1486,11 +1131,11 @@ export default function NotesApp() {
               /* Empty State */
               <div className="flex-1 flex items-center justify-center p-4 md:p-8 text-center">
                 <div>
-                  <div className="text-gray-600 mb-4">
+                  <div className="text-content-faint mb-4">
                     <Edit size={40} className="mx-auto md:w-12 md:h-12" />
                   </div>
-                  <h3 className="text-lg md:text-xl font-semibold text-gray-400 mb-2">No note selected</h3>
-                  <p className="text-xs md:text-sm text-gray-500 mb-6">
+                  <h3 className="text-lg md:text-xl font-semibold text-content-muted mb-2">No note selected</h3>
+                  <p className="text-xs md:text-sm text-content-faint mb-6">
                     Select a note from the list or create a new one
                   </p>
                   <button
@@ -1526,7 +1171,7 @@ export default function NotesApp() {
         >
           <button
             onClick={() => setViewingImage(null)}
-            className="absolute top-4 right-4 text-white hover:text-gray-300 p-2 rounded-lg hover:bg-white/10 transition-colors"
+            className="absolute top-4 right-4 text-white hover:text-content-secondary p-2 rounded-lg hover:bg-white/10 transition-colors"
           >
             <X size={32} />
           </button>
@@ -1562,10 +1207,10 @@ export default function NotesApp() {
 
           <div className="max-w-[90vw] max-h-[90vh] flex flex-col gap-3" onClick={(e) => e.stopPropagation()}>
             <div className="bg-black/60 rounded-lg px-4 py-3 backdrop-blur-sm">
-              <p className="text-white text-sm font-medium text-center">
+              <p className="text-content-primary text-sm font-medium text-center">
                 {viewingImage.image.name}
                 {viewingImage.images.length > 1 && (
-                  <span className="text-gray-400 ml-2">
+                  <span className="text-content-muted ml-2">
                     ({viewingImage.index + 1}/{viewingImage.images.length})
                   </span>
                 )}
@@ -1582,12 +1227,12 @@ export default function NotesApp() {
 
       {/* Mobile Fullscreen Note Editor Overlay */}
       {selectedNote && (
-        <div className="md:hidden fixed inset-0 bg-[#1C1C1C] z-[60] flex flex-col">
+        <div className="md:hidden fixed inset-0 bg-surface-base z-[60] flex flex-col">
           {/* Mobile Header with Back Button */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-800 flex-shrink-0">
+          <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
             <button
               onClick={() => setSelectedNote(null)}
-              className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg transition-colors"
+              className="text-content-muted hover:text-content-primary p-2 hover:bg-surface-hover rounded-lg transition-colors"
               aria-label="Back to notes list"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1600,7 +1245,7 @@ export default function NotesApp() {
               {selectedNote.isPinned && (
                 <button
                   onClick={() => togglePin(selectedNote.id)}
-                  className="text-orange-400 p-1 hover:bg-gray-800 rounded-lg transition-colors"
+                  className="text-orange-400 p-1 hover:bg-surface-hover rounded-lg transition-colors"
                   aria-label="Unpin note"
                 >
                   <Pin size={20} className="fill-orange-400" />
@@ -1611,7 +1256,7 @@ export default function NotesApp() {
               <div className="relative" ref={mobileActionsMenuRef}>
                 <button
                   onClick={() => setShowMobileActionsMenu(!showMobileActionsMenu)}
-                  className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg transition-colors"
+                  className="text-content-muted hover:text-content-primary p-2 hover:bg-surface-hover rounded-lg transition-colors"
                   aria-label="More actions"
                 >
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -1621,14 +1266,14 @@ export default function NotesApp() {
 
                 {/* Dropdown Menu */}
                 {showMobileActionsMenu && (
-                  <div className="absolute top-full right-0 mt-2 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg min-w-[180px] z-50">
+                  <div className="absolute top-full right-0 mt-2 bg-surface-hover border border-border rounded-lg shadow-lg min-w-[180px] z-50">
                     <div className="py-1">
                       <button
                         onClick={() => {
                           togglePin(selectedNote.id)
                           setShowMobileActionsMenu(false)
                         }}
-                        className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-gray-300"
+                        className="w-full text-left px-4 py-3 text-sm hover:bg-surface-hover transition-colors flex items-center gap-3 text-content-secondary"
                       >
                         {selectedNote.isPinned ? (
                           <>
@@ -1648,7 +1293,7 @@ export default function NotesApp() {
                           duplicateNote()
                           setShowMobileActionsMenu(false)
                         }}
-                        className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-gray-300"
+                        className="w-full text-left px-4 py-3 text-sm hover:bg-surface-hover transition-colors flex items-center gap-3 text-content-secondary"
                       >
                         <Copy size={16} />
                         <span>Duplicate</span>
@@ -1659,20 +1304,20 @@ export default function NotesApp() {
                           moveNoteToOtherTab()
                           setShowMobileActionsMenu(false)
                         }}
-                        className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-gray-300"
+                        className="w-full text-left px-4 py-3 text-sm hover:bg-surface-hover transition-colors flex items-center gap-3 text-content-secondary"
                       >
                         <ArrowRightLeft size={16} />
                         <span>Move to {activeTab === 'personal' ? 'Studio' : 'Personal'}</span>
                       </button>
                       
-                      <div className="border-t border-gray-700 my-1"></div>
+                      <div className="border-t border-border my-1"></div>
                       
                       <button
                         onClick={() => {
                           setDeleteConfirm(selectedNote)
                           setShowMobileActionsMenu(false)
                         }}
-                        className="w-full text-left px-4 py-3 text-sm hover:bg-gray-800 transition-colors flex items-center gap-3 text-red-500"
+                        className="w-full text-left px-4 py-3 text-sm hover:bg-surface-hover transition-colors flex items-center gap-3 text-red-500"
                       >
                         <Trash2 size={16} />
                         <span>Delete</span>
@@ -1687,7 +1332,7 @@ export default function NotesApp() {
           {/* Note Content - Scrollable */}
           <div className="flex-1 overflow-y-auto mobile-note-scroll">
             {/* Title Input */}
-            <div className="p-4 border-b border-gray-800">
+            <div className="p-4 border-b border-border">
               <input
                 type="text"
                 data-title-input
@@ -1697,9 +1342,9 @@ export default function NotesApp() {
                   setHasUnsavedChanges(true)
                 }}
                 placeholder="Untitled"
-                className="w-full bg-transparent text-xl font-bold text-white outline-none border-b-2 border-transparent hover:border-gray-600 focus:border-blue-500 transition-all pb-1"
+                className="w-full bg-transparent text-xl font-bold text-content-primary outline-none border-b-2 border-transparent hover:border-border-subtle focus:border-primary transition-all pb-1"
               />
-              <div className="flex flex-wrap gap-3 mt-2 text-xs text-gray-500">
+              <div className="flex flex-wrap gap-3 mt-2 text-xs text-content-faint">
                 <span>Created: {formatDateTime(selectedNote.createdAt)}</span>
                 {selectedNote.updatedAt !== selectedNote.createdAt && (
                   <span>Updated: {formatDateTime(selectedNote.updatedAt)}</span>
@@ -1708,12 +1353,12 @@ export default function NotesApp() {
             </div>
 
             {/* Tags */}
-            <div className="p-4 border-b border-gray-800">
+            <div className="p-4 border-b border-border">
               <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-medium text-gray-300">Tags</label>
+                <label className="text-sm font-medium text-content-secondary">Tags</label>
                 <button 
                   onClick={() => setShowTagsModal(true)} 
-                  className="text-xs text-blue-500 hover:text-blue-400 transition-colors"
+                  className="text-xs text-primary hover:text-primary-hover transition-colors"
                 >
                   Manage Tags
                 </button>
@@ -1724,7 +1369,7 @@ export default function NotesApp() {
                     key={tag.id}
                     onClick={() => toggleTag(tag.id)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
-                      editedTags.includes(tag.id) ? "text-white" : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                      editedTags.includes(tag.id) ? "text-white" : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
                     }`}
                     style={{ backgroundColor: editedTags.includes(tag.id) ? tag.color : undefined }}
                   >
@@ -1749,22 +1394,21 @@ export default function NotesApp() {
             <div className="mobile-editor-container">
               <WysiwygEditor
                 key={`editor-mobile-${selectedNote.id}`}
-                noteId={selectedNote.id}
-                initialValue={selectedNote.content}
                 value={editedContent}
                 onChange={(value) => {
                   setEditedContent(value)
                   setHasUnsavedChanges(true)
                 }}
                 placeholder="Start writing..."
-                isMobile={true}
+                minHeight={300}
+                maxHeight={9999}
               />
             </div>
 
             {/* Attachments */}
             {editedAttachments.length > 0 && (
-              <div className="p-4 border-t border-gray-800">
-                <h4 className="text-sm font-medium text-gray-300 mb-3 flex items-center gap-2">
+              <div className="p-4 border-t border-border">
+                <h4 className="text-sm font-medium text-content-secondary mb-3 flex items-center gap-2">
                   <Paperclip size={14} />
                   Attachments ({editedAttachments.length})
                 </h4>
@@ -1778,10 +1422,10 @@ export default function NotesApp() {
                         <img
                           src={attachment.url}
                           alt={attachment.name}
-                          className="w-full h-20 object-cover rounded-lg border border-gray-700"
+                          className="w-full h-20 object-cover rounded-lg border border-border"
                         />
                         <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                          <span className="text-white text-xs font-medium">View</span>
+                          <span className="text-content-primary text-xs font-medium">View</span>
                         </div>
                       </div>
                       <button
@@ -1811,7 +1455,7 @@ export default function NotesApp() {
           </div>
 
           {/* Mobile Action Bar */}
-          <div className="border-t border-gray-800 p-4 flex gap-2 flex-shrink-0">
+          <div className="border-t border-border p-4 flex gap-2 flex-shrink-0">
             <input
               ref={fileInputRef}
               type="file"
@@ -1822,7 +1466,7 @@ export default function NotesApp() {
             />
             <button
               onClick={() => setShowImageSourceModal(true)}
-              className="w-full bg-[#2F2F2F] hover:bg-[#3F3F3F] text-gray-300 px-4 py-3 rounded-xl text-sm transition-colors flex items-center justify-center gap-2"
+              className="w-full bg-surface-button hover:bg-surface-button-hover text-content-secondary px-4 py-3 rounded-xl text-sm transition-colors flex items-center justify-center gap-2"
             >
               <Paperclip size={16} />
               Add Images

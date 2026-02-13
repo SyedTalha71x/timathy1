@@ -159,8 +159,8 @@ export default function CheckIns() {
 
   const getSortIcon = () => {
     return sortDirection === 'asc' 
-      ? <ArrowUp size={14} className="text-white" />
-      : <ArrowDown size={14} className="text-white" />
+      ? <ArrowUp size={14} className="text-content-primary" />
+      : <ArrowDown size={14} className="text-content-primary" />
   }
 
   const isDateInRange = (dateStr) => {
@@ -244,14 +244,14 @@ export default function CheckIns() {
           },
         }}
       />
-      <div className="min-h-screen rounded-3xl bg-[#1C1C1C] text-white md:p-6 p-3 transition-all duration-500 ease-in-out flex-1">
+      <div className="min-h-screen rounded-3xl bg-surface-base text-content-primary md:p-6 p-3 transition-all duration-500 ease-in-out flex-1">
         
         {/* Header */}
         <div className="flex flex-col gap-3 mb-5">
           {/* Top Row: Title + Sidebar Toggle */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <h1 className="text-white oxanium_font text-xl md:text-2xl">Check-In</h1>
+              <h1 className="text-content-primary oxanium_font text-xl md:text-2xl">Check-In</h1>
               
               {/* Sort Button - Mobile */}
               <div className="md:hidden relative" ref={sortDropdownRef}>
@@ -260,16 +260,16 @@ export default function CheckIns() {
                     e.stopPropagation()
                     setShowSortDropdown(!showSortDropdown)
                   }}
-                  className="px-2.5 py-1.5 bg-[#2F2F2F] text-gray-300 rounded-lg text-xs hover:bg-[#3F3F3F] transition-colors flex items-center gap-1.5"
+                  className="px-2.5 py-1.5 bg-surface-button text-content-secondary rounded-lg text-xs hover:bg-surface-button-hover transition-colors flex items-center gap-1.5"
                 >
                   {getSortIcon()}
                   <span>{currentSortLabel}</span>
                 </button>
 
                 {showSortDropdown && (
-                  <div className="absolute left-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[120px]">
+                  <div className="absolute left-0 mt-1 bg-surface-hover border border-border rounded-lg shadow-lg z-50 min-w-[120px]">
                     <div className="py-1">
-                      <div className="px-3 py-1.5 text-[10px] text-gray-500 font-medium border-b border-gray-700">Sort by</div>
+                      <div className="px-3 py-1.5 text-[10px] text-content-faint font-medium border-b border-border">Sort by</div>
                       {sortOptions.map((option) => (
                         <button
                           key={option.value}
@@ -277,13 +277,13 @@ export default function CheckIns() {
                             e.stopPropagation()
                             handleSortOptionClick(option.value)
                           }}
-                          className={`w-full text-left px-3 py-2 text-xs hover:bg-gray-800 transition-colors flex items-center justify-between ${
-                            sortBy === option.value ? 'text-white bg-gray-800/50' : 'text-gray-300'
+                          className={`w-full text-left px-3 py-2 text-xs hover:bg-surface-hover transition-colors flex items-center justify-between ${
+                            sortBy === option.value ? 'text-content-primary bg-surface-hover/50' : 'text-content-secondary'
                           }`}
                         >
                           <span>{option.label}</span>
                           {sortBy === option.value && (
-                            <span className="text-gray-400">
+                            <span className="text-content-muted">
                               {sortDirection === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />}
                             </span>
                           )}
@@ -298,23 +298,23 @@ export default function CheckIns() {
 
           {/* Date Range Picker - Second Row on Mobile */}
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 px-2 py-1.5 bg-[#2F2F2F] rounded-lg border border-gray-700 flex-1 sm:flex-none">
-              <Calendar size={12} className="text-gray-400 flex-shrink-0" />
+            <div className="flex items-center gap-1.5 px-2 py-1.5 bg-surface-button rounded-lg border border-border flex-1 sm:flex-none">
+              <Calendar size={12} className="text-content-muted flex-shrink-0" />
               <input
                 type="date"
                 value={dateFrom}
                 onChange={(e) => setDateFrom(e.target.value)}
-                className="bg-transparent text-white outline-none text-[11px] sm:text-xs cursor-pointer w-full sm:w-[95px]"
+                className="bg-transparent text-content-primary outline-none text-[11px] sm:text-xs cursor-pointer w-full sm:w-[95px]"
               />
             </div>
-            <span className="text-gray-500 text-xs">to</span>
-            <div className="flex items-center gap-1.5 px-2 py-1.5 bg-[#2F2F2F] rounded-lg border border-gray-700 flex-1 sm:flex-none">
-              <Calendar size={12} className="text-gray-400 flex-shrink-0" />
+            <span className="text-content-faint text-xs">to</span>
+            <div className="flex items-center gap-1.5 px-2 py-1.5 bg-surface-button rounded-lg border border-border flex-1 sm:flex-none">
+              <Calendar size={12} className="text-content-muted flex-shrink-0" />
               <input
                 type="date"
                 value={dateTo}
                 onChange={(e) => setDateTo(e.target.value)}
-                className="bg-transparent text-white outline-none text-[11px] sm:text-xs cursor-pointer w-full sm:w-[95px]"
+                className="bg-transparent text-content-primary outline-none text-[11px] sm:text-xs cursor-pointer w-full sm:w-[95px]"
               />
             </div>
           </div>
@@ -322,34 +322,34 @@ export default function CheckIns() {
 
         {/* Stats Cards - 2x2 on mobile, 4 cols on larger */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
-          <div className="bg-[#1A1A1A] rounded-xl p-2.5 sm:p-3 border border-gray-800">
-            <p className="text-gray-400 text-[10px] sm:text-xs">Total</p>
-            <p className="text-base sm:text-xl font-bold text-white">{stats.total}</p>
+          <div className="bg-surface-hover rounded-xl p-2.5 sm:p-3 border border-border">
+            <p className="text-content-muted text-[10px] sm:text-xs">Total</p>
+            <p className="text-base sm:text-xl font-bold text-content-primary">{stats.total}</p>
           </div>
-          <div className="bg-[#1A1A1A] rounded-xl p-2.5 sm:p-3 border border-gray-800">
-            <p className="text-gray-400 text-[10px] sm:text-xs">Checked-In</p>
-            <p className="text-base sm:text-xl font-bold text-white">{stats.checkedIn}</p>
+          <div className="bg-surface-hover rounded-xl p-2.5 sm:p-3 border border-border">
+            <p className="text-content-muted text-[10px] sm:text-xs">Checked-In</p>
+            <p className="text-base sm:text-xl font-bold text-content-primary">{stats.checkedIn}</p>
           </div>
-          <div className="bg-[#1A1A1A] rounded-xl p-2.5 sm:p-3 border border-gray-800">
-            <p className="text-gray-400 text-[10px] sm:text-xs">Pending</p>
-            <p className="text-base sm:text-xl font-bold text-white">{stats.pending}</p>
+          <div className="bg-surface-hover rounded-xl p-2.5 sm:p-3 border border-border">
+            <p className="text-content-muted text-[10px] sm:text-xs">Pending</p>
+            <p className="text-base sm:text-xl font-bold text-content-primary">{stats.pending}</p>
           </div>
-          <div className="bg-[#1A1A1A] rounded-xl p-2.5 sm:p-3 border border-gray-800">
-            <p className="text-gray-400 text-[10px] sm:text-xs">No Shows</p>
-            <p className="text-base sm:text-xl font-bold text-white">{stats.noShowCount}</p>
+          <div className="bg-surface-hover rounded-xl p-2.5 sm:p-3 border border-border">
+            <p className="text-content-muted text-[10px] sm:text-xs">No Shows</p>
+            <p className="text-base sm:text-xl font-bold text-content-primary">{stats.noShowCount}</p>
           </div>
         </div>
 
         {/* Search Bar */}
         <div className="mb-3">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-content-muted" size={14} />
             <input
               type="text"
               placeholder="Search members..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-[#141414] outline-none text-xs sm:text-sm text-white rounded-xl px-3 py-2 pl-8 sm:pl-9 border border-[#333333] focus:border-[#3F74FF] transition-colors"
+              className="w-full bg-surface-card outline-none text-xs sm:text-sm text-content-primary rounded-xl px-3 py-2 pl-8 sm:pl-9 border border-border focus:border-accent-blue transition-colors"
             />
           </div>
         </div>
@@ -361,7 +361,7 @@ export default function CheckIns() {
             className={`px-3 py-1.5 rounded-lg cursor-pointer text-xs font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
               filterStatus === 'all'
                 ? "bg-blue-600 text-white"
-                : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
             }`}
           >
             All
@@ -371,7 +371,7 @@ export default function CheckIns() {
             className={`px-3 py-1.5 rounded-lg cursor-pointer text-xs font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
               filterStatus === 'checked'
                 ? "bg-blue-600 text-white"
-                : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
             }`}
           >
             Checked-In
@@ -381,7 +381,7 @@ export default function CheckIns() {
             className={`px-3 py-1.5 rounded-lg cursor-pointer text-xs font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
               filterStatus === 'pending'
                 ? "bg-blue-600 text-white"
-                : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
             }`}
           >
             Pending
@@ -391,7 +391,7 @@ export default function CheckIns() {
             className={`px-3 py-1.5 rounded-lg cursor-pointer text-xs font-medium transition-colors whitespace-nowrap flex-shrink-0 ${
               filterStatus === 'noshow'
                 ? "bg-blue-600 text-white"
-                : "bg-[#2F2F2F] text-gray-300 hover:bg-[#3F3F3F]"
+                : "bg-surface-button text-content-secondary hover:bg-surface-button-hover"
             }`}
           >
             No Shows
@@ -404,16 +404,16 @@ export default function CheckIns() {
                 e.stopPropagation()
                 setShowSortDropdown(!showSortDropdown)
               }}
-              className="px-3 py-1.5 bg-[#2F2F2F] text-gray-300 rounded-lg text-xs hover:bg-[#3F3F3F] transition-colors flex items-center gap-2"
+              className="px-3 py-1.5 bg-surface-button text-content-secondary rounded-lg text-xs hover:bg-surface-button-hover transition-colors flex items-center gap-2"
             >
               {getSortIcon()}
               <span>{currentSortLabel}</span>
             </button>
 
             {showSortDropdown && (
-              <div className="absolute top-full right-0 mt-1 bg-[#1F1F1F] border border-gray-700 rounded-lg shadow-lg z-50 min-w-[120px]">
+              <div className="absolute top-full right-0 mt-1 bg-surface-hover border border-border rounded-lg shadow-lg z-50 min-w-[120px]">
                 <div className="py-1">
-                  <div className="px-3 py-1.5 text-[10px] text-gray-500 font-medium border-b border-gray-700">Sort by</div>
+                  <div className="px-3 py-1.5 text-[10px] text-content-faint font-medium border-b border-border">Sort by</div>
                   {sortOptions.map((option) => (
                     <button
                       key={option.value}
@@ -421,13 +421,13 @@ export default function CheckIns() {
                         e.stopPropagation()
                         handleSortOptionClick(option.value)
                       }}
-                      className={`w-full text-left px-3 py-2 text-xs hover:bg-gray-800 transition-colors flex items-center justify-between ${
-                        sortBy === option.value ? 'text-white bg-gray-800/50' : 'text-gray-300'
+                      className={`w-full text-left px-3 py-2 text-xs hover:bg-surface-hover transition-colors flex items-center justify-between ${
+                        sortBy === option.value ? 'text-content-primary bg-surface-hover/50' : 'text-content-secondary'
                       }`}
                     >
                       <span>{option.label}</span>
                       {sortBy === option.value && (
-                        <span className="text-gray-400">
+                        <span className="text-content-muted">
                           {sortDirection === 'asc' ? <ArrowUp size={12} /> : <ArrowDown size={12} />}
                         </span>
                       )}
@@ -440,13 +440,13 @@ export default function CheckIns() {
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-gray-800 mb-4">
+        <div className="flex border-b border-border mb-4">
           <button
             onClick={() => setActiveTab("upcoming")}
             className={`flex-1 sm:flex-none px-4 py-2.5 text-xs sm:text-sm font-medium transition-colors ${
               activeTab === "upcoming"
-                ? "text-white border-b-2 border-orange-400"
-                : "text-gray-400 hover:text-white"
+                ? "text-content-primary border-b-2 border-orange-400"
+                : "text-content-muted hover:text-content-primary"
             }`}
           >
             Today ({filteredUpcomingAppointments.length})
@@ -455,8 +455,8 @@ export default function CheckIns() {
             onClick={() => setActiveTab("past")}
             className={`flex-1 sm:flex-none px-4 py-2.5 text-xs sm:text-sm font-medium transition-colors ${
               activeTab === "past"
-                ? "text-white border-b-2 border-orange-400"
-                : "text-gray-400 hover:text-white"
+                ? "text-content-primary border-b-2 border-orange-400"
+                : "text-content-muted hover:text-content-primary"
             }`}
           >
             History ({filteredPastCheckIns.length})
@@ -470,12 +470,12 @@ export default function CheckIns() {
               filteredUpcomingAppointments.map((appointment) => (
                 <div
                   key={appointment.id}
-                  className={`bg-[#1A1A1A] rounded-xl p-3 border transition-all ${
+                  className={`bg-surface-hover rounded-xl p-3 border transition-all ${
                     appointment.isNoShow 
                       ? 'border-blue-500/30 bg-blue-500/5' 
                       : appointment.isCheckedIn 
                         ? 'border-orange-500/30 bg-orange-500/5' 
-                        : 'border-gray-800 hover:border-gray-700'
+                        : 'border-border hover:border-border'
                   }`}
                 >
                   {/* Mobile: Vertical layout, Desktop: Horizontal */}
@@ -490,21 +490,21 @@ export default function CheckIns() {
                       
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5 sm:gap-2">
-                          <h3 className="text-white font-medium text-xs sm:text-sm truncate">{appointment.memberName}</h3>
-                          <span className="text-gray-500 text-[10px] hidden xs:inline">•</span>
-                          <span className="text-gray-400 text-[10px] sm:text-xs truncate hidden xs:inline">{appointment.appointmentType}</span>
+                          <h3 className="text-content-primary font-medium text-xs sm:text-sm truncate">{appointment.memberName}</h3>
+                          <span className="text-content-faint text-[10px] hidden xs:inline">•</span>
+                          <span className="text-content-muted text-[10px] sm:text-xs truncate hidden xs:inline">{appointment.appointmentType}</span>
                         </div>
                         <div className="flex items-center gap-1.5 mt-0.5">
-                          <span className="text-gray-400 text-[10px] sm:text-xs">{appointment.scheduledTime}</span>
+                          <span className="text-content-muted text-[10px] sm:text-xs">{appointment.scheduledTime}</span>
                           {appointment.isCheckedIn && appointment.checkInTime && (
                             <>
-                              <span className="text-gray-600 text-[10px]">•</span>
+                              <span className="text-content-faint text-[10px]">•</span>
                               <span className="text-orange-400 text-[10px] sm:text-xs">Checked-In {appointment.checkInTime}</span>
                             </>
                           )}
                         </div>
                         {/* Show type below on very small screens */}
-                        <span className="text-gray-400 text-[10px] xs:hidden">{appointment.appointmentType}</span>
+                        <span className="text-content-muted text-[10px] xs:hidden">{appointment.appointmentType}</span>
                       </div>
                     </div>
 
@@ -518,7 +518,7 @@ export default function CheckIns() {
                           </span>
                           <button
                             onClick={() => handleUndoNoShow(appointment.id)}
-                            className="p-1.5 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded-lg transition-colors"
+                            className="p-1.5 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors"
                             title="Undo"
                           >
                             <X size={12} className="sm:w-3.5 sm:h-3.5" />
@@ -532,7 +532,7 @@ export default function CheckIns() {
                           </span>
                           <button
                             onClick={() => handleUndoCheckIn(appointment.id)}
-                            className="p-1.5 text-gray-400 hover:text-white hover:bg-[#2F2F2F] rounded-lg transition-colors"
+                            className="p-1.5 text-content-muted hover:text-content-primary hover:bg-surface-button rounded-lg transition-colors"
                             title="Undo"
                           >
                             <X size={12} className="sm:w-3.5 sm:h-3.5" />
@@ -542,7 +542,7 @@ export default function CheckIns() {
                         <>
                           <button
                             onClick={() => handleNoShow(appointment.id)}
-                            className="p-1.5 sm:px-2.5 sm:py-1.5 bg-[#2F2F2F] hover:bg-blue-500/20 text-gray-300 hover:text-blue-400 rounded-lg text-[10px] sm:text-xs transition-colors flex items-center gap-1"
+                            className="p-1.5 sm:px-2.5 sm:py-1.5 bg-surface-button hover:bg-blue-500/20 text-content-secondary hover:text-blue-400 rounded-lg text-[10px] sm:text-xs transition-colors flex items-center gap-1"
                           >
                             <UserX size={12} className="sm:w-3 sm:h-3" />
                             <span className="hidden sm:inline">No Show</span>
@@ -562,9 +562,9 @@ export default function CheckIns() {
               ))
             ) : (
               <div className="text-center py-10">
-                <Calendar className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-gray-600 mb-3" strokeWidth={1} />
-                <h3 className="text-base sm:text-lg font-medium text-gray-300 mb-2">No appointments found</h3>
-                <p className="text-gray-500 text-xs sm:text-sm">
+                <Calendar className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-content-faint mb-3" strokeWidth={1} />
+                <h3 className="text-base sm:text-lg font-medium text-content-secondary mb-2">No appointments found</h3>
+                <p className="text-content-faint text-xs sm:text-sm">
                   {searchQuery || filterStatus !== 'all' 
                     ? "Try adjusting your search or filters" 
                     : "No appointments scheduled for this period"}
@@ -576,7 +576,7 @@ export default function CheckIns() {
               filteredPastCheckIns.map((checkin) => (
                 <div
                   key={checkin.id}
-                  className="bg-[#1A1A1A] rounded-xl p-3 border border-gray-800"
+                  className="bg-surface-hover rounded-xl p-3 border border-border"
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                     <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -588,18 +588,18 @@ export default function CheckIns() {
                       
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5 sm:gap-2">
-                          <h3 className="text-white font-medium text-xs sm:text-sm truncate">{checkin.memberName}</h3>
-                          <span className="text-gray-500 text-[10px] hidden xs:inline">•</span>
-                          <span className="text-gray-400 text-[10px] sm:text-xs truncate hidden xs:inline">{checkin.appointmentType}</span>
+                          <h3 className="text-content-primary font-medium text-xs sm:text-sm truncate">{checkin.memberName}</h3>
+                          <span className="text-content-faint text-[10px] hidden xs:inline">•</span>
+                          <span className="text-content-muted text-[10px] sm:text-xs truncate hidden xs:inline">{checkin.appointmentType}</span>
                         </div>
                         <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
-                          <span className="text-gray-400 text-[10px] sm:text-xs">{formatDate(checkin.checkInDate)}</span>
-                          <span className="text-gray-600 text-[10px]">•</span>
-                          <span className="text-gray-400 text-[10px] sm:text-xs">{checkin.scheduledTime}</span>
-                          <span className="text-gray-600 text-[10px]">•</span>
+                          <span className="text-content-muted text-[10px] sm:text-xs">{formatDate(checkin.checkInDate)}</span>
+                          <span className="text-content-faint text-[10px]">•</span>
+                          <span className="text-content-muted text-[10px] sm:text-xs">{checkin.scheduledTime}</span>
+                          <span className="text-content-faint text-[10px]">•</span>
                           <span className="text-orange-400 text-[10px] sm:text-xs">Checked-In {checkin.checkInTime}</span>
                         </div>
-                        <span className="text-gray-400 text-[10px] xs:hidden">{checkin.appointmentType}</span>
+                        <span className="text-content-muted text-[10px] xs:hidden">{checkin.appointmentType}</span>
                       </div>
                     </div>
 
@@ -612,9 +612,9 @@ export default function CheckIns() {
               ))
             ) : (
               <div className="text-center py-10">
-                <Clock className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-gray-600 mb-3" strokeWidth={1} />
-                <h3 className="text-base sm:text-lg font-medium text-gray-300 mb-2">No check-in history</h3>
-                <p className="text-gray-500 text-xs sm:text-sm">
+                <Clock className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-content-faint mb-3" strokeWidth={1} />
+                <h3 className="text-base sm:text-lg font-medium text-content-secondary mb-2">No check-in history</h3>
+                <p className="text-content-faint text-xs sm:text-sm">
                   {searchQuery 
                     ? "Try adjusting your search" 
                     : "Check-in history will appear here"}

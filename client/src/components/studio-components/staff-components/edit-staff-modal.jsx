@@ -418,11 +418,11 @@ function EditStaffModal({
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
-                      <DatePickerField
-                        label="Birthday"
-                        value={editedStaff.birthday || ""}
-                        onChange={(val) => setEditedStaff(prev => ({ ...prev, birthday: val }))}
-                      />
+                      <label className="text-sm text-gray-200 block mb-2">Birthday</label>
+                      <div className="w-full flex items-center justify-between bg-[#141414] rounded-xl px-4 py-2 text-sm">
+                        <span className={editedStaff.birthday ? "text-white" : "text-gray-500"}>{editedStaff.birthday ? (() => { const [y,m,d] = (editedStaff.birthday || "").split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+                        <DatePickerField value={editedStaff.birthday || ""} onChange={(val) => setEditedStaff(prev => ({ ...prev, birthday: val }))} />
+                      </div>
                     </div>
                     <div>
                       <label className="text-sm text-gray-200 block mb-2">Gender</label>

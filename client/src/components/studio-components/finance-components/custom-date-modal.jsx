@@ -1,5 +1,6 @@
 import { X } from "lucide-react"
 import { useState } from "react"
+import DatePickerField from "../../../components/shared/DatePickerField"
 
 /* eslint-disable react/prop-types */
 const CustomDateModal = ({ isOpen, onClose, onApply }) => {
@@ -7,6 +8,8 @@ const CustomDateModal = ({ isOpen, onClose, onApply }) => {
     const [endDate, setEndDate] = useState("")
   
     if (!isOpen) return null
+
+    const formatDateDisplay = (dateString) => { if (!dateString) return ""; const [y, m, d] = dateString.split('-'); return `${d}.${m}.${y}` }
   
     const handleApply = () => {
       if (startDate && endDate) {
@@ -17,43 +20,39 @@ const CustomDateModal = ({ isOpen, onClose, onApply }) => {
   
     return (
       <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-        <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md p-4 md:p-6">
+        <div className="bg-surface-base rounded-xl w-full max-w-md p-4 md:p-6">
           <div className="flex justify-between items-center mb-3 md:mb-4">
-            <h2 className="text-white text-base md:text-lg font-medium">Custom Date Range</h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-white">
+            <h2 className="text-content-primary text-base md:text-lg font-medium">Custom Date Range</h2>
+            <button onClick={onClose} className="text-content-muted hover:text-content-primary">
               <X className="w-4 h-4 md:w-5 md:h-5" />
             </button>
           </div>
           <div className="space-y-3 md:space-y-4">
             <div>
-              <label className="block text-gray-400 text-xs md:text-sm mb-2">Start Date</label>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="bg-[#141414] text-white px-3 md:px-4 white-calendar-icon py-2.5 rounded-xl border border-gray-700 w-full focus:outline-none focus:border-[#3F74FF] text-sm transition-colors"
-              />
+              <label className="block text-content-muted text-xs md:text-sm mb-2">Start Date</label>
+              <div className="w-full flex items-center justify-between bg-surface-dark text-sm rounded-xl px-3 md:px-4 py-2.5 border border-border">
+                <span className={startDate ? "text-content-primary" : "text-content-faint"}>{startDate ? formatDateDisplay(startDate) : "Select start date"}</span>
+                <DatePickerField value={startDate} onChange={setStartDate} />
+              </div>
             </div>
             <div>
-              <label className="block text-gray-400 text-xs md:text-sm mb-2">End Date</label>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="bg-[#141414] text-white white-calendar-icon px-3 md:px-4 py-2.5 rounded-xl border border-gray-700 w-full focus:outline-none focus:border-[#3F74FF] text-sm transition-colors"
-              />
+              <label className="block text-content-muted text-xs md:text-sm mb-2">End Date</label>
+              <div className="w-full flex items-center justify-between bg-surface-dark text-sm rounded-xl px-3 md:px-4 py-2.5 border border-border">
+                <span className={endDate ? "text-content-primary" : "text-content-faint"}>{endDate ? formatDateDisplay(endDate) : "Select end date"}</span>
+                <DatePickerField value={endDate} onChange={setEndDate} />
+              </div>
             </div>
             <div className="flex gap-2 md:gap-3 pt-3 md:pt-4">
               <button
                 onClick={onClose}
-                className="flex-1 bg-[#2F2F2F] text-white px-3 md:px-4 py-2.5 rounded-xl hover:bg-[#3F3F3F] transition-colors text-sm"
+                className="flex-1 bg-surface-button text-content-secondary px-3 md:px-4 py-2.5 rounded-xl hover:bg-surface-button-hover transition-colors text-sm"
               >
                 Cancel
               </button>
               <button
                 onClick={handleApply}
                 disabled={!startDate || !endDate}
-                className="flex-1 bg-[#3F74FF] text-white px-3 md:px-4 py-2.5 rounded-xl hover:bg-[#3F74FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                className="flex-1 bg-primary text-white px-3 md:px-4 py-2.5 rounded-xl hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
               >
                 Apply
               </button>

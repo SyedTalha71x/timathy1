@@ -131,21 +131,21 @@ const SortableTaskColumn = ({
   // Determine which arrow icon to show
   const getSortIcon = () => {
     if (sortSettings.sortBy === 'custom') {
-      return <ArrowUpDown size={14} className="text-gray-400" />
+      return <ArrowUpDown size={14} className="text-content-muted" />
     }
     return sortSettings.sortOrder === 'asc' 
-      ? <ArrowUp size={14} className="text-white" />
-      : <ArrowDown size={14} className="text-white" />
+      ? <ArrowUp size={14} className="text-content-primary" />
+      : <ArrowDown size={14} className="text-content-primary" />
   }
 
   return (
     <div
       ref={setNodeRef}
       id={`column-${id}`}
-      className={`bg-[#141414] flex flex-col relative transition-all duration-300 w-full ${
+      className={`bg-surface-card flex flex-col relative transition-all duration-300 w-full ${
         isCollapsed ? 'rounded-2xl' : 'rounded-2xl'
       } ${
-        isOver ? "ring-2 ring-blue-500/50 bg-[#1a1a2e]" : ""
+        isOver ? "ring-2 ring-primary/50 bg-surface-hover" : ""
       }`}
       data-column-id={id}
       style={{
@@ -164,7 +164,7 @@ const SortableTaskColumn = ({
           {/* Collapse/Expand Button */}
           <button
             onClick={() => onToggleCollapse(id)}
-            className="text-gray-400 hover:text-white p-1 flex-shrink-0 transition-colors active:opacity-80"
+            className="text-content-muted hover:text-content-primary p-1 flex-shrink-0 transition-colors active:opacity-80"
             title={isCollapsed ? "Expand section" : "Collapse section"}
           >
             {isCollapsed ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
@@ -175,7 +175,7 @@ const SortableTaskColumn = ({
             <button
               ref={sortButtonRef}
               onClick={handleToggleDropdown}
-              className="hidden md:flex text-gray-400 hover:text-white p-1.5 hover:bg-gray-800 rounded-lg items-center gap-1 transition-colors"
+              className="hidden md:flex text-content-muted hover:text-content-primary p-1.5 hover:bg-surface-hover rounded-lg items-center gap-1 transition-colors"
               title={`Sort by: ${currentSortLabel}`}
             >
               {getSortIcon()}
@@ -188,7 +188,7 @@ const SortableTaskColumn = ({
           {/* Title - clickable to collapse/expand */}
           <button
             onClick={() => onToggleCollapse(id)}
-            className="font-medium text-white text-sm truncate hover:text-gray-200 transition-colors text-left"
+            className="font-medium text-content-primary text-sm truncate hover:text-content-secondary transition-colors text-left"
           >
             {title}
           </button>
@@ -204,7 +204,7 @@ const SortableTaskColumn = ({
       {showSortDropdown && (
         <div 
           ref={sortDropdownRef}
-          className="fixed bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-2xl min-w-[180px] overflow-hidden"
+          className="fixed bg-surface-hover border border-border rounded-xl shadow-2xl min-w-[180px] overflow-hidden"
           style={{ 
             zIndex: 99999,
             top: dropdownPosition.top,
@@ -212,7 +212,7 @@ const SortableTaskColumn = ({
           }}
         >
           <div className="py-1">
-            <div className="px-3 py-2 text-xs text-gray-500 font-medium border-b border-gray-700">
+            <div className="px-3 py-2 text-xs text-content-faint font-medium border-b border-border">
               Sort by
             </div>
             {sortOptions.map((option) => (
@@ -220,8 +220,8 @@ const SortableTaskColumn = ({
                 key={option.value}
                 className={`flex items-center justify-between px-4 py-3 text-sm transition-colors ${
                   sortSettings.sortBy === option.value 
-                    ? 'text-white bg-gray-800/50' 
-                    : 'text-gray-300 hover:bg-gray-800'
+                    ? 'text-content-primary bg-surface-hover' 
+                    : 'text-content-secondary hover:bg-surface-hover'
                 }`}
               >
                 <button
@@ -239,7 +239,7 @@ const SortableTaskColumn = ({
                       e.stopPropagation()
                       onToggleSortOrder()
                     }}
-                    className="p-1 hover:bg-gray-700 rounded text-gray-400"
+                    className="p-1 hover:bg-surface-button rounded text-content-muted"
                     title={`Change to ${sortSettings.sortOrder === 'asc' ? 'descending' : 'ascending'}`}
                   >
                     {sortSettings.sortOrder === 'asc' 
@@ -250,13 +250,13 @@ const SortableTaskColumn = ({
                 )}
               </div>
             ))}
-            <div className="border-t border-gray-700 mt-1">
+            <div className="border-t border-border mt-1">
               <button
                 onClick={(e) => {
                   e.stopPropagation()
                   setShowSortDropdown(false)
                 }}
-                className="w-full text-left px-4 py-2.5 text-sm text-gray-400 hover:bg-gray-800"
+                className="w-full text-left px-4 py-2.5 text-sm text-content-muted hover:bg-surface-hover"
               >
                 Close
               </button>
@@ -312,7 +312,7 @@ const SortableTaskColumn = ({
                   <>
                     {pinnedTasks.length > 0 && (
                       <div className="flex items-center px-2 py-1 mt-2">
-                        <div className="flex-1 h-px bg-gray-700"></div>
+                        <div className="flex-1 h-px bg-surface-button"></div>
                       </div>
                     )}
                     {unpinnedTasks.map((task, index) => (
@@ -345,9 +345,9 @@ const SortableTaskColumn = ({
                 className={`
                   min-h-[50px]
                   border-2 border-dashed rounded-xl 
-                  flex items-center justify-center text-gray-500 text-sm
+                  flex items-center justify-center text-content-faint text-sm
                   transition-colors duration-200
-                  ${isOver ? "border-blue-500 bg-blue-500/10 text-blue-400" : "border-gray-700"}
+                  ${isOver ? "border-primary bg-primary/10 text-primary" : "border-border"}
                 `}
               >
                 {isOver ? "Drop here" : `No ${title.toLowerCase()} tasks`}

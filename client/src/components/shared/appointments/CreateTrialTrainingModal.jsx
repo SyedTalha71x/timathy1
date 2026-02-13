@@ -481,7 +481,11 @@ const TrialTrainingModal = ({
           {/* Date and Time */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <DatePickerField label="Date" value={trialData.date} onChange={(val) => updateTrialData("date", val)} />
+              <label className="block text-xs text-gray-500 mb-2">Date</label>
+              <div className="w-full flex items-center justify-between bg-[#222222] border border-gray-700 text-sm rounded-xl px-4 py-2.5">
+                <span className={trialData.date ? "text-white" : "text-gray-500"}>{trialData.date ? (() => { const [y,m,d] = trialData.date.split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+                <DatePickerField value={trialData.date} onChange={(val) => updateTrialData("date", val)} />
+              </div>
             </div>
             <div>
               <label className="block text-xs text-gray-500 mb-2">Time Slot</label>

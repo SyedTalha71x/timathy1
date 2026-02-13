@@ -616,11 +616,11 @@ const EditMemberModalMain = ({
                       </select>
                     </div>
                     <div>
-                      <DatePickerField
-                        label="Birthday"
-                        value={editFormMain.dateOfBirth || ""}
-                        onChange={(val) => handleInputChangeMain({ target: { name: "dateOfBirth", value: val } })}
-                      />
+                      <label className="text-sm text-content-secondary block mb-2">Birthday</label>
+                      <div className="w-full flex items-center justify-between bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent">
+                        <span className={editFormMain.dateOfBirth ? "text-content-primary" : "text-content-faint"}>{editFormMain.dateOfBirth ? (() => { const [y,m,d] = (editFormMain.dateOfBirth || "").split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+                        <DatePickerField value={editFormMain.dateOfBirth || ""} onChange={(val) => handleInputChangeMain({ target: { name: "dateOfBirth", value: val } })} />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -692,11 +692,11 @@ const EditMemberModalMain = ({
 
                   {selectedMemberMain && selectedMemberMain.memberType === "temporary" && (
                     <div>
-                      <DatePickerField
-                        label="Auto-Archive Due Date"
-                        value={editFormMain.autoArchiveDate || ""}
-                        onChange={(val) => handleInputChangeMain({ target: { name: "autoArchiveDate", value: val } })}
-                      />
+                      <label className="text-sm text-content-secondary block mb-2">Auto-Archive Due Date</label>
+                      <div className="w-full flex items-center justify-between bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent">
+                        <span className={editFormMain.autoArchiveDate ? "text-content-primary" : "text-content-faint"}>{editFormMain.autoArchiveDate ? (() => { const [y,m,d] = (editFormMain.autoArchiveDate || "").split('-'); return `${d}.${m}.${y}` })() : "Select date"}</span>
+                        <DatePickerField value={editFormMain.autoArchiveDate || ""} onChange={(val) => handleInputChangeMain({ target: { name: "autoArchiveDate", value: val } })} />
+                      </div>
                     </div>
                   )}
                 </div>
@@ -738,16 +738,20 @@ const EditMemberModalMain = ({
                     </div>
                     
                     <div className="grid grid-cols-2 gap-3">
-                      <DatePickerField
-                        label="Valid From (optional)"
-                        value={newNote.startDate}
-                        onChange={(val) => setNewNote({ ...newNote, startDate: val })}
-                      />
-                      <DatePickerField
-                        label="Valid Until (optional)"
-                        value={newNote.endDate}
-                        onChange={(val) => setNewNote({ ...newNote, endDate: val })}
-                      />
+                      <div>
+                        <label className="text-sm text-content-secondary block mb-2">Valid From (optional)</label>
+                        <div className="w-full flex items-center justify-between bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent">
+                          <span className={newNote.startDate ? "text-content-primary" : "text-content-faint"}>{newNote.startDate ? (() => { const [y,m,d] = newNote.startDate.split('-'); return `${d}.${m}.${y}` })() : "Select"}</span>
+                          <DatePickerField value={newNote.startDate} onChange={(val) => setNewNote({ ...newNote, startDate: val })} />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="text-sm text-content-secondary block mb-2">Valid Until (optional)</label>
+                        <div className="w-full flex items-center justify-between bg-surface-dark rounded-xl px-4 py-2 text-sm border border-transparent">
+                          <span className={newNote.endDate ? "text-content-primary" : "text-content-faint"}>{newNote.endDate ? (() => { const [y,m,d] = newNote.endDate.split('-'); return `${d}.${m}.${y}` })() : "Select"}</span>
+                          <DatePickerField value={newNote.endDate} onChange={(val) => setNewNote({ ...newNote, endDate: val })} />
+                        </div>
+                      </div>
                     </div>
                     
                     <button type="button" onClick={editingNoteId ? handleUpdateNote : handleAddNote} disabled={!newNote.text.trim()} className={`w-full py-2 rounded-lg text-sm font-medium transition-colors ${!newNote.text.trim() ? "bg-primary/50 text-white/50 cursor-not-allowed" : "bg-primary text-white hover:bg-primary-hover"}`}>

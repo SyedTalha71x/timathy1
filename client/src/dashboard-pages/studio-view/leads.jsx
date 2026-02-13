@@ -1237,7 +1237,7 @@ export default function LeadManagement() {
 
 
   return (
-    <div className="min-h-screen rounded-3xl p-6 bg-[#1C1C1C] transition-all duration-300 ease-in-out flex-1 overflow-x-hidden md:overflow-x-visible">
+    <div className="min-h-screen rounded-3xl p-6 bg-surface-base transition-all duration-300 ease-in-out flex-1 overflow-x-hidden md:overflow-x-visible">
       <Toaster
         position="top-right"
         toastOptions={{
@@ -1252,24 +1252,24 @@ export default function LeadManagement() {
       {/* Header */}
       <div className="flex items-center justify-between mb-4 sm:mb-6">
         <div className="flex items-center gap-3">
-          <h1 className="text-xl sm:text-2xl text-white font-bold">Leads</h1>
+          <h1 className="text-xl sm:text-2xl text-content-primary font-bold">Leads</h1>
           
           {/* Compact/Detailed View Toggle - Desktop only */}
           <div className="hidden md:flex items-center gap-2 bg-black rounded-xl p-1">
-            <span className="text-xs text-gray-400 px-2 hidden sm:inline">View</span>
+            <span className="text-xs text-content-muted px-2 hidden sm:inline">View</span>
             <button
               onClick={() => setIsCompactView(!isCompactView)}
-              className="p-2 rounded-lg transition-colors flex items-center gap-1 text-[#FF843E]"
+              className="p-2 rounded-lg transition-colors flex items-center gap-1 text-primary"
               title={isCompactView ? "Compact View (Click for Detailed)" : "Detailed View (Click for Compact)"}
             >
               <div className="flex flex-col gap-0.5">
                 <div className="flex gap-0.5">
-                  <div className={`w-1.5 h-1.5 rounded-full ${!isCompactView ? 'bg-current' : 'bg-gray-500'}`}></div>
-                  <div className={`w-1.5 h-1.5 rounded-full ${!isCompactView ? 'bg-current' : 'bg-gray-500'}`}></div>
+                  <div className={`w-1.5 h-1.5 rounded-full ${!isCompactView ? 'bg-current' : 'bg-content-muted'}`}></div>
+                  <div className={`w-1.5 h-1.5 rounded-full ${!isCompactView ? 'bg-current' : 'bg-content-muted'}`}></div>
                 </div>
                 <div className="flex gap-0.5">
-                  <div className={`w-1.5 h-1.5 rounded-full ${isCompactView ? 'bg-current' : 'bg-gray-500'}`}></div>
-                  <div className={`w-1.5 h-1.5 rounded-full ${isCompactView ? 'bg-current' : 'bg-gray-500'}`}></div>
+                  <div className={`w-1.5 h-1.5 rounded-full ${isCompactView ? 'bg-current' : 'bg-content-muted'}`}></div>
+                  <div className={`w-1.5 h-1.5 rounded-full ${isCompactView ? 'bg-current' : 'bg-content-muted'}`}></div>
                 </div>
               </div>
               <span className="text-xs ml-1 hidden sm:inline">
@@ -1307,26 +1307,26 @@ export default function LeadManagement() {
       <div className="mb-4 sm:mb-6" ref={searchDropdownRef}>
         <div className="relative">
           <div 
-            className="bg-[#141414] rounded-xl px-3 py-2 min-h-[42px] flex flex-wrap items-center gap-1.5 border border-[#333333] focus-within:border-[#3F74FF] transition-colors cursor-text"
+            className="bg-surface-card rounded-xl px-3 py-2 min-h-[42px] flex flex-wrap items-center gap-1.5 border border-border focus-within:border-accent-blue transition-colors cursor-text"
             onClick={() => searchInputRef.current?.focus()}
           >
-            <Search className="text-gray-400 flex-shrink-0" size={16} />
+            <Search className="text-content-muted flex-shrink-0" size={16} />
             
             {/* Filter Chips */}
             {leadFilters.map((filter) => (
               <div 
                 key={filter.leadId}
-                className="flex items-center gap-1.5 bg-[#3F74FF]/20 border border-[#3F74FF]/40 rounded-lg px-2 py-1 text-sm"
+                className="flex items-center gap-1.5 bg-accent-blue/20 border border-accent-blue/40 rounded-lg px-2 py-1 text-sm"
               >
-                <span className="text-white text-xs whitespace-nowrap">{filter.leadName}</span>
+                <span className="text-content-primary text-xs whitespace-nowrap">{filter.leadName}</span>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     handleRemoveLeadFilter(filter.leadId);
                   }}
-                  className="p-0.5 hover:bg-[#3F74FF]/30 rounded transition-colors"
+                  className="p-0.5 hover:bg-accent-blue/30 rounded transition-colors"
                 >
-                  <X size={12} className="text-gray-400 hover:text-white" />
+                  <X size={12} className="text-content-muted hover:text-content-primary" />
                 </button>
               </div>
             ))}
@@ -1343,7 +1343,7 @@ export default function LeadManagement() {
               }}
               onFocus={() => searchQuery && setShowSearchDropdown(true)}
               onKeyDown={handleSearchKeyDown}
-              className="flex-1 min-w-[100px] bg-transparent outline-none text-sm text-white placeholder-gray-500 [&::placeholder]:text-ellipsis [&::placeholder]:overflow-hidden"
+              className="flex-1 min-w-[100px] bg-transparent outline-none text-sm text-content-primary placeholder-gray-500 [&::placeholder]:text-ellipsis [&::placeholder]:overflow-hidden"
             />
             
             {/* Clear All Button */}
@@ -1353,26 +1353,26 @@ export default function LeadManagement() {
                   e.stopPropagation();
                   setLeadFilters([]);
                 }}
-                className="p-1 hover:bg-gray-700 rounded-lg transition-colors flex-shrink-0"
+                className="p-1 hover:bg-surface-button rounded-lg transition-colors flex-shrink-0"
                 title="Clear all filters"
               >
-                <X size={14} className="text-gray-400 hover:text-white" />
+                <X size={14} className="text-content-muted hover:text-content-primary" />
               </button>
             )}
           </div>
           
           {/* Autocomplete Dropdown */}
           {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a1a] border border-[#333333] rounded-xl shadow-lg z-50 overflow-hidden">
+            <div className="absolute top-full left-0 right-0 mt-1 bg-surface-hover border border-border rounded-xl shadow-lg z-50 overflow-hidden">
               {getSearchSuggestions().map((lead) => (
                 <button
                   key={lead.id}
                   onClick={() => handleSelectLead(lead)}
-                  className="w-full px-3 py-2.5 flex items-center gap-3 hover:bg-[#252525] transition-colors text-left"
+                  className="w-full px-3 py-2.5 flex items-center gap-3 hover:bg-surface-button transition-colors text-left"
                 >
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-white truncate">{lead.firstName} {lead.surname}</p>
-                    <p className="text-xs text-gray-500 truncate">{lead.email}</p>
+                    <p className="text-sm text-content-primary truncate">{lead.firstName} {lead.surname}</p>
+                    <p className="text-xs text-content-faint truncate">{lead.email}</p>
                   </div>
                 </button>
               ))}
@@ -1381,8 +1381,8 @@ export default function LeadManagement() {
           
           {/* No results message */}
           {showSearchDropdown && searchQuery.trim() && getSearchSuggestions().length === 0 && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a1a] border border-[#333333] rounded-xl shadow-lg z-50 p-3">
-              <p className="text-sm text-gray-500 text-center">No leads found</p>
+            <div className="absolute top-full left-0 right-0 mt-1 bg-surface-hover border border-border rounded-xl shadow-lg z-50 p-3">
+              <p className="text-sm text-content-faint text-center">No leads found</p>
             </div>
           )}
         </div>
@@ -1428,7 +1428,7 @@ export default function LeadManagement() {
                     />
                     
                     {/* Title - mobile only */}
-                    <span className="font-medium text-white text-xs sm:text-sm whitespace-nowrap ml-2 md:hidden">
+                    <span className="font-medium text-content-primary text-xs sm:text-sm whitespace-nowrap ml-2 md:hidden">
                       {column.title}
                     </span>
                     
@@ -1455,7 +1455,7 @@ export default function LeadManagement() {
                           strokeWidth="2" 
                           strokeLinecap="round" 
                           strokeLinejoin="round"
-                          className="text-gray-400"
+                          className="text-content-muted"
                         >
                           <path d="m6 9 6 6 6-6"/>
                         </svg>
@@ -1469,7 +1469,7 @@ export default function LeadManagement() {
                         className="p-1 hover:bg-white/10 rounded transition-colors cursor-pointer"
                         onClick={() => toggleColumnCollapse(column.id)}
                       >
-                        <ChevronRight size={16} className="text-gray-400" />
+                        <ChevronRight size={16} className="text-content-muted" />
                       </button>
                       {/* Tooltip */}
                       <div className="absolute left-0 top-full mt-2 bg-black/90 text-white px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[1000] shadow-lg pointer-events-none">
@@ -1493,7 +1493,7 @@ export default function LeadManagement() {
                         className="flex items-center gap-2"
                         style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
                       >
-                        <span className="font-medium text-white text-xs sm:text-sm whitespace-nowrap transform rotate-180">
+                        <span className="font-medium text-content-primary text-xs sm:text-sm whitespace-nowrap transform rotate-180">
                           {column.title}
                         </span>
                         <div 
@@ -1730,15 +1730,15 @@ export default function LeadManagement() {
       {/* Drag Confirmation Dialog */}
       {dragConfirmation.isOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4">
-          <div className="bg-[#1C1C1C] w-[95%] sm:w-[90%] md:w-[400px] max-w-md rounded-xl overflow-hidden">
+          <div className="bg-surface-base w-[95%] sm:w-[90%] md:w-[400px] max-w-md rounded-xl overflow-hidden">
             {/* Header with X button */}
-            <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-gray-800 flex justify-between items-center">
-              <h3 className="text-base sm:text-lg font-semibold text-white">
+            <div className="px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4 border-b border-border flex justify-between items-center">
+              <h3 className="text-base sm:text-lg font-semibold text-content-primary">
                 {dragConfirmation.type === "toTrial" ? "Move to Trial Training?" : "Move Lead from Trial Training?"}
               </h3>
               <button 
                 onClick={handleCancelDragConfirmation}
-                className="text-gray-400 hover:text-white p-2 hover:bg-gray-800 rounded-lg transition-colors"
+                className="text-content-muted hover:text-content-primary p-2 hover:bg-surface-hover rounded-lg transition-colors"
               >
                 <X size={20} />
               </button>
@@ -1746,7 +1746,7 @@ export default function LeadManagement() {
             
             {/* Content */}
             <div className="px-4 sm:px-6 py-4 sm:py-6">
-              <p className="text-gray-300 mb-4 sm:mb-6 text-sm sm:text-base">
+              <p className="text-content-secondary mb-4 sm:mb-6 text-sm sm:text-base">
                 {dragConfirmation.type === "toTrial"
                   ? `Moving ${dragConfirmation.lead?.firstName} ${dragConfirmation.lead?.surname || ""} to Trial Training Arranged.`
                   : `Are you sure you want to move ${dragConfirmation.lead?.firstName} ${dragConfirmation.lead?.surname || ""} from Trial Training Arranged?`}
@@ -1764,7 +1764,7 @@ export default function LeadManagement() {
                     </button>
                     <button
                       onClick={handleConfirmToTrialWithoutBooking}
-                      className="w-full px-3 sm:px-4 py-2.5 bg-gray-600 text-white text-sm sm:text-base rounded-xl hover:bg-gray-700 transition-colors"
+                      className="w-full px-3 sm:px-4 py-2.5 bg-surface-button-hover text-content-primary text-sm sm:text-base rounded-xl hover:bg-surface-button transition-colors"
                     >
                       Yes, Without Booking
                     </button>
