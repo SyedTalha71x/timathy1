@@ -1,57 +1,75 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable no-unused-vars */
 import React from "react"
+import { AlertTriangle } from "lucide-react"
+import { formatCurrency } from "../../../utils/studio-states/selling-states"
 
 const CancelSaleConfirmationModal = ({ sale, onConfirm, onClose }) => {
-  // Only show credit card warning for Credit Card payments
   const isCreditCard = sale.paymentMethod === "Credit Card"
   
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[10000003] p-4">
-      <div className="bg-[#2F2F2F] rounded-xl w-full max-w-md">
-        <div className="p-4 border-b border-gray-700">
-          <h3 className="text-white font-semibold text-lg">Confirm Sale Cancellation</h3>
-        </div>
-        <div className="p-4">
-          <p className="text-white mb-3">Are you sure you want to cancel this sale?</p>
+    <div 
+      className="fixed inset-0 open_sans_font w-full h-full bg-black/50 flex items-center justify-center z-[10000003] p-4"
+      onClick={onClose}
+    >
+      <div 
+        className="bg-surface-base rounded-xl w-full max-w-md relative"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="p-6">
+          {/* Icon + Title */}
+          <div className="flex flex-col items-center mb-5">
+            <div className="bg-red-500/20 p-3 rounded-full mb-4">
+              <AlertTriangle className="h-8 w-8 text-red-500" />
+            </div>
+            <h2 className="text-content-primary text-lg open_sans_font_700 text-center">
+              Cancel Sale
+            </h2>
+            <p className="text-content-muted text-center text-sm mt-2">
+              Are you sure you want to cancel this sale? A reversal entry will be created in the sales journal.
+            </p>
+          </div>
+
+          {/* Sale Details */}
+          <div className="bg-surface-dark rounded-xl p-4 mb-4 space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-content-muted text-sm">Member</span>
+              <span className="text-content-primary text-sm font-medium">{sale.member}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-content-muted text-sm">Total</span>
+              <span className="text-content-primary text-sm font-medium">{formatCurrency(sale.totalAmount)}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-content-muted text-sm">Payment</span>
+              <span className="text-content-primary text-sm font-medium">{sale.paymentMethod}</span>
+            </div>
+          </div>
           
-          {/* Credit card warning - only shown for Credit Card payments */}
+          {/* Credit card warning */}
           {isCreditCard && (
-            <div className="bg-yellow-900/30 border border-yellow-600 rounded-lg p-3 mb-4">
-              <p className="text-yellow-200 text-sm font-medium mb-2">&#9888; Important Notice:</p>
-              <p className="text-yellow-100 text-sm">
-                Credit card payments that have already been processed cannot be reversed via this cancellation. 
-                A cancellation entry will be added to the journal for accounting purposes.
+            <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-3 mb-4">
+              <p className="text-red-400 text-sm">
+                Credit card payments already processed cannot be reversed via this cancellation. A cancellation entry will be added for accounting purposes.
               </p>
             </div>
           )}
-          
-          {/* Info box for all cancellations */}
-          <div className="bg-blue-900/30 border border-blue-600 rounded-lg p-3 mb-4">
-            <p className="text-blue-200 text-sm">
-              A reversal entry will be created in the sales journal for traceability.
-            </p>
+
+          {/* Actions */}
+          <div className="flex flex-row justify-center items-center gap-3 pt-2">
+            <button 
+              onClick={onConfirm} 
+              className="flex-1 sm:flex-none sm:w-auto px-8 py-2.5 bg-red-500 text-sm text-white rounded-xl hover:bg-red-600 transition-colors"
+            >
+              Confirm Cancellation
+            </button>
+            <button 
+              onClick={onClose} 
+              className="flex-1 sm:flex-none sm:w-auto px-8 py-2.5 bg-transparent text-sm text-content-secondary rounded-xl border border-border hover:bg-surface-dark transition-colors"
+            >
+              Cancel
+            </button>
           </div>
-          
-          <div className="bg-black rounded-lg p-3 mb-4">
-            <p className="text-gray-400 text-sm">
-              Member: <span className="text-white">{sale.member}</span>
-            </p>
-            <p className="text-gray-400 text-sm">
-              Total: <span className="text-white">${sale.totalAmount.toFixed(2)}</span>
-            </p>
-            <p className="text-gray-400 text-sm">
-              Payment Method: <span className="text-white">{sale.paymentMethod}</span>
-            </p>
-          </div>
-        </div>
-        <div className="p-4 border-t border-gray-700 flex gap-2 justify-end">
-          <button onClick={onClose} className="px-4 py-2 bg-gray-600 hover:bg-gray-700 rounded-lg text-white text-sm">
-            Cancel
-          </button>
-          <button onClick={onConfirm} className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg text-white text-sm">
-            Confirm Cancellation
-          </button>
         </div>
       </div>
     </div>

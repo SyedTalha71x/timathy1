@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { X, Plus, Crop } from "lucide-react"
+import { X, Plus, Minus, Crop } from "lucide-react"
+import { currencyConfig, getCurrencySymbol } from "../../../utils/studio-states/selling-states"
 // Shared modals
 import ImageCropModal from '../../shared/image-handler/ImageCropModal'
 import ImageSourceModal from '../../shared/image-handler/ImageSourceModal'
@@ -175,14 +176,14 @@ const ProductServiceModal = ({
   return (
     <>
       <div className="fixed inset-0 cursor-pointer open_sans_font w-full h-full bg-black/50 flex items-center justify-center z-[1000] p-4">
-        <div className="bg-[#181818] rounded-xl w-full max-w-md my-8 relative max-h-[90vh] flex flex-col">
+        <div className="bg-surface-base rounded-xl w-full max-w-md my-8 relative max-h-[90vh] flex flex-col">
           {/* Header */}
-          <div className="p-6 pb-4 border-b border-[#333333] flex-shrink-0">
+          <div className="p-6 pb-4 border-b border-border flex-shrink-0">
             <div className="flex justify-between items-center">
-              <h2 className="text-white open_sans_font_700 text-xl font-semibold">
+              <h2 className="text-content-primary open_sans_font_700 text-xl font-semibold">
                 {modalMode === "add" ? `Add ${itemType}` : `Edit ${itemType}`}
               </h2>
-              <button onClick={closeModal} className="text-gray-400 hover:text-white transition-colors">
+              <button onClick={closeModal} className="text-content-muted hover:text-content-primary transition-colors">
                 <X size={24} className="cursor-pointer" />
               </button>
             </div>
@@ -194,9 +195,9 @@ const ProductServiceModal = ({
             <div className="space-y-4 p-6 overflow-y-auto flex-1 custom-scrollbar">
               {/* Image Upload */}
               <div>
-                <label className="text-sm text-gray-200 block mb-2">Image</label>
+                <label className="text-sm text-content-primary block mb-2">Image</label>
                 {selectedImage || currentProduct?.image ? (
-                  <div className="relative rounded-xl overflow-hidden border border-gray-700 bg-black">
+                  <div className="relative rounded-xl overflow-hidden border border-border bg-black">
                     <div className="aspect-video">
                       <img
                         src={selectedImage || currentProduct?.image}
@@ -209,7 +210,7 @@ const ProductServiceModal = ({
                       <button
                         type="button"
                         onClick={handleReCrop}
-                        className="bg-black/70 hover:bg-black/90 text-white p-2 rounded-lg transition-colors"
+                        className="bg-black/70 hover:bg-black/90 text-content-primary p-2 rounded-lg transition-colors"
                         title="Adjust crop"
                       >
                         <Crop size={16} />
@@ -217,7 +218,7 @@ const ProductServiceModal = ({
                       <button
                         type="button"
                         onClick={handleRemoveImage}
-                        className="bg-black/70 hover:bg-black/90 text-white p-2 rounded-lg transition-colors"
+                        className="bg-black/70 hover:bg-black/90 text-content-primary p-2 rounded-lg transition-colors"
                         title="Remove image"
                       >
                         <X size={16} />
@@ -227,7 +228,7 @@ const ProductServiceModal = ({
                 ) : (
                   <div
                     onClick={handleImageAreaClick}
-                    className="border-2 border-dashed border-gray-700 rounded-xl aspect-video flex flex-col items-center justify-center cursor-pointer hover:border-[#3F74FF]/50 transition-colors bg-orange-500"
+                    className="border-2 border-dashed border-border rounded-xl aspect-video flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors bg-primary"
                   >
                     <p className={`font-bold leading-tight text-white text-center px-4 ${getPreviewTextSize(previewText)}`} style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>
                       {previewText}
@@ -246,7 +247,7 @@ const ProductServiceModal = ({
 
               {/* Name */}
               <div>
-                <label className="text-sm text-gray-200 block mb-2">
+                <label className="text-sm text-content-primary block mb-2">
                   {itemType} name *
                 </label>
                 <input
@@ -255,7 +256,7 @@ const ProductServiceModal = ({
                   value={formData.name}
                   onChange={handleInputChangeMain}
                   placeholder={`Enter ${itemType.toLowerCase()} name`}
-                  className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                  className="w-full bg-surface-dark text-sm rounded-xl px-4 py-3 text-content-primary placeholder-content-faint outline-none border border-transparent focus:border-primary transition-colors"
                   required
                 />
               </div>
@@ -266,52 +267,69 @@ const ProductServiceModal = ({
                 <div className="grid grid-cols-2 gap-4">
                   {/* Price */}
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">Price *</label>
-                    <div className="flex items-center rounded-xl bg-[#101010] border border-transparent focus-within:border-[#3F74FF] transition-colors">
-                      <span className="px-3 text-white text-sm">€</span>
+                    <label className="text-sm text-content-primary block mb-2">Price *</label>
+                    <div className="flex items-center rounded-xl bg-surface-dark border border-transparent focus-within:border-primary transition-colors">
                       <input
                         type="text"
+                        inputMode="decimal"
                         name="price"
                         value={formData.price}
-                        onChange={handleInputChangeMain}
-                        placeholder="0.00"
-                        className="w-full bg-transparent text-sm py-3 pr-4 text-white placeholder-gray-500 outline-none"
+                        onChange={(e) => { const v = e.target.value; if (v === "" || /^\d*,?\d{0,2}$/.test(v)) handleInputChangeMain(e) }}
+                        onPaste={(e) => { const paste = e.clipboardData.getData("text"); if (!/^\d*,?\d{0,2}$/.test(paste)) e.preventDefault() }}
+                        onBlur={(e) => { const v = e.target.value; if (v && v !== "0" && v !== "") { const num = parseFloat(v.replace(',', '.')); if (!isNaN(num)) { const formatted = num.toFixed(2).replace('.', ','); handleInputChangeMain({ target: { name: 'price', value: formatted } }) } } }}
+                        placeholder="0,00"
+                        className="w-full bg-transparent text-sm py-3 pl-4 text-content-primary placeholder-content-faint outline-none"
                         required
                       />
+                      <span className="px-3 text-content-primary text-sm">{getCurrencySymbol()}</span>
                     </div>
                   </div>
                   {/* VAT */}
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">VAT Rate (%)</label>
+                    <label className="text-sm text-content-primary block mb-2">VAT Rate (%)</label>
                     <select
                       name="vatRate"
                       value={formData.vatRate}
                       onChange={handleInputChangeMain}
-                      className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                      className="w-full bg-surface-dark text-sm rounded-xl px-4 py-3 text-content-primary outline-none border border-transparent focus:border-primary transition-colors open_sans_font"
                     >
-                      <option value={7}>7% (take-away)</option>
-                      <option value={19}>19% (eat-in)</option>
+                      <option value={7} style={{ color: "#000", background: "#fff" }}>7% (take-away)</option>
+                      <option value={19} style={{ color: "#000", background: "#fff" }}>19% (eat-in)</option>
                     </select>
                   </div>
                 </div>
 
                 {/* Contingent Credits */}
                 <div>
-                  <label className="text-sm text-gray-200 block mb-2">Contingent Credits (Optional)</label>
-                  <div className="flex items-center rounded-xl bg-[#101010] border border-transparent focus-within:border-[#3F74FF] transition-colors">
-                    <span className="px-3 text-blue-400 text-sm">+</span>
-                    <input
-                      type="number"
-                      name="contingentCredits"
-                      value={formData.contingentCredits}
-                      onChange={handleInputChangeMain}
-                      placeholder="0"
-                      min="0"
-                      className="w-full bg-transparent text-sm py-3 pr-4 text-white placeholder-gray-500 outline-none"
-                    />
+                  <label className="text-sm text-content-primary block mb-2">Contingent Credits (Optional)</label>
+                  <div className="flex items-center justify-center gap-4 rounded-xl bg-surface-dark border border-transparent py-3 px-4">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const current = Number(formData.contingentCredits) || 0
+                        if (current > 0) handleInputChangeMain({ target: { name: 'contingentCredits', value: String(current - 1) } })
+                      }}
+                      disabled={!formData.contingentCredits || Number(formData.contingentCredits) <= 0}
+                      className="p-1.5 rounded-lg bg-surface-button text-content-primary disabled:text-content-faint disabled:cursor-not-allowed hover:bg-surface-button-hover transition-colors"
+                    >
+                      <Minus size={16} />
+                    </button>
+                    <span className="text-xl font-bold text-content-primary min-w-[40px] text-center">
+                      {formData.contingentCredits || "0"}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const current = Number(formData.contingentCredits) || 0
+                        handleInputChangeMain({ target: { name: 'contingentCredits', value: String(current + 1) } })
+                      }}
+                      className="p-1.5 rounded-lg bg-surface-button text-content-primary hover:bg-surface-button-hover transition-colors"
+                    >
+                      <Plus size={16} />
+                    </button>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1.5">
-                    Number of credits added to the member's contingent when this service is sold. Leave empty for no credit top-up.
+                  <p className="text-xs text-content-faint mt-1.5">
+                    Number of credits added to the member's contingent when this service is sold.
                   </p>
                 </div>
                 </>
@@ -320,44 +338,47 @@ const ProductServiceModal = ({
                   {/* Product Fields */}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">Price *</label>
-                      <div className="flex items-center rounded-xl bg-[#101010] border border-transparent focus-within:border-[#3F74FF] transition-colors">
-                        <span className="px-3 text-white text-sm">â‚¬</span>
+                      <label className="text-sm text-content-primary block mb-2">Price *</label>
+                      <div className="flex items-center rounded-xl bg-surface-dark border border-transparent focus-within:border-primary transition-colors">
                         <input
                           type="text"
+                          inputMode="decimal"
                           name="price"
                           value={formData.price}
-                          onChange={handleInputChangeMain}
-                          placeholder="0.00"
-                          className="w-full bg-transparent text-sm py-3 pr-4 text-white placeholder-gray-500 outline-none"
+                          onChange={(e) => { const v = e.target.value; if (v === "" || /^\d*,?\d{0,2}$/.test(v)) handleInputChangeMain(e) }}
+                          onPaste={(e) => { const paste = e.clipboardData.getData("text"); if (!/^\d*,?\d{0,2}$/.test(paste)) e.preventDefault() }}
+                          onBlur={(e) => { const v = e.target.value; if (v && v !== "0" && v !== "") { const num = parseFloat(v.replace(',', '.')); if (!isNaN(num)) { const formatted = num.toFixed(2).replace('.', ','); handleInputChangeMain({ target: { name: 'price', value: formatted } }) } } }}
+                          placeholder="0,00"
+                          className="w-full bg-transparent text-sm py-3 pl-4 text-content-primary placeholder-content-faint outline-none"
                           required
                         />
+                        <span className="px-3 text-content-primary text-sm">{getCurrencySymbol()}</span>
                       </div>
                     </div>
                     <div>
-                      <label className="text-sm text-gray-200 block mb-2">Article Number</label>
+                      <label className="text-sm text-content-primary block mb-2">Article Number</label>
                       <input
                         type="text"
                         name="articalNo"
                         value={formData.articalNo}
                         onChange={handleInputChangeMain}
                         placeholder="Enter article no"
-                        className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                        className="w-full bg-surface-dark text-sm rounded-xl px-4 py-3 text-content-primary placeholder-content-faint outline-none border border-transparent focus:border-primary transition-colors"
                       />
                     </div>
                   </div>
 
                   {/* VAT */}
                   <div>
-                    <label className="text-sm text-gray-200 block mb-2">VAT Rate (%)</label>
+                    <label className="text-sm text-content-primary block mb-2">VAT Rate (%)</label>
                     <select
                       name="vatRate"
                       value={formData.vatRate}
                       onChange={handleInputChangeMain}
-                      className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                      className="w-full bg-surface-dark text-sm rounded-xl px-4 py-3 text-content-primary outline-none border border-transparent focus:border-primary transition-colors open_sans_font"
                     >
-                      <option value={7}>7% (take-away)</option>
-                      <option value={19}>19% (eat-in)</option>
+                      <option value={7} style={{ color: "#000", background: "#fff" }}>7% (take-away)</option>
+                      <option value={19} style={{ color: "#000", background: "#fff" }}>19% (eat-in)</option>
                     </select>
                   </div>
                 </>
@@ -366,37 +387,37 @@ const ProductServiceModal = ({
               {/* Brand (Products Only) */}
               {activeTab === "products" && (
                 <div>
-                  <label className="text-sm text-gray-200 block mb-2">Brand</label>
+                  <label className="text-sm text-content-primary block mb-2">Brand</label>
                   <input
                     type="text"
                     name="brandName"
                     value={formData.brandName}
                     onChange={handleInputChangeMain}
                     placeholder="Enter brand name"
-                    className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-gray-400 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                    className="w-full bg-surface-dark text-sm rounded-xl px-4 py-3 text-content-primary placeholder-content-faint outline-none border border-transparent focus:border-primary transition-colors"
                   />
                 </div>
               )}
 
               {/* Link */}
               <div>
-                <label className="text-sm text-gray-200 block mb-2">Link (Optional)</label>
+                <label className="text-sm text-content-primary block mb-2">Link (Optional)</label>
                 <input
                   type="url"
                   name="link"
                   value={formData.link}
                   onChange={handleInputChangeMain}
                   placeholder="https://example.com"
-                  className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white placeholder-gray-500 outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                  className="w-full bg-surface-dark text-sm rounded-xl px-4 py-3 text-content-primary placeholder-content-faint outline-none border border-transparent focus:border-primary transition-colors"
                 />
               </div>
             </div>
 
             {/* Buttons - Sticky Footer */}
-            <div className="flex flex-row-reverse gap-3 p-6 pt-4 border-t border-[#333333] bg-[#181818] flex-shrink-0">
+            <div className="flex flex-row-reverse gap-3 p-6 pt-4 border-t border-border bg-surface-base flex-shrink-0">
               <button
                 type="submit"
-                className="flex-1 sm:flex-none sm:w-auto px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-sm text-white rounded-xl transition-colors flex items-center justify-center gap-2 font-medium"
+                className="flex-1 sm:flex-none sm:w-auto px-6 py-2.5 bg-primary hover:bg-primary-hover text-sm text-white rounded-xl transition-colors flex items-center justify-center gap-2 font-medium"
               >
                 {modalMode === "add" && <Plus size={16} />}
                 {buttonText}
@@ -404,7 +425,7 @@ const ProductServiceModal = ({
               <button
                 type="button"
                 onClick={closeModal}
-                className="flex-1 sm:flex-none sm:w-auto px-6 py-2.5 bg-gray-600 hover:bg-gray-500 text-sm text-white rounded-xl transition-colors"
+                className="flex-1 sm:flex-none sm:w-auto px-6 py-2.5 bg-surface-button hover:bg-surface-button-hover text-sm text-content-secondary rounded-xl transition-colors"
               >
                 Cancel
               </button>

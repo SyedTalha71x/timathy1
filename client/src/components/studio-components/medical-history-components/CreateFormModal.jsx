@@ -455,24 +455,24 @@ const CreateFormModal = ({
     if (item.type === 'multiple') {
       return (
         <div className="mt-2 space-y-1">
-          <label className="block text-sm font-medium text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-content-secondary mb-1">
             Multiple Choice Options:
           </label>
           {item.options?.map((option, index) => (
             <div key={option.id} className="flex items-center gap-2">
-              <span className="text-gray-400 text-sm w-4 flex-shrink-0">
+              <span className="text-content-muted text-sm w-4 flex-shrink-0">
                 {String.fromCharCode(97 + index)}).
               </span>
               <input
                 type="text"
                 value={option.text}
                 onChange={(e) => updateMultipleChoiceOption(sectionId, item.id, option.id, e.target.value)}
-                className="flex-1 min-w-0 bg-[#161616] border border-gray-600 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+                className="flex-1 min-w-0 bg-surface-dark border border-border rounded px-3 py-2 text-content-primary text-sm focus:outline-none focus:border-primary"
                 placeholder={`Option ${index + 1}`}
               />
               <button
                 onClick={() => deleteMultipleChoiceOption(sectionId, item.id, option.id)}
-                className="text-gray-400 hover:text-red-500 p-2 rounded transition-colors flex-shrink-0"
+                className="text-content-muted hover:text-red-500 p-2 rounded transition-colors flex-shrink-0"
                 title="Delete option"
               >
                 <Trash2 size={16} />
@@ -481,7 +481,7 @@ const CreateFormModal = ({
           ))}
           <button
             onClick={() => addMultipleChoiceOption(sectionId, item.id)}
-            className="text-blue-400 hover:text-blue-300 text-sm mt-1 px-2 py-1 rounded transition-colors"
+            className="text-primary hover:text-primary-hover text-sm mt-1 px-2 py-1 rounded transition-colors"
           >
             + Add Option
           </button>
@@ -501,7 +501,7 @@ const CreateFormModal = ({
           {item.variableType === 'select' && (
             <select 
               disabled 
-              className="flex-1 min-w-0 bg-[#161616] border border-gray-600 rounded-lg px-4 py-3 text-gray-400 text-base"
+              className="flex-1 min-w-0 bg-surface-dark border border-border rounded-lg px-4 py-3 text-content-muted text-base"
             >
               <option>Select {availableVariables.find(v => v.value === item.variable)?.label}...</option>
               {item.variableOptions?.map(opt => (
@@ -513,7 +513,7 @@ const CreateFormModal = ({
             <input 
               type="date" 
               disabled 
-              className="flex-1 min-w-0 bg-[#161616] border border-gray-600 rounded-lg px-4 py-3 text-gray-400 text-base"
+              className="flex-1 min-w-0 bg-surface-dark border border-border rounded-lg px-4 py-3 text-content-muted text-base"
             />
           )}
           {item.variableType === 'text' && (
@@ -521,7 +521,7 @@ const CreateFormModal = ({
               type="text" 
               disabled 
               placeholder={`Enter ${availableVariables.find(v => v.value === item.variable)?.label}...`}
-              className="flex-1 min-w-0 bg-[#161616] border border-gray-600 rounded-lg px-4 py-3 text-gray-400 text-base"
+              className="flex-1 min-w-0 bg-surface-dark border border-border rounded-lg px-4 py-3 text-content-muted text-base"
             />
           )}
           {/* Invisible spacer to match delete button width */}
@@ -536,9 +536,9 @@ const CreateFormModal = ({
   if (!showModal) return null;
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-2 sm:p-4 z-50">
-      <div className="bg-[#1C1C1C] rounded-lg w-full max-w-4xl border border-gray-700 flex flex-col max-h-[90vh]">
+      <div className="bg-surface-base rounded-lg w-full max-w-4xl border border-border flex flex-col max-h-[90vh]">
         {/* Fixed Header */}
-        <div className="flex-shrink-0 border-b border-gray-700 p-4 sm:p-6">
+        <div className="flex-shrink-0 border-b border-border p-4 sm:p-6">
           <div className="flex justify-between items-center mb-4">
             {showTitleOnly ? (
               <h2 className="text-lg sm:text-xl font-bold">
@@ -558,7 +558,7 @@ const CreateFormModal = ({
                         setIsEditingTitle(false);
                       }
                     }}
-                    className="text-lg sm:text-xl font-bold bg-[#161616] border border-gray-600 rounded-lg px-3 py-1 text-white focus:outline-none focus:border-blue-500 w-full max-w-[200px] sm:max-w-[400px]"
+                    className="text-lg sm:text-xl font-bold bg-surface-dark border border-border rounded-lg px-3 py-1 text-content-primary focus:outline-none focus:border-primary w-full max-w-[200px] sm:max-w-[400px]"
                     autoFocus
                   />
                 ) : (
@@ -571,7 +571,7 @@ const CreateFormModal = ({
                         setIsEditingTitle(true);
                         setTimeout(() => titleInputRef.current?.focus(), 0);
                       }}
-                      className="text-gray-400 hover:text-white p-1 rounded transition-colors flex-shrink-0"
+                      className="text-content-muted hover:text-content-primary p-1 rounded transition-colors flex-shrink-0"
                       title="Edit title"
                     >
                       <Pencil size={16} />
@@ -582,7 +582,7 @@ const CreateFormModal = ({
             )}
             <button
               onClick={() => setShowModal(false)}
-              className="text-gray-400 hover:text-white text-lg"
+              className="text-content-muted hover:text-content-primary text-lg"
             >
               ✕
             </button>
@@ -591,14 +591,14 @@ const CreateFormModal = ({
           {/* Form Title - Only show input in title-only mode */}
           {showTitleOnly && (
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-content-secondary mb-2">
                 Form Title
               </label>
               <input
                 type="text"
                 value={formTitle}
                 onChange={(e) => setFormTitle(e.target.value)}
-                className="w-full bg-[#161616] border border-gray-600 rounded-lg px-3 py-3 text-white focus:outline-none focus:border-blue-500 text-sm sm:text-base"
+                className="w-full bg-surface-dark border border-border rounded-lg px-3 py-3 text-content-primary focus:outline-none focus:border-primary text-sm sm:text-base"
                 placeholder="Enter a title..."
               />
             </div>
@@ -606,10 +606,10 @@ const CreateFormModal = ({
 
           {!showTitleOnly && (
             <div className="flex justify-between items-center mt-4">
-              <h3 className="text-base font-semibold text-white">Form Sections</h3>
+              <h3 className="text-base font-semibold text-content-primary">Form Sections</h3>
               <button
                 onClick={addSection}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition-colors"
+                className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg text-sm transition-colors"
               >
                 + Add Section
               </button>
@@ -623,7 +623,7 @@ const CreateFormModal = ({
             <div className="flex justify-end">
               <button
                 onClick={proceedToFullForm}
-                className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-primary hover:bg-primary-hover text-white px-6 py-3 rounded-lg text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={!formTitle.trim()}
               >
                 Continue
@@ -636,7 +636,7 @@ const CreateFormModal = ({
                 {sections.map((section, sectionIndex) => (
                   <div
                     key={section.id}
-                    className="bg-[#161616] border border-gray-700 rounded-lg p-4"
+                    className="bg-surface-dark border border-border rounded-lg p-4"
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-4">
                       <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -647,8 +647,8 @@ const CreateFormModal = ({
                             disabled={sectionIndex === 0}
                             className={`p-1 rounded transition-colors ${
                               sectionIndex === 0 
-                                ? 'text-gray-600 cursor-not-allowed' 
-                                : 'text-gray-400 hover:text-white hover:bg-[#1C1C1C]'
+                                ? 'text-content-faint cursor-not-allowed' 
+                                : 'text-content-muted hover:text-content-primary hover:bg-surface-base'
                             }`}
                             title="Move section up"
                           >
@@ -659,8 +659,8 @@ const CreateFormModal = ({
                             disabled={sectionIndex === sections.length - 1}
                             className={`p-1 rounded transition-colors ${
                               sectionIndex === sections.length - 1 
-                                ? 'text-gray-600 cursor-not-allowed' 
-                                : 'text-gray-400 hover:text-white hover:bg-[#1C1C1C]'
+                                ? 'text-content-faint cursor-not-allowed' 
+                                : 'text-content-muted hover:text-content-primary hover:bg-surface-base'
                             }`}
                             title="Move section down"
                           >
@@ -673,7 +673,7 @@ const CreateFormModal = ({
                           type="text"
                           value={section.name}
                           onChange={(e) => updateSectionName(section.id, e.target.value)}
-                          className="bg-transparent text-white font-medium flex-1 min-w-0 focus:outline-none focus:border-b border-gray-600 text-base px-2 py-2"
+                          className="bg-transparent text-content-primary font-medium flex-1 min-w-0 focus:outline-none focus:border-b border-border text-base px-2 py-2"
                           placeholder="Section name"
                         />
                       </div>
@@ -689,7 +689,7 @@ const CreateFormModal = ({
                       {section.items?.map((item, itemIndex) => (
                         <div
                           key={item.id}
-                          className="flex flex-col gap-3 p-4 bg-[#1C1C1C] rounded-lg"
+                          className="flex flex-col gap-3 p-4 bg-surface-base rounded-lg"
                         >
                           <div className="flex flex-col sm:flex-row gap-2">
                             {/* Move buttons for items */}
@@ -699,8 +699,8 @@ const CreateFormModal = ({
                                 disabled={itemIndex === 0}
                                 className={`p-1 rounded transition-colors ${
                                   itemIndex === 0 
-                                    ? 'text-gray-700 cursor-not-allowed' 
-                                    : 'text-gray-400 hover:text-white hover:bg-[#161616]'
+                                    ? 'text-content-faint cursor-not-allowed' 
+                                    : 'text-content-muted hover:text-content-primary hover:bg-surface-dark'
                                 }`}
                                 title="Move item up"
                               >
@@ -711,8 +711,8 @@ const CreateFormModal = ({
                                 disabled={itemIndex === section.items.length - 1}
                                 className={`p-1 rounded transition-colors ${
                                   itemIndex === section.items.length - 1 
-                                    ? 'text-gray-700 cursor-not-allowed' 
-                                    : 'text-gray-400 hover:text-white hover:bg-[#161616]'
+                                    ? 'text-content-faint cursor-not-allowed' 
+                                    : 'text-content-muted hover:text-content-primary hover:bg-surface-dark'
                                 }`}
                                 title="Move item down"
                               >
@@ -721,7 +721,7 @@ const CreateFormModal = ({
                             </div>
 
                             {(item.itemType === 'question' || item.itemType === 'variableField') && (
-                              <span className="text-gray-400 text-sm sm:mt-3 flex-shrink-0 min-w-[24px] order-1 sm:order-2">
+                              <span className="text-content-muted text-sm sm:mt-3 flex-shrink-0 min-w-[24px] order-1 sm:order-2">
                                 {item.number}.
                               </span>
                             )}
@@ -738,7 +738,7 @@ const CreateFormModal = ({
                                   <textarea
                                     value={item.text}
                                     onChange={(e) => updateItem(section.id, item.id, 'text', e.target.value)}
-                                    className="flex-1 min-w-0 bg-[#161616] border border-gray-600 rounded-lg px-4 py-3 text-white text-base focus:outline-none focus:border-blue-500 resize-none"
+                                    className="flex-1 min-w-0 bg-surface-dark border border-border rounded-lg px-4 py-3 text-content-primary text-base focus:outline-none focus:border-primary resize-none"
                                     rows="3"
                                     placeholder="Enter text content..."
                                   />
@@ -749,13 +749,13 @@ const CreateFormModal = ({
                                     onChange={(e) =>
                                       updateItem(section.id, item.id, 'text', e.target.value)
                                     }
-                                    className="flex-1 min-w-0 bg-[#161616] border border-gray-600 rounded-lg px-4 py-3 text-white text-base focus:outline-none focus:border-blue-500"
+                                    className="flex-1 min-w-0 bg-surface-dark border border-border rounded-lg px-4 py-3 text-content-primary text-base focus:outline-none focus:border-primary"
                                     placeholder={item.itemType === 'variableField' ? "Question/Label text..." : "Question text..."}
                                   />
                                 )}
                                 <button
                                   onClick={() => deleteItem(section.id, item.id)}
-                                  className="text-gray-400 hover:text-red-500 p-2 rounded transition-colors mt-2 flex-shrink-0"
+                                  className="text-content-muted hover:text-red-500 p-2 rounded transition-colors mt-2 flex-shrink-0"
                                   title="Delete"
                                 >
                                   <Trash2 size={18} />
@@ -774,7 +774,7 @@ const CreateFormModal = ({
                                         updateItem(section.id, item.id, 'options', undefined);
                                       }
                                     }}
-                                    className="bg-[#161616] border border-gray-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+                                    className="bg-surface-dark border border-border rounded-lg px-3 py-2 text-content-primary text-sm focus:outline-none focus:border-primary"
                                   >
                                     <option value="yesno">Yes/No</option>
                                     <option value="yesnodontknow">Yes/No/Don't know</option>
@@ -786,9 +786,9 @@ const CreateFormModal = ({
                                       type="checkbox"
                                       checked={item.required !== false}
                                       onChange={(e) => updateItem(section.id, item.id, 'required', e.target.checked)}
-                                      className="w-4 h-4 accent-blue-500 cursor-pointer"
+                                      className="w-4 h-4 cursor-pointer" style={{ accentColor: "var(--color-primary)" }}
                                     />
-                                    <span className="text-sm text-gray-300">Required</span>
+                                    <span className="text-sm text-content-secondary">Required</span>
                                   </label>
                                 </div>
                               )}
@@ -801,8 +801,8 @@ const CreateFormModal = ({
                                       onClick={() => setShowVariableDropdown(showVariableDropdown === item.id ? null : item.id)}
                                       className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors border max-w-full ${
                                         item.variable 
-                                          ? 'bg-[#252525] border-gray-500 text-white' 
-                                          : 'bg-[#161616] border-gray-600 text-gray-400 hover:border-gray-500'
+                                          ? 'bg-surface-hover border-border text-content-primary' 
+                                          : 'bg-surface-dark border-border text-content-muted hover:border-border'
                                       }`}
                                     >
                                       <Link size={14} className="flex-shrink-0" />
@@ -815,17 +815,17 @@ const CreateFormModal = ({
                                     </button>
                                     
                                     {showVariableDropdown === item.id && (
-                                      <div className="absolute z-50 mt-1 bg-[#1C1C1C] border border-gray-600 rounded-lg shadow-lg py-1 w-full sm:w-auto sm:min-w-[240px] max-w-[calc(100vw-3rem)] max-h-[300px] overflow-y-auto">
+                                      <div className="absolute z-50 mt-1 bg-surface-base border border-border rounded-lg shadow-lg py-1 w-full sm:w-auto sm:min-w-[240px] max-w-[calc(100vw-3rem)] max-h-[300px] overflow-y-auto">
                                         {availableVariables.map(variable => (
                                           <button
                                             key={variable.value}
                                             onClick={() => selectVariable(section.id, item.id, variable.value)}
-                                            className={`w-full text-left px-4 py-2.5 text-sm hover:bg-[#161616] transition-colors flex items-center justify-between ${
-                                              item.variable === variable.value ? 'bg-[#161616] text-white' : 'text-gray-300'
+                                            className={`w-full text-left px-4 py-2.5 text-sm hover:bg-surface-dark transition-colors flex items-center justify-between ${
+                                              item.variable === variable.value ? 'bg-surface-dark text-content-primary' : 'text-content-secondary'
                                             }`}
                                           >
                                             <span>{variable.label}</span>
-                                            <span className="text-xs text-gray-500">
+                                            <span className="text-xs text-content-faint">
                                               {getVariableTypeLabel(variable.type)}
                                             </span>
                                           </button>
@@ -838,9 +838,9 @@ const CreateFormModal = ({
                                       type="checkbox"
                                       checked={item.required !== false}
                                       onChange={(e) => updateItem(section.id, item.id, 'required', e.target.checked)}
-                                      className="w-4 h-4 accent-blue-500 cursor-pointer"
+                                      className="w-4 h-4 cursor-pointer" style={{ accentColor: "var(--color-primary)" }}
                                     />
-                                    <span className="text-sm text-gray-300">Required</span>
+                                    <span className="text-sm text-content-secondary">Required</span>
                                   </label>
                                 </div>
                               )}
@@ -856,20 +856,20 @@ const CreateFormModal = ({
                     <div className="flex flex-col sm:flex-row gap-2 mt-4 sm:flex-wrap">
                       <button
                         onClick={() => addQuestion(section.id)}
-                        className="text-blue-400 hover:text-blue-300 text-sm px-3 py-2 rounded hover:bg-blue-500/10 transition-colors text-left"
+                        className="text-primary hover:text-primary-hover text-sm px-3 py-2 rounded hover:bg-primary/10 transition-colors text-left"
                       >
                         + Add Question
                       </button>
                       <button
                         onClick={() => addVariableField(section.id)}
-                        className="text-blue-400 hover:text-blue-300 text-sm px-3 py-2 rounded hover:bg-blue-500/10 transition-colors flex items-center gap-1"
+                        className="text-primary hover:text-primary-hover text-sm px-3 py-2 rounded hover:bg-primary/10 transition-colors flex items-center gap-1"
                       >
                         <Link size={14} />
                         + Add Variable Question
                       </button>
                       <button
                         onClick={() => addTextBlock(section.id)}
-                        className="text-gray-400 hover:text-gray-300 text-sm px-3 py-2 rounded hover:bg-gray-500/10 transition-colors text-left"
+                        className="text-content-muted hover:text-content-secondary text-sm px-3 py-2 rounded hover:bg-surface-button-hover/10 transition-colors text-left"
                       >
                         + Add Text Block
                       </button>
@@ -878,32 +878,32 @@ const CreateFormModal = ({
                 ))}
 
                 {sections.length === 0 && (
-                  <div className="text-center py-8 text-gray-400 text-base">
+                  <div className="text-center py-8 text-content-muted text-base">
                     No sections added yet. Click "Add Section" to get started.
                   </div>
                 )}
               </div>
 
               {/* Signature Settings - Collapsible */}
-              <div className="bg-[#161616] border border-gray-700 rounded-lg overflow-hidden">
+              <div className="bg-surface-dark border border-border rounded-lg overflow-hidden">
                 <button
                   type="button"
                   onClick={() => setIsSignatureSettingsOpen(!isSignatureSettingsOpen)}
-                  className="w-full p-4 flex items-center justify-between text-left hover:bg-[#1a1a1a] transition-colors"
+                  className="w-full p-4 flex items-center justify-between text-left hover:bg-surface-dark transition-colors"
                 >
-                  <h3 className="text-base font-semibold text-white">Signature Settings</h3>
+                  <h3 className="text-base font-semibold text-content-primary">Signature Settings</h3>
                   {isSignatureSettingsOpen ? (
-                    <ChevronUp size={20} className="text-gray-400" />
+                    <ChevronUp size={20} className="text-content-muted" />
                   ) : (
-                    <ChevronDown size={20} className="text-gray-400" />
+                    <ChevronDown size={20} className="text-content-muted" />
                   )}
                 </button>
                 
                 {isSignatureSettingsOpen && (
                   <div className="px-4 pb-4 space-y-3">
                     {/* Show Location Toggle */}
-                    <label className="flex items-center justify-between p-3 bg-[#1C1C1C] rounded-lg cursor-pointer hover:bg-[#252525] transition-colors">
-                      <span className="text-sm text-gray-300">Show Location</span>
+                    <label className="flex items-center justify-between p-3 bg-surface-base rounded-lg cursor-pointer hover:bg-surface-hover transition-colors">
+                      <span className="text-sm text-content-secondary">Show Location</span>
                       <button
                         type="button"
                         onClick={() => setSignatureSettings({
@@ -911,7 +911,7 @@ const CreateFormModal = ({
                           showLocation: !signatureSettings.showLocation
                         })}
                         className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                          signatureSettings.showLocation ? 'bg-blue-600' : 'bg-gray-600'
+                          signatureSettings.showLocation ? 'bg-primary' : 'bg-surface-button'
                         }`}
                       >
                         <span
@@ -925,7 +925,7 @@ const CreateFormModal = ({
                     {/* Location Input - Only show when showLocation is true */}
                     {signatureSettings.showLocation && (
                       <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                        <label className="block text-sm font-medium text-content-secondary mb-2">
                           Default Location
                         </label>
                         <input
@@ -935,15 +935,15 @@ const CreateFormModal = ({
                             ...signatureSettings,
                             defaultLocation: e.target.value
                           })}
-                          className="w-full bg-[#1C1C1C] border border-gray-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-500"
+                          className="w-full bg-surface-base border border-border rounded-lg px-3 py-2 text-content-primary text-sm focus:outline-none focus:border-primary"
                           placeholder="e.g., Berlin, Germany"
                         />
                       </div>
                     )}
 
                     {/* Show Date Toggle */}
-                    <label className="flex items-center justify-between p-3 bg-[#1C1C1C] rounded-lg cursor-pointer hover:bg-[#252525] transition-colors">
-                      <span className="text-sm text-gray-300">Show Todays Date</span>
+                    <label className="flex items-center justify-between p-3 bg-surface-base rounded-lg cursor-pointer hover:bg-surface-hover transition-colors">
+                      <span className="text-sm text-content-secondary">Show Todays Date</span>
                       <button
                         type="button"
                         onClick={() => setSignatureSettings({
@@ -951,7 +951,7 @@ const CreateFormModal = ({
                           showDate: !signatureSettings.showDate
                         })}
                         className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-                          signatureSettings.showDate ? 'bg-blue-600' : 'bg-gray-600'
+                          signatureSettings.showDate ? 'bg-primary' : 'bg-surface-button'
                         }`}
                       >
                         <span
@@ -970,17 +970,17 @@ const CreateFormModal = ({
 
         {/* Fixed Footer */}
         {!showTitleOnly && (
-          <div className="flex-shrink-0 border-t border-gray-700 p-4 sm:p-6">
+          <div className="flex-shrink-0 border-t border-border p-4 sm:p-6">
             <div className="flex flex-col sm:flex-row justify-end gap-3">
               <button
                 onClick={() => setShowModal(false)}
-                className="px-4 py-3 text-gray-300 text-sm hover:text-white transition-colors border border-gray-600 rounded-lg w-full sm:w-auto"
+                className="px-4 py-3 text-content-secondary text-sm hover:text-content-primary transition-colors border border-border rounded-lg w-full sm:w-auto"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSaveWithValidation}
-                className="bg-orange-500 hover:bg-orange-600 text-sm text-white px-4 py-3 rounded-lg transition-colors w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-primary hover:bg-primary-hover text-sm text-white px-4 py-3 rounded-lg transition-colors w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={!formTitle.trim() || getTotalQuestionCount() === 0}
               >
                 {editingForm ? 'Save Changes' : 'Create Form'}
@@ -993,15 +993,15 @@ const CreateFormModal = ({
       {/* Delete Section Confirmation Modal */}
       {deletingSectionId && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-[60]">
-          <div className="bg-[#1C1C1C] rounded-lg p-6 w-full max-w-md border border-gray-700">
+          <div className="bg-surface-base rounded-lg p-6 w-full max-w-md border border-border">
             <h3 className="text-lg font-bold mb-2">Delete Section?</h3>
-            <p className="text-gray-300 text-sm mb-4">
+            <p className="text-content-secondary text-sm mb-4">
               Are you sure you want to delete this section? This action cannot be undone.
             </p>
             <div className="flex gap-3 justify-end">
               <button
                 onClick={cancelDeleteSection}
-                className="px-4 py-2 text-gray-300 text-sm hover:text-white transition-colors border border-gray-600 rounded-lg"
+                className="px-4 py-2 text-content-secondary text-sm hover:text-content-primary transition-colors border border-border rounded-lg"
               >
                 Cancel
               </button>
@@ -1019,17 +1019,17 @@ const CreateFormModal = ({
       {/* Warning Modal for incomplete content */}
       {showWarningModal && (
         <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-[60]">
-          <div className="bg-[#1C1C1C] rounded-lg p-6 w-full max-w-md border border-gray-700">
+          <div className="bg-surface-base rounded-lg p-6 w-full max-w-md border border-border">
             <h3 className="text-lg font-bold mb-2 text-yellow-500">Incomplete Content</h3>
-            <p className="text-gray-300 text-sm mb-3">
+            <p className="text-content-secondary text-sm mb-3">
               The following issues were found:
             </p>
-            <ul className="list-disc list-inside text-gray-400 text-sm mb-4 space-y-1">
+            <ul className="list-disc list-inside text-content-muted text-sm mb-4 space-y-1">
               {warningMessages.map((msg, index) => (
                 <li key={index}>{msg}</li>
               ))}
             </ul>
-            <p className="text-gray-300 text-sm mb-4">
+            <p className="text-content-secondary text-sm mb-4">
               Do you want to save anyway?
             </p>
             <div className="flex gap-3 justify-end">
@@ -1038,13 +1038,13 @@ const CreateFormModal = ({
                   setShowWarningModal(false);
                   setWarningMessages([]);
                 }}
-                className="px-4 py-2 text-gray-300 text-sm hover:text-white transition-colors border border-gray-600 rounded-lg"
+                className="px-4 py-2 text-content-secondary text-sm hover:text-content-primary transition-colors border border-border rounded-lg"
               >
                 Go Back
               </button>
               <button
                 onClick={confirmSaveAnyway}
-                className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm transition-colors"
+                className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg text-sm transition-colors"
               >
                 Save Anyway
               </button>

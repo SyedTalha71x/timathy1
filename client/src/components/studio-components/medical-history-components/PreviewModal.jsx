@@ -85,7 +85,7 @@ const PreviewModal = ({ showPreviewModal, setShowPreviewModal, previewForm }) =>
           <div className="mt-3">
             <div className="relative">
               <select
-                className="w-full bg-[#161616] border border-gray-600 rounded-lg px-4 py-3 text-gray-300 text-base cursor-default appearance-none"
+                className="w-full bg-surface-dark border border-border rounded-lg px-4 py-3 text-content-secondary text-base cursor-default appearance-none"
                 disabled
               >
                 <option value="">Select {variableLabel}...</option>
@@ -96,7 +96,7 @@ const PreviewModal = ({ showPreviewModal, setShowPreviewModal, previewForm }) =>
                 ))}
               </select>
               <svg 
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none w-4 h-4" 
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-content-muted pointer-events-none w-4 h-4" 
                 fill="none" 
                 viewBox="0 0 24 24" 
                 stroke="currentColor"
@@ -104,7 +104,7 @@ const PreviewModal = ({ showPreviewModal, setShowPreviewModal, previewForm }) =>
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </div>
-            <div className="mt-2 text-xs text-gray-500 flex items-center gap-1">
+            <div className="mt-2 text-xs text-content-faint flex items-center gap-1">
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
               </svg>
@@ -119,12 +119,12 @@ const PreviewModal = ({ showPreviewModal, setShowPreviewModal, previewForm }) =>
             <div className="relative">
               <input
                 type="date"
-                className="w-full bg-[#161616] border border-gray-600 rounded-lg px-4 py-3 text-gray-400 text-base cursor-default pointer-events-none"
+                className="w-full bg-surface-dark border border-border rounded-lg px-4 py-3 text-content-muted text-base cursor-default pointer-events-none"
                 disabled
                 readOnly
               />
             </div>
-            <div className="mt-2 text-xs text-gray-500 flex items-center gap-1">
+            <div className="mt-2 text-xs text-content-faint flex items-center gap-1">
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
               </svg>
@@ -138,12 +138,12 @@ const PreviewModal = ({ showPreviewModal, setShowPreviewModal, previewForm }) =>
           <div className="mt-3">
             <input
               type="text"
-              className="w-full bg-[#161616] border border-gray-600 rounded-lg px-4 py-3 text-gray-400 text-base cursor-default pointer-events-none"
+              className="w-full bg-surface-dark border border-border rounded-lg px-4 py-3 text-content-muted text-base cursor-default pointer-events-none"
               placeholder={`[${variableLabel}]`}
               disabled
               readOnly
             />
-            <div className="mt-2 text-xs text-gray-500 flex items-center gap-1">
+            <div className="mt-2 text-xs text-content-faint flex items-center gap-1">
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
               </svg>
@@ -167,7 +167,7 @@ const PreviewModal = ({ showPreviewModal, setShowPreviewModal, previewForm }) =>
                 disabled 
                 readOnly
               />
-              <span className="text-gray-300">Yes</span>
+              <span className="text-content-secondary">Yes</span>
             </label>
             <label className="flex items-center gap-2 cursor-default">
               <input 
@@ -176,7 +176,7 @@ const PreviewModal = ({ showPreviewModal, setShowPreviewModal, previewForm }) =>
                 disabled 
                 readOnly
               />
-              <span className="text-gray-300">No</span>
+              <span className="text-content-secondary">No</span>
             </label>
           </div>
         );
@@ -190,7 +190,7 @@ const PreviewModal = ({ showPreviewModal, setShowPreviewModal, previewForm }) =>
                 disabled 
                 readOnly
               />
-              <span className="text-gray-300">Yes</span>
+              <span className="text-content-secondary">Yes</span>
             </label>
             <label className="flex items-center gap-2 cursor-default">
               <input 
@@ -199,7 +199,7 @@ const PreviewModal = ({ showPreviewModal, setShowPreviewModal, previewForm }) =>
                 disabled 
                 readOnly
               />
-              <span className="text-gray-300">No</span>
+              <span className="text-content-secondary">No</span>
             </label>
             <label className="flex items-center gap-2 cursor-default">
               <input 
@@ -208,7 +208,7 @@ const PreviewModal = ({ showPreviewModal, setShowPreviewModal, previewForm }) =>
                 disabled 
                 readOnly
               />
-              <span className="text-gray-300">Don't know</span>
+              <span className="text-content-secondary">Don't know</span>
             </label>
           </div>
         );
@@ -223,7 +223,7 @@ const PreviewModal = ({ showPreviewModal, setShowPreviewModal, previewForm }) =>
                   disabled 
                   readOnly
                 />
-                <span className="text-gray-300">
+                <span className="text-content-secondary">
                   {String.fromCharCode(97 + index)}). {option.text}
                 </span>
               </label>
@@ -235,7 +235,7 @@ const PreviewModal = ({ showPreviewModal, setShowPreviewModal, previewForm }) =>
           <div className="mt-3">
             <input
               type="text"
-              className="w-full bg-[#161616] border border-gray-600 rounded-lg px-4 py-3 text-gray-400 text-base cursor-default pointer-events-none"
+              className="w-full bg-surface-dark border border-border rounded-lg px-4 py-3 text-content-muted text-base cursor-default pointer-events-none"
               placeholder="Text input..."
               disabled
               readOnly
@@ -266,20 +266,20 @@ const PreviewModal = ({ showPreviewModal, setShowPreviewModal, previewForm }) =>
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 select-none">
-      <div className="bg-[#1C1C1C] rounded-xl w-full max-w-4xl border border-gray-700 flex flex-col max-h-[90vh]">
+      <div className="bg-surface-base rounded-xl w-full max-w-4xl border border-border flex flex-col max-h-[90vh]">
         {/* Fixed Header */}
-        <div className="flex-shrink-0 flex justify-between items-center p-6 border-b border-gray-700">
+        <div className="flex-shrink-0 flex justify-between items-center p-6 border-b border-border">
           <div>
-            <h2 className="text-xl font-bold text-white">
+            <h2 className="text-xl font-bold text-content-primary">
               {previewForm.title}
             </h2>
-            <p className="text-gray-400 text-sm">
+            <p className="text-content-muted text-sm">
               Form Preview
             </p>
           </div>
           <button
             onClick={() => setShowPreviewModal(false)}
-            className="text-gray-400 hover:text-white text-lg p-2 hover:bg-gray-800 rounded-lg transition-colors"
+            className="text-content-muted hover:text-content-primary text-lg p-2 hover:bg-surface-hover rounded-lg transition-colors"
           >
             <X size={20} />
           </button>
@@ -290,8 +290,8 @@ const PreviewModal = ({ showPreviewModal, setShowPreviewModal, previewForm }) =>
           {/* Form Sections */}
           <div className="space-y-6">
             {previewForm.sections.map((section) => (
-              <div key={section.id} className="bg-[#161616] border border-gray-600 rounded-lg p-6">
-                <h3 className="text-lg font-semibold text-white mb-4 border-b border-gray-600 pb-2">
+              <div key={section.id} className="bg-surface-dark border border-border rounded-lg p-6">
+                <h3 className="text-lg font-semibold text-content-primary mb-4 border-b border-border pb-2">
                   {section.name}
                 </h3>
                 
@@ -301,8 +301,8 @@ const PreviewModal = ({ showPreviewModal, setShowPreviewModal, previewForm }) =>
                     // Text block rendering
                     if (item.itemType === 'textBlock') {
                       return (
-                        <div key={item.id} className="p-4 bg-[#1C1C1C] rounded-lg">
-                          <p className="text-sm text-gray-300 whitespace-pre-wrap leading-relaxed">
+                        <div key={item.id} className="p-4 bg-surface-base rounded-lg">
+                          <p className="text-sm text-content-secondary whitespace-pre-wrap leading-relaxed">
                             {item.text}
                           </p>
                         </div>
@@ -312,15 +312,15 @@ const PreviewModal = ({ showPreviewModal, setShowPreviewModal, previewForm }) =>
                     // Variable field rendering
                     if (item.itemType === 'variableField') {
                       return (
-                        <div key={item.id} className="p-4 bg-[#1C1C1C] rounded-lg">
-                          <p className="font-medium text-white mb-1">
+                        <div key={item.id} className="p-4 bg-surface-base rounded-lg">
+                          <p className="font-medium text-content-primary mb-1">
                             {item.number}. {item.text || 'Untitled Variable Field'}
                             {item.required !== false && <span className="text-red-500 ml-1">*</span>}
                           </p>
                           {item.variable ? (
                             renderVariableInput(item)
                           ) : (
-                            <div className="mt-3 text-sm text-gray-500 italic">
+                            <div className="mt-3 text-sm text-content-faint italic">
                               No variable selected
                             </div>
                           )}
@@ -330,8 +330,8 @@ const PreviewModal = ({ showPreviewModal, setShowPreviewModal, previewForm }) =>
                     
                     // Question rendering (default)
                     return (
-                      <div key={item.id} className="p-4 bg-[#1C1C1C] rounded-lg">
-                        <p className="font-medium text-white mb-3">
+                      <div key={item.id} className="p-4 bg-surface-base rounded-lg">
+                        <p className="font-medium text-content-primary mb-3">
                           {item.number}. {item.text}
                           {item.required !== false && <span className="text-red-500 ml-1">*</span>}
                         </p>
@@ -345,15 +345,15 @@ const PreviewModal = ({ showPreviewModal, setShowPreviewModal, previewForm }) =>
           </div>
 
           {/* Signature Section */}
-          <div className="mt-6 bg-[#161616] border border-gray-600 rounded-lg p-6">
+          <div className="mt-6 bg-surface-dark border border-border rounded-lg p-6">
             <div className="mb-4">
               {/* Signature Canvas - Smaller */}
-              <div className="bg-[#1C1C1C] border-2 border-gray-600 rounded-lg overflow-hidden p-8">
+              <div className="bg-surface-base border-2 border-border rounded-lg overflow-hidden p-8">
                 <div className="w-full h-32 flex flex-col justify-end">
-                  <div className="w-full border-b-2 border-gray-600"></div>
+                  <div className="w-full border-b-2 border-border"></div>
                   {/* Date and Location under signature line */}
                   {getDateAndLocation() && (
-                    <div className="text-sm text-gray-400 mt-2">
+                    <div className="text-sm text-content-muted mt-2">
                       {getDateAndLocation()}
                     </div>
                   )}
@@ -364,10 +364,10 @@ const PreviewModal = ({ showPreviewModal, setShowPreviewModal, previewForm }) =>
         </div>
 
         {/* Fixed Footer */}
-        <div className="flex-shrink-0 flex justify-end p-6 border-t border-gray-700">
+        <div className="flex-shrink-0 flex justify-end p-6 border-t border-border">
           <button
             onClick={() => setShowPreviewModal(false)}
-            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            className="px-4 py-2 bg-surface-button text-content-secondary rounded-lg hover:bg-surface-button-hover transition-colors"
           >
             Close Preview
           </button>

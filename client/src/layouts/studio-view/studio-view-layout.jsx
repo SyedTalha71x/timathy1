@@ -141,8 +141,8 @@ const Dashboardlayout = () => {
           {/* Main Content Area */}
           <main
             className={`
-              flex-1 md:h-screen h-[calc(100vh-4rem)] overflow-y-auto 
-              lg:pt-2 md:pt-16 sm:pt-16 pt-16
+              flex-1 md:h-screen h-[calc(100vh-3.5rem)] overflow-y-auto 
+              lg:pt-0 md:pt-14 sm:pt-14 pt-14
               pb-10 p-2
               transition-all duration-500 ease-in-out
               ${(isSellingPage ? isExternalSidebarOpen : isRightSidebarOpen) && !isLeadsPage && !isMyAreaPage ? "lg:mr-[400px] mr-0" : "mr-0"}

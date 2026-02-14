@@ -218,7 +218,7 @@ export default function TrainingPlansModalMain({
       case 'beginner': return 'bg-green-500/20 text-green-400'
       case 'intermediate': return 'bg-yellow-500/20 text-yellow-400'
       case 'advanced': return 'bg-red-500/20 text-red-400'
-      default: return 'bg-gray-500/20 text-gray-400'
+      default: return 'bg-surface-button/20 text-content-muted'
     }
   }
 
@@ -228,7 +228,7 @@ export default function TrainingPlansModalMain({
       case 'beginner': return 'bg-green-600'
       case 'intermediate': return 'bg-yellow-600'
       case 'advanced': return 'bg-red-600'
-      default: return 'bg-gray-600'
+      default: return 'bg-surface-button'
     }
   }
 
@@ -247,27 +247,27 @@ export default function TrainingPlansModalMain({
       onClick={onClose}
     >
       <div 
-        className="bg-[#181818] rounded-xl w-full max-w-2xl max-h-[85vh] overflow-hidden"
+        className="bg-surface-dark rounded-xl w-full max-w-2xl max-h-[85vh] overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* ================================================================= */}
         {/* HEADER */}
         {/* ================================================================= */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-700">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-border">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-orange-500 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
               <Dumbbell className="text-white" size={20} />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-white">Training Plans</h2>
-              <p className="text-gray-400 text-sm">
+              <h2 className="text-lg font-semibold text-content-primary">Training Plans</h2>
+              <p className="text-content-muted text-sm">
                 {member?.firstName} {member?.lastName}
               </p>
             </div>
           </div>
           <button 
             onClick={onClose} 
-            className="p-2 hover:bg-zinc-700 text-gray-400 hover:text-white rounded-lg transition-colors"
+            className="p-2 hover:bg-zinc-700 text-content-muted hover:text-content-primary rounded-lg transition-colors"
           >
             <X size={20} />
           </button>
@@ -280,10 +280,10 @@ export default function TrainingPlansModalMain({
           {/* Assigned Plans Section */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-base font-medium text-white">Assigned Plans</h3>
+              <h3 className="text-base font-medium text-content-primary">Assigned Plans</h3>
               <button
                 onClick={() => setShowAssignModal(true)}
-                className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl flex items-center gap-2 transition-colors text-sm font-medium"
+                className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-xl flex items-center gap-2 transition-colors text-sm font-medium"
               >
                 <Plus size={16} />
                 Assign Plan
@@ -298,22 +298,22 @@ export default function TrainingPlansModalMain({
                   return (
                     <div 
                       key={plan.id} 
-                      className="bg-[#222222] rounded-xl p-4 hover:bg-[#2a2a2a] transition-colors"
+                      className="bg-surface-card rounded-xl p-4 hover:bg-surface-hover transition-colors"
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1 pr-4">
                           <div className="flex items-center gap-3 mb-2 flex-wrap">
-                            <h4 className="text-white font-medium">{plan.name}</h4>
+                            <h4 className="text-content-primary font-medium">{plan.name}</h4>
                             {showDifficulty && (
                               <span className={`text-xs px-2 py-0.5 rounded-full ${getDifficultyColor(plan.difficulty)}`}>
                                 {plan.difficulty}
                               </span>
                             )}
                           </div>
-                          <p className="text-gray-400 text-sm mb-3">{plan.description}</p>
+                          <p className="text-content-muted text-sm mb-3">{plan.description}</p>
                           
                           {/* Plan Details */}
-                          <div className="flex items-center gap-4 text-xs text-gray-500 flex-wrap">
+                          <div className="flex items-center gap-4 text-xs text-content-faint flex-wrap">
                             {plan.duration && (
                               <span className="flex items-center gap-1.5">
                                 <Clock size={12} />
@@ -339,14 +339,14 @@ export default function TrainingPlansModalMain({
                         <div className="flex items-center gap-1">
                           <button
                             onClick={() => setViewingPlan(plan)}
-                            className="text-gray-400 hover:text-orange-400 p-2 rounded-lg hover:bg-gray-800 transition-colors"
+                            className="text-content-muted hover:text-primary p-2 rounded-lg hover:bg-surface-dark transition-colors"
                             title="View Exercises"
                           >
                             <Eye size={18} />
                           </button>
                           <button
                             onClick={() => setConfirmRemove(plan.id)}
-                            className="text-gray-400 hover:text-orange-400 p-2 rounded-lg hover:bg-gray-800 transition-colors"
+                            className="text-content-muted hover:text-primary p-2 rounded-lg hover:bg-surface-dark transition-colors"
                             title="Unassign Plan"
                           >
                             <Minus size={18} />
@@ -356,12 +356,12 @@ export default function TrainingPlansModalMain({
 
                       {/* Confirm Unassign Dialog */}
                       {confirmRemove === plan.id && (
-                        <div className="mt-3 pt-3 border-t border-gray-700 flex items-center justify-between">
-                          <span className="text-sm text-gray-400">Unassign this plan?</span>
+                        <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
+                          <span className="text-sm text-content-muted">Unassign this plan?</span>
                           <div className="flex gap-2">
                             <button
                               onClick={() => setConfirmRemove(null)}
-                              className="px-3 py-1.5 text-xs text-gray-400 hover:text-white bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
+                              className="px-3 py-1.5 text-xs text-content-muted hover:text-content-primary bg-surface-dark hover:bg-surface-button rounded-lg transition-colors"
                             >
                               Cancel
                             </button>
@@ -379,10 +379,10 @@ export default function TrainingPlansModalMain({
                 })}
               </div>
             ) : (
-              <div className="text-center py-12 bg-[#222222] rounded-xl">
-                <Dumbbell size={48} className="mx-auto mb-3 text-gray-600" />
-                <p className="text-gray-400 font-medium">No training plans assigned</p>
-                <p className="text-sm text-gray-500 mt-1">Click "Assign Plan" to get started</p>
+              <div className="text-center py-12 bg-surface-card rounded-xl">
+                <Dumbbell size={48} className="mx-auto mb-3 text-content-faint" />
+                <p className="text-content-muted font-medium">No training plans assigned</p>
+                <p className="text-sm text-content-faint mt-1">Click "Assign Plan" to get started</p>
               </div>
             )}
           </div>
@@ -391,10 +391,10 @@ export default function TrainingPlansModalMain({
         {/* ================================================================= */}
         {/* FOOTER */}
         {/* ================================================================= */}
-        <div className="px-6 py-4 border-t border-gray-700">
+        <div className="px-6 py-4 border-t border-border">
           <button
             onClick={onClose}
-            className="w-full py-2.5 text-sm text-gray-400 hover:text-white bg-[#2F2F2F] hover:bg-[#3F3F3F] rounded-xl transition-colors"
+            className="w-full py-2.5 text-sm text-content-muted hover:text-content-primary bg-surface-button hover:bg-surface-button-hover rounded-xl transition-colors"
           >
             Close
           </button>
@@ -409,30 +409,30 @@ export default function TrainingPlansModalMain({
             onClick={() => setShowAssignModal(false)}
           >
             <div 
-              className="bg-[#181818] rounded-xl w-full max-w-md overflow-hidden"
+              className="bg-surface-dark rounded-xl w-full max-w-md overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Modal Header */}
-              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-700">
-                <h3 className="text-lg font-medium text-white">Assign Training Plan</h3>
+              <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+                <h3 className="text-lg font-medium text-content-primary">Assign Training Plan</h3>
                 <button 
                   onClick={() => setShowAssignModal(false)} 
-                  className="p-2 hover:bg-zinc-700 text-gray-400 hover:text-white rounded-lg transition-colors"
+                  className="p-2 hover:bg-zinc-700 text-content-muted hover:text-content-primary rounded-lg transition-colors"
                 >
                   <X size={18} />
                 </button>
               </div>
 
               {/* Search */}
-              <div className="p-4 border-b border-gray-700">
+              <div className="p-4 border-b border-border">
                 <div className="relative">
-                  <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" />
+                  <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-content-faint" />
                   <input
                     type="text"
                     placeholder="Search plans..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-[#222222] border border-gray-600 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
+                    className="w-full bg-surface-card border border-border rounded-xl pl-10 pr-4 py-2.5 text-sm text-content-primary placeholder-content-faint focus:outline-none focus:border-primary transition-colors"
                   />
                 </div>
               </div>
@@ -447,32 +447,32 @@ export default function TrainingPlansModalMain({
                       return (
                         <div
                           key={plan.id}
-                          className="p-3 rounded-xl hover:bg-[#222222] transition-colors flex items-center justify-between group"
+                          className="p-3 rounded-xl hover:bg-surface-card transition-colors flex items-center justify-between group"
                         >
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
-                              <span className="text-white font-medium text-sm">{plan.name}</span>
+                              <span className="text-content-primary font-medium text-sm">{plan.name}</span>
                               {showDifficulty && (
                                 <span className={`text-xs px-2 py-0.5 rounded-full ${getDifficultyColor(plan.difficulty)}`}>
                                   {plan.difficulty}
                                 </span>
                               )}
                             </div>
-                            <p className="text-xs text-gray-500 mt-1">
+                            <p className="text-xs text-content-faint mt-1">
                               {plan.duration} - {plan.exercises?.length || 0} exercises
                             </p>
                           </div>
                           <div className="flex items-center gap-1">
                             <button
                               onClick={() => setViewingPlan(plan)}
-                              className="p-2 text-gray-400 hover:text-orange-400 rounded-lg hover:bg-gray-700 transition-colors"
+                              className="p-2 text-content-muted hover:text-primary rounded-lg hover:bg-surface-dark transition-colors"
                               title="View Plan"
                             >
                               <Eye size={16} />
                             </button>
                             <button
                               onClick={() => handleAssignPlan(plan.id)}
-                              className="p-2 text-gray-400 hover:text-orange-400 rounded-lg hover:bg-gray-700 transition-colors"
+                              className="p-2 text-content-muted hover:text-primary rounded-lg hover:bg-surface-dark transition-colors"
                               title="Assign Plan"
                             >
                               <Plus size={16} />
@@ -483,17 +483,17 @@ export default function TrainingPlansModalMain({
                     })}
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-gray-500 text-sm">
+                  <div className="text-center py-8 text-content-faint text-sm">
                     {searchQuery ? 'No plans found' : 'All plans are already assigned'}
                   </div>
                 )}
               </div>
 
               {/* Modal Footer */}
-              <div className="flex gap-3 p-4 border-t border-gray-700">
+              <div className="flex gap-3 p-4 border-t border-border">
                 <button
                   onClick={() => setShowAssignModal(false)}
-                  className="flex-1 py-2.5 text-sm text-gray-400 hover:text-white bg-gray-700 hover:bg-gray-600 rounded-xl transition-colors"
+                  className="flex-1 py-2.5 text-sm text-content-muted hover:text-content-primary bg-surface-dark hover:bg-surface-button rounded-xl transition-colors"
                 >
                   Close
                 </button>

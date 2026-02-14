@@ -60,7 +60,7 @@ const DashboardHeader = ({
   const languageDropdownRef = useRef(null)
   const profileDropdownRef = useRef(null)
   
-  // User data (später aus Context/API)
+  // User data (spÃ¤ter aus Context/API)
   const studioName = "Studio One"
   const fullName = "Samantha Jerry"
   const role = "Trainer"
@@ -74,7 +74,7 @@ const DashboardHeader = ({
     { code: "it", name: "Italian", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Flag_of_Italy.svg/1280px-Flag_of_Italy.svg.png" },
   ]
   
-  // Activity log data (später aus API)
+  // Activity log data (spÃ¤ter aus API)
   const activityLogs = [
     { id: 1, action: "Appointment Created", description: "Created new appointment for John Doe - Personal Training", timestamp: "2024-12-15 14:30", type: "appointment" },
     { id: 2, action: "Member Updated", description: "Updated profile information for Sarah Smith", timestamp: "2024-12-15 13:15", type: "member" },
@@ -381,7 +381,7 @@ const DashboardHeader = ({
       )}
       
       {/* ===== MOBILE HEADER (lg:hidden) ===== */}
-      <div className="fixed top-0 left-0 w-full bg-surface-dark border-b border-border-subtle p-2 flex items-center justify-between lg:hidden z-40 select-none">
+      <div className="fixed top-0 left-0 w-full bg-surface-dark border-b border-border-default py-1.5 px-2 flex items-center justify-between lg:hidden z-40 select-none">
         <div className="flex items-center gap-2">
           <div className="bg-primary p-2 rounded-md">
             <img draggable="false" src={OrgaGymLogoWihoutText} className="h-6 w-6" alt="Orgagym Logo" />
@@ -426,7 +426,7 @@ const DashboardHeader = ({
       </div>
       
       {/* ===== DESKTOP HEADER (hidden lg:flex) ===== */}
-      <div className="lg:flex hidden rounded-md justify-between bg-surface-hover z-10 py-1.5 px-2 mb-2 items-center gap-2 select-none">
+      <div className="lg:flex hidden rounded-md justify-between bg-surface-hover z-20 py-1 px-2 mb-2 items-center gap-2 select-none sticky top-0">
         {/* Left - Menu Toggle */}
         <div className="flex items-center">
           {toggleLeftSidebarCollapse && (
@@ -639,7 +639,7 @@ const DashboardHeader = ({
             <p className="text-sm text-content-muted mb-3">Released on December 15, 2024</p>
             <div className="space-y-2">
               <div>
-                <h4 className="font-medium text-content-primary mb-2">🎉 New Features</h4>
+                <h4 className="font-medium text-content-primary mb-2">ðŸŽ‰ New Features</h4>
                 <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
                   <li>Enhanced member analytics dashboard</li>
                   <li>Real-time class capacity tracking</li>
@@ -648,7 +648,7 @@ const DashboardHeader = ({
                 </ul>
               </div>
               <div>
-                <h4 className="font-medium text-content-primary mb-2">🔧 Improvements</h4>
+                <h4 className="font-medium text-content-primary mb-2">ðŸ”§ Improvements</h4>
                 <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
                   <li>Faster loading times for member profiles</li>
                   <li>Improved search functionality</li>
@@ -656,7 +656,7 @@ const DashboardHeader = ({
                 </ul>
               </div>
               <div>
-                <h4 className="font-medium text-content-primary mb-2">🐛 Bug Fixes</h4>
+                <h4 className="font-medium text-content-primary mb-2">ðŸ› Bug Fixes</h4>
                 <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
                   <li>Fixed calendar sync issues</li>
                   <li>Resolved payment processing errors</li>
@@ -671,7 +671,7 @@ const DashboardHeader = ({
             <p className="text-sm text-content-muted mb-3">Released on November 28, 2024</p>
             <div className="space-y-2">
               <div>
-                <h4 className="font-medium text-content-primary mb-2">🔧 Improvements</h4>
+                <h4 className="font-medium text-content-primary mb-2">ðŸ”§ Improvements</h4>
                 <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
                   <li>Enhanced security measures</li>
                   <li>Improved data backup system</li>
@@ -679,7 +679,7 @@ const DashboardHeader = ({
                 </ul>
               </div>
               <div>
-                <h4 className="font-medium text-content-primary mb-2">🐛 Bug Fixes</h4>
+                <h4 className="font-medium text-content-primary mb-2">ðŸ› Bug Fixes</h4>
                 <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
                   <li>Fixed trainer schedule conflicts</li>
                   <li>Resolved email notification delays</li>
@@ -693,7 +693,7 @@ const DashboardHeader = ({
             <p className="text-sm text-content-muted mb-3">Released on October 15, 2024</p>
             <div className="space-y-2">
               <div>
-                <h4 className="font-medium text-content-primary mb-2">🎉 Major Release</h4>
+                <h4 className="font-medium text-content-primary mb-2">ðŸŽ‰ Major Release</h4>
                 <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
                   <li>Complete UI/UX redesign</li>
                   <li>New member management system</li>
@@ -703,7 +703,7 @@ const DashboardHeader = ({
                 </ul>
               </div>
               <div>
-                <h4 className="font-medium text-content-primary mb-2">🔧 Performance</h4>
+                <h4 className="font-medium text-content-primary mb-2">ðŸ”§ Performance</h4>
                 <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
                   <li>50% faster page load times</li>
                   <li>Improved database optimization</li>
@@ -718,7 +718,7 @@ const DashboardHeader = ({
             <p className="text-sm text-content-muted mb-3">Released on September 20, 2024</p>
             <div className="space-y-2">
               <div>
-                <h4 className="font-medium text-content-primary mb-2">🐛 Critical Fixes</h4>
+                <h4 className="font-medium text-content-primary mb-2">ðŸ› Critical Fixes</h4>
                 <ul className="list-disc list-inside space-y-1 ml-4 text-sm">
                   <li>Fixed critical security vulnerability</li>
                   <li>Resolved data synchronization issues</li>

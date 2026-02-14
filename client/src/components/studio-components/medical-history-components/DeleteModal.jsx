@@ -6,10 +6,10 @@ const DeleteModal = ({ showDeleteModal, setShowDeleteModal, formToDelete, handle
   
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-        <div className="bg-[#1C1C1C] rounded-lg p-6 w-full max-w-md border border-gray-700 mx-4">
+        <div className="bg-surface-base rounded-lg p-6 w-full max-w-md border border-border mx-4">
           <div className="mb-6">
             <h2 className="text-xl font-bold mb-2">Confirm Deletion</h2>
-            <p className="text-gray-300 text-sm">
+            <p className="text-content-secondary text-sm">
               Are you sure you want to delete the form "{formToDelete?.title}"? This action cannot be undone.
             </p>
           </div>
@@ -17,7 +17,7 @@ const DeleteModal = ({ showDeleteModal, setShowDeleteModal, formToDelete, handle
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-end">
             <button
               onClick={handleDeleteCancel}
-              className="px-4 py-2 text-gray-300 text-sm hover:text-white transition-colors border border-gray-600 rounded-lg w-full sm:w-auto"
+              className="px-4 py-2 text-content-secondary text-sm hover:text-content-primary transition-colors border border-border rounded-lg w-full sm:w-auto"
             >
               Cancel
             </button>

@@ -42,12 +42,12 @@ const SortableItemCard = ({ item, children, isDragDisabled }) => {
   }
 
   return (
-    <div ref={setNodeRef} style={style} className={`relative h-full ${isDragging ? 'rounded-xl ring-1 ring-gray-500/30' : ''}`}>
+    <div ref={setNodeRef} style={style} className={`relative h-full ${isDragging ? 'rounded-xl ring-1 ring-border/30' : ''}`}>
       {!isDragDisabled && (
         <div 
           {...attributes} 
           {...listeners}
-          className="absolute top-3 left-3 md:top-4 md:left-4 cursor-grab active:cursor-grabbing text-white hover:text-content-primary active:text-blue-400 p-1.5 md:p-1.5 rounded-lg active:bg-blue-600/30 z-20 touch-none bg-black/60 shadow-lg"
+          className="absolute top-3 left-3 md:top-4 md:left-4 cursor-grab active:cursor-grabbing text-white/70 hover:text-white p-1.5 md:p-1.5 rounded-lg z-20 touch-none bg-black/50 hover:bg-black/60 shadow-lg"
           style={{ WebkitTapHighlightColor: 'transparent' }}
         >
           <GripVertical className="w-4 h-4" />
@@ -101,6 +101,8 @@ const Selling = () => {
   const sortDropdownRef = useRef(null)
 
   const [showHistoryModalMain, setShowHistoryModalMain] = useState(false)
+  const [showIndividualSaleModal, setShowIndividualSaleModal] = useState(false)
+  const [individualSaleData, setIndividualSaleData] = useState({ name: "", price: "", vatRate: 19 })
   const [formData, setFormData] = useState({
     name: "",
     price: "",
@@ -343,7 +345,7 @@ const Selling = () => {
     setModalMode("edit")
     setFormData({
       name: item.name,
-      price: item.price.toString(),
+      price: item.price.toFixed(2).replace('.', ','),
       articalNo: item.articalNo || "",
       paymentOption: item.paymentOption || "",
       brandName: item.brandName || "",
@@ -414,7 +416,7 @@ const Selling = () => {
         id: Date.now(),
         name: formData.name,
         brandName: isService ? undefined : formData.brandName,
-        price: Number.parseFloat(formData.price) || 0,
+        price: Number.parseFloat(formData.price.replace(',', '.')) || 0,
         image: selectedImage || null,
         articalNo: isService ? undefined : formData.articalNo,
         paymentOption: formData.paymentOption,
@@ -437,7 +439,7 @@ const Selling = () => {
             return {
               ...item,
               name: formData.name,
-              price: Number.parseFloat(formData.price) || item.price,
+              price: Number.parseFloat(formData.price.replace(',', '.')) || item.price,
               articalNo: isService ? undefined : formData.articalNo,
               paymentOption: formData.paymentOption,
               image: selectedImage || currentProduct?.image || null,
@@ -469,6 +471,27 @@ const Selling = () => {
       setCart([...cart, { ...item, quantity: 1, vatRate: Number(item.vatRate) || 19 }])
     }
     // Only open sidebar on desktop (768px = md breakpoint)
+    if (window.innerWidth >= 768) {
+      setIsRightSidebarOpen(true)
+    }
+  }
+
+  const handleIndividualSaleSubmit = () => {
+    if (!individualSaleData.name || !individualSaleData.price) return
+    const priceNum = parseFloat(individualSaleData.price.replace(',', '.'))
+    if (isNaN(priceNum) || priceNum <= 0) return
+    const item = {
+      id: `individual-${Date.now()}`,
+      name: individualSaleData.name,
+      price: priceNum,
+      type: "product",
+      vatRate: Number(individualSaleData.vatRate) || 19,
+      vatSelectable: false,
+      image: null,
+    }
+    setCart([...cart, { ...item, quantity: 1 }])
+    setShowIndividualSaleModal(false)
+    setIndividualSaleData({ name: "", price: "", vatRate: 19 })
     if (window.innerWidth >= 768) {
       setIsRightSidebarOpen(true)
     }
@@ -831,12 +854,12 @@ Payment: ${sale.paymentMethod}
                   <span className="hidden sm:inline">Journal</span>
                 </button>
                 {/* Tooltip */}
-                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark/90 text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
                   <span className="font-medium">Sales Journal</span>
                   <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
                     J
                   </span>
-                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-surface-dark" />
                 </div>
               </div>
 
@@ -850,12 +873,12 @@ Payment: ${sale.paymentMethod}
                   <span className='hidden sm:inline'>Add {activeTab === "services" ? "Service" : "Product"}</span>
                 </button>
                 {/* Tooltip */}
-                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark/90 text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
                   <span className="font-medium">Add {activeTab === "services" ? "Service" : "Product"}</span>
                   <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
                     C
                   </span>
-                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-black/90" />
+                  <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-l-transparent border-r-transparent border-b-surface-dark" />
                 </div>
               </div>
 
@@ -865,7 +888,7 @@ Payment: ${sale.paymentMethod}
                 className="md:hidden cursor-pointer relative p-3 bg-primary hover:bg-primary-hover rounded-xl transition-colors"
                 aria-label={`Add ${activeTab === "services" ? "Service" : "Product"}`}
               >
-                <Plus size={18} className="text-content-primary" />
+                <Plus size={18} className="text-white" />
               </button>
 
               {/* Cart Icon - Desktop Only - Updated badge styling */}
@@ -916,7 +939,7 @@ Payment: ${sale.paymentMethod}
                 placeholder={activeTab === "products" ? "Search by name, brand or article no..." : "Search by name..."}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-surface-card outline-none text-sm text-content-primary rounded-xl px-4 py-3 md:py-2.5 pl-10 border border-border focus:border-accent-blue transition-colors [&::placeholder]:text-ellipsis [&::placeholder]:overflow-hidden"
+                className="w-full bg-surface-card outline-none text-sm text-content-primary rounded-xl px-4 py-3 md:py-2.5 pl-10 border border-border focus:border-primary transition-colors [&::placeholder]:text-ellipsis [&::placeholder]:overflow-hidden"
               />
             </div>
 
@@ -959,6 +982,27 @@ Payment: ${sale.paymentMethod}
                   ${isRightSidebarOpen ? "lg:grid-cols-4 xl:grid-cols-4" : "lg:grid-cols-4 xl:grid-cols-5"} 
                   gap-4 md:gap-6 auto-rows-fr`}
               >
+                {/* Individual Sale Tile - only in products tab */}
+                {activeTab === "products" && (
+                  <div
+                    onClick={() => {
+                      setIndividualSaleData({ name: "", price: "", vatRate: 19 })
+                      setShowIndividualSaleModal(true)
+                    }}
+                    className="w-full h-full bg-surface-card rounded-2xl overflow-hidden relative group select-none cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all"
+                  >
+                    <div className="relative w-full aspect-video overflow-hidden rounded-t-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                      <div className="text-center">
+                        <Plus size={32} className="mx-auto text-primary mb-1" />
+                        <span className="text-primary text-xs font-medium">Individual</span>
+                      </div>
+                    </div>
+                    <div className="p-3 md:p-4">
+                      <h3 className="font-medium text-content-primary text-sm md:text-base truncate">Individual Sale</h3>
+                      <p className="text-content-muted mt-1 text-xs">Custom product entry</p>
+                    </div>
+                  </div>
+                )}
                 {sortedItems.map((item) => (
                   <SortableItemCard key={item.id} item={item} isDragDisabled={false}>
                     <div className="w-full h-full bg-surface-card rounded-2xl overflow-hidden relative group select-none">
@@ -984,7 +1028,7 @@ Payment: ${sale.paymentMethod}
                         {item.link && (
                           <button
                             onClick={() => window.open(item.link, "_blank")}
-                            className="absolute bottom-3 left-3 cursor-pointer bg-black/50 hover:bg-black/70 text-white p-2 rounded-lg transition-colors"
+                            className="absolute bottom-3 left-3 cursor-pointer bg-black/50 hover:bg-black/65 text-white p-2 rounded-lg transition-colors"
                             aria-label="Open link"
                           >
                             <ExternalLink className="w-4 h-4" />
@@ -995,7 +1039,7 @@ Payment: ${sale.paymentMethod}
                         <div className="absolute bottom-3 right-3">
                           <button
                             onClick={() => addToCart(item)}
-                            className="bg-black/50 cursor-pointer hover:bg-black/70 text-white p-2 rounded-lg transition-colors relative"
+                            className="bg-black/50 cursor-pointer hover:bg-black/65 text-white p-2 rounded-lg transition-colors relative"
                             aria-label="Add to cart"
                           >
                             <ShoppingBasket className="w-4 h-4" />
@@ -1019,23 +1063,23 @@ Payment: ${sale.paymentMethod}
 
                             {/* Row 2: Brand - fixed position for products (shows placeholder if empty) */}
                             {activeTab === "products" && (
-                              <p className="text-slate-200 mt-1 open_sans_font truncate text-sm h-5">
+                              <p className="text-content-muted mt-1 open_sans_font truncate text-sm h-5">
                                 {item.brandName || <span className="text-transparent">-</span>}
                               </p>
                             )}
 
                             {/* Row 3: Article No - fixed position for products (shows placeholder if empty) */}
                             {activeTab === "products" && (
-                              <p className="text-slate-400 mt-1 open_sans_font truncate text-xs h-4">
+                              <p className="text-content-muted mt-1 open_sans_font truncate text-xs h-4">
                                 {item.articalNo ? `Art. No: ${item.articalNo}` : <span className="text-transparent">-</span>}
                               </p>
                             )}
 
                             {/* Row 2 for services: Contingent Credits */}
                             {activeTab === "services" && (
-                              <p className="text-slate-400 mt-1 open_sans_font truncate text-xs h-4">
+                              <p className="text-content-muted mt-1 open_sans_font truncate text-xs h-4">
                                 {item.contingentCredits ? (
-                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-blue-500/15 text-blue-400 rounded text-[11px]">
+                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-primary/15 text-primary rounded text-[11px]">
                                     +{item.contingentCredits} Credit{item.contingentCredits !== 1 ? 's' : ''}
                                   </span>
                                 ) : <span className="text-transparent">-</span>}
@@ -1131,6 +1175,89 @@ Payment: ${sale.paymentMethod}
           onSuccess={handleTempMemberCreated}
           context="selling"
         />
+
+        {/* Individual Sale Modal */}
+        {showIndividualSaleModal && (
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4"
+            onClick={() => setShowIndividualSaleModal(false)}
+          >
+            <div
+              className="bg-surface-base rounded-xl w-full max-w-md relative"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-content-primary text-lg font-semibold">Individual Sale</h2>
+                  <button
+                    onClick={() => setShowIndividualSaleModal(false)}
+                    className="p-2 hover:bg-surface-button rounded-lg transition-colors"
+                  >
+                    <X size={20} className="text-content-muted" />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm text-content-primary block mb-2">Product Name *</label>
+                    <input
+                      type="text"
+                      value={individualSaleData.name}
+                      onChange={(e) => setIndividualSaleData({ ...individualSaleData, name: e.target.value })}
+                      placeholder="Enter product name"
+                      className="w-full bg-surface-dark text-sm rounded-xl px-4 py-3 text-content-primary placeholder-content-faint outline-none border border-transparent focus:border-primary transition-colors open_sans_font"
+                      autoFocus
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm text-content-primary block mb-2">Price *</label>
+                    <div className="flex items-center rounded-xl bg-surface-dark border border-transparent focus-within:border-primary transition-colors">
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        value={individualSaleData.price}
+                        onChange={(e) => { const v = e.target.value; if (v === "" || /^\d*,?\d{0,2}$/.test(v)) setIndividualSaleData({ ...individualSaleData, price: v }) }}
+                        onBlur={(e) => { const v = e.target.value; if (v && v !== "") { const num = parseFloat(v.replace(',', '.')); if (!isNaN(num)) setIndividualSaleData({ ...individualSaleData, price: num.toFixed(2).replace('.', ',') }) } }}
+                        placeholder="0,00"
+                        className="w-full bg-transparent text-sm py-3 pl-4 text-content-primary placeholder-content-faint outline-none open_sans_font"
+                      />
+                      <span className="px-3 text-content-primary text-sm">{getCurrencySymbol()}</span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm text-content-primary block mb-2">VAT Rate</label>
+                    <select
+                      value={individualSaleData.vatRate}
+                      onChange={(e) => setIndividualSaleData({ ...individualSaleData, vatRate: Number(e.target.value) })}
+                      className="w-full bg-surface-dark text-sm rounded-xl px-4 py-3 text-content-primary outline-none border border-transparent focus:border-primary transition-colors open_sans_font"
+                    >
+                      <option value={19} style={{ color: "#000", background: "#fff" }}>19% (eat-in)</option>
+                      <option value={7} style={{ color: "#000", background: "#fff" }}>7% (take-away)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex flex-row-reverse gap-3 mt-6">
+                  <button
+                    onClick={handleIndividualSaleSubmit}
+                    disabled={!individualSaleData.name || !individualSaleData.price}
+                    className="flex-1 sm:flex-none sm:w-auto px-6 py-2.5 bg-primary hover:bg-primary-hover text-sm text-white rounded-xl transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Add to Cart
+                  </button>
+                  <button
+                    onClick={() => setShowIndividualSaleModal(false)}
+                    className="flex-1 sm:flex-none sm:w-auto px-6 py-2.5 bg-transparent text-sm text-content-secondary rounded-xl border border-border hover:bg-surface-dark transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <DeleteConfirmationModal
           show={isDeleteModalOpen}

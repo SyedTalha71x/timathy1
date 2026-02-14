@@ -64,19 +64,24 @@ const SidebarAreaSelling = ({
   return (
     <aside
       className={`
-        fixed top-0 right-0 h-full text-white w-full sm:w-96 bg-[#181818] border-l border-gray-700 z-50
+        fixed top-0 right-0 h-full text-content-primary w-full sm:w-96 bg-surface-base border-l border-border z-50
         transform transition-transform duration-500 ease-in-out
         ${isOpen ? "translate-x-0" : "translate-x-full"}
       `}
     >
+      <style>{`
+        .primary-check { appearance: none; -webkit-appearance: none; width: 1rem; height: 1rem; border-radius: 0.25rem; border: 1px solid var(--color-border); background: var(--color-surface-card); cursor: pointer; flex-shrink: 0; }
+        .primary-check:checked { background-color: var(--color-primary); border-color: var(--color-primary); background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3E%3C/svg%3E"); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; }
+        .primary-check:focus { outline: none; box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 40%, transparent); }
+      `}</style>
       <div className="p-4 md:p-5 custom-scrollbar overflow-y-auto h-full">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <ShoppingCart size={20} className="text-white" />
-            <h2 className="text-base sm:text-lg font-semibold text-white">Shopping Basket</h2>
+            <ShoppingCart size={20} className="text-content-primary" />
+            <h2 className="text-base sm:text-lg font-semibold text-content-primary">Shopping Basket</h2>
             {cart.length > 0 && (
-              <span className="bg-orange-500 text-white text-xs px-2 py-1 rounded-full">
+              <span className="bg-primary text-white text-xs px-2 py-1 rounded-full">
                 {cart.reduce((sum, item) => sum + item.quantity, 0)}
               </span>
             )}
@@ -92,7 +97,7 @@ const SidebarAreaSelling = ({
 
         {/* Sell without member checkbox */}
         <div className="mb-4">
-          <label className="flex items-center gap-2 text-sm text-gray-200 cursor-pointer">
+          <label className="flex items-center gap-2 text-sm text-content-primary cursor-pointer">
             <input
               type="checkbox"
               checked={sellWithoutMember}
@@ -104,7 +109,7 @@ const SidebarAreaSelling = ({
                   setShowMemberResults(false)
                 }
               }}
-              className="rounded border-gray-300"
+              className="primary-check"
             />
             Sell without selecting a member
           </label>
@@ -114,13 +119,13 @@ const SidebarAreaSelling = ({
         {!sellWithoutMember && (
           <div className="mb-4 relative member-search-container">
             {selectedMemberMain ? (
-              <div className="flex items-center justify-between bg-[#101010] rounded-xl px-4 py-3 border border-[#333333]">
+              <div className="flex items-center justify-between bg-surface-dark rounded-xl px-4 py-3 border border-border">
                 <div className="flex items-center gap-2">
-                  <User size={16} className="text-gray-400" />
-                  <span className="text-white text-sm">
+                  <User size={16} className="text-content-muted" />
+                  <span className="text-content-primary text-sm">
                     {members.find((m) => m.id === selectedMemberMain)?.name}
                   </span>
-                  <span className="text-xs bg-gray-600 px-2 py-1 rounded">
+                  <span className="text-xs bg-surface-button px-2 py-1 rounded">
                     {members.find((m) => m.id === selectedMemberMain)?.type}
                   </span>
                 </div>
@@ -129,7 +134,7 @@ const SidebarAreaSelling = ({
                     setSelectedMemberMain("")
                     setMemberSearchQuery("")
                   }}
-                  className="text-gray-400 hover:text-white transition-colors"
+                  className="text-content-muted hover:text-content-primary transition-colors"
                 >
                   <X size={16} />
                 </button>
@@ -146,15 +151,15 @@ const SidebarAreaSelling = ({
                     }}
                     onFocus={() => setShowMemberResults(true)}
                     placeholder="Search for a member..."
-                    className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 text-white outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                    className="w-full bg-surface-dark text-sm rounded-xl px-4 py-3 text-content-primary outline-none border border-transparent focus:border-primary transition-colors"
                   />
-                  <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
+                  <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-content-muted" size={16} />
                 </div>
                 {showMemberResults && (
-                  <div className="absolute z-10 mt-1 w-full bg-[#101010] rounded-xl shadow-lg border border-[#333333] max-h-48 overflow-y-auto">
+                  <div className="absolute z-10 mt-1 w-full bg-surface-dark rounded-xl shadow-lg border border-border max-h-48 overflow-y-auto">
                     <div
                       onClick={() => setIsTempMemberModalOpen()}
-                      className="px-4 py-2 hover:bg-[#181818] cursor-pointer text-sm border-b border-[#333333] text-[#3F74FF] flex items-center gap-2"
+                      className="px-4 py-2 hover:bg-surface-base cursor-pointer text-sm border-b border-border text-[#3F74FF] flex items-center gap-2"
                     >
                       <UserPlus size={16} /> Create Temporary Member
                     </div>
@@ -163,14 +168,14 @@ const SidebarAreaSelling = ({
                         <div
                           key={member.id}
                           onClick={() => selectMember(member)}
-                          className="px-4 py-2 hover:bg-[#181818] cursor-pointer text-sm flex items-center justify-between"
+                          className="px-4 py-2 hover:bg-surface-base cursor-pointer text-sm flex items-center justify-between"
                         >
                           <span>{member.name}</span>
-                          <span className="text-xs bg-gray-600 px-2 py-1 rounded">{member.type}</span>
+                          <span className="text-xs bg-surface-button px-2 py-1 rounded">{member.type}</span>
                         </div>
                       ))
                     ) : (
-                      <div className="px-4 py-2 text-gray-400 text-sm">No members found</div>
+                      <div className="px-4 py-2 text-content-muted text-sm">No members found</div>
                     )}
                   </div>
                 )}
@@ -182,10 +187,10 @@ const SidebarAreaSelling = ({
         {/* Cart Items */}
         <div className="space-y-4 max-h-[40vh] overflow-y-auto mb-4">
           {cart.length === 0 ? (
-            <div className="text-center py-6 text-gray-400">Your basket is empty</div>
+            <div className="text-center py-6 text-content-muted">Your basket is empty</div>
           ) : (
             cart.map((item) => (
-              <div key={item.id} className="bg-[#1C1C1C] rounded-lg p-4 relative">
+              <div key={item.id} className="bg-surface-base rounded-lg p-4 relative">
                 <div className="flex gap-3">
                   {/* Image or Orange Box */}
                   <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
@@ -196,7 +201,7 @@ const SidebarAreaSelling = ({
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full bg-orange-500 flex items-center justify-center text-white text-xs font-medium text-center p-1">
+                      <div className="w-full h-full bg-primary flex items-center justify-center text-white text-xs font-medium text-center p-1">
                         <p className="line-clamp-3 leading-tight">{item.name}</p>
                       </div>
                     )}
@@ -212,13 +217,13 @@ const SidebarAreaSelling = ({
                     <p className="text-sm font-bold">{formatCurrency(item.price)}</p>
 
                     <div className="flex gap-2 mt-1">
-                      <span className="text-xs bg-gray-600 px-2 py-1 rounded">
+                      <span className="text-xs bg-surface-button px-2 py-1 rounded">
                         {item.type === "service" ? "Service" : "Product"}
                       </span>
                       <select
                         value={item.vatRate}
                         onChange={(e) => updateItemVatRate(item.id, Number(e.target.value))}
-                        className="text-xs bg-[#2F2F2F] hover:bg-[#3F3F3F] px-2 py-1 rounded cursor-pointer outline-none transition-colors border border-[#404040]"
+                        className="text-xs bg-surface-card hover:bg-surface-hover px-2 py-1 rounded cursor-pointer outline-none transition-colors border border-border open_sans_font"
                         onClick={(e) => e.stopPropagation()}
                       >
                         <option value={19}>VAT: 19% (eat-in)</option>
@@ -233,14 +238,14 @@ const SidebarAreaSelling = ({
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                      className="p-1 bg-[#101010] rounded-md hover:bg-[#333333]"
+                      className="p-1 bg-surface-dark rounded-md hover:bg-surface-button"
                     >
                       <Minus size={14} />
                     </button>
                     <span className="w-8 text-center">{item.quantity}</span>
                     <button
                       onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                      className="p-1 bg-[#101010] rounded-md hover:bg-[#333333]"
+                      className="p-1 bg-surface-dark rounded-md hover:bg-surface-button"
                     >
                       <Plus size={14} />
                     </button>
@@ -263,7 +268,7 @@ const SidebarAreaSelling = ({
             <div className="space-y-4 mb-4">
               {/* Payment Method */}
               <div>
-                <label className="text-sm text-gray-200 block mb-2">Payment Method</label>
+                <label className="text-sm text-content-primary block mb-2">Payment Method</label>
                 <div className="grid grid-cols-3 gap-1">
                   {[
                     "Cash",
@@ -279,8 +284,8 @@ const SidebarAreaSelling = ({
                       onClick={() => setSelectedPaymentMethod(method)}
                       className={`py-2 px-3 text-sm rounded-lg border ${
                         selectedPaymentMethod === method
-                          ? "border-[#3F74FF] bg-[#3F74FF]/20"
-                          : "border-[#333333] hover:bg-[#101010]"
+                          ? "border-primary bg-primary/20"
+                          : "border-border hover:bg-surface-dark"
                       }`}
                     >
                       {method}
@@ -291,7 +296,7 @@ const SidebarAreaSelling = ({
 
               {/* Discount */}
               <div>
-                <label className="text-sm text-gray-200 block mb-2">Discount</label>
+                <label className="text-sm text-content-primary block mb-2">Discount</label>
                 <div className="relative">
                   <input
                     type="text"
@@ -303,21 +308,21 @@ const SidebarAreaSelling = ({
                       }
                     }}
                     placeholder="0"
-                    className="w-full bg-[#101010] text-sm rounded-xl px-4 py-3 pr-8 text-white outline-none border border-transparent focus:border-[#3F74FF] transition-colors"
+                    className="w-full bg-surface-dark text-sm rounded-xl px-4 py-3 pr-8 text-content-primary outline-none border border-transparent focus:border-primary transition-colors"
                   />
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none">%</span>
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-content-muted text-sm pointer-events-none">%</span>
                 </div>
               </div>
             </div>
 
             {/* Order Summary */}
-            <div className="border-t border-[#333333] pt-4 space-y-2">
+            <div className="border-t border-border pt-4 space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-400">Total</span>
+                <span className="text-content-muted">Total</span>
                 <span>{formatCurrency(subtotal)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-400">Incl. VAT</span>
+                <span className="text-content-muted">Incl. VAT</span>
                 <span>{formatCurrency((() => {
                   const totalVat = cart.reduce((sum, item) => {
                     const itemTotal = item.price * item.quantity
@@ -331,24 +336,24 @@ const SidebarAreaSelling = ({
               </div>
               {discountValue > 0 && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">Discount ({discountValue}%):</span>
+                  <span className="text-content-muted">Discount ({discountValue}%):</span>
                   <span>-{formatCurrency(discountAmount)}</span>
                 </div>
               )}
-              <div className="flex justify-between font-bold mt-2 pt-2 border-t border-[#333333]">
+              <div className="flex justify-between font-bold mt-2 pt-2 border-t border-border">
                 <span>To pay</span>
                 <span>{formatCurrency(total)}</span>
               </div>
             </div>
 
             {/* Member/No member indicator */}
-            <div className="mt-4 p-3 bg-[#101010] rounded-xl">
-              <div className="text-sm text-gray-300">
+            <div className="mt-4 p-3 bg-surface-dark rounded-xl">
+              <div className="text-sm text-content-secondary">
                 {sellWithoutMember ? (
-                  <span className="text-orange-400">Selling without member</span>
+                  <span className="text-primary">Selling without member</span>
                 ) : selectedMemberMain ? (
                   <div>
-                    <span className="text-white">
+                    <span className="text-content-primary">
                       Member: {members.find((m) => m.id === selectedMemberMain)?.name}
                     </span>
                     <div className="text-xs text-zinc-400 mt-1">
@@ -356,7 +361,7 @@ const SidebarAreaSelling = ({
                     </div>
                   </div>
                 ) : (
-                  <span className="text-gray-400">No member selected</span>
+                  <span className="text-content-muted">No member selected</span>
                 )}
               </div>
             </div>
@@ -367,8 +372,8 @@ const SidebarAreaSelling = ({
               disabled={!sellWithoutMember && !selectedMemberMain}
               className={`w-full mt-4 text-sm text-white py-3 rounded-xl transition-colors ${
                 !sellWithoutMember && !selectedMemberMain
-                  ? "bg-orange-500/50 cursor-not-allowed"
-                  : "bg-orange-500 hover:bg-orange-600"
+                  ? "bg-primary/50 cursor-not-allowed"
+                  : "bg-primary hover:bg-primary-hover"
               }`}
             >
               Checkout

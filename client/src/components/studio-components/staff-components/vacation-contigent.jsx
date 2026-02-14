@@ -18,7 +18,7 @@ const InitialsAvatar = ({ firstName, lastName, size = "md", className = "" }) =>
 
   return (
     <div 
-      className={`bg-[#3F74FF] rounded-xl flex items-center justify-center text-white font-semibold flex-shrink-0 ${sizeClasses[size]} ${className}`}
+      className={`bg-primary rounded-xl flex items-center justify-center text-white font-semibold flex-shrink-0 ${sizeClasses[size]} ${className}`}
       style={{ fontFamily: 'ui-sans-serif, system-ui, sans-serif' }}
     >
       {getInitials()}
@@ -66,14 +66,14 @@ const VacationContingentModal = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000] p-4">
-      <div className="bg-[#181818] w-full max-w-md rounded-xl overflow-hidden animate-in slide-in-from-bottom duration-300">
-        <div className="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
-          <h2 className="text-lg font-semibold text-white">
+      <div className="bg-surface-base w-full max-w-md rounded-xl overflow-hidden animate-in slide-in-from-bottom duration-300">
+        <div className="px-6 py-4 border-b border-border flex justify-between items-center">
+          <h2 className="text-lg font-semibold text-content-primary">
             Manage Vacation Contingent
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-white transition-colors p-2 hover:bg-gray-800 rounded-lg"
+            className="text-content-muted hover:text-content-primary transition-colors p-2 hover:bg-surface-hover rounded-lg"
           >
             <X size={20} />
           </button>
@@ -97,55 +97,55 @@ const VacationContingentModal = ({
                 className="mb-3"
               />
             )}
-            <h3 className="text-white font-medium text-lg text-center">
+            <h3 className="text-content-primary font-medium text-lg text-center">
               {staff.firstName} {staff.lastName}
             </h3>
-            <p className="text-gray-400 text-sm text-center">{staff.role}</p>
+            <p className="text-content-muted text-sm text-center">{staff.role}</p>
           </div>
 
           <div className="mb-6">
-            <label className="block text-white text-sm font-medium mb-2 text-center">
+            <label className="block text-content-primary text-sm font-medium mb-2 text-center">
               Vacation Days Contingent
             </label>
-            <p className="text-gray-400 text-xs mb-4 text-center">
+            <p className="text-content-muted text-xs mb-4 text-center">
               Period: 01.01.{currentYear} - 31.12.{currentYear}
             </p>
             <div className="flex items-center justify-center gap-4">
               <button
                 onClick={handleDecrement}
                 disabled={contingent <= 0}
-                className="p-2 rounded-lg bg-gray-600 text-white disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed hover:bg-gray-500 transition-colors"
+                className="p-2 rounded-lg bg-surface-button text-content-primary disabled:bg-surface-dark disabled:text-content-faint disabled:cursor-not-allowed hover:bg-surface-button-hover transition-colors"
               >
                 <Minus size={20} />
               </button>
               
-              <div className="text-3xl font-bold text-white min-w-[60px] text-center">
+              <div className="text-3xl font-bold text-content-primary min-w-[60px] text-center">
                 {contingent}
               </div>
               
               <button
                 onClick={handleIncrement}
-                className="p-2 rounded-lg bg-gray-600 text-white hover:bg-gray-500 transition-colors"
+                className="p-2 rounded-lg bg-surface-button text-content-primary hover:bg-surface-button-hover transition-colors"
               >
                 <Plus size={20} />
               </button>
             </div>
-            <p className="text-gray-500 text-xs text-center mt-3">
+            <p className="text-content-faint text-xs text-center mt-3">
               Days remaining for this year
             </p>
           </div>
         </div>
 
-        <div className="px-6 py-4 border-t border-gray-800 flex gap-3">
+        <div className="px-6 py-4 border-t border-border flex gap-3">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2.5 bg-gray-700 text-sm font-medium text-white rounded-xl hover:bg-gray-600 transition-colors"
+            className="flex-1 px-4 py-2.5 bg-surface-button text-sm font-medium text-content-secondary rounded-xl hover:bg-surface-button-hover transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
-            className="flex-1 px-4 py-2.5 bg-orange-500 text-sm font-medium text-white rounded-xl hover:bg-orange-600 transition-colors"
+            className="flex-1 px-4 py-2.5 bg-primary text-sm font-medium text-white rounded-xl hover:bg-primary-hover transition-colors"
           >
             Save Changes
           </button>

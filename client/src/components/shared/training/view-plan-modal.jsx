@@ -58,44 +58,44 @@ const ViewPlanModal = ({
       onClick={onClose}
     >
       <div 
-        className="bg-[#1C1C1C] rounded-xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto"
+        className="bg-surface-base rounded-xl w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="p-4 sm:p-6">
           <div className="flex items-center justify-between mb-4 sm:mb-6">
             <div className="flex-1 min-w-0 pr-4">
-              <h2 className="text-lg sm:text-xl font-bold text-white mb-2 truncate">{selectedPlan.name}</h2>
-              <p className="text-gray-400 text-sm sm:text-base">{selectedPlan.description}</p>
+              <h2 className="text-lg sm:text-xl font-bold text-content-primary mb-2 truncate">{selectedPlan.name}</h2>
+              <p className="text-content-muted text-sm sm:text-base">{selectedPlan.description}</p>
             </div>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-[#2F2F2F] rounded-lg transition-colors flex-shrink-0"
+              className="p-2 hover:bg-surface-button rounded-lg transition-colors flex-shrink-0"
             >
-              <X size={20} className="text-gray-400" />
+              <X size={20} className="text-content-muted" />
             </button>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
             {/* Plan Info */}
             <div className="lg:col-span-1">
-              <div className="bg-[#161616] rounded-xl p-4 sm:p-6">
-                <h3 className="text-base sm:text-lg font-semibold text-white mb-4">Plan Details</h3>
+              <div className="bg-surface-dark rounded-xl p-4 sm:p-6">
+                <h3 className="text-base sm:text-lg font-semibold text-content-primary mb-4">Plan Details</h3>
                 <div className="space-y-3">
                   {selectedPlan.createdBy && (
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-400 text-sm">Created by</span>
-                      <span className="text-white text-sm truncate ml-2">{selectedPlan.createdBy}</span>
+                      <span className="text-content-muted text-sm">Created by</span>
+                      <span className="text-content-primary text-sm truncate ml-2">{selectedPlan.createdBy}</span>
                     </div>
                   )}
                   {selectedPlan.duration && (
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-400 text-sm">Duration</span>
-                      <span className="text-white text-sm">{selectedPlan.duration}</span>
+                      <span className="text-content-muted text-sm">Duration</span>
+                      <span className="text-content-primary text-sm">{selectedPlan.duration}</span>
                     </div>
                   )}
                   {selectedPlan.difficulty && (
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-400 text-sm">Difficulty</span>
+                      <span className="text-content-muted text-sm">Difficulty</span>
                       <span
                         className={`px-2 py-1 rounded text-xs text-white ${getDifficultyBadgeColor(selectedPlan.difficulty)}`}
                       >
@@ -105,20 +105,20 @@ const ViewPlanModal = ({
                   )}
                   {selectedPlan.workoutsPerWeek && (
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-400 text-sm">Workouts/Week</span>
-                      <span className="text-white text-sm">{selectedPlan.workoutsPerWeek}x</span>
+                      <span className="text-content-muted text-sm">Workouts/Week</span>
+                      <span className="text-content-primary text-sm">{selectedPlan.workoutsPerWeek}x</span>
                     </div>
                   )}
                   {selectedPlan.category && (
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-400 text-sm">Category</span>
-                      <span className="text-white text-sm truncate ml-2">{selectedPlan.category}</span>
+                      <span className="text-content-muted text-sm">Category</span>
+                      <span className="text-content-primary text-sm truncate ml-2">{selectedPlan.category}</span>
                     </div>
                   )}
                   {selectedPlan.assignedDate && (
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-400 text-sm">Assigned</span>
-                      <span className="text-white text-sm">{selectedPlan.assignedDate}</span>
+                      <span className="text-content-muted text-sm">Assigned</span>
+                      <span className="text-content-primary text-sm">{selectedPlan.assignedDate}</span>
                     </div>
                   )}
                 </div>
@@ -127,7 +127,7 @@ const ViewPlanModal = ({
 
             {/* Exercises */}
             <div className="lg:col-span-2">
-              <h3 className="text-base sm:text-lg font-semibold text-white mb-4">
+              <h3 className="text-base sm:text-lg font-semibold text-content-primary mb-4">
                 Exercises ({exercises.length})
               </h3>
               
@@ -136,9 +136,9 @@ const ViewPlanModal = ({
                   {exercises.map((exercise, index) => {
                     const video = getVideo(exercise.videoId);
                     return (
-                      <div key={index} className="bg-[#161616] rounded-xl p-3 sm:p-4">
+                      <div key={index} className="bg-surface-dark rounded-xl p-3 sm:p-4">
                         <div className="flex items-start gap-3 sm:gap-4">
-                          <div className="bg-blue-600 text-white rounded-full w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center text-xs sm:text-sm font-medium flex-shrink-0">
+                          <div className="bg-primary text-white rounded-full w-6 h-6 sm:w-8 sm:h-8 flex items-center justify-center text-xs sm:text-sm font-medium flex-shrink-0">
                             {index + 1}
                           </div>
                           {video?.thumbnail && (
@@ -149,18 +149,18 @@ const ViewPlanModal = ({
                             />
                           )}
                           <div className="flex-1 min-w-0">
-                            <h4 className="font-medium text-white mb-1 text-sm sm:text-base truncate">
+                            <h4 className="font-medium text-content-primary mb-1 text-sm sm:text-base truncate">
                               {video?.title || exercise.name || `Exercise ${index + 1}`}
                             </h4>
                             {video?.instructor && (
-                              <p className="text-gray-400 text-xs sm:text-sm mb-2 truncate">{video.instructor}</p>
+                              <p className="text-content-muted text-xs sm:text-sm mb-2 truncate">{video.instructor}</p>
                             )}
                             {video?.targetMuscles && video.targetMuscles.length > 0 && (
                               <div className="flex flex-wrap gap-1 mt-2">
                                 {video.targetMuscles.map((muscle, muscleIndex) => (
                                   <span
                                     key={muscleIndex}
-                                    className="bg-[#2F2F2F] text-gray-300 px-2 py-1 rounded text-xs"
+                                    className="bg-surface-button text-content-secondary px-2 py-1 rounded text-xs"
                                   >
                                     {muscle}
                                   </span>
@@ -171,7 +171,7 @@ const ViewPlanModal = ({
                           {video && (
                             <button
                               onClick={() => handlePlayClick(video)}
-                              className="p-2 text-gray-400 hover:text-orange-400 rounded-lg hover:bg-gray-800 transition-colors flex-shrink-0"
+                              className="p-2 text-content-muted hover:text-primary rounded-lg hover:bg-surface-dark transition-colors flex-shrink-0"
                               title="Play Video"
                             >
                               <Play size={18} />
@@ -183,8 +183,8 @@ const ViewPlanModal = ({
                   })}
                 </div>
               ) : (
-                <div className="bg-[#161616] rounded-xl p-8 text-center">
-                  <p className="text-gray-400">No exercises in this plan</p>
+                <div className="bg-surface-dark rounded-xl p-8 text-center">
+                  <p className="text-content-muted">No exercises in this plan</p>
                 </div>
               )}
             </div>

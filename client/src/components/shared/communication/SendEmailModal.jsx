@@ -17,7 +17,7 @@ const InitialsAvatar = ({ firstName, lastName, size = 32, className = "", isStaf
     return `${firstInitial}${lastInitial}` || "?";
   };
 
-  const bgColor = isStaff ? 'bg-blue-500' : 'bg-orange-500';
+  const bgColor = 'bg-primary';
 
   return (
     <div
@@ -36,9 +36,9 @@ const EmailTag = ({ recipient, onRemove }) => {
   const isStaff = recipient.type === 'staff';
   
   return (
-    <div className="flex items-center gap-1.5 bg-[#2a2a2a] border border-gray-700 rounded-lg px-2 py-1 text-sm">
+    <div className="flex items-center gap-1.5 bg-surface-card border border-border rounded-lg px-2 py-1 text-sm">
       {isManual ? (
-        <Mail className="w-3.5 h-3.5 text-gray-400" />
+        <Mail className="w-3.5 h-3.5 text-content-muted" />
       ) : recipient.image ? (
         <img 
           src={recipient.image} 
@@ -53,11 +53,11 @@ const EmailTag = ({ recipient, onRemove }) => {
           isStaff={isStaff}
         />
       )}
-      <span className="text-white text-xs">
+      <span className="text-content-primary text-xs">
         {isManual ? recipient.email : (
           <>
             {displayName}
-            {recipient.email && <span className="text-gray-400 ml-1">&lt;{recipient.email}&gt;</span>}
+            {recipient.email && <span className="text-content-muted ml-1">&lt;{recipient.email}&gt;</span>}
           </>
         )}
       </span>
@@ -66,9 +66,9 @@ const EmailTag = ({ recipient, onRemove }) => {
           e.stopPropagation();
           onRemove();
         }}
-        className="p-0.5 hover:bg-gray-600 rounded transition-colors ml-0.5"
+        className="p-0.5 hover:bg-surface-button-hover rounded transition-colors ml-0.5"
       >
-        <X className="w-3 h-3 text-gray-400 hover:text-white" />
+        <X className="w-3 h-3 text-content-muted hover:text-content-primary" />
       </button>
     </div>
   );
@@ -182,12 +182,12 @@ const EmailTagInput = ({
     <div ref={containerRef} className="relative">
       {label && (
         <div className="flex items-center justify-between mb-1">
-          <label className="text-sm font-medium text-gray-400">{label}</label>
+          <label className="text-sm font-medium text-content-muted">{label}</label>
           <div className="flex items-center gap-2">
             {showAddCc && (
               <button
                 onClick={onAddCc}
-                className="text-xs text-[#FF843E] hover:text-[#e0733a] transition-colors"
+                className="text-xs text-primary hover:text-primary-hover transition-colors"
               >
                 + CC
               </button>
@@ -195,7 +195,7 @@ const EmailTagInput = ({
             {showAddBcc && (
               <button
                 onClick={onAddBcc}
-                className="text-xs text-[#FF843E] hover:text-[#e0733a] transition-colors"
+                className="text-xs text-primary hover:text-primary-hover transition-colors"
               >
                 + BCC
               </button>
@@ -203,7 +203,7 @@ const EmailTagInput = ({
             {showRemoveButton && (
               <button
                 onClick={onRemoveField}
-                className="text-xs text-gray-500 hover:text-gray-400 transition-colors"
+                className="text-xs text-content-faint hover:text-content-muted transition-colors"
               >
                 Remove
               </button>
@@ -212,7 +212,7 @@ const EmailTagInput = ({
         </div>
       )}
       <div 
-        className="bg-[#222222] rounded-xl px-3 py-2 min-h-[42px] flex flex-wrap items-center gap-1.5 cursor-text focus-within:bg-[#2a2a2a] transition-colors"
+        className="bg-surface-dark rounded-xl px-3 py-2 min-h-[42px] flex flex-wrap items-center gap-1.5 cursor-text border border-transparent focus-within:border-primary transition-colors"
         onClick={() => inputRef.current?.focus()}
       >
         {recipients.map((recipient, index) => (
@@ -230,22 +230,22 @@ const EmailTagInput = ({
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
             onFocus={() => inputValue.length > 0 && setShowDropdown(true)}
-            className="w-full bg-transparent text-white text-sm outline-none placeholder-gray-500"
+            className="w-full bg-transparent text-content-primary text-sm outline-none placeholder-content-faint"
             placeholder={recipients.length === 0 ? placeholder : "Add more..."}
           />
         </div>
-        <Search className="h-4 w-4 text-gray-400 flex-shrink-0" />
+        <Search className="h-4 w-4 text-content-muted flex-shrink-0" />
       </div>
       
       {/* Dropdown */}
       {showDropdown && (
-        <div className="absolute left-0 right-0 mt-1 bg-[#1C1C1C] border border-gray-800 rounded-xl shadow-xl z-20 max-h-48 overflow-y-auto custom-scrollbar">
+        <div className="absolute left-0 right-0 mt-1 bg-surface-base border border-border rounded-xl shadow-xl z-20 max-h-48 overflow-y-auto custom-scrollbar">
           {searchResults.length > 0 ? (
             searchResults.map((member) => (
               <button
                 key={member.id}
                 onClick={() => selectMember(member)}
-                className="w-full text-left p-2.5 hover:bg-[#2F2F2F] flex items-center gap-3 transition-colors"
+                className="w-full text-left p-2.5 hover:bg-surface-button flex items-center gap-3 transition-colors"
               >
                 {member.image ? (
                   <img
@@ -262,29 +262,29 @@ const EmailTagInput = ({
                   />
                 )}
                 <div>
-                  <span className="text-sm text-white block">
+                  <span className="text-sm text-content-primary block">
                     {member.name || `${member.firstName} ${member.lastName}`}
-                    {member.type === 'staff' && <span className="ml-2 text-xs text-blue-400">(Staff)</span>}
+                    {member.type === 'staff' && <span className="ml-2 text-xs text-primary">(Staff)</span>}
                   </span>
-                  <span className="text-xs text-gray-400">{member.email}</span>
+                  <span className="text-xs text-content-muted">{member.email}</span>
                 </div>
               </button>
             ))
           ) : inputValue && isValidEmail(inputValue) ? (
             <button
               onClick={addManualEmail}
-              className="w-full text-left p-3 hover:bg-[#2F2F2F] flex items-center gap-3 transition-colors"
+              className="w-full text-left p-3 hover:bg-surface-button flex items-center gap-3 transition-colors"
             >
-              <div className="w-8 h-8 bg-gray-700 rounded-lg flex items-center justify-center">
-                <Mail className="w-4 h-4 text-gray-400" />
+              <div className="w-8 h-8 bg-surface-button rounded-lg flex items-center justify-center">
+                <Mail className="w-4 h-4 text-content-muted" />
               </div>
               <div>
-                <span className="text-sm text-white block">Add "{inputValue}"</span>
-                <span className="text-xs text-gray-400">Press Enter to add email</span>
+                <span className="text-sm text-content-primary block">Add "{inputValue}"</span>
+                <span className="text-xs text-content-muted">Press Enter to add email</span>
               </div>
             </button>
           ) : inputValue ? (
-            <p className="p-3 text-sm text-gray-400">
+            <p className="p-3 text-sm text-content-muted">
               Type a valid email address or search for members
             </p>
           ) : null}
@@ -297,9 +297,9 @@ const EmailTagInput = ({
 // Get file icon based on type
 const getFileIcon = (file) => {
   const type = file.type || '';
-  if (type.startsWith('image/')) return <Image className="w-4 h-4 text-blue-400" />;
+  if (type.startsWith('image/')) return <Image className="w-4 h-4 text-primary" />;
   if (type.includes('pdf')) return <FileText className="w-4 h-4 text-red-400" />;
-  return <File className="w-4 h-4 text-gray-400" />;
+  return <File className="w-4 h-4 text-content-muted" />;
 };
 
 // Format file size
@@ -602,17 +602,17 @@ const SendEmailModal = ({
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-end md:items-center justify-center z-50">
-      <div className="bg-[#181818] w-full h-[95vh] md:h-auto md:rounded-xl md:max-w-4xl md:mx-4 md:max-h-[90vh] flex flex-col">
+      <div className="bg-surface-base w-full h-[95vh] md:h-auto md:rounded-xl md:max-w-4xl md:mx-4 md:max-h-[90vh] flex flex-col">
         <div className="p-4 md:p-5 flex flex-col flex-1 min-h-0 overflow-hidden">
           {/* Header */}
           <div className="flex justify-between items-center mb-4 flex-shrink-0">
-            <h2 className="text-base md:text-lg font-medium flex items-center gap-2 text-white">
+            <h2 className="text-base md:text-lg font-medium flex items-center gap-2 text-content-primary">
               <Mail className="w-5 h-5" />
               Send Email
             </h2>
             <button
               onClick={handleClose}
-              className="p-2 hover:bg-zinc-700 rounded-lg text-gray-400 hover:text-white transition-colors"
+              className="p-2 hover:bg-surface-hover rounded-lg text-content-muted hover:text-content-primary transition-colors"
             >
               <X size={20} />
             </button>
@@ -621,30 +621,30 @@ const SendEmailModal = ({
           <div className="space-y-4 flex-1 overflow-y-auto custom-scrollbar pr-1">
             {/* Template Selector */}
             <div ref={templateDropdownRef} className="relative">
-              <label className="block text-sm font-medium text-gray-400 mb-1">Template</label>
+              <label className="block text-sm font-medium text-content-muted mb-1">Template</label>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setShowTemplateDropdown(!showTemplateDropdown)}
-                  className="flex-1 flex items-center justify-between bg-[#222222] hover:bg-[#2a2a2a] text-sm rounded-xl px-4 py-2.5 transition-colors"
+                  className="flex-1 flex items-center justify-between bg-surface-dark text-sm rounded-xl px-4 py-2.5 border border-transparent hover:border-border transition-colors"
                 >
-                  <span className={selectedTemplate ? "text-white" : "text-gray-500"}>
+                  <span className={selectedTemplate ? "text-content-primary" : "text-content-faint"}>
                     {selectedTemplate ? selectedTemplate.name : "Select a template (optional)"}
                   </span>
-                  <ChevronDown size={16} className={`text-gray-400 transition-transform ${showTemplateDropdown ? "rotate-180" : ""}`} />
+                  <ChevronDown size={16} className={`text-content-muted transition-transform ${showTemplateDropdown ? "rotate-180" : ""}`} />
                 </button>
                 {selectedTemplate && (
                   <button
                     onClick={handleClearTemplate}
-                    className="p-2.5 bg-[#222222] hover:bg-[#2a2a2a] rounded-xl transition-colors"
+                    className="p-2.5 bg-surface-dark hover:bg-surface-hover rounded-xl transition-colors"
                     title="Clear template"
                   >
-                    <X size={16} className="text-gray-400 hover:text-white" />
+                    <X size={16} className="text-content-muted hover:text-content-primary" />
                   </button>
                 )}
               </div>
               
               {showTemplateDropdown && (
-                <div className="absolute left-0 right-0 mt-1 bg-[#1C1C1C] border border-gray-800 rounded-xl shadow-xl z-20 max-h-48 overflow-y-auto custom-scrollbar">
+                <div className="absolute left-0 right-0 mt-1 bg-surface-base border border-border rounded-xl shadow-xl z-20 max-h-48 overflow-y-auto custom-scrollbar">
                   {emailTemplatesData.length > 0 ? (
                     emailTemplatesData.map((template) => {
                       const hasVars = containsVariables(template.subject) || containsVariables(template.body);
@@ -652,20 +652,20 @@ const SendEmailModal = ({
                         <button
                           key={template.id}
                           onClick={() => handleSelectTemplate(template)}
-                          className={`w-full text-left p-3 hover:bg-[#2F2F2F] transition-colors border-b border-gray-800/50 last:border-b-0 ${selectedTemplate?.id === template.id ? "bg-[#2F2F2F]" : ""}`}
+                          className={`w-full text-left p-3 hover:bg-surface-button transition-colors border-b border-border/50 last:border-b-0 ${selectedTemplate?.id === template.id ? "bg-surface-button" : ""}`}
                         >
                           <div className="flex items-center justify-between">
-                            <span className="text-sm text-white font-medium">{template.name}</span>
+                            <span className="text-sm text-content-primary font-medium">{template.name}</span>
                             {hasVars && (
                               <span className="text-[10px] px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 rounded-full">Variables</span>
                             )}
                           </div>
-                          <p className="text-xs text-gray-500 mt-0.5 truncate">{template.subject}</p>
+                          <p className="text-xs text-content-faint mt-0.5 truncate">{template.subject}</p>
                         </button>
                       );
                     })
                   ) : (
-                    <p className="p-3 text-sm text-gray-500">No templates available</p>
+                    <p className="p-3 text-sm text-content-faint">No templates available</p>
                   )}
                 </div>
               )}
@@ -736,7 +736,7 @@ const SendEmailModal = ({
 
             {/* Subject */}
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1">
+              <label className="block text-sm font-medium text-content-muted mb-1">
                 Subject
               </label>
               <input
@@ -746,7 +746,7 @@ const SendEmailModal = ({
                 onChange={(e) =>
                   setEmailData({ ...emailData, subject: e.target.value })
                 }
-                className="w-full bg-[#222222] hover:bg-[#2a2a2a] focus:bg-[#2a2a2a] text-white rounded-xl px-4 py-2.5 text-sm outline-none transition-colors"
+                className="w-full bg-surface-dark text-content-primary rounded-xl px-4 py-2.5 text-sm outline-none border border-transparent focus:border-primary transition-colors"
                 placeholder="Email subject"
               />
             </div>
@@ -754,10 +754,10 @@ const SendEmailModal = ({
             {/* Message with WYSIWYG Editor */}
             <div>
               <div className="flex items-center justify-between mb-1">
-                <label className="text-sm font-medium text-gray-400">Message</label>
+                <label className="text-sm font-medium text-content-muted">Message</label>
                 <button
                   onClick={insertSignature}
-                  className="px-2 py-1.5 bg-orange-500 text-white text-xs rounded-lg hover:bg-orange-600 flex items-center gap-1 transition-colors whitespace-nowrap"
+                  className="px-2 py-1.5 bg-primary text-white text-xs rounded-lg hover:bg-primary-hover flex items-center gap-1 transition-colors whitespace-nowrap"
                 >
                   <FileText className="w-3 h-3" />
                   Insert Signature
@@ -778,7 +778,7 @@ const SendEmailModal = ({
             {/* Attachments */}
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-medium text-gray-400">
+                <label className="text-sm font-medium text-content-muted">
                   Attachments
                 </label>
                 <input
@@ -790,7 +790,7 @@ const SendEmailModal = ({
                 />
                 <button
                   onClick={() => attachmentInputRef.current?.click()}
-                  className="flex items-center gap-1.5 text-xs text-[#FF843E] hover:text-[#e0733a] transition-colors"
+                  className="flex items-center gap-1.5 text-xs text-primary hover:text-primary-hover transition-colors"
                 >
                   <Paperclip className="w-3.5 h-3.5" />
                   Add Attachment
@@ -798,22 +798,22 @@ const SendEmailModal = ({
               </div>
               
               {attachments.length > 0 && (
-                <div className="bg-[#222222] rounded-xl p-2 md:p-3 space-y-2">
+                <div className="bg-surface-dark rounded-xl p-2 md:p-3 space-y-2">
                   {attachments.map((attachment) => (
                     <div
                       key={attachment.id}
-                      className="flex items-center justify-between bg-[#1a1a1a] rounded-lg px-3 py-2"
+                      className="flex items-center justify-between bg-surface-base rounded-lg px-3 py-2"
                     >
                       <div className="flex items-center gap-2 min-w-0 flex-1">
                         {getFileIcon(attachment)}
-                        <span className="text-sm text-white truncate">{attachment.name}</span>
-                        <span className="text-xs text-gray-500 flex-shrink-0 hidden sm:inline">
+                        <span className="text-sm text-content-primary truncate">{attachment.name}</span>
+                        <span className="text-xs text-content-faint flex-shrink-0 hidden sm:inline">
                           ({formatFileSize(attachment.size)})
                         </span>
                       </div>
                       <button
                         onClick={() => removeAttachment(attachment.id)}
-                        className="p-1.5 text-gray-500 hover:text-red-400 transition-colors ml-2"
+                        className="p-1.5 text-content-faint hover:text-red-400 transition-colors ml-2"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -825,33 +825,35 @@ const SendEmailModal = ({
               {attachments.length === 0 && (
                 <div 
                   onClick={() => attachmentInputRef.current?.click()}
-                  className="border border-dashed border-gray-700 rounded-xl p-3 md:p-4 text-center cursor-pointer hover:border-gray-600 transition-colors"
+                  className="border border-dashed border-border rounded-xl p-3 md:p-4 text-center cursor-pointer hover:border-primary transition-colors"
                 >
-                  <Paperclip className="w-5 h-5 text-gray-500 mx-auto mb-1" />
-                  <p className="text-xs text-gray-500">
+                  <Paperclip className="w-5 h-5 text-content-faint mx-auto mb-1" />
+                  <p className="text-xs text-content-faint">
                     Tap to add attachments
                   </p>
                 </div>
               )}
             </div>
 
-            {/* Actions */}
-            <div className="flex gap-3 pt-4 flex-shrink-0">
-              <button
-                onClick={onClose}
-                className="flex-1 md:flex-none px-4 py-3 md:py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-xl text-sm transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={onSendEmail}
-                disabled={!canSend}
-                className="flex-1 md:flex-none px-4 py-3 md:py-2 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-700 disabled:text-gray-500 text-white rounded-xl text-sm flex items-center justify-center gap-2 transition-colors disabled:cursor-not-allowed"
-              >
-                <Send className="w-4 h-4" />
-                Send Email
-              </button>
-            </div>
+            {/* Actions - moved to sticky footer below */}
+          </div>
+
+          {/* Sticky Footer */}
+          <div className="flex gap-3 pb-1 flex-shrink-0 justify-between border-t border-border mt-4 pt-4">
+            <button
+              onClick={onClose}
+              className="px-4 py-3 md:py-2 bg-surface-button hover:bg-surface-button-hover text-content-secondary rounded-xl text-sm transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={onSendEmail}
+              disabled={!canSend}
+              className="px-4 py-3 md:py-2 bg-primary hover:bg-primary-hover disabled:bg-surface-dark disabled:text-content-faint text-white rounded-xl text-sm flex items-center justify-center gap-2 transition-colors disabled:cursor-not-allowed"
+            >
+              <Send className="w-4 h-4" />
+              Send Email
+            </button>
           </div>
         </div>
       </div>

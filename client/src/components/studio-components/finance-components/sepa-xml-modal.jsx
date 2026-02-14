@@ -180,6 +180,11 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
 
   return (
     <div className="fixed inset-0 bg-black/70 flex p-2 items-center justify-center z-50">
+      <style>{`
+        .primary-check { appearance: none; -webkit-appearance: none; width: 1rem; height: 1rem; border-radius: 0.25rem; border: 1px solid var(--color-border); background: black; cursor: pointer; flex-shrink: 0; }
+        .primary-check:checked { background-color: var(--color-primary); border-color: var(--color-primary); background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3E%3C/svg%3E"); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; }
+        .primary-check:focus { outline: none; box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 40%, transparent); }
+      `}</style>
       <div className="bg-surface-base rounded-xl w-full max-w-5xl max-h-[80vh] flex flex-col overflow-visible">
         <div className="p-4 border-b border-border flex justify-between items-center">
           <h2 className="text-content-primary text-lg font-medium">Run Payment</h2>
@@ -275,7 +280,7 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
                 <table className="text-sm text-content-secondary border-collapse w-full" style={{ minWidth: '600px' }}>
                   <thead className="text-xs text-content-muted uppercase bg-surface-dark">
                     <tr>
-                      <th className="px-1.5 py-2 w-8 rounded-tl-lg"><input type="checkbox" className="rounded bg-black border-border text-primary focus:ring-primary" checked={sortedTransactions.length > 0 && sortedTransactions.every(tx => selectedTransactions[tx.id])} onChange={() => { const allSelected = sortedTransactions.every(tx => selectedTransactions[tx.id]); handleSelectAll(!allSelected) }} /></th>
+                      <th className="px-1.5 py-2 w-8 rounded-tl-lg"><input type="checkbox" className="primary-check" checked={sortedTransactions.length > 0 && sortedTransactions.every(tx => selectedTransactions[tx.id])} onChange={() => { const allSelected = sortedTransactions.every(tx => selectedTransactions[tx.id]); handleSelectAll(!allSelected) }} /></th>
                       <th className="px-1.5 md:px-2 py-2 text-left transition-colors relative" style={{ width: `${columnWidths.member}px`, minWidth: '60px' }}><div className="flex items-center gap-1 cursor-pointer" onClick={() => handleSort("member")}><span className="hidden md:inline">Member</span><span className="md:hidden">Name</span>{getSortIcon("member")}</div><div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'member')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-border group-hover:bg-primary transition-colors" /></div></th>
                       <th className="px-1.5 md:px-2 py-2 text-right transition-colors relative" style={{ width: `${columnWidths.amount}px`, minWidth: '40px' }}><div className="flex items-center justify-end gap-1 cursor-pointer" onClick={() => handleSort("amount")}><span className="hidden md:inline">Amount</span><span className="md:hidden">Amt</span>{getSortIcon("amount")}</div><div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'amount')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-border group-hover:bg-primary transition-colors" /></div></th>
                       <th className="px-1.5 py-2 text-center relative" style={{ width: `${columnWidths.services}px`, minWidth: '25px' }}><span className="hidden md:inline">Services</span><span className="md:hidden">Svc</span><div className="absolute right-0 top-0 bottom-0 w-4 cursor-col-resize z-20 group" onMouseDown={(e) => handleResizeMouseDown(e, 'services')} style={{ touchAction: 'none' }}><div className="absolute right-1 top-1/4 bottom-1/4 w-0.5 bg-border group-hover:bg-primary transition-colors" /></div></th>
@@ -288,7 +293,7 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
                   <tbody>
                     {sortedTransactions.map((tx) => (
                       <tr key={tx.id} className={`border-b border-border ${!selectedTransactions[tx.id] ? "opacity-50" : ""}`}>
-                        <td className="px-1.5 py-2"><input type="checkbox" className="rounded bg-black border-border text-primary focus:ring-primary" checked={selectedTransactions[tx.id] || false} onChange={() => handleToggleTransaction(tx.id)} /></td>
+                        <td className="px-1.5 py-2"><input type="checkbox" className="primary-check" checked={selectedTransactions[tx.id] || false} onChange={() => handleToggleTransaction(tx.id)} /></td>
                         <td className="px-1.5 md:px-2 py-2 text-xs truncate">{tx.memberName}</td>
                         <td className="px-1.5 md:px-2 py-2 text-right">
                           <div className="flex items-center justify-end gap-1">
@@ -340,7 +345,7 @@ const SepaXmlModal = ({ isOpen, onClose, selectedPeriod, transactions, onGenerat
                   <div className="flex justify-between text-sm"><span className="text-content-muted">Collection date:</span><span className="text-content-primary font-medium">{formatDateForDisplay(collectionDate)}</span></div>
                   <div className="flex justify-between text-sm"><span className="text-content-muted">Executed by:</span><span className="text-content-primary font-medium">{currentUser}</span></div>
                 </div>
-                <div className="flex items-center gap-2 mb-4"><input type="checkbox" id="shouldDownload" checked={shouldDownload} onChange={(e) => setShouldDownload(e.target.checked)} className="rounded bg-black border-border text-primary focus:ring-primary" /><label htmlFor="shouldDownload" className="text-sm text-content-secondary">Download SEPA XML file automatically</label></div>
+                <div className="flex items-center gap-2 mb-4"><input type="checkbox" id="shouldDownload" checked={shouldDownload} onChange={(e) => setShouldDownload(e.target.checked)} className="primary-check" /><label htmlFor="shouldDownload" className="text-sm text-content-secondary">Download SEPA XML file automatically</label></div>
               </div>
               <div className="p-4 border-t border-border flex justify-end gap-3">
                 <button onClick={handleCancelGeneration} className="px-4 py-2 rounded-xl text-sm bg-surface-button text-content-secondary hover:bg-surface-button-hover transition-colors">Cancel</button>

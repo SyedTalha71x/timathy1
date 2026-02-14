@@ -2,12 +2,52 @@
 import { useState } from "react"
 import { Mail, Download, Printer, X } from "lucide-react"
 import { jsPDF } from "jspdf"
-import SendEmailModal from "./send-email-modal"
+import SendEmailModal from "../../shared/communication/SendEmailModal"
 import { formatCurrency, getCurrencySymbol } from "../../../utils/studio-states/selling-states"
 
 const InvoicePreviewModal = ({ sale, onClose }) => {
   const [showEmailModal, setShowEmailModal] = useState(false)
+  const [emailData, setEmailData] = useState({
+    to: "",
+    subject: "",
+    body: "",
+  })
   const currencySymbol = getCurrencySymbol()
+
+  // Prepare preselected member from sale data
+  const preselectedMember = sale.member && sale.member !== "No Member" ? {
+    id: sale.id,
+    email: sale.email || "",
+    firstName: sale.member.split(" ")[0] || "",
+    lastName: sale.member.split(" ")[1] || "",
+    name: sale.member,
+  } : null
+
+  // Open email modal with pre-filled data
+  const openEmailModal = () => {
+    setEmailData({
+      to: sale.email || "",
+      subject: `Invoice #${sale.invoiceNumber || sale.id}`,
+      body: `<p>Dear ${sale.member},</p><p><br></p><p>Please find attached your invoice for the recent purchase.</p><p><br></p><p><strong>Invoice Details:</strong></p><ul><li>Invoice #: ${sale.invoiceNumber || sale.id}</li><li>Date: ${sale.date}</li><li>Total Amount: ${formatCurrency(sale.totalAmount)}</li></ul><p><br></p><p>Thank you for your business!</p><p><br></p><p>Best regards,<br>Your Business Team</p>`,
+    })
+    setShowEmailModal(true)
+  }
+
+  // Search handler (basic - returns sale member if matches)
+  const handleSearchMemberForEmail = (query) => {
+    if (!query || !preselectedMember) return []
+    const q = query.toLowerCase()
+    if (preselectedMember.name.toLowerCase().includes(q) || (preselectedMember.email && preselectedMember.email.toLowerCase().includes(q))) {
+      return [preselectedMember]
+    }
+    return []
+  }
+
+  // Send handler
+  const handleSendEmail = (data) => {
+    console.log("Sending invoice email:", data)
+    setShowEmailModal(false)
+  }
 
   const handlePrint = () => {
     window.print()
@@ -191,43 +231,36 @@ const InvoicePreviewModal = ({ sale, onClose }) => {
 
   return (
     <>
-      {showEmailModal && (
-        <SendEmailModal
-          sale={sale}
-          onClose={() => setShowEmailModal(false)}
-        />
-      )}
-
       <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[100000000] p-2 sm:p-4">
-        <div className="bg-[#161616] rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+        <div className="bg-surface-dark rounded-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
           {/* Header - Fixed: Title and icons on same line */}
-          <div className="sticky top-0 bg-gray-100 p-3 sm:p-4 flex justify-between items-center border-b">
-            <h3 className="font-semibold text-gray-900 text-base sm:text-lg">E-Invoice Preview</h3>
+          <div className="sticky top-0 bg-surface-card p-3 sm:p-4 flex justify-between items-center border-b">
+            <h3 className="font-semibold text-content-primary text-base sm:text-lg">E-Invoice Preview</h3>
             <div className="flex gap-2 items-center">
               <button
-                onClick={() => setShowEmailModal(true)}
-                className="p-2 bg-gray-600 hover:bg-gray-700 rounded-lg text-white transition-colors"
+                onClick={openEmailModal}
+                className="p-2 bg-surface-button hover:bg-surface-button-hover rounded-lg text-content-secondary transition-colors"
                 title="Send Invoice via Email"
               >
                 <Mail size={18} />
               </button>
               <button
                 onClick={handleDownload}
-                className="p-2 bg-gray-600 hover:bg-gray-700 rounded-lg text-white transition-colors"
+                className="p-2 bg-surface-button hover:bg-surface-button-hover rounded-lg text-content-secondary transition-colors"
                 title="Download Invoice"
               >
                 <Download size={18} />
               </button>
               <button
                 onClick={handlePrint}
-                className="p-2 bg-gray-600 hover:bg-gray-700 rounded-lg text-white transition-colors"
+                className="p-2 bg-surface-button hover:bg-surface-button-hover rounded-lg text-content-secondary transition-colors"
                 title="Print Invoice"
               >
                 <Printer size={18} />
               </button>
               <button
                 onClick={onClose}
-                className="p-2 cursor-pointer text-black hover:bg-gray-800 rounded-lg hover:text-white transition-colors"
+                className="p-2 cursor-pointer text-content-primary hover:bg-surface-hover rounded-lg hover:text-content-primary transition-colors"
               >
                 <X size={18} />
               </button>
@@ -236,43 +269,43 @@ const InvoicePreviewModal = ({ sale, onClose }) => {
 
           <div className="flex-1 overflow-y-auto custom-scrollbar p-3 sm:p-6">
             {/* Invoice Document Preview - Receipt Style */}
-            <div className="bg-white border border-gray-300 rounded-lg p-4 sm:p-6 w-full max-w-[320px] sm:max-w-[400px] mx-auto shadow-lg font-mono text-xs sm:text-sm">
+            <div className="bg-white border border-border rounded-lg p-4 sm:p-6 w-full max-w-[320px] sm:max-w-[400px] mx-auto shadow-lg font-mono text-xs sm:text-sm">
 
               {/* Logo & Header */}
-              <div className="text-center border-b border-dashed border-gray-400 pb-3 mb-3">
+              <div className="text-center border-b border-dashed border-border pb-3 mb-3">
                 {/* Dummy Logo */}
-                <div className="w-20 h-20 sm:w-28 sm:h-28 mx-auto mb-3 bg-gray-200 rounded-lg flex items-center justify-center">
-                  <span className="text-gray-500 text-xs sm:text-sm">LOGO</span>
+                <div className="w-20 h-20 sm:w-28 sm:h-28 mx-auto mb-3 bg-surface-dark rounded-lg flex items-center justify-center">
+                  <span className="text-content-faint text-xs sm:text-sm">LOGO</span>
                 </div>
-                <h1 className="text-lg sm:text-2xl font-bold text-gray-900 mb-1">Fitness Studio Pro</h1>
-                <p className="text-gray-600 text-[10px] sm:text-xs">123 Fitness Street, Health City 12345</p>
-                <p className="text-gray-600 text-[10px] sm:text-xs">VAT ID: DE123456789</p>
+                <h1 className="text-lg sm:text-2xl font-bold text-content-primary mb-1">Fitness Studio Pro</h1>
+                <p className="text-content-faint text-[10px] sm:text-xs">123 Fitness Street, Health City 12345</p>
+                <p className="text-content-faint text-[10px] sm:text-xs">VAT ID: DE123456789</p>
               </div>
 
               {/* Invoice Info */}
-              <div className="border-b border-dashed border-gray-400 pb-3 mb-3">
+              <div className="border-b border-dashed border-border pb-3 mb-3">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Invoice:</span>
-                  <span className="text-gray-900 font-semibold">{sale.id}</span>
+                  <span className="text-content-faint">Invoice:</span>
+                  <span className="text-content-primary font-semibold">{sale.id}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Date:</span>
-                  <span className="text-gray-900">{sale.date}</span>
+                  <span className="text-content-faint">Date:</span>
+                  <span className="text-content-primary">{sale.date}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Terminal:</span>
-                  <span className="text-gray-900">Fitness Studio Pro</span>
+                  <span className="text-content-faint">Terminal:</span>
+                  <span className="text-content-primary">Fitness Studio Pro</span>
                 </div>
                 {sale.member && sale.member !== "No Member" && (
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Member:</span>
-                    <span className="text-gray-900">{sale.member}</span>
+                    <span className="text-content-faint">Member:</span>
+                    <span className="text-content-primary">{sale.member}</span>
                   </div>
                 )}
               </div>
 
               {/* Items */}
-              <div className="border-b border-dashed border-gray-400 pb-3 mb-3">
+              <div className="border-b border-dashed border-border pb-3 mb-3">
                 {sale.items.map((item, idx) => {
                   const itemTotal = (item.price || 0) * item.quantity
                   const vatRate = item.vatRate || 19
@@ -280,12 +313,12 @@ const InvoicePreviewModal = ({ sale, onClose }) => {
                   const vatAmount = itemTotal - netAmount
                   return (
                     <div key={idx} className="mb-2">
-                      <div className="text-gray-900 font-medium truncate">{item.name}</div>
-                      <div className="flex justify-between text-gray-600">
+                      <div className="text-content-primary font-medium truncate">{item.name}</div>
+                      <div className="flex justify-between text-content-faint">
                         <span>{item.quantity} x {formatCurrency(item.price || 0)}</span>
-                        <span className="text-gray-900">{formatCurrency(itemTotal)}</span>
+                        <span className="text-content-primary">{formatCurrency(itemTotal)}</span>
                       </div>
-                      <div className="text-gray-500 text-[10px] sm:text-xs">
+                      <div className="text-content-faint text-[10px] sm:text-xs">
                         Net: {formatCurrency(netAmount)} | VAT {vatRate}%: {formatCurrency(vatAmount)}
                       </div>
                     </div>
@@ -294,7 +327,7 @@ const InvoicePreviewModal = ({ sale, onClose }) => {
               </div>
 
               {/* Totals */}
-              <div className="border-b border-dashed border-gray-400 pb-3 mb-3">
+              <div className="border-b border-dashed border-border pb-3 mb-3">
                 {(() => {
                   let totalNet = 0
                   let totalVat19 = 0
@@ -319,24 +352,24 @@ const InvoicePreviewModal = ({ sale, onClose }) => {
                   return (
                     <>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Net:</span>
-                        <span className="text-gray-900">{formatCurrency(totalNet)}</span>
+                        <span className="text-content-faint">Net:</span>
+                        <span className="text-content-primary">{formatCurrency(totalNet)}</span>
                       </div>
                       {totalVat19 > 0 && (
                         <div className="flex justify-between">
-                          <span className="text-gray-600">VAT 19%:</span>
-                          <span className="text-gray-900">{formatCurrency(totalVat19)}</span>
+                          <span className="text-content-faint">VAT 19%:</span>
+                          <span className="text-content-primary">{formatCurrency(totalVat19)}</span>
                         </div>
                       )}
                       {totalVat7 > 0 && (
                         <div className="flex justify-between">
-                          <span className="text-gray-600">VAT 7%:</span>
-                          <span className="text-gray-900">{formatCurrency(totalVat7)}</span>
+                          <span className="text-content-faint">VAT 7%:</span>
+                          <span className="text-content-primary">{formatCurrency(totalVat7)}</span>
                         </div>
                       )}
                       <div className="flex justify-between font-bold text-sm sm:text-base mt-1">
-                        <span className="text-gray-900">TOTAL:</span>
-                        <span className="text-gray-900">{formatCurrency(totalGross)}</span>
+                        <span className="text-content-primary">TOTAL:</span>
+                        <span className="text-content-primary">{formatCurrency(totalGross)}</span>
                       </div>
                     </>
                   )
@@ -344,15 +377,15 @@ const InvoicePreviewModal = ({ sale, onClose }) => {
               </div>
 
               {/* Payment Method */}
-              <div className="border-b border-dashed border-gray-400 pb-3 mb-3">
+              <div className="border-b border-dashed border-border pb-3 mb-3">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Payment Method:</span>
-                  <span className="text-gray-900">{sale.paymentMethod}</span>
+                  <span className="text-content-faint">Payment Method:</span>
+                  <span className="text-content-primary">{sale.paymentMethod}</span>
                 </div>
               </div>
 
               {/* Footer */}
-              <div className="text-center text-gray-500 text-[10px] sm:text-xs">
+              <div className="text-center text-content-faint text-[10px] sm:text-xs">
                 <p>Thank you for your purchase!</p>
               </div>
 
@@ -360,6 +393,20 @@ const InvoicePreviewModal = ({ sale, onClose }) => {
           </div>
         </div>
       </div>
+
+      {showEmailModal && (
+        <div className="fixed inset-0" style={{ zIndex: 200000000 }}>
+          <SendEmailModal
+            showEmailModal={showEmailModal}
+            handleCloseEmailModal={() => setShowEmailModal(false)}
+            handleSendEmail={handleSendEmail}
+            emailData={emailData}
+            setEmailData={setEmailData}
+            handleSearchMemberForEmail={handleSearchMemberForEmail}
+            preselectedMember={preselectedMember}
+          />
+        </div>
+      )}
     </>
   )
 }

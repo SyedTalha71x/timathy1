@@ -269,6 +269,11 @@ const CheckFundsModal = ({
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+      <style>{`
+        .primary-check { appearance: none; -webkit-appearance: none; width: 1rem; height: 1rem; border-radius: 0.25rem; border: 1px solid var(--color-border); background: black; cursor: pointer; flex-shrink: 0; }
+        .primary-check:checked { background-color: var(--color-primary); border-color: var(--color-primary); background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3E%3C/svg%3E"); background-size: 100% 100%; background-position: center; background-repeat: no-repeat; }
+        .primary-check:focus { outline: none; box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 40%, transparent); }
+      `}</style>
       <div className="bg-surface-base rounded-xl w-full max-w-6xl max-h-[80vh] overflow-hidden flex flex-col mx-4">
         <div className="p-4 border-b border-border flex justify-between items-center">
           <h2 className="text-content-primary text-lg font-medium">
@@ -346,7 +351,7 @@ const CheckFundsModal = ({
                       <th className="px-1.5 py-2 w-8 rounded-tl-lg">
                         <input
                           type="checkbox"
-                          className="rounded bg-black border-border text-primary focus:ring-primary"
+                          className="primary-check"
                           checked={
                             sortedTransactions.length > 0 &&
                             sortedTransactions.every((tx) => selectedTransactions[tx.id])
@@ -492,7 +497,7 @@ const CheckFundsModal = ({
                           <td className="px-1.5 py-2">
                             <input
                               type="checkbox"
-                              className="rounded bg-black border-border text-primary focus:ring-primary"
+                              className="primary-check"
                               checked={isSelected || false}
                               onChange={() => handleToggleTransaction(tx.id)}
                             />

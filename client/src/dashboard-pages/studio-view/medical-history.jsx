@@ -594,7 +594,7 @@ const Assessment = () => {
                 </button>
                 
                 {/* Tooltip */}
-                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark/90 text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
                   <span className="font-medium">Grid View</span>
                   <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
                     V
@@ -616,7 +616,7 @@ const Assessment = () => {
                 </button>
                 
                 {/* Tooltip */}
-                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark/90 text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+                <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
                   <span className="font-medium">List View</span>
                   <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
                     V
@@ -638,7 +638,7 @@ const Assessment = () => {
               </button>
               
               {/* Tooltip - YouTube Style like Contract Builder */}
-              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark/90 text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
+              <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 bg-surface-dark text-content-primary px-3 py-1.5 rounded text-xs whitespace-nowrap opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex items-center gap-2 shadow-lg pointer-events-none">
                 <span className="font-medium">Create Medical History</span>
                 <span className="px-1.5 py-0.5 bg-white/20 rounded text-[11px] font-semibold border border-white/30 font-mono">
                   C
@@ -659,7 +659,7 @@ const Assessment = () => {
             placeholder="Search forms..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-surface-card outline-none text-sm text-content-primary rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-border focus:border-accent-blue transition-colors"
+            className="w-full bg-surface-card outline-none text-sm text-content-primary rounded-xl px-4 py-2 pl-9 sm:pl-10 border border-border focus:border-primary transition-colors"
           />
         </div>
       </div>
@@ -763,7 +763,7 @@ const Assessment = () => {
                 {/* Grid Card - Always on Mobile, on Desktop only if viewMode is grid */}
                 <div className={`${viewMode === 'list' ? 'flex md:hidden' : 'flex'} flex-col select-none h-full`}>
                   <div
-                    className={`bg-surface-hover rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border border-border-subtle hover:border-border-subtle p-4 md:p-6 relative h-full flex flex-col ${!isDragDisabled ? 'pl-10 md:pl-12' : ''}`}
+                    className={`bg-surface-card rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border border-border-subtle hover:border-border-subtle p-4 md:p-6 relative h-full flex flex-col ${!isDragDisabled ? 'pl-10 md:pl-12' : ''}`}
                   >
                   {/* Three dots dropdown */}
                   <div className="absolute top-3 right-3 md:top-4 md:right-4">
@@ -840,7 +840,7 @@ const Assessment = () => {
                       <button
                         onClick={(e) => toggleFormActive(form.id, e)}
                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                          form.active ? 'bg-primary' : 'bg-gray-600'
+                          form.active ? 'bg-primary' : 'bg-surface-button'
                         }`}
                       >
                         <span
@@ -860,7 +860,7 @@ const Assessment = () => {
                 {/* List Card - Desktop only, hidden on mobile */}
                 <div className={`${viewMode === 'list' ? 'hidden md:flex' : 'hidden'} items-start select-none`}>
                   <div
-                    className={`bg-surface-hover rounded-xl border border-border-subtle hover:border-border-subtle transition-all duration-200 p-4 w-full relative ${!isDragDisabled ? 'pl-10 md:pl-12' : ''}`}
+                    className={`bg-surface-card rounded-xl border border-border-subtle hover:border-border-subtle transition-all duration-200 p-4 w-full relative ${!isDragDisabled ? 'pl-10 md:pl-12' : ''}`}
                   >
                     {/* Icons Container - Right side, vertically centered */}
                     <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
@@ -870,7 +870,7 @@ const Assessment = () => {
                         <button
                           onClick={(e) => toggleFormActive(form.id, e)}
                           className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            form.active ? 'bg-primary' : 'bg-gray-600'
+                            form.active ? 'bg-primary' : 'bg-surface-button'
                           }`}
                         >
                           <span

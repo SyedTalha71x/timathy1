@@ -1,10 +1,11 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable react/prop-types */
-import { X, FileText, Download, Calendar, ChevronDown, ArrowUp, ArrowDown, ArrowUpDown, Info } from "lucide-react"
+import { X, FileText, Download, Calendar, ChevronDown, ArrowUp, ArrowDown, ArrowUpDown, Info, Search } from "lucide-react"
 import { useEffect, useState, useRef, useMemo } from "react"
 import * as XLSX from 'xlsx'
 import CancelSaleConfirmationModal from "./cancel-sale-confirmation-modal"
 import InvoicePreviewModal from "./invoice-preview-modal"
+import DatePickerField from "../../shared/DatePickerField"
 
 // Export Confirmation Modal Component
 const ExportConfirmationModal = ({ isOpen, onClose, onConfirm, salesCount, totalAmount, selectedPeriod }) => {
@@ -12,42 +13,42 @@ const ExportConfirmationModal = ({ isOpen, onClose, onConfirm, salesCount, total
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[10000002] p-4">
-      <div className="bg-[#1C1C1C] rounded-xl w-full max-w-md p-6">
+      <div className="bg-surface-base rounded-xl w-full max-w-md p-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-white text-lg font-medium">Confirm Export</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white">
+          <h2 className="text-content-primary text-lg font-medium">Confirm Export</h2>
+          <button onClick={onClose} className="text-content-muted hover:text-content-primary">
             <X className="w-5 h-5" />
           </button>
         </div>
         <div className="mb-6">
-          <p className="text-gray-300 mb-4">Are you sure you want to export the sales data as Excel?</p>
+          <p className="text-content-secondary mb-4">Are you sure you want to export the sales data as Excel?</p>
           
           {/* Export Details */}
           <div className="space-y-2">
             {/* Selected Period Display */}
-            <div className="bg-[#141414] p-3 rounded-lg flex items-center gap-3">
-              <Calendar className="w-4 h-4 text-gray-400" />
+            <div className="bg-surface-dark p-3 rounded-lg flex items-center gap-3">
+              <Calendar className="w-4 h-4 text-content-muted" />
               <div>
-                <p className="text-gray-400 text-xs">Export Period</p>
-                <p className="text-white text-sm font-medium">{selectedPeriod || "Overall"}</p>
+                <p className="text-content-muted text-xs">Export Period</p>
+                <p className="text-content-primary text-sm font-medium">{selectedPeriod || "Overall"}</p>
               </div>
             </div>
             
             {/* Record Count Display */}
-            <div className="bg-[#141414] p-3 rounded-lg flex items-center gap-3">
-              <FileText className="w-4 h-4 text-gray-400" />
+            <div className="bg-surface-dark p-3 rounded-lg flex items-center gap-3">
+              <FileText className="w-4 h-4 text-content-muted" />
               <div>
-                <p className="text-gray-400 text-xs">Records</p>
-                <p className="text-white text-sm font-medium">{salesCount} {salesCount === 1 ? 'transaction' : 'transactions'}</p>
+                <p className="text-content-muted text-xs">Records</p>
+                <p className="text-content-primary text-sm font-medium">{salesCount} {salesCount === 1 ? 'transaction' : 'transactions'}</p>
               </div>
             </div>
 
             {/* Total Amount Display */}
-            <div className="bg-[#141414] p-3 rounded-lg flex items-center gap-3">
-              <Download className="w-4 h-4 text-gray-400" />
+            <div className="bg-surface-dark p-3 rounded-lg flex items-center gap-3">
+              <Download className="w-4 h-4 text-content-muted" />
               <div>
-                <p className="text-gray-400 text-xs">Total Amount</p>
-                <p className="text-white text-sm font-medium">${totalAmount.toFixed(2)}</p>
+                <p className="text-content-muted text-xs">Total Amount</p>
+                <p className="text-content-primary text-sm font-medium">${totalAmount.toFixed(2)}</p>
               </div>
             </div>
           </div>
@@ -55,7 +56,7 @@ const ExportConfirmationModal = ({ isOpen, onClose, onConfirm, salesCount, total
         <div className="flex gap-3">
           <button
             onClick={onClose}
-            className="flex-1 bg-[#2F2F2F] text-white px-4 py-2.5 rounded-xl hover:bg-[#3F3F3F] transition-colors"
+            className="flex-1 bg-surface-button text-content-secondary px-4 py-2.5 rounded-xl hover:bg-surface-button-hover transition-colors"
           >
             Cancel
           </button>
@@ -64,7 +65,7 @@ const ExportConfirmationModal = ({ isOpen, onClose, onConfirm, salesCount, total
               onConfirm()
               onClose()
             }}
-            className="flex-1 bg-gray-600 text-white px-4 py-2.5 rounded-xl hover:bg-gray-700 transition-colors"
+            className="flex-1 bg-surface-button text-content-secondary px-4 py-2.5 rounded-xl hover:bg-surface-dark transition-colors"
           >
             Export
           </button>
@@ -88,6 +89,13 @@ const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice,
   const [customDateRange, setCustomDateRange] = useState(null)
   const periodDropdownRef = useRef(null)
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 })
+  
+  // Member search state (like members.jsx)
+  const [memberSearchQuery, setMemberSearchQuery] = useState("")
+  const [showMemberDropdown, setShowMemberDropdown] = useState(false)
+  const [showNoMembersOnly, setShowNoMembersOnly] = useState(false)
+  const memberSearchRef = useRef(null)
+  const memberInputRef = useRef(null)
   
   // Sorting state
   const [sortBy, setSortBy] = useState("date")
@@ -211,6 +219,27 @@ const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice,
     }
   }
 
+  // Get unique member names for autocomplete suggestions
+  const getMemberSuggestions = () => {
+    if (!memberSearchQuery.trim()) return []
+    const uniqueMembers = [...new Set(salesHistory.map(s => s.member))].filter(m => m !== "No Member")
+    return uniqueMembers
+      .filter(m => m.toLowerCase().includes(memberSearchQuery.toLowerCase()))
+      .filter(m => m.toLowerCase() !== salesFilter.member.toLowerCase())
+      .slice(0, 6)
+  }
+
+  // Close member dropdown on outside click
+  useEffect(() => {
+    const handler = (e) => {
+      if (memberSearchRef.current && !memberSearchRef.current.contains(e.target)) {
+        setShowMemberDropdown(false)
+      }
+    }
+    document.addEventListener("mousedown", handler)
+    return () => document.removeEventListener("mousedown", handler)
+  }, [])
+
   useEffect(() => {
     let filtered = salesHistory
 
@@ -224,6 +253,11 @@ const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice,
     // Filter by member
     if (salesFilter.member) {
       filtered = filtered.filter((sale) => sale.member.toLowerCase().includes(salesFilter.member.toLowerCase()))
+    }
+
+    // Filter: show only "No Member" sales
+    if (showNoMembersOnly) {
+      filtered = filtered.filter((sale) => sale.member === "No Member")
     }
 
     // Filter by period/date range
@@ -245,7 +279,7 @@ const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice,
     }
 
     setFilteredSales(filtered)
-  }, [salesHistory, salesFilter, selectedPeriod, customDateRange])
+  }, [salesHistory, salesFilter, selectedPeriod, customDateRange, showNoMembersOnly])
 
   // Handle sorting
   const handleSort = (column) => {
@@ -259,11 +293,11 @@ const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice,
 
   const getSortIcon = (column) => {
     if (sortBy !== column) {
-      return <ArrowUpDown size={14} className="text-gray-500" />
+      return <ArrowUpDown size={14} className="text-content-faint" />
     }
     return sortDirection === "asc" 
-      ? <ArrowUp size={14} className="text-white" />
-      : <ArrowDown size={14} className="text-white" />
+      ? <ArrowUp size={14} className="text-content-primary" />
+      : <ArrowDown size={14} className="text-content-primary" />
   }
 
   // Sort filtered sales
@@ -466,7 +500,7 @@ const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice,
           />
           {/* Dropdown content */}
           <div 
-            className="fixed bg-[#1F1F1F] border border-gray-700 rounded-xl shadow-2xl max-h-[70vh] overflow-y-auto z-[10000002] w-[calc(100%-32px)] sm:w-[340px]"
+            className="fixed bg-surface-hover border border-border rounded-xl shadow-2xl max-h-[70vh] overflow-y-auto z-[10000002] w-[calc(100%-32px)] sm:w-[340px]"
             style={dropdownPosition.isMobile ? {
               top: dropdownPosition.top,
               left: dropdownPosition.left,
@@ -480,16 +514,16 @@ const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice,
           >
             {/* Preset Periods */}
             <div className="py-1">
-              <div className="px-3 py-1.5 text-xs text-gray-500 font-medium border-b border-gray-700 sticky top-0 bg-[#1F1F1F]">
+              <div className="px-3 py-1.5 text-xs text-content-faint font-medium border-b border-border sticky top-0 bg-surface-hover">
                 Select Period
               </div>
               {periodOptions.map((period) => (
                 <button
                   key={period}
-                  className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-800 transition-colors ${
+                  className={`w-full text-left px-4 py-2.5 text-sm hover:bg-surface-hover transition-colors ${
                     selectedPeriod === period && !selectedPeriod.startsWith("Custom:")
-                      ? 'text-white bg-gray-800/50' 
-                      : 'text-gray-300'
+                      ? 'text-content-primary bg-surface-dark/50' 
+                      : 'text-content-secondary'
                   }`}
                   onClick={(e) => {
                     e.stopPropagation()
@@ -502,10 +536,10 @@ const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice,
             </div>
             
             {/* Custom Period Section */}
-            <div className="border-t border-gray-700">
+            <div className="border-t border-border">
               <button
-                className={`w-full text-left px-4 py-2.5 text-sm hover:bg-gray-800 transition-colors flex items-center gap-2 ${
-                  isCustomPeriodExpanded || selectedPeriod.startsWith("Custom:") ? 'text-white bg-gray-800/50' : 'text-gray-300'
+                className={`w-full text-left px-4 py-2.5 text-sm hover:bg-surface-hover transition-colors flex items-center gap-2 ${
+                  isCustomPeriodExpanded || selectedPeriod.startsWith("Custom:") ? 'text-content-primary bg-surface-dark/50' : 'text-content-secondary'
                 }`}
                 onClick={handleCustomPeriodClick}
               >
@@ -515,36 +549,42 @@ const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice,
               
               {isCustomPeriodExpanded && (
                 <div 
-                  className="px-4 py-3 bg-[#141414] border-t border-gray-700"
+                  className="px-4 py-3 bg-surface-dark border-t border-border"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div className="flex flex-col gap-3">
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="block text-xs text-gray-500 mb-1">Start Date</label>
-                        <input
-                          type="date"
-                          value={customDates.startDate}
-                          onChange={(e) => setCustomDates((prev) => ({ ...prev, startDate: e.target.value }))}
-                          className="w-full bg-[#1C1C1C] text-white px-3 py-2 rounded-lg border border-gray-700 text-sm focus:border-[#3F74FF] focus:outline-none white-calendar-icon"
-                          onClick={(e) => e.stopPropagation()}
-                        />
+                        <label className="block text-xs text-content-faint mb-1">Start Date</label>
+                        <div className="flex items-center bg-surface-base px-3 py-2 rounded-lg border border-border focus-within:border-primary transition-colors">
+                          <span className="flex-1 text-sm text-content-primary">
+                            {customDates.startDate ? customDates.startDate.split('-').reverse().join('.') : <span className="text-content-faint">DD.MM.YYYY</span>}
+                          </span>
+                          <DatePickerField
+                            value={customDates.startDate}
+                            onChange={(v) => setCustomDates((prev) => ({ ...prev, startDate: v }))}
+                            iconSize={16}
+                          />
+                        </div>
                       </div>
                       <div>
-                        <label className="block text-xs text-gray-500 mb-1">End Date</label>
-                        <input
-                          type="date"
-                          value={customDates.endDate}
-                          onChange={(e) => setCustomDates((prev) => ({ ...prev, endDate: e.target.value }))}
-                          className="w-full bg-[#1C1C1C] text-white px-3 py-2 rounded-lg border border-gray-700 text-sm focus:border-[#3F74FF] focus:outline-none white-calendar-icon"
-                          onClick={(e) => e.stopPropagation()}
-                        />
+                        <label className="block text-xs text-content-faint mb-1">End Date</label>
+                        <div className="flex items-center bg-surface-base px-3 py-2 rounded-lg border border-border focus-within:border-primary transition-colors">
+                          <span className="flex-1 text-sm text-content-primary">
+                            {customDates.endDate ? customDates.endDate.split('-').reverse().join('.') : <span className="text-content-faint">DD.MM.YYYY</span>}
+                          </span>
+                          <DatePickerField
+                            value={customDates.endDate}
+                            onChange={(v) => setCustomDates((prev) => ({ ...prev, endDate: v }))}
+                            iconSize={16}
+                          />
+                        </div>
                       </div>
                     </div>
                     <button
                       onClick={handleApplyCustomPeriod}
                       disabled={!customDates.startDate || !customDates.endDate}
-                      className="w-full py-2 bg-[#3F74FF] text-white rounded-lg text-sm hover:bg-[#3F74FF]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full py-2 bg-primary text-white rounded-lg text-sm hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Apply
                     </button>
@@ -557,20 +597,20 @@ const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice,
       )}
 
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[10000000] p-2 sm:p-4">
-        <div className="bg-[#181818] rounded-xl w-full max-w-[95vw] sm:max-w-6xl max-h-[95vh] sm:max-h-[90vh] flex flex-col">
-          <div className="p-3 sm:p-6 border-b border-gray-700 flex-shrink-0">
+        <div className="bg-surface-base rounded-xl w-full max-w-[95vw] sm:max-w-6xl max-h-[95vh] sm:max-h-[90vh] flex flex-col">
+          <div className="p-3 sm:p-6 border-b border-border flex-shrink-0">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg sm:text-2xl font-bold text-white">Sales Journal</h2>
+              <h2 className="text-lg sm:text-2xl font-bold text-content-primary">Sales Journal</h2>
               <div className="flex gap-2 items-center">
                 <button
                   onClick={() => setExportModalOpen(true)}
-                  className="px-3 sm:px-4 py-2 bg-gray-600 rounded-lg text-white text-xs sm:text-sm flex items-center gap-2 hover:bg-gray-500 transition-colors"
+                  className="px-3 sm:px-4 py-2 bg-surface-button rounded-lg text-content-primary text-xs sm:text-sm flex items-center gap-2 hover:bg-surface-button-hover transition-colors"
                   title="Export to Excel"
                 >
                   <Download size={16} />
                   <span className="hidden sm:inline">Export Excel</span>
                 </button>
-                <button onClick={onClose} className="p-2 hover:bg-zinc-700 rounded-lg text-white">
+                <button onClick={onClose} className="p-2 hover:bg-surface-hover rounded-lg text-content-primary">
                   <X size={20} />
                 </button>
               </div>
@@ -579,11 +619,11 @@ const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice,
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-4">
               {/* Type Filter */}
               <div>
-                <label className="block text-xs sm:text-sm text-zinc-400 mb-1">Type</label>
+                <label className="block text-xs sm:text-sm text-content-faint mb-1">Type</label>
                 <select
                   value={salesFilter.type}
                   onChange={(e) => setSalesFilter({ ...salesFilter, type: e.target.value })}
-                  className="w-full p-2.5 bg-[#141414] rounded-xl text-white text-xs sm:text-sm border border-[#333333] focus:border-[#3F74FF] outline-none transition-colors"
+                  className="w-full p-2.5 bg-surface-dark rounded-xl text-content-primary text-xs sm:text-sm border border-border focus:border-primary outline-none transition-colors"
                 >
                   <option value="all">All Types</option>
                   <option value="service">Service</option>
@@ -592,28 +632,106 @@ const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice,
               </div>
               
               {/* Member Filter */}
-              <div>
-                <label className="block text-xs sm:text-sm text-zinc-400 mb-1">Member</label>
-                <input
-                  type="text"
-                  value={salesFilter.member}
-                  onChange={(e) => setSalesFilter({ ...salesFilter, member: e.target.value })}
-                  placeholder="Search member..."
-                  className="w-full p-2.5 bg-[#141414] rounded-xl text-white text-xs sm:text-sm border border-[#333333] focus:border-[#3F74FF] outline-none transition-colors"
-                />
+              <div ref={memberSearchRef}>
+                <label className="block text-xs sm:text-sm text-content-faint mb-1">Member</label>
+                <div className="relative">
+                  <div
+                    className="bg-surface-dark rounded-xl px-2.5 py-2 min-h-[42px] flex flex-wrap items-center gap-1.5 border border-border focus-within:border-primary transition-colors cursor-text"
+                    onClick={() => memberInputRef.current?.focus()}
+                  >
+                    <Search className="text-content-muted flex-shrink-0" size={14} />
+                    
+                    {/* Selected member chip */}
+                    {salesFilter.member && (
+                      <div className="flex items-center gap-1.5 bg-primary/20 border border-primary/40 rounded-lg px-2 py-0.5 text-xs">
+                        <div className="w-4 h-4 rounded bg-primary flex items-center justify-center text-white text-[8px] font-semibold flex-shrink-0">
+                          {salesFilter.member.split(' ')[0]?.charAt(0)}{salesFilter.member.split(' ')[1]?.charAt(0) || ''}
+                        </div>
+                        <span className="text-content-primary whitespace-nowrap">{salesFilter.member}</span>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setSalesFilter({ ...salesFilter, member: "" }) }}
+                          className="p-0.5 hover:bg-primary/30 rounded transition-colors"
+                        >
+                          <X size={10} className="text-content-muted" />
+                        </button>
+                      </div>
+                    )}
+                    
+                    <input
+                      ref={memberInputRef}
+                      type="text"
+                      placeholder={salesFilter.member ? "" : "Search member..."}
+                      value={memberSearchQuery}
+                      onChange={(e) => { setMemberSearchQuery(e.target.value); setShowMemberDropdown(true) }}
+                      onFocus={() => memberSearchQuery && setShowMemberDropdown(true)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Backspace' && !memberSearchQuery && salesFilter.member) {
+                          setSalesFilter({ ...salesFilter, member: "" })
+                        } else if (e.key === 'Escape') {
+                          setShowMemberDropdown(false)
+                        }
+                      }}
+                      className="flex-1 min-w-[60px] bg-transparent outline-none text-xs sm:text-sm text-content-primary placeholder-content-faint"
+                    />
+                  </div>
+                  
+                  {/* Autocomplete dropdown */}
+                  {showMemberDropdown && memberSearchQuery.trim() && getMemberSuggestions().length > 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-surface-hover border border-border rounded-xl shadow-lg z-50 overflow-hidden">
+                      {getMemberSuggestions().map((name) => (
+                        <button
+                          key={name}
+                          onClick={() => {
+                            setSalesFilter({ ...salesFilter, member: name })
+                            setMemberSearchQuery("")
+                            setShowMemberDropdown(false)
+                            setShowNoMembersOnly(false)
+                          }}
+                          className="w-full px-3 py-2 flex items-center gap-2 hover:bg-surface-button transition-colors text-left"
+                        >
+                          <div className="w-6 h-6 rounded-lg bg-primary flex items-center justify-center text-white text-[10px] font-semibold">
+                            {name.split(' ')[0]?.charAt(0)}{name.split(' ')[1]?.charAt(0) || ''}
+                          </div>
+                          <span className="text-sm text-content-primary">{name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {showMemberDropdown && memberSearchQuery.trim() && getMemberSuggestions().length === 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-surface-hover border border-border rounded-xl shadow-lg z-50 p-3">
+                      <p className="text-xs text-content-faint text-center">No members found</p>
+                    </div>
+                  )}
+                </div>
+                
+                {/* No Member toggle */}
+                <button
+                  onClick={() => {
+                    setShowNoMembersOnly(!showNoMembersOnly)
+                    if (!showNoMembersOnly) { setSalesFilter({ ...salesFilter, member: "" }); setMemberSearchQuery("") }
+                  }}
+                  className={`mt-1.5 text-xs px-2 py-1 rounded-lg transition-colors ${
+                    showNoMembersOnly 
+                      ? 'bg-primary/20 text-primary border border-primary/40' 
+                      : 'text-content-faint hover:text-content-muted'
+                  }`}
+                >
+                  {showNoMembersOnly ? '✕ No Member filter' : 'Show No Member only'}
+                </button>
               </div>
               
               {/* Period Picker */}
               <div>
-                <label className="block text-xs sm:text-sm text-zinc-400 mb-1">Period</label>
+                <label className="block text-xs sm:text-sm text-content-faint mb-1">Period</label>
                 <div className="relative" ref={periodDropdownRef}>
                   <button
                     onClick={() => setPeriodDropdownOpen(!periodDropdownOpen)}
-                    className="w-full bg-[#141414] text-white px-3 py-2.5 rounded-xl border border-[#333333] hover:border-[#3F74FF] flex items-center gap-2 text-xs sm:text-sm transition-colors"
+                    className="w-full bg-surface-dark text-content-primary px-3 py-2.5 rounded-xl border border-border hover:border-primary flex items-center gap-2 text-xs sm:text-sm transition-colors"
                   >
-                    <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                    <Calendar className="w-4 h-4 text-content-muted flex-shrink-0" />
                     <span className="flex-1 text-left truncate">{selectedPeriod}</span>
-                    <ChevronDown className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform ${periodDropdownOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown className={`w-4 h-4 text-content-muted flex-shrink-0 transition-transform ${periodDropdownOpen ? 'rotate-180' : ''}`} />
                   </button>
                 </div>
               </div>
@@ -622,10 +740,10 @@ const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice,
 
           <div className="overflow-x-auto overflow-y-auto flex-1">
             <table className="w-full min-w-[900px]">
-              <thead className="bg-black sticky top-0 z-10">
+              <thead className="bg-surface-dark sticky top-0 z-10">
                 <tr>
                   <th 
-                    className="text-left p-2 sm:p-4 text-zinc-400 text-xs sm:text-sm cursor-pointer hover:bg-[#1C1C1C] transition-colors"
+                    className="text-left p-2 sm:p-4 text-content-faint text-xs sm:text-sm cursor-pointer hover:bg-surface-base transition-colors"
                     onClick={() => handleSort("member")}
                   >
                     <div className="flex items-center gap-1">
@@ -633,7 +751,7 @@ const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice,
                     </div>
                   </th>
                   <th 
-                    className="text-left p-2 sm:p-4 text-zinc-400 text-xs sm:text-sm cursor-pointer hover:bg-[#1C1C1C] transition-colors"
+                    className="text-left p-2 sm:p-4 text-content-faint text-xs sm:text-sm cursor-pointer hover:bg-surface-base transition-colors"
                     onClick={() => handleSort("date")}
                   >
                     <div className="flex items-center gap-1">
@@ -641,7 +759,7 @@ const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice,
                     </div>
                   </th>
                   <th 
-                    className="text-left p-2 sm:p-4 text-zinc-400 text-xs sm:text-sm cursor-pointer hover:bg-[#1C1C1C] transition-colors"
+                    className="text-left p-2 sm:p-4 text-content-faint text-xs sm:text-sm cursor-pointer hover:bg-surface-base transition-colors"
                     onClick={() => handleSort("items")}
                   >
                     <div className="flex items-center gap-1">
@@ -649,7 +767,7 @@ const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice,
                     </div>
                   </th>
                   <th 
-                    className="text-left p-2 sm:p-4 text-zinc-400 text-xs sm:text-sm cursor-pointer hover:bg-[#1C1C1C] transition-colors"
+                    className="text-left p-2 sm:p-4 text-content-faint text-xs sm:text-sm cursor-pointer hover:bg-surface-base transition-colors"
                     onClick={() => handleSort("type")}
                   >
                     <div className="flex items-center gap-1">
@@ -657,7 +775,7 @@ const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice,
                     </div>
                   </th>
                   <th 
-                    className="text-left p-2 sm:p-4 text-zinc-400 text-xs sm:text-sm cursor-pointer hover:bg-[#1C1C1C] transition-colors min-w-[130px]"
+                    className="text-left p-2 sm:p-4 text-content-faint text-xs sm:text-sm cursor-pointer hover:bg-surface-base transition-colors min-w-[130px]"
                     onClick={() => handleSort("total")}
                   >
                     <div className="flex items-center gap-1">
@@ -665,7 +783,7 @@ const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice,
                     </div>
                   </th>
                   <th 
-                    className="text-left p-2 sm:p-4 text-zinc-400 text-xs sm:text-sm cursor-pointer hover:bg-[#1C1C1C] transition-colors"
+                    className="text-left p-2 sm:p-4 text-content-faint text-xs sm:text-sm cursor-pointer hover:bg-surface-base transition-colors"
                     onClick={() => handleSort("payment")}
                   >
                     <div className="flex items-center gap-1">
@@ -673,14 +791,14 @@ const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice,
                     </div>
                   </th>
                   <th 
-                    className="text-left p-2 sm:p-4 text-zinc-400 text-xs sm:text-sm cursor-pointer hover:bg-[#1C1C1C] transition-colors"
+                    className="text-left p-2 sm:p-4 text-content-faint text-xs sm:text-sm cursor-pointer hover:bg-surface-base transition-colors"
                     onClick={() => handleSort("staff")}
                   >
                     <div className="flex items-center gap-1">
                       Staff {getSortIcon("staff")}
                     </div>
                   </th>
-                  <th className="text-left p-2 sm:p-4 text-zinc-400 text-xs sm:text-sm">Actions</th>
+                  <th className="text-left p-2 sm:p-4 text-content-faint text-xs sm:text-sm">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -719,26 +837,26 @@ const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice,
                   return (
                   <tr 
                     key={sale.id} 
-                    className={`border-b border-gray-700 hover:bg-zinc-800/50 ${
+                    className={`border-b border-border hover:bg-surface-hover ${
                       isCancellation ? 'bg-red-900/20' : ''
-                    } ${isCancelled ? 'text-zinc-500' : ''}`}
+                    } ${isCancelled ? 'text-content-faint' : ''}`}
                   >
                     <td className="p-2 sm:p-4">
-                      <div className={`text-xs sm:text-sm ${isCancellation ? 'text-red-400' : isCancelled ? 'text-zinc-500' : 'text-white'}`}>
+                      <div className={`text-xs sm:text-sm ${isCancellation ? 'text-red-400' : isCancelled ? 'text-content-faint' : 'text-content-primary'}`}>
                         {sale.member}
-                        {isCancelled && <span className="ml-2 text-xs bg-gray-600 px-1.5 py-0.5 rounded">CANCELLED</span>}
+                        {isCancelled && <span className="ml-2 text-xs bg-surface-button px-1.5 py-0.5 rounded">CANCELLED</span>}
                       </div>
                       {sale.member !== "No Member" && sale.memberType !== "N/A" && (
-                        <div className={`text-xs ${isCancelled ? 'text-zinc-600' : 'text-zinc-400'}`}>{sale.memberType}</div>
+                        <div className={`text-xs ${isCancelled ? 'text-content-faint' : 'text-content-faint'}`}>{sale.memberType}</div>
                       )}
                     </td>
-                    <td className={`p-2 sm:p-4 text-xs sm:text-sm ${isCancelled ? 'text-zinc-500' : 'text-zinc-300'}`}>{sale.date}</td>
+                    <td className={`p-2 sm:p-4 text-xs sm:text-sm ${isCancelled ? 'text-content-faint' : 'text-content-secondary'}`}>{sale.date}</td>
                     <td className="p-2 sm:p-4">
                       <div className="space-y-1">
                         {sale.items.map((item, idx) => (
                           <div key={idx} className="text-xs sm:text-sm">
-                            <span className={isCancellation ? 'text-red-400' : isCancelled ? 'text-zinc-500' : 'text-white'}>{item.name}</span>
-                            <span className={`ml-2 ${isCancelled ? 'text-zinc-600' : 'text-zinc-400'}`}>x{item.quantity}</span>
+                            <span className={isCancellation ? 'text-red-400' : isCancelled ? 'text-content-faint' : 'text-content-primary'}>{item.name}</span>
+                            <span className={`ml-2 ${isCancelled ? 'text-content-faint' : 'text-content-faint'}`}>x{item.quantity}</span>
                           </div>
                         ))}
                       </div>
@@ -747,7 +865,7 @@ const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice,
                       <div className="space-y-1">
                         {sale.items.map((item, idx) => (
                           <div key={idx} className="text-xs mt-3">
-                            <span className={`px-1 sm:px-2 py-1 rounded text-xs ${isCancelled ? 'bg-gray-700 text-zinc-400' : 'bg-gray-600 text-white'}`}>
+                            <span className={`px-1 sm:px-2 py-1 rounded text-xs ${isCancelled ? 'bg-surface-dark text-content-faint' : 'bg-surface-button text-content-secondary'}`}>
                               {item.type}
                             </span>
                           </div>
@@ -761,7 +879,7 @@ const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice,
                         onMouseLeave={() => setActiveVatTooltip(null)}
                       >
                         <span className={`font-semibold text-xs sm:text-sm ${
-                          sale.totalAmount < 0 ? 'text-red-400' : isCancelled ? 'text-zinc-400' : 'text-white'
+                          sale.totalAmount < 0 ? 'text-red-400' : isCancelled ? 'text-content-faint' : 'text-content-primary'
                         }`}>
                           {sale.totalAmount < 0 ? '-' : ''}${Math.abs(sale.totalAmount).toFixed(2)}
                         </span>
@@ -770,7 +888,7 @@ const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice,
                             e.stopPropagation()
                             setActiveVatTooltip(activeVatTooltip === sale.id ? null : sale.id)
                           }}
-                          className="text-zinc-500 hover:text-zinc-300 cursor-pointer p-0.5"
+                          className="text-content-faint hover:text-content-secondary cursor-pointer p-0.5"
                         >
                           <Info size={14} />
                         </button>
@@ -782,28 +900,28 @@ const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice,
                             }`}
                             onClick={(e) => e.stopPropagation()}
                           >
-                            <div className="bg-[#0a0a0a] border border-gray-500 rounded-lg p-3 shadow-2xl min-w-[180px]">
-                              <div className="text-xs text-gray-400 mb-2 font-medium">VAT Breakdown</div>
+                            <div className="bg-surface-dark border border-border rounded-lg p-3 shadow-2xl min-w-[180px]">
+                              <div className="text-xs text-content-muted mb-2 font-medium">VAT Breakdown</div>
                               <div className="space-y-1 text-xs">
                                 <div className="flex justify-between">
-                                  <span className="text-gray-400">Net:</span>
-                                  <span className="text-white">${vatBreakdown.totalNet.toFixed(2)}</span>
+                                  <span className="text-content-muted">Net:</span>
+                                  <span className="text-content-primary">${vatBreakdown.totalNet.toFixed(2)}</span>
                                 </div>
                                 {vatBreakdown.totalVat19 > 0 && (
                                   <div className="flex justify-between">
-                                    <span className="text-gray-400">VAT 19%:</span>
-                                    <span className="text-white">${vatBreakdown.totalVat19.toFixed(2)}</span>
+                                    <span className="text-content-muted">VAT 19%:</span>
+                                    <span className="text-content-primary">${vatBreakdown.totalVat19.toFixed(2)}</span>
                                   </div>
                                 )}
                                 {vatBreakdown.totalVat7 > 0 && (
                                   <div className="flex justify-between">
-                                    <span className="text-gray-400">VAT 7%:</span>
-                                    <span className="text-white">${vatBreakdown.totalVat7.toFixed(2)}</span>
+                                    <span className="text-content-muted">VAT 7%:</span>
+                                    <span className="text-content-primary">${vatBreakdown.totalVat7.toFixed(2)}</span>
                                   </div>
                                 )}
-                                <div className="flex justify-between border-t border-gray-600 pt-1 mt-1">
-                                  <span className="text-gray-300 font-medium">Gross:</span>
-                                  <span className="text-white font-medium">${vatBreakdown.totalGross.toFixed(2)}</span>
+                                <div className="flex justify-between border-t border-border pt-1 mt-1">
+                                  <span className="text-content-secondary font-medium">Gross:</span>
+                                  <span className="text-content-primary font-medium">${vatBreakdown.totalGross.toFixed(2)}</span>
                                 </div>
                               </div>
                             </div>
@@ -811,14 +929,14 @@ const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice,
                         )}
                       </div>
                     </td>
-                    <td className={`p-2 sm:p-4 text-xs sm:text-sm ${isCancelled ? 'text-zinc-500' : 'text-zinc-300'}`}>{sale.paymentMethod}</td>
-                    <td className={`p-2 sm:p-4 text-xs sm:text-sm ${isCancelled ? 'text-zinc-500' : 'text-zinc-300'}`}>{sale.soldBy || '-'}</td>
+                    <td className={`p-2 sm:p-4 text-xs sm:text-sm ${isCancelled ? 'text-content-faint' : 'text-content-secondary'}`}>{sale.paymentMethod}</td>
+                    <td className={`p-2 sm:p-4 text-xs sm:text-sm ${isCancelled ? 'text-content-faint' : 'text-content-secondary'}`}>{sale.soldBy || '-'}</td>
                     <td className="p-2 sm:p-4">
                       <div className="flex gap-1 sm:gap-2">
                         {!isCancellation && (
                           <button
                             onClick={() => handleViewInvoice(sale)}
-                            className="p-1 sm:p-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-xs flex items-center justify-center"
+                            className="p-1 sm:p-2 bg-primary hover:bg-primary-hover rounded-lg text-white text-xs flex items-center justify-center"
                             title="View E-Invoice"
                           >
                             <FileText size={16} />
@@ -827,7 +945,7 @@ const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice,
                         {sale.canCancel && !isCancellation && (
                           <button
                             onClick={() => handleCancelSaleClick(sale)}
-                            className="p-1 sm:p-2 bg-orange-500 hover:bg-orange-600 rounded-lg text-white text-xs flex items-center justify-center"
+                            className="p-1 sm:p-2 bg-primary hover:bg-primary-hover rounded-lg text-white text-xs flex items-center justify-center"
                             title="Cancel Sale (24h limit)"
                           >
                             <X size={16} />
@@ -841,7 +959,7 @@ const SalesJournalModal = ({ salesHistory, onClose, cancelSale, downloadInvoice,
             </table>
 
             {sortedSales.length === 0 && (
-              <div className="text-center py-8 text-zinc-400 text-sm">No sales found matching the current filters.</div>
+              <div className="text-center py-8 text-content-faint text-sm">No sales found matching the current filters.</div>
             )}
           </div>
         </div>
